@@ -39,6 +39,15 @@ export default function MapPage() {
 
     mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+    mapRef.current.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+      }),
+      'bottom-right',
+    );
+
     return () => {
       mapRef.current?.remove();
       mapRef.current = null;

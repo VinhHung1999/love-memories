@@ -127,14 +127,14 @@ function MomentCard({ moment, index }: { moment: Moment; index: number }) {
         <div className="p-4">
           <h3 className="font-heading font-semibold text-lg truncate">{moment.title}</h3>
           <div className="flex items-center gap-3 mt-2 text-text-light text-xs">
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 flex-shrink-0">
               <Calendar className="w-3 h-3" />
               {format(new Date(moment.date), 'MMM d, yyyy')}
             </span>
             {moment.location && (
-              <span className="flex items-center gap-1 truncate">
-                <MapPin className="w-3 h-3" />
-                {moment.location}
+              <span className="flex items-center gap-1 min-w-0 truncate">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{moment.location}</span>
               </span>
             )}
           </div>
