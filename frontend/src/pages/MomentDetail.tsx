@@ -15,6 +15,7 @@ export default function MomentDetail() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | undefined>(undefined);
 
   const { data: moment, isLoading } = useQuery({
@@ -63,30 +64,50 @@ export default function MomentDetail() {
   if (isLoading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-gray-200 rounded-2xl" /><div className="h-8 bg-gray-200 rounded w-1/3" /></div>;
   if (!moment) return <div className="text-center py-16 text-text-light">Moment not found</div>;
 
+  const [heroPhoto, ...thumbPhotos] = moment.photos;
+
   return (
     <div className="max-w-4xl mx-auto">
       <button onClick={() => navigate('/moments')} className="flex items-center gap-2 text-text-light hover:text-primary mb-4 text-sm">
         <ArrowLeft className="w-4 h-4" /> Back to Moments
       </button>
 
-      {/* Photo Grid */}
-      {moment.photos.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-          {moment.photos.map((photo, i) => (
-            <div
-              key={photo.id}
-              className={`relative rounded-2xl overflow-hidden group cursor-pointer ${i === 0 ? 'col-span-2 row-span-2' : ''}`}
-              onClick={() => openGallery(i)}
+      {/* Photo Layout: hero + thumbnail strip */}
+      {heroPhoto && (
+        <div className="mb-6 space-y-2">
+          {/* Hero — first photo full width */}
+          <div
+            className="relative rounded-2xl overflow-hidden group cursor-pointer"
+            onClick={() => openGallery(0)}
+          >
+            <img src={heroPhoto.url} alt="" className="w-full h-64 md:h-80 object-cover" />
+            <button
+              onClick={(e) => { e.stopPropagation(); deletePhotoMutation.mutate(heroPhoto.id); }}
+              className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <img src={photo.url} alt="" className="w-full h-full object-cover min-h-[200px]" />
-              <button
-                onClick={(e) => { e.stopPropagation(); deletePhotoMutation.mutate(photo.id); }}
-                className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {/* Thumbnail strip */}
+          {thumbPhotos.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {thumbPhotos.map((photo, i) => (
+                <div
+                  key={photo.id}
+                  className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden group cursor-pointer"
+                  onClick={() => openGallery(i + 1)}
+                >
+                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deletePhotoMutation.mutate(photo.id); }}
+                    className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -121,7 +142,7 @@ export default function MomentDetail() {
               <Pencil className="w-5 h-5" />
             </button>
             <button
-              onClick={() => deleteMutation.mutate()}
+              onClick={() => setConfirmDelete(true)}
               className="text-red-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors"
             >
               <Trash2 className="w-5 h-5" />
@@ -154,6 +175,29 @@ export default function MomentDetail() {
                 {tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Delete confirmation */}
+        {confirmDelete && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-700 font-medium text-sm mb-1">Delete this moment?</p>
+            <p className="text-red-500 text-xs mb-3">This cannot be undone.</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="flex-1 border border-border rounded-lg py-2 text-sm hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="flex-1 bg-red-500 text-white rounded-lg py-2 text-sm hover:bg-red-600 disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         )}
       </div>
