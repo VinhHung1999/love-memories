@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
@@ -52,6 +52,24 @@ export default function Dashboard() {
             </Link>
           </motion.div>
         ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex gap-3 mb-8">
+        <Link
+          to="/moments?new=1"
+          className="flex-1 flex items-center justify-center gap-2 bg-primary text-white rounded-2xl py-3 text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          New Moment
+        </Link>
+        <Link
+          to="/foodspots?new=1"
+          className="flex-1 flex items-center justify-center gap-2 bg-secondary text-white rounded-2xl py-3 text-sm font-medium hover:bg-secondary/90 transition-colors shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          New Food Spot
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Camera, Plus, MapPin, Calendar, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -18,6 +18,14 @@ export default function MomentsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingMoment, setEditingMoment] = useState<Moment | null>(null);
   const [filterTag, setFilterTag] = useState('');
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setEditingMoment(null);
+      setShowForm(true);
+    }
+  }, [searchParams]);
 
   const { data: moments = [], isLoading } = useQuery({
     queryKey: ['moments'],

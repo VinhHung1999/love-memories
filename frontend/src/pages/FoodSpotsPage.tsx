@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Utensils, Plus, MapPin, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -17,6 +17,11 @@ export default function FoodSpotsPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [filterTag, setFilterTag] = useState('');
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') setShowForm(true);
+  }, [searchParams]);
 
   const { data: foodSpots = [], isLoading } = useQuery({
     queryKey: ['foodspots'],
