@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Calendar, MapPin, Tag, Trash2, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar, MapPin, Tag, Trash2, Pencil, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
 import PhotoGallery from '../components/PhotoGallery';
 import MomentEditModal from '../components/MomentEditModal';
+import Modal from '../components/Modal';
 
 export default function MomentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -178,29 +179,31 @@ export default function MomentDetail() {
           </div>
         )}
 
-        {/* Delete confirmation */}
-        {confirmDelete && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
-            <p className="text-red-700 font-medium text-sm mb-1">Delete this moment?</p>
-            <p className="text-red-500 text-xs mb-3">This cannot be undone.</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1 border border-border rounded-lg py-2 text-sm hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+      </div>
+
+      {confirmDelete && (
+        <Modal open={true} onClose={() => setConfirmDelete(false)} title="Delete Moment?">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 bg-red-50 rounded-xl p-4">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">Delete "{moment.title}"?</p>
+                <p>All photos will also be deleted. This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(false)} className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="flex-1 bg-red-500 text-white rounded-lg py-2 text-sm hover:bg-red-600 disabled:opacity-50"
+                className="flex-1 bg-red-500 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-red-600 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete Moment'}
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </Modal>
+      )}
 
       <PhotoGallery
         photos={moment.photos}

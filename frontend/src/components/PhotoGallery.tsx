@@ -13,7 +13,6 @@ export default function PhotoGallery({ photos, initialIndex, open, onClose }: Ph
   const touchStartX = useRef<number | undefined>(undefined);
   const touchStartY = useRef<number | undefined>(undefined);
 
-  // Sync with initialIndex when gallery opens
   useEffect(() => {
     if (open) setCurrentIndex(initialIndex);
   }, [open, initialIndex]);
@@ -26,7 +25,6 @@ export default function PhotoGallery({ photos, initialIndex, open, onClose }: Ph
     setCurrentIndex((i) => (i < photos.length - 1 ? i + 1 : 0));
   }, [photos.length]);
 
-  // Keyboard navigation
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -38,13 +36,8 @@ export default function PhotoGallery({ photos, initialIndex, open, onClose }: Ph
     return () => window.removeEventListener('keydown', handler);
   }, [open, prev, next, onClose]);
 
-  // Lock body scroll when open
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = open ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
@@ -64,31 +57,58 @@ export default function PhotoGallery({ photos, initialIndex, open, onClose }: Ph
     touchStartX.current = undefined;
     touchStartY.current = undefined;
 
-    // Swipe down to close
     if (deltaY > 80 && Math.abs(deltaY) > Math.abs(deltaX)) {
       onClose();
       return;
     }
-    // Swipe left/right to navigate
     if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
       if (deltaX < 0) next();
       else prev();
     }
   };
 
-  // Always render in DOM (keep refs alive), toggle visibility via CSS
   return (
     <div
-      className={`fixed inset-0 z-[70] bg-black flex items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center transition-opacity duration-300 ${
         open && photos.length > 0 ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
       onClick={onClose}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Sliding image strip */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="flex h-full items-center"
+          style={{
+            transform: `translateX(calc(-${currentIndex} * 100vw))`,
+            transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {photos.map((photo) => (
+            <div
+              key={photo.id}
+              className="flex-shrink-0 w-screen h-full flex items-center justify-center px-14 py-12"
+            >
+              <img
+                src={photo.url}
+                alt=""
+                className="max-w-full max-h-full object-contain select-none rounded-lg"
+                style={{
+                  touchAction: 'pinch-zoom',
+                  filter: 'drop-shadow(0 12px 40px rgba(0,0,0,0.6))',
+                }}
+                draggable={false}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Close button */}
       <button
-        className="absolute top-4 right-4 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors text-white"
+        className="absolute top-5 right-5 z-10 p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-white/20 transition-all"
         onClick={(e) => { e.stopPropagation(); onClose(); }}
       >
         <X className="w-5 h-5" />
@@ -96,7 +116,7 @@ export default function PhotoGallery({ photos, initialIndex, open, onClose }: Ph
 
       {/* Counter */}
       {photos.length > 0 && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 text-white/90 text-sm font-medium bg-black/40 px-3 py-1 rounded-full">
+        <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10 text-white/90 text-sm font-medium bg-white/10 backdrop-blur-sm border border-white/20 px-3.5 py-1.5 rounded-full">
           {currentIndex + 1} / {photos.length}
         </div>
       )}
@@ -104,45 +124,38 @@ export default function PhotoGallery({ photos, initialIndex, open, onClose }: Ph
       {/* Prev button */}
       {photos.length > 1 && (
         <button
-          className="absolute left-3 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors text-white"
+          className="absolute left-4 z-10 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-white/20 hover:scale-110 transition-all"
           onClick={(e) => { e.stopPropagation(); prev(); }}
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
-      )}
-
-      {/* Image */}
-      {photos.length > 0 && (
-        <img
-          src={photos[currentIndex]?.url}
-          alt=""
-          className="max-w-full max-h-full object-contain select-none"
-          style={{ touchAction: 'pinch-zoom' }}
-          onClick={(e) => e.stopPropagation()}
-          draggable={false}
-        />
       )}
 
       {/* Next button */}
       {photos.length > 1 && (
         <button
-          className="absolute right-3 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors text-white"
+          className="absolute right-4 z-10 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-white/20 hover:scale-110 transition-all"
           onClick={(e) => { e.stopPropagation(); next(); }}
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       )}
 
       {/* Dot indicators */}
       {photos.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
           {photos.map((_, i) => (
             <button
               key={i}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === currentIndex ? 'bg-white' : 'bg-white/40'
-              }`}
               onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
+              style={i === currentIndex ? {
+                boxShadow: '0 0 10px 2px rgba(255,255,255,0.7)',
+              } : {}}
+              className={`rounded-full transition-all duration-300 ${
+                i === currentIndex
+                  ? 'w-5 h-2 bg-white scale-110'
+                  : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+              }`}
             />
           ))}
         </div>

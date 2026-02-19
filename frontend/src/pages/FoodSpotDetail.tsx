@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, Tag, Trash2, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, AlertCircle, MapPin, Tag, Trash2, Pencil, Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
 import RatingStars from '../components/RatingStars';
 import PhotoGallery from '../components/PhotoGallery';
 import FoodSpotEditModal from '../components/FoodSpotEditModal';
+import Modal from '../components/Modal';
 
 export default function FoodSpotDetail() {
   const { id } = useParams<{ id: string }>();
@@ -178,29 +179,31 @@ export default function FoodSpotDetail() {
           </div>
         )}
 
-        {/* Delete confirmation */}
-        {confirmDelete && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
-            <p className="text-red-700 font-medium text-sm mb-1">Delete this food spot?</p>
-            <p className="text-red-500 text-xs mb-3">This cannot be undone.</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1 border border-border rounded-lg py-2 text-sm hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+      </div>
+
+      {confirmDelete && (
+        <Modal open={true} onClose={() => setConfirmDelete(false)} title="Delete Food Spot?">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 bg-red-50 rounded-xl p-4">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">Delete "{spot.name}"?</p>
+                <p>All photos will also be deleted. This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(false)} className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">Cancel</button>
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="flex-1 bg-red-500 text-white rounded-lg py-2 text-sm hover:bg-red-600 disabled:opacity-50"
+                className="flex-1 bg-red-500 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-red-600 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete Food Spot'}
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </Modal>
+      )}
 
       <PhotoGallery
         photos={spot.photos}
