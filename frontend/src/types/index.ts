@@ -63,11 +63,13 @@ export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 export interface Goal {
   id: string;
   title: string;
+  description: string | null;
   status: GoalStatus;
   priority: GoalPriority;
   assignee: string | null;
+  dueDate: string | null;
   order: number;
-  sprintId: string;
+  sprintId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,6 +77,7 @@ export interface Goal {
 export interface Sprint {
   id: string;
   name: string;
+  description: string | null;
   startDate: string;
   endDate: string;
   status: SprintStatus;

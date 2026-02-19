@@ -27,6 +27,7 @@ export const updateFoodSpotSchema = createFoodSpotSchema.partial();
 
 export const createSprintSchema = z.object({
   name: z.string().min(1).max(200),
+  description: z.string().optional(),
   startDate: z.string().transform((s) => new Date(s)),
   endDate: z.string().transform((s) => new Date(s)),
   status: z.enum(['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED']).optional().default('PLANNING'),
@@ -34,11 +35,17 @@ export const createSprintSchema = z.object({
 
 export const updateSprintSchema = createSprintSchema.partial();
 
+export const updateSprintStatusSchema = z.object({
+  status: z.enum(['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED']),
+});
+
 export const createGoalSchema = z.object({
   title: z.string().min(1).max(200),
+  description: z.string().optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional().default('TODO'),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional().default('MEDIUM'),
   assignee: z.string().optional(),
+  dueDate: z.string().transform((s) => new Date(s)).optional(),
   order: z.number().optional().default(0),
 });
 
@@ -46,6 +53,10 @@ export const updateGoalSchema = createGoalSchema.partial();
 
 export const updateGoalStatusSchema = z.object({
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']),
+});
+
+export const assignGoalSchema = z.object({
+  sprintId: z.string().nullable(),
 });
 
 export const reorderGoalsSchema = z.object({

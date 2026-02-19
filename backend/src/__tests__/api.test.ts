@@ -144,18 +144,21 @@ describe('Map Pins', () => {
 describe('Sprints & Goals', () => {
   let sprintId: string;
   let goalId: string;
+  let backlogGoalId: string;
 
-  it('POST /api/sprints creates a sprint', async () => {
+  it('POST /api/sprints creates a sprint with description', async () => {
     const res = await request(app)
       .post('/api/sprints')
       .send({
         name: 'Test Sprint',
+        description: 'A test sprint',
         startDate: '2026-02-01',
         endDate: '2026-02-28',
         status: 'ACTIVE',
       });
     expect(res.status).toBe(201);
     expect(res.body.name).toBe('Test Sprint');
+    expect(res.body.description).toBe('A test sprint');
     sprintId = res.body.id;
   });
 
@@ -165,13 +168,58 @@ describe('Sprints & Goals', () => {
     expect(res.body.status).toBe('ACTIVE');
   });
 
-  it('POST /api/goals/sprint/:id creates a goal', async () => {
+  it('PATCH /api/sprints/:id/status updates sprint status', async () => {
+    const res = await request(app)
+      .patch(`/api/sprints/${sprintId}/status`)
+      .send({ status: 'COMPLETED' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('COMPLETED');
+    // Reset back to ACTIVE for subsequent tests
+    await request(app).patch(`/api/sprints/${sprintId}/status`).send({ status: 'ACTIVE' });
+  });
+
+  it('POST /api/goals/sprint/:id creates a goal with description+dueDate', async () => {
     const res = await request(app)
       .post(`/api/goals/sprint/${sprintId}`)
-      .send({ title: 'Test Goal', priority: 'HIGH', assignee: 'Anh' });
+      .send({ title: 'Test Goal', priority: 'HIGH', assignee: 'Anh', description: 'Do the thing', dueDate: '2026-02-28' });
     expect(res.status).toBe(201);
     expect(res.body.title).toBe('Test Goal');
+    expect(res.body.description).toBe('Do the thing');
+    expect(res.body.sprintId).toBe(sprintId);
     goalId = res.body.id;
+  });
+
+  it('POST /api/goals creates a backlog goal (no sprint)', async () => {
+    const res = await request(app)
+      .post('/api/goals')
+      .send({ title: 'Backlog Goal', priority: 'LOW' });
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('Backlog Goal');
+    expect(res.body.sprintId).toBeNull();
+    backlogGoalId = res.body.id;
+  });
+
+  it('GET /api/goals/backlog returns backlog goals', async () => {
+    const res = await request(app).get('/api/goals/backlog');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.some((g: any) => g.id === backlogGoalId)).toBe(true);
+  });
+
+  it('PATCH /api/goals/:id/assign assigns goal to sprint', async () => {
+    const res = await request(app)
+      .patch(`/api/goals/${backlogGoalId}/assign`)
+      .send({ sprintId });
+    expect(res.status).toBe(200);
+    expect(res.body.sprintId).toBe(sprintId);
+  });
+
+  it('PATCH /api/goals/:id/assign unassigns goal (to backlog)', async () => {
+    const res = await request(app)
+      .patch(`/api/goals/${backlogGoalId}/assign`)
+      .send({ sprintId: null });
+    expect(res.status).toBe(200);
+    expect(res.body.sprintId).toBeNull();
   });
 
   it('PATCH /api/goals/:id/status updates goal status', async () => {
@@ -191,6 +239,11 @@ describe('Sprints & Goals', () => {
 
   it('DELETE /api/goals/:id deletes a goal', async () => {
     const res = await request(app).delete(`/api/goals/${goalId}`);
+    expect(res.status).toBe(200);
+  });
+
+  it('DELETE /api/goals/:id deletes backlog goal', async () => {
+    const res = await request(app).delete(`/api/goals/${backlogGoalId}`);
     expect(res.status).toBe(200);
   });
 

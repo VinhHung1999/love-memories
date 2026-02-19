@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
-import { createSprintSchema, updateSprintSchema } from '../utils/validation';
+import { createSprintSchema, updateSprintSchema, updateSprintStatusSchema } from '../utils/validation';
 
 const router = Router();
 
@@ -80,6 +80,24 @@ router.put('/:id', async (req: Request<IdParam>, res: Response) => {
       res.status(400).json({ error: error.errors }); return;
     }
     res.status(500).json({ error: 'Failed to update sprint' });
+  }
+});
+
+// PATCH update sprint status
+router.patch('/:id/status', async (req: Request<IdParam>, res: Response) => {
+  try {
+    const { status } = updateSprintStatusSchema.parse(req.body);
+    const sprint = await prisma.sprint.update({
+      where: { id: req.params.id },
+      data: { status },
+      include: { goals: { orderBy: { order: 'asc' } } },
+    });
+    res.json(sprint);
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ error: error.errors }); return;
+    }
+    res.status(500).json({ error: 'Failed to update sprint status' });
   }
 });
 

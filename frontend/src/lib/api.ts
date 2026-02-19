@@ -62,15 +62,19 @@ export const sprintsApi = {
   getActive: () => request<Sprint>('/sprints/active'),
   create: (data: Partial<Sprint>) => request<Sprint>('/sprints', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Sprint>) => request<Sprint>(`/sprints/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateStatus: (id: string, status: string) => request<Sprint>(`/sprints/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   delete: (id: string) => request(`/sprints/${id}`, { method: 'DELETE' }),
 };
 
 // Goals
 export const goalsApi = {
+  backlog: () => request<Goal[]>('/goals/backlog'),
   listBySprint: (sprintId: string) => request<Goal[]>(`/goals/sprint/${sprintId}`),
   create: (sprintId: string, data: Partial<Goal>) => request<Goal>(`/goals/sprint/${sprintId}`, { method: 'POST', body: JSON.stringify(data) }),
+  createBacklog: (data: Partial<Goal>) => request<Goal>('/goals', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Goal>) => request<Goal>(`/goals/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   updateStatus: (id: string, status: string) => request<Goal>(`/goals/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  assign: (id: string, sprintId: string | null) => request<Goal>(`/goals/${id}/assign`, { method: 'PATCH', body: JSON.stringify({ sprintId }) }),
   reorder: (goals: { id: string; order: number; status?: string }[]) => request('/goals/reorder', { method: 'PATCH', body: JSON.stringify({ goals }) }),
   delete: (id: string) => request(`/goals/${id}`, { method: 'DELETE' }),
 };

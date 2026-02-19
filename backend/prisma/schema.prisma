@@ -82,29 +82,32 @@ enum GoalPriority {
 }
 
 model Sprint {
-  id        String       @id @default(uuid())
-  name      String
-  startDate DateTime
-  endDate   DateTime
-  status    SprintStatus @default(PLANNING)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  goals     Goal[]
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      SprintStatus @default(PLANNING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  goals       Goal[]
 
   @@map("sprints")
 }
 
 model Goal {
-  id        String       @id @default(uuid())
-  title     String
-  status    GoalStatus   @default(TODO)
-  priority  GoalPriority @default(MEDIUM)
-  assignee  String?
-  order     Int          @default(0)
-  sprintId  String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  sprint    Sprint       @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  status      GoalStatus   @default(TODO)
+  priority    GoalPriority @default(MEDIUM)
+  assignee    String?
+  dueDate     DateTime?
+  order       Int          @default(0)
+  sprintId    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sprint      Sprint?      @relation(fields: [sprintId], references: [id], onDelete: Cascade)
 
   @@map("goals")
 }
