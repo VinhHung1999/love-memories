@@ -3,8 +3,7 @@ import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { upload } from '../middleware/upload';
 import { createFoodSpotSchema, updateFoodSpotSchema } from '../utils/validation';
-import fs from 'fs';
-import path from 'path';
+import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 
 const router = Router();
 
@@ -82,11 +81,7 @@ router.delete('/:id', async (req: Request<IdParam>, res: Response) => {
     });
     if (!foodSpot) { res.status(404).json({ error: 'Food spot not found' }); return; }
 
-    for (const photo of foodSpot.photos) {
-      const filePath = path.join(__dirname, '../../uploads', photo.filename);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
-
+    await Promise.all(foodSpot.photos.map((photo) => deleteFromCdn(photo.filename)));
     await prisma.foodSpot.delete({ where: { id: req.params.id } });
     res.json({ message: 'Food spot deleted' });
   } catch (error) {
@@ -107,15 +102,12 @@ router.post('/:id/photos', upload.array('photos', 10), async (req: Request<IdPar
     }
 
     const photos = await Promise.all(
-      files.map((file) =>
-        prisma.foodSpotPhoto.create({
-          data: {
-            foodSpotId,
-            filename: file.filename,
-            url: `/uploads/${file.filename}`,
-          },
-        })
-      )
+      files.map(async (file) => {
+        const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+        return prisma.foodSpotPhoto.create({
+          data: { foodSpotId, filename, url },
+        });
+      })
     );
 
     res.status(201).json(photos);
@@ -132,9 +124,7 @@ router.delete('/:id/photos/:photoId', async (req: Request<PhotoParam>, res: Resp
     });
     if (!photo) { res.status(404).json({ error: 'Photo not found' }); return; }
 
-    const filePath = path.join(__dirname, '../../uploads', photo.filename);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
+    await deleteFromCdn(photo.filename);
     await prisma.foodSpotPhoto.delete({ where: { id: req.params.photoId } });
     res.json({ message: 'Photo deleted' });
   } catch (error) {
