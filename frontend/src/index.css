@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #E8788A;
+  --color-primary-light: #F2A5B0;
+  --color-primary-dark: #D45A6E;
+  --color-secondary: #F4A261;
+  --color-secondary-light: #F7BE8F;
+  --color-accent: #7EC8B5;
+  --color-accent-dark: #5BAA97;
+  --color-bg: #FFF8F6;
+  --color-bg-card: #FFFFFF;
+  --color-text: #2D2D2D;
+  --color-text-light: #6B7280;
+  --color-border: #F0E6E3;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+input, textarea, select {
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 16px !important;
+}
+
+input[type="date"] {
+  min-width: 0;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.mapboxgl-popup-content {
+  border-radius: 12px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}

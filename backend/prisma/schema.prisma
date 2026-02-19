@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Moment {
+  id        String        @id @default(uuid())
+  title     String
+  caption   String?
+  date      DateTime
+  latitude  Float?
+  longitude Float?
+  location  String?
+  tags      String[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  photos    MomentPhoto[]
+
+  @@map("moments")
+}
+
+model MomentPhoto {
+  id        String   @id @default(uuid())
+  momentId  String
+  filename  String
+  url       String
+  createdAt DateTime @default(now())
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+
+  @@map("moment_photos")
+}
+
+model FoodSpot {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  rating      Float           @default(0)
+  latitude    Float?
+  longitude   Float?
+  location    String?
+  tags        String[]
+  priceRange  Int             @default(2)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  photos      FoodSpotPhoto[]
+
+  @@map("food_spots")
+}
+
+model FoodSpotPhoto {
+  id         String   @id @default(uuid())
+  foodSpotId String
+  filename   String
+  url        String
+  createdAt  DateTime @default(now())
+  foodSpot   FoodSpot @relation(fields: [foodSpotId], references: [id], onDelete: Cascade)
+
+  @@map("food_spot_photos")
+}
+
+enum SprintStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum GoalStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum GoalPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Sprint {
+  id        String       @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  status    SprintStatus @default(PLANNING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  goals     Goal[]
+
+  @@map("sprints")
+}
+
+model Goal {
+  id        String       @id @default(uuid())
+  title     String
+  status    GoalStatus   @default(TODO)
+  priority  GoalPriority @default(MEDIUM)
+  assignee  String?
+  order     Int          @default(0)
+  sprintId  String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  sprint    Sprint       @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
