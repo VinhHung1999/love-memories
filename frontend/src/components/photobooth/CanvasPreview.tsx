@@ -24,8 +24,8 @@ export default function CanvasPreview({
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
+  const [resultCanvas, setResultCanvas] = useState<HTMLCanvasElement | null>(null);
   const dragOffset = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
-  const resultCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const frame = FRAMES.find((f) => f.id === frameId);
 
@@ -54,7 +54,7 @@ export default function CanvasPreview({
 
         stickers.forEach((s) => drawStickerOnCanvas(finalCtx, s, finalCanvas.width, finalCanvas.height));
 
-        resultCanvasRef.current = finalCanvas;
+        setResultCanvas(finalCanvas);
 
         const preview = canvasRef.current;
         if (!preview) return;
@@ -154,7 +154,7 @@ export default function CanvasPreview({
       </p>
 
       <SharePanel
-        resultCanvas={resultCanvasRef.current}
+        resultCanvas={resultCanvas}
         disabled={rendering || !!error || photoUrls.length === 0}
       />
     </div>
