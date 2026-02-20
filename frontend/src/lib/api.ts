@@ -40,7 +40,15 @@ export const momentsApi = {
   uploadPhotos: async (id: string, files: File[]) => {
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
-    const res = await fetch(`${API}/moments/${id}/photos`, { method: 'POST', body: formData });
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/moments/${id}/photos`, { method: 'POST', headers, body: formData });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) throw new Error('Upload failed');
     return res.json();
   },
@@ -58,7 +66,15 @@ export const foodSpotsApi = {
   uploadPhotos: async (id: string, files: File[]) => {
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
-    const res = await fetch(`${API}/foodspots/${id}/photos`, { method: 'POST', body: formData });
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/foodspots/${id}/photos`, { method: 'POST', headers, body: formData });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) throw new Error('Upload failed');
     return res.json();
   },
