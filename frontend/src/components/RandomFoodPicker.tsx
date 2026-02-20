@@ -68,13 +68,13 @@ export default function RandomFoodPicker() {
 
   return (
     <>
-      {/* Trigger button */}
+      {/* FAB — fixed bottom-right, above mobile bottom nav */}
       <button
         onClick={handleOpen}
-        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-secondary to-accent text-white rounded-xl font-medium text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all"
+        title="Random Ăn Gì"
+        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 md:bottom-8 md:right-8 z-[55] w-14 h-14 bg-gradient-to-br from-secondary to-accent text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center"
       >
-        <Dices className="w-4 h-4" />
-        Random Ăn Gì 🎲
+        <Dices className="w-6 h-6" />
       </button>
 
       <Modal open={open} onClose={handleClose} title="Random Ăn Gì 🎲">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Utensils, Plus, MapPin, DollarSign } from 'lucide-react';
+import { Utensils, Plus, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
@@ -39,15 +39,12 @@ export default function FoodSpotsPage() {
           <h1 className="font-heading text-3xl font-bold">Food Spots</h1>
           <p className="text-text-light text-sm mt-1">Our favorite places to eat</p>
         </div>
-        <div className="flex items-center gap-2">
-          <RandomFoodPicker />
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-secondary text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-          >
-            <Plus className="w-4 h-4" /> Add Spot
-          </button>
-        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="bg-secondary text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
+        >
+          <Plus className="w-4 h-4" /> Add Spot
+        </button>
       </div>
 
       {allTags.length > 0 && (
@@ -92,6 +89,7 @@ export default function FoodSpotsPage() {
       )}
 
       <FoodSpotFormModal open={showForm} onClose={() => setShowForm(false)} />
+      <RandomFoodPicker />
     </div>
   );
 }
