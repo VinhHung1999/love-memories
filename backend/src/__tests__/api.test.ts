@@ -1,18 +1,18 @@
 import request from 'supertest';
 import app from '../index';
 import prisma from '../utils/prisma';
+import { hashPassword, generateToken } from '../utils/auth';
 
 let token: string;
 
-// Register a test user and get token before all tests
+// Create test user directly via Prisma (bypasses whitelist) and generate token
 beforeAll(async () => {
   await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
-  const res = await request(app).post('/api/auth/register').send({
-    email: 'test@lovescrum.test',
-    password: 'testpass123',
-    name: 'Test User',
+  const hashed = await hashPassword('testpass123');
+  const user = await prisma.user.create({
+    data: { email: 'test@lovescrum.test', password: hashed, name: 'Test User' },
   });
-  token = res.body.token;
+  token = generateToken(user.id);
 });
 
 // Clean up after all tests
@@ -38,13 +38,13 @@ describe('Health', () => {
 });
 
 describe('Auth', () => {
-  it('POST /api/auth/register returns 409 for duplicate email', async () => {
+  it('POST /api/auth/register returns 403 for non-whitelisted email', async () => {
     const res = await request(app).post('/api/auth/register').send({
-      email: 'test@lovescrum.test',
+      email: 'random@example.com',
       password: 'testpass123',
-      name: 'Test User',
+      name: 'Random',
     });
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(403);
   });
 
   it('POST /api/auth/login returns token', async () => {

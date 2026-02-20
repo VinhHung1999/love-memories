@@ -17,10 +17,18 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const ALLOWED_EMAILS = (process.env.ALLOWED_EMAILS || 'phuvinhhung1999@gmail.com,khnhu26@gmail.com')
+  .split(',')
+  .map((e) => e.trim().toLowerCase());
+
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password, name } = registerSchema.parse(req.body);
+    if (!ALLOWED_EMAILS.includes(email.toLowerCase())) {
+      res.status(403).json({ error: 'Registration is not allowed for this email' });
+      return;
+    }
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       res.status(409).json({ error: 'Email already registered' });
