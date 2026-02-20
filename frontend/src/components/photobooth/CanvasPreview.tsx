@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
-import { loadImage } from '../../lib/photobooth/canvas-utils';
+import { loadImage, createCanvas } from '../../lib/photobooth/canvas-utils';
 import { FRAMES } from '../../lib/photobooth/frames';
 import type { PlacedSticker } from '../../lib/photobooth/stickers';
 import { drawStickerOnCanvas } from '../../lib/photobooth/stickers';
+import { drawOverlayOnCanvas } from '../../lib/photobooth/overlays';
 import SharePanel from './SharePanel';
 
 interface Props {
@@ -12,10 +13,13 @@ interface Props {
   filterId: string;
   stickers: PlacedSticker[];
   frameColor?: string;
+  overlayId?: string;
   onStickersChange: (stickers: PlacedSticker[]) => void;
 }
 
-export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, frameColor, onStickersChange }: Props) {
+export default function CanvasPreview({
+  frameId, photoUrls, filterId, stickers, frameColor, overlayId, onStickersChange,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,21 +38,33 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
     (async () => {
       try {
         const images = await Promise.all(photoUrls.map((url) => loadImage(url)));
-        const result = await frame.render(images, filterId, stickers, { frameColor });
+
+        // Render frame base — pass empty stickers so we can composite in correct order below
+        const base = await frame.render(images, filterId, [], { frameColor });
         if (cancelled) return;
-        resultCanvasRef.current = result;
+
+        // Composite: base → overlay → stickers (correct layer order for both download and preview)
+        const finalCanvas = createCanvas(base.width, base.height);
+        const finalCtx = finalCanvas.getContext('2d')!;
+        finalCtx.drawImage(base, 0, 0);
+
+        if (overlayId && overlayId !== 'none') {
+          drawOverlayOnCanvas(finalCtx, overlayId, finalCanvas.width, finalCanvas.height);
+        }
+
+        stickers.forEach((s) => drawStickerOnCanvas(finalCtx, s, finalCanvas.width, finalCanvas.height));
+
+        resultCanvasRef.current = finalCanvas;
 
         const preview = canvasRef.current;
         if (!preview) return;
         const maxW = preview.parentElement?.clientWidth ?? 400;
-        const scale = maxW / result.width;
+        const scale = maxW / finalCanvas.width;
         preview.width = maxW;
-        preview.height = Math.round(result.height * scale);
+        preview.height = Math.round(finalCanvas.height * scale);
         const ctx = preview.getContext('2d')!;
         ctx.clearRect(0, 0, preview.width, preview.height);
-        ctx.drawImage(result, 0, 0, preview.width, preview.height);
-
-        stickers.forEach((s) => drawStickerOnCanvas(ctx, s, preview.width, preview.height));
+        ctx.drawImage(finalCanvas, 0, 0, preview.width, preview.height);
       } catch {
         if (!cancelled) setError('Could not load photo. Check CORS or try another.');
       } finally {
@@ -57,9 +73,9 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
     })();
 
     return () => { cancelled = true; };
-  }, [frame, photoUrls, filterId, stickers, frameColor]);
+  }, [frame, photoUrls, filterId, stickers, frameColor, overlayId]);
 
-  // ── drag stickers ──────────────────────────────────────────────────────────
+  // ── drag props ─────────────────────────────────────────────────────────────
 
   const getStickerAt = useCallback((x: number, y: number, cw: number, ch: number): string | null => {
     for (let i = stickers.length - 1; i >= 0; i--) {
@@ -134,7 +150,7 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
       </div>
 
       <p className="text-xs text-text-light text-center">
-        Drag stickers to reposition · Use +/− in the sticker panel to resize
+        Drag props to reposition · Use +/− in the props panel to resize
       </p>
 
       <SharePanel
