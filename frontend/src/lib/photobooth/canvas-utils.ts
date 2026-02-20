@@ -8,6 +8,16 @@ export function createCanvas(width: number, height: number): HTMLCanvasElement {
 const TOKEN_KEY = 'love-scrum-token';
 
 export async function loadImage(url: string): Promise<HTMLImageElement> {
+  // data: URLs (from camera capture) load directly — no fetch needed
+  if (url.startsWith('data:')) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to load data URL'));
+      img.src = url;
+    });
+  }
+
   // Absolute CDN URLs are cross-origin — proxy through backend to avoid CORS taint.
   // Relative /uploads/ URLs are same-origin and can be fetched directly.
   let fetchUrl = url;

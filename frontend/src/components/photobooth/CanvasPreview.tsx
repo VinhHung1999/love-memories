@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Download, Loader2 } from 'lucide-react';
-import { loadImage, downloadCanvas } from '../../lib/photobooth/canvas-utils';
+import { Loader2 } from 'lucide-react';
+import { loadImage } from '../../lib/photobooth/canvas-utils';
 import { FRAMES } from '../../lib/photobooth/frames';
 import type { PlacedSticker } from '../../lib/photobooth/stickers';
 import { drawStickerOnCanvas } from '../../lib/photobooth/stickers';
+import SharePanel from './SharePanel';
 
 interface Props {
   frameId: string;
   photoUrls: string[];
   filterId: string;
   stickers: PlacedSticker[];
+  frameColor?: string;
   onStickersChange: (stickers: PlacedSticker[]) => void;
 }
 
-export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, onStickersChange }: Props) {
+export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, frameColor, onStickersChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,6 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
 
   const frame = FRAMES.find((f) => f.id === frameId);
 
-  // Render the full-res canvas and then scale it to preview
   useEffect(() => {
     if (!frame || photoUrls.length === 0) return;
     let cancelled = false;
@@ -33,11 +34,10 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
     (async () => {
       try {
         const images = await Promise.all(photoUrls.map((url) => loadImage(url)));
-        const result = await frame.render(images, filterId, stickers);
+        const result = await frame.render(images, filterId, stickers, { frameColor });
         if (cancelled) return;
         resultCanvasRef.current = result;
 
-        // Scale to preview canvas
         const preview = canvasRef.current;
         if (!preview) return;
         const maxW = preview.parentElement?.clientWidth ?? 400;
@@ -48,7 +48,6 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
         ctx.clearRect(0, 0, preview.width, preview.height);
         ctx.drawImage(result, 0, 0, preview.width, preview.height);
 
-        // Draw sticker handles (interactive overlay)
         stickers.forEach((s) => drawStickerOnCanvas(ctx, s, preview.width, preview.height));
       } catch {
         if (!cancelled) setError('Could not load photo. Check CORS or try another.');
@@ -58,12 +57,11 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
     })();
 
     return () => { cancelled = true; };
-  }, [frame, photoUrls, filterId, stickers]);
+  }, [frame, photoUrls, filterId, stickers, frameColor]);
 
   // ── drag stickers ──────────────────────────────────────────────────────────
 
   const getStickerAt = useCallback((x: number, y: number, cw: number, ch: number): string | null => {
-    // Hit test from top (last sticker on top)
     for (let i = stickers.length - 1; i >= 0; i--) {
       const s = stickers[i]!;
       const px = (s.x / 100) * cw;
@@ -84,10 +82,7 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
     const hit = getStickerAt(x, y, cw, ch);
     if (hit) {
       const s = stickers.find((st) => st.id === hit)!;
-      dragOffset.current = {
-        dx: x - (s.x / 100) * cw,
-        dy: y - (s.y / 100) * ch,
-      };
+      dragOffset.current = { dx: x - (s.x / 100) * cw, dy: y - (s.y / 100) * ch };
       setDragging(hit);
       canvas.setPointerCapture(e.pointerId);
     }
@@ -111,11 +106,6 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
   };
 
   const handlePointerUp = () => setDragging(null);
-
-  const handleDownload = () => {
-    const result = resultCanvasRef.current;
-    if (result) downloadCanvas(result, 'love-scrum-photo-booth.png');
-  };
 
   return (
     <div className="space-y-4">
@@ -147,14 +137,10 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
         Drag stickers to reposition · Use +/− in the sticker panel to resize
       </p>
 
-      <button
-        onClick={handleDownload}
+      <SharePanel
+        resultCanvas={resultCanvasRef.current}
         disabled={rendering || !!error || photoUrls.length === 0}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl py-3.5 font-semibold text-base hover:opacity-90 active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <Download className="w-5 h-5" />
-        Download PNG
-      </button>
+      />
     </div>
   );
 }

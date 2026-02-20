@@ -50,6 +50,11 @@ input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
 }
 
+@keyframes flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .mapboxgl-popup-content {
   border-radius: 12px !important;
   padding: 0 !important;
