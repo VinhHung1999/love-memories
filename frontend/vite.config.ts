@@ -11,8 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3337,
-    allowedHosts: ['love-scrum.hungphu.work'],
+    port: 3338,
+    allowedHosts: ['love-scrum.hungphu.work', 'dev-love-scrum.hungphu.work'],
     proxy: {
       '/api': 'http://localhost:5006',
       '/uploads': 'http://localhost:5006',
