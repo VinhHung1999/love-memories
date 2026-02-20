@@ -73,27 +73,37 @@ export default function MapPage() {
       el.innerHTML = pin.type === 'moment' ? '&hearts;' : '&#127860;';
 
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pin.latitude},${pin.longitude}`;
+      const detailPath = pin.type === 'moment' ? `/moments/${pin.id}` : `/foodspots/${pin.id}`;
       const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(`
         <div style="padding: 12px; min-width: 160px;">
           ${pin.thumbnail ? `<img src="${pin.thumbnail}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px;" />` : ''}
           <div style="font-weight:600;font-size:14px;">${pin.title}</div>
           ${pin.location ? `<div style="font-size:12px;color:#6B7280;margin-top:2px;">${pin.location}</div>` : ''}
-          <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:4px 10px;background:#E8788A1A;color:#E8788A;border-radius:999px;font-size:11px;font-weight:600;text-decoration:none;">
-            ↗ Chỉ đường
-          </a>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#E8788A1A;color:#E8788A;border-radius:999px;font-size:11px;font-weight:600;text-decoration:none;">
+              ↗ Chỉ đường
+            </a>
+            <button data-detail-path="${detailPath}" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#7EC8B51A;color:#7EC8B5;border:none;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;">
+              ◉ Chi tiết
+            </button>
+          </div>
         </div>
       `);
+
+      popup.on('open', () => {
+        setTimeout(() => {
+          const el2 = popup.getElement();
+          const btn = el2?.querySelector('[data-detail-path]') as HTMLElement | null;
+          if (btn) {
+            btn.addEventListener('click', () => navigate(btn.dataset.detailPath!));
+          }
+        }, 0);
+      });
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat([pin.longitude, pin.latitude])
         .setPopup(popup)
         .addTo(mapRef.current!);
-
-      el.addEventListener('click', () => {
-        const path = pin.type === 'moment' ? `/moments/${pin.id}` : `/foodspots/${pin.id}`;
-        // Double click navigates
-        el.addEventListener('dblclick', () => navigate(path));
-      });
 
       markersRef.current.push(marker);
     });
