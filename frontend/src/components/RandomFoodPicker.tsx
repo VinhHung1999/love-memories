@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dices, MapPin, RotateCcw, ArrowRight, Star } from 'lucide-react';
+import { Dices, MapPin, Navigation, RotateCcw, ArrowRight, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
 import type { FoodSpot } from '../types';
@@ -160,6 +160,16 @@ export default function RandomFoodPicker() {
                 >
                   <RotateCcw className="w-4 h-4" /> Chọn lại
                 </button>
+                {result.latitude != null && result.longitude != null && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${result.latitude},${result.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-accent text-white rounded-xl py-2.5 text-sm font-medium hover:bg-accent/90 transition-colors"
+                  >
+                    <Navigation className="w-4 h-4" /> Chỉ đường
+                  </a>
+                )}
                 <button
                   onClick={() => { handleClose(); navigate(`/foodspots/${result.id}`); }}
                   className="flex-1 flex items-center justify-center gap-1.5 bg-secondary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-secondary/90 transition-colors"
