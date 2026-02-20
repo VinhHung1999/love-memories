@@ -5,9 +5,20 @@ export function createCanvas(width: number, height: number): HTMLCanvasElement {
   return canvas;
 }
 
+const TOKEN_KEY = 'love-scrum-token';
+
 export async function loadImage(url: string): Promise<HTMLImageElement> {
-  // Fetch as blob → object URL avoids canvas CORS taint from browser img cache
-  const res = await fetch(url);
+  // Absolute CDN URLs are cross-origin — proxy through backend to avoid CORS taint.
+  // Relative /uploads/ URLs are same-origin and can be fetched directly.
+  let fetchUrl = url;
+  const headers: Record<string, string> = {};
+  if (url.startsWith('http')) {
+    fetchUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(fetchUrl, { headers });
   if (!res.ok) throw new Error(`Failed to fetch image: ${url} (${res.status})`);
   const blob = await res.blob();
   const objectUrl = URL.createObjectURL(blob);

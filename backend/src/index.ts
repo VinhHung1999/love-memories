@@ -7,6 +7,7 @@ import { mapRoutes } from './routes/map';
 import { sprintRoutes } from './routes/sprints';
 import { goalRoutes } from './routes/goals';
 import { authRoutes } from './routes/auth';
+import { proxyImageRoute } from './routes/proxy-image';
 import { requireAuth } from './middleware/auth';
 
 const app = express();
@@ -24,6 +25,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 
 // Protected routes
+app.use('/api/proxy-image', requireAuth, proxyImageRoute);
 app.use('/api/moments', requireAuth, momentRoutes);
 app.use('/api/foodspots', requireAuth, foodSpotRoutes);
 app.use('/api/map', requireAuth, mapRoutes);
