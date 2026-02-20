@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** _TBD_
-**Goal:** _TBD_
+**Sprint:** —
+**Goal:** Awaiting next sprint assignment.
 
 ---
 
@@ -9,22 +9,14 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | Idle | Awaiting next sprint | |
-| DEV  | Idle | Awaiting next sprint | |
+| PO   | Idle   | — | 2026-02-20 |
+| DEV  | Idle   | — | 2026-02-20 |
 
 ---
 
 ## Sprint Backlog
 
-| # | Task | Priority | Status | Assignee |
-|---|------|----------|--------|----------|
-| | | | | |
-
----
-
-## Sprint Spec
-
-_To be filled by PO when sprint starts._
+_Empty — awaiting next sprint._
 
 ---
 
@@ -38,11 +30,4 @@ _To be filled by PO when sprint starts._
 
 ## Notes
 
-_Sprint notes go here._
-
----
-
-## Clear After Sprint
-
-After Sprint Review, clear this whiteboard for next Sprint.
-Keep only the template structure.
+_Sprint 7 — PicaPica Booth: APPROVED & MERGED ✅ (2026-02-20)_
