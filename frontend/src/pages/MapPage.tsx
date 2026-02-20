@@ -72,11 +72,15 @@ export default function MapPage() {
       `;
       el.innerHTML = pin.type === 'moment' ? '&hearts;' : '&#127860;';
 
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pin.latitude},${pin.longitude}`;
       const popup = new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(`
-        <div style="padding: 12px; min-width: 150px;">
+        <div style="padding: 12px; min-width: 160px;">
           ${pin.thumbnail ? `<img src="${pin.thumbnail}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px;" />` : ''}
           <div style="font-weight:600;font-size:14px;">${pin.title}</div>
           ${pin.location ? `<div style="font-size:12px;color:#6B7280;margin-top:2px;">${pin.location}</div>` : ''}
+          <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:4px 10px;background:#E8788A1A;color:#E8788A;border-radius:999px;font-size:11px;font-weight:600;text-decoration:none;">
+            ↗ Chỉ đường
+          </a>
         </div>
       `);
 

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, MapPin, Tag, Trash2, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, AlertCircle, MapPin, Navigation, Tag, Trash2, Pencil, Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
@@ -161,12 +161,25 @@ export default function FoodSpotDetail() {
           <p className="text-text-light mt-4 leading-relaxed">{spot.description}</p>
         )}
 
-        {spot.location && (
-          <p className="flex items-center gap-1.5 mt-4 text-sm text-text-light">
-            <MapPin className="w-4 h-4" />
-            {spot.location}
-          </p>
-        )}
+        <div className="flex flex-wrap items-center gap-3 mt-4">
+          {spot.location && (
+            <p className="flex items-center gap-1.5 text-sm text-text-light">
+              <MapPin className="w-4 h-4" />
+              {spot.location}
+            </p>
+          )}
+          {spot.latitude != null && spot.longitude != null && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-medium hover:bg-secondary/20 transition-colors"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              Chỉ đường
+            </a>
+          )}
+        </div>
 
         {spot.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">

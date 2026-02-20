@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Calendar, MapPin, Tag, Trash2, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -165,6 +165,17 @@ export default function MomentDetail() {
               <MapPin className="w-4 h-4" />
               {moment.location}
             </span>
+          )}
+          {moment.latitude != null && moment.longitude != null && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${moment.latitude},${moment.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium hover:bg-primary/20 transition-colors"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              Chỉ đường
+            </a>
           )}
         </div>
 
