@@ -3,7 +3,7 @@ import { Download, Loader2 } from 'lucide-react';
 import { loadImage, downloadCanvas } from '../../lib/photobooth/canvas-utils';
 import { FRAMES } from '../../lib/photobooth/frames';
 import type { PlacedSticker } from '../../lib/photobooth/stickers';
-import { drawStickerOnCanvas, createPlacedSticker } from '../../lib/photobooth/stickers';
+import { drawStickerOnCanvas } from '../../lib/photobooth/stickers';
 
 interface Props {
   frameId: string;
@@ -50,7 +50,7 @@ export default function CanvasPreview({ frameId, photoUrls, filterId, stickers, 
 
         // Draw sticker handles (interactive overlay)
         stickers.forEach((s) => drawStickerOnCanvas(ctx, s, preview.width, preview.height));
-      } catch (e) {
+      } catch {
         if (!cancelled) setError('Could not load photo. Check CORS or try another.');
       } finally {
         if (!cancelled) setRendering(false);

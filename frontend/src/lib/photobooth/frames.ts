@@ -17,8 +17,6 @@ export interface FrameDef {
 }
 
 const PRIMARY = '#E8788A';
-const SECONDARY = '#F4A261';
-const ACCENT = '#7EC8B5';
 const W = 1080;
 
 // ── shared helper ─────────────────────────────────────────────────────────────

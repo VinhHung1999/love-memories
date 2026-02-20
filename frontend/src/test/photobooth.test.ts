@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { FILTERS, applyFilterToCanvas } from '../lib/photobooth/filters';
 import { FRAMES } from '../lib/photobooth/frames';
 import { STICKERS, createPlacedSticker, drawStickerOnCanvas } from '../lib/photobooth/stickers';

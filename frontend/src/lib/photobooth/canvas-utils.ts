@@ -5,14 +5,23 @@ export function createCanvas(width: number, height: number): HTMLCanvasElement {
   return canvas;
 }
 
-export function loadImage(url: string): Promise<HTMLImageElement> {
+export async function loadImage(url: string): Promise<HTMLImageElement> {
+  // Fetch as blob → object URL avoids canvas CORS taint from browser img cache
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch image: ${url} (${res.status})`);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-    // Force crossOrigin before src to avoid cache issues
-    img.src = url.includes('?') ? url : `${url}?_cb=1`;
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error(`Failed to load image: ${url}`));
+    };
+    img.src = objectUrl;
   });
 }
 
