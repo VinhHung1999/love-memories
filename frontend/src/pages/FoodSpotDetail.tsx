@@ -84,7 +84,7 @@ export default function FoodSpotDetail() {
             <img src={heroPhoto.url} alt="" className="w-full h-64 md:h-80 object-cover" />
             <button
               onClick={(e) => { e.stopPropagation(); deletePhotoMutation.mutate(heroPhoto.id); }}
-              className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -101,7 +101,7 @@ export default function FoodSpotDetail() {
                   <img src={photo.url} alt="" className="w-full h-full object-cover" />
                   <button
                     onClick={(e) => { e.stopPropagation(); deletePhotoMutation.mutate(photo.id); }}
-                    className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
