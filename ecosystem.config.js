@@ -3,20 +3,14 @@ module.exports = {
     {
       name: 'love-scrum-api',
       script: 'npm',
-      args: 'run dev',
+      args: 'run start',
       cwd: './backend',
-      env: {
-        PORT: 5005,
-      },
     },
     {
       name: 'love-scrum-web',
       script: 'npm',
-      args: 'run dev',
+      args: 'run preview',
       cwd: './frontend',
-      env: {
-        PORT: 3337,
-      },
     },
   ],
 };
