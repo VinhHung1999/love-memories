@@ -4,6 +4,7 @@ import prisma from '../utils/prisma';
 import { upload } from '../middleware/upload';
 import { createFoodSpotSchema, updateFoodSpotSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
+import { haversineDistance } from '../utils/geo';
 
 const router = Router();
 
@@ -20,6 +21,42 @@ router.get('/', async (_req: Request, res: Response) => {
     res.json(foodSpots);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch food spots' });
+  }
+});
+
+// GET /random?lat=&lng=&radius= — random food spot within radius km
+router.get('/random', async (req: Request, res: Response) => {
+  try {
+    const lat = parseFloat(req.query.lat as string);
+    const lng = parseFloat(req.query.lng as string);
+    const radius = parseFloat((req.query.radius as string) || '5');
+
+    if (isNaN(lat) || isNaN(lng)) {
+      res.status(400).json({ error: 'lat and lng are required' });
+      return;
+    }
+
+    const allSpots = await prisma.foodSpot.findMany({
+      where: { latitude: { not: null }, longitude: { not: null } },
+      include: { photos: { take: 1 } },
+    });
+
+    const nearby = allSpots
+      .map((spot) => ({
+        ...spot,
+        distance: haversineDistance(lat, lng, spot.latitude!, spot.longitude!),
+      }))
+      .filter((spot) => spot.distance <= radius);
+
+    if (nearby.length === 0) {
+      res.status(404).json({ error: 'No food spots within radius' });
+      return;
+    }
+
+    const pick = nearby[Math.floor(Math.random() * nearby.length)];
+    res.json(pick);
+  } catch {
+    res.status(500).json({ error: 'Failed to get random food spot' });
   }
 });
 

@@ -12,6 +12,7 @@ import LocationPicker from '../components/LocationPicker';
 import RatingStars from '../components/RatingStars';
 import EmptyState from '../components/EmptyState';
 import { GridSkeleton } from '../components/LoadingSkeleton';
+import RandomFoodPicker from '../components/RandomFoodPicker';
 
 export default function FoodSpotsPage() {
   const queryClient = useQueryClient();
@@ -38,12 +39,15 @@ export default function FoodSpotsPage() {
           <h1 className="font-heading text-3xl font-bold">Food Spots</h1>
           <p className="text-text-light text-sm mt-1">Our favorite places to eat</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-secondary text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-4 h-4" /> Add Spot
-        </button>
+        <div className="flex items-center gap-2">
+          <RandomFoodPicker />
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-secondary text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-4 h-4" /> Add Spot
+          </button>
+        </div>
       </div>
 
       {allTags.length > 0 && (

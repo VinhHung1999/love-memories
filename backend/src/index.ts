@@ -6,6 +6,8 @@ import { foodSpotRoutes } from './routes/foodspots';
 import { mapRoutes } from './routes/map';
 import { sprintRoutes } from './routes/sprints';
 import { goalRoutes } from './routes/goals';
+import { authRoutes } from './routes/auth';
+import { requireAuth } from './middleware/auth';
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -18,11 +20,15 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/api/moments', momentRoutes);
-app.use('/api/foodspots', foodSpotRoutes);
-app.use('/api/map', mapRoutes);
-app.use('/api/sprints', sprintRoutes);
-app.use('/api/goals', goalRoutes);
+// Public routes
+app.use('/api/auth', authRoutes);
+
+// Protected routes
+app.use('/api/moments', requireAuth, momentRoutes);
+app.use('/api/foodspots', requireAuth, foodSpotRoutes);
+app.use('/api/map', requireAuth, mapRoutes);
+app.use('/api/sprints', requireAuth, sprintRoutes);
+app.use('/api/goals', requireAuth, goalRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {

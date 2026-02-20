@@ -2,6 +2,19 @@ import request from 'supertest';
 import app from '../index';
 import prisma from '../utils/prisma';
 
+let token: string;
+
+// Register a test user and get token before all tests
+beforeAll(async () => {
+  await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
+  const res = await request(app).post('/api/auth/register').send({
+    email: 'test@lovescrum.test',
+    password: 'testpass123',
+    name: 'Test User',
+  });
+  token = res.body.token;
+});
+
 // Clean up after all tests
 afterAll(async () => {
   await prisma.momentPhoto.deleteMany();
@@ -10,8 +23,11 @@ afterAll(async () => {
   await prisma.foodSpot.deleteMany();
   await prisma.goal.deleteMany();
   await prisma.sprint.deleteMany();
+  await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
   await prisma.$disconnect();
 });
+
+const auth = () => ({ Authorization: `Bearer ${token}` });
 
 describe('Health', () => {
   it('GET /api/health returns ok', async () => {
@@ -21,12 +37,52 @@ describe('Health', () => {
   });
 });
 
+describe('Auth', () => {
+  it('POST /api/auth/register returns 409 for duplicate email', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'test@lovescrum.test',
+      password: 'testpass123',
+      name: 'Test User',
+    });
+    expect(res.status).toBe(409);
+  });
+
+  it('POST /api/auth/login returns token', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@lovescrum.test',
+      password: 'testpass123',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBeTruthy();
+  });
+
+  it('POST /api/auth/login returns 401 for wrong password', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@lovescrum.test',
+      password: 'wrongpassword',
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /api/auth/me returns user info', async () => {
+    const res = await request(app).get('/api/auth/me').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.email).toBe('test@lovescrum.test');
+  });
+
+  it('GET /api/moments returns 401 without token', async () => {
+    const res = await request(app).get('/api/moments');
+    expect(res.status).toBe(401);
+  });
+});
+
 describe('Moments CRUD', () => {
   let momentId: string;
 
   it('POST /api/moments creates a moment', async () => {
     const res = await request(app)
       .post('/api/moments')
+      .set(auth())
       .send({
         title: 'Test Moment',
         caption: 'Test caption',
@@ -42,14 +98,14 @@ describe('Moments CRUD', () => {
   });
 
   it('GET /api/moments lists moments', async () => {
-    const res = await request(app).get('/api/moments');
+    const res = await request(app).get('/api/moments').set(auth());
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
   });
 
   it('GET /api/moments/:id gets a moment', async () => {
-    const res = await request(app).get(`/api/moments/${momentId}`);
+    const res = await request(app).get(`/api/moments/${momentId}`).set(auth());
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(momentId);
   });
@@ -57,19 +113,20 @@ describe('Moments CRUD', () => {
   it('PUT /api/moments/:id updates a moment', async () => {
     const res = await request(app)
       .put(`/api/moments/${momentId}`)
+      .set(auth())
       .send({ title: 'Updated Moment' });
     expect(res.status).toBe(200);
     expect(res.body.title).toBe('Updated Moment');
   });
 
   it('DELETE /api/moments/:id deletes a moment', async () => {
-    const res = await request(app).delete(`/api/moments/${momentId}`);
+    const res = await request(app).delete(`/api/moments/${momentId}`).set(auth());
     expect(res.status).toBe(200);
     expect(res.body.message).toBe('Moment deleted');
   });
 
   it('GET /api/moments/:id returns 404 for deleted moment', async () => {
-    const res = await request(app).get(`/api/moments/${momentId}`);
+    const res = await request(app).get(`/api/moments/${momentId}`).set(auth());
     expect(res.status).toBe(404);
   });
 });
@@ -80,6 +137,7 @@ describe('Food Spots CRUD', () => {
   it('POST /api/foodspots creates a food spot', async () => {
     const res = await request(app)
       .post('/api/foodspots')
+      .set(auth())
       .send({
         name: 'Test Restaurant',
         description: 'Great food',
@@ -96,13 +154,13 @@ describe('Food Spots CRUD', () => {
   });
 
   it('GET /api/foodspots lists food spots', async () => {
-    const res = await request(app).get('/api/foodspots');
+    const res = await request(app).get('/api/foodspots').set(auth());
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
   });
 
   it('GET /api/foodspots/:id gets a food spot', async () => {
-    const res = await request(app).get(`/api/foodspots/${spotId}`);
+    const res = await request(app).get(`/api/foodspots/${spotId}`).set(auth());
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(spotId);
   });
@@ -110,13 +168,14 @@ describe('Food Spots CRUD', () => {
   it('PUT /api/foodspots/:id updates a food spot', async () => {
     const res = await request(app)
       .put(`/api/foodspots/${spotId}`)
+      .set(auth())
       .send({ name: 'Updated Restaurant', rating: 5 });
     expect(res.status).toBe(200);
     expect(res.body.name).toBe('Updated Restaurant');
   });
 
   it('DELETE /api/foodspots/:id deletes a food spot', async () => {
-    const res = await request(app).delete(`/api/foodspots/${spotId}`);
+    const res = await request(app).delete(`/api/foodspots/${spotId}`).set(auth());
     expect(res.status).toBe(200);
   });
 });
@@ -132,7 +191,7 @@ describe('Map Pins', () => {
   });
 
   it('GET /api/map/pins returns combined pins', async () => {
-    const res = await request(app).get('/api/map/pins');
+    const res = await request(app).get('/api/map/pins').set(auth());
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     const types = res.body.map((p: any) => p.type);
@@ -149,6 +208,7 @@ describe('Sprints & Goals', () => {
   it('POST /api/sprints creates a sprint with description', async () => {
     const res = await request(app)
       .post('/api/sprints')
+      .set(auth())
       .send({
         name: 'Test Sprint',
         description: 'A test sprint',
@@ -163,7 +223,7 @@ describe('Sprints & Goals', () => {
   });
 
   it('GET /api/sprints/active returns active sprint', async () => {
-    const res = await request(app).get('/api/sprints/active');
+    const res = await request(app).get('/api/sprints/active').set(auth());
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ACTIVE');
   });
@@ -171,16 +231,17 @@ describe('Sprints & Goals', () => {
   it('PATCH /api/sprints/:id/status updates sprint status', async () => {
     const res = await request(app)
       .patch(`/api/sprints/${sprintId}/status`)
+      .set(auth())
       .send({ status: 'COMPLETED' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('COMPLETED');
-    // Reset back to ACTIVE for subsequent tests
-    await request(app).patch(`/api/sprints/${sprintId}/status`).send({ status: 'ACTIVE' });
+    await request(app).patch(`/api/sprints/${sprintId}/status`).set(auth()).send({ status: 'ACTIVE' });
   });
 
   it('POST /api/goals/sprint/:id creates a goal with description+dueDate', async () => {
     const res = await request(app)
       .post(`/api/goals/sprint/${sprintId}`)
+      .set(auth())
       .send({ title: 'Test Goal', priority: 'HIGH', assignee: 'Anh', description: 'Do the thing', dueDate: '2026-02-28' });
     expect(res.status).toBe(201);
     expect(res.body.title).toBe('Test Goal');
@@ -192,6 +253,7 @@ describe('Sprints & Goals', () => {
   it('POST /api/goals creates a backlog goal (no sprint)', async () => {
     const res = await request(app)
       .post('/api/goals')
+      .set(auth())
       .send({ title: 'Backlog Goal', priority: 'LOW' });
     expect(res.status).toBe(201);
     expect(res.body.title).toBe('Backlog Goal');
@@ -200,7 +262,7 @@ describe('Sprints & Goals', () => {
   });
 
   it('GET /api/goals/backlog returns backlog goals', async () => {
-    const res = await request(app).get('/api/goals/backlog');
+    const res = await request(app).get('/api/goals/backlog').set(auth());
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.some((g: any) => g.id === backlogGoalId)).toBe(true);
@@ -209,6 +271,7 @@ describe('Sprints & Goals', () => {
   it('PATCH /api/goals/:id/assign assigns goal to sprint', async () => {
     const res = await request(app)
       .patch(`/api/goals/${backlogGoalId}/assign`)
+      .set(auth())
       .send({ sprintId });
     expect(res.status).toBe(200);
     expect(res.body.sprintId).toBe(sprintId);
@@ -217,6 +280,7 @@ describe('Sprints & Goals', () => {
   it('PATCH /api/goals/:id/assign unassigns goal (to backlog)', async () => {
     const res = await request(app)
       .patch(`/api/goals/${backlogGoalId}/assign`)
+      .set(auth())
       .send({ sprintId: null });
     expect(res.status).toBe(200);
     expect(res.body.sprintId).toBeNull();
@@ -225,6 +289,7 @@ describe('Sprints & Goals', () => {
   it('PATCH /api/goals/:id/status updates goal status', async () => {
     const res = await request(app)
       .patch(`/api/goals/${goalId}/status`)
+      .set(auth())
       .send({ status: 'IN_PROGRESS' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('IN_PROGRESS');
@@ -233,39 +298,40 @@ describe('Sprints & Goals', () => {
   it('PATCH /api/goals/reorder reorders goals', async () => {
     const res = await request(app)
       .patch('/api/goals/reorder')
+      .set(auth())
       .send({ goals: [{ id: goalId, order: 1, status: 'DONE' }] });
     expect(res.status).toBe(200);
   });
 
   it('DELETE /api/goals/:id deletes a goal', async () => {
-    const res = await request(app).delete(`/api/goals/${goalId}`);
+    const res = await request(app).delete(`/api/goals/${goalId}`).set(auth());
     expect(res.status).toBe(200);
   });
 
   it('DELETE /api/goals/:id deletes backlog goal', async () => {
-    const res = await request(app).delete(`/api/goals/${backlogGoalId}`);
+    const res = await request(app).delete(`/api/goals/${backlogGoalId}`).set(auth());
     expect(res.status).toBe(200);
   });
 
   it('DELETE /api/sprints/:id deletes a sprint', async () => {
-    const res = await request(app).delete(`/api/sprints/${sprintId}`);
+    const res = await request(app).delete(`/api/sprints/${sprintId}`).set(auth());
     expect(res.status).toBe(200);
   });
 });
 
 describe('Validation', () => {
   it('POST /api/moments with missing title returns 400', async () => {
-    const res = await request(app).post('/api/moments').send({ date: '2024-01-01' });
+    const res = await request(app).post('/api/moments').set(auth()).send({ date: '2024-01-01' });
     expect(res.status).toBe(400);
   });
 
   it('POST /api/foodspots with missing name returns 400', async () => {
-    const res = await request(app).post('/api/foodspots').send({ rating: 3 });
+    const res = await request(app).post('/api/foodspots').set(auth()).send({ rating: 3 });
     expect(res.status).toBe(400);
   });
 
   it('POST /api/sprints with missing dates returns 400', async () => {
-    const res = await request(app).post('/api/sprints').send({ name: 'Bad Sprint' });
+    const res = await request(app).post('/api/sprints').set(auth()).send({ name: 'Bad Sprint' });
     expect(res.status).toBe(400);
   });
 });

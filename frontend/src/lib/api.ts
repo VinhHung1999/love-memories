@@ -1,12 +1,28 @@
 import type { Moment, FoodSpot, MapPin, Sprint, Goal } from '../types';
 
 const API = '/api';
+const TOKEN_KEY = 'love-scrum-token';
+
+function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${API}${url}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
+
+  if (res.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(error.error || 'Request failed');
@@ -48,6 +64,8 @@ export const foodSpotsApi = {
   },
   deletePhoto: (foodSpotId: string, photoId: string) =>
     request(`/foodspots/${foodSpotId}/photos/${photoId}`, { method: 'DELETE' }),
+  random: (lat: number, lng: number, radius = 5) =>
+    request<FoodSpot & { distance: number }>(`/foodspots/random?lat=${lat}&lng=${lng}&radius=${radius}`),
 };
 
 // Map

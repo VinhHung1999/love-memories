@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { Heart, Camera, Utensils, Map, Target, Home } from 'lucide-react';
+import { Heart, Camera, Utensils, Map, Target, Home, LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useAuth } from '../lib/auth';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -11,6 +12,7 @@ const navItems = [
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const { user, logout } = useAuth();
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Desktop Sidebar */}
@@ -38,6 +40,12 @@ export default function Layout({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
+        <div className="mt-auto pt-6 border-t border-border">
+          <div className="text-xs text-text-light mb-2 truncate">{user?.name}</div>
+          <button onClick={logout} className="flex items-center gap-2 text-sm text-text-light hover:text-red-500 transition-colors w-full">
+            <LogOut className="w-4 h-4" /> Sign out
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
