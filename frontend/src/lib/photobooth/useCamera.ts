@@ -88,12 +88,30 @@ export function useCamera(): UseCameraReturn {
     canvas.height = h;
     const ctx = canvas.getContext('2d')!;
     if (filterCss && filterCss !== 'none') ctx.filter = filterCss;
+
+    // Cover-crop: compute source rect from actual video dimensions to preserve aspect ratio.
+    // Without this, drawImage stretches the video to fill w×h regardless of webcam ratio.
+    const vw = video.videoWidth || w;
+    const vh = video.videoHeight || h;
+    const videoAspect = vw / vh;
+    const targetAspect = w / h;
+    let sx = 0, sy = 0, sw = vw, sh = vh;
+    if (videoAspect > targetAspect) {
+      // Video is wider than target — crop left/right sides
+      sw = vh * targetAspect;
+      sx = (vw - sw) / 2;
+    } else {
+      // Video is taller than target — crop top/bottom
+      sh = vw / targetAspect;
+      sy = (vh - sh) / 2;
+    }
+
     // Mirror horizontally for front camera (selfie mode)
     if (facingMode === 'user') {
       ctx.translate(w, 0);
       ctx.scale(-1, 1);
     }
-    ctx.drawImage(video, 0, 0, w, h);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
     return canvas.toDataURL('image/jpeg', 0.92);
   }, [isReady, facingMode]);
 

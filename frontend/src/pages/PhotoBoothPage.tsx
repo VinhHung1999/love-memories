@@ -5,6 +5,7 @@ import FrameSelector from '../components/photobooth/FrameSelector';
 import PhotoSelector from '../components/photobooth/PhotoSelector';
 import FilterSelector from '../components/photobooth/FilterSelector';
 import StickerPanel from '../components/photobooth/StickerPanel';
+import OverlaySelector from '../components/photobooth/OverlaySelector';
 import CanvasPreview from '../components/photobooth/CanvasPreview';
 import CameraCapture from '../components/photobooth/CameraCapture';
 import ColorPicker from '../components/photobooth/ColorPicker';
@@ -37,9 +38,10 @@ export default function PhotoBoothPage() {
   const [galleryFrameId, setGalleryFrameId] = useState(GALLERY_FRAMES[0]?.id ?? '');
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([]);
 
-  // Shared filter + stickers
+  // Shared filter + stickers + overlay
   const [filterId, setFilterId] = useState('original');
   const [stickers, setStickers] = useState<PlacedSticker[]>([]);
+  const [overlayId, setOverlayId] = useState('none');
   const [prevCamStep, setPrevCamStep] = useState<CameraStep>(0);
   const [prevGalStep, setPrevGalStep] = useState<GalleryStep>(0);
 
@@ -51,11 +53,11 @@ export default function PhotoBoothPage() {
 
   const resetCamera = () => {
     setCameraStep(0); setCameraPhotos([]); setFilterId('original'); setStickers([]);
-    setFrameColor('#FFFFFF'); setMode('landing');
+    setFrameColor('#FFFFFF'); setOverlayId('none'); setMode('landing');
   };
   const resetGallery = () => {
     setGalleryStep(0); setGalleryPhotos([]); setFilterId('original'); setStickers([]);
-    setMode('landing');
+    setOverlayId('none'); setMode('landing');
   };
 
   const addSticker = (id: string) => setStickers((p) => [...p, createPlacedSticker(id)]);
@@ -172,15 +174,11 @@ export default function PhotoBoothPage() {
                 />
               )}
               {cameraStep === 2 && (
-                <div className="space-y-6">
-                  <ColorPicker value={frameColor} onChange={setFrameColor} />
-                  <StickerPanel
-                    placedStickers={stickers}
-                    onAdd={addSticker}
-                    onRemove={removeSticker}
-                    onUpdate={updateSticker}
-                  />
-                </div>
+                <CustomizePanel
+                  frameColor={frameColor} onFrameColorChange={setFrameColor}
+                  overlayId={overlayId} onOverlayChange={setOverlayId}
+                  stickers={stickers} onAdd={addSticker} onRemove={removeSticker} onUpdate={updateSticker}
+                />
               )}
               {cameraStep === 3 && (
                 <CanvasPreview
@@ -189,6 +187,7 @@ export default function PhotoBoothPage() {
                   filterId={filterId}
                   stickers={stickers}
                   frameColor={frameColor}
+                  overlayId={overlayId}
                   onStickersChange={setStickers}
                 />
               )}
@@ -280,11 +279,9 @@ export default function PhotoBoothPage() {
               />
             )}
             {galleryStep === 3 && (
-              <StickerPanel
-                placedStickers={stickers}
-                onAdd={addSticker}
-                onRemove={removeSticker}
-                onUpdate={updateSticker}
+              <CustomizePanel
+                overlayId={overlayId} onOverlayChange={setOverlayId}
+                stickers={stickers} onAdd={addSticker} onRemove={removeSticker} onUpdate={updateSticker}
               />
             )}
             {galleryStep === 4 && (
@@ -293,6 +290,7 @@ export default function PhotoBoothPage() {
                 photoUrls={galleryPhotos}
                 filterId={filterId}
                 stickers={stickers}
+                overlayId={overlayId}
                 onStickersChange={setStickers}
               />
             )}
@@ -326,6 +324,70 @@ export default function PhotoBoothPage() {
         <p className="text-center text-xs text-text-light mt-3">
           Select at least {galFrame?.photoCount.min ?? 1} photo{(galFrame?.photoCount.min ?? 1) > 1 ? 's' : ''} to continue
         </p>
+      )}
+    </div>
+  );
+}
+
+// ── Customize panel — Overlays | Props tabs ────────────────────────────────────
+
+type CustomizeTab = 'overlays' | 'props';
+
+function CustomizePanel({
+  frameColor,
+  onFrameColorChange,
+  overlayId,
+  onOverlayChange,
+  stickers,
+  onAdd,
+  onRemove,
+  onUpdate,
+}: {
+  frameColor?: string;
+  onFrameColorChange?: (c: string) => void;
+  overlayId: string;
+  onOverlayChange: (id: string) => void;
+  stickers: PlacedSticker[];
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (id: string, patch: Partial<PlacedSticker>) => void;
+}) {
+  const [tab, setTab] = useState<CustomizeTab>('overlays');
+
+  return (
+    <div className="space-y-4">
+      {/* Color picker (Camera Mode only) */}
+      {frameColor !== undefined && onFrameColorChange && (
+        <ColorPicker value={frameColor} onChange={onFrameColorChange} />
+      )}
+
+      {/* Tab bar */}
+      <div className="flex gap-2 border-b border-border pb-3">
+        {([['overlays', '🖼️ Overlays'], ['props', '✨ Props']] as [CustomizeTab, string][]).map(([t, label]) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              tab === t
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-text-light hover:bg-primary/10 hover:text-primary'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'overlays' && (
+        <OverlaySelector selectedId={overlayId} onSelect={onOverlayChange} />
+      )}
+      {tab === 'props' && (
+        <StickerPanel
+          placedStickers={stickers}
+          onAdd={onAdd}
+          onRemove={onRemove}
+          onUpdate={onUpdate}
+        />
       )}
     </div>
   );

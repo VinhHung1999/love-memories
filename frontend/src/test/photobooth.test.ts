@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { FILTERS, applyFilterToCanvas } from '../lib/photobooth/filters';
 import { FRAMES } from '../lib/photobooth/frames';
 import { STICKERS, createPlacedSticker, drawStickerOnCanvas } from '../lib/photobooth/stickers';
+import { OVERLAYS, drawOverlayOnCanvas } from '../lib/photobooth/overlays';
 
 // jsdom does not implement Canvas 2D — provide a no-op mock context
 const fakeGradient = { addColorStop: () => {} };
@@ -204,5 +205,72 @@ describe('SharePanel', () => {
   it('navigator.clipboard feature detection does not throw', () => {
     const canClipboard = typeof navigator !== 'undefined' && 'clipboard' in navigator;
     expect(typeof canClipboard).toBe('boolean');
+  });
+});
+
+// ── Overlays ──────────────────────────────────────────────────────────────────
+
+describe('OVERLAYS', () => {
+  it('exports 9 overlays (none + 8 designs)', () => {
+    expect(OVERLAYS.length).toBe(9);
+  });
+
+  it('has a "none" overlay as first entry', () => {
+    expect(OVERLAYS[0]!.id).toBe('none');
+  });
+
+  it('has unique ids', () => {
+    const ids = OVERLAYS.map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('each overlay has required fields', () => {
+    OVERLAYS.forEach((o) => {
+      expect(typeof o.id).toBe('string');
+      expect(typeof o.label).toBe('string');
+      expect(typeof o.emoji).toBe('string');
+      expect(typeof o.draw).toBe('function');
+    });
+  });
+
+  it('expected overlay ids are all present', () => {
+    const ids = OVERLAYS.map((o) => o.id);
+    expect(ids).toContain('none');
+    expect(ids).toContain('flowers-border');
+    expect(ids).toContain('hearts-scattered');
+    expect(ids).toContain('stars-sparkles');
+    expect(ids).toContain('vintage-ornamental');
+    expect(ids).toContain('minimal-corners');
+    expect(ids).toContain('love-doodles');
+    expect(ids).toContain('party-confetti');
+    expect(ids).toContain('romantic-roses');
+  });
+
+  it('draw functions run without throwing on mock ctx', () => {
+    const ctx = mockCtx();
+    OVERLAYS.forEach((overlay) => {
+      expect(() => overlay.draw(ctx, 600, 800)).not.toThrow();
+    });
+  });
+
+  it('drawOverlayOnCanvas runs without throwing for all overlay ids', () => {
+    const ctx = mockCtx();
+    OVERLAYS.forEach((overlay) => {
+      expect(() => drawOverlayOnCanvas(ctx, overlay.id, 600, 800)).not.toThrow();
+    });
+  });
+
+  it('drawOverlayOnCanvas handles unknown id gracefully', () => {
+    const ctx = mockCtx();
+    expect(() => drawOverlayOnCanvas(ctx, 'nonexistent', 400, 400)).not.toThrow();
+  });
+
+  it('"none" draw is a no-op (does not call any ctx methods)', () => {
+    let called = false;
+    const ctx = new Proxy({} as CanvasRenderingContext2D, {
+      get: () => () => { called = true; },
+    });
+    OVERLAYS.find((o) => o.id === 'none')!.draw(ctx, 400, 400);
+    expect(called).toBe(false);
   });
 });
