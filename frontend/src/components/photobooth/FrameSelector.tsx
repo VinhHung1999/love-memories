@@ -1,17 +1,21 @@
 import { useEffect, useRef } from 'react';
-import { FRAMES } from '../../lib/photobooth/frames';
+import { FRAMES, type FrameDef } from '../../lib/photobooth/frames';
 
 interface Props {
   selectedId: string;
   onSelect: (id: string) => void;
+  filterMode?: 'frame' | 'strip';
 }
 
-export default function FrameSelector({ selectedId, onSelect }: Props) {
+export default function FrameSelector({ selectedId, onSelect, filterMode }: Props) {
+  const frames = filterMode ? FRAMES.filter((f) => f.mode === filterMode) : FRAMES;
+  const title = filterMode === 'strip' ? 'Choose a Layout' : 'Choose a Frame';
+
   return (
     <div>
-      <h2 className="font-heading text-xl font-bold mb-4">Choose a Frame</h2>
+      <h2 className="font-heading text-xl font-bold mb-4">{title}</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {FRAMES.map((frame) => (
+        {frames.map((frame) => (
           <FrameCard
             key={frame.id}
             frame={frame}
@@ -29,7 +33,7 @@ function FrameCard({
   selected,
   onSelect,
 }: {
-  frame: (typeof FRAMES)[number];
+  frame: FrameDef;
   selected: boolean;
   onSelect: () => void;
 }) {

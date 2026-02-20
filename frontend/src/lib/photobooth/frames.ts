@@ -8,11 +8,13 @@ export interface FrameDef {
   label: string;
   emoji: string;
   photoCount: { min: number; max: number };
+  mode: 'frame' | 'strip';
   thumbnail: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
   render: (
     images: HTMLImageElement[],
     filterId: string,
     stickers: PlacedSticker[],
+    options?: { frameColor?: string },
   ) => Promise<HTMLCanvasElement>;
 }
 
@@ -48,7 +50,7 @@ function polaroidThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number):
 }
 
 async function polaroidRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = 1280;
   const canvas = createCanvas(W, H);
@@ -113,7 +115,7 @@ function heartThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): vo
 }
 
 async function heartRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = W;
   const canvas = createCanvas(W, H);
@@ -180,7 +182,7 @@ function filmThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): voi
 }
 
 async function filmRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const count = Math.min(images.length, 4);
   const FW = 700;
@@ -259,7 +261,7 @@ function collageThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): 
 }
 
 async function collageRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = W;
   const canvas = createCanvas(W, H);
@@ -325,7 +327,7 @@ function vintageThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): 
 }
 
 async function vintageRoundRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = W;
   const canvas = createCanvas(W, H);
@@ -420,7 +422,7 @@ function flowersThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): 
 }
 
 async function flowersRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = W;
   const canvas = createCanvas(W, H);
@@ -476,7 +478,7 @@ function minimalThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): 
 }
 
 async function minimalRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = W;
   const canvas = createCanvas(W, H);
@@ -543,7 +545,7 @@ function letterThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): v
 }
 
 async function letterRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[],
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
 ): Promise<HTMLCanvasElement> {
   const H = 1350;
   const canvas = createCanvas(W, H);
@@ -639,12 +641,201 @@ async function letterRender(
 
 // ── Catalog ───────────────────────────────────────────────────────────────────
 
+// ── Strip helpers ──────────────────────────────────────────────────────────────
+
+const STRIP_W = 600;
+
+function drawWatermark(ctx: CanvasRenderingContext2D, cw: number, ch: number, color: string): void {
+  ctx.save();
+  ctx.font = 'italic 18px "Playfair Display", Georgia, serif';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('Love Scrum ♥  ' + new Date().toLocaleDateString('vi-VN'), cw / 2, ch - 10);
+  ctx.restore();
+}
+
+function drawStripPhotos(
+  ctx: CanvasRenderingContext2D,
+  images: HTMLImageElement[],
+  filterId: string,
+  slots: { x: number; y: number; w: number; h: number }[],
+  frameColor: string,
+): void {
+  ctx.fillStyle = frameColor;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  slots.forEach(({ x, y, w, h }, i) => {
+    ctx.save();
+    roundRect(ctx, x, y, w, h, 4);
+    ctx.clip();
+    if (images[i]) {
+      const fi = filteredImg(images[i]!, filterId, w, h);
+      drawImageCover(ctx, fi, x, y, w, h);
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      ctx.fillRect(x, y, w, h);
+    }
+    ctx.restore();
+  });
+}
+
+// ── Strip 1: Classic Strip (4 vertical) ───────────────────────────────────────
+
+function classicStripThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  const pad = w * 0.08, gap = h * 0.02;
+  const ph = (h - pad * 1.6 - gap * 3) / 4;
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = '#e0e0e0';
+    roundRect(ctx, pad, pad * 0.5 + i * (ph + gap), w - pad * 2, ph, 3);
+    ctx.fill();
+  }
+  ctx.fillStyle = PRIMARY + '88';
+  ctx.font = `bold ${w * 0.07}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('♥', w / 2, h - 2);
+}
+
+async function classicStripRender(
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+): Promise<HTMLCanvasElement> {
+  const frameColor = options?.frameColor ?? '#FFFFFF';
+  const H = 1800, sidePad = 30, topPad = 36, botPad = 64, gap = 12;
+  const photoW = STRIP_W - sidePad * 2;
+  const photoH = Math.floor((H - topPad - botPad - gap * 3) / 4);
+  const slots = Array.from({ length: 4 }, (_, i) => ({
+    x: sidePad, y: topPad + i * (photoH + gap), w: photoW, h: photoH,
+  }));
+  const canvas = createCanvas(STRIP_W, H);
+  const ctx = canvas.getContext('2d')!;
+  drawStripPhotos(ctx, images, filterId, slots, frameColor);
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawStickers(ctx, stickers, STRIP_W, H);
+  return canvas;
+}
+
+// ── Strip 2: Duo Strip (2 vertical) ───────────────────────────────────────────
+
+function duoStripThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  const pad = w * 0.08, gap = h * 0.03;
+  const ph = (h - pad * 1.6 - gap) / 2;
+  for (let i = 0; i < 2; i++) {
+    ctx.fillStyle = '#e0e0e0';
+    roundRect(ctx, pad, pad * 0.5 + i * (ph + gap), w - pad * 2, ph, 3);
+    ctx.fill();
+  }
+  ctx.fillStyle = PRIMARY + '88';
+  ctx.font = `bold ${w * 0.07}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('♥', w / 2, h - 2);
+}
+
+async function duoStripRender(
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+): Promise<HTMLCanvasElement> {
+  const frameColor = options?.frameColor ?? '#FFFFFF';
+  const H = 900, sidePad = 30, topPad = 36, botPad = 64, gap = 12;
+  const photoW = STRIP_W - sidePad * 2;
+  const photoH = Math.floor((H - topPad - botPad - gap) / 2);
+  const slots = Array.from({ length: 2 }, (_, i) => ({
+    x: sidePad, y: topPad + i * (photoH + gap), w: photoW, h: photoH,
+  }));
+  const canvas = createCanvas(STRIP_W, H);
+  const ctx = canvas.getContext('2d')!;
+  drawStripPhotos(ctx, images, filterId, slots, frameColor);
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawStickers(ctx, stickers, STRIP_W, H);
+  return canvas;
+}
+
+// ── Strip 3: Triple Strip (3 vertical) ────────────────────────────────────────
+
+function tripleStripThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  const pad = w * 0.08, gap = h * 0.025;
+  const ph = (h - pad * 1.6 - gap * 2) / 3;
+  for (let i = 0; i < 3; i++) {
+    ctx.fillStyle = '#e0e0e0';
+    roundRect(ctx, pad, pad * 0.5 + i * (ph + gap), w - pad * 2, ph, 3);
+    ctx.fill();
+  }
+  ctx.fillStyle = PRIMARY + '88';
+  ctx.font = `bold ${w * 0.07}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('♥', w / 2, h - 2);
+}
+
+async function tripleStripRender(
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+): Promise<HTMLCanvasElement> {
+  const frameColor = options?.frameColor ?? '#FFFFFF';
+  const H = 1350, sidePad = 30, topPad = 36, botPad = 64, gap = 12;
+  const photoW = STRIP_W - sidePad * 2;
+  const photoH = Math.floor((H - topPad - botPad - gap * 2) / 3);
+  const slots = Array.from({ length: 3 }, (_, i) => ({
+    x: sidePad, y: topPad + i * (photoH + gap), w: photoW, h: photoH,
+  }));
+  const canvas = createCanvas(STRIP_W, H);
+  const ctx = canvas.getContext('2d')!;
+  drawStripPhotos(ctx, images, filterId, slots, frameColor);
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawStickers(ctx, stickers, STRIP_W, H);
+  return canvas;
+}
+
+// ── Strip 4: Grid 2x2 ─────────────────────────────────────────────────────────
+
+function gridThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  const pad = w * 0.06, gap = w * 0.03;
+  const cw = (w - pad * 2 - gap) / 2;
+  const ch = (h - pad * 1.6 - gap) / 2;
+  [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([col, row]) => {
+    ctx.fillStyle = '#e0e0e0';
+    roundRect(ctx, pad + col! * (cw + gap), pad * 0.5 + row! * (ch + gap), cw, ch, 3);
+    ctx.fill();
+  });
+}
+
+async function gridRender(
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+): Promise<HTMLCanvasElement> {
+  const frameColor = options?.frameColor ?? '#FFFFFF';
+  const H = 720, sidePad = 20, topPad = 20, botPad = 52, gap = 10;
+  const cellW = Math.floor((STRIP_W - sidePad * 2 - gap) / 2);
+  const cellH = Math.floor((H - topPad - botPad - gap) / 2);
+  const slots = [
+    { x: sidePad, y: topPad, w: cellW, h: cellH },
+    { x: sidePad + cellW + gap, y: topPad, w: cellW, h: cellH },
+    { x: sidePad, y: topPad + cellH + gap, w: cellW, h: cellH },
+    { x: sidePad + cellW + gap, y: topPad + cellH + gap, w: cellW, h: cellH },
+  ];
+  const canvas = createCanvas(STRIP_W, H);
+  const ctx = canvas.getContext('2d')!;
+  drawStripPhotos(ctx, images, filterId, slots, frameColor);
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawStickers(ctx, stickers, STRIP_W, H);
+  return canvas;
+}
+
+// ── Catalog ───────────────────────────────────────────────────────────────────
+
 export const FRAMES: FrameDef[] = [
   {
     id: 'polaroid',
     label: 'Polaroid',
     emoji: '📸',
     photoCount: { min: 1, max: 1 },
+    mode: 'frame',
     thumbnail: polaroidThumbnail,
     render: polaroidRender,
   },
@@ -653,6 +844,7 @@ export const FRAMES: FrameDef[] = [
     label: 'Heart Border',
     emoji: '💕',
     photoCount: { min: 1, max: 1 },
+    mode: 'frame',
     thumbnail: heartThumbnail,
     render: heartRender,
   },
@@ -661,6 +853,7 @@ export const FRAMES: FrameDef[] = [
     label: 'Film Strip',
     emoji: '🎞️',
     photoCount: { min: 1, max: 4 },
+    mode: 'frame',
     thumbnail: filmThumbnail,
     render: filmRender,
   },
@@ -669,6 +862,7 @@ export const FRAMES: FrameDef[] = [
     label: 'Collage 2×2',
     emoji: '🖼️',
     photoCount: { min: 1, max: 4 },
+    mode: 'frame',
     thumbnail: collageThumbnail,
     render: collageRender,
   },
@@ -677,6 +871,7 @@ export const FRAMES: FrameDef[] = [
     label: 'Vintage Round',
     emoji: '🕰️',
     photoCount: { min: 1, max: 1 },
+    mode: 'frame',
     thumbnail: vintageThumbnail,
     render: vintageRoundRender,
   },
@@ -685,6 +880,7 @@ export const FRAMES: FrameDef[] = [
     label: 'Flowers',
     emoji: '🌸',
     photoCount: { min: 1, max: 1 },
+    mode: 'frame',
     thumbnail: flowersThumbnail,
     render: flowersRender,
   },
@@ -693,6 +889,7 @@ export const FRAMES: FrameDef[] = [
     label: 'Minimal Border',
     emoji: '🎀',
     photoCount: { min: 1, max: 1 },
+    mode: 'frame',
     thumbnail: minimalThumbnail,
     render: minimalRender,
   },
@@ -701,7 +898,45 @@ export const FRAMES: FrameDef[] = [
     label: 'Love Letter',
     emoji: '💌',
     photoCount: { min: 1, max: 2 },
+    mode: 'frame',
     thumbnail: letterThumbnail,
     render: letterRender,
+  },
+  // ── Strip layouts (Camera Mode) ──────────────────────────────────────────────
+  {
+    id: 'classic-strip',
+    label: 'Classic Strip',
+    emoji: '🎞',
+    photoCount: { min: 4, max: 4 },
+    mode: 'strip',
+    thumbnail: classicStripThumbnail,
+    render: classicStripRender,
+  },
+  {
+    id: 'duo-strip',
+    label: 'Duo Strip',
+    emoji: '🤍',
+    photoCount: { min: 2, max: 2 },
+    mode: 'strip',
+    thumbnail: duoStripThumbnail,
+    render: duoStripRender,
+  },
+  {
+    id: 'triple-strip',
+    label: 'Triple Strip',
+    emoji: '✨',
+    photoCount: { min: 3, max: 3 },
+    mode: 'strip',
+    thumbnail: tripleStripThumbnail,
+    render: tripleStripRender,
+  },
+  {
+    id: 'grid-2x2',
+    label: 'Grid 2×2',
+    emoji: '⊞',
+    photoCount: { min: 4, max: 4 },
+    mode: 'strip',
+    thumbnail: gridThumbnail,
+    render: gridRender,
   },
 ];
