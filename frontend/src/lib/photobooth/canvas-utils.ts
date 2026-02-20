@@ -111,7 +111,7 @@ export function renderFilteredImage(
 ): HTMLCanvasElement {
   const offscreen = createCanvas(w, h);
   const ctx = offscreen.getContext('2d')!;
-  ctx.drawImage(img, 0, 0, w, h);
+  drawImageCover(ctx, img, 0, 0, w, h);
   applyFn(offscreen);
   return offscreen;
 }
