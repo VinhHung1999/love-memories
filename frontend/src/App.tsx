@@ -10,6 +10,7 @@ import FoodSpotDetail from './pages/FoodSpotDetail';
 import MapPage from './pages/MapPage';
 import GoalsPage from './pages/GoalsPage';
 import SprintDetail from './pages/SprintDetail';
+import PhotoBoothPage from './pages/PhotoBoothPage';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/map" element={<MapPage />} />
         <Route path="/goals" element={<GoalsPage />} />
         <Route path="/goals/sprint/:id" element={<SprintDetail />} />
+        <Route path="/photobooth" element={<PhotoBoothPage />} />
       </Routes>
     </Layout>
   );

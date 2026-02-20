@@ -1,14 +1,15 @@
 import { NavLink } from 'react-router-dom';
-import { Heart, Camera, Utensils, Map, Target, Home, LogOut } from 'lucide-react';
+import { Heart, Camera, Utensils, Map, Target, Home, LogOut, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/moments', icon: Camera, label: 'Moments' },
-  { to: '/foodspots', icon: Utensils, label: 'Food Spots' },
+  { to: '/foodspots', icon: Utensils, label: 'Food' },
   { to: '/map', icon: Map, label: 'Map' },
   { to: '/goals', icon: Target, label: 'Goals' },
+  { to: '/photobooth', icon: Sparkles, label: 'Booth' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
