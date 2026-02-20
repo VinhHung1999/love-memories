@@ -80,12 +80,31 @@ Vite proxies `/api` and `/uploads` to `http://localhost:5005` in dev mode.
 - **iOS input zoom**: All inputs have `font-size: 16px !important` in `index.css` to prevent iOS auto-zoom.
 - **Modal z-index**: Modal uses z-[60], bottom nav uses z-50. Keep this hierarchy when adding overlays.
 
+## Environments
+
+|  | Production | Dev |
+|--|-----------|-----|
+| DB | `love_scrum` | `love_scrum_dev` |
+| Backend port | 5005 | 5006 |
+| Frontend port | 3337 | 3338 |
+| Env file | `backend/.env` | `backend/.env.development` |
+| PM2 backend | `npm run start` | `npm run dev` |
+| PM2 frontend | `npm run preview` | `npm run dev` |
+| URL | `love-scrum.hungphu.work` | `dev-love-scrum.hungphu.work` |
+| API URL | `love-scrum-api.hungphu.work` | `dev-love-scrum-api.hungphu.work` |
+
+- `dotenv-cli` loads correct env file per script
+- Vite `server.proxy` → :5006 (dev only), `preview.proxy` → :5005 (prod only)
+- Seed dev data: `cd backend && npm run seed:dev`
+
 ## Deployment
 
 Exposed via Cloudflare Tunnel (`ai-teams` tunnel):
 - Frontend: `love-scrum.hungphu.work` → localhost:3337
 - Backend API: `love-scrum-api.hungphu.work` → localhost:5005
-- Vite `allowedHosts` includes `love-scrum.hungphu.work`
+- Dev Frontend: `dev-love-scrum.hungphu.work` → localhost:3338
+- Dev API: `dev-love-scrum-api.hungphu.work` → localhost:5006
+- Vite `allowedHosts` includes both `love-scrum.hungphu.work` and `dev-love-scrum.hungphu.work`
 
 ## Project Memory
 
