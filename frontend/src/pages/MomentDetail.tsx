@@ -327,7 +327,7 @@ export default function MomentDetail() {
                 width="100%"
                 height="80"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
+                loading="eager"
                 className="rounded-xl"
                 style={{ border: 'none' }}
               />
