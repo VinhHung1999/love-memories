@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle } from 'lucide-react';
@@ -24,16 +24,21 @@ export default function Dashboard() {
     ? Math.ceil((new Date(activeSprint.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : 0;
 
-  const stats = [
+  const [statsExpanded, setStatsExpanded] = useState(false);
+
+  const primaryStats = [
     { icon: Camera, label: 'kỷ niệm', value: moments.length, to: '/moments' },
-    { icon: Utensils, label: 'quán ăn', value: foodSpots.length, to: '/foodspots' },
     { icon: Target, label: 'goals xong', value: doneGoals, to: '/goals' },
   ];
+  const extraStats = [
+    { icon: Utensils, label: 'quán ăn', value: foodSpots.length, to: '/foodspots' },
+  ];
+  const visibleStats = statsExpanded ? [...primaryStats, ...extraStats] : primaryStats;
 
   // Stats row — rendered inside the hero card as its footer
   const statsFooter = (
     <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-2">
-      {stats.map((stat, i) => (
+      {visibleStats.map((stat, i) => (
         <Fragment key={stat.label}>
           {i > 0 && <span className="text-text-light/40 text-[10px] select-none">·</span>}
           <Link
@@ -46,6 +51,13 @@ export default function Dashboard() {
           </Link>
         </Fragment>
       ))}
+      <span className="text-text-light/40 text-[10px] select-none">·</span>
+      <button
+        onClick={() => setStatsExpanded((v) => !v)}
+        className="text-xs text-text-light/60 hover:text-text-light transition-colors"
+      >
+        {statsExpanded ? 'ẩn bớt' : 'xem thêm'}
+      </button>
     </div>
   );
 
