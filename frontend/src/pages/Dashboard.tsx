@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
@@ -42,8 +46,8 @@ export default function Dashboard() {
         <RelationshipTimer />
       </div>
 
-      {/* ── RECENT MOMENTS ────────────────────────────────────────────── */}
-      <div className="mb-6 -mx-4 md:mx-0">
+      {/* ── RECENT MOMENTS (Swiper) ───────────────────────────────────── */}
+      <div className="mb-2 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
           <div className="mx-4 md:mx-0 h-44 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-10 h-10 text-gray-300" />
@@ -51,39 +55,56 @@ export default function Dashboard() {
             <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
           </div>
         ) : (
-          <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 md:px-0 pb-1">
+          <Swiper
+            modules={[Pagination]}
+            slidesPerView={1.15}
+            centeredSlides
+            spaceBetween={12}
+            pagination={{ clickable: true }}
+            breakpoints={{
+              768: {
+                slidesPerView: 3,
+                spaceBetween: 16,
+                centeredSlides: false,
+              },
+            }}
+            style={{
+              '--swiper-pagination-color': '#E8788A',
+              '--swiper-pagination-bullet-inactive-color': '#D1D5DB',
+              '--swiper-pagination-bullet-inactive-opacity': '1',
+              paddingBottom: '2rem',
+            } as React.CSSProperties}
+          >
             {recentMoments.map((moment) => (
-              <Link
-                key={moment.id}
-                to={`/moments/${moment.id}`}
-                className="flex-none w-56 md:w-72 group"
-              >
-                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
-                  {moment.photos[0] ? (
-                    <img
-                      src={moment.photos[0].url}
-                      alt={moment.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-                      <Camera className="w-10 h-10 text-primary/30" />
+              <SwiperSlide key={moment.id}>
+                <Link to={`/moments/${moment.id}`} className="group block">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                    {moment.photos[0] ? (
+                      <img
+                        src={moment.photos[0].url}
+                        alt={moment.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                        <Camera className="w-10 h-10 text-primary/30" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <p className="text-white font-semibold text-sm leading-snug line-clamp-2 drop-shadow">
+                        {moment.title}
+                      </p>
+                      <p className="text-white/70 text-xs mt-0.5 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        {format(new Date(moment.date), 'MMM d, yyyy')}
+                      </p>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <p className="text-white font-semibold text-sm leading-snug line-clamp-2 drop-shadow">
-                      {moment.title}
-                    </p>
-                    <p className="text-white/70 text-xs mt-0.5 flex items-center gap-1">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      {format(new Date(moment.date), 'MMM d, yyyy')}
-                    </p>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </SwiperSlide>
             ))}
-          </div>
+          </Swiper>
         )}
       </div>
       {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
