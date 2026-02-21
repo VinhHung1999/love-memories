@@ -109,6 +109,7 @@ export interface Recipe {
   steps: string[];
   tags: string[];
   notes: string | null;
+  tutorialUrl: string | null;
   foodSpotId: string | null;
   foodSpot: { id: string; name: string } | null;
   createdAt: string;

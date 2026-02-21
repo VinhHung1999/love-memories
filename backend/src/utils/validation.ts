@@ -67,6 +67,7 @@ export const createRecipeSchema = z.object({
   steps: z.array(z.string()).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
   notes: z.string().optional(),
+  tutorialUrl: z.string().url().optional().nullable().or(z.literal('')),
   foodSpotId: z.string().uuid().optional().nullable(),
 });
 

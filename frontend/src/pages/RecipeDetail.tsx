@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink } from 'lucide-react';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
@@ -196,6 +196,18 @@ export default function RecipeDetail() {
             <p className="text-sm text-text-light leading-relaxed">{recipe.notes}</p>
           </div>
         )}
+
+        {recipe.tutorialUrl && (
+          <a
+            href={recipe.tutorialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-accent hover:underline"
+          >
+            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+            Xem hướng dẫn
+          </a>
+        )}
       </div>
 
       {/* Delete confirm modal */}
@@ -256,6 +268,7 @@ function RecipeEditModal({
   const [ingredients, setIngredients] = useState<string[]>(recipe.ingredients.length > 0 ? recipe.ingredients : ['']);
   const [steps, setSteps] = useState<string[]>(recipe.steps.length > 0 ? recipe.steps : ['']);
   const [notes, setNotes] = useState(recipe.notes ?? '');
+  const [tutorialUrl, setTutorialUrl] = useState(recipe.tutorialUrl ?? '');
   const [tagsInput, setTagsInput] = useState(recipe.tags.join(', '));
   const [foodSpotId, setFoodSpotId] = useState(recipe.foodSpotId ?? '');
 
@@ -273,6 +286,7 @@ function RecipeEditModal({
         ingredients: ingredients.filter(Boolean),
         steps: steps.filter(Boolean),
         notes: notes || undefined,
+        tutorialUrl: tutorialUrl || null,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
         foodSpotId: foodSpotId || null,
       } as Partial<Recipe>),
@@ -367,6 +381,16 @@ function RecipeEditModal({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tutorial URL</label>
+          <input
+            value={tutorialUrl}
+            onChange={(e) => setTutorialUrl(e.target.value)}
+            type="url"
+            placeholder="https://youtube.com/..."
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
         </div>
