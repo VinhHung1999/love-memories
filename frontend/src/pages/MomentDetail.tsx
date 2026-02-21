@@ -214,6 +214,27 @@ export default function MomentDetail() {
         </div>
       )}
 
+      {/* Spotify embed — between photos and detail card */}
+      {moment.spotifyUrl && (() => {
+        const trackId = moment.spotifyUrl!
+          .replace('spotify:track:', '')
+          .match(/track\/([A-Za-z0-9]+)/)?.[1];
+        if (!trackId) return null;
+        return (
+          <div className="mb-4">
+            <iframe
+              src={`https://open.spotify.com/embed/track/${trackId}?theme=0&autoplay=1`}
+              width="100%"
+              height="80"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="eager"
+              className="rounded-xl"
+              style={{ border: 'none' }}
+            />
+          </div>
+        );
+      })()}
+
       <div className="bg-white rounded-2xl p-6">
         <div className="flex items-start justify-between">
           <h1 className="font-heading text-3xl font-bold">{moment.title}</h1>
@@ -273,27 +294,6 @@ export default function MomentDetail() {
         )}
 
       </div>
-
-      {/* Spotify embed */}
-      {moment.spotifyUrl && (() => {
-        const trackId = moment.spotifyUrl!
-          .replace('spotify:track:', '')
-          .match(/track\/([A-Za-z0-9]+)/)?.[1];
-        if (!trackId) return null;
-        return (
-          <div className="mt-4">
-            <iframe
-              src={`https://open.spotify.com/embed/track/${trackId}?theme=0&autoplay=1`}
-              width="100%"
-              height="80"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="eager"
-              className="rounded-xl"
-              style={{ border: 'none' }}
-            />
-          </div>
-        );
-      })()}
 
       {/* Voice Memos */}
       <div className="mt-4 bg-white rounded-2xl p-4">
