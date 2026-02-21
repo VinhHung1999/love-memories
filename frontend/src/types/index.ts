@@ -106,6 +106,7 @@ export interface Recipe {
   title: string;
   description: string | null;
   ingredients: string[];
+  ingredientPrices: number[];
   steps: string[];
   stepDurations: number[];
   tags: string[];
@@ -134,6 +135,7 @@ export interface CookingSessionItem {
   id: string;
   sessionId: string;
   ingredient: string;
+  price: number | null;
   checked: boolean;
   checkedAt: string | null;
 }
