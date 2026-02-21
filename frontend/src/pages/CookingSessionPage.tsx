@@ -163,6 +163,18 @@ export default function CookingSessionPage() {
         </div>
       )}
 
+      {/* History link */}
+      {recipes.length > 0 && (
+        <div className="flex justify-center mt-4 mb-2">
+          <Link
+            to="/what-to-eat/history"
+            className="text-sm text-text-light hover:text-primary transition-colors"
+          >
+            Xem lịch sử nấu ăn →
+          </Link>
+        </div>
+      )}
+
       {/* Sticky start button */}
       {recipes.length > 0 && (
         <div

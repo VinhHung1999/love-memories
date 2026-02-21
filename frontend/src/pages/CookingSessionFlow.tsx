@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer } from 'lucide-react';
+import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../types';
 
@@ -65,10 +66,10 @@ export default function CookingSessionFlow() {
         <CookingPhase session={session} />
       )}
       {session.status === 'photo' && (
-        <PhotoPhasePlaceholder session={session} />
+        <PhotoPhase session={session} />
       )}
       {session.status === 'completed' && (
-        <CompletedPhasePlaceholder session={session} />
+        <CompletedPhase session={session} />
       )}
     </div>
   );
@@ -600,40 +601,265 @@ function CookingPhase({ session }: { session: CookingSession }) {
   );
 }
 
-// ─── Phase stubs — will be replaced in Task 5 ────────────────────────────────
+// ─── Photo phase ──────────────────────────────────────────────────────────────
 
-function PhotoPhasePlaceholder({ session: _session }: { session: CookingSession }) {
-  return <PhasePlaceholder label="Chụp ảnh" emoji="📸" items={0} note="Task 5 implements this." />;
-}
+function PhotoPhase({ session }: { session: CookingSession }) {
+  const queryClient = useQueryClient();
+  const [notes, setNotes] = useState(session.notes ?? '');
+  const [uploading, setUploading] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | undefined>(undefined);
 
-function CompletedPhasePlaceholder({ session: _session }: { session: CookingSession }) {
-  return <PhasePlaceholder label="Hoàn thành" emoji="🎉" items={0} note="Task 5 implements this." />;
-}
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      await cookingSessionsApi.uploadPhotos(session.id, Array.from(files));
+      queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] });
+    } catch {
+      toast.error('Không thể tải ảnh lên');
+    } finally {
+      setUploading(false);
+      e.target.value = ''; // allow re-selecting same file
+    }
+  };
 
-function PhasePlaceholder({
-  label,
-  emoji,
-  items,
-  note,
-}: {
-  label: string;
-  emoji: string;
-  items: number;
-  note: string;
-}) {
-  const navigate = useNavigate();
+  const handleComplete = async () => {
+    setCompleting(true);
+    try {
+      await cookingSessionsApi.updateStatus(
+        session.id,
+        'completed',
+        notes.trim() || undefined
+      );
+      queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] });
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions', 'active'] });
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions'] });
+    } finally {
+      setCompleting(false);
+    }
+  };
+
   return (
-    <div className="max-w-lg mx-auto text-center py-12">
-      <div className="text-5xl mb-4">{emoji}</div>
-      <h2 className="font-heading text-2xl font-bold mb-2">{label}</h2>
-      {items > 0 && <p className="text-text-light text-sm mb-1">{items} mục</p>}
-      <p className="text-text-light text-xs mb-6">{note}</p>
+    <div className="max-w-lg mx-auto">
+      {/* Hero prompt */}
+      <div className="text-center mb-8">
+        <div className="text-5xl mb-3">📸</div>
+        <h1 className="font-heading text-2xl font-bold mb-1">Chụp ảnh món ăn!</h1>
+        <p className="text-text-light text-sm">
+          Lưu lại khoảnh khắc của buổi nấu ăn hôm nay
+        </p>
+      </div>
+
+      {/* Already-uploaded photos */}
+      {session.photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {session.photos.map((photo) => (
+            <div key={photo.id} className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+              <img src={photo.url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Hidden file input */}
+      <input
+        ref={(el) => { fileInputRef.current = el ?? undefined; }}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      {/* Upload trigger */}
       <button
-        onClick={() => navigate('/what-to-eat')}
-        className="text-primary text-sm font-medium hover:underline"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-4 text-sm font-medium text-text-light hover:border-primary/40 hover:text-primary transition-colors mb-6 disabled:opacity-60"
       >
-        ← Về trang chọn món
+        {uploading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            Đang tải ảnh...
+          </>
+        ) : (
+          <>
+            <Camera className="w-5 h-5" />
+            {session.photos.length > 0 ? 'Thêm ảnh' : 'Thêm ảnh món ăn'}
+          </>
+        )}
+      </button>
+
+      {/* Notes */}
+      <div className="mb-8">
+        <label className="block text-sm font-medium mb-2">
+          Ghi chú <span className="text-text-light font-normal">(không bắt buộc)</span>
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Hôm nay nấu ngon không? Có gì muốn cải thiện lần sau?..."
+          rows={3}
+          className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+        />
+      </div>
+
+      {/* Complete button */}
+      <button
+        onClick={handleComplete}
+        disabled={completing}
+        className="w-full flex items-center justify-center gap-2 bg-primary text-white py-3.5 rounded-2xl font-semibold text-base shadow-lg shadow-primary/25 hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60"
+      >
+        {completing ? (
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <>🎉 Hoàn thành phiên nấu ăn!</>
+        )}
       </button>
     </div>
   );
 }
+
+// ─── Completed phase ──────────────────────────────────────────────────────────
+
+function formatDuration(ms: number | null): string {
+  if (!ms) return '—';
+  const totalSecs = Math.floor(ms / 1000);
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if (h > 0) return `${h} giờ ${m} phút`;
+  if (m > 0) return `${m} phút ${s} giây`;
+  return `${s} giây`;
+}
+
+function CompletedPhase({ session }: { session: CookingSession }) {
+  const navigate = useNavigate();
+
+  const dishNames = session.recipes.map((r) => r.recipe.title).join(', ');
+
+  const completedDate = session.completedAt
+    ? new Date(session.completedAt).toLocaleDateString('vi-VN', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : '';
+
+  // Group checked steps by player name
+  const playerContributions: Record<string, number> = {};
+  session.steps
+    .filter((s) => s.checked && s.checkedBy)
+    .forEach((s) => {
+      playerContributions[s.checkedBy!] = (playerContributions[s.checkedBy!] ?? 0) + 1;
+    });
+
+  return (
+    <div className="max-w-lg mx-auto">
+      {/* Hero */}
+      <div className="text-center mb-8">
+        <motion.div
+          initial={{ scale: 0.4, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 220, damping: 16 }}
+          className="text-6xl mb-3"
+        >
+          🎉
+        </motion.div>
+        <motion.h1
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="font-heading text-3xl font-bold mb-1"
+        >
+          Tuyệt vời!
+        </motion.h1>
+        <p className="text-text-light text-sm">{completedDate}</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="bg-primary/5 rounded-2xl p-4 text-center">
+          <p className="font-bold text-2xl text-primary">{session.recipes.length}</p>
+          <p className="text-xs text-text-light mt-0.5">Món đã nấu</p>
+        </div>
+        <div className="bg-secondary/5 rounded-2xl p-4 text-center">
+          <p className="font-bold text-xl text-secondary leading-tight">
+            {formatDuration(session.totalTimeMs)}
+          </p>
+          <p className="text-xs text-text-light mt-0.5">Thời gian nấu</p>
+        </div>
+      </div>
+
+      {/* Dishes */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
+        <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-1.5">
+          Món đã nấu
+        </p>
+        <p className="font-heading font-semibold text-base">{dishNames}</p>
+      </div>
+
+      {/* Photos */}
+      {session.photos.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-2">
+            Ảnh kỷ niệm
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {session.photos.map((photo) => (
+              <div key={photo.id} className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                <img src={photo.url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Player contributions */}
+      {Object.keys(playerContributions).length > 0 && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
+          <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-3">
+            Đóng góp
+          </p>
+          <div className="space-y-2">
+            {Object.entries(playerContributions).map(([name, count]) => (
+              <div key={name} className="flex items-center justify-between">
+                <span className="text-sm font-medium">{name}</span>
+                <span className="text-sm text-text-light">{count} bước</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Notes */}
+      {session.notes && (
+        <div className="bg-gray-50 rounded-2xl p-4 mb-5">
+          <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-1.5">
+            Ghi chú
+          </p>
+          <p className="text-sm text-text leading-relaxed">{session.notes}</p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => navigate('/what-to-eat/history')}
+          className="flex-1 border border-border rounded-2xl py-3 text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          Lịch sử
+        </button>
+        <button
+          onClick={() => navigate('/')}
+          className="flex-1 bg-primary text-white rounded-2xl py-3 text-sm font-medium hover:bg-primary/90 active:scale-95 transition-all"
+        >
+          Về trang chủ
+        </button>
+      </div>
+    </div>
+  );
+}
+
