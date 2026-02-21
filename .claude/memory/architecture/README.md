@@ -49,16 +49,17 @@ Always respect this order when adding new overlay or panel components.
 - App.tsx: isLoading spinner → !isAuthenticated shows LoginPage → authenticated shows Layout+Routes
 - .env is gitignored — never commit JWT_SECRET; add manually after clone
 
-## Photo Booth (Sprint 6 + Sprint 7)
+## Photo Booth (Sprint 6 + Sprint 7 + Sprint 8)
 
 - Purely client-side Canvas 2D feature — no backend except CORS proxy
-- Files: `lib/photobooth/` (canvas-utils, filters, frames, stickers, useCamera) + `components/photobooth/` (8 components) + `pages/PhotoBoothPage.tsx`
+- Files: `lib/photobooth/` (canvas-utils, filters, frames, stickers, overlays, useCamera) + `components/photobooth/` (9 components) + `pages/PhotoBoothPage.tsx`
 - **Sprint 6 Gallery Mode**: 5-step wizard: Frame → Photos → Filter → Stickers → Preview & Download. 8 frames, 8 filters, 20 stickers (3 categories: love/fun/text)
 - **Sprint 7 Camera Mode**: 4-step wizard: Layout → Camera Capture (countdown) → Customize → Preview/Share
+- **Sprint 8 Upgrades**: Canvas 2D overlays (overlays.ts — 9 designs), Canvas 2D prop stickers (heart/star/crown/fire/sparkles drawn natively), cover-crop fix in captureFrame + renderFilteredImage
 - `FrameDef.mode: 'frame' | 'strip'` separates gallery frames from strip layouts
 - 4 strip layouts: Classic (4 photos, 600×1800), Duo (2, 600×900), Triple (3, 600×1350), Grid 2×2 (4, 600×720)
-- Strip frames support `frameColor` option; all decorated with Canvas 2D + watermark
-- `useCamera` hook: getUserMedia, front/rear toggle, captureFrame with mirror + CSS filter
+- Composite pipeline: `frame.render()` (base, empty stickers) → overlay → stickers → `setResultCanvas()` (useState, not useRef)
+- `useCamera` hook: getUserMedia, front/rear toggle, captureFrame with cover-crop mirror + CSS filter
 - SharePanel: Web Share API (feature-detected) + Clipboard API + Download PNG
 - CORS proxy: `/api/proxy-image?url=` routes CDN images through backend to avoid canvas taint
 - data: URL fast-path in loadImage() for camera captures (bypasses fetch)

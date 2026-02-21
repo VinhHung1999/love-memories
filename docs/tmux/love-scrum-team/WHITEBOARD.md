@@ -31,3 +31,4 @@ _Empty — awaiting next sprint._
 ## Notes
 
 _Sprint 7 — PicaPica Booth: APPROVED & MERGED ✅ (2026-02-20)_
+_Sprint 8 — Bug Fix + Sticker Upgrade: APPROVED & DEPLOYED ✅ (2026-02-21)_

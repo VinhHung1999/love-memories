@@ -60,3 +60,18 @@ _(Add lessons from debugging, design mistakes, or surprising behaviors)_
 - Cause: `server.proxy` in vite.config.ts only works for `vite dev`. When switching production to `vite preview` (via PM2), the proxy config is ignored → all `/api/*` calls return 404.
 - Fix: add a separate `preview.proxy` block pointing to the production backend port.
 - Key takeaway: `server` and `preview` are independent config blocks in Vite. Always configure proxy in both if using vite preview for production.
+
+### Camera capture distortion from drawImage without aspect ratio (Sprint 8)
+- Cause: `ctx.drawImage(video, 0, 0, w, h)` stretches webcam feed into w×h regardless of actual video aspect ratio (videoWidth/videoHeight).
+- Fix: compute cover-crop source rect (sx, sy, sw, sh) from video.videoWidth/videoHeight before calling `ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h)`. Apply mirror (ctx.translate/scale) before the drawImage call.
+- Key takeaway: always read `video.videoWidth` and `video.videoHeight` for cover-crop; never assume the video fills exactly the requested dimensions.
+
+### CanvasPreview composite layer order (Sprint 8)
+- Old approach: frame.render() baked stickers into result canvas; stickers re-drawn on preview. Overlay had no clean insertion point.
+- Fix: pass empty stickers to frame.render(), then composite in CanvasPreview: base → overlay → stickers. One finalCanvas serves both download and preview (no double-drawing).
+- Key takeaway: for clean layer ordering in canvas compositing, render each layer independently and composite explicitly.
+
+### hover:opacity buttons invisible on mobile touch devices
+- Cause: `opacity-0 group-hover:opacity-100` makes buttons (e.g., photo delete) permanently hidden on mobile since there's no hover event.
+- Fix: use `md:opacity-0 md:group-hover:opacity-100` — buttons always visible on mobile, hover-reveal on desktop only.
+- Key takeaway: never gate interactive elements behind hover-only CSS on touch targets. Use responsive prefixes (`md:`) to separate mobile (always visible) from desktop (hover-reveal).
