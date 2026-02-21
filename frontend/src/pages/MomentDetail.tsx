@@ -201,61 +201,6 @@ export default function MomentDetail() {
         </button>
       </div>
 
-      {/* Voice Memos */}
-      <div className="mb-4 bg-white rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-1.5"><Mic className="w-4 h-4 text-primary" /> Voice Memos</h3>
-          {!recording ? (
-            <button
-              onClick={startRecording}
-              disabled={uploadAudioMutation.isPending}
-              className="flex items-center gap-1.5 text-xs text-primary border border-primary/30 px-3 py-1.5 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
-            >
-              <Mic className="w-3.5 h-3.5" /> Record
-            </button>
-          ) : (
-            <button
-              onClick={stopRecording}
-              className="flex items-center gap-1.5 text-xs text-red-500 border border-red-300 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors animate-pulse"
-            >
-              <Square className="w-3.5 h-3.5 fill-red-500" />
-              {String(Math.floor(recordSeconds / 60)).padStart(2, '0')}:{String(recordSeconds % 60).padStart(2, '0')}
-            </button>
-          )}
-        </div>
-
-        {moment.audios.length === 0 && !recording && (
-          <p className="text-xs text-text-light text-center py-2">Chưa có voice memo nào.</p>
-        )}
-
-        <div className="space-y-2">
-          {moment.audios.map((audio, i) => (
-            <div key={audio.id} className="flex items-center gap-2 bg-primary/5 rounded-xl px-3 py-2">
-              <button
-                onClick={() => togglePlay(audio.url, audio.id)}
-                className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors"
-              >
-                {playingId === audio.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium">Memo {i + 1}</p>
-                {audio.duration != null && (
-                  <p className="text-xs text-text-light">
-                    {String(Math.floor(audio.duration / 60)).padStart(2, '0')}:{String(Math.round(audio.duration % 60)).padStart(2, '0')}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => { if (window.confirm('Xóa voice memo này?')) deleteAudioMutation.mutate(audio.id); }}
-                className="text-red-400 hover:text-red-500 p-1 rounded transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className="bg-white rounded-2xl p-6">
         <div className="flex items-start justify-between">
           <h1 className="font-heading text-3xl font-bold">{moment.title}</h1>
@@ -314,27 +259,82 @@ export default function MomentDetail() {
           </div>
         )}
 
-        {/* Spotify embed */}
-        {moment.spotifyUrl && (() => {
-          const trackId = moment.spotifyUrl!
-            .replace('spotify:track:', '')
-            .match(/track\/([A-Za-z0-9]+)/)?.[1];
-          if (!trackId) return null;
-          return (
-            <div className="mt-5">
-              <iframe
-                src={`https://open.spotify.com/embed/track/${trackId}?theme=0&autoplay=1`}
-                width="100%"
-                height="80"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="eager"
-                className="rounded-xl"
-                style={{ border: 'none' }}
-              />
-            </div>
-          );
-        })()}
+      </div>
 
+      {/* Spotify embed */}
+      {moment.spotifyUrl && (() => {
+        const trackId = moment.spotifyUrl!
+          .replace('spotify:track:', '')
+          .match(/track\/([A-Za-z0-9]+)/)?.[1];
+        if (!trackId) return null;
+        return (
+          <div className="mt-4">
+            <iframe
+              src={`https://open.spotify.com/embed/track/${trackId}?theme=0&autoplay=1`}
+              width="100%"
+              height="80"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="eager"
+              className="rounded-xl"
+              style={{ border: 'none' }}
+            />
+          </div>
+        );
+      })()}
+
+      {/* Voice Memos */}
+      <div className="mt-4 bg-white rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5"><Mic className="w-4 h-4 text-primary" /> Voice Memos</h3>
+          {!recording ? (
+            <button
+              onClick={startRecording}
+              disabled={uploadAudioMutation.isPending}
+              className="flex items-center gap-1.5 text-xs text-primary border border-primary/30 px-3 py-1.5 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
+            >
+              <Mic className="w-3.5 h-3.5" /> Record
+            </button>
+          ) : (
+            <button
+              onClick={stopRecording}
+              className="flex items-center gap-1.5 text-xs text-red-500 border border-red-300 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors animate-pulse"
+            >
+              <Square className="w-3.5 h-3.5 fill-red-500" />
+              {String(Math.floor(recordSeconds / 60)).padStart(2, '0')}:{String(recordSeconds % 60).padStart(2, '0')}
+            </button>
+          )}
+        </div>
+
+        {moment.audios.length === 0 && !recording && (
+          <p className="text-xs text-text-light text-center py-2">Chưa có voice memo nào.</p>
+        )}
+
+        <div className="space-y-2">
+          {moment.audios.map((audio, i) => (
+            <div key={audio.id} className="flex items-center gap-2 bg-primary/5 rounded-xl px-3 py-2">
+              <button
+                onClick={() => togglePlay(audio.url, audio.id)}
+                className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors"
+              >
+                {playingId === audio.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">Memo {i + 1}</p>
+                {audio.duration != null && (
+                  <p className="text-xs text-text-light">
+                    {String(Math.floor(audio.duration / 60)).padStart(2, '0')}:{String(Math.round(audio.duration % 60)).padStart(2, '0')}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => { if (window.confirm('Xóa voice memo này?')) deleteAudioMutation.mutate(audio.id); }}
+                className="text-red-400 hover:text-red-500 p-1 rounded transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {confirmDelete && (
