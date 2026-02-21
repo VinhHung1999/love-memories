@@ -323,7 +323,7 @@ export default function MomentDetail() {
           return (
             <div className="mt-5">
               <iframe
-                src={`https://open.spotify.com/embed/track/${trackId}?theme=0`}
+                src={`https://open.spotify.com/embed/track/${trackId}?theme=0&autoplay=1`}
                 width="100%"
                 height="80"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
