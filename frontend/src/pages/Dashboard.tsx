@@ -111,7 +111,19 @@ export default function Dashboard() {
             slidesOffsetAfter={16}
             breakpoints={{
               768: {
-                slidesPerView: 3,
+                slidesPerView: 2.5,
+                spaceBetween: 16,
+                slidesOffsetBefore: 0,
+                slidesOffsetAfter: 0,
+              },
+              1024: {
+                slidesPerView: 3.5,
+                spaceBetween: 16,
+                slidesOffsetBefore: 0,
+                slidesOffsetAfter: 0,
+              },
+              1280: {
+                slidesPerView: 4,
                 spaceBetween: 16,
                 slidesOffsetBefore: 0,
                 slidesOffsetAfter: 0,
@@ -121,7 +133,7 @@ export default function Dashboard() {
             {recentMoments.map((moment) => (
               <SwiperSlide key={moment.id}>
                 <Link to={`/moments/${moment.id}`} className="group block">
-                  <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-lg ring-1 ring-black/5 group-hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative aspect-[4/3] md:max-h-56 rounded-3xl overflow-hidden shadow-lg ring-1 ring-black/5 group-hover:shadow-xl transition-shadow duration-300">
                     {moment.photos[0] ? (
                       <img
                         src={moment.photos[0].url}
