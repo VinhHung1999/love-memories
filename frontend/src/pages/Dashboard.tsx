@@ -54,21 +54,21 @@ export default function Dashboard() {
               <Link
                 key={moment.id}
                 to={`/moments/${moment.id}`}
-                className="group flex-shrink-0 w-36 snap-start"
+                className="group flex-shrink-0 w-[72vw] max-w-xs snap-start"
               >
-                <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-1.5">
+                <div className="w-full h-52 rounded-2xl overflow-hidden bg-gray-100 mb-2 shadow-sm">
                   {moment.photos[0] ? (
                     <img src={moment.photos[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Camera className="w-7 h-7 text-gray-300" />
+                      <Camera className="w-10 h-10 text-gray-300" />
                     </div>
                   )}
                 </div>
-                <p className="text-xs font-medium truncate">{moment.title}</p>
-                <p className="text-xs text-text-light flex items-center gap-0.5 mt-0.5">
-                  <Calendar className="w-2.5 h-2.5 flex-shrink-0" />
-                  {format(new Date(moment.date), 'MMM d')}
+                <p className="text-sm font-medium truncate">{moment.title}</p>
+                <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  {format(new Date(moment.date), 'MMM d, yyyy')}
                 </p>
               </Link>
             ))}
