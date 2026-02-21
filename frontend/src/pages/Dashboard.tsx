@@ -5,9 +5,7 @@ import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, C
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/pagination';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
@@ -62,13 +60,7 @@ export default function Dashboard() {
         <p className="text-text-light text-sm">Our little world, beautifully organized</p>
       </div>
 
-      {/* ── RECENT MOMENTS (Swiper) ───────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="font-heading text-base font-semibold text-text">Kỷ niệm gần đây</h2>
-        <Link to="/moments" className="text-primary text-xs flex items-center gap-1 hover:underline">
-          Xem tất cả <ArrowRight className="w-3 h-3" />
-        </Link>
-      </div>
+      {/* ── RECENT MOMENTS (Swiper, no title, no dots) ───────────────── */}
       <div className="mb-4 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
           <div className="mx-4 md:mx-0 h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
@@ -78,11 +70,9 @@ export default function Dashboard() {
           </div>
         ) : (
           <Swiper
-            modules={[Pagination]}
             slidesPerView={1.15}
             centeredSlides
             spaceBetween={12}
-            pagination={{ clickable: true }}
             breakpoints={{
               768: {
                 slidesPerView: 3,
@@ -90,12 +80,6 @@ export default function Dashboard() {
                 centeredSlides: false,
               },
             }}
-            style={{
-              '--swiper-pagination-color': '#E8788A',
-              '--swiper-pagination-bullet-inactive-color': '#D1D5DB',
-              '--swiper-pagination-bullet-inactive-opacity': '1',
-              paddingBottom: '2rem',
-            } as React.CSSProperties}
           >
             {recentMoments.map((moment) => (
               <SwiperSlide key={moment.id}>
