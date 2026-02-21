@@ -20,9 +20,16 @@ afterAll(async () => {
   await prisma.momentPhoto.deleteMany();
   await prisma.moment.deleteMany();
   await prisma.foodSpotPhoto.deleteMany();
-  await prisma.foodSpot.deleteMany();
   await prisma.goal.deleteMany();
   await prisma.sprint.deleteMany();
+  await prisma.cookingSessionPhoto.deleteMany();
+  await prisma.cookingSessionStep.deleteMany();
+  await prisma.cookingSessionItem.deleteMany();
+  await prisma.cookingSessionRecipe.deleteMany();
+  await prisma.cookingSession.deleteMany();
+  await prisma.recipePhoto.deleteMany();
+  await prisma.recipe.deleteMany();
+  await prisma.foodSpot.deleteMany();
   await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
   await prisma.$disconnect();
 });
@@ -333,5 +340,137 @@ describe('Validation', () => {
   it('POST /api/sprints with missing dates returns 400', async () => {
     const res = await request(app).post('/api/sprints').set(auth()).send({ name: 'Bad Sprint' });
     expect(res.status).toBe(400);
+  });
+});
+
+describe('CookingSessions', () => {
+  let sessionId: string;
+  let itemId: string;
+  let stepId: string;
+  let recipeId: string;
+
+  beforeAll(async () => {
+    // Create a test recipe with ingredients and steps
+    const recipe = await prisma.recipe.create({
+      data: {
+        title: 'Test Dish',
+        ingredients: ['Onion', 'Garlic', 'Tomato'],
+        steps: ['Chop onion', 'Fry garlic', 'Add tomato'],
+        tags: [],
+      },
+    });
+    recipeId = recipe.id;
+  });
+
+  it('POST /api/cooking-sessions creates session with items and steps', async () => {
+    const res = await request(app)
+      .post('/api/cooking-sessions')
+      .set(auth())
+      .send({ recipeIds: [recipeId] });
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe('selecting');
+    expect(res.body.items).toHaveLength(3);
+    expect(res.body.steps).toHaveLength(3);
+    expect(res.body.recipes).toHaveLength(1);
+    sessionId = res.body.id;
+    itemId = res.body.items[0].id;
+    stepId = res.body.steps[0].id;
+  });
+
+  it('POST /api/cooking-sessions with empty recipeIds returns 400', async () => {
+    const res = await request(app)
+      .post('/api/cooking-sessions')
+      .set(auth())
+      .send({ recipeIds: [] });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/cooking-sessions returns 409 when active session exists', async () => {
+    const res = await request(app)
+      .post('/api/cooking-sessions')
+      .set(auth())
+      .send({ recipeIds: [recipeId] });
+    expect(res.status).toBe(409);
+    expect(res.body.sessionId).toBe(sessionId);
+  });
+
+  it('GET /api/cooking-sessions/active returns active session', async () => {
+    const res = await request(app).get('/api/cooking-sessions/active').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body).not.toBeNull();
+    expect(res.body.id).toBe(sessionId);
+  });
+
+  it('GET /api/cooking-sessions lists all sessions', async () => {
+    const res = await request(app).get('/api/cooking-sessions').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('GET /api/cooking-sessions/:id returns session detail', async () => {
+    const res = await request(app).get(`/api/cooking-sessions/${sessionId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(sessionId);
+  });
+
+  it('PUT /api/cooking-sessions/:id/status advances status', async () => {
+    const res = await request(app)
+      .put(`/api/cooking-sessions/${sessionId}/status`)
+      .set(auth())
+      .send({ status: 'shopping' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('shopping');
+  });
+
+  it('PUT /api/cooking-sessions/:id/items/:itemId toggles item', async () => {
+    const res = await request(app)
+      .put(`/api/cooking-sessions/${sessionId}/items/${itemId}`)
+      .set(auth())
+      .send({ checked: true });
+    expect(res.status).toBe(200);
+    expect(res.body.checked).toBe(true);
+  });
+
+  it('PUT /api/cooking-sessions/:id/steps/:stepId toggles step with checkedBy', async () => {
+    const res = await request(app)
+      .put(`/api/cooking-sessions/${sessionId}/steps/${stepId}`)
+      .set(auth())
+      .send({ checked: true, checkedBy: 'Alice' });
+    expect(res.status).toBe(200);
+    expect(res.body.checked).toBe(true);
+    expect(res.body.checkedBy).toBe('Alice');
+  });
+
+  it('PUT cooking status to completed records totalTimeMs', async () => {
+    // Advance to cooking first to set startedAt
+    await request(app)
+      .put(`/api/cooking-sessions/${sessionId}/status`)
+      .set(auth())
+      .send({ status: 'cooking' });
+    const res = await request(app)
+      .put(`/api/cooking-sessions/${sessionId}/status`)
+      .set(auth())
+      .send({ status: 'completed', notes: 'Delicious!' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('completed');
+    expect(res.body.totalTimeMs).toBeGreaterThanOrEqual(0);
+    expect(res.body.notes).toBe('Delicious!');
+  });
+
+  it('GET /api/cooking-sessions/active returns null when no active session', async () => {
+    const res = await request(app).get('/api/cooking-sessions/active').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body).toBeNull();
+  });
+
+  it('DELETE /api/cooking-sessions/:id deletes session', async () => {
+    const res = await request(app).delete(`/api/cooking-sessions/${sessionId}`).set(auth());
+    expect(res.status).toBe(200);
+  });
+
+  it('GET /api/cooking-sessions/:id returns 404 after delete', async () => {
+    const res = await request(app).get(`/api/cooking-sessions/${sessionId}`).set(auth());
+    expect(res.status).toBe(404);
   });
 });

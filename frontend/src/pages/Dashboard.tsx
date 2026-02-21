@@ -1,12 +1,13 @@
 import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi } from '../lib/api';
+import type { CookingSession } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
 
@@ -14,6 +15,12 @@ export default function Dashboard() {
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
   const { data: foodSpots = [] } = useQuery({ queryKey: ['foodspots'], queryFn: foodSpotsApi.list });
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
+  const { data: activeSession } = useQuery({
+    queryKey: ['cooking-sessions', 'active'],
+    queryFn: cookingSessionsApi.getActive,
+    // Refetch every 30s — enough to keep the pin current without hammering the server
+    refetchInterval: 30_000,
+  });
 
   const activeSprint = sprints.find((s) => s.status === 'ACTIVE');
   const recentMoments = moments.slice(0, 6);
@@ -72,6 +79,22 @@ export default function Dashboard() {
         <p className="text-text-light text-sm">Our little world, beautifully organized</p>
       </div>
 
+      {/* ── ACTIVE COOKING SESSION PIN ────────────────────────────────── */}
+      <AnimatePresence>
+        {activeSession && (
+          <motion.div
+            initial={{ opacity: 0, y: -12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+            className="mb-4"
+          >
+            <ActiveSessionPin session={activeSession} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ── END ACTIVE COOKING SESSION PIN ────────────────────────────── */}
+
       {/* ── RECENT MOMENTS (Swiper, no title, no dots) ───────────────── */}
       <div className="mb-4 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
@@ -88,7 +111,19 @@ export default function Dashboard() {
             slidesOffsetAfter={16}
             breakpoints={{
               768: {
-                slidesPerView: 3,
+                slidesPerView: 2.5,
+                spaceBetween: 16,
+                slidesOffsetBefore: 0,
+                slidesOffsetAfter: 0,
+              },
+              1024: {
+                slidesPerView: 3.5,
+                spaceBetween: 16,
+                slidesOffsetBefore: 0,
+                slidesOffsetAfter: 0,
+              },
+              1280: {
+                slidesPerView: 4,
                 spaceBetween: 16,
                 slidesOffsetBefore: 0,
                 slidesOffsetAfter: 0,
@@ -98,7 +133,7 @@ export default function Dashboard() {
             {recentMoments.map((moment) => (
               <SwiperSlide key={moment.id}>
                 <Link to={`/moments/${moment.id}`} className="group block">
-                  <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-lg ring-1 ring-black/5 group-hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative aspect-[4/3] md:max-h-56 rounded-3xl overflow-hidden shadow-lg ring-1 ring-black/5 group-hover:shadow-xl transition-shadow duration-300">
                     {moment.photos[0] ? (
                       <img
                         src={moment.photos[0].url}
@@ -213,5 +248,104 @@ export default function Dashboard() {
 
       <FAB />
     </div>
+  );
+}
+
+// ─── Active Cooking Session Pin ───────────────────────────────────────────────
+
+const PHASE_CONFIG: Record<string, {
+  icon: React.ElementType;
+  label: string;
+  color: string;
+  ringColor: string;
+}> = {
+  selecting: { icon: UtensilsCrossed, label: 'Chọn món',  color: 'text-primary',    ringColor: 'ring-primary/30'   },
+  shopping:  { icon: ShoppingCart,    label: 'Đi chợ',   color: 'text-secondary',  ringColor: 'ring-secondary/30' },
+  cooking:   { icon: ChefHat,         label: 'Đang nấu', color: 'text-orange-500', ringColor: 'ring-orange-300'   },
+  photo:     { icon: Camera,          label: 'Chụp ảnh', color: 'text-pink-500',   ringColor: 'ring-pink-300'     },
+};
+
+function ActiveSessionPin({ session }: { session: CookingSession }) {
+  const cfg = PHASE_CONFIG[session.status];
+  if (!cfg) return null;
+
+  const PhaseIcon = cfg.icon;
+  const dishNames = session.recipes.map((r) => r.recipe.title).join(', ') || 'Đang nấu';
+
+  // Phase-specific progress
+  let detail = '';
+  let progress: number | null = null;
+
+  if (session.status === 'shopping') {
+    const checked = session.items.filter((i) => i.checked).length;
+    const total = session.items.length;
+    detail = `${checked}/${total} nguyên liệu`;
+    progress = total > 0 ? checked / total : 0;
+  } else if (session.status === 'cooking') {
+    const checked = session.steps.filter((s) => s.checked).length;
+    const total = session.steps.length;
+    detail = `${checked}/${total} bước`;
+    progress = total > 0 ? checked / total : 0;
+  } else if (session.status === 'selecting') {
+    detail = `${session.recipes.length} món đã chọn`;
+  } else if (session.status === 'photo') {
+    detail = 'Sắp xong rồi! 📸';
+  }
+
+  return (
+    <Link
+      to={`/what-to-eat/${session.id}`}
+      className={`block rounded-2xl overflow-hidden ring-1 ${cfg.ringColor} shadow-md active:scale-[0.98] transition-transform`}
+    >
+      <div className="relative bg-gradient-to-r from-primary/8 to-secondary/8 p-4">
+        {/* Subtle animated gradient shimmer */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
+
+        <div className="flex items-center gap-3">
+          {/* Phase icon with pulse ring */}
+          <div className="relative flex-shrink-0">
+            <div className={`w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shadow-sm`}>
+              <PhaseIcon className={`w-5 h-5 ${cfg.color}`} />
+            </div>
+            {/* Pulse dot */}
+            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${session.status === 'cooking' ? 'bg-orange-400' : 'bg-primary'}`} />
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${session.status === 'cooking' ? 'bg-orange-400' : 'bg-primary'}`} />
+            </span>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <p className="text-xs font-semibold text-text-light uppercase tracking-wide">
+                What to Eat Today
+              </p>
+              <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full bg-white/60 ${cfg.color}`}>
+                {cfg.label}
+              </span>
+            </div>
+            <p className="font-heading font-semibold text-sm truncate text-text">{dishNames}</p>
+            {detail && <p className="text-xs text-text-light mt-0.5">{detail}</p>}
+
+            {/* Progress bar — only for shopping and cooking */}
+            {progress !== null && (
+              <div className="mt-2 h-1.5 bg-black/8 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    session.status === 'cooking'
+                      ? 'bg-gradient-to-r from-orange-400 to-primary'
+                      : 'bg-gradient-to-r from-secondary to-accent'
+                  }`}
+                  style={{ width: `${Math.round(progress * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Arrow */}
+          <ArrowRight className="w-4 h-4 text-text-light flex-shrink-0" />
+        </div>
+      </div>
+    </Link>
   );
 }

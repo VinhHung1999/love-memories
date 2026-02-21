@@ -65,6 +65,7 @@ export const createRecipeSchema = z.object({
   description: z.string().optional(),
   ingredients: z.array(z.string()).optional().default([]),
   steps: z.array(z.string()).optional().default([]),
+  stepDurations: z.array(z.number().int().min(0)).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
   notes: z.string().optional(),
   tutorialUrl: z.string().url().optional().nullable().or(z.literal('')),
@@ -73,6 +74,24 @@ export const createRecipeSchema = z.object({
 });
 
 export const updateRecipeSchema = createRecipeSchema.partial();
+
+export const createCookingSessionSchema = z.object({
+  recipeIds: z.array(z.string().uuid()).min(1),
+});
+
+export const updateCookingSessionStatusSchema = z.object({
+  status: z.enum(['selecting', 'shopping', 'cooking', 'photo', 'completed']),
+  notes: z.string().optional(),
+});
+
+export const toggleCookingItemSchema = z.object({
+  checked: z.boolean(),
+});
+
+export const toggleCookingStepSchema = z.object({
+  checked: z.boolean(),
+  checkedBy: z.string().optional(),
+});
 
 export const reorderGoalsSchema = z.object({
   goals: z.array(z.object({
