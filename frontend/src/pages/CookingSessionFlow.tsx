@@ -434,6 +434,9 @@ function CookingPhase({ session }: { session: CookingSession }) {
                       </a>
                     )}
                   </div>
+                  {recipe.notes && (
+                    <p className="text-xs text-text-light italic mt-1 line-clamp-2">{recipe.notes}</p>
+                  )}
                 </div>
                 <AnimatePresence>
                   {recipeDone && (

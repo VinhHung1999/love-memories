@@ -93,10 +93,11 @@ async function main() {
   console.log('Sprint: 1 created with 3 goals');
 
   // Vietnamese recipes for "What to Eat Today" feature
-  const existingRecipes = await prisma.recipe.count();
-  if (existingRecipes === 0) {
-    await prisma.recipe.createMany({
-      data: [
+  // Always clear and recreate so seed is idempotent on dev
+  await prisma.cookingSession.deleteMany();
+  await prisma.recipe.deleteMany();
+  await prisma.recipe.createMany({
+    data: [
         {
           title: 'Phở Bò',
           description: 'Phở bò truyền thống Hà Nội với nước dùng ninh từ xương bò thơm ngon',
@@ -128,6 +129,7 @@ async function main() {
             'Ăn kèm giá đỗ, hành lá, ngò gai, chanh và ớt.',
           ],
           notes: 'Bí quyết: nướng hành gừng thật cháy xém mới có màu vàng đẹp và thơm đặc trưng. Ninh xương càng lâu nước dùng càng ngọt.',
+          tutorialUrl: 'https://www.youtube.com/watch?v=AlqTo1BDgPM',
         },
         {
           title: 'Bún Bò Huế',
@@ -159,6 +161,7 @@ async function main() {
             'Ăn kèm đĩa rau sống, vắt thêm chanh và ớt tươi nếu thích cay.',
           ],
           notes: 'Mắm ruốc là linh hồn của bún bò Huế — dùng mắm ruốc Huế chính hãng sẽ ngon hơn nhiều. Điều chỉnh lượng sa tế theo khẩu vị.',
+          tutorialUrl: 'https://www.youtube.com/watch?v=qWK_HYlKrAA',
         },
         {
           title: 'Cơm Tấm Sườn Bì Chả',
@@ -191,6 +194,7 @@ async function main() {
             'Rưới mỡ hành lên mặt cơm. Dùng với bát nước chấm.',
           ],
           notes: 'Bí quyết sườn bóng đẹp: phết mật ong pha loãng lên sườn trước khi tắt lửa 5 phút. Cơm tấm ngon nhất khi còn nóng hổi.',
+          tutorialUrl: 'https://www.youtube.com/watch?v=h0HkRXMu4_Q',
         },
         {
           title: 'Bánh Xèo Miền Nam',
@@ -222,6 +226,7 @@ async function main() {
             'Ăn kèm rau sống và nước chấm. Có thể cuốn với bánh tráng.',
           ],
           notes: 'Chảo phải thật nóng trước khi đổ bột mới có tiếng xèo và bánh giòn. Nước cốt dừa giúp bánh thơm và giòn hơn bột thường.',
+          tutorialUrl: 'https://www.youtube.com/watch?v=AF9H5hpTrSA',
         },
         {
           title: 'Gỏi Cuốn Tôm Thịt',
@@ -253,13 +258,11 @@ async function main() {
             'Bày ra đĩa, chấm với tương hoisin đậu phộng. Rắc đậu phộng rang lên trên.',
           ],
           notes: 'Bánh tráng nhúng đúng độ: không quá mềm (dễ rách) cũng không quá cứng. Cuốn ngay sau khi nhúng. Ăn trong ngày, không để qua đêm.',
+          tutorialUrl: 'https://www.youtube.com/watch?v=0n9rXR9CSu4',
         },
       ],
     });
-    console.log('Recipes: 5 Vietnamese recipes created');
-  } else {
-    console.log(`Recipes: skipped (${existingRecipes} already exist)`);
-  }
+    console.log('Recipes: 5 Vietnamese recipes created with tutorialUrl');
 
   console.log('Seed complete.');
 }
