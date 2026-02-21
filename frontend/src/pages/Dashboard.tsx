@@ -54,7 +54,7 @@ export default function Dashboard() {
 
       {/* ── HERO CAROUSEL ─────────────────────────────────────────────── */}
       {/* -mx-4 breaks out of Layout px-4 on mobile only; desktop keeps md:mx-0 */}
-      <div className="mb-6 -mx-4 md:mx-0">
+      <div className="mb-6 -mx-4 md:mx-0 overflow-hidden">
         {recentMoments.length === 0 ? (
           <div className="mx-4 md:mx-0 aspect-[4/3] max-h-72 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-12 h-12 text-gray-300" />
@@ -64,25 +64,21 @@ export default function Dashboard() {
         ) : (
           <>
             {/*
-              Mobile: wrapper is 100vw (after -mx-4). px-[7.5vw] gives ~28px
-              padding each side so 85vw card has ~7.5vw peek. vw units are
-              reliable in flex overflow because they reference the viewport,
-              not the (indeterminate) scroll container width.
-              Desktop: md:mx-0 keeps wrapper inside content area, md:px-0,
-              md:w-72 = fixed 288px cards that fit comfortably.
+              CSS Grid with grid-auto-columns: min(85vw, 320px) — vw units are
+              reliable in overflow-x scroll containers (reference viewport, not
+              the indeterminate container width). min() caps at 320px on desktop.
+              -mx-4 md:mx-0: mobile breakout only, desktop stays inside layout.
             */}
             <div
               ref={carouselRef}
               onScroll={handleScroll}
-              style={{ paddingLeft: '7.5vw', paddingRight: '7.5vw', scrollbarWidth: 'none' }}
-              className="hide-scrollbar flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1"
+              className="hero-carousel pb-2"
             >
               {recentMoments.map((moment) => (
                 <Link
                   key={moment.id}
                   to={`/moments/${moment.id}`}
-                  style={{ width: '85vw', minWidth: '85vw', flexShrink: 0 }}
-                  className="group snap-center md:max-w-xs"
+                  className="hero-carousel-item group"
                 >
                   <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
                     {/* Image */}
