@@ -53,26 +53,26 @@ export default function Dashboard() {
       </div>
 
       {/* ── HERO CAROUSEL ─────────────────────────────────────────────── */}
-      <div className="mb-6 -mx-4 md:-mx-8">
+      <div className="mb-6 w-full">
         {recentMoments.length === 0 ? (
-          <div className="mx-4 md:mx-8 aspect-[4/3] max-h-72 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
+          <div className="aspect-[4/3] max-h-72 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-12 h-12 text-gray-300" />
             <p className="text-sm">Chưa có kỷ niệm nào.</p>
             <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
           </div>
         ) : (
           <>
-            {/* Scroll container — px-[7.5vw] lets first/last card snap to center */}
+            {/* px-[7.5%] = (100% - 85%) / 2 → centers first/last card with peek */}
             <div
               ref={carouselRef}
               onScroll={handleScroll}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-3 px-[7.5vw] md:px-8 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="flex overflow-x-auto snap-x snap-mandatory gap-3 px-[7.5%] pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {recentMoments.map((moment) => (
                 <Link
                   key={moment.id}
                   to={`/moments/${moment.id}`}
-                  className="group flex-shrink-0 w-[85vw] md:w-80 snap-center"
+                  className="group flex-shrink-0 w-[85%] snap-center"
                 >
                   <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
                     {/* Image */}
