@@ -55,6 +55,9 @@ input[type="date"]::-webkit-date-and-time-value {
   100% { opacity: 0; }
 }
 
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { scrollbar-width: none; }
+
 .mapboxgl-popup-content {
   border-radius: 12px !important;
   padding: 0 !important;

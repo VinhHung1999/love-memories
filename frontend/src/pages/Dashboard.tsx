@@ -74,13 +74,15 @@ export default function Dashboard() {
             <div
               ref={carouselRef}
               onScroll={handleScroll}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-3 px-[7.5vw] md:px-0 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              style={{ paddingLeft: '7.5vw', paddingRight: '7.5vw', scrollbarWidth: 'none' }}
+              className="hide-scrollbar flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1"
             >
               {recentMoments.map((moment) => (
                 <Link
                   key={moment.id}
                   to={`/moments/${moment.id}`}
-                  className="group flex-shrink-0 w-[85vw] md:w-72 snap-center md:snap-start"
+                  style={{ width: '85vw', minWidth: '85vw', flexShrink: 0 }}
+                  className="group snap-center md:max-w-xs"
                 >
                   <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
                     {/* Image */}
