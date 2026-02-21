@@ -41,8 +41,8 @@ export default function Dashboard() {
         <p className="text-text-light text-sm">Our little world, beautifully organized</p>
       </div>
 
-      {/* Timer inline — compact, above hero */}
-      <div className="mb-3 px-0.5">
+      {/* Hero Timer */}
+      <div className="mb-6">
         <RelationshipTimer />
       </div>
 
