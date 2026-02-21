@@ -29,7 +29,6 @@ export default function Dashboard() {
   const stats = [
     { icon: Camera, label: 'kỷ niệm', value: moments.length, to: '/moments' },
     { icon: Utensils, label: 'quán ăn', value: foodSpots.length, to: '/foodspots' },
-    { icon: MapPin, label: 'nơi đến', value: moments.filter(m => m.latitude).length + foodSpots.filter(f => f.latitude).length, to: '/map' },
     { icon: Target, label: 'goals xong', value: doneGoals, to: '/goals' },
   ];
 
@@ -154,20 +153,16 @@ export default function Dashboard() {
       {/* Active Sprint */}
       {activeSprint && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          {/* Section header — outside the card, matching "Kỷ niệm gần đây" pattern */}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-heading text-base font-semibold text-text">Active Sprint</h2>
+            <Link to={`/goals/sprint/${activeSprint.id}`} className="text-accent text-xs flex items-center gap-1 hover:underline">
+              Xem chi tiết <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
           <div className="relative bg-gradient-to-br from-white to-accent/5 rounded-2xl p-6 shadow-sm border border-accent/20 overflow-hidden">
             {/* Decorative circle */}
             <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-accent/5 pointer-events-none" />
-
-            {/* Header */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-accent" />
-                <h2 className="font-heading text-lg font-semibold">Active Sprint</h2>
-              </div>
-              <Link to={`/goals/sprint/${activeSprint.id}`} className="text-accent text-sm flex items-center gap-1 hover:underline">
-                View <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
 
             {/* Sprint name + dates + remaining days */}
             <div className="flex items-start justify-between mb-4">
