@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
-import { upload } from '../middleware/upload';
+import { upload, uploadAudio } from '../middleware/upload';
 import { createMomentSchema, updateMomentSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 
@@ -9,12 +9,13 @@ const router = Router();
 
 type IdParam = { id: string };
 type PhotoParam = { id: string; photoId: string };
+type AudioParam = { id: string; audioId: string };
 
 // GET all moments
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const moments = await prisma.moment.findMany({
-      include: { photos: true },
+      include: { photos: true, audios: true },
       orderBy: { date: 'desc' },
     });
     res.json(moments);
@@ -28,7 +29,7 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
   try {
     const moment = await prisma.moment.findUnique({
       where: { id: req.params.id },
-      include: { photos: true },
+      include: { photos: true, audios: { orderBy: { createdAt: 'asc' } } },
     });
     if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
     res.json(moment);
@@ -77,11 +78,14 @@ router.delete('/:id', async (req: Request<IdParam>, res: Response) => {
   try {
     const moment = await prisma.moment.findUnique({
       where: { id: req.params.id },
-      include: { photos: true },
+      include: { photos: true, audios: true },
     });
     if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
 
-    await Promise.all(moment.photos.map((photo) => deleteFromCdn(photo.filename)));
+    await Promise.all([
+      ...moment.photos.map((photo) => deleteFromCdn(photo.filename)),
+      ...moment.audios.map((audio) => deleteFromCdn(audio.filename)),
+    ]);
     await prisma.moment.delete({ where: { id: req.params.id } });
     res.json({ message: 'Moment deleted' });
   } catch (error) {
@@ -129,6 +133,44 @@ router.delete('/:id/photos/:photoId', async (req: Request<PhotoParam>, res: Resp
     res.json({ message: 'Photo deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete photo' });
+  }
+});
+
+// POST upload audio to moment
+router.post('/:id/audio', uploadAudio.single('audio'), async (req: Request<IdParam>, res: Response) => {
+  try {
+    const momentId = req.params.id;
+    const moment = await prisma.moment.findUnique({ where: { id: momentId } });
+    if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
+
+    const file = req.file;
+    if (!file) { res.status(400).json({ error: 'No audio file uploaded' }); return; }
+
+    const duration = req.body.duration ? parseFloat(req.body.duration) : null;
+    const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+    const audio = await prisma.momentAudio.create({
+      data: { momentId, filename, url, duration },
+    });
+
+    res.status(201).json(audio);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload audio' });
+  }
+});
+
+// DELETE audio from moment
+router.delete('/:id/audio/:audioId', async (req: Request<AudioParam>, res: Response) => {
+  try {
+    const audio = await prisma.momentAudio.findUnique({
+      where: { id: req.params.audioId },
+    });
+    if (!audio) { res.status(404).json({ error: 'Audio not found' }); return; }
+
+    await deleteFromCdn(audio.filename);
+    await prisma.momentAudio.delete({ where: { id: req.params.audioId } });
+    res.json({ message: 'Audio deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete audio' });
   }
 });
 

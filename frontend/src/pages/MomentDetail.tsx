@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus, Mic, Square, Play, Pause } from 'lucide-react';
 import { format } from 'date-fns';
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
 import PhotoGallery from '../components/PhotoGallery';
@@ -18,6 +18,13 @@ export default function MomentDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | undefined>(undefined);
+  const [recording, setRecording] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | undefined>(undefined);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | undefined>(undefined);
 
   const { data: moment, isLoading } = useQuery({
     queryKey: ['moments', id],
@@ -50,6 +57,68 @@ export default function MomentDetail() {
     },
     onError: () => toast.error('Upload failed'),
   });
+
+  const uploadAudioMutation = useMutation({
+    mutationFn: ({ file, duration }: { file: File; duration: number }) =>
+      momentsApi.uploadAudio(id!, file, duration),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['moments', id] });
+      toast.success('Voice memo saved');
+    },
+    onError: () => toast.error('Failed to save voice memo'),
+  });
+
+  const deleteAudioMutation = useMutation({
+    mutationFn: (audioId: string) => momentsApi.deleteAudio(id!, audioId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['moments', id] });
+      toast.success('Voice memo deleted');
+    },
+  });
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
+        const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm';
+        const file = new File([blob], `memo-${Date.now()}.${ext}`, { type: blob.type });
+        uploadAudioMutation.mutate({ file, duration: recordSeconds });
+        clearInterval(timerRef.current);
+        setRecordSeconds(0);
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setRecording(true);
+      setRecordSeconds(0);
+      timerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000);
+    } catch {
+      toast.error('Microphone access denied');
+    }
+  }, [recordSeconds, uploadAudioMutation]);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  }, []);
+
+  const togglePlay = useCallback((url: string, audioId: string) => {
+    if (playingId === audioId) {
+      audioRef.current?.pause();
+      setPlayingId(null);
+    } else {
+      if (audioRef.current) audioRef.current.pause();
+      const a = new Audio(url);
+      a.onended = () => setPlayingId(null);
+      a.play();
+      audioRef.current = a;
+      setPlayingId(audioId);
+    }
+  }, [playingId]);
 
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -130,6 +199,61 @@ export default function MomentDetail() {
           <Plus className="w-4 h-4" />
           {uploadPhotosMutation.isPending ? 'Uploading...' : 'Add Photos'}
         </button>
+      </div>
+
+      {/* Voice Memos */}
+      <div className="mb-4 bg-white rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5"><Mic className="w-4 h-4 text-primary" /> Voice Memos</h3>
+          {!recording ? (
+            <button
+              onClick={startRecording}
+              disabled={uploadAudioMutation.isPending}
+              className="flex items-center gap-1.5 text-xs text-primary border border-primary/30 px-3 py-1.5 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
+            >
+              <Mic className="w-3.5 h-3.5" /> Record
+            </button>
+          ) : (
+            <button
+              onClick={stopRecording}
+              className="flex items-center gap-1.5 text-xs text-red-500 border border-red-300 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors animate-pulse"
+            >
+              <Square className="w-3.5 h-3.5 fill-red-500" />
+              {String(Math.floor(recordSeconds / 60)).padStart(2, '0')}:{String(recordSeconds % 60).padStart(2, '0')}
+            </button>
+          )}
+        </div>
+
+        {moment.audios.length === 0 && !recording && (
+          <p className="text-xs text-text-light text-center py-2">Chưa có voice memo nào.</p>
+        )}
+
+        <div className="space-y-2">
+          {moment.audios.map((audio, i) => (
+            <div key={audio.id} className="flex items-center gap-2 bg-primary/5 rounded-xl px-3 py-2">
+              <button
+                onClick={() => togglePlay(audio.url, audio.id)}
+                className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors"
+              >
+                {playingId === audio.id ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">Memo {i + 1}</p>
+                {audio.duration != null && (
+                  <p className="text-xs text-text-light">
+                    {String(Math.floor(audio.duration / 60)).padStart(2, '0')}:{String(Math.round(audio.duration % 60)).padStart(2, '0')}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => { if (window.confirm('Xóa voice memo này?')) deleteAudioMutation.mutate(audio.id); }}
+                className="text-red-400 hover:text-red-500 p-1 rounded transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl p-6">

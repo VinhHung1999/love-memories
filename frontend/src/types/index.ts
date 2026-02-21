@@ -6,6 +6,15 @@ export interface MomentPhoto {
   createdAt: string;
 }
 
+export interface MomentAudio {
+  id: string;
+  momentId: string;
+  filename: string;
+  url: string;
+  duration: number | null;
+  createdAt: string;
+}
+
 export interface Moment {
   id: string;
   title: string;
@@ -18,6 +27,7 @@ export interface Moment {
   createdAt: string;
   updatedAt: string;
   photos: MomentPhoto[];
+  audios: MomentAudio[];
 }
 
 export interface FoodSpotPhoto {

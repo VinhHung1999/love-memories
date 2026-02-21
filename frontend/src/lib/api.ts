@@ -54,6 +54,24 @@ export const momentsApi = {
   },
   deletePhoto: (momentId: string, photoId: string) =>
     request(`/moments/${momentId}/photos/${photoId}`, { method: 'DELETE' }),
+  uploadAudio: async (id: string, file: File, duration?: number) => {
+    const formData = new FormData();
+    formData.append('audio', file);
+    if (duration != null) formData.append('duration', String(duration));
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/moments/${id}/audio`, { method: 'POST', headers, body: formData });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Upload failed');
+    return res.json();
+  },
+  deleteAudio: (momentId: string, audioId: string) =>
+    request(`/moments/${momentId}/audio/${audioId}`, { method: 'DELETE' }),
 };
 
 // Food Spots

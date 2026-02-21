@@ -4,6 +4,7 @@ import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Plus, Sp
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
+import RelationshipTimer from '../components/RelationshipTimer';
 
 export default function Dashboard() {
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
@@ -33,6 +34,9 @@ export default function Dashboard() {
         </div>
         <p className="text-text-light">Our little world, beautifully organized</p>
       </div>
+
+      {/* Relationship Timer */}
+      <RelationshipTimer />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

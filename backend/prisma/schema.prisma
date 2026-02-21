@@ -30,6 +30,7 @@ model Moment {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   photos    MomentPhoto[]
+  audios    MomentAudio[]
 
   @@map("moments")
 }
@@ -43,6 +44,18 @@ model MomentPhoto {
   moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
 
   @@map("moment_photos")
+}
+
+model MomentAudio {
+  id        String   @id @default(uuid())
+  momentId  String
+  filename  String
+  url       String
+  duration  Float?
+  createdAt DateTime @default(now())
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+
+  @@map("moment_audios")
 }
 
 model FoodSpot {

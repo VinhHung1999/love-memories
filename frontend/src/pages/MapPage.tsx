@@ -15,6 +15,7 @@ export default function MapPage() {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'moment' | 'foodspot'>('all');
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   const { data: pins = [] } = useQuery({
     queryKey: ['map-pins'],
@@ -24,7 +25,22 @@ export default function MapPage() {
   const validPins = pins.filter((p) =>
     p.latitude >= -90 && p.latitude <= 90 && p.longitude >= -180 && p.longitude <= 180
   );
-  const filteredPins = filter === 'all' ? validPins : validPins.filter((p) => p.type === filter);
+
+  const allTags = Array.from(new Set(validPins.flatMap((p) => p.tags))).sort();
+
+  const filteredPins = validPins.filter((p) => {
+    const typeOk = filter === 'all' || p.type === filter;
+    const tagOk = selectedTags.size === 0 || p.tags.some((t) => selectedTags.has(t));
+    return typeOk && tagOk;
+  });
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag); else next.add(tag);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -134,31 +150,61 @@ export default function MapPage() {
   return (
     <div className="h-[calc(100vh-6rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] md:h-[calc(100vh-3rem)] relative">
       {/* Filter Controls */}
-      <div className="absolute top-4 left-4 z-10 flex gap-2 bg-white rounded-xl shadow-lg p-1.5">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-            filter === 'all' ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'
-          }`}
-        >
-          <Filter className="w-3 h-3" /> All
-        </button>
-        <button
-          onClick={() => setFilter('moment')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-            filter === 'moment' ? 'bg-primary text-white' : 'hover:bg-gray-100'
-          }`}
-        >
-          <Heart className="w-3 h-3" /> Moments
-        </button>
-        <button
-          onClick={() => setFilter('foodspot')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-            filter === 'foodspot' ? 'bg-secondary text-white' : 'hover:bg-gray-100'
-          }`}
-        >
-          <Utensils className="w-3 h-3" /> Food
-        </button>
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 max-w-[calc(100%-2rem)]">
+        {/* Type filter */}
+        <div className="flex gap-2 bg-white rounded-xl shadow-lg p-1.5">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              filter === 'all' ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Filter className="w-3 h-3" /> All
+          </button>
+          <button
+            onClick={() => setFilter('moment')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              filter === 'moment' ? 'bg-primary text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Heart className="w-3 h-3" /> Moments
+          </button>
+          <button
+            onClick={() => setFilter('foodspot')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              filter === 'foodspot' ? 'bg-secondary text-white' : 'hover:bg-gray-100'
+            }`}
+          >
+            <Utensils className="w-3 h-3" /> Food
+          </button>
+        </div>
+
+        {/* Tag filter chips */}
+        {allTags.length > 0 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 max-w-full">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium shadow transition-colors ${
+                  selectedTags.has(tag)
+                    ? 'bg-accent text-white'
+                    : 'bg-white text-text-light hover:bg-gray-50'
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+            {selectedTags.size > 0 && (
+              <button
+                onClick={() => setSelectedTags(new Set())}
+                className="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-text-light hover:bg-gray-200 shadow transition-colors"
+              >
+                ✕ Clear
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div ref={mapContainer} className="w-full h-full rounded-2xl overflow-hidden" />
