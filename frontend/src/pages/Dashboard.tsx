@@ -71,13 +71,15 @@ export default function Dashboard() {
         ) : (
           <Swiper
             slidesPerView={1.15}
-            centeredSlides
             spaceBetween={12}
+            slidesOffsetBefore={16}
+            slidesOffsetAfter={16}
             breakpoints={{
               768: {
                 slidesPerView: 3,
                 spaceBetween: 16,
-                centeredSlides: false,
+                slidesOffsetBefore: 0,
+                slidesOffsetAfter: 0,
               },
             }}
           >
