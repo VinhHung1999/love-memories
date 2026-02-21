@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
 import type { Recipe } from '../types';
@@ -59,6 +59,24 @@ export default function RecipeDetail() {
   const openGallery = (index: number) => {
     setGalleryIndex(index);
     setGalleryOpen(true);
+  };
+
+  // Task 6: cooked toggle with optimistic update
+  const toggleCooked = () => {
+    if (!recipe) return;
+    const next = !recipe.cooked;
+    queryClient.setQueryData(['recipes', id], (old: Recipe | undefined) =>
+      old ? { ...old, cooked: next } : old
+    );
+    // Also update in the list cache
+    queryClient.setQueryData(['recipes'], (old: Recipe[] | undefined) =>
+      old?.map((r) => (r.id === id ? { ...r, cooked: next } : r))
+    );
+    recipesApi.update(id!, { cooked: next } as Partial<Recipe>).catch(() => {
+      queryClient.invalidateQueries({ queryKey: ['recipes', id] });
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      toast.error('Failed to save');
+    });
   };
 
   if (isLoading) return <div className="animate-pulse space-y-4"><div className="h-64 bg-gray-200 rounded-2xl" /><div className="h-8 bg-gray-200 rounded w-1/3" /></div>;
@@ -138,6 +156,18 @@ export default function RecipeDetail() {
             )}
           </div>
           <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+            {/* Task 6: cooked toggle */}
+            <button
+              onClick={toggleCooked}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                recipe.cooked
+                  ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                  : 'bg-gray-50 text-text-light border-border hover:bg-gray-100'
+              }`}
+            >
+              <CheckCircle2 className={`w-3.5 h-3.5 ${recipe.cooked ? 'fill-green-500 text-green-500' : ''}`} />
+              {recipe.cooked ? 'Đã nấu' : 'Chưa nấu'}
+            </button>
             <button onClick={() => setEditOpen(true)} className="text-text-light hover:text-accent p-2 rounded-lg hover:bg-accent/5 transition-colors">
               <Pencil className="w-5 h-5" />
             </button>
@@ -210,7 +240,6 @@ export default function RecipeDetail() {
         )}
       </div>
 
-      {/* Delete confirm modal */}
       {confirmDelete && (
         <Modal open={true} onClose={() => setConfirmDelete(false)} title="Delete Recipe?">
           <div className="space-y-4">
@@ -252,6 +281,20 @@ export default function RecipeDetail() {
   );
 }
 
+// Task 5: auto-focus hook for dynamic arrays
+function useAutoFocusLast<T extends HTMLElement>(
+  arr: string[],
+  refs: React.MutableRefObject<(T | null)[]>
+) {
+  const prevLen = useRef(arr.length);
+  useEffect(() => {
+    if (arr.length > prevLen.current) {
+      refs.current[arr.length - 1]?.focus();
+    }
+    prevLen.current = arr.length;
+  }, [arr.length, refs]);
+}
+
 function RecipeEditModal({
   recipe,
   open,
@@ -271,6 +314,12 @@ function RecipeEditModal({
   const [tutorialUrl, setTutorialUrl] = useState(recipe.tutorialUrl ?? '');
   const [tagsInput, setTagsInput] = useState(recipe.tags.join(', '));
   const [foodSpotId, setFoodSpotId] = useState(recipe.foodSpotId ?? '');
+
+  // Task 5: auto-focus refs
+  const ingredientRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const stepRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+  useAutoFocusLast(ingredients, ingredientRefs);
+  useAutoFocusLast(steps, stepRefs);
 
   const { data: foodSpots = [] } = useQuery({
     queryKey: ['foodspots'],
@@ -331,6 +380,7 @@ function RecipeEditModal({
             {ingredients.map((ing, i) => (
               <div key={i} className="flex gap-2">
                 <input
+                  ref={(el) => { ingredientRefs.current[i] = el; }}
                   value={ing}
                   onChange={(e) => updateItem(ingredients, setIngredients, i, e.target.value)}
                   placeholder={`Ingredient ${i + 1}`}
@@ -356,6 +406,7 @@ function RecipeEditModal({
               <div key={i} className="flex gap-2 items-start">
                 <span className="text-xs text-text-light font-medium mt-2.5 w-4 flex-shrink-0">{i + 1}.</span>
                 <textarea
+                  ref={(el) => { stepRefs.current[i] = el; }}
                   value={step}
                   onChange={(e) => updateItem(steps, setSteps, i, e.target.value)}
                   placeholder={`Step ${i + 1}`}

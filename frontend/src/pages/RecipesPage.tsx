@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChefHat, Plus, X } from 'lucide-react';
+import { ChefHat, Plus, X, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
@@ -114,7 +114,14 @@ function RecipeCard({ recipe, index }: { recipe: Recipe; index: number }) {
           )}
         </div>
         <div className="p-4">
-          <h3 className="font-heading font-semibold text-lg truncate">{recipe.title}</h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-heading font-semibold text-lg truncate">{recipe.title}</h3>
+            {recipe.cooked && (
+              <span className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 border border-green-200 rounded-full text-xs font-medium flex-shrink-0">
+                <CheckCircle2 className="w-3 h-3" /> Đã nấu
+              </span>
+            )}
+          </div>
           {recipe.foodSpot && (
             <p className="text-xs text-accent mt-0.5 truncate">📍 {recipe.foodSpot.name}</p>
           )}
@@ -160,6 +167,20 @@ export function RecipeFormModal({
   const [tutorialUrl, setTutorialUrl] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [foodSpotId, setFoodSpotId] = useState(defaultFoodSpotId ?? '');
+
+  // Task 5: auto-focus last input when array grows
+  const ingredientRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const stepRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+  const prevIngLen = useRef(ingredients.length);
+  const prevStepLen = useRef(steps.length);
+  useEffect(() => {
+    if (ingredients.length > prevIngLen.current) ingredientRefs.current[ingredients.length - 1]?.focus();
+    prevIngLen.current = ingredients.length;
+  }, [ingredients.length]);
+  useEffect(() => {
+    if (steps.length > prevStepLen.current) stepRefs.current[steps.length - 1]?.focus();
+    prevStepLen.current = steps.length;
+  }, [steps.length]);
 
   const { data: foodSpots = [] } = useQuery({
     queryKey: ['foodspots'],
@@ -228,6 +249,7 @@ export function RecipeFormModal({
             {ingredients.map((ing, i) => (
               <div key={i} className="flex gap-2">
                 <input
+                  ref={(el) => { ingredientRefs.current[i] = el; }}
                   value={ing}
                   onChange={(e) => updateItem(ingredients, setIngredients, i, e.target.value)}
                   placeholder={`Ingredient ${i + 1}`}
@@ -254,6 +276,7 @@ export function RecipeFormModal({
               <div key={i} className="flex gap-2 items-start">
                 <span className="text-xs text-text-light font-medium mt-2.5 w-4 flex-shrink-0">{i + 1}.</span>
                 <textarea
+                  ref={(el) => { stepRefs.current[i] = el; }}
                   value={step}
                   onChange={(e) => updateItem(steps, setSteps, i, e.target.value)}
                   placeholder={`Step ${i + 1}`}
