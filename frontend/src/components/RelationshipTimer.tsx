@@ -15,11 +15,16 @@ function calcDiff(startDate: string, now: Date) {
     days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
   }
   if (months < 0) { years--; months += 12; }
-  const totalMs = now.getTime() - start.getTime();
-  const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((totalMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((totalMs % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((totalMs % (1000 * 60)) / 1000);
+  const totalDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  // h/m/s: remainder after subtracting full calendar years+months+days (local time)
+  const reference = new Date(start);
+  reference.setFullYear(reference.getFullYear() + years);
+  reference.setMonth(reference.getMonth() + months);
+  reference.setDate(reference.getDate() + days);
+  const remainderMs = now.getTime() - reference.getTime();
+  const hours = Math.floor(remainderMs / (1000 * 60 * 60));
+  const minutes = Math.floor((remainderMs % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((remainderMs % (1000 * 60)) / 1000);
   return { years, months, days, totalDays, hours, minutes, seconds };
 }
 
@@ -155,7 +160,7 @@ export default function RelationshipTimer({ footer }: Props) {
           <div key={label} className="flex items-end gap-x-3 md:gap-x-5">
             {i > 0 && <span className="text-2xl text-text-light/40 mb-4">·</span>}
             <div className="text-center">
-              <p className={`font-heading text-5xl md:text-6xl font-bold text-text leading-none${mono ? ' tabular-nums' : ''}`}>
+              <p className={`font-heading font-bold text-text leading-none${mono ? ' text-3xl md:text-4xl tabular-nums text-text/70' : ' text-5xl md:text-6xl'}`}>
                 {mono ? String(value).padStart(2, '0') : value}
               </p>
               <p className="text-xs text-text-light mt-1.5 tracking-wide">{label}</p>
