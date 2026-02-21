@@ -518,6 +518,7 @@ function CookingPhase({ session }: { session: CookingSession }) {
         {stepsByRecipe.map(({ recipe, steps }) => {
           const recipeChecked = steps.filter((s) => s.checked).length;
           const recipeDone = steps.length > 0 && recipeChecked === steps.length;
+          const tutorialPlatform = recipe.tutorialUrl ? getPlatformInfo(recipe.tutorialUrl) : null;
 
           return (
             <div key={recipe.id}>
@@ -546,42 +547,28 @@ function CookingPhase({ session }: { session: CookingSession }) {
                     <p className="text-xs text-text-light">
                       {recipeChecked}/{steps.length} bước
                     </p>
-                    {recipe.tutorialUrl && (() => {
-                      const platform = getPlatformInfo(recipe.tutorialUrl);
-                      if (platform.type === 'youtube') return (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => setVideoOpen((p) => ({ ...p, [recipe.id]: !p[recipe.id] }))}
-                            className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors mt-0.5"
-                          >
-                            <Youtube className="w-3.5 h-3.5" />
-                            {videoOpen[recipe.id] ? 'Ẩn video' : 'Xem video hướng dẫn'}
-                          </button>
-                          {videoOpen[recipe.id] && (
-                            <div className="relative w-full rounded-xl overflow-hidden mt-2" style={{ paddingBottom: '56.25%' }}>
-                              <iframe
-                                src={platform.embedUrl}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="absolute inset-0 w-full h-full border-0"
-                                title="Tutorial video"
-                              />
-                            </div>
-                          )}
-                        </div>
+                    {tutorialPlatform && (() => {
+                      if (tutorialPlatform.type === 'youtube') return (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setVideoOpen((p) => ({ ...p, [recipe.id]: !p[recipe.id] })); }}
+                          className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          <Youtube className="w-3.5 h-3.5" />
+                          {videoOpen[recipe.id] ? 'Ẩn video' : 'Xem video'}
+                        </button>
                       );
-                      if (platform.type === 'tiktok') return (
-                        <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-text-light hover:text-text transition-colors mt-0.5">
+                      if (tutorialPlatform.type === 'tiktok') return (
+                        <a href={tutorialPlatform.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-text-light hover:text-text transition-colors">
                           <Music2 className="w-3 h-3" /> TikTok
                         </a>
                       );
-                      if (platform.type === 'facebook') return (
-                        <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors mt-0.5">
+                      if (tutorialPlatform.type === 'facebook') return (
+                        <a href={tutorialPlatform.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors">
                           <Facebook className="w-3 h-3" /> Facebook
                         </a>
                       );
                       return (
-                        <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline mt-0.5">
+                        <a href={tutorialPlatform.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline">
                           <ExternalLink className="w-3 h-3" /> Xem hướng dẫn
                         </a>
                       );
@@ -605,6 +592,22 @@ function CookingPhase({ session }: { session: CookingSession }) {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* YouTube embed — full-width, outside the header flex container */}
+              {tutorialPlatform?.type === 'youtube' && videoOpen[recipe.id] && (
+                <div
+                  className="relative w-full rounded-xl overflow-hidden mb-3"
+                  style={{ paddingBottom: '56.25%', minHeight: '200px' }}
+                >
+                  <iframe
+                    src={tutorialPlatform.embedUrl}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full border-0"
+                    title="Tutorial video"
+                  />
+                </div>
+              )}
 
               {/* Step list */}
               <div className="space-y-2 pl-1">
