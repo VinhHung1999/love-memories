@@ -474,3 +474,36 @@ describe('CookingSessions', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('AI Recipe Generation', () => {
+  it('POST /api/ai/generate-recipe returns 400 with missing mode', async () => {
+    const res = await request(app)
+      .post('/api/ai/generate-recipe')
+      .set(auth())
+      .send({ input: 'some text' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/ai/generate-recipe returns 400 with missing input', async () => {
+    const res = await request(app)
+      .post('/api/ai/generate-recipe')
+      .set(auth())
+      .send({ mode: 'text' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/ai/generate-recipe returns 400 with invalid mode', async () => {
+    const res = await request(app)
+      .post('/api/ai/generate-recipe')
+      .set(auth())
+      .send({ mode: 'invalid', input: 'some text' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/ai/generate-recipe returns 401 without auth', async () => {
+    const res = await request(app)
+      .post('/api/ai/generate-recipe')
+      .send({ mode: 'text', input: 'some text' });
+    expect(res.status).toBe(401);
+  });
+});

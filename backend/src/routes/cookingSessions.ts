@@ -94,17 +94,20 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    // Merge shopping items — unique by ingredient string (case-insensitive dedup)
+    // Merge shopping items — unique by ingredient string (case-insensitive dedup), carry price
     const seen = new Set<string>();
-    const uniqueIngredients: string[] = [];
+    const uniqueItems: { ingredient: string; price: number | null }[] = [];
     for (const { recipe } of recipes) {
-      for (const ing of recipe!.ingredients) {
+      recipe!.ingredients.forEach((ing, idx) => {
         const key = ing.trim().toLowerCase();
         if (!seen.has(key)) {
           seen.add(key);
-          uniqueIngredients.push(ing.trim());
+          uniqueItems.push({
+            ingredient: ing.trim(),
+            price: recipe!.ingredientPrices[idx] ?? null,
+          });
         }
-      }
+      });
     }
 
     // Create session with all nested data
@@ -118,7 +121,7 @@ router.post('/', async (req: Request, res: Response) => {
           })),
         },
         items: {
-          create: uniqueIngredients.map((ingredient) => ({ ingredient })),
+          create: uniqueItems.map(({ ingredient, price }) => ({ ingredient, price })),
         },
         steps: {
           create: recipes.flatMap(({ recipe }) =>

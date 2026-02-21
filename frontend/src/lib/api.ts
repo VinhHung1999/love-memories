@@ -208,6 +208,15 @@ export const cookingSessionsApi = {
   delete: (id: string) => request(`/cooking-sessions/${id}`, { method: 'DELETE' }),
 };
 
+// AI
+export const aiApi = {
+  generateRecipe: (mode: 'text' | 'youtube', input: string) =>
+    request<Record<string, unknown>>('/ai/generate-recipe', {
+      method: 'POST',
+      body: JSON.stringify({ mode, input }),
+    }),
+};
+
 // Goals
 export const goalsApi = {
   backlog: () => request<Goal[]>('/goals/backlog'),

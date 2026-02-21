@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X, Youtube, Facebook, Music2 } from 'lucide-react';
@@ -172,6 +173,7 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
   const checkedCount = session.items.filter((i) => i.checked).length;
   const total = session.items.length;
   const progress = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+  const totalCost = session.items.reduce((sum, item) => sum + (item.price ?? 0), 0);
 
   const toggleItem = async (item: CookingSessionItem) => {
     const nextChecked = !item.checked;
@@ -240,7 +242,7 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
       </div>
 
       {/* Progress bar */}
-      <div className="mt-4 mb-6">
+      <div className="mt-4 mb-4">
         <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-secondary rounded-full transition-all duration-300 ease-out"
@@ -249,6 +251,13 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
         </div>
         <p className="text-right text-xs text-text-light mt-1">{progress}% hoàn thành</p>
       </div>
+
+      {totalCost > 0 && (
+        <div className="mb-4 flex items-center justify-between bg-secondary/8 rounded-xl px-4 py-2.5 border border-secondary/20">
+          <span className="text-sm text-text-light">Tổng dự kiến</span>
+          <span className="font-semibold text-secondary">{totalCost.toLocaleString('vi-VN')}₫</span>
+        </div>
+      )}
 
       {/* Ingredient checklist */}
       <div className="space-y-2 mb-8">
@@ -276,6 +285,11 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
             >
               {item.ingredient}
             </span>
+            {item.price != null && item.price > 0 && (
+              <span className={`text-xs flex-shrink-0 transition-colors duration-150 ${item.checked ? 'text-text-light' : 'text-secondary font-medium'}`}>
+                {item.price.toLocaleString('vi-VN')}₫
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -413,6 +427,15 @@ function CookingPhase({ session }: { session: CookingSession }) {
   const totalSteps = session.steps.length;
   const checkedCount = session.steps.filter((s) => s.checked).length;
   const allDone = totalSteps > 0 && checkedCount === totalSteps;
+
+  // Confetti when all steps are checked for the first time
+  const prevAllDone = useRef(false);
+  useEffect(() => {
+    if (allDone && !prevAllDone.current) {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.65 } });
+    }
+    prevAllDone.current = allDone;
+  }, [allDone]);
 
   // Optimistic toggle
   const doToggleStep = async (step: CookingSessionStep, checked: boolean, checkedBy?: string) => {
@@ -869,6 +892,23 @@ function formatDuration(ms: number | null): string {
 
 function CompletedPhase({ session }: { session: CookingSession }) {
   const navigate = useNavigate();
+
+  // Side-cannon confetti on mount
+  useEffect(() => {
+    const fire = (particleCount: number, opts: confetti.Options) =>
+      confetti({ ...opts, particleCount });
+    fire(25, { spread: 26, startVelocity: 55, origin: { x: 0.2, y: 0.7 } });
+    fire(25, { spread: 26, startVelocity: 55, origin: { x: 0.8, y: 0.7 } });
+    const t1 = setTimeout(() => {
+      fire(20, { spread: 60, origin: { x: 0.2, y: 0.7 } });
+      fire(20, { spread: 60, origin: { x: 0.8, y: 0.7 } });
+    }, 150);
+    const t2 = setTimeout(() => {
+      fire(35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.2, y: 0.7 } });
+      fire(35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.8, y: 0.7 } });
+    }, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
 
   const dishNames = session.recipes.map((r) => r.recipe.title).join(', ');
 

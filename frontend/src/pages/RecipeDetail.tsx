@@ -2,6 +2,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer, Youtube, Facebook, Music2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
 import type { Recipe } from '../types';
@@ -40,6 +41,10 @@ function getPlatformInfo(url: string): PlatformInfo {
     }
   } catch { /* invalid URL */ }
   return { type: 'link', url };
+}
+
+function formatVnd(price: number): string {
+  return price > 0 ? price.toLocaleString('vi-VN') + '₫' : '';
 }
 
 function formatMmSs(secs: number): string {
@@ -137,6 +142,7 @@ export default function RecipeDetail() {
   const toggleCooked = () => {
     if (!recipe) return;
     const next = !recipe.cooked;
+    if (next) confetti({ particleCount: 70, spread: 60, origin: { y: 0.65 } });
     queryClient.setQueryData(['recipes', id], (old: Recipe | undefined) =>
       old ? { ...old, cooked: next } : old
     );
@@ -268,13 +274,23 @@ export default function RecipeDetail() {
           <div>
             <h2 className="font-heading font-semibold text-lg mb-3">Nguyên liệu</h2>
             <ul className="space-y-2">
-              {recipe.ingredients.map((ing, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <span className="w-5 h-5 rounded-full bg-accent/10 text-accent text-xs flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                  {ing}
-                </li>
-              ))}
+              {recipe.ingredients.map((ing, i) => {
+                const price = recipe.ingredientPrices?.[i] ?? 0;
+                return (
+                  <li key={i} className="flex items-start gap-3 text-sm">
+                    <span className="w-5 h-5 rounded-full bg-accent/10 text-accent text-xs flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                    <span className="flex-1">{ing}</span>
+                    {price > 0 && <span className="text-xs text-text-light flex-shrink-0">{formatVnd(price)}</span>}
+                  </li>
+                );
+              })}
             </ul>
+            {recipe.ingredientPrices?.some((p) => p > 0) && (
+              <div className="mt-3 flex items-center justify-between bg-accent/5 rounded-xl px-4 py-2.5">
+                <span className="text-sm text-text-light">Tổng chi phí</span>
+                <span className="font-semibold text-accent">{formatVnd(recipe.ingredientPrices.reduce((a, b) => a + b, 0))}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -443,6 +459,9 @@ function RecipeEditModal({
   const [title, setTitle] = useState(recipe.title);
   const [description, setDescription] = useState(recipe.description ?? '');
   const [ingredients, setIngredients] = useState<string[]>(recipe.ingredients.length > 0 ? recipe.ingredients : ['']);
+  const [ingredientPrices, setIngredientPrices] = useState<number[]>(() =>
+    recipe.ingredients.map((_, i) => recipe.ingredientPrices?.[i] ?? 0)
+  );
   const [steps, setSteps] = useState<string[]>(recipe.steps.length > 0 ? recipe.steps : ['']);
   const [stepDurations, setStepDurations] = useState<number[]>(() =>
     recipe.steps.map((_, i) => recipe.stepDurations?.[i] ?? 0)
@@ -466,13 +485,15 @@ function RecipeEditModal({
 
   const mutation = useMutation({
     mutationFn: () => {
-      const pairs = steps.map((s, i) => ({ s, d: stepDurations[i] ?? 0 })).filter(({ s }) => s.trim());
+      const ingPairs = ingredients.map((ing, i) => ({ ing, price: ingredientPrices[i] ?? 0 })).filter(({ ing }) => ing.trim());
+      const stepPairs = steps.map((s, i) => ({ s, d: stepDurations[i] ?? 0 })).filter(({ s }) => s.trim());
       return recipesApi.update(recipe.id, {
         title,
         description: description || undefined,
-        ingredients: ingredients.filter(Boolean),
-        steps: pairs.map((p) => p.s),
-        stepDurations: pairs.map((p) => p.d),
+        ingredients: ingPairs.map((p) => p.ing),
+        ingredientPrices: ingPairs.map((p) => p.price),
+        steps: stepPairs.map((p) => p.s),
+        stepDurations: stepPairs.map((p) => p.d),
         notes: notes || undefined,
         tutorialUrl: tutorialUrl || null,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
@@ -526,15 +547,27 @@ function RecipeEditModal({
                   placeholder={`Ingredient ${i + 1}`}
                   className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
                 />
+                <input
+                  type="number" min="0" step="1000"
+                  value={ingredientPrices[i] ?? 0}
+                  onChange={(e) => setIngredientPrices((p) => p.map((x, idx) => idx === i ? parseInt(e.target.value || '0') : x))}
+                  placeholder="Giá ₫"
+                  className="w-24 border border-border rounded-xl px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
                 {ingredients.length > 1 && (
-                  <button type="button" onClick={() => removeItem(ingredients, setIngredients, i)} className="text-red-400 hover:text-red-500 p-2">
+                  <button type="button" onClick={() => { removeItem(ingredients, setIngredients, i); setIngredientPrices((p) => p.filter((_, idx) => idx !== i)); }} className="text-red-400 hover:text-red-500 p-2">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => setIngredients((p) => [...p, ''])} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
+          {ingredientPrices.some((p) => p > 0) && (
+            <p className="mt-1.5 text-xs text-right text-text-light">
+              Tổng: <span className="font-semibold text-accent">{formatVnd(ingredientPrices.reduce((a, b) => a + b, 0))}</span>
+            </p>
+          )}
+          <button type="button" onClick={() => { setIngredients((p) => [...p, '']); setIngredientPrices((p) => [...p, 0]); }} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
             <Plus className="w-3 h-3" /> Add ingredient
           </button>
         </div>
