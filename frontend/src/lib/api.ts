@@ -1,4 +1,4 @@
-import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe } from '../types';
+import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession } from '../types';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -162,6 +162,50 @@ export const recipesApi = {
   },
   deletePhoto: (recipeId: string, photoId: string) =>
     request(`/recipes/${recipeId}/photos/${photoId}`, { method: 'DELETE' }),
+};
+
+// Cooking Sessions
+export const cookingSessionsApi = {
+  list: () => request<CookingSession[]>('/cooking-sessions'),
+  get: (id: string) => request<CookingSession>(`/cooking-sessions/${id}`),
+  getActive: () => request<CookingSession | null>('/cooking-sessions/active'),
+  create: (data: { recipeIds: string[] }) =>
+    request<CookingSession>('/cooking-sessions', { method: 'POST', body: JSON.stringify(data) }),
+  updateStatus: (id: string, status: string, notes?: string) =>
+    request<CookingSession>(`/cooking-sessions/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    }),
+  toggleItem: (sessionId: string, itemId: string, checked: boolean) =>
+    request(`/cooking-sessions/${sessionId}/items/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ checked }),
+    }),
+  toggleStep: (sessionId: string, stepId: string, checked: boolean, checkedBy?: string) =>
+    request(`/cooking-sessions/${sessionId}/steps/${stepId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ checked, checkedBy }),
+    }),
+  uploadPhotos: async (id: string, files: File[]) => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('photos', f));
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/cooking-sessions/${id}/photos`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Upload failed');
+    return res.json();
+  },
+  delete: (id: string) => request(`/cooking-sessions/${id}`, { method: 'DELETE' }),
 };
 
 // Goals

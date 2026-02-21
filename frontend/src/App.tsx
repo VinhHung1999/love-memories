@@ -14,6 +14,8 @@ import PhotoBoothPage from './pages/PhotoBoothPage';
 import MorePage from './pages/MorePage';
 import RecipesPage from './pages/RecipesPage';
 import RecipeDetail from './pages/RecipeDetail';
+import CookingSessionPage from './pages/CookingSessionPage';
+import CookingSessionFlow from './pages/CookingSessionFlow';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -45,6 +47,8 @@ export default function App() {
         <Route path="/more" element={<MorePage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/recipes/:id" element={<RecipeDetail />} />
+        <Route path="/what-to-eat" element={<CookingSessionPage />} />
+        <Route path="/what-to-eat/:id" element={<CookingSessionFlow />} />
       </Routes>
     </Layout>
   );

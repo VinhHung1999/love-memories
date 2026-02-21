@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, Pencil, Check, X, User, LogOut } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import Modal from '../components/Modal';
 
 const modules = [
+  {
+    to: '/what-to-eat',
+    icon: UtensilsCrossed,
+    label: 'What to Eat',
+    description: 'Nấu ăn cùng nhau',
+    color: 'bg-gradient-to-br from-secondary/10 to-accent/10 text-secondary',
+  },
   {
     to: '/foodspots',
     icon: Utensils,

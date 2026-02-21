@@ -118,6 +118,59 @@ export interface Recipe {
   photos: RecipePhoto[];
 }
 
+export type CookingSessionStatus = 'selecting' | 'shopping' | 'cooking' | 'photo' | 'completed';
+
+export interface CookingSessionRecipe {
+  id: string;
+  sessionId: string;
+  recipeId: string;
+  recipe: Recipe;
+  order: number;
+  completedAt: string | null;
+}
+
+export interface CookingSessionItem {
+  id: string;
+  sessionId: string;
+  ingredient: string;
+  checked: boolean;
+  checkedAt: string | null;
+}
+
+export interface CookingSessionStep {
+  id: string;
+  sessionId: string;
+  recipeId: string;
+  stepIndex: number;
+  content: string;
+  checked: boolean;
+  checkedBy: string | null;
+  checkedAt: string | null;
+}
+
+export interface CookingSessionPhoto {
+  id: string;
+  sessionId: string;
+  filename: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface CookingSession {
+  id: string;
+  status: CookingSessionStatus;
+  startedAt: string | null;
+  completedAt: string | null;
+  totalTimeMs: number | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  recipes: CookingSessionRecipe[];
+  items: CookingSessionItem[];
+  steps: CookingSessionStep[];
+  photos: CookingSessionPhoto[];
+}
+
 export interface Sprint {
   id: string;
   name: string;
