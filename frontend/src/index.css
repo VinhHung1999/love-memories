@@ -58,14 +58,6 @@ input[type="date"]::-webkit-date-and-time-value {
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { scrollbar-width: none; }
 
-/* Embla carousel — slide sizing only; viewport/container use Tailwind */
-.embla-slide {
-  flex: 0 0 85%;
-  min-width: 0;
-}
-@media (min-width: 768px) {
-  .embla-slide { flex: 0 0 33.333%; }
-}
 
 .mapboxgl-popup-content {
   border-radius: 12px !important;

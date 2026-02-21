@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import { useState, useEffect, useCallback } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
@@ -27,23 +25,6 @@ export default function Dashboard() {
     { icon: Target, label: 'Goals Done', value: doneGoals, color: 'bg-purple-100 text-purple-600', to: '/goals' },
   ];
 
-  // ── Embla carousel ────────────────────────────────────────────────────
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start' });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    setScrollSnaps(emblaApi.scrollSnapList());
-    emblaApi.on('select', onSelect);
-    onSelect();
-    return () => { emblaApi.off('select', onSelect); };
-  }, [emblaApi, onSelect]);
 
   return (
     <div>
@@ -61,78 +42,51 @@ export default function Dashboard() {
         <RelationshipTimer />
       </div>
 
-      {/* ── HERO CAROUSEL (embla) ─────────────────────────────────────── */}
+      {/* ── RECENT MOMENTS ────────────────────────────────────────────── */}
       <div className="mb-6 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
-          <div className="mx-4 md:mx-0 aspect-video max-h-64 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
-            <Camera className="w-12 h-12 text-gray-300" />
+          <div className="mx-4 md:mx-0 h-44 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
+            <Camera className="w-10 h-10 text-gray-300" />
             <p className="text-sm">Chưa có kỷ niệm nào.</p>
             <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
           </div>
         ) : (
-          <>
-            {/* Embla viewport — overflow hidden clips slides */}
-            <div ref={emblaRef} className="overflow-hidden">
-              {/*
-                Container: -ml-3 offsets the pl-3 gap on each slide,
-                so the first slide starts flush at the viewport left edge.
-                touch-action pan-y: allow vertical page scroll while dragging.
-              */}
-              <div className="flex -ml-3" style={{ touchAction: 'pan-y' }}>
-                {recentMoments.map((moment) => (
-                  <Link
-                    key={moment.id}
-                    to={`/moments/${moment.id}`}
-                    className="embla-slide pl-3 group"
-                  >
-                    <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
-                      {moment.photos[0] ? (
-                        <img
-                          src={moment.photos[0].url}
-                          alt={moment.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-                          <Camera className="w-12 h-12 text-primary/30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <p className="text-white font-semibold text-base leading-snug line-clamp-2 drop-shadow">
-                          {moment.title}
-                        </p>
-                        <p className="text-white/70 text-xs mt-1 flex items-center gap-1">
-                          <Calendar className="w-3 h-3 flex-shrink-0" />
-                          {format(new Date(moment.date), 'MMMM d, yyyy')}
-                        </p>
-                      </div>
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar px-4 md:px-0 pb-1">
+            {recentMoments.map((moment) => (
+              <Link
+                key={moment.id}
+                to={`/moments/${moment.id}`}
+                className="flex-none w-56 md:w-72 group"
+              >
+                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                  {moment.photos[0] ? (
+                    <img
+                      src={moment.photos[0].url}
+                      alt={moment.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                      <Camera className="w-10 h-10 text-primary/30" />
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Dots — one per embla snap point, clickable */}
-            {scrollSnaps.length > 1 && (
-              <div className="flex justify-center items-center gap-1.5 mt-3">
-                {scrollSnaps.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => emblaApi?.scrollTo(i)}
-                    className={`rounded-full transition-all duration-300 ${
-                      i === selectedIndex
-                        ? 'w-5 h-1.5 bg-primary'
-                        : 'w-1.5 h-1.5 bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-white font-semibold text-sm leading-snug line-clamp-2 drop-shadow">
+                      {moment.title}
+                    </p>
+                    <p className="text-white/70 text-xs mt-0.5 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 flex-shrink-0" />
+                      {format(new Date(moment.date), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </div>
-      {/* ── END HERO ──────────────────────────────────────────────────── */}
+      {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
 
       {/* View all moments link */}
       <div className="flex justify-end mb-6">
