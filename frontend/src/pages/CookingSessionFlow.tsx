@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X } from 'lucide-react';
+import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X, Youtube, Facebook, Music2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
@@ -302,6 +302,38 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
+type PlatformInfo =
+  | { type: 'youtube'; embedUrl: string; url: string }
+  | { type: 'tiktok'; url: string }
+  | { type: 'facebook'; url: string }
+  | { type: 'link'; url: string };
+
+function getPlatformInfo(url: string): PlatformInfo {
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace('www.', '');
+    if (hostname === 'youtube.com' || hostname === 'youtu.be') {
+      let embedUrl = '';
+      if (hostname === 'youtu.be') {
+        embedUrl = `https://www.youtube.com/embed${u.pathname}`;
+      } else if (u.pathname === '/watch') {
+        const v = u.searchParams.get('v');
+        if (v) embedUrl = `https://www.youtube.com/embed/${v}`;
+      } else if (u.pathname.startsWith('/embed/')) {
+        embedUrl = url;
+      }
+      if (embedUrl) return { type: 'youtube', embedUrl, url };
+    }
+    if (hostname === 'tiktok.com' || hostname === 'vm.tiktok.com') {
+      return { type: 'tiktok', url };
+    }
+    if (hostname === 'facebook.com' || hostname === 'fb.com' || hostname === 'fb.watch') {
+      return { type: 'facebook', url };
+    }
+  } catch { /* invalid URL */ }
+  return { type: 'link', url };
+}
+
 function useCancelSession(sessionId: string) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -349,6 +381,7 @@ function CookingPhase({ session }: { session: CookingSession }) {
   const { cancel, cancelling } = useCancelSession(session.id);
   const [timers, setTimers] = useState<Record<string, TimerState>>({});
   const timerIntervals = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+  const [videoOpen, setVideoOpen] = useState<Record<string, boolean>>({});
 
   // Cleanup all intervals on unmount
   useEffect(() => {
@@ -513,18 +546,46 @@ function CookingPhase({ session }: { session: CookingSession }) {
                     <p className="text-xs text-text-light">
                       {recipeChecked}/{steps.length} bước
                     </p>
-                    {recipe.tutorialUrl && (
-                      <a
-                        href={recipe.tutorialUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        Xem hướng dẫn
-                      </a>
-                    )}
+                    {recipe.tutorialUrl && (() => {
+                      const platform = getPlatformInfo(recipe.tutorialUrl);
+                      if (platform.type === 'youtube') return (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => setVideoOpen((p) => ({ ...p, [recipe.id]: !p[recipe.id] }))}
+                            className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors mt-0.5"
+                          >
+                            <Youtube className="w-3.5 h-3.5" />
+                            {videoOpen[recipe.id] ? 'Ẩn video' : 'Xem video hướng dẫn'}
+                          </button>
+                          {videoOpen[recipe.id] && (
+                            <div className="relative w-full rounded-xl overflow-hidden mt-2" style={{ paddingBottom: '56.25%' }}>
+                              <iframe
+                                src={platform.embedUrl}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="absolute inset-0 w-full h-full border-0"
+                                title="Tutorial video"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                      if (platform.type === 'tiktok') return (
+                        <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-text-light hover:text-text transition-colors mt-0.5">
+                          <Music2 className="w-3 h-3" /> TikTok
+                        </a>
+                      );
+                      if (platform.type === 'facebook') return (
+                        <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors mt-0.5">
+                          <Facebook className="w-3 h-3" /> Facebook
+                        </a>
+                      );
+                      return (
+                        <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline mt-0.5">
+                          <ExternalLink className="w-3 h-3" /> Xem hướng dẫn
+                        </a>
+                      );
+                    })()}
                   </div>
                   {recipe.notes && (
                     <p className="text-xs text-text-light italic mt-1">{recipe.notes}</p>

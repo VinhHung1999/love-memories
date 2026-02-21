@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer, Youtube, Facebook, Music2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
@@ -9,6 +9,38 @@ import Modal from '../components/Modal';
 import PhotoGallery from '../components/PhotoGallery';
 
 type TimerState = { remaining: number; running: boolean; done: boolean };
+
+type PlatformInfo =
+  | { type: 'youtube'; embedUrl: string; url: string }
+  | { type: 'tiktok'; url: string }
+  | { type: 'facebook'; url: string }
+  | { type: 'link'; url: string };
+
+function getPlatformInfo(url: string): PlatformInfo {
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace('www.', '');
+    if (hostname === 'youtube.com' || hostname === 'youtu.be') {
+      let embedUrl = '';
+      if (hostname === 'youtu.be') {
+        embedUrl = `https://www.youtube.com/embed${u.pathname}`;
+      } else if (u.pathname === '/watch') {
+        const v = u.searchParams.get('v');
+        if (v) embedUrl = `https://www.youtube.com/embed/${v}`;
+      } else if (u.pathname.startsWith('/embed/')) {
+        embedUrl = url;
+      }
+      if (embedUrl) return { type: 'youtube', embedUrl, url };
+    }
+    if (hostname === 'tiktok.com' || hostname === 'vm.tiktok.com') {
+      return { type: 'tiktok', url };
+    }
+    if (hostname === 'facebook.com' || hostname === 'fb.com' || hostname === 'fb.watch') {
+      return { type: 'facebook', url };
+    }
+  } catch { /* invalid URL */ }
+  return { type: 'link', url };
+}
 
 function formatMmSs(secs: number): string {
   const m = Math.floor(secs / 60);
@@ -301,17 +333,45 @@ export default function RecipeDetail() {
           </div>
         )}
 
-        {recipe.tutorialUrl && (
-          <a
-            href={recipe.tutorialUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-accent hover:underline"
-          >
-            <ExternalLink className="w-4 h-4 flex-shrink-0" />
-            Xem hướng dẫn
-          </a>
-        )}
+        {recipe.tutorialUrl && (() => {
+          const platform = getPlatformInfo(recipe.tutorialUrl);
+          if (platform.type === 'youtube') return (
+            <div className="space-y-2">
+              <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  src={platform.embedUrl}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                  title="Tutorial video"
+                />
+              </div>
+              <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:underline">
+                <Youtube className="w-3.5 h-3.5" /> Mở trên YouTube
+              </a>
+            </div>
+          );
+          if (platform.type === 'tiktok') return (
+            <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-text-light hover:text-text border border-border rounded-xl px-4 py-2.5 hover:bg-gray-50 transition-colors">
+              <Music2 className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">Xem hướng dẫn trên TikTok</span>
+              <ExternalLink className="w-3.5 h-3.5 text-text-light" />
+            </a>
+          );
+          if (platform.type === 'facebook') return (
+            <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-xl px-4 py-2.5 hover:bg-blue-50 transition-colors">
+              <Facebook className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">Xem hướng dẫn trên Facebook</span>
+              <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+            </a>
+          );
+          return (
+            <a href={recipe.tutorialUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-accent hover:underline">
+              <ExternalLink className="w-4 h-4 flex-shrink-0" />
+              Xem hướng dẫn
+            </a>
+          );
+        })()}
       </div>
 
       {confirmDelete && (
