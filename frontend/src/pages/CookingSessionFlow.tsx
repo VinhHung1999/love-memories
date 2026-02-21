@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera } from 'lucide-react';
+import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../types';
 
 // Phase components will be implemented in Tasks 3, 4, 5
@@ -281,8 +282,6 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
 
 // ─── Cooking phase ────────────────────────────────────────────────────────────
 
-const PLAYER_NAME_KEY = 'cooking-player-name';
-
 function formatElapsed(ms: number): string {
   const totalSecs = Math.floor(ms / 1000);
   const h = Math.floor(totalSecs / 3600);
@@ -294,12 +293,9 @@ function formatElapsed(ms: number): string {
 
 function CookingPhase({ session }: { session: CookingSession }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [advancing, setAdvancing] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [showNameModal, setShowNameModal] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [pendingStep, setPendingStep] = useState<CookingSessionStep | null>(null);
-  const nameInputRef = useRef<HTMLInputElement | undefined>(undefined);
 
   // Elapsed timer — useState feeds JSX, not useRef
   useEffect(() => {
@@ -310,11 +306,6 @@ function CookingPhase({ session }: { session: CookingSession }) {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [session.startedAt]);
-
-  // Focus name input when modal opens
-  useEffect(() => {
-    if (showNameModal) nameInputRef.current?.focus();
-  }, [showNameModal]);
 
   // Group steps by recipe, sorted by stepIndex
   const stepsByRecipe = session.recipes
@@ -362,25 +353,9 @@ function CookingPhase({ session }: { session: CookingSession }) {
   const handleStepClick = (step: CookingSessionStep) => {
     if (step.checked) {
       doToggleStep(step, false);
-      return;
-    }
-    const saved = localStorage.getItem(PLAYER_NAME_KEY);
-    if (saved) {
-      doToggleStep(step, true, saved);
     } else {
-      setPendingStep(step);
-      setNameInput('');
-      setShowNameModal(true);
+      doToggleStep(step, true, user?.name ?? undefined);
     }
-  };
-
-  const handleNameConfirm = () => {
-    const name = nameInput.trim();
-    if (!name || !pendingStep) return;
-    localStorage.setItem(PLAYER_NAME_KEY, name);
-    doToggleStep(pendingStep, true, name);
-    setPendingStep(null);
-    setShowNameModal(false);
   };
 
   const handleAdvance = async () => {
@@ -442,9 +417,23 @@ function CookingPhase({ session }: { session: CookingSession }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-heading font-semibold text-sm truncate">{recipe.title}</p>
-                  <p className="text-xs text-text-light">
-                    {recipeChecked}/{steps.length} bước
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-xs text-text-light">
+                      {recipeChecked}/{steps.length} bước
+                    </p>
+                    {recipe.tutorialUrl && (
+                      <a
+                        href={recipe.tutorialUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Xem hướng dẫn
+                      </a>
+                    )}
+                  </div>
                 </div>
                 <AnimatePresence>
                   {recipeDone && (
@@ -538,65 +527,6 @@ function CookingPhase({ session }: { session: CookingSession }) {
         )}
       </AnimatePresence>
 
-      {/* Player name modal — shown on first step check */}
-      <AnimatePresence>
-        {showNameModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4 bg-black/30"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setShowNameModal(false);
-                setPendingStep(null);
-              }
-            }}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl"
-            >
-              <h3 className="font-heading font-semibold text-lg mb-1">Bạn là ai? 👤</h3>
-              <p className="text-text-light text-sm mb-4">
-                Nhập tên để ghi nhận bước này — chỉ hỏi một lần!
-              </p>
-              <input
-                ref={(el) => { nameInputRef.current = el ?? undefined; }}
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                placeholder="VD: Mèo, Cún, ..."
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleNameConfirm();
-                  if (e.key === 'Escape') {
-                    setShowNameModal(false);
-                    setPendingStep(null);
-                  }
-                }}
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => { setShowNameModal(false); setPendingStep(null); }}
-                  className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleNameConfirm}
-                  disabled={!nameInput.trim()}
-                  className="flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors"
-                >
-                  Bắt đầu nấu!
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
