@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChefHat, Plus, X, CheckCircle2, Clock } from 'lucide-react';
+
+function formatVnd(price: number): string {
+  return price > 0 ? price.toLocaleString('vi-VN') + '₫' : '';
+}
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
@@ -162,6 +166,7 @@ export function RecipeFormModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [ingredients, setIngredients] = useState<string[]>(['']);
+  const [ingredientPrices, setIngredientPrices] = useState<number[]>([0]);
   const [steps, setSteps] = useState<string[]>(['']);
   const [stepDurations, setStepDurations] = useState<number[]>([0]);
   const [notes, setNotes] = useState('');
@@ -190,25 +195,27 @@ export function RecipeFormModal({
   });
 
   const reset = () => {
-    setTitle(''); setDescription(''); setIngredients(['']); setSteps(['']); setStepDurations([0]);
+    setTitle(''); setDescription(''); setIngredients(['']); setIngredientPrices([0]); setSteps(['']); setStepDurations([0]);
     setNotes(''); setTutorialUrl(''); setTagsInput(''); setFoodSpotId(defaultFoodSpotId ?? '');
   };
 
   const mutation = useMutation({
-    mutationFn: () =>
-      recipesApi.create({
+    mutationFn: () => {
+      const ingPairs = ingredients.map((ing, i) => ({ ing, price: ingredientPrices[i] ?? 0 })).filter(({ ing }) => ing.trim());
+      const stepPairs = steps.map((s, i) => ({ s, d: stepDurations[i] ?? 0 })).filter(({ s }) => s.trim());
+      return recipesApi.create({
         title,
         description: description || undefined,
-        ingredients: ingredients.filter(Boolean),
-        ...(() => {
-          const pairs = steps.map((s, i) => ({ s, d: stepDurations[i] ?? 0 })).filter(({ s }) => s.trim());
-          return { steps: pairs.map((p) => p.s), stepDurations: pairs.map((p) => p.d) };
-        })(),
+        ingredients: ingPairs.map((p) => p.ing),
+        ingredientPrices: ingPairs.map((p) => p.price),
+        steps: stepPairs.map((p) => p.s),
+        stepDurations: stepPairs.map((p) => p.d),
         notes: notes || undefined,
         tutorialUrl: tutorialUrl || undefined,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
         foodSpotId: foodSpotId || undefined,
-      } as Partial<Recipe>),
+      } as Partial<Recipe>);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
       toast.success('Recipe added!');
@@ -259,15 +266,27 @@ export function RecipeFormModal({
                   placeholder={`Ingredient ${i + 1}`}
                   className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
                 />
+                <input
+                  type="number" min="0" step="1000"
+                  value={ingredientPrices[i] ?? 0}
+                  onChange={(e) => setIngredientPrices((p) => p.map((x, idx) => idx === i ? parseInt(e.target.value || '0') : x))}
+                  placeholder="Giá ₫"
+                  className="w-24 border border-border rounded-xl px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-accent/30"
+                />
                 {ingredients.length > 1 && (
-                  <button type="button" onClick={() => removeItem(ingredients, setIngredients, i)} className="text-red-400 hover:text-red-500 p-2">
+                  <button type="button" onClick={() => { removeItem(ingredients, setIngredients, i); setIngredientPrices((p) => p.filter((_, idx) => idx !== i)); }} className="text-red-400 hover:text-red-500 p-2">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => setIngredients((p) => [...p, ''])} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
+          {ingredientPrices.some((p) => p > 0) && (
+            <p className="mt-1.5 text-xs text-right text-text-light">
+              Tổng: <span className="font-semibold text-accent">{formatVnd(ingredientPrices.reduce((a, b) => a + b, 0))}</span>
+            </p>
+          )}
+          <button type="button" onClick={() => { setIngredients((p) => [...p, '']); setIngredientPrices((p) => [...p, 0]); }} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
             <Plus className="w-3 h-3" /> Add ingredient
           </button>
         </div>
