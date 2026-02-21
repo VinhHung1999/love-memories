@@ -5,8 +5,16 @@ import { settingsApi } from '../lib/api';
 
 const SETTING_KEY = 'relationship-start-date';
 
+function parseLocalDate(dateStr: string): Date {
+  const parts = dateStr.split('-');
+  const y = parseInt(parts[0] ?? '0', 10);
+  const m = parseInt(parts[1] ?? '1', 10);
+  const d = parseInt(parts[2] ?? '1', 10);
+  return new Date(y, m - 1, d); // local midnight, not UTC
+}
+
 function calcDiff(startDate: string, now: Date) {
-  const start = new Date(startDate);
+  const start = parseLocalDate(startDate);
   let years = now.getFullYear() - start.getFullYear();
   let months = now.getMonth() - start.getMonth();
   let days = now.getDate() - start.getDate();
@@ -16,7 +24,16 @@ function calcDiff(startDate: string, now: Date) {
   }
   if (months < 0) { years--; months += 12; }
   const totalDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  return { years, months, days, totalDays };
+  // h/m/s: remainder after subtracting full calendar years+months+days (local time)
+  const reference = new Date(start);
+  reference.setFullYear(reference.getFullYear() + years);
+  reference.setMonth(reference.getMonth() + months);
+  reference.setDate(reference.getDate() + days);
+  const remainderMs = now.getTime() - reference.getTime();
+  const hours = Math.floor(remainderMs / (1000 * 60 * 60));
+  const minutes = Math.floor((remainderMs % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((remainderMs % (1000 * 60)) / 1000);
+  return { years, months, days, totalDays, hours, minutes, seconds };
 }
 
 interface Props {
@@ -32,7 +49,7 @@ export default function RelationshipTimer({ footer }: Props) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60_000);
+    const t = setInterval(() => setNow(new Date()), 1_000);
     return () => clearInterval(t);
   }, []);
 
@@ -115,7 +132,7 @@ export default function RelationshipTimer({ footer }: Props) {
   }
 
   // ── Hero display ──────────────────────────────────────────────────────
-  const { years, months, days, totalDays } = calcDiff(startDate, now);
+  const { years, months, days, totalDays, hours, minutes, seconds } = calcDiff(startDate, now);
 
   return (
     <div className="relative group rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-5 overflow-hidden">
@@ -138,34 +155,30 @@ export default function RelationshipTimer({ footer }: Props) {
         <span className="text-xs font-medium text-text-light tracking-widest uppercase">Bên nhau</span>
       </div>
 
-      {/* Large number blocks */}
-      <div className="flex items-end justify-center gap-3 md:gap-5">
-        {years > 0 && (
-          <>
+      {/* Single flex row: năm · tháng · ngày · giờ · phút · giây */}
+      <div className="flex items-end justify-center flex-wrap gap-x-3 gap-y-2 md:gap-x-5">
+        {[
+          ...(years > 0 ? [{ value: years,   label: 'năm',  mono: false }] : []),
+          ...((years > 0 || months > 0) ? [{ value: months, label: 'tháng', mono: false }] : []),
+          { value: days,    label: 'ngày', mono: false },
+          { value: hours,   label: 'giờ',  mono: true  },
+          { value: minutes, label: 'phút', mono: true  },
+          { value: seconds, label: 'giây', mono: true  },
+        ].map(({ value, label, mono }, i) => (
+          <div key={label} className="flex items-end gap-x-3 md:gap-x-5">
+            {i > 0 && <span className="text-2xl text-text-light/40 mb-4">·</span>}
             <div className="text-center">
-              <p className="font-heading text-5xl md:text-6xl font-bold text-text leading-none">{years}</p>
-              <p className="text-xs text-text-light mt-1.5 tracking-wide">năm</p>
+              <p className={`font-heading font-bold text-text leading-none${mono ? ' text-3xl md:text-4xl tabular-nums text-text/70' : ' text-5xl md:text-6xl'}`}>
+                {mono ? String(value).padStart(2, '0') : value}
+              </p>
+              <p className="text-xs text-text-light mt-1.5 tracking-wide">{label}</p>
             </div>
-            <span className="text-2xl text-text-light/40 mb-4">·</span>
-          </>
-        )}
-        {(years > 0 || months > 0) && (
-          <>
-            <div className="text-center">
-              <p className="font-heading text-5xl md:text-6xl font-bold text-text leading-none">{months}</p>
-              <p className="text-xs text-text-light mt-1.5 tracking-wide">tháng</p>
-            </div>
-            <span className="text-2xl text-text-light/40 mb-4">·</span>
-          </>
-        )}
-        <div className="text-center">
-          <p className="font-heading text-5xl md:text-6xl font-bold text-text leading-none">{days}</p>
-          <p className="text-xs text-text-light mt-1.5 tracking-wide">ngày</p>
-        </div>
+          </div>
+        ))}
       </div>
 
       {/* Total days */}
-      <p className="text-center text-xs text-text-light mt-4">
+      <p className="text-center text-xs text-text-light mt-3">
         {totalDays.toLocaleString()} ngày · mãi yêu nhau
       </p>
 
