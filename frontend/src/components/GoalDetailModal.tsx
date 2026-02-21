@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Trash2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -30,6 +30,19 @@ export default function GoalDetailModal({ goal, open, onClose, invalidateKeys = 
   const [dueDate, setDueDate] = useState(goal?.dueDate ? format(new Date(goal.dueDate), 'yyyy-MM-dd') : '');
   const [sprintId, setSprintId] = useState<string | null>(goal?.sprintId ?? null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Sync form state when goal prop changes (useState only initialises once on mount)
+  useEffect(() => {
+    if (goal) {
+      setTitle(goal.title || '');
+      setDescription(goal.description || '');
+      setPriority(goal.priority || 'MEDIUM');
+      setAssignee(goal.assignee || '');
+      setDueDate(goal.dueDate ? format(new Date(goal.dueDate), 'yyyy-MM-dd') : '');
+      setSprintId(goal.sprintId ?? null);
+      setConfirmDelete(false);
+    }
+  }, [goal]);
 
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
 

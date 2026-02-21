@@ -1,26 +1,155 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import { Heart, Utensils, Filter } from 'lucide-react';
-import { mapApi } from '../lib/api';
+import { mapApi, tagsApi } from '../lib/api';
 import type { MapPin } from '../types';
 
-// You can set your Mapbox token here or via env
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
+const EMOJI_PRESETS = [
+  { label: 'Food',       emojis: ['🍜','🍕','🍣','🍰','☕','🍺','🧋','🍝'] },
+  { label: 'Places',     emojis: ['🏖️','🏔️','🎬','🏠','🛒','🏥','✈️','🏨'] },
+  { label: 'Activities', emojis: ['🎵','💪','🎮','📸','🎂','💕','🛍️','📚'] },
+  { label: 'Nature',     emojis: ['🌸','🌊','🌅','🌴','🌙','⭐','🌿','🦋'] },
+];
+
+function EmojiPickerPopup({
+  tag,
+  currentEmoji,
+  onSelect,
+  onClose,
+}: {
+  tag: string;
+  currentEmoji: string;
+  onSelect: (emoji: string) => void;
+  onClose: () => void;
+}) {
+  const [custom, setCustom] = useState('');
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // animate in
+  useEffect(() => { requestAnimationFrame(() => setVisible(true)); }, []);
+
+  // click-outside
+  useEffect(() => {
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      className="absolute left-0 z-30 mt-1.5 bg-white rounded-2xl shadow-2xl border border-black/5 p-3 w-64"
+      style={{
+        top: '100%',
+        transition: 'opacity 0.15s ease, transform 0.15s ease',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0) scale(1)' : 'translateY(-6px) scale(0.97)',
+        transformOrigin: 'top left',
+      }}
+    >
+      <div className="text-[10px] font-semibold text-text-light uppercase tracking-wider mb-2.5">
+        Icon cho <span className="text-text">#{tag}</span>
+      </div>
+
+      {EMOJI_PRESETS.map((cat) => (
+        <div key={cat.label} className="mb-2.5">
+          <div className="text-[9px] text-text-light/50 font-medium uppercase tracking-wide mb-1">
+            {cat.label}
+          </div>
+          <div className="grid grid-cols-8 gap-0.5">
+            {cat.emojis.map((em) => (
+              <button
+                key={em}
+                onClick={() => onSelect(em)}
+                className={`h-8 rounded-lg text-base flex items-center justify-center transition-all active:scale-90 ${
+                  currentEmoji === em
+                    ? 'bg-accent/15 ring-1 ring-accent/50 scale-110'
+                    : 'hover:bg-gray-100'
+                }`}
+              >
+                {em}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div className="border-t border-black/5 pt-2.5 mt-0.5">
+        <div className="text-[9px] text-text-light/50 font-medium uppercase tracking-wide mb-1">
+          Custom
+        </div>
+        <div className="flex gap-1.5 items-center">
+          <input
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            placeholder="Paste emoji…"
+            className="flex-1 text-sm border border-border rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent/30 text-center"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && custom.trim()) onSelect(custom.trim());
+              if (e.key === 'Escape') onClose();
+            }}
+          />
+          {custom.trim() && (
+            <button
+              onClick={() => onSelect(custom.trim())}
+              className="px-2.5 py-1.5 bg-accent text-white text-xs rounded-xl font-semibold transition-colors hover:bg-accent/90"
+            >
+              ✓
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function MapPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'moment' | 'foodspot'>('all');
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [pickerTag, setPickerTag] = useState<string | null>(null);
 
   const { data: pins = [] } = useQuery({
     queryKey: ['map-pins'],
     queryFn: mapApi.pins,
   });
+
+  const { data: tagMetaList = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: tagsApi.list,
+  });
+
+  const tagMap = Object.fromEntries(tagMetaList.map((t) => [t.name, t]));
+
+  const upsertTagMutation = useMutation({
+    mutationFn: ({ name, icon }: { name: string; icon: string }) => tagsApi.upsert(name, icon),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['map-pins'] });
+      setPickerTag(null);
+    },
+  });
+
+  const closePicker = useCallback(() => setPickerTag(null), []);
+
+  const handleEmojiSelect = (tag: string, emoji: string) => {
+    upsertTagMutation.mutate({ name: tag, icon: emoji });
+  };
 
   const validPins = pins.filter((p) =>
     p.latitude >= -90 && p.latitude <= 90 && p.longitude >= -180 && p.longitude <= 180
@@ -49,7 +178,7 @@ export default function MapPage() {
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [106.6297, 10.8231], // Ho Chi Minh City default
+      center: [106.6297, 10.8231],
       zoom: 12,
     });
 
@@ -72,11 +201,13 @@ export default function MapPage() {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Clear existing markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
     filteredPins.forEach((pin) => {
+      const defaultIcon = pin.type === 'moment' ? '❤️' : '🍴';
+      const icon = pin.tagIcon || defaultIcon;
+
       const el = document.createElement('div');
       el.className = 'map-marker';
       el.style.cssText = `
@@ -84,9 +215,9 @@ export default function MapPage() {
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         background: ${pin.type === 'moment' ? '#E8788A' : '#F4A261'};
-        color: white; font-size: 16px;
+        font-size: 18px; line-height: 1;
       `;
-      el.innerHTML = pin.type === 'moment' ? '&hearts;' : '&#127860;';
+      el.textContent = icon;
 
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pin.latitude},${pin.longitude}`;
       const detailPath = pin.type === 'moment' ? `/moments/${pin.id}` : `/foodspots/${pin.id}`;
@@ -124,7 +255,6 @@ export default function MapPage() {
       markersRef.current.push(marker);
     });
 
-    // Fit bounds if pins exist
     if (filteredPins.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       filteredPins.forEach((p) => bounds.extend([p.longitude, p.latitude]));
@@ -141,7 +271,7 @@ export default function MapPage() {
           To enable the map, set your Mapbox token in <code className="bg-gray-100 px-2 py-0.5 rounded">frontend/.env</code> as <code className="bg-gray-100 px-2 py-0.5 rounded">VITE_MAPBOX_TOKEN</code>
         </p>
         <p className="text-text-light text-sm mt-2">
-          {pins.length} pins available ({pins.filter(p => p.type === 'moment').length} moments, {pins.filter(p => p.type === 'foodspot').length} food spots)
+          {pins.length} pins available ({pins.filter((p: MapPin) => p.type === 'moment').length} moments, {pins.filter((p: MapPin) => p.type === 'foodspot').length} food spots)
         </p>
       </div>
     );
@@ -181,27 +311,62 @@ export default function MapPage() {
 
         {/* Tag filter chips */}
         {allTags.length > 0 && (
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5 max-w-full">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium shadow transition-colors ${
-                  selectedTags.has(tag)
-                    ? 'bg-accent text-white'
-                    : 'bg-white text-text-light hover:bg-gray-50'
-                }`}
-              >
-                #{tag}
-              </button>
-            ))}
-            {selectedTags.size > 0 && (
-              <button
-                onClick={() => setSelectedTags(new Set())}
-                className="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-text-light hover:bg-gray-200 shadow transition-colors"
-              >
-                ✕ Clear
-              </button>
+          <div className="relative">
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 max-w-full hide-scrollbar">
+              {allTags.map((tag) => {
+                const meta = tagMap[tag];
+                const emoji = meta?.icon || '🏷️';
+                const isActive = selectedTags.has(tag);
+                const isPickerOpen = pickerTag === tag;
+                return (
+                  <div key={tag} className="flex-shrink-0">
+                    <div
+                      className={`flex items-center rounded-full shadow transition-all ${
+                        isActive ? 'bg-accent text-white' : 'bg-white text-text-light'
+                      } ${isPickerOpen ? 'ring-2 ring-accent/50' : ''}`}
+                    >
+                      {/* Emoji — tap to open picker */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPickerTag(isPickerOpen ? null : tag);
+                        }}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-sm transition-transform active:scale-90 ${
+                          isPickerOpen ? 'bg-accent/20' : 'hover:bg-black/5'
+                        }`}
+                        title="Set icon"
+                      >
+                        {emoji}
+                      </button>
+                      {/* Tag name — tap to toggle filter */}
+                      <button
+                        onClick={() => toggleTag(tag)}
+                        className="pr-2.5 text-xs font-medium"
+                      >
+                        #{tag}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {selectedTags.size > 0 && (
+                <button
+                  onClick={() => setSelectedTags(new Set())}
+                  className="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-text-light hover:bg-gray-200 shadow transition-colors"
+                >
+                  ✕ Clear
+                </button>
+              )}
+            </div>
+
+            {/* Emoji Picker Popup */}
+            {pickerTag && (
+              <EmojiPickerPopup
+                tag={pickerTag}
+                currentEmoji={tagMap[pickerTag]?.icon || '🏷️'}
+                onSelect={(emoji) => handleEmojiSelect(pickerTag, emoji)}
+                onClose={closePicker}
+              />
             )}
           </div>
         )}

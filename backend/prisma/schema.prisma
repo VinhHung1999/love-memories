@@ -19,18 +19,19 @@ model User {
 }
 
 model Moment {
-  id        String        @id @default(uuid())
-  title     String
-  caption   String?
-  date      DateTime
-  latitude  Float?
-  longitude Float?
-  location  String?
-  tags      String[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  photos    MomentPhoto[]
-  audios    MomentAudio[]
+  id          String        @id @default(uuid())
+  title       String
+  caption     String?
+  date        DateTime
+  latitude    Float?
+  longitude   Float?
+  location    String?
+  tags        String[]
+  spotifyUrl  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  photos      MomentPhoto[]
+  audios      MomentAudio[]
 
   @@map("moments")
 }
@@ -117,6 +118,15 @@ model Sprint {
   goals       Goal[]
 
   @@map("sprints")
+}
+
+model Tag {
+  id    String  @id @default(uuid())
+  name  String  @unique
+  icon  String  @default("🏷️")
+  color String?
+
+  @@map("tags")
 }
 
 model AppSetting {

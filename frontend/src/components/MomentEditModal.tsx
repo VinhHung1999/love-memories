@@ -24,6 +24,7 @@ export default function MomentEditModal({ moment, open, onClose, onSaved }: Mome
   const [longitude, setLongitude] = useState<number | null>(moment.longitude);
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>(moment.tags);
+  const [spotifyUrl, setSpotifyUrl] = useState(moment.spotifyUrl || '');
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -35,6 +36,7 @@ export default function MomentEditModal({ moment, open, onClose, onSaved }: Mome
         latitude: latitude ?? undefined,
         longitude: longitude ?? undefined,
         tags,
+        spotifyUrl: spotifyUrl || undefined,
       } as Partial<Moment>),
     onSuccess: () => {
       toast.success('Moment saved');
@@ -136,6 +138,17 @@ export default function MomentEditModal({ moment, open, onClose, onSaved }: Mome
               Add
             </button>
           </div>
+        </div>
+
+        {/* Spotify URL */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Spotify (tuỳ chọn)</label>
+          <input
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            placeholder="https://open.spotify.com/track/..."
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
         </div>
 
         {/* Actions */}
