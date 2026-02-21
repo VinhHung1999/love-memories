@@ -129,24 +129,32 @@ export default function Dashboard() {
       </div>
       {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <Link to={stat.to} className="block bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center mb-3`}>
-                <stat.icon className="w-5 h-5" />
-              </div>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-text-light text-sm">{stat.label}</p>
-            </Link>
-          </motion.div>
-        ))}
+      {/* Stats — horizontal scroll compact row */}
+      <div className="-mx-4 md:mx-0 mb-8">
+        <div className="flex gap-3 overflow-x-auto px-4 md:px-0 md:grid md:grid-cols-4 pb-1 hide-scrollbar">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07 }}
+              className="flex-shrink-0 w-32 md:w-auto"
+            >
+              <Link
+                to={stat.to}
+                className="flex items-center gap-2.5 bg-white rounded-2xl px-3.5 py-3 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className={`w-8 h-8 rounded-xl ${stat.color} flex items-center justify-center flex-shrink-0`}>
+                  <stat.icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold leading-tight">{stat.value}</p>
+                  <p className="text-text-light text-[11px] leading-tight truncate">{stat.label}</p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Active Sprint */}
