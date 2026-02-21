@@ -5,8 +5,16 @@ import { settingsApi } from '../lib/api';
 
 const SETTING_KEY = 'relationship-start-date';
 
+function parseLocalDate(dateStr: string): Date {
+  const parts = dateStr.split('-');
+  const y = parseInt(parts[0] ?? '0', 10);
+  const m = parseInt(parts[1] ?? '1', 10);
+  const d = parseInt(parts[2] ?? '1', 10);
+  return new Date(y, m - 1, d); // local midnight, not UTC
+}
+
 function calcDiff(startDate: string, now: Date) {
-  const start = new Date(startDate);
+  const start = parseLocalDate(startDate);
   let years = now.getFullYear() - start.getFullYear();
   let months = now.getMonth() - start.getMonth();
   let days = now.getDate() - start.getDate();
