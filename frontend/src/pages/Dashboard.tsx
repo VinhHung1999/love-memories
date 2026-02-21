@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Plus, Sparkles } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useRef, useState, useCallback } from 'react';
@@ -155,33 +155,6 @@ export default function Dashboard() {
             </Link>
           </motion.div>
         ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex flex-col gap-3 mb-8">
-        <div className="flex gap-3">
-          <Link
-            to="/moments?new=1"
-            className="flex-1 flex items-center justify-center gap-2 bg-primary text-white rounded-2xl py-3 text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            New Moment
-          </Link>
-          <Link
-            to="/foodspots?new=1"
-            className="flex-1 flex items-center justify-center gap-2 bg-secondary text-white rounded-2xl py-3 text-sm font-medium hover:bg-secondary/90 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            New Food Spot
-          </Link>
-        </div>
-        <Link
-          to="/photobooth"
-          className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl py-3.5 text-sm font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md"
-        >
-          <Sparkles className="w-4 h-4" />
-          Photo Booth ✨ — Create beautiful memories
-        </Link>
       </div>
 
       {/* Active Sprint */}

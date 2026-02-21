@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Pencil, Check, X } from 'lucide-react';
+import { settingsApi } from '../lib/api';
 
-const LS_KEY = 'love-scrum-start-date';
+const SETTING_KEY = 'relationship-start-date';
 
 function calcDiff(startDate: string, now: Date) {
   const start = new Date(startDate);
@@ -19,7 +21,7 @@ function calcDiff(startDate: string, now: Date) {
 
 /** Compact inline timer — single row, no card chrome */
 export default function RelationshipTimer() {
-  const [startDate, setStartDate] = useState<string>(() => localStorage.getItem(LS_KEY) ?? '');
+  const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [now, setNow] = useState(new Date());
@@ -29,11 +31,24 @@ export default function RelationshipTimer() {
     return () => clearInterval(t);
   }, []);
 
+  const { data } = useQuery({
+    queryKey: ['settings', SETTING_KEY],
+    queryFn: () => settingsApi.get(SETTING_KEY),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (value: string) => settingsApi.set(SETTING_KEY, value),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings', SETTING_KEY] });
+      setEditing(false);
+    },
+  });
+
+  const startDate = data?.value ?? '';
+
   const save = () => {
     if (!editValue) return;
-    localStorage.setItem(LS_KEY, editValue);
-    setStartDate(editValue);
-    setEditing(false);
+    saveMutation.mutate(editValue);
   };
 
   const cancel = () => setEditing(false);
@@ -51,7 +66,7 @@ export default function RelationshipTimer() {
           autoFocus
           onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
         />
-        <button onClick={save} disabled={!editValue} className="p-1 rounded bg-primary text-white hover:bg-primary/90 disabled:opacity-40 transition-colors">
+        <button onClick={save} disabled={!editValue || saveMutation.isPending} className="p-1 rounded bg-primary text-white hover:bg-primary/90 disabled:opacity-40 transition-colors">
           <Check className="w-3.5 h-3.5" />
         </button>
         <button onClick={cancel} className="p-1 rounded hover:bg-gray-100 transition-colors">

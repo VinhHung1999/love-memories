@@ -72,6 +72,11 @@ input[type="date"]::-webkit-date-and-time-value {
 .hero-carousel::-webkit-scrollbar { display: none; }
 .hero-carousel-item { scroll-snap-align: center; }
 
+/* Desktop: no side padding needed — wrapper stays inside layout column */
+@media (min-width: 768px) {
+  .hero-carousel { padding: 0; }
+}
+
 .mapboxgl-popup-content {
   border-radius: 12px !important;
   padding: 0 !important;

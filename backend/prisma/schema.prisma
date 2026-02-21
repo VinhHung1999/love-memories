@@ -119,6 +119,15 @@ model Sprint {
   @@map("sprints")
 }
 
+model AppSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
 model Goal {
   id          String       @id @default(uuid())
   title       String

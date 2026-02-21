@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Heart, Camera, Utensils, Map, Target, Home, LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth';
+import FAB from './FAB';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -52,6 +53,8 @@ export default function Layout({ children }: { children: ReactNode }) {
       <main className="flex-1 md:ml-64 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 px-4 md:px-8 pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
         {children}
       </main>
+
+      <FAB />
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] z-50">

@@ -118,6 +118,16 @@ export const sprintsApi = {
   delete: (id: string) => request(`/sprints/${id}`, { method: 'DELETE' }),
 };
 
+// Settings
+export const settingsApi = {
+  get: (key: string) => request<{ key: string; value: string | null }>(`/settings/${key}`),
+  set: (key: string, value: string) =>
+    request<{ key: string; value: string }>(`/settings/${key}`, {
+      method: 'PUT',
+      body: JSON.stringify({ value }),
+    }),
+};
+
 // Goals
 export const goalsApi = {
   backlog: () => request<Goal[]>('/goals/backlog'),
