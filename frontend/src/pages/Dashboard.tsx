@@ -35,8 +35,42 @@ export default function Dashboard() {
         <p className="text-text-light">Our little world, beautifully organized</p>
       </div>
 
-      {/* Relationship Timer */}
-      <RelationshipTimer />
+      {/* Timer + Recent Moments — combined section */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-5 shadow-sm mb-8">
+        {/* Timer row + "View all" link */}
+        <div className="flex items-center justify-between mb-4">
+          <RelationshipTimer />
+          <Link to="/moments" className="text-primary text-xs flex items-center gap-1 hover:underline flex-shrink-0 ml-3">
+            Tất cả <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* Recent moments grid */}
+        {recentMoments.length === 0 ? (
+          <p className="text-text-light text-sm py-4 text-center">Chưa có moment nào. Bắt đầu tạo kỷ niệm thôi!</p>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            {recentMoments.map((moment) => (
+              <Link key={moment.id} to={`/moments/${moment.id}`} className="group">
+                <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-1">
+                  {moment.photos[0] ? (
+                    <img src={moment.photos[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Camera className="w-6 h-6 text-gray-300" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-medium truncate leading-tight">{moment.title}</p>
+                <p className="text-xs text-text-light flex items-center gap-0.5 mt-0.5">
+                  <Calendar className="w-2.5 h-2.5" />
+                  {format(new Date(moment.date), 'MMM d')}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </motion.div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -85,76 +119,38 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Sprint */}
-        {activeSprint && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-heading text-lg font-semibold">Active Sprint</h2>
-                <Link to={`/goals/sprint/${activeSprint.id}`} className="text-accent text-sm flex items-center gap-1 hover:underline">
-                  View <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <h3 className="font-medium">{activeSprint.name}</h3>
-              <p className="text-text-light text-xs mt-1">
-                {format(new Date(activeSprint.startDate), 'MMM d')} — {format(new Date(activeSprint.endDate), 'MMM d')}
-              </p>
-              <div className="mt-4">
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-text-light">{doneGoals}/{totalGoals} goals</span>
-                  <span className="font-medium">{sprintProgress}%</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${sprintProgress}%` }} />
-                </div>
-              </div>
-              {activeSprint.goals.slice(0, 3).map((goal) => (
-                <div key={goal.id} className="flex items-center gap-2 mt-2 text-sm">
-                  <div className={`w-2 h-2 rounded-full ${goal.status === 'DONE' ? 'bg-green-400' : goal.status === 'IN_PROGRESS' ? 'bg-blue-400' : 'bg-gray-300'}`} />
-                  <span className={goal.status === 'DONE' ? 'line-through text-text-light' : ''}>{goal.title}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Recent Moments */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      {/* Active Sprint */}
+      {activeSprint && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-lg font-semibold">Recent Moments</h2>
-              <Link to="/moments" className="text-primary text-sm flex items-center gap-1 hover:underline">
-                View all <ArrowRight className="w-3 h-3" />
+              <h2 className="font-heading text-lg font-semibold">Active Sprint</h2>
+              <Link to={`/goals/sprint/${activeSprint.id}`} className="text-accent text-sm flex items-center gap-1 hover:underline">
+                View <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-            {recentMoments.length === 0 ? (
-              <p className="text-text-light text-sm py-4 text-center">No moments yet. Start creating memories!</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {recentMoments.map((moment) => (
-                  <Link key={moment.id} to={`/moments/${moment.id}`} className="group">
-                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-1.5">
-                      {moment.photos[0] ? (
-                        <img src={moment.photos[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Camera className="w-8 h-8 text-gray-300" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium truncate">{moment.title}</p>
-                    <p className="text-xs text-text-light flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {format(new Date(moment.date), 'MMM d')}
-                    </p>
-                  </Link>
-                ))}
+            <h3 className="font-medium">{activeSprint.name}</h3>
+            <p className="text-text-light text-xs mt-1">
+              {format(new Date(activeSprint.startDate), 'MMM d')} — {format(new Date(activeSprint.endDate), 'MMM d')}
+            </p>
+            <div className="mt-4">
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-text-light">{doneGoals}/{totalGoals} goals</span>
+                <span className="font-medium">{sprintProgress}%</span>
               </div>
-            )}
+              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${sprintProgress}%` }} />
+              </div>
+            </div>
+            {activeSprint.goals.slice(0, 3).map((goal) => (
+              <div key={goal.id} className="flex items-center gap-2 mt-2 text-sm">
+                <div className={`w-2 h-2 rounded-full ${goal.status === 'DONE' ? 'bg-green-400' : goal.status === 'IN_PROGRESS' ? 'bg-blue-400' : 'bg-gray-300'}`} />
+                <span className={goal.status === 'DONE' ? 'line-through text-text-light' : ''}>{goal.title}</span>
+              </div>
+            ))}
           </div>
         </motion.div>
-      </div>
+      )}
     </div>
   );
 }

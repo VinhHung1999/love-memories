@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Heart, Pencil, Check, X } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const LS_KEY = 'love-scrum-start-date';
 
@@ -9,20 +8,16 @@ function calcDiff(startDate: string, now: Date) {
   let years = now.getFullYear() - start.getFullYear();
   let months = now.getMonth() - start.getMonth();
   let days = now.getDate() - start.getDate();
-
   if (days < 0) {
     months--;
-    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-    days += prevMonthEnd.getDate();
+    days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
   }
-  if (months < 0) {
-    years--;
-    months += 12;
-  }
+  if (months < 0) { years--; months += 12; }
   const totalDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   return { years, months, days, totalDays };
 }
 
+/** Compact inline timer — single row, no card chrome */
 export default function RelationshipTimer() {
   const [startDate, setStartDate] = useState<string>(() => localStorage.getItem(LS_KEY) ?? '');
   const [editing, setEditing] = useState(false);
@@ -30,8 +25,8 @@ export default function RelationshipTimer() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
   }, []);
 
   const save = () => {
@@ -43,95 +38,63 @@ export default function RelationshipTimer() {
 
   const cancel = () => setEditing(false);
 
-  if (!startDate && !editing) {
-    return (
-      <motion.button
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        onClick={() => { setEditValue(''); setEditing(true); }}
-        className="w-full bg-white border-2 border-dashed border-primary/30 rounded-2xl p-5 flex items-center gap-3 text-primary/60 hover:border-primary/60 hover:text-primary transition-colors mb-8"
-      >
-        <Heart className="w-5 h-5 flex-shrink-0" />
-        <span className="text-sm font-medium">Thêm ngày bắt đầu quen nhau...</span>
-      </motion.button>
-    );
-  }
-
+  // ── Editing ──────────────────────────────────────────────────────────
   if (editing) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl p-5 shadow-sm mb-8 flex items-center gap-3"
-      >
-        <Heart className="w-5 h-5 text-primary fill-primary flex-shrink-0" />
-        <span className="text-sm font-medium text-text-light flex-shrink-0">Ngày quen nhau:</span>
+      <div className="flex items-center gap-2">
+        <Heart className="w-4 h-4 text-primary fill-primary flex-shrink-0" />
         <input
           type="date"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          className="flex-1 border border-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="flex-1 border border-border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
           autoFocus
           onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
         />
-        <button onClick={save} disabled={!editValue} className="p-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-40 transition-colors">
-          <Check className="w-4 h-4" />
+        <button onClick={save} disabled={!editValue} className="p-1 rounded bg-primary text-white hover:bg-primary/90 disabled:opacity-40 transition-colors">
+          <Check className="w-3.5 h-3.5" />
         </button>
-        <button onClick={cancel} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-          <X className="w-4 h-4 text-text-light" />
+        <button onClick={cancel} className="p-1 rounded hover:bg-gray-100 transition-colors">
+          <X className="w-3.5 h-3.5 text-text-light" />
         </button>
-      </motion.div>
+      </div>
     );
   }
 
+  // ── No date set ───────────────────────────────────────────────────────
+  if (!startDate) {
+    return (
+      <button
+        onClick={() => { setEditValue(''); setEditing(true); }}
+        className="flex items-center gap-1.5 text-xs text-primary/50 hover:text-primary transition-colors"
+      >
+        <Heart className="w-3.5 h-3.5" />
+        <span>Thêm ngày quen nhau...</span>
+      </button>
+    );
+  }
+
+  // ── Timer display ─────────────────────────────────────────────────────
   const { years, months, days, totalDays } = calcDiff(startDate, now);
 
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years} năm`);
+  if (years > 0 || months > 0) parts.push(`${months} tháng`);
+  parts.push(`${days} ngày`);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-primary/10 via-white to-secondary/10 rounded-2xl p-5 shadow-sm mb-8"
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ scale: [1, 1.18, 1] }}
-            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
-          >
-            <Heart className="w-5 h-5 text-primary fill-primary" />
-          </motion.div>
-          <span className="font-heading text-base font-semibold">Ngày quen nhau</span>
-        </div>
-        <button
-          onClick={() => { setEditValue(startDate); setEditing(true); }}
-          className="p-1.5 rounded-lg hover:bg-black/5 text-text-light hover:text-primary transition-colors"
-        >
-          <Pencil className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      <div className="flex items-end gap-4 justify-center py-1">
-        {years > 0 && (
-          <div className="text-center">
-            <p className="text-3xl font-bold text-primary">{years}</p>
-            <p className="text-xs text-text-light mt-0.5">năm</p>
-          </div>
-        )}
-        {(years > 0 || months > 0) && (
-          <div className="text-center">
-            <p className="text-3xl font-bold text-secondary">{months}</p>
-            <p className="text-xs text-text-light mt-0.5">tháng</p>
-          </div>
-        )}
-        <div className="text-center">
-          <p className="text-3xl font-bold text-accent">{days}</p>
-          <p className="text-xs text-text-light mt-0.5">ngày</p>
-        </div>
-      </div>
-
-      <p className="text-center text-xs text-text-light mt-3">
-        {totalDays.toLocaleString()} ngày bên nhau 💕
-      </p>
-    </motion.div>
+    <div className="flex items-center gap-1.5">
+      <Heart className="w-3.5 h-3.5 text-primary fill-primary flex-shrink-0" />
+      <span className="text-sm font-medium text-gray-800">
+        {parts.join(' ')} bên nhau
+      </span>
+      <span className="text-xs text-text-light">· {totalDays.toLocaleString()} ngày</span>
+      <button
+        onClick={() => { setEditValue(startDate); setEditing(true); }}
+        className="ml-0.5 p-0.5 rounded hover:bg-gray-100 text-text-light hover:text-primary transition-colors"
+      >
+        <Pencil className="w-3 h-3" />
+      </button>
+    </div>
   );
 }
