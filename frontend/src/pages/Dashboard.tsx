@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Plus, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import { useRef, useState, useCallback } from 'react';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
 import RelationshipTimer from '../components/RelationshipTimer';
 
@@ -12,7 +13,7 @@ export default function Dashboard() {
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
 
   const activeSprint = sprints.find((s) => s.status === 'ACTIVE');
-  const recentMoments = moments.slice(0, 4);
+  const recentMoments = moments.slice(0, 6);
   const doneGoals = activeSprint?.goals.filter((g) => g.status === 'DONE').length || 0;
   const totalGoals = activeSprint?.goals.length || 0;
   const sprintProgress = totalGoals > 0 ? Math.round((doneGoals / totalGoals) * 100) : 0;
@@ -24,57 +25,111 @@ export default function Dashboard() {
     { icon: Target, label: 'Goals Done', value: doneGoals, color: 'bg-purple-100 text-purple-600', to: '/goals' },
   ];
 
+  // ── Carousel scroll tracking ──────────────────────────────────────────
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el || recentMoments.length === 0) return;
+    const idx = Math.round(el.scrollLeft / (el.scrollWidth / recentMoments.length));
+    setActiveIndex(Math.min(Math.max(0, idx), recentMoments.length - 1));
+  }, [recentMoments.length]);
+
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <Heart className="w-6 h-6 text-primary fill-primary" />
           <h1 className="font-heading text-3xl font-bold">Love Scrum</h1>
         </div>
-        <p className="text-text-light">Our little world, beautifully organized</p>
+        <p className="text-text-light text-sm">Our little world, beautifully organized</p>
       </div>
 
-      {/* Timer + Recent Moments — combined section */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-5 shadow-sm mb-8">
-        {/* Timer row + "View all" link */}
-        <div className="flex items-center justify-between mb-4">
-          <RelationshipTimer />
-          <Link to="/moments" className="text-primary text-xs flex items-center gap-1 hover:underline flex-shrink-0 ml-3">
-            Tất cả <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
+      {/* Timer inline — compact, above hero */}
+      <div className="mb-3 px-0.5">
+        <RelationshipTimer />
+      </div>
 
-        {/* Recent moments carousel */}
+      {/* ── HERO CAROUSEL ─────────────────────────────────────────────── */}
+      <div className="mb-6 -mx-4 md:-mx-8">
         {recentMoments.length === 0 ? (
-          <p className="text-text-light text-sm py-4 text-center">Chưa có moment nào. Bắt đầu tạo kỷ niệm thôi!</p>
-        ) : (
-          <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {recentMoments.map((moment) => (
-              <Link
-                key={moment.id}
-                to={`/moments/${moment.id}`}
-                className="group flex-shrink-0 w-[72vw] max-w-xs snap-start"
-              >
-                <div className="w-full h-52 rounded-2xl overflow-hidden bg-gray-100 mb-2 shadow-sm">
-                  {moment.photos[0] ? (
-                    <img src={moment.photos[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Camera className="w-10 h-10 text-gray-300" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm font-medium truncate">{moment.title}</p>
-                <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
-                  <Calendar className="w-3 h-3 flex-shrink-0" />
-                  {format(new Date(moment.date), 'MMM d, yyyy')}
-                </p>
-              </Link>
-            ))}
+          <div className="mx-4 md:mx-8 aspect-[4/3] max-h-72 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
+            <Camera className="w-12 h-12 text-gray-300" />
+            <p className="text-sm">Chưa có kỷ niệm nào.</p>
+            <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
           </div>
+        ) : (
+          <>
+            {/* Scroll container — px-[7.5vw] lets first/last card snap to center */}
+            <div
+              ref={carouselRef}
+              onScroll={handleScroll}
+              className="flex overflow-x-auto snap-x snap-mandatory gap-3 px-[7.5vw] md:px-8 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {recentMoments.map((moment) => (
+                <Link
+                  key={moment.id}
+                  to={`/moments/${moment.id}`}
+                  className="group flex-shrink-0 w-[85vw] md:w-80 snap-center"
+                >
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                    {/* Image */}
+                    {moment.photos[0] ? (
+                      <img
+                        src={moment.photos[0].url}
+                        alt={moment.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                        <Camera className="w-12 h-12 text-primary/30" />
+                      </div>
+                    )}
+
+                    {/* Bottom gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+
+                    {/* Text overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-white font-semibold text-base leading-snug line-clamp-2 drop-shadow">
+                        {moment.title}
+                      </p>
+                      <p className="text-white/70 text-xs mt-1 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        {format(new Date(moment.date), 'MMMM d, yyyy')}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Dots indicator */}
+            <div className="flex justify-center items-center gap-1.5 mt-3">
+              {recentMoments.map((_, i) => (
+                <div
+                  key={i}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === activeIndex
+                      ? 'w-5 h-1.5 bg-primary'
+                      : 'w-1.5 h-1.5 bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
         )}
-      </motion.div>
+      </div>
+      {/* ── END HERO ──────────────────────────────────────────────────── */}
+
+      {/* View all moments link */}
+      <div className="flex justify-end mb-6">
+        <Link to="/moments" className="text-primary text-xs flex items-center gap-1 hover:underline">
+          Xem tất cả <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
