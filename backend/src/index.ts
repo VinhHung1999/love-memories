@@ -11,6 +11,7 @@ import { tagRoutes } from './routes/tags';
 import { authRoutes } from './routes/auth';
 import { recipeRoutes } from './routes/recipes';
 import { cookingSessionRoutes } from './routes/cookingSessions';
+import { aiRoutes } from './routes/ai';
 import { proxyImageRoute } from './routes/proxy-image';
 import { requireAuth } from './middleware/auth';
 
@@ -39,6 +40,7 @@ app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/tags', requireAuth, tagRoutes);
 app.use('/api/recipes', requireAuth, recipeRoutes);
 app.use('/api/cooking-sessions', requireAuth, cookingSessionRoutes);
+app.use('/api/ai', requireAuth, aiRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {
