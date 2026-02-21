@@ -385,6 +385,15 @@ describe('CookingSessions', () => {
     expect(res.status).toBe(400);
   });
 
+  it('POST /api/cooking-sessions returns 409 when active session exists', async () => {
+    const res = await request(app)
+      .post('/api/cooking-sessions')
+      .set(auth())
+      .send({ recipeIds: [recipeId] });
+    expect(res.status).toBe(409);
+    expect(res.body.sessionId).toBe(sessionId);
+  });
+
   it('GET /api/cooking-sessions/active returns active session', async () => {
     const res = await request(app).get('/api/cooking-sessions/active').set(auth());
     expect(res.status).toBe(200);

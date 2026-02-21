@@ -72,6 +72,15 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const { recipeIds } = createCookingSessionSchema.parse(req.body);
 
+    // Guard: reject if an active session already exists
+    const existing = await prisma.cookingSession.findFirst({
+      where: { status: { not: 'completed' } },
+    });
+    if (existing) {
+      res.status(409).json({ error: 'An active session already exists', sessionId: existing.id });
+      return;
+    }
+
     // Fetch recipes in order
     const recipes = await Promise.all(
       recipeIds.map((id, idx) =>
