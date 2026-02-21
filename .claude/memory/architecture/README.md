@@ -65,6 +65,47 @@ Always respect this order when adding new overlay or panel components.
 - data: URL fast-path in loadImage() for camera captures (bypasses fetch)
 - Entry point: Dashboard CTA only (no nav tab)
 
+## Sprint 9 Features (2026-02-21)
+
+### Dashboard Timer
+- Component: `src/components/RelationshipTimer.tsx` — compact inline single-row timer
+- Stores start date in DB via `GET/PUT /api/settings/relationship-start-date` (not localStorage)
+- Uses `useQuery` + `useMutation` from react-query; syncs across devices automatically
+
+### Voice Recording (MomentAudio)
+- DB model: `MomentAudio` (id, momentId, filename, url, duration, createdAt) in `moment_audios` table
+- API: `POST /api/moments/:id/audio` (multer uploadAudio), `DELETE /api/moments/:id/audio/:audioId`
+- Frontend: MediaRecorder API in `MomentDetail.tsx` — live timer, play/pause toggle via `new Audio(url)`
+
+### Map Tag Filter
+- `MapPage.tsx`: `selectedTags: Set<string>` state, `allTags` from `validPins.flatMap(p => p.tags)`
+- Multi-select chip UI; combines with existing type filter (All/Moments/Food)
+
+### Swiper Carousel (Recent Moments)
+- Library: `swiper` v12 with Pagination module
+- Mobile: `slidesPerView: 1.15`, `centeredSlides`, `spaceBetween: 12` — natural peek effect
+- Desktop (≥768px): `slidesPerView: 3`, `spaceBetween: 16` — 3 cards visible
+- Pagination color via CSS vars: `--swiper-pagination-color: #E8788A`
+
+### FAB Speed Dial
+- Component: `src/components/FAB.tsx` — fixed bottom-right, `z-[55]` (above bottom nav z-50, below modal z-[60])
+- Actions: Moment, Food Spot, Photo Booth — AnimatePresence slide-in, Plus rotates 45° → ×
+- Mounted in `Dashboard.tsx` only (not global Layout)
+- `bottom: calc(5rem + env(safe-area-inset-bottom))` for safe-area awareness
+
+### AppSettings Model
+- DB: `app_settings` table (key String @unique, value String)
+- API: `GET/PUT /api/settings/:key` — upsert pattern, protected route
+- Frontend: `settingsApi` in `api.ts`; used by RelationshipTimer for cross-device sync
+
+## Z-Index Hierarchy (updated Sprint 9)
+
+- `z-50` — bottom nav (`Layout.tsx`)
+- `z-[54]` — FAB backdrop (closes speed dial)
+- `z-[55]` — FAB component (`FAB.tsx`)
+- `z-[60]` — modals (`Modal.tsx`)
+- `z-[70]` — full-screen gallery overlay (`PhotoGallery.tsx`)
+
 ## Environment Separation (Sprint 6)
 
 - **Production**: DB `love_scrum` / port 5005 (backend) + 3337 (frontend) / `.env` / PM2 `npm run start` + `npm run preview`
