@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Camera, Utensils, Sparkles } from 'lucide-react';
+import { Plus, Camera, Utensils, Sparkles, ChefHat } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const actions = [
   { to: '/photobooth', icon: Sparkles, label: 'Photo Booth', bg: 'bg-gradient-to-r from-primary to-secondary' },
   { to: '/foodspots?new=1', icon: Utensils, label: 'Food Spot', bg: 'bg-secondary' },
+  { to: '/recipes?new=1', icon: ChefHat, label: 'Recipe', bg: 'bg-accent' },
   { to: '/moments?new=1', icon: Camera, label: 'Moment', bg: 'bg-primary' },
 ];
 

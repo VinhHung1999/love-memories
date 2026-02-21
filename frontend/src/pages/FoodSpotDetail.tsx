@@ -1,9 +1,9 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, MapPin, Navigation, Tag, Trash2, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, AlertCircle, MapPin, Navigation, Tag, Trash2, Pencil, Plus, ChefHat } from 'lucide-react';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { foodSpotsApi } from '../lib/api';
+import { foodSpotsApi, recipesApi } from '../lib/api';
 import RatingStars from '../components/RatingStars';
 import PhotoGallery from '../components/PhotoGallery';
 import FoodSpotEditModal from '../components/FoodSpotEditModal';
@@ -24,6 +24,13 @@ export default function FoodSpotDetail() {
     queryFn: () => foodSpotsApi.get(id!),
     enabled: !!id,
   });
+
+  const { data: allRecipes = [] } = useQuery({
+    queryKey: ['recipes'],
+    queryFn: recipesApi.list,
+    enabled: !!id,
+  });
+  const linkedRecipes = allRecipes.filter((r) => r.foodSpotId === id);
 
   const deleteMutation = useMutation({
     mutationFn: () => foodSpotsApi.delete(id!),
@@ -193,6 +200,43 @@ export default function FoodSpotDetail() {
         )}
 
       </div>
+
+      {/* Linked Recipes */}
+      {linkedRecipes.length > 0 && (
+        <div className="mt-6">
+          <h2 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
+            <ChefHat className="w-5 h-5 text-accent" />
+            Recipes từ quán này
+          </h2>
+          <div className="space-y-3">
+            {linkedRecipes.map((recipe) => (
+              <Link
+                key={recipe.id}
+                to={`/recipes/${recipe.id}`}
+                className="flex items-center gap-3 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              >
+                {recipe.photos[0] ? (
+                  <img src={recipe.photos[0].url} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <ChefHat className="w-6 h-6 text-accent" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{recipe.title}</p>
+                  {recipe.description && (
+                    <p className="text-xs text-text-light mt-0.5 truncate">{recipe.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1 text-xs text-text-light">
+                    {recipe.ingredients.length > 0 && <span>{recipe.ingredients.length} nguyên liệu</span>}
+                    {recipe.steps.length > 0 && <span>· {recipe.steps.length} bước</span>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {confirmDelete && (
         <Modal open={true} onClose={() => setConfirmDelete(false)} title="Delete Food Spot?">

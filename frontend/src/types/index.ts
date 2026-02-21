@@ -93,6 +93,29 @@ export interface Goal {
   updatedAt: string;
 }
 
+export interface RecipePhoto {
+  id: string;
+  recipeId: string;
+  filename: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface Recipe {
+  id: string;
+  title: string;
+  description: string | null;
+  ingredients: string[];
+  steps: string[];
+  tags: string[];
+  notes: string | null;
+  foodSpotId: string | null;
+  foodSpot: { id: string; name: string } | null;
+  createdAt: string;
+  updatedAt: string;
+  photos: RecipePhoto[];
+}
+
 export interface Sprint {
   id: string;
   name: string;

@@ -60,6 +60,18 @@ export const assignGoalSchema = z.object({
   sprintId: z.string().nullable(),
 });
 
+export const createRecipeSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().optional(),
+  ingredients: z.array(z.string()).optional().default([]),
+  steps: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).optional().default([]),
+  notes: z.string().optional(),
+  foodSpotId: z.string().uuid().optional().nullable(),
+});
+
+export const updateRecipeSchema = createRecipeSchema.partial();
+
 export const reorderGoalsSchema = z.object({
   goals: z.array(z.object({
     id: z.string(),

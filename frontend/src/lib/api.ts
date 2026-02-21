@@ -1,4 +1,4 @@
-import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata } from '../types';
+import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe } from '../types';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -136,6 +136,32 @@ export const settingsApi = {
       method: 'PUT',
       body: JSON.stringify({ value }),
     }),
+};
+
+// Recipes
+export const recipesApi = {
+  list: () => request<Recipe[]>('/recipes'),
+  get: (id: string) => request<Recipe>(`/recipes/${id}`),
+  create: (data: Partial<Recipe>) => request<Recipe>('/recipes', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<Recipe>) => request<Recipe>(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => request(`/recipes/${id}`, { method: 'DELETE' }),
+  uploadPhotos: async (id: string, files: File[]) => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('photos', f));
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/recipes/${id}/photos`, { method: 'POST', headers, body: formData });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Upload failed');
+    return res.json();
+  },
+  deletePhoto: (recipeId: string, photoId: string) =>
+    request(`/recipes/${recipeId}/photos/${photoId}`, { method: 'DELETE' }),
 };
 
 // Goals
