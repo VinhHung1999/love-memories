@@ -47,9 +47,15 @@ export default function Dashboard() {
       </div>
 
       {/* ── RECENT MOMENTS (Swiper) ───────────────────────────────────── */}
-      <div className="mb-2 -mx-4 md:mx-0">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-heading text-base font-semibold text-text">Kỷ niệm gần đây</h2>
+        <Link to="/moments" className="text-primary text-xs flex items-center gap-1 hover:underline">
+          Xem tất cả <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="mb-6 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
-          <div className="mx-4 md:mx-0 h-44 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
+          <div className="mx-4 md:mx-0 h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-10 h-10 text-gray-300" />
             <p className="text-sm">Chưa có kỷ niệm nào.</p>
             <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
@@ -78,7 +84,7 @@ export default function Dashboard() {
             {recentMoments.map((moment) => (
               <SwiperSlide key={moment.id}>
                 <Link to={`/moments/${moment.id}`} className="group block">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                  <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-lg ring-1 ring-black/5 group-hover:shadow-xl transition-shadow duration-300">
                     {moment.photos[0] ? (
                       <img
                         src={moment.photos[0].url}
@@ -86,16 +92,30 @@ export default function Dashboard() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-primary/15 to-secondary/15 flex items-center justify-center">
                         <Camera className="w-10 h-10 text-primary/30" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <p className="text-white font-semibold text-sm leading-snug line-clamp-2 drop-shadow">
+                    {/* Smoother gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                    {/* Location or tag badge */}
+                    {(moment.location || moment.tags[0]) && (
+                      <div className="absolute top-2.5 right-2.5">
+                        <span className="flex items-center gap-1 bg-black/30 backdrop-blur-sm text-white/90 text-[10px] px-2 py-0.5 rounded-full leading-4">
+                          {moment.location ? (
+                            <><MapPin className="w-2.5 h-2.5 flex-shrink-0" /><span className="truncate max-w-[80px]">{moment.location.split(',')[0]}</span></>
+                          ) : (
+                            <span># {moment.tags[0]}</span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    {/* Bottom info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3.5">
+                      <p className="text-white font-semibold text-sm leading-snug line-clamp-2 drop-shadow-sm">
                         {moment.title}
                       </p>
-                      <p className="text-white/70 text-xs mt-0.5 flex items-center gap-1">
+                      <p className="text-white/65 text-xs mt-1 flex items-center gap-1">
                         <Calendar className="w-3 h-3 flex-shrink-0" />
                         {format(new Date(moment.date), 'MMM d, yyyy')}
                       </p>
@@ -108,13 +128,6 @@ export default function Dashboard() {
         )}
       </div>
       {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
-
-      {/* View all moments link */}
-      <div className="flex justify-end mb-6">
-        <Link to="/moments" className="text-primary text-xs flex items-center gap-1 hover:underline">
-          Xem tất cả <ArrowRight className="w-3 h-3" />
-        </Link>
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
