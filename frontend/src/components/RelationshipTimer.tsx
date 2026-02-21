@@ -142,46 +142,23 @@ export default function RelationshipTimer({ footer }: Props) {
         <span className="text-xs font-medium text-text-light tracking-widest uppercase">Bên nhau</span>
       </div>
 
-      {/* Large number blocks */}
-      <div className="flex items-end justify-center gap-3 md:gap-5">
-        {years > 0 && (
-          <>
-            <div className="text-center">
-              <p className="font-heading text-5xl md:text-6xl font-bold text-text leading-none">{years}</p>
-              <p className="text-xs text-text-light mt-1.5 tracking-wide">năm</p>
-            </div>
-            <span className="text-2xl text-text-light/40 mb-4">·</span>
-          </>
-        )}
-        {(years > 0 || months > 0) && (
-          <>
-            <div className="text-center">
-              <p className="font-heading text-5xl md:text-6xl font-bold text-text leading-none">{months}</p>
-              <p className="text-xs text-text-light mt-1.5 tracking-wide">tháng</p>
-            </div>
-            <span className="text-2xl text-text-light/40 mb-4">·</span>
-          </>
-        )}
-        <div className="text-center">
-          <p className="font-heading text-5xl md:text-6xl font-bold text-text leading-none">{days}</p>
-          <p className="text-xs text-text-light mt-1.5 tracking-wide">ngày</p>
-        </div>
-      </div>
-
-      {/* h : m : s realtime row */}
-      <div className="flex items-center justify-center gap-2 mt-3">
+      {/* Single flex row: năm · tháng · ngày · giờ · phút · giây */}
+      <div className="flex items-end justify-center flex-wrap gap-x-3 gap-y-2 md:gap-x-5">
         {[
-          { value: hours,   label: 'giờ' },
-          { value: minutes, label: 'phút' },
-          { value: seconds, label: 'giây' },
-        ].map(({ value, label }, i) => (
-          <div key={label} className="flex items-center gap-2">
-            {i > 0 && <span className="text-text-light/30 text-sm">:</span>}
+          ...(years > 0 ? [{ value: years,   label: 'năm',  mono: false }] : []),
+          ...((years > 0 || months > 0) ? [{ value: months, label: 'tháng', mono: false }] : []),
+          { value: days,    label: 'ngày', mono: false },
+          { value: hours,   label: 'giờ',  mono: true  },
+          { value: minutes, label: 'phút', mono: true  },
+          { value: seconds, label: 'giây', mono: true  },
+        ].map(({ value, label, mono }, i) => (
+          <div key={label} className="flex items-end gap-x-3 md:gap-x-5">
+            {i > 0 && <span className="text-2xl text-text-light/40 mb-4">·</span>}
             <div className="text-center">
-              <p className="font-heading text-2xl font-bold text-text/70 leading-none tabular-nums">
-                {String(value).padStart(2, '0')}
+              <p className={`font-heading text-5xl md:text-6xl font-bold text-text leading-none${mono ? ' tabular-nums' : ''}`}>
+                {mono ? String(value).padStart(2, '0') : value}
               </p>
-              <p className="text-[10px] text-text-light/60 mt-0.5 tracking-wide">{label}</p>
+              <p className="text-xs text-text-light mt-1.5 tracking-wide">{label}</p>
             </div>
           </div>
         ))}
