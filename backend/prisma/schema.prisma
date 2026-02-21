@@ -87,6 +87,7 @@ model Recipe {
   tags        String[]
   notes       String?
   tutorialUrl String?
+  cooked      Boolean  @default(false)
   foodSpotId  String?
   foodSpot    FoodSpot?     @relation(fields: [foodSpotId], references: [id])
   createdAt   DateTime      @default(now())
