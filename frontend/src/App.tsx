@@ -11,6 +11,7 @@ import MapPage from './pages/MapPage';
 import GoalsPage from './pages/GoalsPage';
 import SprintDetail from './pages/SprintDetail';
 import PhotoBoothPage from './pages/PhotoBoothPage';
+import MorePage from './pages/MorePage';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/goals" element={<GoalsPage />} />
         <Route path="/goals/sprint/:id" element={<SprintDetail />} />
         <Route path="/photobooth" element={<PhotoBoothPage />} />
+        <Route path="/more" element={<MorePage />} />
       </Routes>
     </Layout>
   );
