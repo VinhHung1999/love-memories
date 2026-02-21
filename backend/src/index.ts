@@ -9,6 +9,7 @@ import { goalRoutes } from './routes/goals';
 import { settingsRoutes } from './routes/settings';
 import { tagRoutes } from './routes/tags';
 import { authRoutes } from './routes/auth';
+import { recipeRoutes } from './routes/recipes';
 import { proxyImageRoute } from './routes/proxy-image';
 import { requireAuth } from './middleware/auth';
 
@@ -35,6 +36,7 @@ app.use('/api/sprints', requireAuth, sprintRoutes);
 app.use('/api/goals', requireAuth, goalRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/tags', requireAuth, tagRoutes);
+app.use('/api/recipes', requireAuth, recipeRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {

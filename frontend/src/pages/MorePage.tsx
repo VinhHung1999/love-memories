@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, Pencil, Check, X, User } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, Pencil, Check, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import Modal from '../components/Modal';
 
@@ -16,9 +16,8 @@ const modules = [
     to: '/recipes',
     icon: ChefHat,
     label: 'Recipes',
-    description: 'Coming soon',
+    description: 'Công thức nấu ăn',
     color: 'bg-accent/10 text-accent',
-    disabled: true,
   },
   {
     to: '/photobooth',
@@ -30,7 +29,7 @@ const modules = [
 ];
 
 export default function MorePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
 
@@ -72,22 +71,26 @@ export default function MorePage() {
       {/* Modules grid */}
       <h2 className="font-heading text-base font-semibold text-text mb-3">Modules</h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {modules.map(({ to, icon: Icon, label, description, color, disabled }) => {
-          const card = (
-            <div className={`bg-white rounded-2xl p-5 shadow-sm border border-transparent transition-all ${disabled ? 'opacity-50 cursor-default' : 'hover:shadow-md hover:border-black/5 active:scale-95'}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <p className="font-semibold text-sm text-text">{label}</p>
-              <p className="text-text-light text-xs mt-0.5">{description}</p>
+        {modules.map(({ to, icon: Icon, label, description, color }) => (
+          <Link key={to} to={to} className="block bg-white rounded-2xl p-5 shadow-sm border border-transparent transition-all hover:shadow-md hover:border-black/5 active:scale-95">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
+              <Icon className="w-5 h-5" />
             </div>
-          );
-          return disabled ? (
-            <div key={to}>{card}</div>
-          ) : (
-            <Link key={to} to={to}>{card}</Link>
-          );
-        })}
+            <p className="font-semibold text-sm text-text">{label}</p>
+            <p className="text-text-light text-xs mt-0.5">{description}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Log Out */}
+      <div className="mt-6 pt-4 border-t border-border">
+        <button
+          onClick={logout}
+          className="flex items-center gap-2 text-sm text-red-400 hover:text-red-500 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Log Out
+        </button>
       </div>
 
       {/* Edit name modal */}

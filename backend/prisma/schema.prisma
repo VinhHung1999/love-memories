@@ -73,8 +73,37 @@ model FoodSpot {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   photos      FoodSpotPhoto[]
+  recipes     Recipe[]
 
   @@map("food_spots")
+}
+
+model Recipe {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  ingredients String[]
+  steps       String[]
+  tags        String[]
+  notes       String?
+  foodSpotId  String?
+  foodSpot    FoodSpot?     @relation(fields: [foodSpotId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  photos      RecipePhoto[]
+
+  @@map("recipes")
+}
+
+model RecipePhoto {
+  id        String   @id @default(uuid())
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  filename  String
+  url       String
+  createdAt DateTime @default(now())
+
+  @@map("recipe_photos")
 }
 
 model FoodSpotPhoto {
