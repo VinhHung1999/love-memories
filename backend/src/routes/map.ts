@@ -6,7 +6,7 @@ const router = Router();
 // GET all map pins (combined moments + food spots with coordinates)
 router.get('/pins', async (_req: Request, res: Response) => {
   try {
-    const [moments, foodSpots] = await Promise.all([
+    const [moments, foodSpots, tagRecords] = await Promise.all([
       prisma.moment.findMany({
         where: {
           latitude: { not: null },
@@ -21,7 +21,10 @@ router.get('/pins', async (_req: Request, res: Response) => {
         },
         include: { photos: true },
       }),
+      prisma.tag.findMany(),
     ]);
+
+    const tagMap = Object.fromEntries(tagRecords.map((t) => [t.name, t]));
 
     const pins = [
       ...moments.map((m) => ({
@@ -33,6 +36,7 @@ router.get('/pins', async (_req: Request, res: Response) => {
         location: m.location,
         date: m.date,
         tags: m.tags,
+        tagIcon: m.tags.length > 0 ? (tagMap[m.tags[0]]?.icon ?? null) : null,
         thumbnail: m.photos[0]?.url || null,
       })),
       ...foodSpots.map((f) => ({
@@ -44,6 +48,7 @@ router.get('/pins', async (_req: Request, res: Response) => {
         location: f.location,
         rating: f.rating,
         tags: f.tags,
+        tagIcon: f.tags.length > 0 ? (tagMap[f.tags[0]]?.icon ?? null) : null,
         thumbnail: f.photos[0]?.url || null,
       })),
     ];
