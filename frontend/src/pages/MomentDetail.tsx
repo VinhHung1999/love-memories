@@ -314,6 +314,27 @@ export default function MomentDetail() {
           </div>
         )}
 
+        {/* Spotify embed */}
+        {moment.spotifyUrl && (() => {
+          const trackId = moment.spotifyUrl!
+            .replace('spotify:track:', '')
+            .match(/track\/([A-Za-z0-9]+)/)?.[1];
+          if (!trackId) return null;
+          return (
+            <div className="mt-5">
+              <iframe
+                src={`https://open.spotify.com/embed/track/${trackId}?theme=0`}
+                width="100%"
+                height="80"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                className="rounded-xl"
+                style={{ border: 'none' }}
+              />
+            </div>
+          );
+        })()}
+
       </div>
 
       {confirmDelete && (

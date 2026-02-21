@@ -162,6 +162,7 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
   const [latitude, setLatitude] = useState<number | null>(moment?.latitude ?? null);
   const [longitude, setLongitude] = useState<number | null>(moment?.longitude ?? null);
   const [tagsInput, setTagsInput] = useState(moment?.tags.join(', ') || '');
+  const [spotifyUrl, setSpotifyUrl] = useState(moment?.spotifyUrl || '');
   const [photos, setPhotos] = useState<File[]>([]);
 
   const createMutation = useMutation({
@@ -174,6 +175,7 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
         latitude: latitude ?? undefined,
         longitude: longitude ?? undefined,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+        spotifyUrl: spotifyUrl || undefined,
       };
       const created = await momentsApi.create(data);
       if (photos.length > 0) {
@@ -199,6 +201,7 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
         latitude: latitude ?? undefined,
         longitude: longitude ?? undefined,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+        spotifyUrl: spotifyUrl || undefined,
       };
       const updated = await momentsApi.update(moment!.id, data);
       if (photos.length > 0) {
@@ -277,6 +280,15 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
             placeholder="travel, date night, anniversary"
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Spotify (tuỳ chọn)</label>
+          <input
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            placeholder="https://open.spotify.com/track/..."
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>

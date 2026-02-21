@@ -24,6 +24,7 @@ export interface Moment {
   longitude: number | null;
   location: string | null;
   tags: string[];
+  spotifyUrl: string | null;
   createdAt: string;
   updatedAt: string;
   photos: MomentPhoto[];
