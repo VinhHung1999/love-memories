@@ -23,7 +23,7 @@ export default function Dashboard() {
   });
 
   const activeSprint = sprints.find((s) => s.status === 'ACTIVE');
-  const recentMoments = moments.slice(0, 6);
+  const recentMoments = moments.slice(0, 3);
   const doneGoals = activeSprint?.goals.filter((g) => g.status === 'DONE').length || 0;
   const totalGoals = activeSprint?.goals.length || 0;
   const sprintProgress = totalGoals > 0 ? Math.round((doneGoals / totalGoals) * 100) : 0;
