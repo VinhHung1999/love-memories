@@ -81,6 +81,10 @@ _(Add lessons from debugging, design mistakes, or surprising behaviors)_
 - Fix: simple `app_settings` key-value table in DB with `GET/PUT /api/settings/:key` endpoint.
 - Key takeaway: any user preference that should survive device changes must live in the DB, not localStorage.
 
+### PO must not code — delegate to DEV (Sprint 10)
+- PO directly edited Dashboard.tsx instead of sending task to DEV via tm-send. Boss caught it.
+- Key takeaway: in multi-agent team, PO reviews and specs only — all code changes go through DEV, even small ones.
+
 ### hover:opacity buttons invisible on mobile touch devices
 - Cause: `opacity-0 group-hover:opacity-100` makes buttons (e.g., photo delete) permanently hidden on mobile since there's no hover event.
 - Fix: use `md:opacity-0 md:group-hover:opacity-100` — buttons always visible on mobile, hover-reveal on desktop only.

@@ -81,12 +81,19 @@ PO → DEV: Sprint assignment with spec
 6. Loop 3-5 until approved
 ```
 
-### Phase 3: Sprint Review
+### Phase 3: Sprint Review & Production Approval
 ```
-PO → Boss: Sprint summary with deliverables
-Boss: Reviews and provides feedback
-PO: Updates backlog based on feedback
+PO → Boss: Sprint summary with deliverables (on dev environment)
+Boss: Reviews on dev environment, tests functionality
+Boss: APPROVE or REQUEST CHANGES
+  - If APPROVE → PO merges to main and deploys to production
+  - If REQUEST CHANGES → PO creates feedback tasks → back to Phase 2
 ```
+
+**CRITICAL: Nothing goes to production without Boss approval.**
+- PO can merge feature branches into sprint branch (dev)
+- PO can deploy to dev environment for Boss review
+- Only Boss can authorize merge to main / deploy to production
 
 ---
 
@@ -98,23 +105,27 @@ A task is "Done" when:
 - [ ] Lint and build pass
 - [ ] PO code review approved
 - [ ] PO acceptance verified
+- [ ] **Boss approved for production** (required before merge to main)
 
 ---
 
 ## Git Workflow
 
 ```bash
-# Sprint branch
+# Sprint branch (dev environment)
 git checkout -b sprint_{N}
 
 # Feature branches
 git checkout -b feature_{description}
 
-# After PO review
+# After PO review → merge to sprint branch (dev only)
 git checkout sprint_{N}
 git merge feature_{description}
 
-# After Boss accepts sprint
+# Deploy to dev for Boss review
+# Boss reviews on dev-love-scrum.hungphu.work
+
+# ONLY after Boss approves → merge to main (production)
 git checkout main
 git merge sprint_{N}
 git push origin main
