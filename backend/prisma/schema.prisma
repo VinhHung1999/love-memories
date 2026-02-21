@@ -79,22 +79,89 @@ model FoodSpot {
 }
 
 model Recipe {
-  id          String        @id @default(uuid())
-  title       String
-  description String?
-  ingredients String[]
-  steps       String[]
-  tags        String[]
-  notes       String?
-  tutorialUrl String?
-  cooked      Boolean  @default(false)
-  foodSpotId  String?
-  foodSpot    FoodSpot?     @relation(fields: [foodSpotId], references: [id])
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  photos      RecipePhoto[]
+  id              String                 @id @default(uuid())
+  title           String
+  description     String?
+  ingredients     String[]
+  steps           String[]
+  tags            String[]
+  notes           String?
+  tutorialUrl     String?
+  cooked          Boolean                @default(false)
+  foodSpotId      String?
+  foodSpot        FoodSpot?              @relation(fields: [foodSpotId], references: [id])
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  photos          RecipePhoto[]
+  cookingSessions CookingSessionRecipe[]
 
   @@map("recipes")
+}
+
+model CookingSession {
+  id          String                 @id @default(uuid())
+  status      String                 @default("selecting")
+  startedAt   DateTime?
+  completedAt DateTime?
+  totalTimeMs Int?
+  notes       String?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  recipes     CookingSessionRecipe[]
+  items       CookingSessionItem[]
+  steps       CookingSessionStep[]
+  photos      CookingSessionPhoto[]
+
+  @@map("cooking_sessions")
+}
+
+model CookingSessionRecipe {
+  id          String         @id @default(uuid())
+  sessionId   String
+  session     CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recipeId    String
+  recipe      Recipe         @relation(fields: [recipeId], references: [id])
+  order       Int
+  completedAt DateTime?
+
+  @@map("cooking_session_recipes")
+}
+
+model CookingSessionItem {
+  id         String         @id @default(uuid())
+  sessionId  String
+  session    CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  ingredient String
+  checked    Boolean        @default(false)
+  checkedAt  DateTime?
+
+  @@map("cooking_session_items")
+}
+
+model CookingSessionStep {
+  id         String         @id @default(uuid())
+  sessionId  String
+  session    CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recipeId   String
+  stepIndex  Int
+  content    String
+  checked    Boolean        @default(false)
+  checkedBy  String?
+  checkedAt  DateTime?
+
+  @@map("cooking_session_steps")
+}
+
+model CookingSessionPhoto {
+  id         String         @id @default(uuid())
+  sessionId  String
+  session    CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  filename   String
+  url        String
+  createdAt  DateTime       @default(now())
+
+  @@map("cooking_session_photos")
 }
 
 model RecipePhoto {
