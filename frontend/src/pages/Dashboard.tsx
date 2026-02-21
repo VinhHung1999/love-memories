@@ -45,25 +45,29 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Recent moments grid */}
+        {/* Recent moments carousel */}
         {recentMoments.length === 0 ? (
           <p className="text-text-light text-sm py-4 text-center">Chưa có moment nào. Bắt đầu tạo kỷ niệm thôi!</p>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {recentMoments.map((moment) => (
-              <Link key={moment.id} to={`/moments/${moment.id}`} className="group">
-                <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-1">
+              <Link
+                key={moment.id}
+                to={`/moments/${moment.id}`}
+                className="group flex-shrink-0 w-36 snap-start"
+              >
+                <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-1.5">
                   {moment.photos[0] ? (
                     <img src={moment.photos[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Camera className="w-6 h-6 text-gray-300" />
+                      <Camera className="w-7 h-7 text-gray-300" />
                     </div>
                   )}
                 </div>
-                <p className="text-xs font-medium truncate leading-tight">{moment.title}</p>
+                <p className="text-xs font-medium truncate">{moment.title}</p>
                 <p className="text-xs text-text-light flex items-center gap-0.5 mt-0.5">
-                  <Calendar className="w-2.5 h-2.5" />
+                  <Calendar className="w-2.5 h-2.5 flex-shrink-0" />
                   {format(new Date(moment.date), 'MMM d')}
                 </p>
               </Link>
