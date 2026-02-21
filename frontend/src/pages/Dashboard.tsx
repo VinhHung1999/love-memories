@@ -69,7 +69,7 @@ export default function Dashboard() {
           Xem tất cả <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
-      <div className="mb-8 -mx-4 md:mx-0">
+      <div className="mb-4 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
           <div className="mx-4 md:mx-0 h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-10 h-10 text-gray-300" />
