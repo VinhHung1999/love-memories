@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useRef, useState, useCallback } from 'react';
 import { momentsApi, foodSpotsApi, sprintsApi } from '../lib/api';
 import RelationshipTimer from '../components/RelationshipTimer';
+import FAB from '../components/FAB';
 
 export default function Dashboard() {
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
@@ -54,7 +55,7 @@ export default function Dashboard() {
 
       {/* ── HERO CAROUSEL ─────────────────────────────────────────────── */}
       {/* -mx-4 breaks out of Layout px-4 on mobile only; desktop keeps md:mx-0 */}
-      <div className="mb-6 -mx-4 md:mx-0 overflow-hidden">
+      <div className="mb-6 -mx-4 overflow-hidden md:mx-0 md:overflow-visible">
         {recentMoments.length === 0 ? (
           <div className="mx-4 md:mx-0 aspect-[4/3] max-h-72 rounded-2xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-12 h-12 text-gray-300" />
@@ -112,8 +113,8 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Dots indicator */}
-            <div className="flex justify-center items-center gap-1.5 mt-3">
+            {/* Dots indicator — mobile only (desktop shows grid, no scroll) */}
+            <div className="md:hidden flex justify-center items-center gap-1.5 mt-3">
               {recentMoments.map((_, i) => (
                 <div
                   key={i}
@@ -189,6 +190,8 @@ export default function Dashboard() {
           </div>
         </motion.div>
       )}
+
+      <FAB />
     </div>
   );
 }

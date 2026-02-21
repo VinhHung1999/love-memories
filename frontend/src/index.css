@@ -72,9 +72,18 @@ input[type="date"]::-webkit-date-and-time-value {
 .hero-carousel::-webkit-scrollbar { display: none; }
 .hero-carousel-item { scroll-snap-align: center; }
 
-/* Desktop: no side padding needed — wrapper stays inside layout column */
+/* Desktop: switch to a plain 3-column grid — no scroll snap needed */
 @media (min-width: 768px) {
-  .hero-carousel { padding: 0; }
+  .hero-carousel {
+    display: grid;
+    grid-auto-flow: unset;
+    grid-auto-columns: unset;
+    grid-template-columns: repeat(3, 1fr);
+    overflow-x: visible;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+  .hero-carousel-item { scroll-snap-align: none; }
 }
 
 .mapboxgl-popup-content {
