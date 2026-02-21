@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChefHat, Plus, X, CheckCircle2, Clock } from 'lucide-react';
+import { ChefHat, Plus, X, CheckCircle2, Clock, Sparkles, FileText, Youtube, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { recipesApi, foodSpotsApi, aiApi } from '../lib/api';
+import type { Recipe } from '../types';
 
 function formatVnd(price: number): string {
   return price > 0 ? price.toLocaleString('vi-VN') + '₫' : '';
 }
-import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { recipesApi, foodSpotsApi } from '../lib/api';
-import type { Recipe } from '../types';
 import Modal from '../components/Modal';
 import EmptyState from '../components/EmptyState';
 import { GridSkeleton } from '../components/LoadingSkeleton';
@@ -17,6 +17,7 @@ import { GridSkeleton } from '../components/LoadingSkeleton';
 export default function RecipesPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const [filterTag, setFilterTag] = useState('');
   const [searchParams] = useSearchParams();
 
@@ -39,12 +40,20 @@ export default function RecipesPage() {
           <h1 className="font-heading text-3xl font-bold">Recipes</h1>
           <p className="text-text-light text-sm mt-1">Công thức nấu ăn của chúng mình</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-accent text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-4 h-4" /> Add Recipe
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAI(true)}
+            className="border border-accent text-accent px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-accent/5 transition-colors"
+          >
+            <Sparkles className="w-4 h-4" /> AI
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-accent text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-4 h-4" /> Add Recipe
+          </button>
+        </div>
       </div>
 
       {allTags.length > 0 && (
@@ -88,6 +97,7 @@ export default function RecipesPage() {
         </div>
       )}
 
+      <AIRecipeModal open={showAI} onClose={() => setShowAI(false)} queryClient={queryClient} />
       <RecipeFormModal open={showForm} onClose={() => setShowForm(false)} queryClient={queryClient} />
     </div>
   );
@@ -149,6 +159,348 @@ function RecipeCard({ recipe, index }: { recipe: Recipe; index: number }) {
         </div>
       </Link>
     </motion.div>
+  );
+}
+
+type AIPhase = 'input' | 'generating' | 'preview';
+type AIRecipeResult = {
+  title?: string;
+  description?: string;
+  ingredients?: string[];
+  ingredientPrices?: number[];
+  steps?: string[];
+  stepDurations?: number[];
+  tags?: string[];
+  notes?: string;
+  tutorialUrl?: string;
+};
+
+function AIRecipeModal({
+  open,
+  onClose,
+  queryClient,
+}: {
+  open: boolean;
+  onClose: () => void;
+  queryClient: ReturnType<typeof useQueryClient>;
+}) {
+  const [phase, setPhase] = useState<AIPhase>('input');
+  const [mode, setMode] = useState<'text' | 'youtube'>('text');
+  const [input, setInput] = useState('');
+  const [error, setError] = useState('');
+
+  // Preview / edit fields
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [ingredients, setIngredients] = useState<string[]>(['']);
+  const [ingredientPrices, setIngredientPrices] = useState<number[]>([0]);
+  const [steps, setSteps] = useState<string[]>(['']);
+  const [stepDurations, setStepDurations] = useState<number[]>([0]);
+  const [tagsInput, setTagsInput] = useState('');
+  const [notes, setNotes] = useState('');
+  const [tutorialUrl, setTutorialUrl] = useState('');
+
+  const handleClose = () => {
+    onClose();
+    // Reset after close animation
+    setTimeout(() => {
+      setPhase('input'); setMode('text'); setInput(''); setError('');
+      setTitle(''); setDescription(''); setIngredients(['']); setIngredientPrices([0]);
+      setSteps(['']); setStepDurations([0]); setTagsInput(''); setNotes(''); setTutorialUrl('');
+    }, 300);
+  };
+
+  const generate = async () => {
+    setError('');
+    setPhase('generating');
+    try {
+      const result = (await aiApi.generateRecipe(mode, input)) as AIRecipeResult;
+      const ings = result.ingredients?.length ? result.ingredients : [''];
+      const prices = result.ingredientPrices?.length
+        ? result.ingredientPrices
+        : ings.map(() => 0);
+      const stes = result.steps?.length ? result.steps : [''];
+      const durs = result.stepDurations?.length
+        ? result.stepDurations
+        : stes.map(() => 0);
+      setTitle(result.title ?? '');
+      setDescription(result.description ?? '');
+      setIngredients(ings);
+      setIngredientPrices(prices);
+      setSteps(stes);
+      setStepDurations(durs);
+      setTagsInput(result.tags?.join(', ') ?? '');
+      setNotes(result.notes ?? '');
+      setTutorialUrl(result.tutorialUrl ?? '');
+      setPhase('preview');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Không thể tạo công thức. Vui lòng thử lại.';
+      setError(msg);
+      setPhase('input');
+    }
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const ingPairs = ingredients.map((ing, i) => ({ ing, price: ingredientPrices[i] ?? 0 })).filter(({ ing }) => ing.trim());
+      const stepPairs = steps.map((s, i) => ({ s, d: stepDurations[i] ?? 0 })).filter(({ s }) => s.trim());
+      return recipesApi.create({
+        title,
+        description: description || undefined,
+        ingredients: ingPairs.map((p) => p.ing),
+        ingredientPrices: ingPairs.map((p) => p.price),
+        steps: stepPairs.map((p) => p.s),
+        stepDurations: stepPairs.map((p) => p.d),
+        notes: notes || undefined,
+        tutorialUrl: tutorialUrl || undefined,
+        tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+      } as Partial<Recipe>);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      toast.success('Công thức đã được lưu!');
+      handleClose();
+    },
+    onError: () => toast.error('Không thể lưu công thức'),
+  });
+
+  return (
+    <Modal open={open} onClose={handleClose} title="Tạo bằng AI ✨">
+      {/* ── Input phase ── */}
+      {phase === 'input' && (
+        <div className="space-y-4">
+          {/* Mode tabs */}
+          <div className="flex rounded-xl overflow-hidden border border-border">
+            <button
+              type="button"
+              onClick={() => setMode('text')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+                mode === 'text' ? 'bg-accent text-white' : 'bg-white text-text-light hover:bg-gray-50'
+              }`}
+            >
+              <FileText className="w-4 h-4" /> Văn bản
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('youtube')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+                mode === 'youtube' ? 'bg-red-500 text-white' : 'bg-white text-text-light hover:bg-gray-50'
+              }`}
+            >
+              <Youtube className="w-4 h-4" /> YouTube
+            </button>
+          </div>
+
+          {mode === 'text' ? (
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Dán công thức nấu ăn vào đây..."
+              rows={8}
+              autoFocus
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
+            />
+          ) : (
+            <div>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                type="url"
+                autoFocus
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+              <p className="text-xs text-text-light mt-1.5 ml-1">Video phải có phụ đề (subtitles) để lấy transcript</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-start gap-2 bg-red-50 text-red-700 rounded-xl px-3 py-2.5 text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-3 pb-2 sticky bottom-0 bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-border mt-4">
+            <button type="button" onClick={handleClose} className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">Hủy</button>
+            <button
+              type="button"
+              onClick={generate}
+              disabled={!input.trim()}
+              className="flex-1 bg-accent text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" /> Tạo công thức
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Generating phase ── */}
+      {phase === 'generating' && (
+        <div className="py-16 flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-text-light text-center">
+            {mode === 'youtube' ? 'Đang đọc video và tạo công thức...' : 'Đang phân tích công thức...'}
+          </p>
+          <p className="text-xs text-text-light/60">Có thể mất 10–20 giây</p>
+        </div>
+      )}
+
+      {/* ── Preview / edit phase ── */}
+      {phase === 'preview' && (
+        <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(); }} className="space-y-4">
+          <div className="flex items-center gap-2 pb-1">
+            <Sparkles className="w-4 h-4 text-accent flex-shrink-0" />
+            <p className="text-xs text-text-light">Xem lại và chỉnh sửa trước khi lưu</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Tên món *</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Mô tả</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Nguyên liệu</label>
+            <div className="space-y-2">
+              {ingredients.map((ing, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    value={ing}
+                    onChange={(e) => setIngredients((p) => p.map((x, idx) => idx === i ? e.target.value : x))}
+                    placeholder={`Nguyên liệu ${i + 1}`}
+                    className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  />
+                  <input
+                    type="number" min="0" step="1000"
+                    value={ingredientPrices[i] ?? 0}
+                    onChange={(e) => setIngredientPrices((p) => p.map((x, idx) => idx === i ? parseInt(e.target.value || '0') : x))}
+                    placeholder="Giá ₫"
+                    className="w-24 border border-border rounded-xl px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  />
+                  {ingredients.length > 1 && (
+                    <button type="button" onClick={() => { setIngredients((p) => p.filter((_, idx) => idx !== i)); setIngredientPrices((p) => p.filter((_, idx) => idx !== i)); }} className="text-red-400 hover:text-red-500 p-2">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {ingredientPrices.some((p) => p > 0) && (
+              <p className="mt-1.5 text-xs text-right text-text-light">
+                Tổng: <span className="font-semibold text-accent">{formatVnd(ingredientPrices.reduce((a, b) => a + b, 0))}</span>
+              </p>
+            )}
+            <button type="button" onClick={() => { setIngredients((p) => [...p, '']); setIngredientPrices((p) => [...p, 0]); }} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
+              <Plus className="w-3 h-3" /> Thêm nguyên liệu
+            </button>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Các bước</label>
+            <div className="space-y-3">
+              {steps.map((step, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <span className="text-xs text-text-light font-medium mt-2.5 w-4 flex-shrink-0">{i + 1}.</span>
+                  <div className="flex-1">
+                    <textarea
+                      value={step}
+                      onChange={(e) => setSteps((p) => p.map((x, idx) => idx === i ? e.target.value : x))}
+                      placeholder={`Bước ${i + 1}`}
+                      rows={2}
+                      className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                    <div className="flex items-center gap-1 mt-1 ml-1">
+                      <Clock className="w-3 h-3 text-text-light flex-shrink-0" />
+                      <input
+                        type="number" min="0"
+                        value={Math.floor((stepDurations[i] ?? 0) / 60)}
+                        onChange={(e) => setStepDurations((p) => p.map((d, idx) => idx === i ? parseInt(e.target.value || '0') * 60 + (d % 60) : d))}
+                        className="w-10 border border-border rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        placeholder="0"
+                      />
+                      <span className="text-xs text-text-light">min</span>
+                      <input
+                        type="number" min="0" max="59"
+                        value={(stepDurations[i] ?? 0) % 60}
+                        onChange={(e) => setStepDurations((p) => p.map((d, idx) => idx === i ? Math.floor(d / 60) * 60 + parseInt(e.target.value || '0') : d))}
+                        className="w-10 border border-border rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        placeholder="0"
+                      />
+                      <span className="text-xs text-text-light">sec</span>
+                    </div>
+                  </div>
+                  {steps.length > 1 && (
+                    <button type="button" onClick={() => { setSteps((p) => p.filter((_, idx) => idx !== i)); setStepDurations((p) => p.filter((_, idx) => idx !== i)); }} className="text-red-400 hover:text-red-500 p-2 mt-0.5">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={() => { setSteps((p) => [...p, '']); setStepDurations((p) => [...p, 0]); }} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
+              <Plus className="w-3 h-3" /> Thêm bước
+            </button>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Tags (dấu phẩy)</label>
+            <input
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Ghi chú</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </div>
+
+          {tutorialUrl && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Tutorial URL</label>
+              <input
+                value={tutorialUrl}
+                onChange={(e) => setTutorialUrl(e.target.value)}
+                type="url"
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-3 pb-2 sticky bottom-0 bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-border mt-4">
+            <button type="button" onClick={() => setPhase('input')} className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">← Làm lại</button>
+            <button
+              type="submit"
+              disabled={saveMutation.isPending || !title.trim()}
+              className="flex-1 bg-accent text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {saveMutation.isPending ? 'Đang lưu...' : 'Lưu công thức'}
+            </button>
+          </div>
+        </form>
+      )}
+    </Modal>
   );
 }
 
