@@ -1,12 +1,20 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
 import type { Recipe } from '../types';
 import Modal from '../components/Modal';
 import PhotoGallery from '../components/PhotoGallery';
+
+type TimerState = { remaining: number; running: boolean; done: boolean };
+
+function formatMmSs(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
 
 export default function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +25,38 @@ export default function RecipeDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | undefined>(undefined);
+  const [timers, setTimers] = useState<Record<string, TimerState>>({});
+  const timerIntervals = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+
+  useEffect(() => {
+    const intervals = timerIntervals.current;
+    return () => { Object.values(intervals).forEach(clearInterval); };
+  }, []);
+
+  const startTimer = (stepIndex: number, duration: number) => {
+    const key = String(stepIndex);
+    if (timerIntervals.current[key]) clearInterval(timerIntervals.current[key]);
+    setTimers((prev) => ({ ...prev, [key]: { remaining: duration, running: true, done: false } }));
+    timerIntervals.current[key] = setInterval(() => {
+      setTimers((prev) => {
+        const curr = prev[key];
+        if (!curr || !curr.running) return prev;
+        const next = curr.remaining - 1;
+        if (next <= 0) {
+          clearInterval(timerIntervals.current[key]);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+          return { ...prev, [key]: { remaining: 0, running: false, done: true } };
+        }
+        return { ...prev, [key]: { ...curr, remaining: next } };
+      });
+    }, 1000);
+  };
+
+  const resetTimer = (stepIndex: number) => {
+    const key = String(stepIndex);
+    if (timerIntervals.current[key]) clearInterval(timerIntervals.current[key]);
+    setTimers((prev) => { const n = { ...prev }; delete n[key]; return n; });
+  };
 
   const { data: recipe, isLoading } = useQuery({
     queryKey: ['recipes', id],
@@ -210,12 +250,46 @@ export default function RecipeDetail() {
           <div>
             <h2 className="font-heading font-semibold text-lg mb-3">Cách làm</h2>
             <ol className="space-y-4">
-              {recipe.steps.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="w-6 h-6 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                  <p className="text-sm text-text leading-relaxed flex-1">{step}</p>
-                </li>
-              ))}
+              {recipe.steps.map((step, i) => {
+                const duration = recipe.stepDurations?.[i] ?? 0;
+                const t = timers[String(i)];
+                return (
+                  <li key={i} className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                    <p className="text-sm text-text leading-relaxed flex-1">{step}</p>
+                    {duration > 0 && (
+                      !t ? (
+                        <button
+                          onClick={() => startTimer(i, duration)}
+                          className="flex-shrink-0 flex flex-col items-center gap-0.5 min-w-[60px] px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl hover:border-accent/40 hover:bg-accent/5 hover:text-accent transition-colors text-text-light"
+                        >
+                          <Timer className="w-4 h-4" />
+                          <span className="font-mono text-sm font-bold tabular-nums">{formatMmSs(duration)}</span>
+                        </button>
+                      ) : t.done ? (
+                        <button
+                          onClick={() => resetTimer(i)}
+                          className="flex-shrink-0 flex flex-col items-center gap-0.5 min-w-[60px] px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-500 animate-pulse"
+                        >
+                          <span className="text-lg">🔔</span>
+                          <span className="text-xs font-medium leading-tight">Hết giờ!</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => resetTimer(i)}
+                          className="flex-shrink-0 flex flex-col items-center gap-1 min-w-[60px] px-3 py-2 bg-orange-50 border border-orange-200 rounded-xl text-orange-500"
+                        >
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500" />
+                          </span>
+                          <span className="font-mono text-sm font-bold tabular-nums">{formatMmSs(t.remaining)}</span>
+                        </button>
+                      )
+                    )}
+                  </li>
+                );
+              })}
             </ol>
           </div>
         )}
