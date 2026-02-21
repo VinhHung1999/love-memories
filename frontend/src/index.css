@@ -58,32 +58,13 @@ input[type="date"]::-webkit-date-and-time-value {
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { scrollbar-width: none; }
 
-/* Hero carousel — CSS Grid auto-columns with vw unit (reliable in overflow scroll) */
-.hero-carousel {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: min(85vw, 320px);
-  overflow-x: auto;
-  gap: 0.75rem;
-  padding: 0 7.5vw;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+/* Embla carousel — slide sizing only; viewport/container use Tailwind */
+.embla-slide {
+  flex: 0 0 85%;
+  min-width: 0;
 }
-.hero-carousel::-webkit-scrollbar { display: none; }
-.hero-carousel-item { scroll-snap-align: center; }
-
-/* Desktop: switch to a plain 3-column grid — no scroll snap needed */
 @media (min-width: 768px) {
-  .hero-carousel {
-    display: grid;
-    grid-auto-flow: unset;
-    grid-auto-columns: unset;
-    grid-template-columns: repeat(3, 1fr);
-    overflow-x: visible;
-    padding: 0;
-    scroll-snap-type: none;
-  }
-  .hero-carousel-item { scroll-snap-align: none; }
+  .embla-slide { flex: 0 0 33.333%; }
 }
 
 .mapboxgl-popup-content {
