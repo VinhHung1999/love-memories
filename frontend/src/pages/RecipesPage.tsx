@@ -157,6 +157,7 @@ export function RecipeFormModal({
   const [ingredients, setIngredients] = useState<string[]>(['']);
   const [steps, setSteps] = useState<string[]>(['']);
   const [notes, setNotes] = useState('');
+  const [tutorialUrl, setTutorialUrl] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [foodSpotId, setFoodSpotId] = useState(defaultFoodSpotId ?? '');
 
@@ -168,7 +169,7 @@ export function RecipeFormModal({
 
   const reset = () => {
     setTitle(''); setDescription(''); setIngredients(['']); setSteps(['']);
-    setNotes(''); setTagsInput(''); setFoodSpotId(defaultFoodSpotId ?? '');
+    setNotes(''); setTutorialUrl(''); setTagsInput(''); setFoodSpotId(defaultFoodSpotId ?? '');
   };
 
   const mutation = useMutation({
@@ -179,6 +180,7 @@ export function RecipeFormModal({
         ingredients: ingredients.filter(Boolean),
         steps: steps.filter(Boolean),
         notes: notes || undefined,
+        tutorialUrl: tutorialUrl || undefined,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
         foodSpotId: foodSpotId || undefined,
       } as Partial<Recipe>),
@@ -278,6 +280,16 @@ export function RecipeFormModal({
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             placeholder="Tips, variations..."
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tutorial URL</label>
+          <input
+            value={tutorialUrl}
+            onChange={(e) => setTutorialUrl(e.target.value)}
+            type="url"
+            placeholder="https://youtube.com/..."
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
         </div>
