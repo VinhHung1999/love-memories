@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X, Youtube, Facebook, Music2 } from 'lucide-react';
@@ -426,6 +427,15 @@ function CookingPhase({ session }: { session: CookingSession }) {
   const totalSteps = session.steps.length;
   const checkedCount = session.steps.filter((s) => s.checked).length;
   const allDone = totalSteps > 0 && checkedCount === totalSteps;
+
+  // Confetti when all steps are checked for the first time
+  const prevAllDone = useRef(false);
+  useEffect(() => {
+    if (allDone && !prevAllDone.current) {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.65 } });
+    }
+    prevAllDone.current = allDone;
+  }, [allDone]);
 
   // Optimistic toggle
   const doToggleStep = async (step: CookingSessionStep, checked: boolean, checkedBy?: string) => {
@@ -882,6 +892,23 @@ function formatDuration(ms: number | null): string {
 
 function CompletedPhase({ session }: { session: CookingSession }) {
   const navigate = useNavigate();
+
+  // Side-cannon confetti on mount
+  useEffect(() => {
+    const fire = (particleCount: number, opts: confetti.Options) =>
+      confetti({ ...opts, particleCount });
+    fire(25, { spread: 26, startVelocity: 55, origin: { x: 0.2, y: 0.7 } });
+    fire(25, { spread: 26, startVelocity: 55, origin: { x: 0.8, y: 0.7 } });
+    const t1 = setTimeout(() => {
+      fire(20, { spread: 60, origin: { x: 0.2, y: 0.7 } });
+      fire(20, { spread: 60, origin: { x: 0.8, y: 0.7 } });
+    }, 150);
+    const t2 = setTimeout(() => {
+      fire(35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.2, y: 0.7 } });
+      fire(35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.8, y: 0.7 } });
+    }, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
 
   const dishNames = session.recipes.map((r) => r.recipe.title).join(', ');
 

@@ -2,6 +2,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer, Youtube, Facebook, Music2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
 import type { Recipe } from '../types';
@@ -141,6 +142,7 @@ export default function RecipeDetail() {
   const toggleCooked = () => {
     if (!recipe) return;
     const next = !recipe.cooked;
+    if (next) confetti({ particleCount: 70, spread: 60, origin: { y: 0.65 } });
     queryClient.setQueryData(['recipes', id], (old: Recipe | undefined) =>
       old ? { ...old, cooked: next } : old
     );
