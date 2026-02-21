@@ -120,6 +120,15 @@ model Sprint {
   @@map("sprints")
 }
 
+model Tag {
+  id    String  @id @default(uuid())
+  name  String  @unique
+  icon  String  @default("🏷️")
+  color String?
+
+  @@map("tags")
+}
+
 model AppSetting {
   id        String   @id @default(uuid())
   key       String   @unique

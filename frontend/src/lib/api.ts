@@ -1,4 +1,4 @@
-import type { Moment, FoodSpot, MapPin, Sprint, Goal } from '../types';
+import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata } from '../types';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -105,6 +105,16 @@ export const foodSpotsApi = {
 // Map
 export const mapApi = {
   pins: () => request<MapPin[]>('/map/pins'),
+};
+
+// Tags
+export const tagsApi = {
+  list: () => request<TagMetadata[]>('/tags'),
+  upsert: (name: string, icon: string, color?: string) =>
+    request<TagMetadata>(`/tags/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ icon, color }),
+    }),
 };
 
 // Sprints

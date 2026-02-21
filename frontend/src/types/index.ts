@@ -64,7 +64,15 @@ export interface MapPin {
   date?: string;
   rating?: number;
   tags: string[];
+  tagIcon: string | null;
   thumbnail: string | null;
+}
+
+export interface TagMetadata {
+  id: string;
+  name: string;
+  icon: string;
+  color: string | null;
 }
 
 export type SprintStatus = 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';

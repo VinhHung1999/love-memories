@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
-import { Heart, Utensils, Filter } from 'lucide-react';
-import { mapApi } from '../lib/api';
+import { Heart, Utensils, Filter, Check } from 'lucide-react';
+import { mapApi, tagsApi } from '../lib/api';
 import type { MapPin } from '../types';
 
 // You can set your Mapbox token here or via env
@@ -14,13 +14,44 @@ export default function MapPage() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'moment' | 'foodspot'>('all');
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [emojiInput, setEmojiInput] = useState('');
 
   const { data: pins = [] } = useQuery({
     queryKey: ['map-pins'],
     queryFn: mapApi.pins,
   });
+
+  const { data: tagMetaList = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: tagsApi.list,
+  });
+
+  const tagMap = Object.fromEntries(tagMetaList.map((t) => [t.name, t]));
+
+  const upsertTagMutation = useMutation({
+    mutationFn: ({ name, icon }: { name: string; icon: string }) => tagsApi.upsert(name, icon),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['map-pins'] });
+      setEditingTag(null);
+      setEmojiInput('');
+    },
+  });
+
+  const openEmojiEditor = (tag: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEmojiInput(tagMap[tag]?.icon || '');
+    setEditingTag(tag);
+  };
+
+  const saveEmoji = (tag: string) => {
+    if (!emojiInput.trim()) return;
+    upsertTagMutation.mutate({ name: tag, icon: emojiInput.trim() });
+  };
 
   const validPins = pins.filter((p) =>
     p.latitude >= -90 && p.latitude <= 90 && p.longitude >= -180 && p.longitude <= 180
@@ -77,6 +108,9 @@ export default function MapPage() {
     markersRef.current = [];
 
     filteredPins.forEach((pin) => {
+      const defaultIcon = pin.type === 'moment' ? '❤️' : '🍴';
+      const icon = pin.tagIcon || defaultIcon;
+
       const el = document.createElement('div');
       el.className = 'map-marker';
       el.style.cssText = `
@@ -84,9 +118,9 @@ export default function MapPage() {
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         background: ${pin.type === 'moment' ? '#E8788A' : '#F4A261'};
-        color: white; font-size: 16px;
+        font-size: 18px; line-height: 1;
       `;
-      el.innerHTML = pin.type === 'moment' ? '&hearts;' : '&#127860;';
+      el.textContent = icon;
 
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pin.latitude},${pin.longitude}`;
       const detailPath = pin.type === 'moment' ? `/moments/${pin.id}` : `/foodspots/${pin.id}`;
@@ -141,7 +175,7 @@ export default function MapPage() {
           To enable the map, set your Mapbox token in <code className="bg-gray-100 px-2 py-0.5 rounded">frontend/.env</code> as <code className="bg-gray-100 px-2 py-0.5 rounded">VITE_MAPBOX_TOKEN</code>
         </p>
         <p className="text-text-light text-sm mt-2">
-          {pins.length} pins available ({pins.filter(p => p.type === 'moment').length} moments, {pins.filter(p => p.type === 'foodspot').length} food spots)
+          {pins.length} pins available ({pins.filter((p: MapPin) => p.type === 'moment').length} moments, {pins.filter((p: MapPin) => p.type === 'foodspot').length} food spots)
         </p>
       </div>
     );
@@ -179,29 +213,76 @@ export default function MapPage() {
           </button>
         </div>
 
-        {/* Tag filter chips */}
+        {/* Tag filter chips with emoji + inline editor */}
         {allTags.length > 0 && (
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5 max-w-full">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium shadow transition-colors ${
-                  selectedTags.has(tag)
-                    ? 'bg-accent text-white'
-                    : 'bg-white text-text-light hover:bg-gray-50'
-                }`}
-              >
-                #{tag}
-              </button>
-            ))}
-            {selectedTags.size > 0 && (
-              <button
-                onClick={() => setSelectedTags(new Set())}
-                className="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-text-light hover:bg-gray-200 shadow transition-colors"
-              >
-                ✕ Clear
-              </button>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 max-w-full hide-scrollbar">
+              {allTags.map((tag) => {
+                const meta = tagMap[tag];
+                const emoji = meta?.icon || '🏷️';
+                return (
+                  <div key={tag} className="flex-shrink-0 flex items-center gap-0.5">
+                    <button
+                      onClick={() => toggleTag(tag)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shadow transition-colors ${
+                        selectedTags.has(tag)
+                          ? 'bg-accent text-white'
+                          : 'bg-white text-text-light hover:bg-gray-50'
+                      }`}
+                    >
+                      <span>{emoji}</span>
+                      <span>#{tag}</span>
+                    </button>
+                    {/* Emoji edit button */}
+                    <button
+                      onClick={(e) => openEmojiEditor(tag, e)}
+                      className="w-5 h-5 flex items-center justify-center rounded-full bg-white/80 text-text-light hover:text-primary shadow text-[10px] transition-colors md:opacity-0 md:hover:opacity-100"
+                      title="Set icon"
+                    >
+                      ✏️
+                    </button>
+                  </div>
+                );
+              })}
+              {selectedTags.size > 0 && (
+                <button
+                  onClick={() => setSelectedTags(new Set())}
+                  className="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-text-light hover:bg-gray-200 shadow transition-colors"
+                >
+                  ✕ Clear
+                </button>
+              )}
+            </div>
+
+            {/* Inline emoji editor */}
+            {editingTag && (
+              <div className="flex items-center gap-2 bg-white rounded-xl shadow-lg px-3 py-2 w-fit">
+                <span className="text-xs text-text-light font-medium">#{editingTag}</span>
+                <input
+                  value={emojiInput}
+                  onChange={(e) => setEmojiInput(e.target.value)}
+                  placeholder="emoji"
+                  className="w-14 border border-border rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEmoji(editingTag);
+                    if (e.key === 'Escape') { setEditingTag(null); setEmojiInput(''); }
+                  }}
+                />
+                <button
+                  onClick={() => saveEmoji(editingTag)}
+                  disabled={!emojiInput.trim() || upsertTagMutation.isPending}
+                  className="p-1 bg-accent text-white rounded-lg hover:bg-accent-dark disabled:opacity-40 transition-colors"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => { setEditingTag(null); setEmojiInput(''); }}
+                  className="text-xs text-text-light hover:text-text transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
             )}
           </div>
         )}
