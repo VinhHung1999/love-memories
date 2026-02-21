@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -21,6 +21,9 @@ export default function Dashboard() {
   const doneGoals = activeSprint?.goals.filter((g) => g.status === 'DONE').length || 0;
   const totalGoals = activeSprint?.goals.length || 0;
   const sprintProgress = totalGoals > 0 ? Math.round((doneGoals / totalGoals) * 100) : 0;
+  const remainingDays = activeSprint
+    ? Math.ceil((new Date(activeSprint.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : 0;
 
   const stats = [
     { icon: Camera, label: 'Moments', value: moments.length, color: 'bg-primary/10 text-primary', to: '/moments' },
@@ -160,32 +163,66 @@ export default function Dashboard() {
       {/* Active Sprint */}
       {activeSprint && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-lg font-semibold">Active Sprint</h2>
+          <div className="relative bg-gradient-to-br from-white to-accent/5 rounded-2xl p-6 shadow-sm border border-accent/20 overflow-hidden">
+            {/* Decorative circle */}
+            <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-accent/5 pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-accent" />
+                <h2 className="font-heading text-lg font-semibold">Active Sprint</h2>
+              </div>
               <Link to={`/goals/sprint/${activeSprint.id}`} className="text-accent text-sm flex items-center gap-1 hover:underline">
                 View <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-            <h3 className="font-medium">{activeSprint.name}</h3>
-            <p className="text-text-light text-xs mt-1">
-              {format(new Date(activeSprint.startDate), 'MMM d')} — {format(new Date(activeSprint.endDate), 'MMM d')}
-            </p>
-            <div className="mt-4">
-              <div className="flex justify-between text-xs mb-1">
+
+            {/* Sprint name + dates + remaining days */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="font-medium text-sm">{activeSprint.name}</h3>
+                <p className="text-text-light text-xs mt-0.5">
+                  {format(new Date(activeSprint.startDate), 'MMM d')} — {format(new Date(activeSprint.endDate), 'MMM d')}
+                </p>
+              </div>
+              {remainingDays > 0 && (
+                <span className="flex items-center gap-1 text-xs bg-accent/10 text-accent-dark px-2 py-0.5 rounded-full font-medium flex-shrink-0 ml-2">
+                  <Clock className="w-3 h-3" />
+                  {remainingDays}d left
+                </span>
+              )}
+            </div>
+
+            {/* Gradient progress bar */}
+            <div className="mb-4">
+              <div className="flex justify-between text-xs mb-1.5">
                 <span className="text-text-light">{doneGoals}/{totalGoals} goals</span>
-                <span className="font-medium">{sprintProgress}%</span>
+                <span className="font-semibold text-accent">{sprintProgress}%</span>
               </div>
               <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${sprintProgress}%` }} />
+                <div
+                  className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-accent to-primary"
+                  style={{ width: `${sprintProgress}%` }}
+                />
               </div>
             </div>
-            {activeSprint.goals.slice(0, 3).map((goal) => (
-              <div key={goal.id} className="flex items-center gap-2 mt-2 text-sm">
-                <div className={`w-2 h-2 rounded-full ${goal.status === 'DONE' ? 'bg-green-400' : goal.status === 'IN_PROGRESS' ? 'bg-blue-400' : 'bg-gray-300'}`} />
-                <span className={goal.status === 'DONE' ? 'line-through text-text-light' : ''}>{goal.title}</span>
-              </div>
-            ))}
+
+            {/* Goals with status icons */}
+            <div className="space-y-1.5">
+              {activeSprint.goals.slice(0, 3).map((goal) => (
+                <div key={goal.id} className="flex items-center gap-2 text-sm">
+                  {goal.status === 'DONE' ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                  ) : goal.status === 'IN_PROGRESS' ? (
+                    <Clock className="w-4 h-4 text-blue-400 flex-shrink-0 animate-pulse" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                  )}
+                  <span className={`${goal.status === 'DONE' ? 'line-through text-text-light' : ''} min-w-0 truncate`}>{goal.title}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
       )}
