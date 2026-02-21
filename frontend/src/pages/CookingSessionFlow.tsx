@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink } from 'lucide-react';
+import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
@@ -88,6 +88,7 @@ function SelectingPhase({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [advancing, setAdvancing] = useState(false);
+  const { cancel, cancelling } = useCancelSession(session.id);
 
   const handleAdvance = async () => {
     setAdvancing(true);
@@ -102,12 +103,21 @@ function SelectingPhase({
 
   return (
     <div className="max-w-lg mx-auto">
-      <button
-        onClick={() => navigate('/what-to-eat')}
-        className="flex items-center gap-1.5 text-sm text-text-light hover:text-text mb-4 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Chọn lại món
-      </button>
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => navigate('/what-to-eat')}
+          className="flex items-center gap-1.5 text-sm text-text-light hover:text-text transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Chọn lại món
+        </button>
+        <button
+          onClick={cancel}
+          disabled={cancelling}
+          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-500 transition-colors disabled:opacity-50"
+        >
+          <X className="w-3.5 h-3.5" /> Hủy phiên
+        </button>
+      </div>
 
       <h1 className="font-heading text-2xl font-bold mb-1">Danh sách hôm nay</h1>
       <p className="text-text-light text-sm mb-6">
@@ -157,6 +167,7 @@ function SelectingPhase({
 function ShoppingPhase({ session }: { session: CookingSession }) {
   const queryClient = useQueryClient();
   const [advancing, setAdvancing] = useState(false);
+  const { cancel, cancelling } = useCancelSession(session.id);
 
   const checkedCount = session.items.filter((i) => i.checked).length;
   const total = session.items.length;
@@ -211,11 +222,20 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
             {session.recipes.map((r) => r.recipe.title).join(', ')}
           </p>
         </div>
-        <div className="flex-shrink-0 text-right ml-3">
-          <p className="font-bold text-xl text-secondary leading-none">
-            {checkedCount}<span className="text-text-light font-normal text-base">/{total}</span>
-          </p>
-          <p className="text-xs text-text-light">items</p>
+        <div className="flex flex-col items-end gap-1 ml-3 flex-shrink-0">
+          <div className="text-right">
+            <p className="font-bold text-xl text-secondary leading-none">
+              {checkedCount}<span className="text-text-light font-normal text-base">/{total}</span>
+            </p>
+            <p className="text-xs text-text-light">items</p>
+          </div>
+          <button
+            onClick={cancel}
+            disabled={cancelling}
+            className="flex items-center gap-1 text-xs text-red-400 hover:text-red-500 transition-colors disabled:opacity-50"
+          >
+            <X className="w-3 h-3" /> Hủy phiên
+          </button>
         </div>
       </div>
 
@@ -280,6 +300,34 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
   );
 }
 
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+function useCancelSession(sessionId: string) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [cancelling, setCancelling] = useState(false);
+  const cancel = async () => {
+    if (!window.confirm('Hủy phiên nấu ăn này? Mọi tiến trình sẽ bị xóa.')) return;
+    setCancelling(true);
+    try {
+      await cookingSessionsApi.delete(sessionId);
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions', 'active'] });
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions'] });
+      navigate('/what-to-eat');
+    } catch {
+      toast.error('Không thể hủy phiên');
+      setCancelling(false);
+    }
+  };
+  return { cancel, cancelling };
+}
+
+function formatMmSs(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 // ─── Cooking phase ────────────────────────────────────────────────────────────
 
 function formatElapsed(ms: number): string {
@@ -291,11 +339,22 @@ function formatElapsed(ms: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+type TimerState = { remaining: number; running: boolean; done: boolean };
+
 function CookingPhase({ session }: { session: CookingSession }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [advancing, setAdvancing] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const { cancel, cancelling } = useCancelSession(session.id);
+  const [timers, setTimers] = useState<Record<string, TimerState>>({});
+  const timerIntervals = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+
+  // Cleanup all intervals on unmount
+  useEffect(() => {
+    const intervals = timerIntervals.current;
+    return () => { Object.values(intervals).forEach(clearInterval); };
+  }, []);
 
   // Elapsed timer — useState feeds JSX, not useRef
   useEffect(() => {
@@ -358,6 +417,30 @@ function CookingPhase({ session }: { session: CookingSession }) {
     }
   };
 
+  const startTimer = (step: CookingSessionStep) => {
+    if (!step.durationSeconds) return;
+    if (timerIntervals.current[step.id]) clearInterval(timerIntervals.current[step.id]);
+    setTimers((prev) => ({ ...prev, [step.id]: { remaining: step.durationSeconds!, running: true, done: false } }));
+    timerIntervals.current[step.id] = setInterval(() => {
+      setTimers((prev) => {
+        const curr = prev[step.id];
+        if (!curr || !curr.running) return prev;
+        const next = curr.remaining - 1;
+        if (next <= 0) {
+          clearInterval(timerIntervals.current[step.id]);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+          return { ...prev, [step.id]: { remaining: 0, running: false, done: true } };
+        }
+        return { ...prev, [step.id]: { ...curr, remaining: next } };
+      });
+    }, 1000);
+  };
+
+  const resetTimer = (stepId: string) => {
+    if (timerIntervals.current[stepId]) clearInterval(timerIntervals.current[stepId]);
+    setTimers((prev) => { const n = { ...prev }; delete n[stepId]; return n; });
+  };
+
   const handleAdvance = async () => {
     setAdvancing(true);
     try {
@@ -382,9 +465,18 @@ function CookingPhase({ session }: { session: CookingSession }) {
             {checkedCount}/{totalSteps} bước hoàn thành
           </p>
         </div>
-        <div className="flex-shrink-0 flex items-center gap-1.5 bg-primary/8 text-primary px-3 py-1.5 rounded-xl">
-          <Timer className="w-4 h-4" />
-          <span className="font-mono font-bold text-base tabular-nums">{formatElapsed(elapsed)}</span>
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 bg-primary/8 text-primary px-3 py-1.5 rounded-xl">
+            <Timer className="w-4 h-4" />
+            <span className="font-mono font-bold text-base tabular-nums">{formatElapsed(elapsed)}</span>
+          </div>
+          <button
+            onClick={cancel}
+            disabled={cancelling}
+            className="flex items-center gap-1 text-xs text-red-400 hover:text-red-500 transition-colors disabled:opacity-50"
+          >
+            <X className="w-3 h-3" /> Hủy phiên
+          </button>
         </div>
       </div>
 
@@ -482,7 +574,7 @@ function CookingPhase({ session }: { session: CookingSession }) {
                       )}
                     </div>
 
-                    {/* Step content + checkedBy badge */}
+                    {/* Step content + checkedBy badge + step timer */}
                     <div className="flex-1 min-w-0">
                       <p
                         className={`text-sm leading-relaxed transition-colors ${
@@ -496,6 +588,38 @@ function CookingPhase({ session }: { session: CookingSession }) {
                           ✓ {step.checkedBy}
                         </span>
                       )}
+                      {/* Step countdown timer */}
+                      {step.durationSeconds ? (() => {
+                        const t = timers[step.id];
+                        if (!t) return (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); startTimer(step); }}
+                            className="mt-1.5 flex items-center gap-1 text-xs text-text-light border border-gray-200 rounded-lg px-2 py-0.5 hover:border-primary/40 hover:text-primary transition-colors"
+                          >
+                            <Timer className="w-3 h-3" /> {formatMmSs(step.durationSeconds)}
+                          </button>
+                        );
+                        if (t.done) return (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); resetTimer(step.id); }}
+                            className="mt-1.5 flex items-center gap-1 text-xs text-red-500 border border-red-200 rounded-lg px-2 py-0.5 bg-red-50 animate-pulse"
+                          >
+                            🔔 Hết giờ! (reset)
+                          </button>
+                        );
+                        return (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); resetTimer(step.id); }}
+                            className="mt-1.5 flex items-center gap-1.5 text-xs text-orange-500 border border-orange-200 rounded-lg px-2 py-0.5 bg-orange-50"
+                          >
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+                            </span>
+                            {formatMmSs(t.remaining)}
+                          </button>
+                        );
+                      })() : null}
                     </div>
                   </button>
                 ))}
@@ -538,6 +662,7 @@ function CookingPhase({ session }: { session: CookingSession }) {
 
 function PhotoPhase({ session }: { session: CookingSession }) {
   const queryClient = useQueryClient();
+  const { cancel, cancelling } = useCancelSession(session.id);
   const [notes, setNotes] = useState(session.notes ?? '');
   const [uploading, setUploading] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -577,7 +702,14 @@ function PhotoPhase({ session }: { session: CookingSession }) {
   return (
     <div className="max-w-lg mx-auto">
       {/* Hero prompt */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 relative">
+        <button
+          onClick={cancel}
+          disabled={cancelling}
+          className="absolute right-0 top-0 flex items-center gap-1 text-xs text-red-400 hover:text-red-500 transition-colors disabled:opacity-50"
+        >
+          <X className="w-3.5 h-3.5" /> Hủy phiên
+        </button>
         <div className="text-5xl mb-3">📸</div>
         <h1 className="font-heading text-2xl font-bold mb-1">Chụp ảnh món ăn!</h1>
         <p className="text-text-light text-sm">

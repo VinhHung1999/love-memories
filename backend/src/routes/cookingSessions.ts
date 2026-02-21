@@ -126,6 +126,7 @@ router.post('/', async (req: Request, res: Response) => {
               recipeId: recipe!.id,
               stepIndex,
               content,
+              durationSeconds: recipe!.stepDurations[stepIndex] ?? null,
             }))
           ),
         },

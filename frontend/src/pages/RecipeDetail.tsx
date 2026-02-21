@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
@@ -310,6 +310,9 @@ function RecipeEditModal({
   const [description, setDescription] = useState(recipe.description ?? '');
   const [ingredients, setIngredients] = useState<string[]>(recipe.ingredients.length > 0 ? recipe.ingredients : ['']);
   const [steps, setSteps] = useState<string[]>(recipe.steps.length > 0 ? recipe.steps : ['']);
+  const [stepDurations, setStepDurations] = useState<number[]>(() =>
+    recipe.steps.map((_, i) => recipe.stepDurations?.[i] ?? 0)
+  );
   const [notes, setNotes] = useState(recipe.notes ?? '');
   const [tutorialUrl, setTutorialUrl] = useState(recipe.tutorialUrl ?? '');
   const [tagsInput, setTagsInput] = useState(recipe.tags.join(', '));
@@ -328,17 +331,20 @@ function RecipeEditModal({
   });
 
   const mutation = useMutation({
-    mutationFn: () =>
-      recipesApi.update(recipe.id, {
+    mutationFn: () => {
+      const pairs = steps.map((s, i) => ({ s, d: stepDurations[i] ?? 0 })).filter(({ s }) => s.trim());
+      return recipesApi.update(recipe.id, {
         title,
         description: description || undefined,
         ingredients: ingredients.filter(Boolean),
-        steps: steps.filter(Boolean),
+        steps: pairs.map((p) => p.s),
+        stepDurations: pairs.map((p) => p.d),
         notes: notes || undefined,
         tutorialUrl: tutorialUrl || null,
         tags: tagsInput.split(',').map((t) => t.trim()).filter(Boolean),
         foodSpotId: foodSpotId || null,
-      } as Partial<Recipe>),
+      } as Partial<Recipe>);
+    },
     onSuccess: () => {
       onSaved();
       toast.success('Recipe updated');
@@ -401,27 +407,49 @@ function RecipeEditModal({
 
         <div>
           <label className="block text-sm font-medium mb-1">Steps</label>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {steps.map((step, i) => (
               <div key={i} className="flex gap-2 items-start">
                 <span className="text-xs text-text-light font-medium mt-2.5 w-4 flex-shrink-0">{i + 1}.</span>
-                <textarea
-                  ref={(el) => { stepRefs.current[i] = el; }}
-                  value={step}
-                  onChange={(e) => updateItem(steps, setSteps, i, e.target.value)}
-                  placeholder={`Step ${i + 1}`}
-                  rows={2}
-                  className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
-                />
+                <div className="flex-1">
+                  <textarea
+                    ref={(el) => { stepRefs.current[i] = el; }}
+                    value={step}
+                    onChange={(e) => updateItem(steps, setSteps, i, e.target.value)}
+                    placeholder={`Step ${i + 1}`}
+                    rows={2}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  />
+                  <div className="flex items-center gap-1 mt-1 ml-1">
+                    <Clock className="w-3 h-3 text-text-light flex-shrink-0" />
+                    <input
+                      type="number" min="0"
+                      value={Math.floor((stepDurations[i] ?? 0) / 60)}
+                      onChange={(e) => setStepDurations((p) => p.map((d, idx) => idx === i ? parseInt(e.target.value || '0') * 60 + (d % 60) : d))}
+                      className="w-10 border border-border rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-accent/30"
+                      placeholder="0"
+                    />
+                    <span className="text-xs text-text-light">min</span>
+                    <input
+                      type="number" min="0" max="59"
+                      value={(stepDurations[i] ?? 0) % 60}
+                      onChange={(e) => setStepDurations((p) => p.map((d, idx) => idx === i ? Math.floor(d / 60) * 60 + parseInt(e.target.value || '0') : d))}
+                      className="w-10 border border-border rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-accent/30"
+                      placeholder="0"
+                    />
+                    <span className="text-xs text-text-light">sec</span>
+                    {(stepDurations[i] ?? 0) > 0 && <Clock className="w-3 h-3 text-accent" />}
+                  </div>
+                </div>
                 {steps.length > 1 && (
-                  <button type="button" onClick={() => removeItem(steps, setSteps, i)} className="text-red-400 hover:text-red-500 p-2 mt-0.5">
+                  <button type="button" onClick={() => { removeItem(steps, setSteps, i); setStepDurations((p) => p.filter((_, idx) => idx !== i)); }} className="text-red-400 hover:text-red-500 p-2 mt-0.5">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => setSteps((p) => [...p, ''])} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
+          <button type="button" onClick={() => { setSteps((p) => [...p, '']); setStepDurations((p) => [...p, 0]); }} className="mt-2 text-xs text-accent hover:underline flex items-center gap-1">
             <Plus className="w-3 h-3" /> Add step
           </button>
         </div>

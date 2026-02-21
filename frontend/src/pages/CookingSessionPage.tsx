@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { UtensilsCrossed, ChefHat, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,6 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function CookingSessionPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const { data: recipes = [], isLoading: recipesLoading } = useQuery({
@@ -29,6 +30,15 @@ export default function CookingSessionPage() {
   const { data: activeSession, isLoading: sessionLoading } = useQuery({
     queryKey: ['cooking-sessions', 'active'],
     queryFn: cookingSessionsApi.getActive,
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => cookingSessionsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions', 'active'] });
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions'] });
+    },
+    onError: () => toast.error('Không thể hủy phiên'),
   });
 
   const createMutation = useMutation({
@@ -103,6 +113,16 @@ export default function CookingSessionPage() {
           >
             Tiếp tục nấu ăn <ArrowRight className="w-4 h-4" />
           </Link>
+          <button
+            onClick={() => {
+              if (!window.confirm('Hủy phiên nấu ăn này? Mọi tiến trình sẽ bị xóa.')) return;
+              cancelMutation.mutate(activeSession.id);
+            }}
+            disabled={cancelMutation.isPending}
+            className="mt-2 w-full text-center text-sm text-red-500 hover:text-red-600 py-1.5 transition-colors disabled:opacity-50"
+          >
+            {cancelMutation.isPending ? 'Đang hủy...' : 'Hủy phiên nấu ăn'}
+          </button>
         </motion.div>
 
         <p className="text-center text-xs text-text-light">

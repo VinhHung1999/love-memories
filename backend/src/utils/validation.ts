@@ -65,6 +65,7 @@ export const createRecipeSchema = z.object({
   description: z.string().optional(),
   ingredients: z.array(z.string()).optional().default([]),
   steps: z.array(z.string()).optional().default([]),
+  stepDurations: z.array(z.number().int().min(0)).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
   notes: z.string().optional(),
   tutorialUrl: z.string().url().optional().nullable().or(z.literal('')),

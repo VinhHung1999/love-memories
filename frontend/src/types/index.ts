@@ -107,6 +107,7 @@ export interface Recipe {
   description: string | null;
   ingredients: string[];
   steps: string[];
+  stepDurations: number[];
   tags: string[];
   notes: string | null;
   tutorialUrl: string | null;
@@ -143,6 +144,7 @@ export interface CookingSessionStep {
   recipeId: string;
   stepIndex: number;
   content: string;
+  durationSeconds: number | null;
   checked: boolean;
   checkedBy: string | null;
   checkedAt: string | null;

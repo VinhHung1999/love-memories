@@ -84,6 +84,7 @@ model Recipe {
   description     String?
   ingredients     String[]
   steps           String[]
+  stepDurations   Int[]                  @default([])
   tags            String[]
   notes           String?
   tutorialUrl     String?
@@ -140,15 +141,16 @@ model CookingSessionItem {
 }
 
 model CookingSessionStep {
-  id         String         @id @default(uuid())
-  sessionId  String
-  session    CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  recipeId   String
-  stepIndex  Int
-  content    String
-  checked    Boolean        @default(false)
-  checkedBy  String?
-  checkedAt  DateTime?
+  id              String         @id @default(uuid())
+  sessionId       String
+  session         CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recipeId        String
+  stepIndex       Int
+  content         String
+  durationSeconds Int?
+  checked         Boolean        @default(false)
+  checkedBy       String?
+  checkedAt       DateTime?
 
   @@map("cooking_session_steps")
 }
