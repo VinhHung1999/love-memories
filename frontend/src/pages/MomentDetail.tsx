@@ -142,6 +142,16 @@ export default function MomentDetail() {
         <ArrowLeft className="w-4 h-4" /> Back to Moments
       </button>
 
+      {/* Hidden file input */}
+      <input
+        ref={(el) => { fileInputRef.current = el ?? undefined; }}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleAddPhotos}
+      />
+
       {/* Photo Layout: hero + thumbnail strip */}
       {heroPhoto && (
         <div className="mb-6 space-y-2">
@@ -158,48 +168,51 @@ export default function MomentDetail() {
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
-          {/* Thumbnail strip */}
-          {thumbPhotos.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {thumbPhotos.map((photo, i) => (
-                <div
-                  key={photo.id}
-                  className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden group cursor-pointer"
-                  onClick={() => openGallery(i + 1)}
+          {/* Thumbnail strip + Add button inline */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {thumbPhotos.map((photo, i) => (
+              <div
+                key={photo.id}
+                className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden group cursor-pointer"
+                onClick={() => openGallery(i + 1)}
+              >
+                <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (window.confirm('Xóa ảnh này?')) deletePhotoMutation.mutate(photo.id); }}
+                  className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                 >
-                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={(e) => { e.stopPropagation(); if (window.confirm('Xóa ảnh này?')) deletePhotoMutation.mutate(photo.id); }}
-                    className="absolute top-1 right-1 bg-red-500/80 text-white p-1 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+            {/* Add Photos — last item in strip */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadPhotosMutation.isPending}
+              className="flex-shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-[10px] font-medium leading-none">
+                {uploadPhotosMutation.isPending ? '...' : 'Add'}
+              </span>
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Add Photos button */}
-      <div className="mb-4">
-        <input
-          ref={(el) => { fileInputRef.current = el ?? undefined; }}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleAddPhotos}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadPhotosMutation.isPending}
-          className="flex items-center gap-2 text-sm text-primary border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
-        >
-          <Plus className="w-4 h-4" />
-          {uploadPhotosMutation.isPending ? 'Uploading...' : 'Add Photos'}
-        </button>
-      </div>
+      {/* Add Photos button — only when no photos yet */}
+      {!heroPhoto && (
+        <div className="mb-4">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadPhotosMutation.isPending}
+            className="flex items-center gap-2 text-sm text-primary border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4" />
+            {uploadPhotosMutation.isPending ? 'Uploading...' : 'Add Photos'}
+          </button>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl p-6">
         <div className="flex items-start justify-between">
