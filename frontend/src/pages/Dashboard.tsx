@@ -62,11 +62,6 @@ export default function Dashboard() {
         <p className="text-text-light text-sm">Our little world, beautifully organized</p>
       </div>
 
-      {/* ── UNIFIED HERO: Timer + Stats ───────────────────────────────── */}
-      <div className="mb-6">
-        <RelationshipTimer footer={statsFooter} />
-      </div>
-
       {/* ── RECENT MOMENTS (Swiper) ───────────────────────────────────── */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-heading text-base font-semibold text-text">Kỷ niệm gần đây</h2>
@@ -149,6 +144,11 @@ export default function Dashboard() {
         )}
       </div>
       {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
+
+      {/* ── UNIFIED HERO: Timer + Stats ───────────────────────────────── */}
+      <div className="mb-6">
+        <RelationshipTimer footer={statsFooter} />
+      </div>
 
       {/* Active Sprint */}
       {activeSprint && (
