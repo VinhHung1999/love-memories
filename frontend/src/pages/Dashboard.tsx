@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle } from 'lucide-react';
@@ -26,12 +27,30 @@ export default function Dashboard() {
     : 0;
 
   const stats = [
-    { icon: Camera, label: 'Moments', value: moments.length, color: 'bg-primary/10 text-primary', to: '/moments' },
-    { icon: Utensils, label: 'Food Spots', value: foodSpots.length, color: 'bg-secondary/10 text-secondary', to: '/foodspots' },
-    { icon: MapPin, label: 'Places', value: moments.filter(m => m.latitude).length + foodSpots.filter(f => f.latitude).length, color: 'bg-accent/10 text-accent', to: '/map' },
-    { icon: Target, label: 'Goals Done', value: doneGoals, color: 'bg-purple-100 text-purple-600', to: '/goals' },
+    { icon: Camera, label: 'kỷ niệm', value: moments.length, to: '/moments' },
+    { icon: Utensils, label: 'quán ăn', value: foodSpots.length, to: '/foodspots' },
+    { icon: MapPin, label: 'nơi đến', value: moments.filter(m => m.latitude).length + foodSpots.filter(f => f.latitude).length, to: '/map' },
+    { icon: Target, label: 'goals xong', value: doneGoals, to: '/goals' },
   ];
 
+  // Stats row — rendered inside the hero card as its footer
+  const statsFooter = (
+    <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-2">
+      {stats.map((stat, i) => (
+        <Fragment key={stat.label}>
+          {i > 0 && <span className="text-text-light/40 text-[10px] select-none">·</span>}
+          <Link
+            to={stat.to}
+            className="flex items-center gap-1 hover:opacity-70 active:opacity-50 transition-opacity"
+          >
+            <stat.icon className="w-3 h-3 text-text-light flex-shrink-0" />
+            <span className="text-sm font-bold text-text">{stat.value}</span>
+            <span className="text-xs text-text-light">{stat.label}</span>
+          </Link>
+        </Fragment>
+      ))}
+    </div>
+  );
 
   return (
     <div>
@@ -44,9 +63,9 @@ export default function Dashboard() {
         <p className="text-text-light text-sm">Our little world, beautifully organized</p>
       </div>
 
-      {/* Hero Timer */}
+      {/* ── UNIFIED HERO: Timer + Stats ───────────────────────────────── */}
       <div className="mb-6">
-        <RelationshipTimer />
+        <RelationshipTimer footer={statsFooter} />
       </div>
 
       {/* ── RECENT MOMENTS (Swiper) ───────────────────────────────────── */}
@@ -56,7 +75,7 @@ export default function Dashboard() {
           Xem tất cả <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
-      <div className="mb-6 -mx-4 md:mx-0">
+      <div className="mb-8 -mx-4 md:mx-0">
         {recentMoments.length === 0 ? (
           <div className="mx-4 md:mx-0 h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-10 h-10 text-gray-300" />
@@ -132,37 +151,9 @@ export default function Dashboard() {
       </div>
       {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
 
-      {/* Stats — horizontal scroll compact row */}
-      <div className="-mx-4 md:mx-0 mb-8">
-        <div className="flex gap-3 overflow-x-auto px-4 md:px-0 md:grid md:grid-cols-4 pb-1 hide-scrollbar">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              className="flex-shrink-0 w-32 md:w-auto"
-            >
-              <Link
-                to={stat.to}
-                className="flex items-center gap-2.5 bg-white rounded-2xl px-3.5 py-3 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className={`w-8 h-8 rounded-xl ${stat.color} flex items-center justify-center flex-shrink-0`}>
-                  <stat.icon className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-lg font-bold leading-tight">{stat.value}</p>
-                  <p className="text-text-light text-[11px] leading-tight truncate">{stat.label}</p>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
       {/* Active Sprint */}
       {activeSprint && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="relative bg-gradient-to-br from-white to-accent/5 rounded-2xl p-6 shadow-sm border border-accent/20 overflow-hidden">
             {/* Decorative circle */}
             <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-accent/5 pointer-events-none" />

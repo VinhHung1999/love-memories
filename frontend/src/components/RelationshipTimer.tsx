@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Pencil, Check, X } from 'lucide-react';
 import { settingsApi } from '../lib/api';
@@ -19,8 +19,13 @@ function calcDiff(startDate: string, now: Date) {
   return { years, months, days, totalDays };
 }
 
+interface Props {
+  /** Optional content rendered below the timer inside the same card (e.g. stats row) */
+  footer?: ReactNode;
+}
+
 /** Hero visual timer — large numbers, gradient bg, edit via pencil */
-export default function RelationshipTimer() {
+export default function RelationshipTimer({ footer }: Props) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
@@ -91,13 +96,21 @@ export default function RelationshipTimer() {
   // ── No date set ───────────────────────────────────────────────────────
   if (!startDate) {
     return (
-      <button
-        onClick={() => { setEditValue(''); setEditing(true); }}
-        className="w-full rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-8 flex flex-col items-center gap-2 hover:from-primary/15 transition-all duration-300"
-      >
-        <Heart className="w-6 h-6 text-primary/40" />
-        <span className="text-sm text-primary/60 font-medium">Thêm ngày quen nhau...</span>
-      </button>
+      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-8 flex flex-col items-center gap-2">
+        <button
+          onClick={() => { setEditValue(''); setEditing(true); }}
+          className="flex flex-col items-center gap-2 hover:opacity-70 transition-opacity"
+        >
+          <Heart className="w-6 h-6 text-primary/40" />
+          <span className="text-sm text-primary/60 font-medium">Thêm ngày quen nhau...</span>
+        </button>
+        {footer && (
+          <>
+            <div className="w-full mt-4 pt-4 border-t border-white/30" />
+            {footer}
+          </>
+        )}
+      </div>
     );
   }
 
@@ -106,7 +119,7 @@ export default function RelationshipTimer() {
 
   return (
     <div className="relative group rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-5 overflow-hidden">
-      {/* Subtle decorative hearts */}
+      {/* Subtle decorative circles */}
       <div className="absolute -top-3 -right-3 w-16 h-16 rounded-full bg-primary/5 pointer-events-none" />
       <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-secondary/5 pointer-events-none" />
 
@@ -151,10 +164,17 @@ export default function RelationshipTimer() {
         </div>
       </div>
 
-      {/* Total days footer */}
+      {/* Total days */}
       <p className="text-center text-xs text-text-light mt-4">
         {totalDays.toLocaleString()} ngày · mãi yêu nhau
       </p>
+
+      {/* Footer slot — stats row lives here */}
+      {footer && (
+        <div className="mt-4 pt-4 border-t border-black/5">
+          {footer}
+        </div>
+      )}
     </div>
   );
 }
