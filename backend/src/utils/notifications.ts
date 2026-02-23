@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { sendPushNotification } from '../routes/push';
 
 export async function createNotification(
   userId: string,
@@ -11,6 +12,8 @@ export async function createNotification(
     await prisma.notification.create({
       data: { userId, type, title, message, link: link ?? null },
     });
+    // Also send push notification
+    await sendPushNotification(userId, title, message, link);
   } catch {
     // Non-blocking — notification failures must not break main operations
   }

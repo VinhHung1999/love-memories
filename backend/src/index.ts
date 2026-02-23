@@ -16,6 +16,7 @@ import { achievementRoutes } from './routes/achievements';
 import { profileRoutes } from './routes/profile';
 import { proxyImageRoute } from './routes/proxy-image';
 import { notificationRoutes } from './routes/notifications';
+import { pushRoutes } from './routes/push';
 import { requireAuth } from './middleware/auth';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/ai', requireAuth, aiRoutes);
 app.use('/api/achievements', requireAuth, achievementRoutes);
 app.use('/api/profile', requireAuth, profileRoutes);
 app.use('/api/notifications', requireAuth, notificationRoutes);
+app.use('/api/push', requireAuth, pushRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {
