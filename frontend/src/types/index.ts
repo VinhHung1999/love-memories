@@ -276,6 +276,7 @@ export interface DatePlanStop {
   done: boolean;
   doneAt: string | null;
   wishId: string | null;
+  linkedMomentId: string | null;
   createdAt: string;
   spots: DatePlanSpot[];
 }

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 import { datePlansApi } from '../lib/api';
 import type { DatePlan, DatePlanStop } from '../types';
+import CreateMomentModal from '../components/CreateMomentModal';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -98,7 +99,18 @@ export default function DatePlanDetailPage() {
     onError: () => toast.error('Không thể xóa địa điểm'),
   });
 
-  const [expandedSpotForms, setExpandedSpotForms] = useState<Record<string, boolean>>({});
+  const linkMomentMutation = useMutation({
+    mutationFn: ({ stopId, momentId }: { stopId: string; momentId: string }) =>
+      datePlansApi.linkStopMoment(id!, stopId, momentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['date-plans', id] });
+      setSelectedStopForMoment(null);
+      toast.success('Đã link Moment!');
+    },
+    onError: () => toast.error('Không thể link Moment'),
+  });
+
+  const [selectedStopForMoment, setSelectedStopForMoment] = useState<string | null>(null);
 
   // Fire confetti once when plan loads and is already completed
   useEffect(() => {
@@ -316,24 +328,26 @@ export default function DatePlanDetailPage() {
                             </div>
                           )}
 
-                          {/* Add spot inline form */}
-                          {!isDone && (
-                            expandedSpotForms[stop.id] ? (
-                              <AddSpotInlineForm
-                                stopId={stop.id}
-                                planId={id!}
-                                existingCount={stop.spots.length}
-                                onClose={() => setExpandedSpotForms((prev) => ({ ...prev, [stop.id]: false }))}
-                              />
-                            ) : (
-                              <button
-                                onClick={() => setExpandedSpotForms((prev) => ({ ...prev, [stop.id]: true }))}
-                                className="mt-2 flex items-center gap-1 text-xs text-text-light hover:text-primary transition-colors"
+                          {/* Link moment */}
+                          <div className="mt-2">
+                            {stop.linkedMomentId ? (
+                              <Link
+                                to={`/moments/${stop.linkedMomentId}`}
+                                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-lg hover:bg-primary/20 transition-colors"
                               >
-                                <Plus className="w-3 h-3" /> Thêm địa điểm
-                              </button>
-                            )
-                          )}
+                                📸 Xem kỷ niệm →
+                              </Link>
+                            ) : (
+                              !isDone && (
+                                <button
+                                  onClick={() => setSelectedStopForMoment(stop.id)}
+                                  className="inline-flex items-center gap-1.5 text-xs font-medium text-text-light bg-gray-100 px-2.5 py-1 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                                >
+                                  📸 Thêm Moment
+                                </button>
+                              )
+                            )}
+                          </div>
                         </div>
 
                         {/* Actions */}
@@ -407,86 +421,28 @@ export default function DatePlanDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Create Moment modal — pre-filled from selected stop */}
+      {(() => {
+        const selectedStop = selectedStopForMoment
+          ? stops.find((s) => s.id === selectedStopForMoment)
+          : null;
+        return (
+          <CreateMomentModal
+            open={selectedStopForMoment !== null}
+            onClose={() => setSelectedStopForMoment(null)}
+            initialLocation={selectedStop?.address}
+            initialLatitude={selectedStop?.latitude}
+            initialLongitude={selectedStop?.longitude}
+            onCreated={(momentId) => {
+              if (selectedStopForMoment) {
+                linkMomentMutation.mutate({ stopId: selectedStopForMoment, momentId });
+              }
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
 
-// ── AddSpotInlineForm ─────────────────────────────────────────────────────────
-
-function AddSpotInlineForm({
-  stopId,
-  planId,
-  existingCount,
-  onClose,
-}: {
-  stopId: string;
-  planId: string;
-  existingCount: number;
-  onClose: () => void;
-}) {
-  const queryClient = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [address, setAddress] = useState('');
-  const [url, setUrl] = useState('');
-
-  const addSpotMutation = useMutation({
-    mutationFn: () =>
-      datePlansApi.addSpot(planId, stopId, {
-        title,
-        address: address || undefined,
-        url: url || undefined,
-        order: existingCount,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['date-plans', planId] });
-      toast.success('Đã thêm địa điểm!');
-      onClose();
-    },
-    onError: () => toast.error('Không thể thêm địa điểm'),
-  });
-
-  return (
-    <form
-      onSubmit={(e) => { e.preventDefault(); addSpotMutation.mutate(); }}
-      className="mt-2 bg-white rounded-lg p-2.5 border border-border space-y-2"
-    >
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-        autoFocus
-        placeholder="Tên địa điểm *"
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-      <input
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        placeholder="Địa chỉ (tuỳ chọn)"
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-      <input
-        type="url"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="URL (tuỳ chọn)"
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 text-xs border border-border rounded-lg py-1.5 text-text-light hover:bg-gray-50"
-        >
-          Hủy
-        </button>
-        <button
-          type="submit"
-          disabled={addSpotMutation.isPending || !title.trim()}
-          className="flex-1 text-xs bg-primary text-white rounded-lg py-1.5 font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {addSpotMutation.isPending ? '...' : 'Thêm'}
-        </button>
-      </div>
-    </form>
-  );
-}

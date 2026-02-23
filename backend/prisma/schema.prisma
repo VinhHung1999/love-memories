@@ -370,7 +370,8 @@ model DatePlanStop {
   order       Int
   done        Boolean        @default(false)
   doneAt      DateTime?
-  wishId      String?
+  wishId          String?
+  linkedMomentId  String?
   createdAt   DateTime       @default(now())
   spots       DatePlanSpot[]
 

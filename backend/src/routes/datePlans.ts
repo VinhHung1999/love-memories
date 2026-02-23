@@ -207,6 +207,20 @@ router.put('/:id/status', async (req: AuthRequest & { params: IdParam }, res: Re
   }
 });
 
+// PUT /:id/stops/:stopId/moment — link a moment to a stop
+router.put('/:id/stops/:stopId/moment', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
+  try {
+    const { momentId } = req.body as { momentId: string | null };
+    const stop = await prisma.datePlanStop.update({
+      where: { id: req.params.stopId },
+      data: { linkedMomentId: momentId ?? null },
+    });
+    res.json(stop);
+  } catch {
+    res.status(500).json({ error: 'Failed to link moment to stop' });
+  }
+});
+
 // PUT /:id/stops/:stopId/done — mark stop done
 router.put('/:id/stops/:stopId', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
   try {
