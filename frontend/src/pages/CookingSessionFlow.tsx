@@ -6,6 +6,7 @@ import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, Ext
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
+import { useCheckAchievements } from '../lib/achievements';
 import { useAuth } from '../lib/auth';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../types';
 
@@ -752,6 +753,7 @@ function CookingPhase({ session }: { session: CookingSession }) {
 
 function PhotoPhase({ session }: { session: CookingSession }) {
   const queryClient = useQueryClient();
+  const checkAchievements = useCheckAchievements();
   const { cancel, cancelling } = useCancelSession(session.id);
   const [notes, setNotes] = useState(session.notes ?? '');
   const [uploading, setUploading] = useState(false);
@@ -784,6 +786,7 @@ function PhotoPhase({ session }: { session: CookingSession }) {
       queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] });
       queryClient.invalidateQueries({ queryKey: ['cooking-sessions', 'active'] });
       queryClient.invalidateQueries({ queryKey: ['cooking-sessions'] });
+      checkAchievements();
     } finally {
       setCompleting(false);
     }

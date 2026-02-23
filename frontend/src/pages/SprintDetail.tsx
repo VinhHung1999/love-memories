@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, GripVertical, Flag, Calendar, Edit2, Play, CheckCircle
 import { format, isPast } from 'date-fns';
 import toast from 'react-hot-toast';
 import { sprintsApi, goalsApi } from '../lib/api';
+import { useCheckAchievements } from '../lib/achievements';
 import type { Goal, GoalStatus, GoalPriority, SprintStatus } from '../types';
 import Modal from '../components/Modal';
 import GoalDetailModal from '../components/GoalDetailModal';
@@ -26,6 +27,7 @@ export default function SprintDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const checkAchievements = useCheckAchievements();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [showSprintEdit, setShowSprintEdit] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -40,7 +42,10 @@ export default function SprintDetail() {
 
   const reorderMutation = useMutation({
     mutationFn: goalsApi.reorder,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sprints', id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sprints', id] });
+      checkAchievements();
+    },
   });
 
   const statusMutation = useMutation({
@@ -50,6 +55,7 @@ export default function SprintDetail() {
       queryClient.invalidateQueries({ queryKey: ['sprints'] });
       toast.success('Sprint status updated');
       setConfirmStatus(null);
+      checkAchievements();
     },
     onError: () => toast.error('Failed to update sprint status'),
   });

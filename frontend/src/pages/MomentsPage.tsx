@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
+import { useCheckAchievements } from '../lib/achievements';
 import type { Moment } from '../types';
 import Modal from '../components/Modal';
 import PhotoUpload from '../components/PhotoUpload';
@@ -155,6 +156,7 @@ function MomentCard({ moment, index }: { moment: Moment; index: number }) {
 
 function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: () => void; moment: Moment | null }) {
   const queryClient = useQueryClient();
+  const checkAchievements = useCheckAchievements();
   const [title, setTitle] = useState(moment?.title || '');
   const [caption, setCaption] = useState(moment?.caption || '');
   const [date, setDate] = useState(moment?.date ? format(new Date(moment.date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
@@ -187,6 +189,7 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
       queryClient.invalidateQueries({ queryKey: ['moments'] });
       toast.success('Moment created!');
       onClose();
+      checkAchievements();
     },
     onError: () => toast.error('Failed to create moment'),
   });

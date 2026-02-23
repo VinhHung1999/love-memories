@@ -4,7 +4,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ChefHat, Plus, X, CheckCircle2, Clock, Sparkles, FileText, Youtube, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { recipesApi, foodSpotsApi, aiApi } from '../lib/api';
+import { recipesApi, foodSpotsApi, aiApi, settingsApi } from '../lib/api';
+import { useCheckAchievements } from '../lib/achievements';
 import type { Recipe } from '../types';
 
 function formatVnd(price: number): string {
@@ -184,6 +185,7 @@ function AIRecipeModal({
   onClose: () => void;
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
+  const checkAchievements = useCheckAchievements();
   const [phase, setPhase] = useState<AIPhase>('input');
   const [mode, setMode] = useState<'text' | 'youtube'>('text');
   const [input, setInput] = useState('');
@@ -260,6 +262,8 @@ function AIRecipeModal({
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
       toast.success('Công thức đã được lưu!');
       handleClose();
+      settingsApi.set('ai_recipe_created', 'true').catch(() => {});
+      checkAchievements();
     },
     onError: () => toast.error('Không thể lưu công thức'),
   });
@@ -515,6 +519,7 @@ export function RecipeFormModal({
   queryClient: ReturnType<typeof useQueryClient>;
   defaultFoodSpotId?: string;
 }) {
+  const checkAchievements = useCheckAchievements();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [ingredients, setIngredients] = useState<string[]>(['']);
@@ -573,6 +578,7 @@ export function RecipeFormModal({
       toast.success('Recipe added!');
       onClose();
       reset();
+      checkAchievements();
     },
     onError: () => toast.error('Failed to add recipe'),
   });
