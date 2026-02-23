@@ -81,8 +81,10 @@ export default function MomentDetail() {
     },
   });
 
-  // Comments
+  // Comments + emoji picker
   const [commentText, setCommentText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const commentInputRef = useRef<HTMLTextAreaElement | undefined>(undefined);
   const addCommentMutation = useMutation({
     mutationFn: (content: string) =>
       momentsApi.addComment(id!, { author: user?.name ?? 'Anon', content }),
@@ -339,29 +341,135 @@ export default function MomentDetail() {
           </div>
         )}
 
-      </div>
+        {/* ── Reactions summary (Facebook-style) ─────────────────────── */}
+        {(() => {
+          const uniqueEmojis = [...new Set(moment.reactions.map((r) => r.emoji))];
+          if (uniqueEmojis.length === 0) return null;
+          return (
+            <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-gray-100">
+              <div className="flex -space-x-0.5">
+                {uniqueEmojis.slice(0, 4).map((emoji) => (
+                  <span key={emoji} className="text-base">{emoji}</span>
+                ))}
+              </div>
+              <span className="text-xs text-text-light">{moment.reactions.length} reactions</span>
+            </div>
+          );
+        })()}
 
-      {/* ── REACTIONS BAR ─────────────────────────────────────────────── */}
-      <div className="mt-4 bg-white rounded-2xl px-4 py-3">
-        <div className="flex flex-wrap gap-2">
-          {PRESET_EMOJIS.map((emoji) => {
-            const reacted = moment.reactions.some((r) => r.emoji === emoji && r.author === (user?.name ?? 'Anon'));
-            const count = moment.reactions.filter((r) => r.emoji === emoji).length;
-            return (
+        {/* ── Action row (Facebook-style) ─────────────────────────────── */}
+        {(() => {
+          const heartReacted = moment.reactions.some((r) => r.emoji === '❤️' && r.author === (user?.name ?? 'Anon'));
+          return (
+            <div className="flex items-center border-t border-gray-100 mt-3 -mx-6 px-1">
               <button
-                key={emoji}
-                onClick={() => toggleReactionMutation.mutate(emoji)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border transition-all active:scale-95 ${
-                  reacted
-                    ? 'bg-primary/10 border-primary/30 text-primary font-medium'
-                    : 'bg-gray-50 border-gray-200 text-text-light hover:bg-gray-100'
+                onClick={() => toggleReactionMutation.mutate('❤️')}
+                className={`flex items-center justify-center gap-1.5 flex-1 py-2.5 text-sm font-medium rounded-xl transition-colors ${
+                  heartReacted ? 'text-primary' : 'text-text-light hover:bg-gray-50'
                 }`}
               >
-                <span>{emoji}</span>
-                {count > 0 && <span className="text-xs">{count}</span>}
+                <span>{heartReacted ? '❤️' : '🤍'}</span> Thích
               </button>
-            );
-          })}
+              <button
+                onClick={() => { setShowEmojiPicker(false); setTimeout(() => commentInputRef.current?.focus(), 50); }}
+                className="flex items-center justify-center gap-1.5 flex-1 py-2.5 text-sm font-medium text-text-light hover:bg-gray-50 rounded-xl transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" /> Bình luận
+              </button>
+              <button
+                onClick={() => setShowEmojiPicker((v) => !v)}
+                className={`flex items-center justify-center px-4 py-2.5 text-xl rounded-xl transition-colors ${
+                  showEmojiPicker ? 'bg-gray-100' : 'hover:bg-gray-50'
+                }`}
+                title="Chọn emoji"
+              >
+                😊
+              </button>
+            </div>
+          );
+        })()}
+
+        {/* ── Emoji picker row ─────────────────────────────────────────── */}
+        {showEmojiPicker && (
+          <div className="flex flex-wrap gap-1.5 pt-2 pb-1">
+            {PRESET_EMOJIS.map((emoji) => {
+              const reacted = moment.reactions.some((r) => r.emoji === emoji && r.author === (user?.name ?? 'Anon'));
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => { toggleReactionMutation.mutate(emoji); setShowEmojiPicker(false); }}
+                  className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all active:scale-90 ${
+                    reacted ? 'bg-primary/10 ring-2 ring-primary/20' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Comments inline ──────────────────────────────────────────── */}
+        <div className="mt-1 border-t border-gray-100 pt-3">
+          {moment.comments.length === 0 ? (
+            <p className="text-xs text-text-light text-center py-2">Chưa có bình luận nào</p>
+          ) : (
+            <div className="space-y-3 mb-4">
+              {moment.comments.map((comment) => {
+                const initials = comment.author.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+                return (
+                  <div key={comment.id} className="flex gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-primary">
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xs font-semibold text-text">{comment.author}</span>
+                        <span className="text-[10px] text-text-light">
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: vi })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-text mt-0.5 leading-snug">{comment.content}</p>
+                    </div>
+                    <button
+                      onClick={() => { if (window.confirm('Xóa bình luận này?')) deleteCommentMutation.mutate(comment.id); }}
+                      className="flex-shrink-0 text-gray-300 hover:text-red-400 p-1 rounded transition-colors self-start"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Comment input */}
+          <div className="flex gap-2 items-end mt-2">
+            <textarea
+              ref={(el) => { commentInputRef.current = el ?? undefined; }}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Viết bình luận..."
+              rows={1}
+              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                  e.preventDefault();
+                  addCommentMutation.mutate(commentText.trim());
+                }
+              }}
+            />
+            <button
+              onClick={() => { if (commentText.trim()) addCommentMutation.mutate(commentText.trim()); }}
+              disabled={addCommentMutation.isPending || !commentText.trim()}
+              className="flex-shrink-0 w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
+            >
+              {addCommentMutation.isPending
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Send className="w-4 h-4" />
+              }
+            </button>
+          </div>
         </div>
       </div>
 
@@ -417,77 +525,6 @@ export default function MomentDetail() {
               </button>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* ── COMMENTS ──────────────────────────────────────────────────── */}
-      <div className="mt-4 bg-white rounded-2xl p-4">
-        <h3 className="text-sm font-semibold flex items-center gap-1.5 mb-3">
-          <MessageCircle className="w-4 h-4 text-primary" />
-          Comments
-          {moment.comments.length > 0 && (
-            <span className="ml-1 text-xs text-text-light font-normal">({moment.comments.length})</span>
-          )}
-        </h3>
-
-        {/* Comment list */}
-        {moment.comments.length === 0 ? (
-          <p className="text-xs text-text-light text-center py-2">Chưa có bình luận nào</p>
-        ) : (
-          <div className="space-y-3 mb-4">
-            {moment.comments.map((comment) => {
-              const initials = comment.author.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
-              return (
-                <div key={comment.id} className="flex gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-primary">
-                    {initials}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-text">{comment.author}</span>
-                      <span className="text-[10px] text-text-light">
-                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: vi })}
-                      </span>
-                    </div>
-                    <p className="text-sm text-text mt-0.5 leading-snug">{comment.content}</p>
-                  </div>
-                  <button
-                    onClick={() => { if (window.confirm('Xóa bình luận này?')) deleteCommentMutation.mutate(comment.id); }}
-                    className="flex-shrink-0 text-gray-300 hover:text-red-400 p-1 rounded transition-colors self-start"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Comment input */}
-        <div className="flex gap-2 items-end">
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Viết bình luận..."
-            rows={2}
-            className="flex-1 border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
-                e.preventDefault();
-                addCommentMutation.mutate(commentText.trim());
-              }
-            }}
-          />
-          <button
-            onClick={() => { if (commentText.trim()) addCommentMutation.mutate(commentText.trim()); }}
-            disabled={addCommentMutation.isPending || !commentText.trim()}
-            className="flex-shrink-0 w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
-          >
-            {addCommentMutation.isPending
-              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <Send className="w-4 h-4" />
-            }
-          </button>
         </div>
       </div>
 
