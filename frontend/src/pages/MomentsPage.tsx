@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import { useCheckAchievements } from '../lib/achievements';
 import type { Moment } from '../types';
 import Modal from '../components/Modal';
@@ -181,7 +182,13 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
       };
       const created = await momentsApi.create(data);
       if (photos.length > 0) {
-        await momentsApi.uploadPhotos(created.id, photos);
+        const label = photos.length === 1 ? `Đang tải ${photos[0]?.name ?? 'ảnh'}` : `Đang tải ${photos.length} ảnh...`;
+        uploadQueue.enqueue(
+          `moment-photos-${created.id}-${Date.now()}`,
+          label,
+          (onProgress) => momentsApi.uploadPhotos(created.id, photos, onProgress),
+          () => queryClient.invalidateQueries({ queryKey: ['moments'] }),
+        );
       }
       return created;
     },
@@ -208,7 +215,13 @@ function MomentFormModal({ open, onClose, moment }: { open: boolean; onClose: ()
       };
       const updated = await momentsApi.update(moment!.id, data);
       if (photos.length > 0) {
-        await momentsApi.uploadPhotos(moment!.id, photos);
+        const label = photos.length === 1 ? `Đang tải ${photos[0]?.name ?? 'ảnh'}` : `Đang tải ${photos.length} ảnh...`;
+        uploadQueue.enqueue(
+          `moment-photos-${moment!.id}-${Date.now()}`,
+          label,
+          (onProgress) => momentsApi.uploadPhotos(moment!.id, photos, onProgress),
+          () => queryClient.invalidateQueries({ queryKey: ['moments'] }),
+        );
       }
       return updated;
     },

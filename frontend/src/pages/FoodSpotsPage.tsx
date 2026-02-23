@@ -5,6 +5,7 @@ import { Utensils, Plus, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import { useCheckAchievements } from '../lib/achievements';
 import type { FoodSpot } from '../types';
 import Modal from '../components/Modal';
@@ -177,7 +178,13 @@ function FoodSpotFormModal({ open, onClose }: { open: boolean; onClose: () => vo
       };
       const created = await foodSpotsApi.create(data);
       if (photos.length > 0) {
-        await foodSpotsApi.uploadPhotos(created.id, photos);
+        const label = photos.length === 1 ? `Đang tải ${photos[0]?.name ?? 'ảnh'}` : `Đang tải ${photos.length} ảnh...`;
+        uploadQueue.enqueue(
+          `foodspot-photos-${created.id}-${Date.now()}`,
+          label,
+          (onProgress) => foodSpotsApi.uploadPhotos(created.id, photos, onProgress),
+          () => queryClient.invalidateQueries({ queryKey: ['foodspots'] }),
+        );
       }
       return created;
     },
