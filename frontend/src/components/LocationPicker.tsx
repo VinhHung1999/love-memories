@@ -50,8 +50,9 @@ export default function LocationPicker({ latitude, longitude, location, onChange
         return;
       }
       const { latitude: lat, longitude: lng, name } = data as { latitude?: number; longitude?: number; name: string };
-      // Extract business name (part before first comma) to prepend to address
-      const businessName = (name.split(',')[0] ?? name).trim();
+      // Extract business name — skip if name is just coordinates
+      const isCoords = /^-?\d+\.?\d*,\s*-?\d+\.?\d*$/.test(name.trim());
+      const businessName = isCoords ? '' : (name.split(',')[0] ?? name).trim();
 
       if (lat != null && lng != null) {
         // Got coordinates — reverse geocode with Mapbox for full address
