@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, User, LogOut } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, User, LogOut, Settings } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
+import { settingsApi } from '../lib/api';
 import Modal from '../components/Modal';
 
 const modules = [
@@ -37,8 +40,32 @@ const modules = [
 
 export default function MorePage() {
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
+
+  // App customization
+  const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
+  const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
+  const [appNameInput, setAppNameInput] = useState('');
+  const [appSloganInput, setAppSloganInput] = useState('');
+
+  // Sync inputs when settings load (only on first load)
+  useEffect(() => { if (appNameSetting?.value != null) setAppNameInput(appNameSetting.value); }, [appNameSetting?.value]);
+  useEffect(() => { if (appSloganSetting?.value != null) setAppSloganInput(appSloganSetting.value); }, [appSloganSetting?.value]);
+
+  const saveCustomMutation = useMutation({
+    mutationFn: async () => {
+      await settingsApi.set('app_name', appNameInput.trim() || 'Love Scrum');
+      await settingsApi.set('app_slogan', appSloganInput.trim() || 'Our little world, beautifully organized');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings', 'app_name'] });
+      queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
+      toast.success('Đã lưu!');
+    },
+    onError: () => toast.error('Không thể lưu'),
+  });
 
   const initials = (user?.name ?? 'U')
     .split(' ')
@@ -87,6 +114,40 @@ export default function MorePage() {
             <p className="text-text-light text-xs mt-0.5">{description}</p>
           </Link>
         ))}
+      </div>
+
+      {/* App Customization */}
+      <div className="mt-6">
+        <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
+          <Settings className="w-4 h-4 text-text-light" /> Tùy chỉnh
+        </h2>
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-text-light mb-1">Tên app</label>
+            <input
+              value={appNameInput}
+              onChange={(e) => setAppNameInput(e.target.value)}
+              placeholder="Love Scrum"
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-light mb-1">Slogan</label>
+            <input
+              value={appSloganInput}
+              onChange={(e) => setAppSloganInput(e.target.value)}
+              placeholder="Our little world, beautifully organized"
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <button
+            onClick={() => saveCustomMutation.mutate()}
+            disabled={saveCustomMutation.isPending}
+            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+          </button>
+        </div>
       </div>
 
       {/* Log Out */}

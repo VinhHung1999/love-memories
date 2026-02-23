@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi } from '../lib/api';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi } from '../lib/api';
 import type { CookingSession } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
@@ -21,6 +21,11 @@ export default function Dashboard() {
     // Refetch every 30s — enough to keep the pin current without hammering the server
     refetchInterval: 30_000,
   });
+
+  const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
+  const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
+  const appName = appNameSetting?.value || 'Love Scrum';
+  const appSlogan = appSloganSetting?.value || 'Our little world, beautifully organized';
 
   const activeSprint = sprints.find((s) => s.status === 'ACTIVE');
   const recentMoments = moments.slice(0, 3);
@@ -74,9 +79,9 @@ export default function Dashboard() {
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <Heart className="w-6 h-6 text-primary fill-primary" />
-          <h1 className="font-heading text-3xl font-bold">Love Scrum</h1>
+          <h1 className="font-heading text-3xl font-bold">{appName}</h1>
         </div>
-        <p className="text-text-light text-sm">Our little world, beautifully organized</p>
+        <p className="text-text-light text-sm">{appSlogan}</p>
       </div>
 
       {/* ── ACTIVE COOKING SESSION PIN ────────────────────────────────── */}
