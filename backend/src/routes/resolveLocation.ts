@@ -135,7 +135,27 @@ router.post('/', async (req: Request, res: Response) => {
     if (coords) {
       res.json({ latitude: coords.lat, longitude: coords.lng, name: name ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` });
     } else if (name) {
-      // No coords (e.g. Google Share → Google Search redirect) — return name for frontend geocoding
+      // No coords from URL — try fetching Google Maps search page to scrape coords from HTML
+      try {
+        const mapsRes = await fetch(`https://www.google.com/maps?q=${encodeURIComponent(name)}`, {
+          method: 'GET', redirect: 'follow',
+          headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15' },
+          signal: AbortSignal.timeout(10_000),
+        });
+        const html = await mapsRes.text();
+        // Pattern in Google Maps HTML: ,lng,lat] where lng~106.x and lat~10.x (Vietnam)
+        const coordMatch = html.match(/,(-?\d{1,3}\.\d{4,}),(-?\d{1,3}\.\d{4,})\]/);
+        if (coordMatch) {
+          const v1 = parseFloat(coordMatch[1]);
+          const v2 = parseFloat(coordMatch[2]);
+          // Determine which is lat and which is lng (lat: -90..90, lng: -180..180 & |lng|>90)
+          const [lat, lng] = Math.abs(v1) > 90 ? [v2, v1] : [v1, v2];
+          if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            res.json({ latitude: lat, longitude: lng, name });
+            return;
+          }
+        }
+      } catch { /* fallback to name-only */ }
       res.json({ name });
     } else {
       res.status(422).json({ error: 'Could not extract coordinates or place name from URL' });
