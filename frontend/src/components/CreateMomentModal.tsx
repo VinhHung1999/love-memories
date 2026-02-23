@@ -10,7 +10,9 @@ interface CreateMomentModalProps {
   onClose: () => void;
   /** Called with the newly created moment's id after successful creation */
   onCreated: (momentId: string) => void;
-  /** Pre-fill location from a stop */
+  /** Pre-fill fields from a stop */
+  initialTitle?: string | null;
+  initialCaption?: string | null;
   initialLocation?: string | null;
   initialLatitude?: number | null;
   initialLongitude?: number | null;
@@ -20,14 +22,16 @@ export default function CreateMomentModal({
   open,
   onClose,
   onCreated,
+  initialTitle,
+  initialCaption,
   initialLocation,
   initialLatitude,
   initialLongitude,
 }: CreateMomentModalProps) {
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState('');
-  const [caption, setCaption] = useState('');
+  const [title, setTitle] = useState(initialTitle ?? '');
+  const [caption, setCaption] = useState(initialCaption ?? '');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [location, setLocation] = useState(initialLocation ?? '');
   const [latitude, setLatitude] = useState<number | null>(initialLatitude ?? null);
@@ -40,8 +44,8 @@ export default function CreateMomentModal({
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open) {
-      setTitle('');
-      setCaption('');
+      setTitle(initialTitle ?? '');
+      setCaption(initialCaption ?? '');
       setDate(new Date().toISOString().slice(0, 10));
       setLocation(initialLocation ?? '');
       setLatitude(initialLatitude ?? null);

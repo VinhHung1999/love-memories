@@ -13,7 +13,9 @@ interface CreateFoodSpotModalProps {
   onClose: () => void;
   /** Called with the newly created food spot's id after successful creation */
   onCreated: (foodSpotId: string) => void;
-  /** Pre-fill location from a stop */
+  /** Pre-fill fields from a stop */
+  initialName?: string | null;
+  initialDescription?: string | null;
   initialLocation?: string | null;
   initialLatitude?: number | null;
   initialLongitude?: number | null;
@@ -23,14 +25,16 @@ export default function CreateFoodSpotModal({
   open,
   onClose,
   onCreated,
+  initialName,
+  initialDescription,
   initialLocation,
   initialLatitude,
   initialLongitude,
 }: CreateFoodSpotModalProps) {
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState(initialName ?? '');
+  const [description, setDescription] = useState(initialDescription ?? '');
   const [rating, setRating] = useState(0);
   const [priceRange, setPriceRange] = useState(2);
   const [location, setLocation] = useState(initialLocation ?? '');
@@ -44,8 +48,8 @@ export default function CreateFoodSpotModal({
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open) {
-      setName('');
-      setDescription('');
+      setName(initialName ?? '');
+      setDescription(initialDescription ?? '');
       setRating(0);
       setPriceRange(2);
       setLocation(initialLocation ?? '');

@@ -384,6 +384,8 @@ export default function DatePlanDetailPage() {
           <CreateMomentModal
             open={selectedStopForMoment !== null}
             onClose={() => setSelectedStopForMoment(null)}
+            initialTitle={selectedStop?.title}
+            initialCaption={selectedStop?.description}
             initialLocation={selectedStop?.address}
             initialLatitude={selectedStop?.latitude}
             initialLongitude={selectedStop?.longitude}
@@ -405,6 +407,8 @@ export default function DatePlanDetailPage() {
           <CreateFoodSpotModal
             open={selectedStopForFoodSpot !== null}
             onClose={() => setSelectedStopForFoodSpot(null)}
+            initialName={selectedStop?.title}
+            initialDescription={selectedStop?.description}
             initialLocation={selectedStop?.address}
             initialLatitude={selectedStop?.latitude}
             initialLongitude={selectedStop?.longitude}
