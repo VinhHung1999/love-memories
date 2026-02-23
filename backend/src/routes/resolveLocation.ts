@@ -74,12 +74,15 @@ function extractCoords(url: string): { lat: number; lng: number } | null {
 
 function extractPlaceName(url: string): string | null {
   try {
-    const { pathname } = new URL(url);
+    const parsed = new URL(url);
     // /maps/place/{name}/ or /maps/place/{name}/@...
-    const m = pathname.match(/\/maps\/place\/([^/@?&]+)/);
+    const m = parsed.pathname.match(/\/maps\/place\/([^/@?&]+)/);
     if (m) {
       return decodeURIComponent(m[1].replace(/\+/g, ' '));
     }
+    // Fallback: extract q= parameter (Google Search redirect for share links)
+    const q = parsed.searchParams.get('q');
+    if (q) return q;
   } catch {
     // ignore
   }
@@ -114,14 +117,16 @@ router.post('/', async (req: Request, res: Response) => {
     const finalUrl = response.url;
 
     const coords = extractCoords(finalUrl);
-    if (!coords) {
-      res.status(422).json({ error: 'Could not extract coordinates from URL' });
-      return;
+    const name = extractPlaceName(finalUrl);
+
+    if (coords) {
+      res.json({ latitude: coords.lat, longitude: coords.lng, name: name ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` });
+    } else if (name) {
+      // No coords (e.g. Google Share → Google Search redirect) — return name for frontend geocoding
+      res.json({ name });
+    } else {
+      res.status(422).json({ error: 'Could not extract coordinates or place name from URL' });
     }
-
-    const name = extractPlaceName(finalUrl) ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
-
-    res.json({ latitude: coords.lat, longitude: coords.lng, name });
   } catch (err) {
     res.status(500).json({ error: 'Failed to resolve URL' });
   }

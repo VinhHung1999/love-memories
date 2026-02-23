@@ -49,23 +49,30 @@ export default function LocationPicker({ latitude, longitude, location, onChange
         setResolvingUrl(false);
         return;
       }
-      const { latitude: lat, longitude: lng, name } = data as { latitude: number; longitude: number; name: string };
-      // Reverse geocode with Mapbox for a full address, fall back to returned name
-      let placeName = name;
-      if (token) {
-        try {
-          const geoRes = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
-          );
-          const geoData = await geoRes.json();
-          placeName = geoData.features?.[0]?.place_name || name;
-        } catch {
-          // keep name from backend
+      const { latitude: lat, longitude: lng, name } = data as { latitude?: number; longitude?: number; name: string };
+
+      if (lat != null && lng != null) {
+        // Got coordinates — reverse geocode with Mapbox for full address
+        let placeName = name;
+        if (token) {
+          try {
+            const geoRes = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
+            );
+            const geoData = await geoRes.json();
+            placeName = geoData.features?.[0]?.place_name || name;
+          } catch { /* keep name */ }
         }
+        onChange({ latitude: lat, longitude: lng, location: placeName });
+        setQuery(placeName);
+        updateMarker(lng, lat);
+      } else {
+        // Name only (no coords) — forward geocode with Mapbox
+        setQuery(name);
+        setResolvingUrl(false);
+        await searchLocation(name);
+        return;
       }
-      onChange({ latitude: lat, longitude: lng, location: placeName });
-      setQuery(placeName);
-      updateMarker(lng, lat);
     } catch {
       // silent fail — user can still search manually
     }
