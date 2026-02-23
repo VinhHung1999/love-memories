@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, Share2, Copy, Check } from 'lucide-react';
 import { downloadCanvas } from '../../lib/photobooth/canvas-utils';
+import { useAppName } from '../../lib/useAppName';
 
 interface Props {
   resultCanvas: HTMLCanvasElement | null;
@@ -12,13 +13,15 @@ async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 }
 
 export default function SharePanel({ resultCanvas, disabled }: Props) {
+  const appName = useAppName();
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
 
   const isDisabled = disabled || !resultCanvas;
+  const filename = `${appName.toLowerCase().replace(/\s+/g, '-')}-photo-booth.png`;
 
   const handleDownload = () => {
-    if (resultCanvas) downloadCanvas(resultCanvas, 'love-scrum-photo-booth.png');
+    if (resultCanvas) downloadCanvas(resultCanvas, filename);
   };
 
   const handleShare = async () => {
@@ -26,9 +29,9 @@ export default function SharePanel({ resultCanvas, disabled }: Props) {
     setSharing(true);
     try {
       const blob = await canvasToBlob(resultCanvas);
-      const file = new File([blob], 'love-scrum-photo-booth.png', { type: 'image/png' });
+      const file = new File([blob], filename, { type: 'image/png' });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Love Scrum Photo Booth ♥' });
+        await navigator.share({ files: [file], title: `${appName} Photo Booth ♥` });
       } else {
         handleDownload();
       }

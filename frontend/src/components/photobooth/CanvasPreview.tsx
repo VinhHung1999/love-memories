@@ -6,6 +6,7 @@ import type { PlacedSticker } from '../../lib/photobooth/stickers';
 import { drawStickerOnCanvas } from '../../lib/photobooth/stickers';
 import { drawOverlayOnCanvas } from '../../lib/photobooth/overlays';
 import SharePanel from './SharePanel';
+import { useAppName } from '../../lib/useAppName';
 
 interface Props {
   frameId: string;
@@ -28,6 +29,7 @@ export default function CanvasPreview({
   const dragOffset = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
 
   const frame = FRAMES.find((f) => f.id === frameId);
+  const appName = useAppName();
 
   useEffect(() => {
     if (!frame || photoUrls.length === 0) return;
@@ -40,7 +42,7 @@ export default function CanvasPreview({
         const images = await Promise.all(photoUrls.map((url) => loadImage(url)));
 
         // Render frame base — pass empty stickers so we can composite in correct order below
-        const base = await frame.render(images, filterId, [], { frameColor });
+        const base = await frame.render(images, filterId, [], { frameColor, appName });
         if (cancelled) return;
 
         // Composite: base → overlay → stickers (correct layer order for both download and preview)
@@ -73,7 +75,7 @@ export default function CanvasPreview({
     })();
 
     return () => { cancelled = true; };
-  }, [frame, photoUrls, filterId, stickers, frameColor, overlayId]);
+  }, [frame, photoUrls, filterId, stickers, frameColor, overlayId, appName]);
 
   // ── drag props ─────────────────────────────────────────────────────────────
 

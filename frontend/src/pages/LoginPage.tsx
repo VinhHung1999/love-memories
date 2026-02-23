@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { useAppName } from '../lib/useAppName';
 
 export default function LoginPage() {
   const { login, register } = useAuth();
+  const appName = useAppName();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,7 +38,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
             <Heart className="w-8 h-8 text-white fill-white" />
           </div>
-          <h1 className="font-heading text-3xl font-bold text-gray-900">Love Scrum</h1>
+          <h1 className="font-heading text-3xl font-bold text-gray-900">{appName}</h1>
           <p className="text-text-light text-sm mt-1">Our little world 🌸</p>
         </div>
 

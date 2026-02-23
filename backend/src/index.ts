@@ -38,7 +38,7 @@ app.use('/api/foodspots', requireAuth, foodSpotRoutes);
 app.use('/api/map', requireAuth, mapRoutes);
 app.use('/api/sprints', requireAuth, sprintRoutes);
 app.use('/api/goals', requireAuth, goalRoutes);
-app.use('/api/settings', requireAuth, settingsRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api/tags', requireAuth, tagRoutes);
 app.use('/api/recipes', requireAuth, recipeRoutes);
 app.use('/api/cooking-sessions', requireAuth, cookingSessionRoutes);
