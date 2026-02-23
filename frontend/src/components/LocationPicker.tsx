@@ -50,6 +50,8 @@ export default function LocationPicker({ latitude, longitude, location, onChange
         return;
       }
       const { latitude: lat, longitude: lng, name } = data as { latitude?: number; longitude?: number; name: string };
+      // Extract business name (part before first comma) to prepend to address
+      const businessName = (name.split(',')[0] ?? name).trim();
 
       if (lat != null && lng != null) {
         // Got coordinates — reverse geocode with Mapbox for full address
@@ -60,7 +62,8 @@ export default function LocationPicker({ latitude, longitude, location, onChange
               `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
             );
             const geoData = await geoRes.json();
-            placeName = geoData.features?.[0]?.place_name || name;
+            const addr = cleanPlaceName(geoData.features?.[0]?.place_name || '');
+            placeName = addr && !addr.includes(businessName) ? `${businessName}, ${addr}` : addr || name;
           } catch { /* keep name */ }
         }
         onChange({ latitude: lat, longitude: lng, location: placeName });
@@ -76,7 +79,8 @@ export default function LocationPicker({ latitude, longitude, location, onChange
         const first = geoData.features?.[0];
         if (first) {
           const [fLng, fLat] = first.center;
-          const placeName = cleanPlaceName(first.place_name);
+          const addr = cleanPlaceName(first.place_name);
+          const placeName = addr.includes(businessName) ? addr : `${businessName}, ${addr}`;
           onChange({ latitude: fLat, longitude: fLng, location: placeName });
           setQuery(placeName);
           updateMarker(fLng, fLat);
