@@ -5,11 +5,13 @@ import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check } fr
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
-import { datePlansApi } from '../lib/api';
-import type { DatePlan, DatePlanStop } from '../types';
+import { datePlansApi, momentsApi, foodSpotsApi } from '../lib/api';
+import type { DatePlan, DatePlanStop, Moment, FoodSpot } from '../types';
 import CreateMomentModal from '../components/CreateMomentModal';
 import CreateFoodSpotModal from '../components/CreateFoodSpotModal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
+import MomentCard from '../components/MomentCard';
+import FoodSpotCard from '../components/FoodSpotCard';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +59,22 @@ export default function DatePlanDetailPage() {
     queryKey: ['date-plans', id],
     queryFn: () => datePlansApi.get(id!),
     refetchInterval: 60_000, // refresh every 60s to update current-stop indicator
+  });
+
+  const isCompleted = plan?.status === 'completed';
+
+  const { data: allMoments = [] } = useQuery<Moment[]>({
+    queryKey: ['moments'],
+    queryFn: momentsApi.list,
+    enabled: isCompleted,
+    staleTime: 30_000,
+  });
+
+  const { data: allFoodSpots = [] } = useQuery<FoodSpot[]>({
+    queryKey: ['foodspots'],
+    queryFn: foodSpotsApi.list,
+    enabled: isCompleted,
+    staleTime: 30_000,
   });
 
   const statusMutation = useMutation({
@@ -165,6 +183,13 @@ export default function DatePlanDetailPage() {
   const s = STATUS_STYLE[plan.status] ?? { label: 'Sắp tới', cls: 'bg-gray-100 text-gray-500' };
   const allDone = stops.length > 0 && doneCount === stops.length;
 
+  // Gallery — collect IDs linked from stops, then filter from full lists
+  const linkedMomentIds = new Set(stops.map((st) => st.linkedMomentId).filter(Boolean) as string[]);
+  const linkedFoodSpotIds = new Set(stops.map((st) => st.linkedFoodSpotId).filter(Boolean) as string[]);
+  const galleryMoments = allMoments.filter((m) => linkedMomentIds.has(m.id));
+  const galleryFoodSpots = allFoodSpots.filter((f) => linkedFoodSpotIds.has(f.id));
+  const hasGallery = galleryMoments.length > 0 || galleryFoodSpots.length > 0;
+
   return (
     <div className="max-w-lg mx-auto pb-24">
       {/* Back + header */}
@@ -194,8 +219,8 @@ export default function DatePlanDetailPage() {
         )}
       </div>
 
-      {/* Progress */}
-      {stops.length > 0 && (
+      {/* Progress — hidden when completed */}
+      {stops.length > 0 && !isCompleted && (
         <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-text">Tiến độ</p>
@@ -375,6 +400,27 @@ export default function DatePlanDetailPage() {
               <p className="text-2xl mb-2">🎊</p>
               <p className="font-semibold text-green-600">Buổi hẹn hò tuyệt vời!</p>
               <p className="text-xs text-text-light mt-1">Đã hoàn thành — {doneCount}/{stops.length} địa điểm</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Gallery — shown only when completed */}
+      {isCompleted && (
+        <div className="mt-4">
+          <h2 className="font-heading text-base font-semibold mb-3">Kỷ niệm từ buổi hẹn</h2>
+          {hasGallery ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {galleryMoments.map((m) => (
+                <MomentCard key={m.id} moment={m} />
+              ))}
+              {galleryFoodSpots.map((f) => (
+                <FoodSpotCard key={f.id} foodSpot={f} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-6 shadow-sm text-center text-text-light text-sm">
+              Chưa có kỷ niệm nào được lưu từ buổi hẹn này.
             </div>
           )}
         </div>
