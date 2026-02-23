@@ -1,18 +1,23 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus, Mic, Square, Play, Pause } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus, Mic, Square, Play, Pause, MessageCircle, Send } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import { useRef, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import PhotoGallery from '../components/PhotoGallery';
 import MomentEditModal from '../components/MomentEditModal';
 import Modal from '../components/Modal';
+
+const PRESET_EMOJIS = ['❤️', '😂', '😍', '🥺', '🔥', '👏', '😢', '🎉'];
 
 export default function MomentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
@@ -74,6 +79,47 @@ export default function MomentDetail() {
       queryClient.invalidateQueries({ queryKey: ['moments', id] });
       toast.success('Voice memo deleted');
     },
+  });
+
+  // Comments
+  const [commentText, setCommentText] = useState('');
+  const addCommentMutation = useMutation({
+    mutationFn: (content: string) =>
+      momentsApi.addComment(id!, { author: user?.name ?? 'Anon', content }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['moments', id] });
+      setCommentText('');
+    },
+    onError: () => toast.error('Không thể gửi bình luận'),
+  });
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: string) => momentsApi.deleteComment(id!, commentId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['moments', id] }),
+    onError: () => toast.error('Không thể xóa bình luận'),
+  });
+
+  // Reactions — optimistic update
+  const toggleReactionMutation = useMutation({
+    mutationFn: (emoji: string) =>
+      momentsApi.toggleReaction(id!, { emoji, author: user?.name ?? 'Anon' }),
+    onMutate: async (emoji) => {
+      await queryClient.cancelQueries({ queryKey: ['moments', id] });
+      const prev = queryClient.getQueryData<typeof moment>(['moments', id]);
+      if (prev) {
+        const author = user?.name ?? 'Anon';
+        const existing = prev.reactions.find((r) => r.emoji === emoji && r.author === author);
+        const nextReactions = existing
+          ? prev.reactions.filter((r) => r.id !== existing.id)
+          : [...prev.reactions, { id: `opt-${Date.now()}`, momentId: id!, emoji, author, createdAt: new Date().toISOString() }];
+        queryClient.setQueryData(['moments', id], { ...prev, reactions: nextReactions });
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['moments', id], ctx.prev);
+      toast.error('Không thể cập nhật reaction');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['moments', id] }),
   });
 
   const startRecording = useCallback(async () => {
@@ -295,6 +341,30 @@ export default function MomentDetail() {
 
       </div>
 
+      {/* ── REACTIONS BAR ─────────────────────────────────────────────── */}
+      <div className="mt-4 bg-white rounded-2xl px-4 py-3">
+        <div className="flex flex-wrap gap-2">
+          {PRESET_EMOJIS.map((emoji) => {
+            const reacted = moment.reactions.some((r) => r.emoji === emoji && r.author === (user?.name ?? 'Anon'));
+            const count = moment.reactions.filter((r) => r.emoji === emoji).length;
+            return (
+              <button
+                key={emoji}
+                onClick={() => toggleReactionMutation.mutate(emoji)}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border transition-all active:scale-95 ${
+                  reacted
+                    ? 'bg-primary/10 border-primary/30 text-primary font-medium'
+                    : 'bg-gray-50 border-gray-200 text-text-light hover:bg-gray-100'
+                }`}
+              >
+                <span>{emoji}</span>
+                {count > 0 && <span className="text-xs">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Voice Memos */}
       <div className="mt-4 bg-white rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
@@ -347,6 +417,77 @@ export default function MomentDetail() {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ── COMMENTS ──────────────────────────────────────────────────── */}
+      <div className="mt-4 bg-white rounded-2xl p-4">
+        <h3 className="text-sm font-semibold flex items-center gap-1.5 mb-3">
+          <MessageCircle className="w-4 h-4 text-primary" />
+          Comments
+          {moment.comments.length > 0 && (
+            <span className="ml-1 text-xs text-text-light font-normal">({moment.comments.length})</span>
+          )}
+        </h3>
+
+        {/* Comment list */}
+        {moment.comments.length === 0 ? (
+          <p className="text-xs text-text-light text-center py-2">Chưa có bình luận nào</p>
+        ) : (
+          <div className="space-y-3 mb-4">
+            {moment.comments.map((comment) => {
+              const initials = comment.author.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+              return (
+                <div key={comment.id} className="flex gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-primary">
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xs font-semibold text-text">{comment.author}</span>
+                      <span className="text-[10px] text-text-light">
+                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: vi })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-text mt-0.5 leading-snug">{comment.content}</p>
+                  </div>
+                  <button
+                    onClick={() => { if (window.confirm('Xóa bình luận này?')) deleteCommentMutation.mutate(comment.id); }}
+                    className="flex-shrink-0 text-gray-300 hover:text-red-400 p-1 rounded transition-colors self-start"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Comment input */}
+        <div className="flex gap-2 items-end">
+          <textarea
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Viết bình luận..."
+            rows={2}
+            className="flex-1 border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                e.preventDefault();
+                addCommentMutation.mutate(commentText.trim());
+              }
+            }}
+          />
+          <button
+            onClick={() => { if (commentText.trim()) addCommentMutation.mutate(commentText.trim()); }}
+            disabled={addCommentMutation.isPending || !commentText.trim()}
+            className="flex-shrink-0 w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
+          >
+            {addCommentMutation.isPending
+              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <Send className="w-4 h-4" />
+            }
+          </button>
         </div>
       </div>
 

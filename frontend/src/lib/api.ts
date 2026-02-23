@@ -1,4 +1,4 @@
-import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement } from '../types';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -72,6 +72,12 @@ export const momentsApi = {
   },
   deleteAudio: (momentId: string, audioId: string) =>
     request(`/moments/${momentId}/audio/${audioId}`, { method: 'DELETE' }),
+  addComment: (momentId: string, data: { author: string; content: string }) =>
+    request<MomentComment>(`/moments/${momentId}/comments`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteComment: (momentId: string, commentId: string) =>
+    request(`/moments/${momentId}/comments/${commentId}`, { method: 'DELETE' }),
+  toggleReaction: (momentId: string, data: { emoji: string; author: string }) =>
+    request<MomentReaction[]>(`/moments/${momentId}/reactions`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
 // Food Spots
