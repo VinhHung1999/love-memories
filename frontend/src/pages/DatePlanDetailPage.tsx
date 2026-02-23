@@ -63,7 +63,8 @@ export default function DatePlanDetailPage() {
     mutationFn: (status: string) => datePlansApi.updateStatus(id!, status),
     onSuccess: (updated) => {
       queryClient.setQueryData(['date-plans', id], updated);
-      queryClient.invalidateQueries({ queryKey: ['date-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['date-plans', id], exact: true });
       if (updated.status === 'completed') {
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
         toast.success('Chúc mừng! Buổi hẹn hò hoàn thành! 🎉');
@@ -77,7 +78,8 @@ export default function DatePlanDetailPage() {
   const stopDoneMutation = useMutation({
     mutationFn: ({ stopId }: { stopId: string }) => datePlansApi.markStopDone(id!, stopId),
     onSuccess: (_, { stopId }) => {
-      queryClient.invalidateQueries({ queryKey: ['date-plans', id] });
+      queryClient.invalidateQueries({ queryKey: ['date-plans', id], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
       toast.success('Đã check!');
       // Auto-complete plan when last stop is marked done
       if (plan && plan.status === 'active' && plan.stops.length > 0) {
