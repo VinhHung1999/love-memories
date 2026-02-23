@@ -788,12 +788,14 @@ function PlanCard({
       </div>
       {/* Actions row */}
       <div className="flex gap-2 mt-3 pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onEdit}
-          className="flex-1 text-xs text-text-light hover:text-primary py-1 transition-colors"
-        >
-          Chỉnh sửa
-        </button>
+        {plan.status !== 'completed' && (
+          <button
+            onClick={onEdit}
+            className="flex-1 text-xs text-text-light hover:text-primary py-1 transition-colors"
+          >
+            Chỉnh sửa
+          </button>
+        )}
         <button
           onClick={onDelete}
           className="flex-1 text-xs text-red-400 hover:text-red-500 py-1 transition-colors"
