@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
@@ -9,6 +9,13 @@ import { datePlansApi } from '../lib/api';
 import type { DatePlan, DatePlanStop } from '../types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+const CATEGORY_ICONS: Record<string, string> = {
+  eating: '🍜', travel: '✈️', entertainment: '🎬', cafe: '☕', shopping: '🛍️',
+};
+function getCategoryIcon(category: string | null): string | null {
+  return category ? (CATEGORY_ICONS[category] ?? null) : null;
+}
 
 function currentTimeStr(): string {
   const now = new Date();
@@ -207,9 +214,12 @@ export default function DatePlanDetailPage() {
                         : ''
                     }`}>
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-sm text-text-light">{stop.time}</span>
+                            {getCategoryIcon(stop.category) && (
+                              <span className="text-base leading-none">{getCategoryIcon(stop.category)}</span>
+                            )}
                             <p className={`font-semibold text-sm ${isDone ? 'line-through text-text-light' : isCurrent ? 'text-blue-700' : 'text-text'}`}>
                               {stop.title}
                             </p>
@@ -225,8 +235,28 @@ export default function DatePlanDetailPage() {
                               {stop.address}
                             </p>
                           )}
+                          {stop.description && (
+                            <p className="text-xs text-text-light mt-0.5">{stop.description}</p>
+                          )}
                           {stop.notes && (
                             <p className="text-xs text-text-light mt-0.5 italic">{stop.notes}</p>
+                          )}
+                          {stop.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {stop.tags.map((t) => (
+                                <span key={t} className="px-1.5 py-0.5 bg-gray-100 text-text-light rounded-full text-xs">{t}</span>
+                              ))}
+                            </div>
+                          )}
+                          {stop.url && (
+                            <a
+                              href={stop.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 flex items-center gap-1 text-xs font-medium text-secondary bg-secondary/10 px-2 py-0.5 rounded-lg w-fit hover:underline"
+                            >
+                              <ExternalLink className="w-3 h-3" /> Xem link
+                            </a>
                           )}
                         </div>
 

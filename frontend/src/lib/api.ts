@@ -212,9 +212,13 @@ export const dateWishesApi = {
 type PlanStopInput = {
   time: string;
   title: string;
+  description?: string;
   address?: string;
   latitude?: number;
   longitude?: number;
+  url?: string;
+  tags?: string[];
+  category?: string;
   notes?: string;
   order: number;
   wishId?: string;

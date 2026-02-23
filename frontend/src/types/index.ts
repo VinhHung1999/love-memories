@@ -251,9 +251,13 @@ export interface DatePlanStop {
   planId: string;
   time: string;
   title: string;
+  description: string | null;
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  url: string | null;
+  tags: string[];
+  category: string | null;
   notes: string | null;
   order: number;
   done: boolean;

@@ -354,20 +354,24 @@ model DatePlan {
 }
 
 model DatePlanStop {
-  id        String   @id @default(uuid())
-  planId    String
-  plan      DatePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  time      String
-  title     String
-  address   String?
-  latitude  Float?
-  longitude Float?
-  notes     String?
-  order     Int
-  done      Boolean  @default(false)
-  doneAt    DateTime?
-  wishId    String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  planId      String
+  plan        DatePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  time        String
+  title       String
+  description String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  url         String?
+  tags        String[] @default([])
+  category    String?
+  notes       String?
+  order       Int
+  done        Boolean  @default(false)
+  doneAt      DateTime?
+  wishId      String?
+  createdAt   DateTime @default(now())
 
   @@map("date_plan_stops")
 }

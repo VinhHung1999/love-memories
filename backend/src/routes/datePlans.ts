@@ -39,6 +39,21 @@ router.get('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
   }
 });
 
+type StopInput = {
+  time: string;
+  title: string;
+  description?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  url?: string;
+  tags?: string[];
+  category?: string;
+  notes?: string;
+  order: number;
+  wishId?: string;
+};
+
 // POST / — create plan + stops
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
@@ -46,16 +61,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       title: string;
       date: string;
       notes?: string;
-      stops?: Array<{
-        time: string;
-        title: string;
-        address?: string;
-        latitude?: number;
-        longitude?: number;
-        notes?: string;
-        order: number;
-        wishId?: string;
-      }>;
+      stops?: StopInput[];
     };
     if (!title || !date) {
       res.status(400).json({ error: 'title and date are required' });
@@ -71,9 +77,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
             data: stops.map((s) => ({
               time: s.time,
               title: s.title,
+              description: s.description ?? null,
               address: s.address ?? null,
               latitude: s.latitude ?? null,
               longitude: s.longitude ?? null,
+              url: s.url ?? null,
+              tags: s.tags ?? [],
+              category: s.category ?? null,
               notes: s.notes ?? null,
               order: s.order,
               wishId: s.wishId ?? null,
@@ -96,16 +106,7 @@ router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
       title?: string;
       date?: string;
       notes?: string;
-      stops?: Array<{
-        time: string;
-        title: string;
-        address?: string;
-        latitude?: number;
-        longitude?: number;
-        notes?: string;
-        order: number;
-        wishId?: string;
-      }>;
+      stops?: StopInput[];
     };
 
     const plan = await prisma.$transaction(async (tx) => {
@@ -128,9 +129,13 @@ router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
               planId: req.params.id,
               time: s.time,
               title: s.title,
+              description: s.description ?? null,
               address: s.address ?? null,
               latitude: s.latitude ?? null,
               longitude: s.longitude ?? null,
+              url: s.url ?? null,
+              tags: s.tags ?? [],
+              category: s.category ?? null,
               notes: s.notes ?? null,
               order: s.order,
               wishId: s.wishId ?? null,

@@ -799,15 +799,19 @@ function PlanCard({
 type StopDraft = {
   time: string;
   title: string;
+  description: string;
   address: string;
   latitude: number | null;
   longitude: number | null;
+  url: string;
+  tags: string[];
+  category: string;
   notes: string;
   wishId: string;
 };
 
 function emptyStop(): StopDraft {
-  return { time: '', title: '', address: '', latitude: null, longitude: null, notes: '', wishId: '' };
+  return { time: '', title: '', description: '', address: '', latitude: null, longitude: null, url: '', tags: [], category: '', notes: '', wishId: '' };
 }
 
 function PlanFormModal({
@@ -841,18 +845,19 @@ function PlanFormModal({
         ? plan.stops.map((s) => ({
             time: s.time,
             title: s.title,
+            description: s.description ?? '',
             address: s.address ?? '',
             latitude: s.latitude ?? null,
             longitude: s.longitude ?? null,
+            url: s.url ?? '',
+            tags: s.tags ?? [],
+            category: s.category ?? '',
             notes: s.notes ?? '',
             wishId: s.wishId ?? '',
           }))
         : [emptyStop()]
     );
   }
-
-  const updateStop = (i: number, field: keyof StopDraft, value: string) =>
-    setStops((prev) => prev.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)));
 
   const addStop = () => setStops((prev) => [...prev, emptyStop()]);
   const removeStop = (i: number) => setStops((prev) => prev.filter((_, idx) => idx !== i));
@@ -868,24 +873,8 @@ function PlanFormModal({
     });
   };
 
-  const handleWishSelect = (i: number, wishId: string) => {
-    const wish = wishes.find((w) => w.id === wishId);
-    setStops((prev) =>
-      prev.map((s, idx) =>
-        idx === i
-          ? {
-              ...s,
-              wishId,
-              title: wish ? wish.title : s.title,
-              address: wish?.address ?? s.address,
-              latitude: wish?.latitude ?? s.latitude,
-              longitude: wish?.longitude ?? s.longitude,
-              notes: wish?.description ?? s.notes,
-            }
-          : s
-      )
-    );
-  };
+  const updateStopDraft = (i: number, draft: StopDraft) =>
+    setStops((prev) => prev.map((s, idx) => (idx === i ? draft : s)));
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -898,9 +887,13 @@ function PlanFormModal({
           .map((s, idx) => ({
             time: s.time || '00:00',
             title: s.title,
+            description: s.description || undefined,
             address: s.address || undefined,
             latitude: s.latitude ?? undefined,
             longitude: s.longitude ?? undefined,
+            url: s.url || undefined,
+            tags: s.tags.length > 0 ? s.tags : undefined,
+            category: s.category || undefined,
             notes: s.notes || undefined,
             order: idx,
             wishId: s.wishId || undefined,
@@ -960,73 +953,19 @@ function PlanFormModal({
           <label className="block text-sm font-medium mb-2">Địa điểm</label>
           <div className="space-y-3">
             {stops.map((stop, i) => (
-              <div key={i} className="bg-gray-50 rounded-xl p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-text-light w-5 flex-shrink-0">{i + 1}.</span>
-                  <input
-                    type="time"
-                    value={stop.time}
-                    onChange={(e) => updateStop(i, 'time', e.target.value)}
-                    className="w-28 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                  <div className="flex gap-1 ml-auto">
-                    <button type="button" onClick={() => moveStop(i, -1)} disabled={i === 0} className="p-1 text-text-light disabled:opacity-30 hover:text-text transition-colors">
-                      <ChevronUp className="w-4 h-4" />
-                    </button>
-                    <button type="button" onClick={() => moveStop(i, 1)} disabled={i === stops.length - 1} className="p-1 text-text-light disabled:opacity-30 hover:text-text transition-colors">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    <button type="button" onClick={() => removeStop(i)} disabled={stops.length === 1} className="p-1 text-red-400 hover:text-red-500 disabled:opacity-30 transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {wishes.length > 0 && (
-                  <select
-                    value={stop.wishId}
-                    onChange={(e) => handleWishSelect(i, e.target.value)}
-                    className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 text-text-light"
-                  >
-                    <option value="">Chọn từ wishlist (tuỳ chọn)...</option>
-                    {wishes.map((w) => (
-                      <option key={w.id} value={w.id}>{getCategoryIcon(w.category)} {w.title}</option>
-                    ))}
-                  </select>
-                )}
-
-                <input
-                  value={stop.title}
-                  onChange={(e) => updateStop(i, 'title', e.target.value)}
-                  placeholder="Tên địa điểm *"
-                  className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <input
-                  value={stop.address}
-                  onChange={(e) => updateStop(i, 'address', e.target.value)}
-                  placeholder="Địa chỉ"
-                  className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <input
-                  value={stop.notes}
-                  onChange={(e) => updateStop(i, 'notes', e.target.value)}
-                  placeholder="Ghi chú điểm dừng"
-                  className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                {stop.wishId && (() => {
-                  const w = wishes.find((x) => x.id === stop.wishId);
-                  return w?.url ? (
-                    <a
-                      href={w.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-secondary hover:underline"
-                    >
-                      🔗 {w.url}
-                    </a>
-                  ) : null;
-                })()}
-              </div>
+              <StopEditor
+                key={i}
+                stop={stop}
+                index={i}
+                isFirst={i === 0}
+                isLast={i === stops.length - 1}
+                totalStops={stops.length}
+                wishes={wishes}
+                onChange={(draft) => updateStopDraft(i, draft)}
+                onRemove={() => removeStop(i)}
+                onMoveUp={() => moveStop(i, -1)}
+                onMoveDown={() => moveStop(i, 1)}
+              />
             ))}
           </div>
           <button
@@ -1052,5 +991,196 @@ function PlanFormModal({
         </div>
       </form>
     </Modal>
+  );
+}
+
+// ── StopEditor ─────────────────────────────────────────────────────────────────
+
+function StopEditor({
+  stop,
+  index,
+  isFirst,
+  isLast,
+  totalStops,
+  wishes,
+  onChange,
+  onRemove,
+  onMoveUp,
+  onMoveDown,
+}: {
+  stop: StopDraft;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+  totalStops: number;
+  wishes: DateWish[];
+  onChange: (draft: StopDraft) => void;
+  onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  const [tagsInput, setTagsInput] = useState('');
+
+  const set = (field: keyof StopDraft, value: StopDraft[keyof StopDraft]) =>
+    onChange({ ...stop, [field]: value });
+
+  const handleWishSelect = (wishId: string) => {
+    const wish = wishes.find((w) => w.id === wishId);
+    onChange({
+      ...stop,
+      wishId,
+      title:       wish?.title       ?? stop.title,
+      description: wish?.description ?? stop.description,
+      category:    wish?.category    ?? stop.category,
+      address:     wish?.address     ?? stop.address,
+      latitude:    wish?.latitude    ?? stop.latitude,
+      longitude:   wish?.longitude   ?? stop.longitude,
+      url:         wish?.url         ?? stop.url,
+      tags:        wish?.tags?.length ? wish.tags : stop.tags,
+    });
+  };
+
+  const addTag = (raw: string) => {
+    const t = raw.trim();
+    if (t && !stop.tags.includes(t)) onChange({ ...stop, tags: [...stop.tags, t] });
+    setTagsInput('');
+  };
+
+  const removeTag = (t: string) =>
+    onChange({ ...stop, tags: stop.tags.filter((x) => x !== t) });
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-3 space-y-2.5 border border-border/50">
+      {/* Row: index + time + reorder/delete */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-text-light w-5 flex-shrink-0">{index + 1}.</span>
+        <input
+          type="time"
+          value={stop.time}
+          onChange={(e) => set('time', e.target.value)}
+          className="w-28 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+        />
+        <div className="flex gap-1 ml-auto">
+          <button type="button" onClick={onMoveUp} disabled={isFirst} className="p-1 text-text-light disabled:opacity-30 hover:text-text transition-colors">
+            <ChevronUp className="w-4 h-4" />
+          </button>
+          <button type="button" onClick={onMoveDown} disabled={isLast} className="p-1 text-text-light disabled:opacity-30 hover:text-text transition-colors">
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          <button type="button" onClick={onRemove} disabled={totalStops === 1} className="p-1 text-red-400 hover:text-red-500 disabled:opacity-30 transition-colors">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Wish picker */}
+      {wishes.length > 0 && (
+        <select
+          value={stop.wishId}
+          onChange={(e) => handleWishSelect(e.target.value)}
+          className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 text-text-light"
+        >
+          <option value="">Chọn từ wishlist (tuỳ chọn)...</option>
+          {wishes.map((w) => (
+            <option key={w.id} value={w.id}>{getCategoryIcon(w.category)} {w.title}</option>
+          ))}
+        </select>
+      )}
+
+      {/* Category picker */}
+      <div className="flex gap-1.5 flex-wrap">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => set('category', stop.category === cat.id ? '' : cat.id)}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors ${
+              stop.category === cat.id
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border text-text-light hover:border-gray-300 hover:bg-white'
+            }`}
+          >
+            {cat.icon} {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Title */}
+      <input
+        value={stop.title}
+        onChange={(e) => set('title', e.target.value)}
+        placeholder="Tên địa điểm *"
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+
+      {/* Description */}
+      <textarea
+        value={stop.description}
+        onChange={(e) => set('description', e.target.value)}
+        rows={2}
+        placeholder="Mô tả..."
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+      />
+
+      {/* Address via LocationPicker */}
+      <LocationPicker
+        latitude={stop.latitude}
+        longitude={stop.longitude}
+        location={stop.address || null}
+        onChange={({ latitude, longitude, location }) =>
+          onChange({ ...stop, address: location, latitude, longitude })
+        }
+        onClear={() => onChange({ ...stop, address: '', latitude: null, longitude: null })}
+      />
+
+      {/* URL */}
+      <input
+        type="url"
+        value={stop.url}
+        onChange={(e) => set('url', e.target.value)}
+        placeholder="URL (https://...)"
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+
+      {/* Tags */}
+      {stop.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {stop.tags.map((t) => (
+            <span key={t} className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
+              {t}
+              <button type="button" onClick={() => removeTag(t)} className="text-primary/60 hover:text-primary ml-0.5">×</button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={tagsInput}
+          onChange={(e) => setTagsInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addTag(tagsInput); }
+            if (e.key === ',') { e.preventDefault(); addTag(tagsInput); }
+          }}
+          placeholder="Tag rồi Enter..."
+          className="flex-1 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+        />
+        <button
+          type="button"
+          onClick={() => addTag(tagsInput)}
+          disabled={!tagsInput.trim()}
+          className="px-2.5 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 disabled:opacity-40 transition-colors"
+        >
+          +
+        </button>
+      </div>
+
+      {/* Notes */}
+      <input
+        value={stop.notes}
+        onChange={(e) => set('notes', e.target.value)}
+        placeholder="Ghi chú thêm"
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+    </div>
   );
 }
