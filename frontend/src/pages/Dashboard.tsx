@@ -1,17 +1,18 @@
 import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi } from '../lib/api';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, notificationsApi } from '../lib/api';
 import type { CookingSession } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
   const { data: foodSpots = [] } = useQuery({ queryKey: ['foodspots'], queryFn: foodSpotsApi.list });
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
@@ -24,6 +25,9 @@ export default function Dashboard() {
 
   const { data: achievements = [] } = useQuery({ queryKey: ['achievements'], queryFn: achievementsApi.list });
   const achievementsUnlocked = achievements.filter((a) => a.unlocked).length;
+
+  const { data: unreadData } = useQuery({ queryKey: ['notifications', 'unread-count'], queryFn: notificationsApi.unreadCount, refetchInterval: 15_000 });
+  const unreadCount = unreadData?.count ?? 0;
 
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
   const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
@@ -83,6 +87,19 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 mb-1">
           <Heart className="w-6 h-6 text-primary fill-primary" />
           <h1 className="font-heading text-3xl font-bold">{appName}</h1>
+          {/* Bell — mobile only (desktop has bell in sidebar) */}
+          <button
+            onClick={() => navigate('/notifications')}
+            className="md:hidden relative ml-auto text-text-light hover:text-primary transition-colors"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
         </div>
         <p className="text-text-light text-sm">{appSlogan}</p>
       </div>

@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuth } from './lib/auth';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -18,9 +19,43 @@ import CookingSessionPage from './pages/CookingSessionPage';
 import CookingSessionFlow from './pages/CookingSessionFlow';
 import CookingSessionHistory from './pages/CookingSessionHistory';
 import AchievementsPage from './pages/AchievementsPage';
+import NotificationsPage from './pages/NotificationsPage';
+
+async function registerPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    // Fetch VAPID public key
+    const res = await fetch('/api/push/vapid-key', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('love-scrum-token')}` },
+    });
+    if (!res.ok) return;
+    const { publicKey } = await res.json() as { publicKey: string };
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: publicKey,
+    });
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('love-scrum-token')}`,
+      },
+      body: JSON.stringify(sub.toJSON()),
+    });
+  } catch {
+    // silent — push is non-critical
+  }
+}
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) registerPush();
+  }, [isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -53,6 +88,7 @@ export default function App() {
         <Route path="/what-to-eat/history" element={<CookingSessionHistory />} />
         <Route path="/what-to-eat/:id" element={<CookingSessionFlow />} />
         <Route path="/achievements" element={<AchievementsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Routes>
     </Layout>
   );

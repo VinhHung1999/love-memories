@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import type { AuthRequest } from '../middleware/auth';
+import { createNotification } from '../utils/notifications';
 
 const router = Router();
 
@@ -41,7 +43,7 @@ export const ACHIEVEMENT_DEFS = [
 
 // GET /api/achievements
 // Evaluates conditions, auto-unlocks newly met achievements, returns all with status.
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const [momentCount, recipeCount, foodSpotCount, completedSessionCount, completedSprintCount, doneGoalCount, aiRecipeSetting, firstMoment] =
       await Promise.all([
@@ -107,6 +109,16 @@ router.get('/', async (_req: Request, res: Response) => {
         data: newKeys.map((key) => ({ key })),
         skipDuplicates: true,
       });
+      // Notify current user for each newly unlocked achievement
+      const currentUserId = (req as AuthRequest).user?.userId;
+      if (currentUserId) {
+        for (const key of newKeys) {
+          const def = ACHIEVEMENT_DEFS.find((d) => d.key === key);
+          if (def) {
+            await createNotification(currentUserId, 'achievement_unlocked', 'Achievement mới!', `Đã mở khóa: ${def.title}`, '/achievements');
+          }
+        }
+      }
     }
 
     // Final state

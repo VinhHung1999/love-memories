@@ -1,8 +1,10 @@
-import { NavLink } from 'react-router-dom';
-import { Heart, Camera, Map, Target, Home, LogOut, MoreHorizontal } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Heart, Camera, Map, Target, Home, LogOut, MoreHorizontal, Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { useAppName } from '../lib/useAppName';
+import { notificationsApi } from '../lib/api';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -12,16 +14,54 @@ const navItems = [
   { to: '/more', icon: MoreHorizontal, label: 'More' },
 ];
 
+function usePollUnreadCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const data = await notificationsApi.unreadCount();
+        setCount(data.count);
+      } catch {
+        // silent
+      }
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 15_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return count;
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const appName = useAppName();
+  const navigate = useNavigate();
+  const unreadCount = usePollUnreadCount();
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-border p-6 fixed h-full">
-        <div className="flex items-center gap-2 mb-10">
-          <Heart className="w-7 h-7 text-primary fill-primary" />
-          <h1 className="font-heading text-2xl font-bold text-primary">{appName}</h1>
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-2">
+            <Heart className="w-7 h-7 text-primary fill-primary" />
+            <h1 className="font-heading text-2xl font-bold text-primary">{appName}</h1>
+          </div>
+          {/* Bell — desktop */}
+          <button
+            onClick={() => navigate('/notifications')}
+            className="relative text-text-light hover:text-primary transition-colors"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
         </div>
         <nav className="flex flex-col gap-1">
           {navItems.map(({ to, icon: Icon, label }) => (
@@ -73,6 +113,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </NavLink>
         ))}
       </nav>
+
     </div>
   );
 }

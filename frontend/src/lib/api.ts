@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification } from '../types';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -251,6 +251,15 @@ export const aiApi = {
       method: 'POST',
       body: JSON.stringify({ mode, input }),
     }),
+};
+
+// Notifications
+export const notificationsApi = {
+  list: () => request<AppNotification[]>('/notifications'),
+  unreadCount: () => request<{ count: number }>('/notifications/unread-count'),
+  markRead: (id: string) => request<AppNotification>(`/notifications/${id}/read`, { method: 'PUT' }),
+  markAllRead: () => request<{ ok: boolean }>('/notifications/read-all', { method: 'PUT' }),
+  delete: (id: string) => request(`/notifications/${id}`, { method: 'DELETE' }),
 };
 
 // Goals

@@ -6,6 +6,7 @@ import { upload, uploadAudio } from '../middleware/upload';
 import { createMomentSchema, updateMomentSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import type { AuthRequest } from '../middleware/auth';
+import { createNotification, getOtherUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -67,6 +68,15 @@ router.post('/', async (req: Request, res: Response) => {
       include: { photos: true },
     });
     res.status(201).json(moment);
+    // Notify other user
+    const currentUserId = (req as AuthRequest).user?.userId;
+    if (currentUserId) {
+      const otherUserId = await getOtherUserId(currentUserId);
+      const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
+      if (otherUserId) {
+        await createNotification(otherUserId, 'new_moment', 'Kỷ niệm mới', `${author} đã thêm kỷ niệm: ${moment.title}`, `/moments/${moment.id}`);
+      }
+    }
   } catch (error: any) {
     if (error.name === 'ZodError') {
       res.status(400).json({ error: error.errors }); return;
@@ -222,6 +232,14 @@ router.post('/:id/comments', async (req: Request<IdParam>, res: Response) => {
       include: { user: { select: { name: true, avatar: true } } },
     });
     res.status(201).json(comment);
+    // Notify other user
+    if (userId) {
+      const otherUserId = await getOtherUserId(userId);
+      const preview = content.length > 50 ? `${content.slice(0, 50)}…` : content;
+      if (otherUserId) {
+        await createNotification(otherUserId, 'new_comment', 'Bình luận mới', `${author} bình luận: ${preview}`, `/moments/${req.params.id}`);
+      }
+    }
   } catch (err) {
     if (err instanceof z.ZodError) { res.status(400).json({ error: err.errors[0]?.message }); return; }
     res.status(500).json({ error: 'Failed to add comment' });
@@ -253,6 +271,7 @@ router.post('/:id/reactions', async (req: Request<IdParam>, res: Response) => {
       where: { momentId_emoji_author: { momentId, emoji, author } },
     });
 
+    const isAdding = !existing;
     if (existing) {
       await prisma.momentReaction.delete({ where: { id: existing.id } });
     } else {
@@ -264,6 +283,16 @@ router.post('/:id/reactions', async (req: Request<IdParam>, res: Response) => {
       orderBy: { createdAt: 'asc' },
     });
     res.json(reactions);
+    // Notify other user only when adding (not removing) a reaction
+    if (isAdding) {
+      const currentUserId = (req as AuthRequest).user?.userId;
+      if (currentUserId) {
+        const otherUserId = await getOtherUserId(currentUserId);
+        if (otherUserId) {
+          await createNotification(otherUserId, 'new_reaction', 'Cảm xúc mới', `${author} đã ${emoji} kỷ niệm của bạn`, `/moments/${momentId}`);
+        }
+      }
+    }
   } catch (err) {
     if (err instanceof z.ZodError) { res.status(400).json({ error: err.errors[0]?.message }); return; }
     res.status(500).json({ error: 'Failed to toggle reaction' });
