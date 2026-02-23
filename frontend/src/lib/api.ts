@@ -238,6 +238,8 @@ export const datePlansApi = {
     request(`/date-plans/${planId}/stops/${stopId}/done`, { method: 'PUT' }),
   linkStopMoment: (planId: string, stopId: string, momentId: string | null) =>
     request(`/date-plans/${planId}/stops/${stopId}/moment`, { method: 'PUT', body: JSON.stringify({ momentId }) }),
+  linkStopFoodSpot: (planId: string, stopId: string, foodSpotId: string | null) =>
+    request(`/date-plans/${planId}/stops/${stopId}/foodspot`, { method: 'PUT', body: JSON.stringify({ foodSpotId }) }),
   addSpot: (planId: string, stopId: string, data: { title: string; address?: string; latitude?: number; longitude?: number; url?: string; notes?: string; order?: number }) =>
     request(`/date-plans/${planId}/stops/${stopId}/spots`, { method: 'POST', body: JSON.stringify(data) }),
   deleteSpot: (planId: string, stopId: string, spotId: string) =>

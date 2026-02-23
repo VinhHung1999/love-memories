@@ -5,9 +5,10 @@ import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check } fr
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
-import { datePlansApi } from '../lib/api';
-import type { DatePlan, DatePlanStop } from '../types';
+import { datePlansApi, foodSpotsApi } from '../lib/api';
+import type { DatePlan, DatePlanStop, FoodSpot } from '../types';
 import CreateMomentModal from '../components/CreateMomentModal';
+import Modal from '../components/Modal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -110,6 +111,19 @@ export default function DatePlanDetailPage() {
   });
 
   const [selectedStopForMoment, setSelectedStopForMoment] = useState<string | null>(null);
+
+  const linkFoodSpotMutation = useMutation({
+    mutationFn: ({ stopId, foodSpotId }: { stopId: string; foodSpotId: string }) =>
+      datePlansApi.linkStopFoodSpot(id!, stopId, foodSpotId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['date-plans', id] });
+      setSelectedStopForFoodSpot(null);
+      toast.success('Đã link quán!');
+    },
+    onError: () => toast.error('Không thể link quán'),
+  });
+
+  const [selectedStopForFoodSpot, setSelectedStopForFoodSpot] = useState<string | null>(null);
 
   // Fire confetti once when plan loads and is already completed
   useEffect(() => {
@@ -303,10 +317,17 @@ export default function DatePlanDetailPage() {
                           address={stop.address}
                           title={stop.title}
                         />
+                        {/* Moment link/button */}
                         {stop.linkedMomentId ? (
                           <ActionLink to={`/moments/${stop.linkedMomentId}`} label="📸 Xem kỷ niệm →" color="primary" />
                         ) : !isDone ? (
                           <ActionLink onClick={() => setSelectedStopForMoment(stop.id)} label="📸 Thêm Moment" color="primary" />
+                        ) : null}
+                        {/* Food spot link/button */}
+                        {stop.linkedFoodSpotId ? (
+                          <ActionLink to={`/foodspots/${stop.linkedFoodSpotId}`} label="🍽️ Xem quán →" color="secondary" />
+                        ) : !isDone ? (
+                          <ActionLink onClick={() => setSelectedStopForFoodSpot(stop.id)} label="🍽️ Thêm quán" color="secondary" />
                         ) : null}
                         {!isDone && (
                           <ActionPill
@@ -374,7 +395,57 @@ export default function DatePlanDetailPage() {
           />
         );
       })()}
+
+      {/* Link Food Spot modal */}
+      <LinkFoodSpotModal
+        open={selectedStopForFoodSpot !== null}
+        onClose={() => setSelectedStopForFoodSpot(null)}
+        onSelect={(foodSpotId) => {
+          if (selectedStopForFoodSpot) {
+            linkFoodSpotMutation.mutate({ stopId: selectedStopForFoodSpot, foodSpotId });
+          }
+        }}
+      />
     </div>
+  );
+}
+
+// ── LinkFoodSpotModal ──────────────────────────────────────────────────────────
+
+function LinkFoodSpotModal({
+  open,
+  onClose,
+  onSelect,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (foodSpotId: string) => void;
+}) {
+  const { data: foodSpots = [] } = useQuery<FoodSpot[]>({
+    queryKey: ['foodspots'],
+    queryFn: foodSpotsApi.list,
+    enabled: open,
+  });
+
+  return (
+    <Modal open={open} onClose={onClose} title="Chọn quán ăn">
+      {foodSpots.length === 0 ? (
+        <p className="text-sm text-text-light py-4 text-center">Chưa có quán nào được lưu.</p>
+      ) : (
+        <div className="space-y-2">
+          {foodSpots.map((spot) => (
+            <button
+              key={spot.id}
+              onClick={() => onSelect(spot.id)}
+              className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-border transition-colors"
+            >
+              <p className="text-sm font-medium text-text">{spot.name}</p>
+              {spot.location && <p className="text-xs text-text-light mt-0.5">{spot.location}</p>}
+            </button>
+          ))}
+        </div>
+      )}
+    </Modal>
   );
 }
 

@@ -221,6 +221,20 @@ router.put('/:id/stops/:stopId/moment', async (req: AuthRequest & { params: Plan
   }
 });
 
+// PUT /:id/stops/:stopId/foodspot — link a food spot to a stop
+router.put('/:id/stops/:stopId/foodspot', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
+  try {
+    const { foodSpotId } = req.body as { foodSpotId: string | null };
+    const stop = await prisma.datePlanStop.update({
+      where: { id: req.params.stopId },
+      data: { linkedFoodSpotId: foodSpotId ?? null },
+    });
+    res.json(stop);
+  } catch {
+    res.status(500).json({ error: 'Failed to link food spot to stop' });
+  }
+});
+
 // PUT /:id/stops/:stopId/done — mark stop done
 router.put('/:id/stops/:stopId/done', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
   try {

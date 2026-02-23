@@ -277,6 +277,7 @@ export interface DatePlanStop {
   doneAt: string | null;
   wishId: string | null;
   linkedMomentId: string | null;
+  linkedFoodSpotId: string | null;
   createdAt: string;
   spots: DatePlanSpot[];
 }
