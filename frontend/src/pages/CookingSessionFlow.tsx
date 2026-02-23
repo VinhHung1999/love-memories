@@ -6,6 +6,7 @@ import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, Ext
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import { useCheckAchievements } from '../lib/achievements';
 import { useAuth } from '../lib/auth';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../types';
@@ -756,23 +757,20 @@ function PhotoPhase({ session }: { session: CookingSession }) {
   const checkAchievements = useCheckAchievements();
   const { cancel, cancelling } = useCancelSession(session.id);
   const [notes, setNotes] = useState(session.notes ?? '');
-  const [uploading, setUploading] = useState(false);
   const [completing, setCompleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | undefined>(undefined);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setUploading(true);
-    try {
-      await cookingSessionsApi.uploadPhotos(session.id, Array.from(files));
-      queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] });
-    } catch (err) {
-      toast.error((err as Error)?.message || 'Không thể tải ảnh lên');
-    } finally {
-      setUploading(false);
-      e.target.value = ''; // allow re-selecting same file
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (files.length === 0) return;
+    const label = files.length === 1 ? `Đang tải ${files[0]?.name ?? 'ảnh'}` : `Đang tải ${files.length} ảnh...`;
+    uploadQueue.enqueue(
+      `cooking-photos-${session.id}-${Date.now()}`,
+      label,
+      (onProgress) => cookingSessionsApi.uploadPhotos(session.id, files, onProgress),
+      () => queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] }),
+    );
   };
 
   const handleComplete = async () => {
@@ -834,20 +832,10 @@ function PhotoPhase({ session }: { session: CookingSession }) {
       {/* Upload trigger */}
       <button
         onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
-        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-4 text-sm font-medium text-text-light hover:border-primary/40 hover:text-primary transition-colors mb-6 disabled:opacity-60"
+        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-4 text-sm font-medium text-text-light hover:border-primary/40 hover:text-primary transition-colors mb-6"
       >
-        {uploading ? (
-          <>
-            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            Đang tải ảnh...
-          </>
-        ) : (
-          <>
-            <Camera className="w-5 h-5" />
-            {session.photos.length > 0 ? 'Thêm ảnh' : 'Thêm ảnh món ăn'}
-          </>
-        )}
+        <Camera className="w-5 h-5" />
+        {session.photos.length > 0 ? 'Thêm ảnh' : 'Thêm ảnh món ăn'}
       </button>
 
       {/* Notes */}

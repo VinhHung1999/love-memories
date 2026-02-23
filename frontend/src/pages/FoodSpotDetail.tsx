@@ -4,6 +4,7 @@ import { ArrowLeft, AlertCircle, MapPin, Navigation, Tag, Trash2, Pencil, Plus, 
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { foodSpotsApi, recipesApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import RatingStars from '../components/RatingStars';
 import PhotoGallery from '../components/PhotoGallery';
 import FoodSpotEditModal from '../components/FoodSpotEditModal';
@@ -49,19 +50,17 @@ export default function FoodSpotDetail() {
     },
   });
 
-  const uploadPhotosMutation = useMutation({
-    mutationFn: (files: File[]) => foodSpotsApi.uploadPhotos(id!, files),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['foodspots', id] });
-      toast.success('Photos added');
-    },
-    onError: (err: Error) => toast.error(err?.message || 'Upload failed'),
-  });
-
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) uploadPhotosMutation.mutate(files);
     e.target.value = '';
+    if (files.length === 0) return;
+    const label = files.length === 1 ? `Đang tải ${files[0]?.name ?? 'ảnh'}` : `Đang tải ${files.length} ảnh...`;
+    uploadQueue.enqueue(
+      `foodspot-photos-${id}-${Date.now()}`,
+      label,
+      (onProgress) => foodSpotsApi.uploadPhotos(id!, files, onProgress),
+      () => queryClient.invalidateQueries({ queryKey: ['foodspots', id] }),
+    );
   };
 
   const openGallery = (index: number) => {
@@ -131,11 +130,10 @@ export default function FoodSpotDetail() {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploadPhotosMutation.isPending}
-          className="flex items-center gap-2 text-sm text-secondary border border-secondary/30 px-4 py-2 rounded-xl hover:bg-secondary/5 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 text-sm text-secondary border border-secondary/30 px-4 py-2 rounded-xl hover:bg-secondary/5 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          {uploadPhotosMutation.isPending ? 'Uploading...' : 'Add Photos'}
+          Add Photos
         </button>
       </div>
 

@@ -6,6 +6,7 @@ import { vi } from 'date-fns/locale';
 import { useRef, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import { useAuth } from '../lib/auth';
 import PhotoGallery from '../components/PhotoGallery';
 import MomentEditModal from '../components/MomentEditModal';
@@ -54,24 +55,6 @@ export default function MomentDetail() {
     },
   });
 
-  const uploadPhotosMutation = useMutation({
-    mutationFn: (files: File[]) => momentsApi.uploadPhotos(id!, files),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['moments', id] });
-      toast.success('Photos added');
-    },
-    onError: (err: Error) => toast.error(err?.message || 'Upload failed'),
-  });
-
-  const uploadAudioMutation = useMutation({
-    mutationFn: ({ file, duration }: { file: File; duration: number }) =>
-      momentsApi.uploadAudio(id!, file, duration),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['moments', id] });
-      toast.success('Voice memo saved');
-    },
-    onError: (err: Error) => toast.error(err?.message || 'Failed to save voice memo'),
-  });
 
   const deleteAudioMutation = useMutation({
     mutationFn: (audioId: string) => momentsApi.deleteAudio(id!, audioId),
@@ -139,7 +122,12 @@ export default function MomentDetail() {
         const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
         const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm';
         const file = new File([blob], `memo-${Date.now()}.${ext}`, { type: blob.type });
-        uploadAudioMutation.mutate({ file, duration: recordSeconds });
+        uploadQueue.enqueue(
+          `moment-audio-${id}-${Date.now()}`,
+          'Đang lưu voice memo...',
+          (onProgress) => momentsApi.uploadAudio(id!, file, recordSeconds, onProgress),
+          () => queryClient.invalidateQueries({ queryKey: ['moments', id] }),
+        );
         clearInterval(timerRef.current);
         setRecordSeconds(0);
       };
@@ -151,7 +139,7 @@ export default function MomentDetail() {
     } catch {
       toast.error('Microphone access denied');
     }
-  }, [recordSeconds, uploadAudioMutation]);
+  }, [recordSeconds, id, queryClient]);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
@@ -174,8 +162,15 @@ export default function MomentDetail() {
 
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) uploadPhotosMutation.mutate(files);
     e.target.value = '';
+    if (files.length === 0) return;
+    const label = files.length === 1 ? `Đang tải ${files[0]?.name ?? 'ảnh'}` : `Đang tải ${files.length} ảnh...`;
+    uploadQueue.enqueue(
+      `moment-photos-${id}-${Date.now()}`,
+      label,
+      (onProgress) => momentsApi.uploadPhotos(id!, files, onProgress),
+      () => queryClient.invalidateQueries({ queryKey: ['moments', id] }),
+    );
   };
 
   const openGallery = (index: number) => {
@@ -242,13 +237,10 @@ export default function MomentDetail() {
             {/* Add Photos — last item in strip */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploadPhotosMutation.isPending}
-              className="flex-shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+              className="flex-shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-primary/30 flex flex-col items-center justify-center gap-1 text-primary hover:bg-primary/5 transition-colors"
             >
               <Plus className="w-5 h-5" />
-              <span className="text-[10px] font-medium leading-none">
-                {uploadPhotosMutation.isPending ? '...' : 'Add'}
-              </span>
+              <span className="text-[10px] font-medium leading-none">Add</span>
             </button>
           </div>
         </div>
@@ -259,11 +251,10 @@ export default function MomentDetail() {
         <div className="mb-4">
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploadPhotosMutation.isPending}
-            className="flex items-center gap-2 text-sm text-primary border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 text-sm text-primary border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            {uploadPhotosMutation.isPending ? 'Uploading...' : 'Add Photos'}
+            Add Photos
           </button>
         </div>
       )}
@@ -492,8 +483,7 @@ export default function MomentDetail() {
           {!recording ? (
             <button
               onClick={startRecording}
-              disabled={uploadAudioMutation.isPending}
-              className="flex items-center gap-1.5 text-xs text-primary border border-primary/30 px-3 py-1.5 rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs text-primary border border-primary/30 px-3 py-1.5 rounded-xl hover:bg-primary/5 transition-colors"
             >
               <Mic className="w-3.5 h-3.5" /> Record
             </button>

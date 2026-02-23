@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth';
 import { useAppName } from '../lib/useAppName';
 import { useUnreadCount } from '../lib/useUnreadCount';
+import UploadToast from './UploadToast';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -93,6 +94,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
+      {/* Global upload progress toasts */}
+      <UploadToast />
     </div>
   );
 }

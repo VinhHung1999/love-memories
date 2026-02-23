@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import type { Recipe } from '../types';
 import Modal from '../components/Modal';
 import PhotoGallery from '../components/PhotoGallery';
@@ -118,19 +119,17 @@ export default function RecipeDetail() {
     },
   });
 
-  const uploadPhotosMutation = useMutation({
-    mutationFn: (files: File[]) => recipesApi.uploadPhotos(id!, files),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipes', id] });
-      toast.success('Photos added');
-    },
-    onError: (err: Error) => toast.error(err?.message || 'Upload failed'),
-  });
-
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) uploadPhotosMutation.mutate(files);
     e.target.value = '';
+    if (files.length === 0) return;
+    const label = files.length === 1 ? `Đang tải ${files[0]?.name ?? 'ảnh'}` : `Đang tải ${files.length} ảnh...`;
+    uploadQueue.enqueue(
+      `recipe-photos-${id}-${Date.now()}`,
+      label,
+      (onProgress) => recipesApi.uploadPhotos(id!, files, onProgress),
+      () => queryClient.invalidateQueries({ queryKey: ['recipes', id] }),
+    );
   };
 
   const openGallery = (index: number) => {
@@ -214,11 +213,10 @@ export default function RecipeDetail() {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploadPhotosMutation.isPending}
-          className="flex items-center gap-2 text-sm text-accent border border-accent/30 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 text-sm text-accent border border-accent/30 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          {uploadPhotosMutation.isPending ? 'Uploading...' : 'Add Photos'}
+          Add Photos
         </button>
       </div>
 
