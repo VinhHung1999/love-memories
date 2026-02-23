@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
@@ -88,6 +88,17 @@ export default function DatePlanDetailPage() {
     },
     onError: () => toast.error('Không thể cập nhật'),
   });
+
+  const deleteSpotMutation = useMutation({
+    mutationFn: ({ stopId, spotId }: { stopId: string; spotId: string }) =>
+      datePlansApi.deleteSpot(id!, stopId, spotId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['date-plans', id] });
+    },
+    onError: () => toast.error('Không thể xóa địa điểm'),
+  });
+
+  const [expandedSpotForms, setExpandedSpotForms] = useState<Record<string, boolean>>({});
 
   // Fire confetti once when plan loads and is already completed
   useEffect(() => {
@@ -258,6 +269,71 @@ export default function DatePlanDetailPage() {
                               <ExternalLink className="w-3 h-3" /> Xem link
                             </a>
                           )}
+
+                          {/* Sub-spots */}
+                          {stop.spots.length > 0 && (
+                            <div className="mt-2 space-y-1.5">
+                              {stop.spots.map((spot) => (
+                                <div key={spot.id} className="flex items-start gap-2 bg-white rounded-lg px-2.5 py-2 border border-border/60">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-text truncate">{spot.title}</p>
+                                    {spot.address && (
+                                      <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
+                                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />{spot.address}
+                                      </p>
+                                    )}
+                                    {spot.url && (
+                                      <a href={spot.url} target="_blank" rel="noopener noreferrer"
+                                        className="text-xs text-secondary hover:underline flex items-center gap-1 mt-0.5">
+                                        <ExternalLink className="w-2.5 h-2.5" /> Link →
+                                      </a>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                    {(spot.latitude != null || spot.address) && (
+                                      <a
+                                        href={spot.latitude != null
+                                          ? `https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}`
+                                          : `https://www.google.com/maps/search/${encodeURIComponent(spot.address ?? spot.title)}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        className="p-1 text-secondary hover:text-secondary/70"
+                                      >
+                                        <Navigation className="w-3 h-3" />
+                                      </a>
+                                    )}
+                                    {!isDone && (
+                                      <button
+                                        onClick={() => deleteSpotMutation.mutate({ stopId: stop.id, spotId: spot.id })}
+                                        disabled={deleteSpotMutation.isPending}
+                                        className="p-1 text-gray-300 hover:text-red-400 transition-colors disabled:opacity-50"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Add spot inline form */}
+                          {!isDone && (
+                            expandedSpotForms[stop.id] ? (
+                              <AddSpotInlineForm
+                                stopId={stop.id}
+                                planId={id!}
+                                existingCount={stop.spots.length}
+                                onClose={() => setExpandedSpotForms((prev) => ({ ...prev, [stop.id]: false }))}
+                              />
+                            ) : (
+                              <button
+                                onClick={() => setExpandedSpotForms((prev) => ({ ...prev, [stop.id]: true }))}
+                                className="mt-2 flex items-center gap-1 text-xs text-text-light hover:text-primary transition-colors"
+                              >
+                                <Plus className="w-3 h-3" /> Thêm địa điểm
+                              </button>
+                            )
+                          )}
                         </div>
 
                         {/* Actions */}
@@ -332,5 +408,85 @@ export default function DatePlanDetailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// ── AddSpotInlineForm ─────────────────────────────────────────────────────────
+
+function AddSpotInlineForm({
+  stopId,
+  planId,
+  existingCount,
+  onClose,
+}: {
+  stopId: string;
+  planId: string;
+  existingCount: number;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState('');
+  const [address, setAddress] = useState('');
+  const [url, setUrl] = useState('');
+
+  const addSpotMutation = useMutation({
+    mutationFn: () =>
+      datePlansApi.addSpot(planId, stopId, {
+        title,
+        address: address || undefined,
+        url: url || undefined,
+        order: existingCount,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['date-plans', planId] });
+      toast.success('Đã thêm địa điểm!');
+      onClose();
+    },
+    onError: () => toast.error('Không thể thêm địa điểm'),
+  });
+
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); addSpotMutation.mutate(); }}
+      className="mt-2 bg-white rounded-lg p-2.5 border border-border space-y-2"
+    >
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+        autoFocus
+        placeholder="Tên địa điểm *"
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+      <input
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+        placeholder="Địa chỉ (tuỳ chọn)"
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+      <input
+        type="url"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="URL (tuỳ chọn)"
+        className="w-full border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 text-xs border border-border rounded-lg py-1.5 text-text-light hover:bg-gray-50"
+        >
+          Hủy
+        </button>
+        <button
+          type="submit"
+          disabled={addSpotMutation.isPending || !title.trim()}
+          className="flex-1 text-xs bg-primary text-white rounded-lg py-1.5 font-medium hover:opacity-90 disabled:opacity-50"
+        >
+          {addSpotMutation.isPending ? '...' : 'Thêm'}
+        </button>
+      </div>
+    </form>
   );
 }

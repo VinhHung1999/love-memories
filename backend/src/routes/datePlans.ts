@@ -7,18 +7,53 @@ const router = Router();
 
 type IdParam = { id: string };
 type PlanStopParam = { id: string; stopId: string };
+type PlanSpotParam = { id: string; stopId: string; spotId: string };
 
 const STOPS_INCLUDE = {
-  stops: { orderBy: { order: 'asc' as const } },
+  stops: {
+    orderBy: { order: 'asc' as const },
+    include: { spots: { orderBy: { order: 'asc' as const } } },
+  },
 };
 
-// GET / — list all plans, newest date first, include stops
+// GET / — list all plans, newest date first, include stops + auto-update statuses
 router.get('/', async (_req: AuthRequest, res: Response) => {
   try {
     const plans = await prisma.datePlan.findMany({
       orderBy: { date: 'desc' },
       include: STOPS_INCLUDE,
     });
+
+    // Auto-status: planned→active if today; active→completed if past + all stops done
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const toActivate: string[] = [];
+    const toComplete: string[] = [];
+
+    for (const plan of plans) {
+      const pd = new Date(plan.date);
+      const planDay = new Date(pd.getFullYear(), pd.getMonth(), pd.getDate());
+      if (planDay.getTime() === todayStart.getTime() && plan.status === 'planned') {
+        toActivate.push(plan.id);
+      } else if (planDay < todayStart && plan.status === 'active') {
+        const allDone = plan.stops.length > 0 && plan.stops.every((s) => s.done);
+        if (allDone) toComplete.push(plan.id);
+      }
+    }
+
+    if (toActivate.length > 0 || toComplete.length > 0) {
+      await Promise.all([
+        ...toActivate.map((id) => prisma.datePlan.update({ where: { id }, data: { status: 'active' } })),
+        ...toComplete.map((id) => prisma.datePlan.update({ where: { id }, data: { status: 'completed' } })),
+      ]);
+      const updated = await prisma.datePlan.findMany({
+        orderBy: { date: 'desc' },
+        include: STOPS_INCLUDE,
+      });
+      res.json(updated);
+      return;
+    }
+
     res.json(plans);
   } catch {
     res.status(500).json({ error: 'Failed to fetch date plans' });
@@ -182,6 +217,47 @@ router.put('/:id/stops/:stopId', async (req: AuthRequest & { params: PlanStopPar
     res.json(stop);
   } catch {
     res.status(500).json({ error: 'Failed to mark stop done' });
+  }
+});
+
+// POST /:id/stops/:stopId/spots — add sub-spot to a stop
+router.post('/:id/stops/:stopId/spots', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
+  try {
+    const { title, address, latitude, longitude, url, notes, order } = req.body as {
+      title: string;
+      address?: string;
+      latitude?: number;
+      longitude?: number;
+      url?: string;
+      notes?: string;
+      order?: number;
+    };
+    if (!title) { res.status(400).json({ error: 'title is required' }); return; }
+    const spot = await prisma.datePlanSpot.create({
+      data: {
+        stopId: req.params.stopId,
+        title,
+        address: address ?? null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+        url: url ?? null,
+        notes: notes ?? null,
+        order: order ?? 0,
+      },
+    });
+    res.status(201).json(spot);
+  } catch {
+    res.status(500).json({ error: 'Failed to add spot' });
+  }
+});
+
+// DELETE /:id/stops/:stopId/spots/:spotId — delete sub-spot
+router.delete('/:id/stops/:stopId/spots/:spotId', async (req: AuthRequest & { params: PlanSpotParam }, res: Response) => {
+  try {
+    await prisma.datePlanSpot.delete({ where: { id: req.params.spotId } });
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: 'Failed to delete spot' });
   }
 });
 

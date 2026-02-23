@@ -247,22 +247,42 @@ export default function DatePlannerPage() {
                 <Plus className="w-4 h-4" /> Tạo kế hoạch
               </button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {plans.map((plan, i) => (
-                <PlanCard
-                  key={plan.id}
-                  plan={plan}
-                  index={i}
-                  onClick={() => navigate(`/date-planner/plans/${plan.id}`)}
-                  onEdit={() => setEditPlan(plan)}
-                  onDelete={() => {
-                    if (confirm('Xóa kế hoạch này?')) deletePlanMutation.mutate(plan.id);
-                  }}
-                />
-              ))}
-            </div>
-          )}
+          ) : (() => {
+            const today = new Date();
+            const activePlans = plans.filter((p) => {
+              const pd = new Date(p.date);
+              const isToday = pd.getDate() === today.getDate() && pd.getMonth() === today.getMonth() && pd.getFullYear() === today.getFullYear();
+              return p.status === 'active' || isToday;
+            });
+            const otherPlans = plans.filter((p) => !activePlans.includes(p));
+            const renderCard = (plan: DatePlan, i: number) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                index={i}
+                forceActive={activePlans.includes(plan)}
+                onClick={() => navigate(`/date-planner/plans/${plan.id}`)}
+                onEdit={() => setEditPlan(plan)}
+                onDelete={() => { if (confirm('Xóa kế hoạch này?')) deletePlanMutation.mutate(plan.id); }}
+              />
+            );
+            return (
+              <div className="space-y-4">
+                {activePlans.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Đang diễn ra</p>
+                    <div className="space-y-3">{activePlans.map((p, i) => renderCard(p, i))}</div>
+                  </div>
+                )}
+                {otherPlans.length > 0 && (
+                  <div>
+                    {activePlans.length > 0 && <p className="text-xs font-semibold text-text-light uppercase tracking-wide mb-2">Kế hoạch khác</p>}
+                    <div className="space-y-3">{otherPlans.map((p, i) => renderCard(p, i))}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
         </>
       )}
@@ -732,17 +752,21 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
 function PlanCard({
   plan,
   index,
+  forceActive = false,
   onClick,
   onEdit,
   onDelete,
 }: {
   plan: DatePlan;
   index: number;
+  forceActive?: boolean;
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const s = STATUS_LABELS[plan.status] ?? { label: 'Sắp tới', cls: 'bg-gray-100 text-gray-500' };
+  const s = forceActive
+    ? (STATUS_LABELS['active'] ?? { label: 'Đang diễn ra', cls: 'bg-blue-100 text-blue-600' })
+    : (STATUS_LABELS[plan.status] ?? { label: 'Sắp tới', cls: 'bg-gray-100 text-gray-500' });
   const doneCount = plan.stops.filter((st) => st.done).length;
 
   return (
@@ -750,7 +774,9 @@ function PlanCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-black/5 cursor-pointer"
+      className={`bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all border cursor-pointer ${
+        forceActive ? 'border-blue-200 ring-1 ring-blue-100' : 'border-transparent hover:border-black/5'
+      }`}
       onClick={onClick}
     >
       <div className="flex items-start gap-3">

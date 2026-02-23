@@ -1,14 +1,14 @@
 import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi } from '../lib/api';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi } from '../lib/api';
 import { useUnreadCount } from '../lib/useUnreadCount';
-import type { CookingSession } from '../types';
+import type { CookingSession, DatePlan } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
 
@@ -20,9 +20,22 @@ export default function Dashboard() {
   const { data: activeSession } = useQuery({
     queryKey: ['cooking-sessions', 'active'],
     queryFn: cookingSessionsApi.getActive,
-    // Refetch every 30s — enough to keep the pin current without hammering the server
     refetchInterval: 30_000,
   });
+
+  const { data: datePlans = [] } = useQuery({
+    queryKey: ['date-plans'],
+    queryFn: datePlansApi.list,
+    refetchInterval: 60_000,
+  });
+  const activeDatePlan = (() => {
+    const today = new Date();
+    return datePlans.find((p) => {
+      const pd = new Date(p.date);
+      const isToday = pd.getDate() === today.getDate() && pd.getMonth() === today.getMonth() && pd.getFullYear() === today.getFullYear();
+      return p.status === 'active' || isToday;
+    }) ?? null;
+  })();
 
   const { data: achievements = [] } = useQuery({ queryKey: ['achievements'], queryFn: achievementsApi.list });
   const achievementsUnlocked = achievements.filter((a) => a.unlocked).length;
@@ -119,6 +132,22 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
       {/* ── END ACTIVE COOKING SESSION PIN ────────────────────────────── */}
+
+      {/* ── ACTIVE DATE PLAN PIN ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {activeDatePlan && (
+          <motion.div
+            initial={{ opacity: 0, y: -12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+            className="mb-4"
+          >
+            <ActiveDatePlanPin plan={activeDatePlan} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ── END ACTIVE DATE PLAN PIN ─────────────────────────────────── */}
 
       {/* ── RECENT MOMENTS ────────────────────────────────────────────── */}
       <div className="mb-4">
@@ -342,6 +371,51 @@ const PHASE_CONFIG: Record<string, {
   cooking:   { icon: ChefHat,         label: 'Đang nấu', color: 'text-orange-500', ringColor: 'ring-orange-300'   },
   photo:     { icon: Camera,          label: 'Chụp ảnh', color: 'text-pink-500',   ringColor: 'ring-pink-300'     },
 };
+
+function ActiveDatePlanPin({ plan }: { plan: DatePlan }) {
+  const doneCount = plan.stops.filter((s) => s.done).length;
+  const total = plan.stops.length;
+  const progress = total > 0 ? doneCount / total : 0;
+
+  return (
+    <Link
+      to={`/date-planner/plans/${plan.id}`}
+      className="block rounded-2xl overflow-hidden ring-1 ring-primary/30 shadow-md active:scale-[0.98] transition-transform"
+    >
+      <div className="relative bg-gradient-to-r from-primary/8 to-pink-50 p-4">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
+        <div className="flex items-center gap-3">
+          <div className="relative flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shadow-sm">
+              <CalendarHeart className="w-5 h-5 text-primary" />
+            </div>
+            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 bg-primary" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <p className="text-xs font-semibold text-text-light uppercase tracking-wide">Date Planner</p>
+              <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-white/60 text-primary">Đang diễn ra</span>
+            </div>
+            <p className="font-heading font-semibold text-sm truncate text-text">{plan.title}</p>
+            <p className="text-xs text-text-light mt-0.5">{doneCount}/{total} địa điểm</p>
+            {total > 0 && (
+              <div className="mt-2 h-1.5 bg-black/8 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-primary to-secondary"
+                  style={{ width: `${Math.round(progress * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+          <ArrowRight className="w-4 h-4 text-text-light flex-shrink-0" />
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 function ActiveSessionPin({ session }: { session: CookingSession }) {
   const cfg = PHASE_CONFIG[session.status];

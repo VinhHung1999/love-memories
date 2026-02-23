@@ -246,6 +246,19 @@ export interface DateWish {
   updatedAt: string;
 }
 
+export interface DatePlanSpot {
+  id: string;
+  stopId: string;
+  title: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  url: string | null;
+  notes: string | null;
+  order: number;
+  createdAt: string;
+}
+
 export interface DatePlanStop {
   id: string;
   planId: string;
@@ -264,6 +277,7 @@ export interface DatePlanStop {
   doneAt: string | null;
   wishId: string | null;
   createdAt: string;
+  spots: DatePlanSpot[];
 }
 
 export interface DatePlan {

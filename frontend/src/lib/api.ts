@@ -236,6 +236,10 @@ export const datePlansApi = {
     request<DatePlan>(`/date-plans/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   markStopDone: (planId: string, stopId: string) =>
     request(`/date-plans/${planId}/stops/${stopId}/done`, { method: 'PUT' }),
+  addSpot: (planId: string, stopId: string, data: { title: string; address?: string; latitude?: number; longitude?: number; url?: string; notes?: string; order?: number }) =>
+    request(`/date-plans/${planId}/stops/${stopId}/spots`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteSpot: (planId: string, stopId: string, spotId: string) =>
+    request(`/date-plans/${planId}/stops/${stopId}/spots/${spotId}`, { method: 'DELETE' }),
   delete: (id: string) => request(`/date-plans/${id}`, { method: 'DELETE' }),
 };
 
