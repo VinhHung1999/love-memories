@@ -124,7 +124,7 @@ export default function RecipeDetail() {
       queryClient.invalidateQueries({ queryKey: ['recipes', id] });
       toast.success('Photos added');
     },
-    onError: () => toast.error('Upload failed'),
+    onError: (err: Error) => toast.error(err?.message || 'Upload failed'),
   });
 
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {

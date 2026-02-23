@@ -55,7 +55,7 @@ export default function FoodSpotDetail() {
       queryClient.invalidateQueries({ queryKey: ['foodspots', id] });
       toast.success('Photos added');
     },
-    onError: () => toast.error('Upload failed'),
+    onError: (err: Error) => toast.error(err?.message || 'Upload failed'),
   });
 
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {

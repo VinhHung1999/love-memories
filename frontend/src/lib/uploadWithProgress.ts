@@ -19,6 +19,9 @@ export function uploadWithProgress(
       };
     }
 
+    xhr.timeout = 300_000; // 5 minutes
+    xhr.ontimeout = () => reject(new Error('Upload timeout — file quá lớn hoặc mạng chậm, vui lòng thử lại'));
+
     xhr.onload = () => {
       if (xhr.status === 401) {
         localStorage.removeItem(TOKEN_KEY);

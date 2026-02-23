@@ -51,9 +51,10 @@ app.use('/api/notifications', requireAuth, notificationRoutes);
 app.use('/api/push', requireAuth, pushRoutes);
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+  server.timeout = 300_000; // 5 minutes — allow large file uploads
 }
 
 export default app;

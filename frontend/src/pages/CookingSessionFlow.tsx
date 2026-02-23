@@ -767,8 +767,8 @@ function PhotoPhase({ session }: { session: CookingSession }) {
     try {
       await cookingSessionsApi.uploadPhotos(session.id, Array.from(files));
       queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] });
-    } catch {
-      toast.error('Không thể tải ảnh lên');
+    } catch (err) {
+      toast.error((err as Error)?.message || 'Không thể tải ảnh lên');
     } finally {
       setUploading(false);
       e.target.value = ''; // allow re-selecting same file

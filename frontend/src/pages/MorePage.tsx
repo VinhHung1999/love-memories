@@ -103,7 +103,7 @@ export default function MorePage() {
       updateUser({ avatar: data.avatar });
       toast.success('Ảnh đại diện đã cập nhật!');
     },
-    onError: () => toast.error('Không thể tải ảnh lên'),
+    onError: (err: Error) => toast.error(err?.message || 'Không thể tải ảnh lên'),
   });
 
   const handleSave = () => {

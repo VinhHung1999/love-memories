@@ -60,7 +60,7 @@ export default function MomentDetail() {
       queryClient.invalidateQueries({ queryKey: ['moments', id] });
       toast.success('Photos added');
     },
-    onError: () => toast.error('Upload failed'),
+    onError: (err: Error) => toast.error(err?.message || 'Upload failed'),
   });
 
   const uploadAudioMutation = useMutation({
@@ -70,7 +70,7 @@ export default function MomentDetail() {
       queryClient.invalidateQueries({ queryKey: ['moments', id] });
       toast.success('Voice memo saved');
     },
-    onError: () => toast.error('Failed to save voice memo'),
+    onError: (err: Error) => toast.error(err?.message || 'Failed to save voice memo'),
   });
 
   const deleteAudioMutation = useMutation({
