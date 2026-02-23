@@ -4,7 +4,6 @@ import type { Request, Response } from 'express';
 const router = Router();
 
 const GOOGLE_MAPS_HOSTS = [
-  'share.google',
   'maps.app.goo.gl',
   'goo.gl',
   'maps.google.com',

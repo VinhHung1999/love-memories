@@ -33,7 +33,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
   const token = mapboxgl.accessToken;
   const [resolvingUrl, setResolvingUrl] = useState(false);
 
-  const GOOGLE_MAPS_RE = /^https?:\/\/(share\.google|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps)/;
+  const GOOGLE_MAPS_RE = /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps)/;
 
   const resolveGoogleUrl = useCallback(async (url: string) => {
     setResolvingUrl(true);
