@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import cron from 'node-cron';
 import { momentRoutes } from './routes/moments';
 import { foodSpotRoutes } from './routes/foodspots';
 import { mapRoutes } from './routes/map';
@@ -20,6 +21,8 @@ import { pushRoutes } from './routes/push';
 import { dateWishRoutes } from './routes/dateWishes';
 import { datePlanRoutes } from './routes/datePlans';
 import { requireAuth } from './middleware/auth';
+import prisma from './utils/prisma';
+import { createNotification } from './utils/notifications';
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -59,6 +62,34 @@ if (require.main === module) {
     console.log(`Server running on http://localhost:${PORT}`);
   });
   server.timeout = 300_000; // 5 minutes — allow large file uploads
+
+  // 6 AM daily reminder: notify all users if there's a planned/active DatePlan for today
+  cron.schedule('0 6 * * *', async () => {
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+      const plans = await prisma.datePlan.findMany({
+        where: {
+          date: { gte: todayStart, lt: todayEnd },
+          status: { in: ['planned', 'active'] },
+        },
+        select: { id: true, title: true },
+      });
+      if (plans.length === 0) return;
+      const users = await prisma.user.findMany({ select: { id: true } });
+      const title = 'Nhắc hẹn hò hôm nay 💑';
+      const message = plans.length === 1
+        ? `Hôm nay có kế hoạch: ${plans[0].title}`
+        : `Hôm nay có ${plans.length} kế hoạch hẹn hò đang chờ!`;
+      await Promise.all(
+        users.map((u) => createNotification(u.id, 'daily_plan_reminder', title, message, '/date-planner')),
+      );
+      console.log(`[cron] daily_plan_reminder sent to ${users.length} users`);
+    } catch (err) {
+      console.error('[cron] daily_plan_reminder error:', err);
+    }
+  }, { timezone: 'Asia/Ho_Chi_Minh' });
 }
 
 export default app;
