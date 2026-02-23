@@ -48,6 +48,16 @@ function extractCoords(url: string): { lat: number; lng: number } | null {
     }
   }
 
+  // Pattern: daddr=lat,lng (Google Maps directions destination)
+  m = url.match(/[?&]daddr=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (m) {
+    const lat = parseFloat(m[1]);
+    const lng = parseFloat(m[2]);
+    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return { lat, lng };
+    }
+  }
+
   // Pattern: destination=lat,lng
   m = url.match(/destination=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
   if (m) {
@@ -81,8 +91,9 @@ function extractPlaceName(url: string): string | null {
       return decodeURIComponent(m[1].replace(/\+/g, ' '));
     }
     // Fallback: extract daddr= (directions destination) or q= (search/share)
+    // Skip if daddr is just coordinates (e.g. "10.8050,106.6966")
     const daddr = parsed.searchParams.get('daddr');
-    if (daddr) return daddr;
+    if (daddr && !/^-?\d+\.?\d*,-?\d+\.?\d*$/.test(daddr.trim())) return daddr;
     const q = parsed.searchParams.get('q');
     if (q) return q;
   } catch {
