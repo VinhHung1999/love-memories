@@ -66,12 +66,23 @@ export default function LocationPicker({ latitude, longitude, location, onChange
         onChange({ latitude: lat, longitude: lng, location: placeName });
         setQuery(placeName);
         updateMarker(lng, lat);
-      } else {
-        // Name only (no coords) — forward geocode with Mapbox
-        setQuery(name);
-        setResolvingUrl(false);
-        await searchLocation(name);
-        return;
+      } else if (token) {
+        // Name only (no coords) — forward geocode with Mapbox, auto-select first result
+        const proxLng = mapRef.current?.getCenter()?.lng ?? longitude ?? 106.6297;
+        const proxLat = mapRef.current?.getCenter()?.lat ?? latitude ?? 10.8231;
+        const geoUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?access_token=${token}&limit=1&language=vi&country=vn&proximity=${proxLng},${proxLat}`;
+        const geoRes = await fetch(geoUrl);
+        const geoData = await geoRes.json();
+        const first = geoData.features?.[0];
+        if (first) {
+          const [fLng, fLat] = first.center;
+          const placeName = cleanPlaceName(first.place_name);
+          onChange({ latitude: fLat, longitude: fLng, location: placeName });
+          setQuery(placeName);
+          updateMarker(fLng, fLat);
+        } else {
+          setQuery(name);
+        }
       }
     } catch {
       // silent fail — user can still search manually
