@@ -1019,8 +1019,6 @@ function StopEditor({
   onMoveUp: () => void;
   onMoveDown: () => void;
 }) {
-  const [tagsInput, setTagsInput] = useState('');
-
   const set = (field: keyof StopDraft, value: StopDraft[keyof StopDraft]) =>
     onChange({ ...stop, [field]: value });
 
@@ -1036,18 +1034,8 @@ function StopEditor({
       latitude:    wish?.latitude    ?? stop.latitude,
       longitude:   wish?.longitude   ?? stop.longitude,
       url:         wish?.url         ?? stop.url,
-      tags:        wish?.tags?.length ? wish.tags : stop.tags,
     });
   };
-
-  const addTag = (raw: string) => {
-    const t = raw.trim();
-    if (t && !stop.tags.includes(t)) onChange({ ...stop, tags: [...stop.tags, t] });
-    setTagsInput('');
-  };
-
-  const removeTag = (t: string) =>
-    onChange({ ...stop, tags: stop.tags.filter((x) => x !== t) });
 
   return (
     <div className="bg-gray-50 rounded-xl p-3 space-y-2.5 border border-border/50">
@@ -1141,38 +1129,6 @@ function StopEditor({
         placeholder="URL (https://...)"
         className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
       />
-
-      {/* Tags */}
-      {stop.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {stop.tags.map((t) => (
-            <span key={t} className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
-              {t}
-              <button type="button" onClick={() => removeTag(t)} className="text-primary/60 hover:text-primary ml-0.5">×</button>
-            </span>
-          ))}
-        </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          value={tagsInput}
-          onChange={(e) => setTagsInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); addTag(tagsInput); }
-            if (e.key === ',') { e.preventDefault(); addTag(tagsInput); }
-          }}
-          placeholder="Tag rồi Enter..."
-          className="flex-1 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-        <button
-          type="button"
-          onClick={() => addTag(tagsInput)}
-          disabled={!tagsInput.trim()}
-          className="px-2.5 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 disabled:opacity-40 transition-colors"
-        >
-          +
-        </button>
-      </div>
 
       {/* Notes */}
       <input
