@@ -114,19 +114,6 @@ export default function Layout({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-      {/* Bell — mobile fixed top-right */}
-      <button
-        onClick={() => navigate('/notifications')}
-        className="md:hidden fixed z-50 top-[calc(0.75rem+env(safe-area-inset-top))] right-4 text-text-light hover:text-primary transition-colors"
-        aria-label="Notifications"
-      >
-        <Bell className="w-5 h-5" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
     </div>
   );
 }
