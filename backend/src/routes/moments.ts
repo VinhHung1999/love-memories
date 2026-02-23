@@ -1,15 +1,30 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
+import { z } from 'zod';
 import prisma from '../utils/prisma';
 import { upload, uploadAudio } from '../middleware/upload';
 import { createMomentSchema, updateMomentSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 type IdParam = { id: string };
 type PhotoParam = { id: string; photoId: string };
 type AudioParam = { id: string; audioId: string };
+type CommentParam = { id: string; commentId: string };
+
+const PRESET_EMOJIS = ['❤️', '😂', '😍', '🥺', '🔥', '👏', '😢', '🎉'];
+
+const commentSchema = z.object({
+  author: z.string().min(1),
+  content: z.string().min(1),
+});
+
+const reactionSchema = z.object({
+  emoji: z.string().refine((e) => PRESET_EMOJIS.includes(e), { message: 'Invalid emoji' }),
+  author: z.string().min(1),
+});
 
 // GET all moments
 router.get('/', async (_req: Request, res: Response) => {
@@ -29,7 +44,12 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
   try {
     const moment = await prisma.moment.findUnique({
       where: { id: req.params.id },
-      include: { photos: true, audios: { orderBy: { createdAt: 'asc' } } },
+      include: {
+        photos: true,
+        audios: { orderBy: { createdAt: 'asc' } },
+        comments: { orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, avatar: true } } } },
+        reactions: { orderBy: { createdAt: 'asc' } },
+      },
     });
     if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
     res.json(moment);
@@ -171,6 +191,82 @@ router.delete('/:id/audio/:audioId', async (req: Request<AudioParam>, res: Respo
     res.json({ message: 'Audio deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete audio' });
+  }
+});
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+// GET comments for a moment
+router.get('/:id/comments', async (req: Request<IdParam>, res: Response) => {
+  try {
+    const comments = await prisma.momentComment.findMany({
+      where: { momentId: req.params.id },
+      orderBy: { createdAt: 'asc' },
+      include: { user: { select: { name: true, avatar: true } } },
+    });
+    res.json(comments);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+// POST add comment
+router.post('/:id/comments', async (req: Request<IdParam>, res: Response) => {
+  try {
+    const { author, content } = commentSchema.parse(req.body);
+    const moment = await prisma.moment.findUnique({ where: { id: req.params.id } });
+    if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
+    const userId = (req as AuthRequest).user?.userId ?? null;
+    const comment = await prisma.momentComment.create({
+      data: { momentId: req.params.id, userId, author, content },
+      include: { user: { select: { name: true, avatar: true } } },
+    });
+    res.status(201).json(comment);
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(400).json({ error: err.errors[0]?.message }); return; }
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
+// DELETE comment
+router.delete('/:id/comments/:commentId', async (req: Request<CommentParam>, res: Response) => {
+  try {
+    await prisma.momentComment.delete({ where: { id: req.params.commentId } });
+    res.status(204).send();
+  } catch {
+    res.status(404).json({ error: 'Comment not found' });
+  }
+});
+
+// ─── Reactions ────────────────────────────────────────────────────────────────
+
+// POST toggle reaction (add or remove)
+router.post('/:id/reactions', async (req: Request<IdParam>, res: Response) => {
+  try {
+    const { emoji, author } = reactionSchema.parse(req.body);
+    const momentId = req.params.id;
+
+    const moment = await prisma.moment.findUnique({ where: { id: momentId } });
+    if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
+
+    const existing = await prisma.momentReaction.findUnique({
+      where: { momentId_emoji_author: { momentId, emoji, author } },
+    });
+
+    if (existing) {
+      await prisma.momentReaction.delete({ where: { id: existing.id } });
+    } else {
+      await prisma.momentReaction.create({ data: { momentId, emoji, author } });
+    }
+
+    const reactions = await prisma.momentReaction.findMany({
+      where: { momentId },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(reactions);
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(400).json({ error: err.errors[0]?.message }); return; }
+    res.status(500).json({ error: 'Failed to toggle reaction' });
   }
 });
 

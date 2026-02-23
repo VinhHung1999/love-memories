@@ -15,6 +15,23 @@ export interface MomentAudio {
   createdAt: string;
 }
 
+export interface MomentComment {
+  id: string;
+  momentId: string;
+  author: string;
+  content: string;
+  createdAt: string;
+  user?: { name: string; avatar: string | null } | null;
+}
+
+export interface MomentReaction {
+  id: string;
+  momentId: string;
+  emoji: string;
+  author: string;
+  createdAt: string;
+}
+
 export interface Moment {
   id: string;
   title: string;
@@ -29,6 +46,8 @@ export interface Moment {
   updatedAt: string;
   photos: MomentPhoto[];
   audios: MomentAudio[];
+  comments: MomentComment[];
+  reactions: MomentReaction[];
 }
 
 export interface FoodSpotPhoto {
