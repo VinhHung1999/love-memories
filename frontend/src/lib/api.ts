@@ -209,13 +209,24 @@ export const dateWishesApi = {
   delete: (id: string) => request(`/date-wishes/${id}`, { method: 'DELETE' }),
 };
 
+type PlanStopInput = {
+  time: string;
+  title: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
+  order: number;
+  wishId?: string;
+};
+
 // Date Plans
 export const datePlansApi = {
   list: () => request<DatePlan[]>('/date-plans'),
   get: (id: string) => request<DatePlan>(`/date-plans/${id}`),
-  create: (data: Partial<DatePlan> & { stops?: Partial<import('../types').DatePlanStop>[] }) =>
+  create: (data: { title: string; date: string; notes?: string; stops?: PlanStopInput[] }) =>
     request<DatePlan>('/date-plans', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<DatePlan> & { stops?: Partial<import('../types').DatePlanStop>[] }) =>
+  update: (id: string, data: { title?: string; date?: string; notes?: string; stops?: PlanStopInput[] }) =>
     request<DatePlan>(`/date-plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   updateStatus: (id: string, status: string) =>
     request<DatePlan>(`/date-plans/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
