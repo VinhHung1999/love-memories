@@ -105,7 +105,7 @@ export default function RelationshipTimer({ footer }: Props) {
           <div key={label} className="flex items-end gap-x-3 md:gap-x-5">
             {i > 0 && <span className="text-2xl text-text-light/40 mb-4">·</span>}
             <div className="text-center">
-              <p className={`font-heading font-bold text-text leading-none${mono ? ' text-3xl md:text-4xl tabular-nums text-text/70' : ' text-5xl md:text-6xl'}`}>
+              <p className={`font-heading font-bold text-text leading-none${mono ? ' text-xl md:text-2xl tabular-nums text-text/70' : ' text-5xl md:text-6xl'}`}>
                 {mono ? String(value).padStart(2, '0') : value}
               </p>
               <p className="text-xs text-text-light mt-1.5 tracking-wide">{label}</p>

@@ -84,14 +84,7 @@ export default function Dashboard() {
           <Heart className="w-6 h-6 text-primary fill-primary" />
           <h1 className="font-heading text-3xl font-bold">{appName}</h1>
         </div>
-        <div className="flex items-center justify-between">
-          <p className="text-text-light text-sm">{appSlogan}</p>
-          {achievements.length > 0 && (
-            <Link to="/achievements" className="flex items-center gap-1 text-xs text-secondary hover:opacity-80 transition-opacity flex-shrink-0 ml-2">
-              🏆 <span className="font-semibold">{achievementsUnlocked}/{achievements.length}</span>
-            </Link>
-          )}
-        </div>
+        <p className="text-text-light text-sm">{appSlogan}</p>
       </div>
 
       {/* ── ACTIVE COOKING SESSION PIN ────────────────────────────────── */}
