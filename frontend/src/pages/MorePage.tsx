@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
 import { settingsApi, profileApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import Modal from '../components/Modal';
 
 const modules = [
@@ -97,15 +98,6 @@ export default function MorePage() {
     onError: () => toast.error('Không thể lưu tên'),
   });
 
-  const avatarMutation = useMutation({
-    mutationFn: (file: File) => profileApi.uploadAvatar(file),
-    onSuccess: (data) => {
-      updateUser({ avatar: data.avatar });
-      toast.success('Ảnh đại diện đã cập nhật!');
-    },
-    onError: () => toast.error('Không thể tải ảnh lên'),
-  });
-
   const handleSave = () => {
     if (!nameInput.trim()) return;
     nameMutation.mutate();
@@ -113,8 +105,17 @@ export default function MorePage() {
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) avatarMutation.mutate(file);
     e.target.value = '';
+    if (!file) return;
+    uploadQueue.enqueue(
+      `avatar-${Date.now()}`,
+      'Đang tải ảnh đại diện...',
+      (onProgress) => profileApi.uploadAvatar(file, onProgress),
+      (result) => {
+        const data = result as { id: string; email: string; name: string; avatar: string | null };
+        updateUser({ avatar: data.avatar });
+      },
+    );
   };
 
   return (
@@ -137,14 +138,10 @@ export default function MorePage() {
             )}
             <button
               onClick={() => avatarInputRef.current?.click()}
-              disabled={avatarMutation.isPending}
-              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow hover:bg-primary/90 transition-colors"
               title="Đổi ảnh đại diện"
             >
-              {avatarMutation.isPending
-                ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
-                : <Camera className="w-3 h-3" />
-              }
+              <Camera className="w-3 h-3" />
             </button>
             <input
               ref={avatarInputRef}

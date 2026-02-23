@@ -10,11 +10,23 @@ export async function uploadToCdn(
   const blob = new Blob([fileBuffer]);
   formData.append('file', blob, originalName);
 
-  const res = await fetch(`${CDN_BASE_URL}/upload/${CDN_PROJECT}`, {
-    method: 'POST',
-    headers: { 'x-api-key': CDN_API_KEY },
-    body: formData,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120_000); // 2-minute CDN timeout
+
+  let res: Response;
+  try {
+    res = await fetch(`${CDN_BASE_URL}/upload/${CDN_PROJECT}`, {
+      method: 'POST',
+      headers: { 'x-api-key': CDN_API_KEY },
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    if (err?.name === 'AbortError') throw new Error('CDN upload timeout after 120s');
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const text = await res.text();

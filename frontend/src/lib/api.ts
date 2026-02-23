@@ -1,4 +1,5 @@
 import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification } from '../types';
+import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -38,38 +39,18 @@ export const momentsApi = {
   create: (data: Partial<Moment>) => request<Moment>('/moments', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Moment>) => request<Moment>(`/moments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) => request(`/moments/${id}`, { method: 'DELETE' }),
-  uploadPhotos: async (id: string, files: File[]) => {
+  uploadPhotos: (id: string, files: File[], onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
-    const token = getToken();
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/moments/${id}/photos`, { method: 'POST', headers, body: formData });
-    if (res.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json();
+    return uploadWithProgress(`${API}/moments/${id}/photos`, formData, getToken(), onProgress);
   },
   deletePhoto: (momentId: string, photoId: string) =>
     request(`/moments/${momentId}/photos/${photoId}`, { method: 'DELETE' }),
-  uploadAudio: async (id: string, file: File, duration?: number) => {
+  uploadAudio: (id: string, file: File, duration?: number, onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     formData.append('audio', file);
     if (duration != null) formData.append('duration', String(duration));
-    const token = getToken();
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/moments/${id}/audio`, { method: 'POST', headers, body: formData });
-    if (res.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json();
+    return uploadWithProgress(`${API}/moments/${id}/audio`, formData, getToken(), onProgress);
   },
   deleteAudio: (momentId: string, audioId: string) =>
     request(`/moments/${momentId}/audio/${audioId}`, { method: 'DELETE' }),
@@ -88,20 +69,10 @@ export const foodSpotsApi = {
   create: (data: Partial<FoodSpot>) => request<FoodSpot>('/foodspots', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<FoodSpot>) => request<FoodSpot>(`/foodspots/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) => request(`/foodspots/${id}`, { method: 'DELETE' }),
-  uploadPhotos: async (id: string, files: File[]) => {
+  uploadPhotos: (id: string, files: File[], onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
-    const token = getToken();
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/foodspots/${id}/photos`, { method: 'POST', headers, body: formData });
-    if (res.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json();
+    return uploadWithProgress(`${API}/foodspots/${id}/photos`, formData, getToken(), onProgress);
   },
   deletePhoto: (foodSpotId: string, photoId: string) =>
     request(`/foodspots/${foodSpotId}/photos/${photoId}`, { method: 'DELETE' }),
@@ -152,20 +123,10 @@ export const recipesApi = {
   create: (data: Partial<Recipe>) => request<Recipe>('/recipes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Recipe>) => request<Recipe>(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) => request(`/recipes/${id}`, { method: 'DELETE' }),
-  uploadPhotos: async (id: string, files: File[]) => {
+  uploadPhotos: (id: string, files: File[], onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
-    const token = getToken();
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/recipes/${id}/photos`, { method: 'POST', headers, body: formData });
-    if (res.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json();
+    return uploadWithProgress(`${API}/recipes/${id}/photos`, formData, getToken(), onProgress);
   },
   deletePhoto: (recipeId: string, photoId: string) =>
     request(`/recipes/${recipeId}/photos/${photoId}`, { method: 'DELETE' }),
@@ -193,24 +154,10 @@ export const cookingSessionsApi = {
       method: 'PUT',
       body: JSON.stringify({ checked, checkedBy }),
     }),
-  uploadPhotos: async (id: string, files: File[]) => {
+  uploadPhotos: (id: string, files: File[], onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     files.forEach((f) => formData.append('photos', f));
-    const token = getToken();
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/cooking-sessions/${id}/photos`, {
-      method: 'POST',
-      headers,
-      body: formData,
-    });
-    if (res.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json();
+    return uploadWithProgress(`${API}/cooking-sessions/${id}/photos`, formData, getToken(), onProgress);
   },
   delete: (id: string) => request(`/cooking-sessions/${id}`, { method: 'DELETE' }),
 };
@@ -227,20 +174,10 @@ export const profileApi = {
       method: 'PUT',
       body: JSON.stringify({ name }),
     }),
-  uploadAvatar: async (file: File) => {
+  uploadAvatar: (file: File, onProgress?: (percent: number) => void) => {
     const formData = new FormData();
     formData.append('avatar', file);
-    const token = getToken();
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API}/profile/avatar`, { method: 'POST', headers, body: formData });
-    if (res.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
-    }
-    if (!res.ok) throw new Error('Upload failed');
-    return res.json() as Promise<{ id: string; email: string; name: string; avatar: string | null }>;
+    return uploadWithProgress(`${API}/profile/avatar`, formData, getToken(), onProgress) as Promise<{ id: string; email: string; name: string; avatar: string | null }>;
   },
 };
 
