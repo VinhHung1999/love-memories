@@ -213,6 +213,30 @@ export const achievementsApi = {
   list: () => request<Achievement[]>('/achievements'),
 };
 
+// Profile
+export const profileApi = {
+  updateName: (name: string) =>
+    request<{ id: string; email: string; name: string; avatar: string | null }>('/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+    }),
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API}/profile/avatar`, { method: 'POST', headers, body: formData });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error('Upload failed');
+    return res.json() as Promise<{ id: string; email: string; name: string; avatar: string | null }>;
+  },
+};
+
 // AI
 export const aiApi = {
   generateRecipe: (mode: 'text' | 'youtube', input: string) =>

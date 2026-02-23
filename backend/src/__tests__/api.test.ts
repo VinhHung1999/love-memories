@@ -544,3 +544,28 @@ describe('Achievements', () => {
     expect(typeof firstRecipe.unlocked).toBe('boolean');
   });
 });
+
+describe('Profile', () => {
+  it('PUT /api/profile returns 401 without auth', async () => {
+    const res = await request(app).put('/api/profile').send({ name: 'Test' });
+    expect(res.status).toBe(401);
+  });
+
+  it('PUT /api/profile updates name', async () => {
+    const res = await request(app).put('/api/profile').set(auth()).send({ name: 'Updated Name' });
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('Updated Name');
+    expect(res.body).toHaveProperty('email');
+    expect(res.body).toHaveProperty('id');
+  });
+
+  it('PUT /api/profile rejects empty name', async () => {
+    const res = await request(app).put('/api/profile').set(auth()).send({ name: '' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/profile/avatar returns 401 without auth', async () => {
+    const res = await request(app).post('/api/profile/avatar');
+    expect(res.status).toBe(401);
+  });
+});

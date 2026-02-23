@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, User, LogOut, Settings, Trophy } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
-import { settingsApi } from '../lib/api';
+import { settingsApi, profileApi } from '../lib/api';
 import Modal from '../components/Modal';
 
 const modules = [
@@ -46,10 +46,11 @@ const modules = [
 ];
 
 export default function MorePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // App customization
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
@@ -81,9 +82,34 @@ export default function MorePage() {
     .slice(0, 2)
     .toUpperCase();
 
+  const nameMutation = useMutation({
+    mutationFn: () => profileApi.updateName(nameInput.trim()),
+    onSuccess: (data) => {
+      updateUser({ name: data.name });
+      toast.success('Đã lưu tên!');
+      setEditOpen(false);
+    },
+    onError: () => toast.error('Không thể lưu tên'),
+  });
+
+  const avatarMutation = useMutation({
+    mutationFn: (file: File) => profileApi.uploadAvatar(file),
+    onSuccess: (data) => {
+      updateUser({ avatar: data.avatar });
+      toast.success('Ảnh đại diện đã cập nhật!');
+    },
+    onError: () => toast.error('Không thể tải ảnh lên'),
+  });
+
   const handleSave = () => {
-    // placeholder — name edit API to be wired when profile endpoint added
-    setEditOpen(false);
+    if (!nameInput.trim()) return;
+    nameMutation.mutate();
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) avatarMutation.mutate(file);
+    e.target.value = '';
   };
 
   return (
@@ -91,10 +117,39 @@ export default function MorePage() {
       {/* Profile section */}
       <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
         <div className="flex items-center gap-4">
-          {/* Avatar placeholder */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
-            <span className="font-heading text-xl font-bold text-primary">{initials}</span>
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                <span className="font-heading text-xl font-bold text-primary">{initials}</span>
+              </div>
+            )}
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarMutation.isPending}
+              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              title="Đổi ảnh đại diện"
+            >
+              {avatarMutation.isPending
+                ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                : <Camera className="w-3 h-3" />
+              }
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
           </div>
+
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-base truncate">{user?.name}</p>
             <p className="text-text-light text-sm truncate">{user?.email}</p>
@@ -182,16 +237,15 @@ export default function MorePage() {
               onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditOpen(false); }}
             />
           </div>
-          <div className="flex items-center gap-2 text-xs text-text-light bg-gray-50 rounded-xl p-3">
-            <User className="w-3.5 h-3.5 flex-shrink-0" />
-            Avatar upload sẽ có trong Sprint 14
-          </div>
           <div className="flex gap-3">
-            <button onClick={() => setEditOpen(false)} className="flex-1 flex items-center justify-center gap-1.5 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors">
+            <button onClick={() => setEditOpen(false)} disabled={nameMutation.isPending} className="flex-1 flex items-center justify-center gap-1.5 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors">
               <X className="w-4 h-4" /> Cancel
             </button>
-            <button onClick={handleSave} className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 transition-colors">
-              <Check className="w-4 h-4" /> Save
+            <button onClick={handleSave} disabled={nameMutation.isPending || !nameInput.trim()} className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors">
+              {nameMutation.isPending
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <><Check className="w-4 h-4" /> Save</>
+              }
             </button>
           </div>
         </div>

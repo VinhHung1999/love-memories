@@ -13,6 +13,7 @@ import { recipeRoutes } from './routes/recipes';
 import { cookingSessionRoutes } from './routes/cookingSessions';
 import { aiRoutes } from './routes/ai';
 import { achievementRoutes } from './routes/achievements';
+import { profileRoutes } from './routes/profile';
 import { proxyImageRoute } from './routes/proxy-image';
 import { requireAuth } from './middleware/auth';
 
@@ -43,6 +44,7 @@ app.use('/api/recipes', requireAuth, recipeRoutes);
 app.use('/api/cooking-sessions', requireAuth, cookingSessionRoutes);
 app.use('/api/ai', requireAuth, aiRoutes);
 app.use('/api/achievements', requireAuth, achievementRoutes);
+app.use('/api/profile', requireAuth, profileRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {
