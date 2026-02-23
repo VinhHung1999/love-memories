@@ -63,8 +63,10 @@ export default function DatePlanDetailPage() {
     mutationFn: (status: string) => datePlansApi.updateStatus(id!, status),
     onSuccess: (updated) => {
       queryClient.setQueryData(['date-plans', id], updated);
+      queryClient.setQueryData<DatePlan[]>(['date-plans'], (old) =>
+        old ? old.map((p) => (p.id === updated.id ? updated : p)) : old,
+      );
       queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
-      queryClient.invalidateQueries({ queryKey: ['date-plans', id], exact: true });
       if (updated.status === 'completed') {
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
         toast.success('Chúc mừng! Buổi hẹn hò hoàn thành! 🎉');
@@ -80,6 +82,9 @@ export default function DatePlanDetailPage() {
     onSuccess: (updatedPlan) => {
       // Backend returns full plan (already auto-completed if last stop)
       queryClient.setQueryData(['date-plans', id], updatedPlan);
+      queryClient.setQueryData<DatePlan[]>(['date-plans'], (old) =>
+        old ? old.map((p) => (p.id === updatedPlan.id ? updatedPlan : p)) : old,
+      );
       queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
       toast.success('Đã check!');
       if (updatedPlan.status === 'completed') {
