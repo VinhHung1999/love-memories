@@ -195,5 +195,4 @@ export interface Achievement {
   category: string;
   unlocked: boolean;
   unlockedAt: string | null;
-  customId?: string;
 }

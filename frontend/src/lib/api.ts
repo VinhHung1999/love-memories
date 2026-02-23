@@ -211,12 +211,6 @@ export const cookingSessionsApi = {
 // Achievements
 export const achievementsApi = {
   list: () => request<Achievement[]>('/achievements'),
-  createCustom: (data: { title: string; description?: string; icon?: string }) =>
-    request<Achievement>('/achievements/custom', { method: 'POST', body: JSON.stringify(data) }),
-  updateCustom: (id: string, data: { title?: string; description?: string; icon?: string; unlocked?: boolean }) =>
-    request<Achievement>(`/achievements/custom/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteCustom: (id: string) =>
-    request(`/achievements/custom/${id}`, { method: 'DELETE' }),
 };
 
 // Profile

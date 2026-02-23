@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { z } from 'zod';
 import prisma from '../utils/prisma';
 
 const router = Router();
@@ -111,10 +110,7 @@ router.get('/', async (_req: Request, res: Response) => {
     }
 
     // Final state
-    const [finalUnlocked, customList] = await Promise.all([
-      prisma.achievement.findMany(),
-      prisma.customAchievement.findMany({ orderBy: { createdAt: 'asc' } }),
-    ]);
+    const finalUnlocked = await prisma.achievement.findMany();
     const unlockedMap = new Map(finalUnlocked.map((a) => [a.key, a]));
 
     const systemAchievements = ACHIEVEMENT_DEFS.map((def) => {
@@ -130,87 +126,9 @@ router.get('/', async (_req: Request, res: Response) => {
       };
     });
 
-    const customAchievements = customList.map((c) => ({
-      key: `custom_${c.id}`,
-      title: c.title,
-      description: c.description ?? '',
-      icon: c.icon,
-      category: 'custom' as const,
-      unlocked: c.unlocked,
-      unlockedAt: c.unlockedAt ?? null,
-      customId: c.id,
-    }));
-
-    res.json([...systemAchievements, ...customAchievements]);
+    res.json(systemAchievements);
   } catch (_error) {
     res.status(500).json({ error: 'Failed to fetch achievements' });
-  }
-});
-
-// ─── Custom achievements ───────────────────────────────────────────────────────
-
-const customSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().optional(),
-  icon: z.string().optional(),
-});
-
-// POST /api/achievements/custom
-router.post('/custom', async (_req: Request, res: Response) => {
-  try {
-    const { title, description, icon } = customSchema.parse(_req.body);
-    const custom = await prisma.customAchievement.create({
-      data: { title, description, icon: icon ?? '🏅' },
-    });
-    res.status(201).json(custom);
-  } catch (err) {
-    if (err instanceof z.ZodError) {
-      res.status(400).json({ error: err.errors[0]?.message || 'Invalid input' });
-    } else {
-      res.status(500).json({ error: 'Server error' });
-    }
-  }
-});
-
-// PUT /api/achievements/custom/:id
-router.put('/custom/:id', async (req: Request<{ id: string }>, res: Response) => {
-  try {
-    const { title, description, icon } = customSchema.partial().parse(req.body);
-    const { unlocked } = req.body as { unlocked?: boolean };
-    const existing = await prisma.customAchievement.findUnique({ where: { id: req.params.id } });
-    if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-
-    const unlockedAt =
-      unlocked === true && !existing.unlocked ? new Date()
-      : unlocked === false ? null
-      : existing.unlockedAt;
-
-    const updated = await prisma.customAchievement.update({
-      where: { id: req.params.id },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(icon !== undefined && { icon }),
-        ...(unlocked !== undefined && { unlocked, unlockedAt }),
-      },
-    });
-    res.json(updated);
-  } catch (err) {
-    if (err instanceof z.ZodError) {
-      res.status(400).json({ error: err.errors[0]?.message || 'Invalid input' });
-    } else {
-      res.status(500).json({ error: 'Server error' });
-    }
-  }
-});
-
-// DELETE /api/achievements/custom/:id
-router.delete('/custom/:id', async (req: Request<{ id: string }>, res: Response) => {
-  try {
-    await prisma.customAchievement.delete({ where: { id: req.params.id } });
-    res.status(204).send();
-  } catch {
-    res.status(404).json({ error: 'Not found' });
   }
 });
 
