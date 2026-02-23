@@ -80,7 +80,9 @@ function extractPlaceName(url: string): string | null {
     if (m) {
       return decodeURIComponent(m[1].replace(/\+/g, ' '));
     }
-    // Fallback: extract q= parameter (Google Search redirect for share links)
+    // Fallback: extract daddr= (directions destination) or q= (search/share)
+    const daddr = parsed.searchParams.get('daddr');
+    if (daddr) return daddr;
     const q = parsed.searchParams.get('q');
     if (q) return q;
   } catch {
