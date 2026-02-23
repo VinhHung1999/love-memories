@@ -15,6 +15,9 @@ const TYPE_ICON: Record<string, string> = {
   new_foodspot: '📍',
   cooking_completed: '🎯',
   achievement_unlocked: '🏆',
+  new_date_wish: '💝',
+  new_date_plan: '📅',
+  daily_plan_reminder: '⏰',
 };
 
 export default function NotificationsPage() {

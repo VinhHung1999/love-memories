@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Response } from 'express';
 import prisma from '../utils/prisma';
 import type { AuthRequest } from '../middleware/auth';
+import { createNotification, getOtherUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -50,6 +51,12 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       },
     });
     res.status(201).json(wish);
+    // Notify other user
+    const currentUserId = req.user!.userId;
+    const otherUserId = await getOtherUserId(currentUserId);
+    if (otherUserId) {
+      await createNotification(otherUserId, 'new_date_wish', 'Ước muốn mới', `Có ước muốn mới: ${wish.title}`, '/date-planner');
+    }
   } catch {
     res.status(500).json({ error: 'Failed to create date wish' });
   }
