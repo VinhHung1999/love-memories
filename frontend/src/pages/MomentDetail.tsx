@@ -464,14 +464,14 @@ export default function MomentDetail() {
                 rows={1}
                 className="flex-1 border border-border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                  if (e.key === 'Enter' && !e.shiftKey && commentText.trim() && !addCommentMutation.isPending) {
                     e.preventDefault();
                     addCommentMutation.mutate(commentText.trim());
                   }
                 }}
               />
               <button
-                onClick={() => { if (commentText.trim()) addCommentMutation.mutate(commentText.trim()); }}
+                onClick={() => { if (commentText.trim() && !addCommentMutation.isPending) addCommentMutation.mutate(commentText.trim()); }}
                 disabled={addCommentMutation.isPending || !commentText.trim()}
                 className="flex-shrink-0 w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
               >
