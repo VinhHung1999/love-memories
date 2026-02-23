@@ -5,10 +5,10 @@ import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check } fr
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
-import { datePlansApi, foodSpotsApi } from '../lib/api';
-import type { DatePlan, DatePlanStop, FoodSpot } from '../types';
+import { datePlansApi } from '../lib/api';
+import type { DatePlan, DatePlanStop } from '../types';
 import CreateMomentModal from '../components/CreateMomentModal';
-import Modal from '../components/Modal';
+import CreateFoodSpotModal from '../components/CreateFoodSpotModal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -396,56 +396,27 @@ export default function DatePlanDetailPage() {
         );
       })()}
 
-      {/* Link Food Spot modal */}
-      <LinkFoodSpotModal
-        open={selectedStopForFoodSpot !== null}
-        onClose={() => setSelectedStopForFoodSpot(null)}
-        onSelect={(foodSpotId) => {
-          if (selectedStopForFoodSpot) {
-            linkFoodSpotMutation.mutate({ stopId: selectedStopForFoodSpot, foodSpotId });
-          }
-        }}
-      />
+      {/* Create Food Spot modal — pre-filled from selected stop */}
+      {(() => {
+        const selectedStop = selectedStopForFoodSpot
+          ? stops.find((s) => s.id === selectedStopForFoodSpot)
+          : null;
+        return (
+          <CreateFoodSpotModal
+            open={selectedStopForFoodSpot !== null}
+            onClose={() => setSelectedStopForFoodSpot(null)}
+            initialLocation={selectedStop?.address}
+            initialLatitude={selectedStop?.latitude}
+            initialLongitude={selectedStop?.longitude}
+            onCreated={(foodSpotId) => {
+              if (selectedStopForFoodSpot) {
+                linkFoodSpotMutation.mutate({ stopId: selectedStopForFoodSpot, foodSpotId });
+              }
+            }}
+          />
+        );
+      })()}
     </div>
-  );
-}
-
-// ── LinkFoodSpotModal ──────────────────────────────────────────────────────────
-
-function LinkFoodSpotModal({
-  open,
-  onClose,
-  onSelect,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (foodSpotId: string) => void;
-}) {
-  const { data: foodSpots = [] } = useQuery<FoodSpot[]>({
-    queryKey: ['foodspots'],
-    queryFn: foodSpotsApi.list,
-    enabled: open,
-  });
-
-  return (
-    <Modal open={open} onClose={onClose} title="Chọn quán ăn">
-      {foodSpots.length === 0 ? (
-        <p className="text-sm text-text-light py-4 text-center">Chưa có quán nào được lưu.</p>
-      ) : (
-        <div className="space-y-2">
-          {foodSpots.map((spot) => (
-            <button
-              key={spot.id}
-              onClick={() => onSelect(spot.id)}
-              className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-border transition-colors"
-            >
-              <p className="text-sm font-medium text-text">{spot.name}</p>
-              {spot.location && <p className="text-xs text-text-light mt-0.5">{spot.location}</p>}
-            </button>
-          ))}
-        </div>
-      )}
-    </Modal>
   );
 }
 
