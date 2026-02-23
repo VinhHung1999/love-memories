@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Search, MapPin, X, LocateFixed } from 'lucide-react';
+import { Search, MapPin, X, LocateFixed, Link } from 'lucide-react';
 
 interface LocationPickerProps {
   latitude?: number | null;
@@ -31,6 +31,46 @@ export default function LocationPicker({ latitude, longitude, location, onChange
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const token = mapboxgl.accessToken;
+  const [resolvingUrl, setResolvingUrl] = useState(false);
+
+  const GOOGLE_MAPS_RE = /^https?:\/\/(share\.google|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps)/;
+
+  const resolveGoogleUrl = useCallback(async (url: string) => {
+    setResolvingUrl(true);
+    setResults([]);
+    try {
+      const res = await fetch('/api/resolve-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setResolvingUrl(false);
+        return;
+      }
+      const { latitude: lat, longitude: lng, name } = data as { latitude: number; longitude: number; name: string };
+      // Reverse geocode with Mapbox for a full address, fall back to returned name
+      let placeName = name;
+      if (token) {
+        try {
+          const geoRes = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
+          );
+          const geoData = await geoRes.json();
+          placeName = geoData.features?.[0]?.place_name || name;
+        } catch {
+          // keep name from backend
+        }
+      }
+      onChange({ latitude: lat, longitude: lng, location: placeName });
+      setQuery(placeName);
+      updateMarker(lng, lat);
+    } catch {
+      // silent fail — user can still search manually
+    }
+    setResolvingUrl(false);
+  }, [token, onChange]);
 
   // Get current location via browser geolocation
   const getCurrentLocation = () => {
@@ -86,6 +126,11 @@ export default function LocationPicker({ latitude, longitude, location, onChange
   const handleQueryChange = (value: string) => {
     setQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    // Detect Google Maps URL paste — resolve immediately, skip normal search
+    if (GOOGLE_MAPS_RE.test(value.trim())) {
+      resolveGoogleUrl(value.trim());
+      return;
+    }
     debounceRef.current = setTimeout(() => searchLocation(value), 400);
   };
 
@@ -164,14 +209,18 @@ export default function LocationPicker({ latitude, longitude, location, onChange
     <div className="space-y-2">
       {/* Search input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light" />
+        {resolvingUrl
+          ? <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-pulse" />
+          : <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light" />
+        }
         <input
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
-          placeholder="Search for a place..."
+          placeholder="Search or paste Google Maps link..."
           className="w-full border border-border rounded-xl pl-9 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          disabled={resolvingUrl}
         />
-        {query && (
+        {query && !resolvingUrl && (
           <button
             type="button"
             onClick={() => { setQuery(''); setResults([]); }}
@@ -179,6 +228,9 @@ export default function LocationPicker({ latitude, longitude, location, onChange
           >
             <X className="w-3.5 h-3.5 text-text-light" />
           </button>
+        )}
+        {resolvingUrl && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">Đang tải...</span>
         )}
 
         {/* Search results dropdown */}

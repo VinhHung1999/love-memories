@@ -20,6 +20,7 @@ import { notificationRoutes } from './routes/notifications';
 import { pushRoutes } from './routes/push';
 import { dateWishRoutes } from './routes/dateWishes';
 import { datePlanRoutes } from './routes/datePlans';
+import { resolveLocationRoute } from './routes/resolveLocation';
 import { requireAuth } from './middleware/auth';
 import prisma from './utils/prisma';
 import { createNotification } from './utils/notifications';
@@ -37,6 +38,7 @@ app.get('/api/health', (_req, res) => {
 
 // Public routes
 app.use('/api/auth', authRoutes);
+app.use('/api/resolve-location', resolveLocationRoute);
 
 // Protected routes
 app.use('/api/proxy-image', requireAuth, proxyImageRoute);
