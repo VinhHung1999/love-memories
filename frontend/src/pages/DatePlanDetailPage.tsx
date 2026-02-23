@@ -79,7 +79,7 @@ export default function DatePlanDetailPage() {
     mutationFn: ({ stopId }: { stopId: string }) => datePlansApi.markStopDone(id!, stopId),
     onSuccess: (_, { stopId }) => {
       queryClient.invalidateQueries({ queryKey: ['date-plans', id], exact: true });
-      queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
+      // Do NOT invalidate list here — statusMutation.onSuccess will do it after status is committed
       toast.success('Đã check!');
       // Auto-complete plan when last stop is marked done
       if (plan && plan.status === 'active' && plan.stops.length > 0) {
