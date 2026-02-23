@@ -22,11 +22,13 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 // POST / — create wish
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, category, address, url, tags } = req.body as {
+    const { title, description, category, address, latitude, longitude, url, tags } = req.body as {
       title: string;
       description?: string;
       category: string;
       address?: string;
+      latitude?: number;
+      longitude?: number;
       url?: string;
       tags?: string[];
     };
@@ -40,6 +42,8 @@ router.post('/', async (req: AuthRequest, res: Response) => {
         description: description ?? null,
         category,
         address: address ?? null,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
         url: url ?? null,
         tags: tags ?? [],
         createdBy: req.user!.userId,
@@ -54,11 +58,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 // PUT /:id — update title/description/category
 router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response) => {
   try {
-    const { title, description, category, address, url, tags } = req.body as {
+    const { title, description, category, address, latitude, longitude, url, tags } = req.body as {
       title?: string;
       description?: string;
       category?: string;
       address?: string;
+      latitude?: number | null;
+      longitude?: number | null;
       url?: string;
       tags?: string[];
     };
@@ -69,6 +75,8 @@ router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
         ...(description !== undefined && { description }),
         ...(category !== undefined && { category }),
         ...(address !== undefined && { address }),
+        ...(latitude !== undefined && { latitude }),
+        ...(longitude !== undefined && { longitude }),
         ...(url !== undefined && { url }),
         ...(tags !== undefined && { tags }),
       },

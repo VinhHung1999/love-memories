@@ -325,6 +325,8 @@ model DateWish {
   description      String?
   category         String
   address          String?
+  latitude         Float?
+  longitude        Float?
   url              String?
   tags             String[]  @default([])
   done             Boolean   @default(false)

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarHeart, Heart, Plus, Trash2, Check, ChevronUp, ChevronDown, MapPin, Calendar } from 'lucide-react';
+import { CalendarHeart, Heart, Plus, Trash2, Check, ChevronUp, ChevronDown, MapPin, Calendar, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { dateWishesApi, datePlansApi, momentsApi, foodSpotsApi } from '../lib/api';
 import type { DateWish, DatePlan } from '../types';
 import Modal from '../components/Modal';
+import LocationPicker from '../components/LocationPicker';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -380,9 +381,20 @@ function WishCard({
         </div>
       </div>
 
-      {/* URL link + done links */}
-      {(wish.url || (wish.done && (wish.linkedMomentId || wish.linkedFoodSpotId))) && (
+      {/* URL link + directions + done links */}
+      {(wish.url || (wish.latitude != null && wish.longitude != null) || (wish.done && (wish.linkedMomentId || wish.linkedFoodSpotId))) && (
         <div className="flex gap-3 mt-2 pt-2 border-t border-border flex-wrap">
+          {wish.latitude != null && wish.longitude != null && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${wish.latitude},${wish.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs text-secondary hover:underline flex items-center gap-1"
+            >
+              <Navigation className="w-3 h-3" /> Chỉ đường
+            </a>
+          )}
           {wish.url && (
             <a
               href={wish.url}
@@ -430,6 +442,8 @@ function WishFormModal({
     (wish?.category as Category) ?? 'eating'
   );
   const [address, setAddress] = useState(wish?.address ?? '');
+  const [latitude, setLatitude] = useState<number | null>(wish?.latitude ?? null);
+  const [longitude, setLongitude] = useState<number | null>(wish?.longitude ?? null);
   const [url, setUrl] = useState(wish?.url ?? '');
   const [tagsInput, setTagsInput] = useState('');
   const [tags, setTags] = useState<string[]>(wish?.tags ?? []);
@@ -442,6 +456,8 @@ function WishFormModal({
     setDescription(wish?.description ?? '');
     setCategory((wish?.category as Category) ?? 'eating');
     setAddress(wish?.address ?? '');
+    setLatitude(wish?.latitude ?? null);
+    setLongitude(wish?.longitude ?? null);
     setUrl(wish?.url ?? '');
     setTags(wish?.tags ?? []);
     setTagsInput('');
@@ -462,6 +478,8 @@ function WishFormModal({
         description: description || undefined,
         category,
         address: address || undefined,
+        latitude: latitude ?? undefined,
+        longitude: longitude ?? undefined,
         url: url || undefined,
         tags,
       };
@@ -504,11 +522,20 @@ function WishFormModal({
 
         <div>
           <label className="block text-sm font-medium mb-1">Địa chỉ</label>
-          <input
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Số nhà, đường, quận..."
-            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          <LocationPicker
+            latitude={latitude}
+            longitude={longitude}
+            location={address || null}
+            onChange={({ latitude: lat, longitude: lng, location }) => {
+              setLatitude(lat);
+              setLongitude(lng);
+              setAddress(location);
+            }}
+            onClear={() => {
+              setLatitude(null);
+              setLongitude(null);
+              setAddress('');
+            }}
           />
         </div>
 

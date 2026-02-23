@@ -233,6 +233,8 @@ export interface DateWish {
   description: string | null;
   category: string;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   url: string | null;
   tags: string[];
   done: boolean;
