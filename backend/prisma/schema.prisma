@@ -232,6 +232,15 @@ model Tag {
   @@map("tags")
 }
 
+model Achievement {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  unlockedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@map("achievements")
+}
+
 model AppSetting {
   id        String   @id @default(uuid())
   key       String   @unique
