@@ -250,6 +250,18 @@ model AppSetting {
   @@map("app_settings")
 }
 
+model CustomAchievement {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  icon        String    @default("🏅")
+  unlocked    Boolean   @default(false)
+  unlockedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("custom_achievements")
+}
+
 model Goal {
   id          String       @id @default(uuid())
   title       String

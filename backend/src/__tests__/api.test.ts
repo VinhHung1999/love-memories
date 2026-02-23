@@ -543,6 +543,46 @@ describe('Achievements', () => {
     // unlocked depends on whether test recipes exist — just verify shape
     expect(typeof firstRecipe.unlocked).toBe('boolean');
   });
+
+  it('GET /api/achievements includes custom achievements', async () => {
+    // Create a custom achievement first
+    await request(app).post('/api/achievements/custom').set(auth()).send({ title: 'Test Custom', icon: '🏅' });
+    const res = await request(app).get('/api/achievements').set(auth());
+    expect(res.status).toBe(200);
+    const custom = res.body.find((a: { category: string }) => a.category === 'custom');
+    expect(custom).toBeDefined();
+    expect(custom.key).toMatch(/^custom_/);
+  });
+});
+
+describe('Custom Achievements', () => {
+  it('POST /api/achievements/custom returns 401 without auth', async () => {
+    const res = await request(app).post('/api/achievements/custom').send({ title: 'Test' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/achievements/custom creates a custom achievement', async () => {
+    const res = await request(app).post('/api/achievements/custom').set(auth()).send({ title: 'My Goal', icon: '⭐' });
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('My Goal');
+    expect(res.body.unlocked).toBe(false);
+  });
+
+  it('PUT /api/achievements/custom/:id toggles unlock', async () => {
+    const created = await request(app).post('/api/achievements/custom').set(auth()).send({ title: 'Toggle Test' });
+    const id = created.body.id;
+    const res = await request(app).put(`/api/achievements/custom/${id}`).set(auth()).send({ unlocked: true });
+    expect(res.status).toBe(200);
+    expect(res.body.unlocked).toBe(true);
+    expect(res.body.unlockedAt).not.toBeNull();
+  });
+
+  it('DELETE /api/achievements/custom/:id deletes achievement', async () => {
+    const created = await request(app).post('/api/achievements/custom').set(auth()).send({ title: 'Delete Me' });
+    const id = created.body.id;
+    const res = await request(app).delete(`/api/achievements/custom/${id}`).set(auth());
+    expect(res.status).toBe(204);
+  });
 });
 
 describe('Profile', () => {
