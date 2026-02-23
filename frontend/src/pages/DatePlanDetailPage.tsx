@@ -77,16 +77,14 @@ export default function DatePlanDetailPage() {
 
   const stopDoneMutation = useMutation({
     mutationFn: ({ stopId }: { stopId: string }) => datePlansApi.markStopDone(id!, stopId),
-    onSuccess: (_, { stopId }) => {
-      queryClient.invalidateQueries({ queryKey: ['date-plans', id], exact: true });
-      // Do NOT invalidate list here — statusMutation.onSuccess will do it after status is committed
+    onSuccess: (updatedPlan) => {
+      // Backend returns full plan (already auto-completed if last stop)
+      queryClient.setQueryData(['date-plans', id], updatedPlan);
+      queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
       toast.success('Đã check!');
-      // Auto-complete plan when last stop is marked done
-      if (plan && plan.status === 'active' && plan.stops.length > 0) {
-        const stillPending = plan.stops.filter((s) => !s.done && s.id !== stopId);
-        if (stillPending.length === 0) {
-          statusMutation.mutate('completed');
-        }
+      if (updatedPlan.status === 'completed') {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        toast.success('Chúc mừng! Buổi hẹn hò hoàn thành! 🎉');
       }
     },
     onError: () => toast.error('Không thể cập nhật'),

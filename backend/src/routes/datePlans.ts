@@ -235,14 +235,39 @@ router.put('/:id/stops/:stopId/foodspot', async (req: AuthRequest & { params: Pl
   }
 });
 
-// PUT /:id/stops/:stopId/done — mark stop done
+// PUT /:id/stops/:stopId/done — mark stop done, auto-complete plan if last stop
 router.put('/:id/stops/:stopId/done', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
   try {
-    const stop = await prisma.datePlanStop.update({
+    // 1. Mark stop done
+    await prisma.datePlanStop.update({
       where: { id: req.params.stopId },
       data: { done: true, doneAt: new Date() },
     });
-    res.json(stop);
+
+    // 2. Fetch updated plan to check if all stops are done
+    const plan = await prisma.datePlan.findUnique({
+      where: { id: req.params.id },
+      include: STOPS_INCLUDE,
+    });
+
+    // 3. Auto-complete if active and all stops done
+    if (plan && plan.status === 'active') {
+      const allDone = plan.stops.length > 0 && plan.stops.every((s) => s.done);
+      if (allDone) {
+        await prisma.datePlan.update({
+          where: { id: req.params.id },
+          data: { status: 'completed' },
+        });
+        const completed = await prisma.datePlan.findUnique({
+          where: { id: req.params.id },
+          include: STOPS_INCLUDE,
+        });
+        res.json(completed);
+        return;
+      }
+    }
+
+    res.json(plan);
   } catch {
     res.status(500).json({ error: 'Failed to mark stop done' });
   }

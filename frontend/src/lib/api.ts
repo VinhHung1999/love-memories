@@ -235,7 +235,7 @@ export const datePlansApi = {
   updateStatus: (id: string, status: string) =>
     request<DatePlan>(`/date-plans/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   markStopDone: (planId: string, stopId: string) =>
-    request(`/date-plans/${planId}/stops/${stopId}/done`, { method: 'PUT' }),
+    request<DatePlan>(`/date-plans/${planId}/stops/${stopId}/done`, { method: 'PUT' }),
   linkStopMoment: (planId: string, stopId: string, momentId: string | null) =>
     request(`/date-plans/${planId}/stops/${stopId}/moment`, { method: 'PUT', body: JSON.stringify({ momentId }) }),
   linkStopFoodSpot: (planId: string, stopId: string, foodSpotId: string | null) =>
