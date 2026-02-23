@@ -14,7 +14,7 @@ export interface FrameDef {
     images: HTMLImageElement[],
     filterId: string,
     stickers: PlacedSticker[],
-    options?: { frameColor?: string },
+    options?: { frameColor?: string; appName?: string },
   ) => Promise<HTMLCanvasElement>;
 }
 
@@ -50,7 +50,7 @@ function polaroidThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number):
 }
 
 async function polaroidRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const H = 1280;
   const canvas = createCanvas(W, H);
@@ -72,12 +72,12 @@ async function polaroidRender(
     ctx.restore();
   }
 
-  // Bottom text area — centered "Love Scrum" script
+  // Bottom text area — centered app name script
   ctx.fillStyle = '#888';
   ctx.font = `italic 54px "Playfair Display", Georgia, serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Love Scrum ♥', W / 2, 1100);
+  ctx.fillText((_options?.appName ?? 'Love Scrum') + ' ♥', W / 2, 1100);
 
   // Subtle drop shadow border
   ctx.strokeStyle = '#eee';
@@ -478,7 +478,7 @@ function minimalThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): 
 }
 
 async function minimalRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const H = W;
   const canvas = createCanvas(W, H);
@@ -517,7 +517,7 @@ async function minimalRender(
   ctx.fillStyle = PRIMARY + '99';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('Love Scrum ♥', W - outer - 16, H - outer - 16);
+  ctx.fillText((_options?.appName ?? 'Love Scrum') + ' ♥', W - outer - 16, H - outer - 16);
 
   drawStickers(ctx, stickers, W, H);
   return canvas;
@@ -545,7 +545,7 @@ function letterThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): v
 }
 
 async function letterRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], _options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const H = 1350;
   const canvas = createCanvas(W, H);
@@ -575,7 +575,7 @@ async function letterRender(
   ctx.fillStyle = 'rgba(232,120,138,0.5)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('LOVE SCRUM', W - 160, 120);
+  ctx.fillText((_options?.appName ?? 'Love Scrum').toUpperCase(), W - 160, 120);
   ctx.fillText('✦ ✦ ✦', W - 160, 148);
 
   // Stamp area
@@ -645,13 +645,13 @@ async function letterRender(
 
 const STRIP_W = 600;
 
-function drawWatermark(ctx: CanvasRenderingContext2D, cw: number, ch: number, color: string): void {
+function drawWatermark(ctx: CanvasRenderingContext2D, cw: number, ch: number, color: string, appName = 'Love Scrum'): void {
   ctx.save();
   ctx.font = 'italic 18px "Playfair Display", Georgia, serif';
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.fillText('Love Scrum ♥  ' + new Date().toLocaleDateString('vi-VN'), cw / 2, ch - 10);
+  ctx.fillText(appName + ' ♥  ' + new Date().toLocaleDateString('vi-VN'), cw / 2, ch - 10);
   ctx.restore();
 }
 
@@ -700,7 +700,7 @@ function classicStripThumbnail(ctx: CanvasRenderingContext2D, w: number, h: numb
 }
 
 async function classicStripRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const frameColor = options?.frameColor ?? '#FFFFFF';
   const H = 1800, sidePad = 30, topPad = 36, botPad = 64, gap = 12;
@@ -712,7 +712,7 @@ async function classicStripRender(
   const canvas = createCanvas(STRIP_W, H);
   const ctx = canvas.getContext('2d')!;
   drawStripPhotos(ctx, images, filterId, slots, frameColor);
-  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa', options?.appName);
   drawStickers(ctx, stickers, STRIP_W, H);
   return canvas;
 }
@@ -737,7 +737,7 @@ function duoStripThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number):
 }
 
 async function duoStripRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const frameColor = options?.frameColor ?? '#FFFFFF';
   const H = 900, sidePad = 30, topPad = 36, botPad = 64, gap = 12;
@@ -749,7 +749,7 @@ async function duoStripRender(
   const canvas = createCanvas(STRIP_W, H);
   const ctx = canvas.getContext('2d')!;
   drawStripPhotos(ctx, images, filterId, slots, frameColor);
-  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa', options?.appName);
   drawStickers(ctx, stickers, STRIP_W, H);
   return canvas;
 }
@@ -774,7 +774,7 @@ function tripleStripThumbnail(ctx: CanvasRenderingContext2D, w: number, h: numbe
 }
 
 async function tripleStripRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const frameColor = options?.frameColor ?? '#FFFFFF';
   const H = 1350, sidePad = 30, topPad = 36, botPad = 64, gap = 12;
@@ -786,7 +786,7 @@ async function tripleStripRender(
   const canvas = createCanvas(STRIP_W, H);
   const ctx = canvas.getContext('2d')!;
   drawStripPhotos(ctx, images, filterId, slots, frameColor);
-  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa', options?.appName);
   drawStickers(ctx, stickers, STRIP_W, H);
   return canvas;
 }
@@ -807,7 +807,7 @@ function gridThumbnail(ctx: CanvasRenderingContext2D, w: number, h: number): voi
 }
 
 async function gridRender(
-  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string },
+  images: HTMLImageElement[], filterId: string, stickers: PlacedSticker[], options?: { frameColor?: string; appName?: string },
 ): Promise<HTMLCanvasElement> {
   const frameColor = options?.frameColor ?? '#FFFFFF';
   const H = 720, sidePad = 20, topPad = 20, botPad = 52, gap = 10;
@@ -822,7 +822,7 @@ async function gridRender(
   const canvas = createCanvas(STRIP_W, H);
   const ctx = canvas.getContext('2d')!;
   drawStripPhotos(ctx, images, filterId, slots, frameColor);
-  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa');
+  drawWatermark(ctx, STRIP_W, H, PRIMARY + 'aa', options?.appName);
   drawStickers(ctx, stickers, STRIP_W, H);
   return canvas;
 }

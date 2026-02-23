@@ -186,3 +186,13 @@ export interface Sprint {
   updatedAt: string;
   goals: Goal[];
 }
+
+export interface Achievement {
+  key: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: string;
+  unlocked: boolean;
+  unlockedAt: string | null;
+}

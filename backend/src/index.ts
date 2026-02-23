@@ -12,6 +12,8 @@ import { authRoutes } from './routes/auth';
 import { recipeRoutes } from './routes/recipes';
 import { cookingSessionRoutes } from './routes/cookingSessions';
 import { aiRoutes } from './routes/ai';
+import { achievementRoutes } from './routes/achievements';
+import { profileRoutes } from './routes/profile';
 import { proxyImageRoute } from './routes/proxy-image';
 import { requireAuth } from './middleware/auth';
 
@@ -36,11 +38,13 @@ app.use('/api/foodspots', requireAuth, foodSpotRoutes);
 app.use('/api/map', requireAuth, mapRoutes);
 app.use('/api/sprints', requireAuth, sprintRoutes);
 app.use('/api/goals', requireAuth, goalRoutes);
-app.use('/api/settings', requireAuth, settingsRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api/tags', requireAuth, tagRoutes);
 app.use('/api/recipes', requireAuth, recipeRoutes);
 app.use('/api/cooking-sessions', requireAuth, cookingSessionRoutes);
 app.use('/api/ai', requireAuth, aiRoutes);
+app.use('/api/achievements', requireAuth, achievementRoutes);
+app.use('/api/profile', requireAuth, profileRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {

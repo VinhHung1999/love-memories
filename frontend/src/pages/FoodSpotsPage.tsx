@@ -5,6 +5,7 @@ import { Utensils, Plus, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
+import { useCheckAchievements } from '../lib/achievements';
 import type { FoodSpot } from '../types';
 import Modal from '../components/Modal';
 import PhotoUpload from '../components/PhotoUpload';
@@ -151,6 +152,7 @@ function FoodSpotCard({ spot, index }: { spot: FoodSpot; index: number }) {
 
 function FoodSpotFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const checkAchievements = useCheckAchievements();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [rating, setRating] = useState(0);
@@ -185,6 +187,7 @@ function FoodSpotFormModal({ open, onClose }: { open: boolean; onClose: () => vo
       onClose();
       setName(''); setDescription(''); setRating(0); setLocation('');
       setLatitude(null); setLongitude(null); setPriceRange(2); setTagsInput(''); setPhotos([]);
+      checkAchievements();
     },
     onError: () => toast.error('Failed to add food spot'),
   });
