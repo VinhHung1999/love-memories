@@ -33,9 +33,12 @@ model Moment {
   updatedAt   DateTime      @updatedAt
   photos      MomentPhoto[]
   audios      MomentAudio[]
+  comments    MomentComment[]
+  reactions   MomentReaction[]
 
   @@map("moments")
 }
+
 
 model MomentPhoto {
   id        String   @id @default(uuid())
@@ -58,6 +61,29 @@ model MomentAudio {
   moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
 
   @@map("moment_audios")
+}
+
+model MomentComment {
+  id        String   @id @default(uuid())
+  momentId  String
+  author    String
+  content   String
+  createdAt DateTime @default(now())
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+
+  @@map("moment_comments")
+}
+
+model MomentReaction {
+  id        String   @id @default(uuid())
+  momentId  String
+  emoji     String
+  author    String
+  createdAt DateTime @default(now())
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+
+  @@unique([momentId, emoji, author])
+  @@map("moment_reactions")
 }
 
 model FoodSpot {
