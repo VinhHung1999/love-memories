@@ -79,24 +79,6 @@ export default function DatePlanDetailPage() {
     staleTime: 30_000,
   });
 
-  const statusMutation = useMutation({
-    mutationFn: (status: string) => datePlansApi.updateStatus(id!, status),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['date-plans', id], updated);
-      queryClient.setQueryData<DatePlan[]>(['date-plans'], (old) =>
-        old ? old.map((p) => (p.id === updated.id ? updated : p)) : old,
-      );
-      queryClient.invalidateQueries({ queryKey: ['date-plans'], exact: true });
-      if (updated.status === 'completed') {
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-        toast.success('Chúc mừng! Buổi hẹn hò hoàn thành! 🎉');
-      } else {
-        toast.success('Đã cập nhật trạng thái!');
-      }
-    },
-    onError: () => toast.error('Không thể cập nhật'),
-  });
-
   const stopDoneMutation = useMutation({
     mutationFn: ({ stopId }: { stopId: string }) => datePlansApi.markStopDone(id!, stopId),
     onSuccess: (updatedPlan) => {
@@ -257,8 +239,8 @@ export default function DatePlanDetailPage() {
         )}
       </div>
 
-      {/* Progress — hidden when completed */}
-      {stops.length > 0 && !isCompleted && (
+      {/* Progress — active only */}
+      {stops.length > 0 && plan.status === 'active' && (
         <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-text">Tiến độ</p>
@@ -275,171 +257,181 @@ export default function DatePlanDetailPage() {
         </div>
       )}
 
-      {/* Timeline */}
-      {stops.length > 0 ? (
+      {/* Planned: simple text list — no vertical timeline */}
+      {plan.status === 'planned' && stops.length > 0 && (
         <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-          <h2 className="font-heading text-base font-semibold mb-4">Lịch trình</h2>
-          <div className="relative">
-            {/* Vertical line */}
-            <div className="absolute left-[19px] top-3 bottom-3 w-0.5 bg-gray-200" />
-
-            <div className="space-y-5">
-              {stops.map((stop, i) => {
-                const isCurrent = !stop.done && i === currentIdx;
-                const isDone = stop.done;
-
-                return (
-                  <div key={stop.id} className="flex gap-3 relative">
-                    {/* Dot */}
-                    <div className="flex-shrink-0 z-10">
-                      {isDone ? (
-                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                        </div>
-                      ) : isCurrent ? (
-                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center relative">
-                          <Circle className="w-4 h-4 text-white fill-white" />
-                          {/* Pulse ring */}
-                          <span className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-40" />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Circle className="w-4 h-4 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content — compact redesign */}
-                    <div className={`flex-1 rounded-xl px-3 py-2.5 -ml-1 transition-colors ${
-                      isCurrent ? 'bg-blue-50 border border-blue-200' : isDone ? 'bg-gray-50' : ''
-                    }`}>
-                      {/* Line 1: time + title + badge */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs font-bold ${isCurrent ? 'text-blue-600' : 'text-primary'}`}>
-                          {stop.time}
-                        </span>
-                        <p className={`font-semibold text-sm ${isDone ? 'line-through text-text-light' : isCurrent ? 'text-blue-700' : 'text-text'}`}>
-                          {stop.title}
-                        </p>
-                        {isCurrent && (
-                          <span className="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full font-medium">
-                            Hiện tại
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Line 2: address */}
-                      {stop.address && (
-                        <p className="text-xs text-text-light mt-0.5 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 flex-shrink-0" />{stop.address}
-                        </p>
-                      )}
-
-                      {/* Line 3: description */}
-                      {stop.description && (
-                        <p className="text-xs text-text-light mt-0.5 line-clamp-2">{stop.description}</p>
-                      )}
-
-                      {/* Sub-spots — compact bullet list */}
-                      {stop.spots.length > 0 && (
-                        <ul className="mt-1.5 space-y-1">
-                          {stop.spots.map((spot) => (
-                            <li key={spot.id} className="flex items-center gap-1.5 text-xs text-text-light">
-                              <span className="text-gray-300 flex-shrink-0">•</span>
-                              <span className="flex-1 truncate min-w-0">
-                                {spot.title}{spot.address ? ` — ${spot.address}` : ''}
-                              </span>
-                              {(spot.latitude != null || spot.address) && (
-                                <a
-                                  href={spot.latitude != null
-                                    ? `https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}`
-                                    : `https://www.google.com/maps/search/${encodeURIComponent(spot.address ?? spot.title)}`}
-                                  target="_blank" rel="noopener noreferrer"
-                                  className="text-secondary hover:text-secondary/70 flex-shrink-0"
-                                >
-                                  <Navigation className="w-3 h-3" />
-                                </a>
-                              )}
-                              {!isDone && (
-                                <button
-                                  onClick={() => deleteSpotMutation.mutate({ stopId: stop.id, spotId: spot.id })}
-                                  disabled={deleteSpotMutation.isPending}
-                                  className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-
-                      {/* Actions row — single line */}
-                      <div className="flex items-center gap-3 mt-2 flex-wrap">
-                        {stop.url && (
-                          <ActionPill href={stop.url} label="🔗 Xem link →" color="secondary" />
-                        )}
-                        <DirectionsLink
-                          latitude={stop.latitude}
-                          longitude={stop.longitude}
-                          address={stop.address}
-                          title={stop.title}
-                        />
-                        {/* Moment link/button */}
-                        {stop.linkedMomentId ? (
-                          <ActionLink to={`/moments/${stop.linkedMomentId}`} label="📸 Xem kỷ niệm →" color="primary" />
-                        ) : !isDone ? (
-                          <ActionLink onClick={() => setSelectedStopForMoment(stop.id)} label="📸 Thêm Moment" color="primary" />
-                        ) : null}
-                        {/* Food spot link/button */}
-                        {stop.linkedFoodSpotId ? (
-                          <ActionLink to={`/foodspots/${stop.linkedFoodSpotId}`} label="🍽️ Xem quán →" color="secondary" />
-                        ) : !isDone ? (
-                          <ActionLink onClick={() => setSelectedStopForFoodSpot(stop.id)} label="🍽️ Thêm quán" color="secondary" />
-                        ) : null}
-                        {!isDone && (
-                          <ActionPill
-                            onClick={() => stopDoneMutation.mutate({ stopId: stop.id })}
-                            disabled={stopDoneMutation.isPending}
-                            icon={<Check className="w-3 h-3" />}
-                            label="Done"
-                            color="green"
-                            className="ml-auto"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <h2 className="font-heading text-base font-semibold mb-3">Lịch trình</h2>
+          <div className="divide-y divide-gray-50">
+            {stops.map((stop) => (
+              <div key={stop.id} className="flex items-start gap-3 py-2">
+                <span className="text-xs font-bold text-primary flex-shrink-0 w-10 pt-0.5">{stop.time}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text">{stop.title}</p>
+                  {stop.address && (
+                    <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />{stop.address}
+                    </p>
+                  )}
+                  {stop.description && (
+                    <p className="text-xs text-text-light mt-0.5 line-clamp-1">{stop.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl p-8 shadow-sm mb-4 text-center text-text-light text-sm">
-          Chưa có địa điểm nào trong kế hoạch này.
         </div>
       )}
 
-      {/* Status card — only shown for planned (start button) and completed (celebration) */}
-      {(plan.status === 'planned' || plan.status === 'completed') && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          {plan.status === 'planned' && (
-            <button
-              onClick={() => statusMutation.mutate('active')}
-              disabled={statusMutation.isPending}
-              className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold text-sm hover:bg-blue-600 disabled:opacity-50 transition-colors"
-            >
-              🎉 Bắt đầu date!
-            </button>
-          )}
-          {plan.status === 'completed' && (
-            <div className="text-center py-2">
-              <p className="text-2xl mb-2">🎊</p>
-              <p className="font-semibold text-green-600">Buổi hẹn hò tuyệt vời!</p>
-              <p className="text-xs text-text-light mt-1">Đã hoàn thành — {doneCount}/{stops.length} địa điểm</p>
+      {/* Active / Completed: vertical timeline with dots */}
+      {(plan.status === 'active' || plan.status === 'completed') && (
+        stops.length > 0 ? (
+          <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
+            <h2 className="font-heading text-base font-semibold mb-4">Lịch trình</h2>
+            <div className="relative">
+              {/* Vertical line */}
+              <div className="absolute left-[19px] top-3 bottom-3 w-0.5 bg-gray-200" />
+
+              <div className="space-y-5">
+                {stops.map((stop, i) => {
+                  const isCurrent = !stop.done && i === currentIdx;
+                  const isDone = stop.done;
+
+                  return (
+                    <div key={stop.id} className="flex gap-3 relative">
+                      {/* Dot */}
+                      <div className="flex-shrink-0 z-10">
+                        {isDone ? (
+                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          </div>
+                        ) : isCurrent ? (
+                          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center relative">
+                            <Circle className="w-4 h-4 text-white fill-white" />
+                            <span className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-40" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                            <Circle className="w-4 h-4 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className={`flex-1 rounded-xl px-3 py-2.5 -ml-1 transition-colors ${
+                        isCurrent ? 'bg-blue-50 border border-blue-200' : isDone ? 'bg-gray-50' : ''
+                      }`}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-xs font-bold ${isCurrent ? 'text-blue-600' : 'text-primary'}`}>
+                            {stop.time}
+                          </span>
+                          <p className={`font-semibold text-sm ${isDone ? 'line-through text-text-light' : isCurrent ? 'text-blue-700' : 'text-text'}`}>
+                            {stop.title}
+                          </p>
+                          {isCurrent && (
+                            <span className="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full font-medium">
+                              Hiện tại
+                            </span>
+                          )}
+                        </div>
+
+                        {stop.address && (
+                          <p className="text-xs text-text-light mt-0.5 flex items-center gap-1">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />{stop.address}
+                          </p>
+                        )}
+
+                        {stop.description && (
+                          <p className="text-xs text-text-light mt-0.5 line-clamp-2">{stop.description}</p>
+                        )}
+
+                        {/* Sub-spots */}
+                        {stop.spots.length > 0 && (
+                          <ul className="mt-1.5 space-y-1">
+                            {stop.spots.map((spot) => (
+                              <li key={spot.id} className="flex items-center gap-1.5 text-xs text-text-light">
+                                <span className="text-gray-300 flex-shrink-0">•</span>
+                                <span className="flex-1 truncate min-w-0">
+                                  {spot.title}{spot.address ? ` — ${spot.address}` : ''}
+                                </span>
+                                {(spot.latitude != null || spot.address) && (
+                                  <a
+                                    href={spot.latitude != null
+                                      ? `https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}`
+                                      : `https://www.google.com/maps/search/${encodeURIComponent(spot.address ?? spot.title)}`}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className="text-secondary hover:text-secondary/70 flex-shrink-0"
+                                  >
+                                    <Navigation className="w-3 h-3" />
+                                  </a>
+                                )}
+                                {!isDone && (
+                                  <button
+                                    onClick={() => deleteSpotMutation.mutate({ stopId: stop.id, spotId: spot.id })}
+                                    disabled={deleteSpotMutation.isPending}
+                                    className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        {/* Actions row */}
+                        <div className="flex items-center gap-3 mt-2 flex-wrap">
+                          {stop.url && (
+                            <ActionPill href={stop.url} label="🔗 Xem link →" color="secondary" />
+                          )}
+                          <DirectionsLink
+                            latitude={stop.latitude}
+                            longitude={stop.longitude}
+                            address={stop.address}
+                            title={stop.title}
+                          />
+                          {stop.linkedMomentId ? (
+                            <ActionLink to={`/moments/${stop.linkedMomentId}`} label="📸 Xem kỷ niệm →" color="primary" />
+                          ) : !isDone ? (
+                            <ActionLink onClick={() => setSelectedStopForMoment(stop.id)} label="📸 Thêm Moment" color="primary" />
+                          ) : null}
+                          {stop.linkedFoodSpotId ? (
+                            <ActionLink to={`/foodspots/${stop.linkedFoodSpotId}`} label="🍽️ Xem quán →" color="secondary" />
+                          ) : !isDone ? (
+                            <ActionLink onClick={() => setSelectedStopForFoodSpot(stop.id)} label="🍽️ Thêm quán" color="secondary" />
+                          ) : null}
+                          {!isDone && (
+                            <ActionPill
+                              onClick={() => stopDoneMutation.mutate({ stopId: stop.id })}
+                              disabled={stopDoneMutation.isPending}
+                              icon={<Check className="w-3 h-3" />}
+                              label="Done"
+                              color="green"
+                              className="ml-auto"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-8 shadow-sm mb-4 text-center text-text-light text-sm">
+            Chưa có địa điểm nào trong kế hoạch này.
+          </div>
+        )
+      )}
+
+      {/* Celebration card — completed only */}
+      {plan.status === 'completed' && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="text-center py-2">
+            <p className="text-2xl mb-2">🎊</p>
+            <p className="font-semibold text-green-600">Buổi hẹn hò tuyệt vời!</p>
+            <p className="text-xs text-text-light mt-1">Đã hoàn thành — {doneCount}/{stops.length} địa điểm</p>
+          </div>
         </div>
       )}
 
