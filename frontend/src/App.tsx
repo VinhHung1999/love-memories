@@ -20,6 +20,8 @@ import CookingSessionFlow from './pages/CookingSessionFlow';
 import CookingSessionHistory from './pages/CookingSessionHistory';
 import AchievementsPage from './pages/AchievementsPage';
 import NotificationsPage from './pages/NotificationsPage';
+import DatePlannerPage from './pages/DatePlannerPage';
+import DatePlanDetailPage from './pages/DatePlanDetailPage';
 
 async function registerPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -89,6 +91,8 @@ export default function App() {
         <Route path="/what-to-eat/:id" element={<CookingSessionFlow />} />
         <Route path="/achievements" element={<AchievementsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/date-planner" element={<DatePlannerPage />} />
+        <Route path="/date-planner/plans/:id" element={<DatePlanDetailPage />} />
       </Routes>
     </Layout>
   );

@@ -226,3 +226,70 @@ export interface AppNotification {
   read: boolean;
   createdAt: string;
 }
+
+export interface DateWish {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  url: string | null;
+  tags: string[];
+  done: boolean;
+  doneAt: string | null;
+  linkedMomentId: string | null;
+  linkedFoodSpotId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DatePlanSpot {
+  id: string;
+  stopId: string;
+  title: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  url: string | null;
+  notes: string | null;
+  order: number;
+  createdAt: string;
+}
+
+export interface DatePlanStop {
+  id: string;
+  planId: string;
+  time: string;
+  title: string;
+  description: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  url: string | null;
+  tags: string[];
+  category: string | null;
+  notes: string | null;
+  order: number;
+  done: boolean;
+  doneAt: string | null;
+  wishId: string | null;
+  linkedMomentId: string | null;
+  linkedFoodSpotId: string | null;
+  createdAt: string;
+  spots: DatePlanSpot[];
+}
+
+export interface DatePlan {
+  id: string;
+  title: string;
+  date: string;
+  notes: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  stops: DatePlanStop[];
+}
+

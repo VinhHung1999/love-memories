@@ -319,6 +319,82 @@ model CustomAchievement {
   @@map("custom_achievements")
 }
 
+model DateWish {
+  id               String    @id @default(uuid())
+  title            String
+  description      String?
+  category         String
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  url              String?
+  tags             String[]  @default([])
+  done             Boolean   @default(false)
+  doneAt           DateTime?
+  linkedMomentId   String?
+  linkedFoodSpotId String?
+  createdBy        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("date_wishes")
+}
+
+model DatePlan {
+  id        String         @id @default(uuid())
+  title     String
+  date      DateTime
+  notes     String?
+  status    String         @default("planned")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  stops     DatePlanStop[]
+
+  @@map("date_plans")
+}
+
+model DatePlanStop {
+  id          String         @id @default(uuid())
+  planId      String
+  plan        DatePlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  time        String
+  title       String
+  description String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  url         String?
+  tags        String[]       @default([])
+  category    String?
+  notes       String?
+  order       Int
+  done        Boolean        @default(false)
+  doneAt      DateTime?
+  wishId          String?
+  linkedMomentId  String?
+  linkedFoodSpotId String?
+  createdAt   DateTime       @default(now())
+  spots       DatePlanSpot[]
+
+  @@map("date_plan_stops")
+}
+
+model DatePlanSpot {
+  id        String      @id @default(uuid())
+  stopId    String
+  stop      DatePlanStop @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  title     String
+  address   String?
+  latitude  Float?
+  longitude Float?
+  url       String?
+  notes     String?
+  order     Int
+  createdAt DateTime    @default(now())
+
+  @@map("date_plan_spots")
+}
+
 model Goal {
   id          String       @id @default(uuid())
   title       String
