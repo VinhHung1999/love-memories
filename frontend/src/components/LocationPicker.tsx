@@ -55,20 +55,9 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       const businessName = isCoords ? '' : (name.split(',')[0] ?? name).trim();
 
       if (lat != null && lng != null) {
-        // Got coordinates — reverse geocode with Mapbox for full address
-        let placeName = name;
-        if (token) {
-          try {
-            const geoRes = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
-            );
-            const geoData = await geoRes.json();
-            const addr = cleanPlaceName(geoData.features?.[0]?.place_name || '');
-            placeName = addr && !addr.includes(businessName) ? `${businessName}, ${addr}` : addr || name;
-          } catch { /* keep name */ }
-        }
-        onChange({ latitude: lat, longitude: lng, location: placeName });
-        setQuery(placeName);
+        // Got coordinates + name from Google — use directly, no Mapbox needed
+        onChange({ latitude: lat, longitude: lng, location: name });
+        setQuery(name);
         updateMarker(lng, lat);
       } else if (token) {
         // Name only (no coords) — forward geocode with Mapbox, auto-select first result
