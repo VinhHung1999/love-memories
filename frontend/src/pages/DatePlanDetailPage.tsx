@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 import { datePlansApi } from '../lib/api';
 import type { DatePlan, DatePlanStop } from '../types';
 import CreateMomentModal from '../components/CreateMomentModal';
+import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -37,15 +38,6 @@ function getCurrentStopIndex(stops: DatePlanStop[]): number {
   return current;
 }
 
-function googleMapsUrl(stop: DatePlanStop): string {
-  if (stop.latitude != null && stop.longitude != null) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${stop.latitude},${stop.longitude}`;
-  }
-  if (stop.address) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}`;
-  }
-  return `https://www.google.com/maps/search/${encodeURIComponent(stop.title)}`;
-}
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
   planned:   { label: 'Sắp tới',     cls: 'bg-gray-100 text-gray-500' },
@@ -303,40 +295,28 @@ export default function DatePlanDetailPage() {
                       {/* Actions row — single line */}
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         {stop.url && (
-                          <a href={stop.url} target="_blank" rel="noopener noreferrer"
-                            className="text-xs font-medium text-secondary hover:underline flex items-center gap-1 bg-secondary/10 px-2 py-0.5 rounded-lg"
-                          >
-                            🔗 Xem link →
-                          </a>
+                          <ActionPill href={stop.url} label="🔗 Xem link →" color="secondary" />
                         )}
-                        {(stop.address || stop.latitude != null) && (
-                          <a href={googleMapsUrl(stop)} target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-secondary hover:underline flex items-center gap-1"
-                          >
-                            <Navigation className="w-3 h-3" /> Chỉ đường
-                          </a>
-                        )}
+                        <DirectionsLink
+                          latitude={stop.latitude}
+                          longitude={stop.longitude}
+                          address={stop.address}
+                          title={stop.title}
+                        />
                         {stop.linkedMomentId ? (
-                          <Link to={`/moments/${stop.linkedMomentId}`}
-                            className="text-xs text-primary hover:underline flex items-center gap-1"
-                          >
-                            📸 Xem kỷ niệm →
-                          </Link>
+                          <ActionLink to={`/moments/${stop.linkedMomentId}`} label="📸 Xem kỷ niệm →" color="primary" />
                         ) : !isDone ? (
-                          <button onClick={() => setSelectedStopForMoment(stop.id)}
-                            className="text-xs text-primary hover:underline flex items-center gap-1"
-                          >
-                            📸 Thêm Moment
-                          </button>
+                          <ActionLink onClick={() => setSelectedStopForMoment(stop.id)} label="📸 Thêm Moment" color="primary" />
                         ) : null}
                         {!isDone && (
-                          <button
+                          <ActionPill
                             onClick={() => stopDoneMutation.mutate({ stopId: stop.id })}
                             disabled={stopDoneMutation.isPending}
-                            className="flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-xs font-medium hover:bg-primary/20 transition-colors ml-auto disabled:opacity-50"
-                          >
-                            <Check className="w-3 h-3" /> Done
-                          </button>
+                            icon={<Check className="w-3 h-3" />}
+                            label="Done"
+                            color="green"
+                            className="ml-auto"
+                          />
                         )}
                       </div>
                     </div>

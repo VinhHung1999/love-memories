@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
-import { CalendarHeart, Heart, Plus, Trash2, Check, ChevronUp, ChevronDown, MapPin, Calendar, Navigation } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CalendarHeart, Heart, Plus, Trash2, Check, ChevronUp, ChevronDown, MapPin, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { dateWishesApi, datePlansApi, momentsApi, foodSpotsApi } from '../lib/api';
 import type { DateWish, DatePlan } from '../types';
 import Modal from '../components/Modal';
 import LocationPicker from '../components/LocationPicker';
+import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -402,39 +403,23 @@ function WishCard({
       </div>
 
       {/* URL link + directions + done links */}
-      {(wish.url || (wish.latitude != null && wish.longitude != null) || (wish.done && (wish.linkedMomentId || wish.linkedFoodSpotId))) && (
+      {(wish.url || wish.latitude != null || wish.address || (wish.done && (wish.linkedMomentId || wish.linkedFoodSpotId))) && (
         <div className="flex gap-3 mt-2 pt-2 border-t border-border flex-wrap">
-          {wish.latitude != null && wish.longitude != null && (
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${wish.latitude},${wish.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs text-secondary hover:underline flex items-center gap-1"
-            >
-              <Navigation className="w-3 h-3" /> Chỉ đường
-            </a>
-          )}
+          <DirectionsLink
+            latitude={wish.latitude}
+            longitude={wish.longitude}
+            address={wish.address}
+            title={wish.title}
+            onClick={(e) => e.stopPropagation()}
+          />
           {wish.url && (
-            <a
-              href={wish.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs font-medium text-secondary hover:underline flex items-center gap-1 bg-secondary/10 px-2 py-0.5 rounded-lg"
-            >
-              🔗 Xem link →
-            </a>
+            <ActionPill href={wish.url} label="🔗 Xem link →" color="secondary" onClick={(e) => e.stopPropagation()} />
           )}
           {wish.done && wish.linkedMomentId && (
-            <Link to={`/moments/${wish.linkedMomentId}`} className="text-xs text-primary hover:underline">
-              📸 Xem kỷ niệm →
-            </Link>
+            <ActionLink to={`/moments/${wish.linkedMomentId}`} label="📸 Xem kỷ niệm →" color="primary" />
           )}
           {wish.done && wish.linkedFoodSpotId && (
-            <Link to={`/foodspots/${wish.linkedFoodSpotId}`} className="text-xs text-secondary hover:underline">
-              🍽️ Xem quán →
-            </Link>
+            <ActionLink to={`/foodspots/${wish.linkedFoodSpotId}`} label="🍽️ Xem quán →" color="secondary" />
           )}
         </div>
       )}

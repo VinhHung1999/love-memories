@@ -222,7 +222,7 @@ router.put('/:id/stops/:stopId/moment', async (req: AuthRequest & { params: Plan
 });
 
 // PUT /:id/stops/:stopId/done — mark stop done
-router.put('/:id/stops/:stopId', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
+router.put('/:id/stops/:stopId/done', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
   try {
     const stop = await prisma.datePlanStop.update({
       where: { id: req.params.stopId },
