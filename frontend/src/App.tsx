@@ -18,6 +18,7 @@ import CookingSessionPage from './pages/CookingSessionPage';
 import CookingSessionFlow from './pages/CookingSessionFlow';
 import CookingSessionHistory from './pages/CookingSessionHistory';
 import AchievementsPage from './pages/AchievementsPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/what-to-eat/history" element={<CookingSessionHistory />} />
         <Route path="/what-to-eat/:id" element={<CookingSessionFlow />} />
         <Route path="/achievements" element={<AchievementsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Routes>
     </Layout>
   );
