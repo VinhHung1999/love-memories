@@ -202,26 +202,7 @@ export default function DatePlanDetailPage() {
         <ArrowLeft className="w-4 h-4" /> Danh sách kế hoạch
       </button>
 
-      <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="font-heading text-2xl font-bold truncate">{plan.title}</h1>
-            <p className="text-text-light text-sm mt-0.5">
-              {new Date(plan.date).toLocaleDateString('vi-VN', {
-                weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
-              })}
-            </p>
-          </div>
-          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${s.cls}`}>
-            {s.label}
-          </span>
-        </div>
-        {plan.notes && (
-          <p className="text-text-light text-sm mt-3 pt-3 border-t border-border">{plan.notes}</p>
-        )}
-      </div>
-
-      {/* Gallery — top position, shown only when completed + has items */}
+      {/* Gallery — ABOVE header, shown only when completed + has items */}
       {isCompleted && hasGallery && (
         <div className="mb-4">
           <h2 className="font-heading text-base font-semibold mb-3">Kỷ niệm từ buổi hẹn</h2>
@@ -258,6 +239,25 @@ export default function DatePlanDetailPage() {
           </div>
         </div>
       )}
+
+      <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="font-heading text-2xl font-bold truncate">{plan.title}</h1>
+            <p className="text-text-light text-sm mt-0.5">
+              {new Date(plan.date).toLocaleDateString('vi-VN', {
+                weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+              })}
+            </p>
+          </div>
+          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${s.cls}`}>
+            {s.label}
+          </span>
+        </div>
+        {plan.notes && (
+          <p className="text-text-light text-sm mt-3 pt-3 border-t border-border">{plan.notes}</p>
+        )}
+      </div>
 
       {/* Progress — hidden when completed */}
       {stops.length > 0 && !isCompleted && (
