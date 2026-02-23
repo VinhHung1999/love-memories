@@ -1075,24 +1075,6 @@ function StopEditor({
         </select>
       )}
 
-      {/* Category picker */}
-      <div className="flex gap-1.5 flex-wrap">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => set('category', stop.category === cat.id ? '' : cat.id)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors ${
-              stop.category === cat.id
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border text-text-light hover:border-gray-300 hover:bg-white'
-            }`}
-          >
-            {cat.icon} {cat.label}
-          </button>
-        ))}
-      </div>
-
       {/* Title */}
       <input
         value={stop.title}
