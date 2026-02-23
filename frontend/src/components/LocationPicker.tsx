@@ -15,6 +15,10 @@ interface GeoResult {
   center: [number, number]; // [lng, lat]
 }
 
+/** Strip Vietnamese postcodes (e.g. ", 70000") from Mapbox place_name */
+const cleanPlaceName = (name: string) =>
+  name.replace(/,\s*\d{5,6}(?=\s*,|\s*$)/g, '').trim();
+
 export default function LocationPicker({ latitude, longitude, location, onChange, onClear }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -43,7 +47,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
               `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
             );
             const data = await res.json();
-            const placeName = data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            const placeName = cleanPlaceName(data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
             onChange({ latitude: lat, longitude: lng, location: placeName });
             setQuery(placeName);
           } catch {
@@ -88,8 +92,9 @@ export default function LocationPicker({ latitude, longitude, location, onChange
   // Select a geocoding result
   const selectResult = (result: GeoResult) => {
     const [lng, lat] = result.center;
-    onChange({ latitude: lat, longitude: lng, location: result.place_name });
-    setQuery(result.place_name);
+    const name = cleanPlaceName(result.place_name);
+    onChange({ latitude: lat, longitude: lng, location: name });
+    setQuery(name);
     setResults([]);
     updateMarker(lng, lat);
   };
@@ -131,7 +136,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
         );
         const data = await res.json();
-        const placeName = data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        const placeName = cleanPlaceName(data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         onChange({ latitude: lat, longitude: lng, location: placeName });
         setQuery(placeName);
       } catch {
@@ -187,7 +192,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
                 className="w-full text-left px-3 py-2.5 text-sm hover:bg-primary/5 flex items-start gap-2 border-b border-border last:border-0"
               >
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                <span className="line-clamp-2">{r.place_name}</span>
+                <span className="line-clamp-2">{cleanPlaceName(r.place_name)}</span>
               </button>
             ))}
           </div>
