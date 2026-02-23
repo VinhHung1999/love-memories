@@ -17,6 +17,8 @@ beforeAll(async () => {
 
 // Clean up after all tests
 afterAll(async () => {
+  await prisma.momentComment.deleteMany();
+  await prisma.momentReaction.deleteMany();
   await prisma.momentPhoto.deleteMany();
   await prisma.moment.deleteMany();
   await prisma.foodSpotPhoto.deleteMany();
@@ -568,5 +570,110 @@ describe('Profile', () => {
   it('POST /api/profile/avatar returns 401 without auth', async () => {
     const res = await request(app).post('/api/profile/avatar');
     expect(res.status).toBe(401);
+  });
+});
+
+describe('Comments', () => {
+  let momentId: string;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/moments')
+      .set(auth())
+      .send({ title: 'Comment Test Moment', date: '2026-01-01', tags: [] });
+    momentId = res.body.id;
+  });
+
+  it('GET /api/moments/:id/comments returns empty array', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}/comments`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('POST /api/moments/:id/comments adds a comment', async () => {
+    const res = await request(app)
+      .post(`/api/moments/${momentId}/comments`)
+      .set(auth())
+      .send({ author: 'Alice', content: 'Nice moment!' });
+    expect(res.status).toBe(201);
+    expect(res.body.author).toBe('Alice');
+    expect(res.body.content).toBe('Nice moment!');
+  });
+
+  it('GET /api/moments/:id includes comments', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.comments)).toBe(true);
+    expect(res.body.comments.length).toBeGreaterThan(0);
+  });
+
+  it('DELETE /api/moments/:id/comments/:commentId deletes comment', async () => {
+    const created = await request(app)
+      .post(`/api/moments/${momentId}/comments`)
+      .set(auth())
+      .send({ author: 'Bob', content: 'Delete me' });
+    const commentId = created.body.id;
+    const res = await request(app)
+      .delete(`/api/moments/${momentId}/comments/${commentId}`)
+      .set(auth());
+    expect(res.status).toBe(204);
+  });
+
+  it('POST /api/moments/:id/comments rejects empty content', async () => {
+    const res = await request(app)
+      .post(`/api/moments/${momentId}/comments`)
+      .set(auth())
+      .send({ author: 'Alice', content: '' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('Reactions', () => {
+  let momentId: string;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/moments')
+      .set(auth())
+      .send({ title: 'Reaction Test Moment', date: '2026-01-02', tags: [] });
+    momentId = res.body.id;
+  });
+
+  it('POST /api/moments/:id/reactions adds a reaction', async () => {
+    const res = await request(app)
+      .post(`/api/moments/${momentId}/reactions`)
+      .set(auth())
+      .send({ emoji: '❤️', author: 'Alice' });
+    expect(res.status).toBe(200);
+    expect(res.body.some((r: { emoji: string }) => r.emoji === '❤️')).toBe(true);
+  });
+
+  it('POST /api/moments/:id/reactions toggles off existing reaction', async () => {
+    // First add
+    await request(app)
+      .post(`/api/moments/${momentId}/reactions`)
+      .set(auth())
+      .send({ emoji: '🔥', author: 'Bob' });
+    // Then remove
+    const res = await request(app)
+      .post(`/api/moments/${momentId}/reactions`)
+      .set(auth())
+      .send({ emoji: '🔥', author: 'Bob' });
+    expect(res.status).toBe(200);
+    expect(res.body.some((r: { emoji: string; author: string }) => r.emoji === '🔥' && r.author === 'Bob')).toBe(false);
+  });
+
+  it('POST /api/moments/:id/reactions rejects invalid emoji', async () => {
+    const res = await request(app)
+      .post(`/api/moments/${momentId}/reactions`)
+      .set(auth())
+      .send({ emoji: '🍕', author: 'Alice' });
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/moments/:id includes reactions', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.reactions)).toBe(true);
   });
 });
