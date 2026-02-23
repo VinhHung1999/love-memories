@@ -677,3 +677,74 @@ describe('Reactions', () => {
     expect(Array.isArray(res.body.reactions)).toBe(true);
   });
 });
+
+describe('Notifications', () => {
+  let notifId: string;
+
+  beforeAll(async () => {
+    // Seed a notification for the test user via prisma directly
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: 'test@lovescrum.test' } });
+    const notif = await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: 'new_moment',
+        title: 'Kỷ niệm mới',
+        message: 'Test moment notification',
+        link: '/moments/test',
+        read: false,
+      },
+    });
+    notifId = notif.id;
+  });
+
+  afterAll(async () => {
+    await prisma.notification.deleteMany();
+  });
+
+  it('GET /api/notifications returns list', async () => {
+    const res = await request(app).get('/api/notifications').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+  });
+
+  it('GET /api/notifications/unread-count returns count', async () => {
+    const res = await request(app).get('/api/notifications/unread-count').set(auth());
+    expect(res.status).toBe(200);
+    expect(typeof res.body.count).toBe('number');
+    expect(res.body.count).toBeGreaterThan(0);
+  });
+
+  it('PUT /api/notifications/:id/read marks as read', async () => {
+    const res = await request(app).put(`/api/notifications/${notifId}/read`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.read).toBe(true);
+  });
+
+  it('GET /api/notifications/unread-count is 0 after mark-read', async () => {
+    const res = await request(app).get('/api/notifications/unread-count').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(0);
+  });
+
+  it('PUT /api/notifications/read-all marks all as read', async () => {
+    // Create another unread notif
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: 'test@lovescrum.test' } });
+    await prisma.notification.create({
+      data: { userId: user.id, type: 'new_recipe', title: 'Test', message: 'msg', read: false },
+    });
+    const res = await request(app).put('/api/notifications/read-all').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('DELETE /api/notifications/:id deletes', async () => {
+    const res = await request(app).delete(`/api/notifications/${notifId}`).set(auth());
+    expect(res.status).toBe(204);
+  });
+
+  it('GET /api/notifications returns 401 without auth', async () => {
+    const res = await request(app).get('/api/notifications');
+    expect(res.status).toBe(401);
+  });
+});

@@ -3,6 +3,8 @@ import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { upload } from '../middleware/upload';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
+import type { AuthRequest } from '../middleware/auth';
+import { createNotification, getOtherUserId } from '../utils/notifications';
 import {
   createCookingSessionSchema,
   updateCookingSessionStatusSchema,
@@ -166,6 +168,16 @@ router.put('/:id/status', async (req: Request<IdParam>, res: Response) => {
       include: sessionInclude,
     });
     res.json(session);
+    // Notify other user when session completed
+    if (data.status === 'completed') {
+      const currentUserId = (req as AuthRequest).user?.userId;
+      if (currentUserId) {
+        const otherUserId = await getOtherUserId(currentUserId);
+        if (otherUserId) {
+          await createNotification(otherUserId, 'cooking_completed', 'Nấu xong!', 'Phiên nấu ăn hoàn thành!', '/what-to-eat');
+        }
+      }
+    }
   } catch (error: any) {
     if (error.name === 'ZodError') { res.status(400).json({ error: error.errors }); return; }
     res.status(500).json({ error: 'Failed to update status' });

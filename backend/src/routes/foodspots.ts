@@ -5,6 +5,8 @@ import { upload } from '../middleware/upload';
 import { createFoodSpotSchema, updateFoodSpotSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import { haversineDistance } from '../utils/geo';
+import type { AuthRequest } from '../middleware/auth';
+import { createNotification, getOtherUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -83,6 +85,15 @@ router.post('/', async (req: Request, res: Response) => {
       include: { photos: true },
     });
     res.status(201).json(foodSpot);
+    // Notify other user
+    const currentUserId = (req as AuthRequest).user?.userId;
+    if (currentUserId) {
+      const otherUserId = await getOtherUserId(currentUserId);
+      const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
+      if (otherUserId) {
+        await createNotification(otherUserId, 'new_foodspot', 'Quán mới', `${author} thêm quán: ${foodSpot.name}`, '/foodspots');
+      }
+    }
   } catch (error: any) {
     if (error.name === 'ZodError') {
       res.status(400).json({ error: error.errors }); return;
