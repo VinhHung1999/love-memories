@@ -253,7 +253,7 @@ export default function DatePlannerPage() {
             const activePlans = plans.filter((p) => {
               const pd = new Date(p.date);
               const isToday = pd.getDate() === today.getDate() && pd.getMonth() === today.getMonth() && pd.getFullYear() === today.getFullYear();
-              return p.status === 'active' || isToday;
+              return p.status === 'active' && isToday;
             });
             const otherPlans = plans.filter((p) => !activePlans.includes(p));
             const renderCard = (plan: DatePlan, i: number) => (

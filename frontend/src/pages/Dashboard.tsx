@@ -33,7 +33,7 @@ export default function Dashboard() {
     return datePlans.find((p) => {
       const pd = new Date(p.date);
       const isToday = pd.getDate() === today.getDate() && pd.getMonth() === today.getMonth() && pd.getFullYear() === today.getFullYear();
-      return p.status === 'active' || isToday;
+      return p.status === 'active' && isToday;
     }) ?? null;
   })();
 
