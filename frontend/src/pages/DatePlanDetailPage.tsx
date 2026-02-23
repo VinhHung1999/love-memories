@@ -12,6 +12,8 @@ import CreateFoodSpotModal from '../components/CreateFoodSpotModal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 import MomentCard from '../components/MomentCard';
 import FoodSpotCard from '../components/FoodSpotCard';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -219,6 +221,44 @@ export default function DatePlanDetailPage() {
         )}
       </div>
 
+      {/* Gallery — top position, shown only when completed + has items */}
+      {isCompleted && hasGallery && (
+        <div className="mb-4">
+          <h2 className="font-heading text-base font-semibold mb-3">Kỷ niệm từ buổi hẹn</h2>
+
+          {/* Mobile: Swiper carousel — giống Dashboard */}
+          <div className="-mx-4 overflow-hidden md:hidden">
+            <Swiper
+              slidesPerView={1.15}
+              spaceBetween={12}
+              slidesOffsetBefore={16}
+              slidesOffsetAfter={16}
+            >
+              {galleryMoments.map((m) => (
+                <SwiperSlide key={m.id}>
+                  <MomentCard moment={m} />
+                </SwiperSlide>
+              ))}
+              {galleryFoodSpots.map((f) => (
+                <SwiperSlide key={f.id}>
+                  <FoodSpotCard foodSpot={f} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+
+          {/* Desktop: grid 3 cols */}
+          <div className="hidden md:grid md:grid-cols-3 gap-4">
+            {galleryMoments.map((m) => (
+              <MomentCard key={m.id} moment={m} />
+            ))}
+            {galleryFoodSpots.map((f) => (
+              <FoodSpotCard key={f.id} foodSpot={f} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Progress — hidden when completed */}
       {stops.length > 0 && !isCompleted && (
         <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
@@ -400,27 +440,6 @@ export default function DatePlanDetailPage() {
               <p className="text-2xl mb-2">🎊</p>
               <p className="font-semibold text-green-600">Buổi hẹn hò tuyệt vời!</p>
               <p className="text-xs text-text-light mt-1">Đã hoàn thành — {doneCount}/{stops.length} địa điểm</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Gallery — shown only when completed */}
-      {isCompleted && (
-        <div className="mt-4">
-          <h2 className="font-heading text-base font-semibold mb-3">Kỷ niệm từ buổi hẹn</h2>
-          {hasGallery ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {galleryMoments.map((m) => (
-                <MomentCard key={m.id} moment={m} />
-              ))}
-              {galleryFoodSpots.map((f) => (
-                <FoodSpotCard key={f.id} foodSpot={f} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl p-6 shadow-sm text-center text-text-light text-sm">
-              Chưa có kỷ niệm nào được lưu từ buổi hẹn này.
             </div>
           )}
         </div>
