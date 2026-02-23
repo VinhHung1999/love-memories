@@ -5,6 +5,7 @@ import prisma from '../utils/prisma';
 import { upload, uploadAudio } from '../middleware/upload';
 import { createMomentSchema, updateMomentSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
       include: {
         photos: true,
         audios: { orderBy: { createdAt: 'asc' } },
-        comments: { orderBy: { createdAt: 'asc' } },
+        comments: { orderBy: { createdAt: 'asc' }, include: { user: { select: { name: true, avatar: true } } } },
         reactions: { orderBy: { createdAt: 'asc' } },
       },
     });
@@ -201,6 +202,7 @@ router.get('/:id/comments', async (req: Request<IdParam>, res: Response) => {
     const comments = await prisma.momentComment.findMany({
       where: { momentId: req.params.id },
       orderBy: { createdAt: 'asc' },
+      include: { user: { select: { name: true, avatar: true } } },
     });
     res.json(comments);
   } catch {
@@ -214,8 +216,10 @@ router.post('/:id/comments', async (req: Request<IdParam>, res: Response) => {
     const { author, content } = commentSchema.parse(req.body);
     const moment = await prisma.moment.findUnique({ where: { id: req.params.id } });
     if (!moment) { res.status(404).json({ error: 'Moment not found' }); return; }
+    const userId = (req as AuthRequest).user?.userId ?? null;
     const comment = await prisma.momentComment.create({
-      data: { momentId: req.params.id, author, content },
+      data: { momentId: req.params.id, userId, author, content },
+      include: { user: { select: { name: true, avatar: true } } },
     });
     res.status(201).json(comment);
   } catch (err) {

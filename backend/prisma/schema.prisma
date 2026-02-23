@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String          @id @default(uuid())
+  email     String          @unique
   password  String
   name      String
   avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  comments  MomentComment[]
 
   @@map("users")
 }
@@ -66,10 +67,12 @@ model MomentAudio {
 model MomentComment {
   id        String   @id @default(uuid())
   momentId  String
+  userId    String?
   author    String
   content   String
   createdAt DateTime @default(now())
   moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("moment_comments")
 }

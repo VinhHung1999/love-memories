@@ -416,15 +416,20 @@ export default function MomentDetail() {
           {moment.comments.length > 0 && (
             <div className="space-y-3 mb-3">
               {moment.comments.map((comment) => {
-                const initials = comment.author.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+                const displayName = comment.user?.name ?? comment.author;
+                const initials = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
                 return (
                   <div key={comment.id} className="flex gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-primary">
-                      {initials}
-                    </div>
+                    {comment.user?.avatar ? (
+                      <img src={comment.user.avatar} alt={displayName} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-primary">
+                        {initials}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-xs font-semibold text-text">{comment.author}</span>
+                        <span className="text-xs font-semibold text-text">{displayName}</span>
                         <span className="text-[10px] text-text-light">
                           {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: vi })}
                         </span>

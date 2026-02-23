@@ -21,6 +21,7 @@ export interface MomentComment {
   author: string;
   content: string;
   createdAt: string;
+  user?: { name: string; avatar: string | null } | null;
 }
 
 export interface MomentReaction {
