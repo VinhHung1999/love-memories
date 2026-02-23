@@ -6,7 +6,8 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, notificationsApi } from '../lib/api';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi } from '../lib/api';
+import { useUnreadCount } from '../lib/useUnreadCount';
 import type { CookingSession } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
@@ -26,8 +27,7 @@ export default function Dashboard() {
   const { data: achievements = [] } = useQuery({ queryKey: ['achievements'], queryFn: achievementsApi.list });
   const achievementsUnlocked = achievements.filter((a) => a.unlocked).length;
 
-  const { data: unreadData } = useQuery({ queryKey: ['notifications', 'unread-count'], queryFn: notificationsApi.unreadCount, refetchInterval: 15_000 });
-  const unreadCount = unreadData?.count ?? 0;
+  const unreadCount = useUnreadCount();
 
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
   const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });

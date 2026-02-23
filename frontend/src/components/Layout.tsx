@@ -1,10 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Heart, Camera, Map, Target, Home, LogOut, MoreHorizontal, Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { useAppName } from '../lib/useAppName';
-import { notificationsApi } from '../lib/api';
+import { useUnreadCount } from '../lib/useUnreadCount';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -14,31 +13,11 @@ const navItems = [
   { to: '/more', icon: MoreHorizontal, label: 'More' },
 ];
 
-function usePollUnreadCount() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const data = await notificationsApi.unreadCount();
-        setCount(data.count);
-      } catch {
-        // silent
-      }
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 15_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return count;
-}
-
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const appName = useAppName();
   const navigate = useNavigate();
-  const unreadCount = usePollUnreadCount();
+  const unreadCount = useUnreadCount();
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
