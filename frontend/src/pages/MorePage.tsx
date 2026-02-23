@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, User, LogOut, Settings } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, User, LogOut, Settings, Trophy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -35,6 +35,13 @@ const modules = [
     label: 'Photo Booth',
     description: 'Chụp ảnh kỷ niệm',
     color: 'bg-primary/10 text-primary',
+  },
+  {
+    to: '/achievements',
+    icon: Trophy,
+    label: 'Achievements',
+    description: 'Thành tích của chúng mình',
+    color: 'bg-secondary/10 text-secondary',
   },
 ];
 

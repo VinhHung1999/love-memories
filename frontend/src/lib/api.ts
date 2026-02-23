@@ -1,4 +1,4 @@
-import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession } from '../types';
+import type { Moment, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement } from '../types';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
@@ -206,6 +206,11 @@ export const cookingSessionsApi = {
     return res.json();
   },
   delete: (id: string) => request(`/cooking-sessions/${id}`, { method: 'DELETE' }),
+};
+
+// Achievements
+export const achievementsApi = {
+  list: () => request<Achievement[]>('/achievements'),
 };
 
 // AI
