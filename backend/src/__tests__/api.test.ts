@@ -514,11 +514,11 @@ describe('Achievements', () => {
     expect(res.status).toBe(401);
   });
 
-  it('GET /api/achievements returns all 13 achievements', async () => {
+  it('GET /api/achievements returns all 24 achievements', async () => {
     const res = await request(app).get('/api/achievements').set(auth());
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body).toHaveLength(13);
+    expect(res.body).toHaveLength(24);
   });
 
   it('GET /api/achievements each achievement has required shape', async () => {

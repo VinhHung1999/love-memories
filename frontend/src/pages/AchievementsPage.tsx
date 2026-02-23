@@ -6,7 +6,7 @@ import confetti from 'canvas-confetti';
 import { achievementsApi } from '../lib/api';
 import type { Achievement } from '../types';
 
-const CATEGORY_ORDER = ['moments', 'cooking', 'recipes', 'foodspots', 'goals'] as const;
+const CATEGORY_ORDER = ['moments', 'cooking', 'recipes', 'foodspots', 'goals', 'time'] as const;
 
 const CATEGORY_META: Record<string, { label: string; icon: string }> = {
   moments:   { label: 'Kỷ niệm',     icon: '📸' },
@@ -14,6 +14,7 @@ const CATEGORY_META: Record<string, { label: string; icon: string }> = {
   recipes:   { label: 'Công thức',   icon: '📝' },
   foodspots: { label: 'Food Spots',  icon: '🍜' },
   goals:     { label: 'Goals',       icon: '🎯' },
+  time:      { label: 'Thời gian',   icon: '⏰' },
 };
 
 function AchievementCard({ achievement, index }: { achievement: Achievement; index: number }) {
