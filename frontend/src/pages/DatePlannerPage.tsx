@@ -401,7 +401,7 @@ function WishCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-xs text-secondary hover:underline flex items-center gap-1"
+              className="text-xs font-medium text-secondary hover:underline flex items-center gap-1 bg-secondary/10 px-2 py-0.5 rounded-lg"
             >
               🔗 Xem link →
             </a>
@@ -800,12 +800,14 @@ type StopDraft = {
   time: string;
   title: string;
   address: string;
+  latitude: number | null;
+  longitude: number | null;
   notes: string;
   wishId: string;
 };
 
 function emptyStop(): StopDraft {
-  return { time: '', title: '', address: '', notes: '', wishId: '' };
+  return { time: '', title: '', address: '', latitude: null, longitude: null, notes: '', wishId: '' };
 }
 
 function PlanFormModal({
@@ -840,6 +842,8 @@ function PlanFormModal({
             time: s.time,
             title: s.title,
             address: s.address ?? '',
+            latitude: s.latitude ?? null,
+            longitude: s.longitude ?? null,
             notes: s.notes ?? '',
             wishId: s.wishId ?? '',
           }))
@@ -868,7 +872,17 @@ function PlanFormModal({
     const wish = wishes.find((w) => w.id === wishId);
     setStops((prev) =>
       prev.map((s, idx) =>
-        idx === i ? { ...s, wishId, title: wish ? wish.title : s.title } : s
+        idx === i
+          ? {
+              ...s,
+              wishId,
+              title: wish ? wish.title : s.title,
+              address: wish?.address ?? s.address,
+              latitude: wish?.latitude ?? s.latitude,
+              longitude: wish?.longitude ?? s.longitude,
+              notes: wish?.description ?? s.notes,
+            }
+          : s
       )
     );
   };
@@ -885,6 +899,8 @@ function PlanFormModal({
             time: s.time || '00:00',
             title: s.title,
             address: s.address || undefined,
+            latitude: s.latitude ?? undefined,
+            longitude: s.longitude ?? undefined,
             notes: s.notes || undefined,
             order: idx,
             wishId: s.wishId || undefined,
@@ -997,6 +1013,19 @@ function PlanFormModal({
                   placeholder="Ghi chú điểm dừng"
                   className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
+                {stop.wishId && (() => {
+                  const w = wishes.find((x) => x.id === stop.wishId);
+                  return w?.url ? (
+                    <a
+                      href={w.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-secondary hover:underline"
+                    >
+                      🔗 {w.url}
+                    </a>
+                  ) : null;
+                })()}
               </div>
             ))}
           </div>
