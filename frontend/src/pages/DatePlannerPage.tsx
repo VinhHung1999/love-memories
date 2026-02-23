@@ -340,13 +340,21 @@ function WishCard({
           <p className={`font-semibold text-sm leading-snug ${wish.done ? 'line-through text-text-light' : 'text-text'}`}>
             {wish.title}
           </p>
+          {wish.address && (
+            <p className="text-text-light text-xs mt-0.5 flex items-center gap-1">
+              <MapPin className="w-3 h-3 flex-shrink-0" />{wish.address}
+            </p>
+          )}
           {wish.description && (
             <p className="text-text-light text-xs mt-0.5 line-clamp-2">{wish.description}</p>
           )}
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
             <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-medium">
               {getCategoryLabel(wish.category)}
             </span>
+            {wish.tags.map((t) => (
+              <span key={t} className="px-2 py-0.5 bg-gray-100 text-text-light rounded-full text-xs">{t}</span>
+            ))}
             {wish.done && wish.doneAt && (
               <span className="text-xs text-text-light">✓ {formatDate(wish.doneAt)}</span>
             )}
@@ -372,22 +380,27 @@ function WishCard({
         </div>
       </div>
 
-      {/* Links to moment/foodspot after done */}
-      {wish.done && (wish.linkedMomentId || wish.linkedFoodSpotId) && (
-        <div className="flex gap-2 mt-2 pt-2 border-t border-border">
-          {wish.linkedMomentId && (
-            <Link
-              to={`/moments/${wish.linkedMomentId}`}
-              className="text-xs text-primary hover:underline"
+      {/* URL link + done links */}
+      {(wish.url || (wish.done && (wish.linkedMomentId || wish.linkedFoodSpotId))) && (
+        <div className="flex gap-3 mt-2 pt-2 border-t border-border flex-wrap">
+          {wish.url && (
+            <a
+              href={wish.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs text-secondary hover:underline flex items-center gap-1"
             >
+              🔗 Xem link →
+            </a>
+          )}
+          {wish.done && wish.linkedMomentId && (
+            <Link to={`/moments/${wish.linkedMomentId}`} className="text-xs text-primary hover:underline">
               📸 Xem kỷ niệm →
             </Link>
           )}
-          {wish.linkedFoodSpotId && (
-            <Link
-              to={`/foodspots/${wish.linkedFoodSpotId}`}
-              className="text-xs text-secondary hover:underline"
-            >
+          {wish.done && wish.linkedFoodSpotId && (
+            <Link to={`/foodspots/${wish.linkedFoodSpotId}`} className="text-xs text-secondary hover:underline">
               🍽️ Xem quán →
             </Link>
           )}
@@ -416,32 +429,44 @@ function WishFormModal({
   const [category, setCategory] = useState<Category>(
     (wish?.category as Category) ?? 'eating'
   );
-
-  // Sync fields when wish changes (edit mode)
-  const wishId = wish?.id;
-  const wishTitle = wish?.title;
-  const wishDescription = wish?.description;
-  const wishCategory = wish?.category;
+  const [address, setAddress] = useState(wish?.address ?? '');
+  const [url, setUrl] = useState(wish?.url ?? '');
+  const [tagsInput, setTagsInput] = useState('');
+  const [tags, setTags] = useState<string[]>(wish?.tags ?? []);
 
   // Reset when modal opens for new wish or switches to a different wish
   const [lastWishId, setLastWishId] = useState<string | undefined>(undefined);
-  if (wishId !== lastWishId) {
-    setLastWishId(wishId);
-    setTitle(wishTitle ?? '');
-    setDescription(wishDescription ?? '');
-    setCategory((wishCategory as Category) ?? 'eating');
+  if (wish?.id !== lastWishId) {
+    setLastWishId(wish?.id);
+    setTitle(wish?.title ?? '');
+    setDescription(wish?.description ?? '');
+    setCategory((wish?.category as Category) ?? 'eating');
+    setAddress(wish?.address ?? '');
+    setUrl(wish?.url ?? '');
+    setTags(wish?.tags ?? []);
+    setTagsInput('');
   }
+
+  const addTag = (raw: string) => {
+    const t = raw.trim();
+    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+    setTagsInput('');
+  };
+
+  const removeTag = (t: string) => setTags((prev) => prev.filter((x) => x !== t));
 
   const mutation = useMutation({
     mutationFn: () => {
-      if (isEdit) {
-        return dateWishesApi.update(wish.id, {
-          title,
-          description: description || undefined,
-          category,
-        });
-      }
-      return dateWishesApi.create({ title, description: description || undefined, category });
+      const payload = {
+        title,
+        description: description || undefined,
+        category,
+        address: address || undefined,
+        url: url || undefined,
+        tags,
+      };
+      if (isEdit) return dateWishesApi.update(wish.id, payload);
+      return dateWishesApi.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['date-wishes'] });
@@ -472,9 +497,64 @@ function WishFormModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            placeholder="Ghi thêm chi tiết, địa chỉ..."
+            placeholder="Ghi thêm chi tiết..."
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Địa chỉ</label>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Số nhà, đường, quận..."
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">URL</label>
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://..."
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Tags</label>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {tags.map((t) => (
+                <span key={t} className="flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                  {t}
+                  <button type="button" onClick={() => removeTag(t)} className="text-primary/60 hover:text-primary ml-0.5">×</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); addTag(tagsInput); }
+                if (e.key === ',') { e.preventDefault(); addTag(tagsInput); }
+              }}
+              placeholder="Nhập tag rồi Enter..."
+              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <button
+              type="button"
+              onClick={() => addTag(tagsInput)}
+              disabled={!tagsInput.trim()}
+              className="px-3 py-2 bg-primary/10 text-primary rounded-xl text-sm font-medium hover:bg-primary/20 disabled:opacity-40 transition-colors"
+            >
+              Thêm
+            </button>
+          </div>
         </div>
 
         <div>

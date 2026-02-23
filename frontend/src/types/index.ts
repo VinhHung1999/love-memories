@@ -232,6 +232,9 @@ export interface DateWish {
   title: string;
   description: string | null;
   category: string;
+  address: string | null;
+  url: string | null;
+  tags: string[];
   done: boolean;
   doneAt: string | null;
   linkedMomentId: string | null;

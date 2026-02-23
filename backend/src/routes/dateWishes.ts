@@ -22,10 +22,13 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 // POST / — create wish
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, category } = req.body as {
+    const { title, description, category, address, url, tags } = req.body as {
       title: string;
       description?: string;
       category: string;
+      address?: string;
+      url?: string;
+      tags?: string[];
     };
     if (!title || !category) {
       res.status(400).json({ error: 'title and category are required' });
@@ -36,6 +39,9 @@ router.post('/', async (req: AuthRequest, res: Response) => {
         title,
         description: description ?? null,
         category,
+        address: address ?? null,
+        url: url ?? null,
+        tags: tags ?? [],
         createdBy: req.user!.userId,
       },
     });
@@ -48,10 +54,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 // PUT /:id — update title/description/category
 router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response) => {
   try {
-    const { title, description, category } = req.body as {
+    const { title, description, category, address, url, tags } = req.body as {
       title?: string;
       description?: string;
       category?: string;
+      address?: string;
+      url?: string;
+      tags?: string[];
     };
     const wish = await prisma.dateWish.update({
       where: { id: req.params.id },
@@ -59,6 +68,9 @@ router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(category !== undefined && { category }),
+        ...(address !== undefined && { address }),
+        ...(url !== undefined && { url }),
+        ...(tags !== undefined && { tags }),
       },
     });
     res.json(wish);

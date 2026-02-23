@@ -324,6 +324,9 @@ model DateWish {
   title            String
   description      String?
   category         String
+  address          String?
+  url              String?
+  tags             String[]  @default([])
   done             Boolean   @default(false)
   doneAt           DateTime?
   linkedMomentId   String?
