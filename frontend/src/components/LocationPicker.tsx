@@ -64,16 +64,19 @@ export default function LocationPicker({ latitude, longitude, location, onChange
     if (!q.trim() || !token) { setResults([]); return; }
     setSearching(true);
     try {
-      const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${token}&limit=5&language=vi&country=vn`
-      );
+      // Use map center for proximity bias; fall back to current props or HCMC default
+      const center = mapRef.current?.getCenter();
+      const proxLng = center?.lng ?? longitude ?? 106.6297;
+      const proxLat = center?.lat ?? latitude ?? 10.8231;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${token}&limit=5&language=vi&country=vn&types=address%2Cpoi%2Cplace&proximity=${proxLng},${proxLat}`;
+      const res = await fetch(url);
       const data = await res.json();
       setResults(data.features || []);
     } catch {
       setResults([]);
     }
     setSearching(false);
-  }, [token]);
+  }, [token, latitude, longitude]);
 
   // Debounced search
   const handleQueryChange = (value: string) => {
