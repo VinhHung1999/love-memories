@@ -205,8 +205,6 @@ export default function DatePlanDetailPage() {
       {/* Gallery — ABOVE header, shown only when completed + has items */}
       {isCompleted && hasGallery && (
         <div className="mb-4">
-          <h2 className="font-heading text-base font-semibold mb-3">Kỷ niệm từ buổi hẹn</h2>
-
           {/* Mobile: Swiper carousel — giống Dashboard */}
           <div className="-mx-4 overflow-hidden md:hidden">
             <Swiper
