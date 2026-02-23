@@ -55,21 +55,26 @@ export default function MorePage() {
   // App customization
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
   const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
+  const { data: dateStartSetting } = useQuery({ queryKey: ['settings', 'relationship-start-date'], queryFn: () => settingsApi.get('relationship-start-date') });
   const [appNameInput, setAppNameInput] = useState('');
   const [appSloganInput, setAppSloganInput] = useState('');
+  const [dateInput, setDateInput] = useState('');
 
   // Sync inputs when settings load (only on first load)
   useEffect(() => { if (appNameSetting?.value != null) setAppNameInput(appNameSetting.value); }, [appNameSetting?.value]);
   useEffect(() => { if (appSloganSetting?.value != null) setAppSloganInput(appSloganSetting.value); }, [appSloganSetting?.value]);
+  useEffect(() => { if (dateStartSetting?.value != null) setDateInput(dateStartSetting.value); }, [dateStartSetting?.value]);
 
   const saveCustomMutation = useMutation({
     mutationFn: async () => {
       await settingsApi.set('app_name', appNameInput.trim() || 'Love Scrum');
       await settingsApi.set('app_slogan', appSloganInput.trim() || 'Our little world, beautifully organized');
+      if (dateInput) await settingsApi.set('relationship-start-date', dateInput);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings', 'app_name'] });
       queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
+      queryClient.invalidateQueries({ queryKey: ['settings', 'relationship-start-date'] });
       toast.success('Đã lưu!');
     },
     onError: () => toast.error('Không thể lưu'),
@@ -199,6 +204,15 @@ export default function MorePage() {
               value={appSloganInput}
               onChange={(e) => setAppSloganInput(e.target.value)}
               placeholder="Our little world, beautifully organized"
+              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-light mb-1">Ngày yêu nhau</label>
+            <input
+              type="date"
+              value={dateInput}
+              onChange={(e) => setDateInput(e.target.value)}
               className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>

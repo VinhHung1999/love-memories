@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, Pencil, Check, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { settingsApi } from '../lib/api';
 
 const SETTING_KEY = 'relationship-start-date';
@@ -41,11 +42,8 @@ interface Props {
   footer?: ReactNode;
 }
 
-/** Hero visual timer — large numbers, gradient bg, edit via pencil */
+/** Hero visual timer — large numbers, gradient bg, display-only */
 export default function RelationshipTimer({ footer }: Props) {
-  const queryClient = useQueryClient();
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -58,69 +56,17 @@ export default function RelationshipTimer({ footer }: Props) {
     queryFn: () => settingsApi.get(SETTING_KEY),
   });
 
-  const saveMutation = useMutation({
-    mutationFn: (value: string) => settingsApi.set(SETTING_KEY, value),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings', SETTING_KEY] });
-      setEditing(false);
-    },
-  });
-
   const startDate = data?.value ?? '';
-
-  const save = () => {
-    if (!editValue) return;
-    saveMutation.mutate(editValue);
-  };
-
-  const cancel = () => setEditing(false);
-
-  // ── Editing state (inline within hero card) ───────────────────────────
-  if (editing) {
-    return (
-      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-5">
-        <div className="flex items-center justify-center gap-1.5 mb-4">
-          <Heart className="w-4 h-4 text-primary fill-primary" />
-          <span className="text-xs font-medium text-text-light tracking-widest uppercase">Bên nhau từ</span>
-        </div>
-        <div className="flex items-center gap-2 max-w-xs mx-auto">
-          <input
-            type="date"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white/70"
-            autoFocus
-            onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
-          />
-          <button
-            onClick={save}
-            disabled={!editValue || saveMutation.isPending}
-            className="p-2 rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-40 transition-colors flex-shrink-0"
-          >
-            <Check className="w-4 h-4" />
-          </button>
-          <button
-            onClick={cancel}
-            className="p-2 rounded-xl hover:bg-white/60 text-text-light hover:text-text transition-colors flex-shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ── No date set ───────────────────────────────────────────────────────
   if (!startDate) {
     return (
       <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-8 flex flex-col items-center gap-2">
-        <button
-          onClick={() => { setEditValue(''); setEditing(true); }}
-          className="flex flex-col items-center gap-2 hover:opacity-70 transition-opacity"
-        >
-          <Heart className="w-6 h-6 text-primary/40" />
-          <span className="text-sm text-primary/60 font-medium">Thêm ngày quen nhau...</span>
-        </button>
+        <Heart className="w-6 h-6 text-primary/40" />
+        <p className="text-sm text-primary/60 font-medium">Chưa cấu hình</p>
+        <Link to="/more" className="text-xs text-primary underline">
+          Cài đặt ngày yêu nhau
+        </Link>
         {footer && (
           <>
             <div className="w-full mt-4 pt-4 border-t border-white/30" />
@@ -135,19 +81,10 @@ export default function RelationshipTimer({ footer }: Props) {
   const { years, months, days, totalDays, hours, minutes, seconds } = calcDiff(startDate, now);
 
   return (
-    <div className="relative group rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-5 overflow-hidden">
+    <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-6 py-5 overflow-hidden relative">
       {/* Subtle decorative circles */}
       <div className="absolute -top-3 -right-3 w-16 h-16 rounded-full bg-primary/5 pointer-events-none" />
       <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-secondary/5 pointer-events-none" />
-
-      {/* Edit button — always visible on mobile, hover-reveal on desktop */}
-      <button
-        onClick={() => { setEditValue(startDate); setEditing(true); }}
-        className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-white/60 text-text-light hover:text-primary transition-colors md:opacity-0 md:group-hover:opacity-100"
-        aria-label="Edit start date"
-      >
-        <Pencil className="w-3.5 h-3.5" />
-      </button>
 
       {/* Header label */}
       <div className="flex items-center justify-center gap-1.5 mb-4">
