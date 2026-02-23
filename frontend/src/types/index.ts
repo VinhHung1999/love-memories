@@ -226,3 +226,45 @@ export interface AppNotification {
   read: boolean;
   createdAt: string;
 }
+
+export interface DateWish {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  done: boolean;
+  doneAt: string | null;
+  linkedMomentId: string | null;
+  linkedFoodSpotId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DatePlanStop {
+  id: string;
+  planId: string;
+  time: string;
+  title: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  notes: string | null;
+  order: number;
+  done: boolean;
+  doneAt: string | null;
+  wishId: string | null;
+  createdAt: string;
+}
+
+export interface DatePlan {
+  id: string;
+  title: string;
+  date: string;
+  notes: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  stops: DatePlanStop[];
+}
+

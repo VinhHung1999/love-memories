@@ -319,6 +319,54 @@ model CustomAchievement {
   @@map("custom_achievements")
 }
 
+model DateWish {
+  id               String    @id @default(uuid())
+  title            String
+  description      String?
+  category         String
+  done             Boolean   @default(false)
+  doneAt           DateTime?
+  linkedMomentId   String?
+  linkedFoodSpotId String?
+  createdBy        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("date_wishes")
+}
+
+model DatePlan {
+  id        String         @id @default(uuid())
+  title     String
+  date      DateTime
+  notes     String?
+  status    String         @default("planned")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  stops     DatePlanStop[]
+
+  @@map("date_plans")
+}
+
+model DatePlanStop {
+  id        String   @id @default(uuid())
+  planId    String
+  plan      DatePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  time      String
+  title     String
+  address   String?
+  latitude  Float?
+  longitude Float?
+  notes     String?
+  order     Int
+  done      Boolean  @default(false)
+  doneAt    DateTime?
+  wishId    String?
+  createdAt DateTime @default(now())
+
+  @@map("date_plan_stops")
+}
+
 model Goal {
   id          String       @id @default(uuid())
   title       String

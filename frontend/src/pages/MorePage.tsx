@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -43,6 +43,13 @@ const modules = [
     label: 'Achievements',
     description: 'Thành tích của chúng mình',
     color: 'bg-secondary/10 text-secondary',
+  },
+  {
+    to: '/date-planner',
+    icon: CalendarHeart,
+    label: 'Date Planner',
+    description: 'Kế hoạch hẹn hò',
+    color: 'bg-primary/10 text-primary',
   },
 ];
 

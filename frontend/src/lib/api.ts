@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -197,6 +197,31 @@ export const notificationsApi = {
   markRead: (id: string) => request<AppNotification>(`/notifications/${id}/read`, { method: 'PUT' }),
   markAllRead: () => request<{ ok: boolean }>('/notifications/read-all', { method: 'PUT' }),
   delete: (id: string) => request(`/notifications/${id}`, { method: 'DELETE' }),
+};
+
+// Date Wishes
+export const dateWishesApi = {
+  list: () => request<DateWish[]>('/date-wishes'),
+  create: (data: Partial<DateWish>) => request<DateWish>('/date-wishes', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<DateWish>) => request<DateWish>(`/date-wishes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  markDone: (id: string, linkedMomentId?: string | null, linkedFoodSpotId?: string | null) =>
+    request<DateWish>(`/date-wishes/${id}/done`, { method: 'PUT', body: JSON.stringify({ linkedMomentId, linkedFoodSpotId }) }),
+  delete: (id: string) => request(`/date-wishes/${id}`, { method: 'DELETE' }),
+};
+
+// Date Plans
+export const datePlansApi = {
+  list: () => request<DatePlan[]>('/date-plans'),
+  get: (id: string) => request<DatePlan>(`/date-plans/${id}`),
+  create: (data: Partial<DatePlan> & { stops?: Partial<import('../types').DatePlanStop>[] }) =>
+    request<DatePlan>('/date-plans', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<DatePlan> & { stops?: Partial<import('../types').DatePlanStop>[] }) =>
+    request<DatePlan>(`/date-plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateStatus: (id: string, status: string) =>
+    request<DatePlan>(`/date-plans/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  markStopDone: (planId: string, stopId: string) =>
+    request(`/date-plans/${planId}/stops/${stopId}/done`, { method: 'PUT' }),
+  delete: (id: string) => request(`/date-plans/${id}`, { method: 'DELETE' }),
 };
 
 // Goals
