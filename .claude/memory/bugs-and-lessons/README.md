@@ -89,3 +89,34 @@ _(Add lessons from debugging, design mistakes, or surprising behaviors)_
 - Cause: `opacity-0 group-hover:opacity-100` makes buttons (e.g., photo delete) permanently hidden on mobile since there's no hover event.
 - Fix: use `md:opacity-0 md:group-hover:opacity-100` — buttons always visible on mobile, hover-reveal on desktop only.
 - Key takeaway: never gate interactive elements behind hover-only CSS on touch targets. Use responsive prefixes (`md:`) to separate mobile (always visible) from desktop (hover-reveal).
+
+### Dev DB migrations not applied — recurring 500 errors (Sprint 19, 21)
+- Cause: After schema changes, DEV runs migration on prod DB but forgets dev DB (love_scrum_dev). Backend queries new columns → Prisma throws → 500.
+- Fix: Always run `DATABASE_URL=...love_scrum_dev npx prisma migrate deploy` after each migration.
+- Key takeaway: Include dev DB migration in every deployment checklist. This has happened multiple times across sprints.
+
+### Route comment correct, route path missing suffix (Sprint 21)
+- `router.put('/:id/stops/:stopId', ...)` — comment said `/done` but path was missing it. Done button called `/stops/:stopId/done` → Express fell through to wrong handler → silent 500.
+- Key takeaway: when defining sub-resource action routes (`/done`, `/publish`, etc.), verify the path string matches the comment, not just the comment itself.
+
+### Filter logic || vs && — compound status+date conditions (Sprint 21)
+- Bug: Completed plan still showed as "Đang diễn ra" on Dashboard + list page.
+- Cause: `p.status === 'active' || isToday` — OR meant any today plan always matched, even completed ones.
+- Fix: `p.status === 'active' && isToday` — AND ensures both conditions must be true.
+- Key takeaway: When debugging "data not updating", check the DISPLAY FILTER logic first before blaming cache/invalidation. Spent 5 rounds fixing cache when the real bug was a simple `||` vs `&&`.
+
+### React Query: invalidate BOTH detail + list queries in mutation onSuccess
+- Bug: Plan completed on detail page but list page + Dashboard still showed "Đang diễn ra".
+- Cause: onSuccess only invalidated `['date-plans', id]` (detail) but not `['date-plans']` (list).
+- Key takeaway: Always invalidate both `['key', id]` AND `['key']` in every mutation onSuccess that changes entity status.
+- **Race condition corollary**: If mutation A triggers mutation B (chained), do NOT invalidate the list in A's onSuccess — the list refetch will return stale data before B commits. Let B's onSuccess own the list invalidation.
+
+### Google Maps link parsing — multiple URL formats (Sprint 22)
+- Google Share/Maps links redirect through many formats: `share.google`→Google Search (q= param), `maps.app.goo.gl`→directions (daddr= as text or coords), direct maps links (/@lat,lng).
+- Must check `daddr=` for both coordinate format (`10.805,106.697`) and text format (`Cơm Tấm Tài, 1 Nguyễn An Ninh...`). Skip daddr as place name when it's coords.
+- Key takeaway: when building URL parsers for external services, always trace real redirect chains with `curl -v -L` first — never assume URL format from docs alone.
+
+## Migration not applied to dev DB (2026-02-23 — URGENT bug)
+After every commit that contains new Prisma migrations, ALWAYS run:
+`DATABASE_URL="postgresql://hungphu@localhost:5432/love_scrum_dev" npx prisma migrate deploy`
+from `backend/` before reloading PM2. Skipping this caused a 500 error on all writes to the affected table.

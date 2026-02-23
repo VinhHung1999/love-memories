@@ -26,6 +26,51 @@ function isGoogleMapsUrl(url: string): boolean {
   }
 }
 
+/** Decode destination coords from the `geocode` query param (protobuf, base64-encoded).
+ *  Format: "source_b64;dest_b64" — each chunk has field 2 = lat (E6), field 3 = lng (E6). */
+function extractCoordsFromGeocode(url: string): { lat: number; lng: number } | null {
+  try {
+    const parsed = new URL(url);
+    const geocode = parsed.searchParams.get('geocode');
+    if (!geocode) return null;
+
+    // Split by ";" — last part is the destination
+    const parts = geocode.split(';');
+    const destB64 = parts[parts.length - 1]?.trim();
+    if (!destB64) return null;
+
+    // URL-safe base64 → standard base64
+    const std = destB64.replace(/-/g, '+').replace(/_/g, '/');
+    const buf = Buffer.from(std, 'base64');
+
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let i = 0;
+    while (i < buf.length) {
+      const tag = buf[i];
+      const fieldNum = tag >> 3;
+      const wireType = tag & 0x7;
+      i++;
+      if (wireType === 5 && i + 4 <= buf.length) {
+        // fixed32 — read as uint32 LE, divide by 1e6
+        const val = buf.readUInt32LE(i);
+        i += 4;
+        if (fieldNum === 2) lat = val / 1e6;
+        else if (fieldNum === 3) lng = val / 1e6;
+      } else if (wireType === 1 && i + 8 <= buf.length) {
+        i += 8; // skip fixed64 fields
+      } else {
+        break; // unknown wire type — stop
+      }
+    }
+
+    if (lat != null && lng != null && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return { lat, lng };
+    }
+  } catch { /* ignore decode errors */ }
+  return null;
+}
+
 function extractCoords(url: string): { lat: number; lng: number } | null {
   // Pattern: /@lat,lng or /@lat,lng,zoom
   let m = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
@@ -128,46 +173,14 @@ router.post('/', async (req: Request, res: Response) => {
 
     const finalUrl = response.url;
 
-    const coords = extractCoords(finalUrl);
+    // Priority: geocode protobuf (exact pin) > URL patterns > name-only fallback
+    const coords = extractCoordsFromGeocode(finalUrl) ?? extractCoords(finalUrl);
     const name = extractPlaceName(finalUrl);
 
     if (coords) {
       res.json({ latitude: coords.lat, longitude: coords.lng, name: name ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` });
     } else if (name) {
-      // No coords in URL — scrape from Google Maps page
-      try {
-        const mapsRes = await fetch(`https://www.google.com/maps/search/${encodeURIComponent(name)}`, {
-          method: 'GET', redirect: 'follow',
-          headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15' },
-          signal: AbortSignal.timeout(10_000),
-        });
-        const mapsUrl = mapsRes.url;
-        // Final URL often contains /@lat,lng after redirect
-        const urlCoords = extractCoords(mapsUrl);
-        if (urlCoords) {
-          res.json({ latitude: urlCoords.lat, longitude: urlCoords.lng, name });
-          return;
-        }
-        // Fallback: scrape coords from HTML body
-        const html = await mapsRes.text();
-        // Google Maps embeds coords as: ;[null,null,lat,lng]
-        const m3 = html.match(/\[null,null,(-?\d{1,3}\.\d{4,}),(-?\d{1,3}\.\d{4,})\]/);
-        if (m3) {
-          res.json({ latitude: parseFloat(m3[1]), longitude: parseFloat(m3[2]), name });
-          return;
-        }
-        // Pattern: ,lng,lat] in viewport/center data
-        const m4 = html.match(/,(-?\d{1,3}\.\d{4,}),(-?\d{1,3}\.\d{4,})\]/);
-        if (m4) {
-          const v1 = parseFloat(m4[1]);
-          const v2 = parseFloat(m4[2]);
-          const [lat, lng] = Math.abs(v1) > 90 ? [v2, v1] : [v1, v2];
-          if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-            res.json({ latitude: lat, longitude: lng, name });
-            return;
-          }
-        }
-      } catch { /* fallback */ }
+      // No coords in URL — return name only, frontend will Mapbox-geocode it
       res.json({ name });
     } else {
       res.status(422).json({ error: 'Could not extract coordinates or place name from URL' });

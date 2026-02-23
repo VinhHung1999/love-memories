@@ -114,3 +114,20 @@ Always respect this order when adding new overlay or panel components.
 - Vite: `server.proxy` → :5006 (dev), `preview.proxy` → :5005 (prod) — these are independent configs
 - Cloudflare Tunnel: `love-scrum.hungphu.work` (prod), `dev-love-scrum.hungphu.work` (dev)
 - Seed script: `npm run seed:dev` populates dev DB only
+
+## Date Planner (Sprint 21)
+
+### Pages
+- `DatePlannerPage.tsx` — 2 tabs: "Muốn đi" (wishlist) + "Kế hoạch" (plans). WishFormModal, PlanFormModal with StopEditor + LocationPicker
+- `DatePlanDetailPage.tsx` — Plan timeline: progress bar (active only), current stop highlight, Google Maps directions, Thêm Moment/FoodSpot per stop. Completed: gallery carousel at top
+
+### Shared Components (extracted Sprint 21)
+- `MomentCard.tsx` — Photo card with gradient overlay, location badge, date. Used in Dashboard + DatePlanDetailPage
+- `FoodSpotCard.tsx` — Same pattern for food spots. Used in DatePlanDetailPage
+- `ActionButtons.tsx` — ActionLink (text link), ActionPill (pill button), DirectionsLink (Google Maps shortcut). Used in WishCard + StopCard
+- `CreateFoodSpotModal.tsx` — Create food spot from within plan stop (pre-fills location from stop)
+
+### Auto-status Pattern
+- Backend GET /date-plans: planned→active if date=today, active→completed if past+all done
+- Backend PUT /stops/:stopId/done: marks stop done, checks all done → auto-completes plan atomically (no frontend chaining)
+- Dashboard: ActiveDatePlanPin shows only when `status === 'active' && isToday`
