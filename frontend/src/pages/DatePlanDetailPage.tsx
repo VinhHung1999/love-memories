@@ -263,18 +263,30 @@ export default function DatePlanDetailPage() {
           <h2 className="font-heading text-base font-semibold mb-3">Lịch trình</h2>
           <div className="divide-y divide-gray-50">
             {stops.map((stop) => (
-              <div key={stop.id} className="flex items-start gap-3 py-2">
-                <span className="text-xs font-bold text-primary flex-shrink-0 w-10 pt-0.5">{stop.time}</span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-text">{stop.title}</p>
-                  {stop.address && (
-                    <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 flex-shrink-0" />{stop.address}
-                    </p>
-                  )}
-                  {stop.description && (
-                    <p className="text-xs text-text-light mt-0.5 line-clamp-1">{stop.description}</p>
-                  )}
+              <div key={stop.id} className="py-2">
+                <div className="flex items-start gap-3">
+                  <span className="text-xs font-bold text-primary flex-shrink-0 w-10 pt-0.5">{stop.time}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text">{stop.title}</p>
+                    {stop.address && (
+                      <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />{stop.address}
+                      </p>
+                    )}
+                    {stop.description && (
+                      <p className="text-xs text-text-light mt-0.5 line-clamp-1">{stop.description}</p>
+                    )}
+                    {(stop.latitude != null || stop.address) && (
+                      <div className="mt-1.5">
+                        <DirectionsLink
+                          latitude={stop.latitude}
+                          longitude={stop.longitude}
+                          address={stop.address}
+                          title={stop.title}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
