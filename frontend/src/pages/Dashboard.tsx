@@ -148,8 +148,13 @@ export default function Dashboard() {
       {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
 
       {/* ── UNIFIED HERO: Timer + Stats ───────────────────────────────── */}
-      <div className="mb-6">
+      <div className="mb-4">
         <RelationshipTimer footer={statsFooter} />
+      </div>
+
+      {/* ── ACHIEVEMENT SUMMARY ────────────────────────────────────────── */}
+      <div className="mb-6">
+        <AchievementSummary achievements={achievements} />
       </div>
 
       {/* Active Sprint */}
@@ -216,6 +221,59 @@ export default function Dashboard() {
       )}
 
       <FAB />
+    </div>
+  );
+}
+
+// ─── Achievement Summary ──────────────────────────────────────────────────────
+
+import type { Achievement } from '../types';
+
+function AchievementSummary({ achievements }: { achievements: Achievement[] }) {
+  const total = achievements.length;
+  const unlocked = achievements.filter((a) => a.unlocked);
+  const progress = total > 0 ? Math.round((unlocked.length / total) * 100) : 0;
+
+  // Most recently unlocked, up to 4
+  const recent = [...unlocked]
+    .sort((a, b) => (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''))
+    .slice(0, 4);
+
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-secondary/5 to-accent/5 border border-secondary/10 px-4 py-3">
+      {/* Header */}
+      <div className="flex items-center gap-1.5 mb-2">
+        <span className="text-base">🏆</span>
+        <h2 className="font-heading text-sm font-semibold text-text flex-1">Achievements</h2>
+        <span className="text-xs text-text-light mr-2">{unlocked.length}/{total} đã mở khóa</span>
+        <Link to="/achievements" className="text-xs text-secondary font-medium hover:opacity-80 transition-opacity whitespace-nowrap">
+          Xem tất cả →
+        </Link>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1.5 bg-black/8 rounded-full overflow-hidden mb-3">
+        <div
+          className="h-full bg-gradient-to-r from-secondary to-accent rounded-full transition-all duration-700"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Recent unlocks */}
+      {recent.length === 0 ? (
+        <p className="text-xs text-text-light text-center py-1">Hãy bắt đầu khám phá! ✨</p>
+      ) : (
+        <div className="flex items-start gap-3 flex-wrap">
+          {recent.map((a) => (
+            <div key={a.key} className="flex flex-col items-center gap-1 w-12">
+              <div className="w-9 h-9 rounded-full bg-white/70 flex items-center justify-center text-lg shadow-sm border border-secondary/10">
+                {a.icon}
+              </div>
+              <p className="text-[10px] text-text-light text-center leading-tight line-clamp-2">{a.title}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
