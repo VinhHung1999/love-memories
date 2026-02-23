@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink, Trash2 } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, ExternalLink, Trash2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
@@ -304,27 +304,27 @@ export default function DatePlanDetailPage() {
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         {stop.url && (
                           <a href={stop.url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-secondary hover:underline"
+                            className="text-xs font-medium text-secondary hover:underline flex items-center gap-1 bg-secondary/10 px-2 py-0.5 rounded-lg"
                           >
-                            <ExternalLink className="w-3 h-3" /> Link
+                            🔗 Xem link →
                           </a>
                         )}
                         {(stop.address || stop.latitude != null) && (
                           <a href={googleMapsUrl(stop)} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-secondary hover:underline"
+                            className="text-xs text-secondary hover:underline flex items-center gap-1"
                           >
                             <Navigation className="w-3 h-3" /> Chỉ đường
                           </a>
                         )}
                         {stop.linkedMomentId ? (
                           <Link to={`/moments/${stop.linkedMomentId}`}
-                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
                           >
-                            📸 Kỷ niệm
+                            📸 Xem kỷ niệm →
                           </Link>
                         ) : !isDone ? (
                           <button onClick={() => setSelectedStopForMoment(stop.id)}
-                            className="flex items-center gap-1 text-xs text-text-light hover:text-primary transition-colors"
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
                           >
                             📸 Thêm Moment
                           </button>
@@ -333,9 +333,9 @@ export default function DatePlanDetailPage() {
                           <button
                             onClick={() => stopDoneMutation.mutate({ stopId: stop.id })}
                             disabled={stopDoneMutation.isPending}
-                            className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-lg hover:bg-green-100 disabled:opacity-50 ml-auto"
+                            className="flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-xs font-medium hover:bg-primary/20 transition-colors ml-auto disabled:opacity-50"
                           >
-                            <CheckCircle2 className="w-3 h-3" /> Done
+                            <Check className="w-3 h-3" /> Done
                           </button>
                         )}
                       </div>
