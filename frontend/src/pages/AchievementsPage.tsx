@@ -19,12 +19,9 @@ const CATEGORY_META: Record<string, { label: string; icon: string }> = {
 
 // ── Standard achievement card ──────────────────────────────────────────────────
 
-function AchievementCard({ achievement, index }: { achievement: Achievement; index: number }) {
+function AchievementCard({ achievement }: { achievement: Achievement }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
+    <div
       className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
         achievement.unlocked
           ? 'bg-white border-accent/20 shadow-sm'
@@ -60,7 +57,7 @@ function AchievementCard({ achievement, index }: { achievement: Achievement; ind
           <Check className="w-3 h-3 text-white" strokeWidth={3} />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -131,7 +128,12 @@ export default function AchievementsPage() {
       </div>
 
       {/* Category groups */}
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6"
+      >
         {CATEGORY_ORDER.map((cat) => {
           const group = achievements.filter((a) => a.category === cat);
           const meta = CATEGORY_META[cat];
@@ -148,14 +150,14 @@ export default function AchievementsPage() {
                 <span className="text-xs text-text-light">{catUnlocked}/{group.length}</span>
               </div>
               <div className="space-y-2">
-                {group.map((achievement, i) => (
-                  <AchievementCard key={achievement.key} achievement={achievement} index={i} />
+                {group.map((achievement) => (
+                  <AchievementCard key={achievement.key} achievement={achievement} />
                 ))}
               </div>
             </div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }

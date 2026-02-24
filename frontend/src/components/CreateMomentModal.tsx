@@ -3,7 +3,9 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from './Modal';
 import LocationPicker from './LocationPicker';
+import PhotoUpload from './PhotoUpload';
 import { momentsApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 
 interface CreateMomentModalProps {
   open: boolean;
@@ -38,6 +40,7 @@ export default function CreateMomentModal({
   const [longitude, setLongitude] = useState<number | null>(initialLongitude ?? null);
   const [tagsInput, setTagsInput] = useState('');
   const [spotifyUrl, setSpotifyUrl] = useState('');
+  const [photos, setPhotos] = useState<File[]>([]);
 
   // Render-phase reset when modal opens (captures fresh initialXxx each open)
   const [lastOpen, setLastOpen] = useState(false);
@@ -52,12 +55,13 @@ export default function CreateMomentModal({
       setLongitude(initialLongitude ?? null);
       setTagsInput('');
       setSpotifyUrl('');
+      setPhotos([]);
     }
   }
 
   const mutation = useMutation({
-    mutationFn: () =>
-      momentsApi.create({
+    mutationFn: async () => {
+      const created = await momentsApi.create({
         title,
         caption: caption || undefined,
         date,
@@ -69,7 +73,18 @@ export default function CreateMomentModal({
           .map((t) => t.trim())
           .filter(Boolean),
         spotifyUrl: spotifyUrl || undefined,
-      }),
+      });
+      if (photos.length > 0) {
+        const label = photos.length === 1 ? `Đang tải ${photos[0]?.name ?? 'ảnh'}` : `Đang tải ${photos.length} ảnh...`;
+        uploadQueue.enqueue(
+          `moment-photos-${created.id}-${Date.now()}`,
+          label,
+          (onProgress) => momentsApi.uploadPhotos(created.id, photos, onProgress),
+          () => queryClient.invalidateQueries({ queryKey: ['moments'] }),
+        );
+      }
+      return created;
+    },
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['moments'] });
       toast.success('Đã tạo Moment!');
@@ -159,6 +174,11 @@ export default function CreateMomentModal({
             placeholder="https://open.spotify.com/..."
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Photos</label>
+          <PhotoUpload photos={photos} onChange={setPhotos} />
         </div>
 
         <div className="flex gap-3 pt-3 pb-2 sticky bottom-0 bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-border mt-4">

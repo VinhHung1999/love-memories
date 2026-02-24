@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check, Pencil } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
@@ -12,6 +12,7 @@ import CreateFoodSpotModal from '../components/CreateFoodSpotModal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 import MomentCard from '../components/MomentCard';
 import FoodSpotCard from '../components/FoodSpotCard';
+import PlanFormModal from '../components/PlanFormModal';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 
@@ -117,6 +118,7 @@ export default function DatePlanDetailPage() {
     onError: () => toast.error('Không thể link Moment'),
   });
 
+  const [showEdit, setShowEdit] = useState(false);
   const [selectedStopForMoment, setSelectedStopForMoment] = useState<string | null>(null);
 
   const linkFoodSpotMutation = useMutation({
@@ -223,16 +225,26 @@ export default function DatePlanDetailPage() {
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="font-heading text-2xl font-bold truncate">{plan.title}</h1>
+            <h1 className="font-heading text-2xl font-bold">{plan.title}</h1>
             <p className="text-text-light text-sm mt-0.5">
               {new Date(plan.date).toLocaleDateString('vi-VN', {
                 weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
               })}
             </p>
           </div>
-          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${s.cls}`}>
-            {s.label}
-          </span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!isCompleted && (
+              <button
+                onClick={() => setShowEdit(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Pencil className="w-4 h-4 text-text-light" />
+              </button>
+            )}
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${s.cls}`}>
+              {s.label}
+            </span>
+          </div>
         </div>
         {plan.notes && (
           <p className="text-text-light text-sm mt-3 pt-3 border-t border-border">{plan.notes}</p>
@@ -492,6 +504,13 @@ export default function DatePlanDetailPage() {
           />
         );
       })()}
+
+      {/* Edit plan modal */}
+      <PlanFormModal
+        open={showEdit}
+        plan={showEdit ? plan : null}
+        onClose={() => setShowEdit(false)}
+      />
     </div>
   );
 }

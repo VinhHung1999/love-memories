@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { CalendarHeart, Heart, Plus, Trash2, Check, ChevronUp, ChevronDown, MapPin, Calendar } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { CalendarHeart, Heart, Plus, Trash2, Check, MapPin, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { dateWishesApi, datePlansApi, momentsApi, foodSpotsApi } from '../lib/api';
 import type { DateWish, DatePlan } from '../types';
 import Modal from '../components/Modal';
 import LocationPicker from '../components/LocationPicker';
+import PlanFormModal from '../components/PlanFormModal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -196,22 +197,24 @@ export default function DatePlannerPage() {
               </button>
             </div>
           ) : (
-            <AnimatePresence>
-              <div className="space-y-3">
-                {filtered.map((wish, i) => (
-                  <WishCard
-                    key={wish.id}
-                    wish={wish}
-                    index={i}
-                    onEdit={() => setEditWish(wish)}
-                    onDelete={() => {
-                      if (confirm('Xóa ước mơ này?')) deleteMutation.mutate(wish.id);
-                    }}
-                    onMarkDone={() => setDoneWish(wish)}
-                  />
-                ))}
-              </div>
-            </AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-3"
+            >
+              {filtered.map((wish) => (
+                <WishCard
+                  key={wish.id}
+                  wish={wish}
+                  onEdit={() => setEditWish(wish)}
+                  onDelete={() => {
+                    if (confirm('Xóa ước mơ này?')) deleteMutation.mutate(wish.id);
+                  }}
+                  onMarkDone={() => setDoneWish(wish)}
+                />
+              ))}
+            </motion.div>
           )}
 
         </>
@@ -256,11 +259,10 @@ export default function DatePlannerPage() {
               return p.status === 'active' && isToday;
             });
             const otherPlans = plans.filter((p) => !activePlans.includes(p));
-            const renderCard = (plan: DatePlan, i: number) => (
+            const renderCard = (plan: DatePlan) => (
               <PlanCard
                 key={plan.id}
                 plan={plan}
-                index={i}
                 forceActive={activePlans.includes(plan)}
                 onClick={() => navigate(`/date-planner/plans/${plan.id}`)}
                 onEdit={() => setEditPlan(plan)}
@@ -268,20 +270,25 @@ export default function DatePlannerPage() {
               />
             );
             return (
-              <div className="space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
                 {activePlans.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Đang diễn ra</p>
-                    <div className="space-y-3">{activePlans.map((p, i) => renderCard(p, i))}</div>
+                    <div className="space-y-3">{activePlans.map((p) => renderCard(p))}</div>
                   </div>
                 )}
                 {otherPlans.length > 0 && (
                   <div>
                     {activePlans.length > 0 && <p className="text-xs font-semibold text-text-light uppercase tracking-wide mb-2">Kế hoạch khác</p>}
-                    <div className="space-y-3">{otherPlans.map((p, i) => renderCard(p, i))}</div>
+                    <div className="space-y-3">{otherPlans.map((p) => renderCard(p))}</div>
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })()}
 
@@ -332,23 +339,17 @@ export default function DatePlannerPage() {
 
 function WishCard({
   wish,
-  index,
   onEdit,
   onDelete,
   onMarkDone,
 }: {
   wish: DateWish;
-  index: number;
   onEdit: () => void;
   onDelete: () => void;
   onMarkDone: () => void;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ delay: index * 0.04 }}
+    <div
       className={`bg-white rounded-2xl p-4 shadow-sm border border-transparent transition-all ${
         wish.done ? 'opacity-60' : 'hover:shadow-md hover:border-black/5'
       }`}
@@ -423,7 +424,7 @@ function WishCard({
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -736,14 +737,12 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
 
 function PlanCard({
   plan,
-  index,
   forceActive = false,
   onClick,
   onEdit,
   onDelete,
 }: {
   plan: DatePlan;
-  index: number;
   forceActive?: boolean;
   onClick: () => void;
   onEdit: () => void;
@@ -755,10 +754,7 @@ function PlanCard({
   const doneCount = plan.stops.filter((st) => st.done).length;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
+    <div
       className={`bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all border cursor-pointer ${
         forceActive ? 'border-blue-200 ring-1 ring-blue-100' : 'border-transparent hover:border-black/5'
       }`}
@@ -803,335 +799,7 @@ function PlanCard({
           Xóa
         </button>
       </div>
-    </motion.div>
-  );
-}
-
-// ── PlanFormModal ─────────────────────────────────────────────────────────────
-
-type StopDraft = {
-  time: string;
-  title: string;
-  description: string;
-  address: string;
-  latitude: number | null;
-  longitude: number | null;
-  url: string;
-  tags: string[];
-  category: string;
-  notes: string;
-  wishId: string;
-};
-
-function emptyStop(): StopDraft {
-  return { time: '', title: '', description: '', address: '', latitude: null, longitude: null, url: '', tags: [], category: '', notes: '', wishId: '' };
-}
-
-function PlanFormModal({
-  open,
-  plan,
-  wishes,
-  onClose,
-}: {
-  open: boolean;
-  plan: DatePlan | null;
-  wishes: DateWish[];
-  onClose: () => void;
-}) {
-  const queryClient = useQueryClient();
-  const isEdit = plan !== null;
-
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [notes, setNotes] = useState('');
-  const [stops, setStops] = useState<StopDraft[]>([emptyStop()]);
-
-  // Sync on open / plan change
-  const [lastPlanId, setLastPlanId] = useState<string | undefined>(undefined);
-  if (plan?.id !== lastPlanId) {
-    setLastPlanId(plan?.id);
-    setTitle(plan?.title ?? '');
-    setDate(plan?.date ? plan.date.slice(0, 10) : '');
-    setNotes(plan?.notes ?? '');
-    setStops(
-      plan?.stops.length
-        ? plan.stops.map((s) => ({
-            time: s.time,
-            title: s.title,
-            description: s.description ?? '',
-            address: s.address ?? '',
-            latitude: s.latitude ?? null,
-            longitude: s.longitude ?? null,
-            url: s.url ?? '',
-            tags: s.tags ?? [],
-            category: s.category ?? '',
-            notes: s.notes ?? '',
-            wishId: s.wishId ?? '',
-          }))
-        : [emptyStop()]
-    );
-  }
-
-  const addStop = () => setStops((prev) => [...prev, emptyStop()]);
-  const removeStop = (i: number) => setStops((prev) => prev.filter((_, idx) => idx !== i));
-  const moveStop = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= stops.length) return;
-    setStops((prev) => {
-      const next = [...prev];
-      const tmp = next[i]!;
-      next[i] = next[j]!;
-      next[j] = tmp;
-      return next;
-    });
-  };
-
-  const updateStopDraft = (i: number, draft: StopDraft) =>
-    setStops((prev) => prev.map((s, idx) => (idx === i ? draft : s)));
-
-  const mutation = useMutation({
-    mutationFn: () => {
-      const payload = {
-        title,
-        date,
-        notes: notes || undefined,
-        stops: stops
-          .filter((s) => s.title.trim())
-          .map((s, idx) => ({
-            time: s.time || '00:00',
-            title: s.title,
-            description: s.description || undefined,
-            address: s.address || undefined,
-            latitude: s.latitude ?? undefined,
-            longitude: s.longitude ?? undefined,
-            url: s.url || undefined,
-            tags: s.tags.length > 0 ? s.tags : undefined,
-            category: s.category || undefined,
-            notes: s.notes || undefined,
-            order: idx,
-            wishId: s.wishId || undefined,
-          })),
-      };
-      return isEdit
-        ? datePlansApi.update(plan.id, payload)
-        : datePlansApi.create(payload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['date-plans'] });
-      toast.success(isEdit ? 'Đã cập nhật kế hoạch!' : 'Đã tạo kế hoạch!');
-      onClose();
-    },
-    onError: () => toast.error('Không thể lưu kế hoạch'),
-  });
-
-  return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Chỉnh sửa kế hoạch' : 'Tạo kế hoạch mới'}>
-      <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Tên kế hoạch *</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            autoFocus
-            placeholder="Ví dụ: Hẹn hò cuối tuần"
-            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Ngày hẹn *</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Ghi chú</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-            placeholder="Ghi chú thêm..."
-            className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-          />
-        </div>
-
-        {/* Stops */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Địa điểm</label>
-          <div className="space-y-3">
-            {stops.map((stop, i) => (
-              <StopEditor
-                key={i}
-                stop={stop}
-                index={i}
-                isFirst={i === 0}
-                isLast={i === stops.length - 1}
-                totalStops={stops.length}
-                wishes={wishes}
-                onChange={(draft) => updateStopDraft(i, draft)}
-                onRemove={() => removeStop(i)}
-                onMoveUp={() => moveStop(i, -1)}
-                onMoveDown={() => moveStop(i, 1)}
-              />
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={addStop}
-            className="mt-2 text-xs text-primary hover:underline flex items-center gap-1"
-          >
-            <Plus className="w-3 h-3" /> Thêm điểm dừng
-          </button>
-        </div>
-
-        <div className="flex gap-3 pt-3 pb-2 sticky bottom-0 bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-border mt-4">
-          <button type="button" onClick={onClose} className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">
-            Hủy
-          </button>
-          <button
-            type="submit"
-            disabled={mutation.isPending || !title.trim() || !date}
-            className="flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
-          >
-            {mutation.isPending ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Tạo kế hoạch'}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-// ── StopEditor ─────────────────────────────────────────────────────────────────
-
-function StopEditor({
-  stop,
-  index,
-  isFirst,
-  isLast,
-  totalStops,
-  wishes,
-  onChange,
-  onRemove,
-  onMoveUp,
-  onMoveDown,
-}: {
-  stop: StopDraft;
-  index: number;
-  isFirst: boolean;
-  isLast: boolean;
-  totalStops: number;
-  wishes: DateWish[];
-  onChange: (draft: StopDraft) => void;
-  onRemove: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-}) {
-  const set = (field: keyof StopDraft, value: StopDraft[keyof StopDraft]) =>
-    onChange({ ...stop, [field]: value });
-
-  const handleWishSelect = (wishId: string) => {
-    const wish = wishes.find((w) => w.id === wishId);
-    onChange({
-      ...stop,
-      wishId,
-      title:       wish?.title       ?? stop.title,
-      description: wish?.description ?? stop.description,
-      category:    wish?.category    ?? stop.category,
-      address:     wish?.address     ?? stop.address,
-      latitude:    wish?.latitude    ?? stop.latitude,
-      longitude:   wish?.longitude   ?? stop.longitude,
-      url:         wish?.url         ?? stop.url,
-    });
-  };
-
-  return (
-    <div className="bg-gray-50 rounded-xl p-3 space-y-2.5 border border-border/50">
-      {/* Row: index + time + reorder/delete */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-text-light w-5 flex-shrink-0">{index + 1}.</span>
-        <input
-          type="time"
-          value={stop.time}
-          onChange={(e) => set('time', e.target.value)}
-          className="w-28 border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-        <div className="flex gap-1 ml-auto">
-          <button type="button" onClick={onMoveUp} disabled={isFirst} className="p-1 text-text-light disabled:opacity-30 hover:text-text transition-colors">
-            <ChevronUp className="w-4 h-4" />
-          </button>
-          <button type="button" onClick={onMoveDown} disabled={isLast} className="p-1 text-text-light disabled:opacity-30 hover:text-text transition-colors">
-            <ChevronDown className="w-4 h-4" />
-          </button>
-          <button type="button" onClick={onRemove} disabled={totalStops === 1} className="p-1 text-red-400 hover:text-red-500 disabled:opacity-30 transition-colors">
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Wish picker */}
-      {wishes.length > 0 && (
-        <select
-          value={stop.wishId}
-          onChange={(e) => handleWishSelect(e.target.value)}
-          className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 text-text-light"
-        >
-          <option value="">Chọn từ wishlist (tuỳ chọn)...</option>
-          {wishes.map((w) => (
-            <option key={w.id} value={w.id}>{getCategoryIcon(w.category)} {w.title}</option>
-          ))}
-        </select>
-      )}
-
-      {/* Title */}
-      <input
-        value={stop.title}
-        onChange={(e) => set('title', e.target.value)}
-        placeholder="Tên địa điểm *"
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      {/* Description */}
-      <textarea
-        value={stop.description}
-        onChange={(e) => set('description', e.target.value)}
-        rows={2}
-        placeholder="Mô tả..."
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-      />
-
-      {/* Address via LocationPicker */}
-      <LocationPicker
-        latitude={stop.latitude}
-        longitude={stop.longitude}
-        location={stop.address || null}
-        onChange={({ latitude, longitude, location }) =>
-          onChange({ ...stop, address: location, latitude, longitude })
-        }
-        onClear={() => onChange({ ...stop, address: '', latitude: null, longitude: null })}
-      />
-
-      {/* URL */}
-      <input
-        type="url"
-        value={stop.url}
-        onChange={(e) => set('url', e.target.value)}
-        placeholder="URL (https://...)"
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      {/* Notes */}
-      <input
-        value={stop.notes}
-        onChange={(e) => set('notes', e.target.value)}
-        placeholder="Ghi chú thêm"
-        className="w-full border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
     </div>
   );
 }
+

@@ -210,6 +210,7 @@ export const dateWishesApi = {
 };
 
 type PlanStopInput = {
+  id?: string;
   time: string;
   title: string;
   description?: string;

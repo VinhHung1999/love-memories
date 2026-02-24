@@ -76,6 +76,7 @@ router.get('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
 });
 
 type StopInput = {
+  id?: string;
   time: string;
   title: string;
   description?: string;
@@ -162,27 +163,39 @@ router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
         },
       });
 
-      // Replace stops if provided
+      // Upsert stops if provided — preserve done/linkedMomentId/linkedFoodSpotId
       if (stops !== undefined) {
-        await tx.datePlanStop.deleteMany({ where: { planId: req.params.id } });
-        if (stops.length > 0) {
-          await tx.datePlanStop.createMany({
-            data: stops.map((s) => ({
-              planId: req.params.id,
-              time: s.time,
-              title: s.title,
-              description: s.description ?? null,
-              address: s.address ?? null,
-              latitude: s.latitude ?? null,
-              longitude: s.longitude ?? null,
-              url: s.url ?? null,
-              tags: s.tags ?? [],
-              category: s.category ?? null,
-              notes: s.notes ?? null,
-              order: s.order,
-              wishId: s.wishId ?? null,
-            })),
-          });
+        const incomingIds = stops.filter((s) => s.id).map((s) => s.id!);
+        // Delete stops removed by the user
+        await tx.datePlanStop.deleteMany({
+          where: { planId: req.params.id, id: { notIn: incomingIds } },
+        });
+        // Update existing / create new
+        for (const s of stops) {
+          const editableFields = {
+            time: s.time,
+            title: s.title,
+            description: s.description ?? null,
+            address: s.address ?? null,
+            latitude: s.latitude ?? null,
+            longitude: s.longitude ?? null,
+            url: s.url ?? null,
+            tags: s.tags ?? [],
+            category: s.category ?? null,
+            notes: s.notes ?? null,
+            order: s.order,
+            wishId: s.wishId ?? null,
+          };
+          if (s.id) {
+            await tx.datePlanStop.update({
+              where: { id: s.id },
+              data: editableFields,
+            });
+          } else {
+            await tx.datePlanStop.create({
+              data: { planId: req.params.id, ...editableFields },
+            });
+          }
         }
       }
 
