@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChefHat, Plus, X, CheckCircle2, Clock, Sparkles, FileText, Youtube, AlertCircle } from 'lucide-react';
+import { ChefHat, Plus, X, CheckCircle2, Clock, Sparkles, FileText, Youtube, Globe, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi, aiApi, settingsApi } from '../lib/api';
@@ -187,7 +187,7 @@ function AIRecipeModal({
 }) {
   const checkAchievements = useCheckAchievements();
   const [phase, setPhase] = useState<AIPhase>('input');
-  const [mode, setMode] = useState<'text' | 'youtube'>('text');
+  const [mode, setMode] = useState<'text' | 'youtube' | 'url'>('text');
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
 
@@ -206,7 +206,7 @@ function AIRecipeModal({
     onClose();
     // Reset after close animation
     setTimeout(() => {
-      setPhase('input'); setMode('text'); setInput(''); setError('');
+      setPhase('input'); setMode('text' as const); setInput(''); setError('');
       setTitle(''); setDescription(''); setIngredients(['']); setIngredientPrices([0]);
       setSteps(['']); setStepDurations([0]); setTagsInput(''); setNotes(''); setTutorialUrl('');
     }, 300);
@@ -293,6 +293,15 @@ function AIRecipeModal({
             >
               <Youtube className="w-4 h-4" /> YouTube
             </button>
+            <button
+              type="button"
+              onClick={() => setMode('url')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+                mode === 'url' ? 'bg-blue-500 text-white' : 'bg-white text-text-light hover:bg-gray-50'
+              }`}
+            >
+              <Globe className="w-4 h-4" /> URL
+            </button>
           </div>
 
           {mode === 'text' ? (
@@ -304,7 +313,7 @@ function AIRecipeModal({
               autoFocus
               className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
             />
-          ) : (
+          ) : mode === 'youtube' ? (
             <div>
               <input
                 value={input}
@@ -315,6 +324,18 @@ function AIRecipeModal({
                 className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
               <p className="text-xs text-text-light mt-1.5 ml-1">Video phải có phụ đề (subtitles) để lấy transcript</p>
+            </div>
+          ) : (
+            <div>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                type="url"
+                autoFocus
+                placeholder="https://www.bachhoaxanh.com/..."
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+              />
+              <p className="text-xs text-text-light mt-1.5 ml-1">Dán link trang công thức (bachhoaxanh.com, cooky.vn...)</p>
             </div>
           )}
 
@@ -344,7 +365,7 @@ function AIRecipeModal({
         <div className="py-16 flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-text-light text-center">
-            {mode === 'youtube' ? 'Đang đọc video và tạo công thức...' : 'Đang phân tích công thức...'}
+            {mode === 'youtube' ? 'Đang đọc video và tạo công thức...' : mode === 'url' ? 'Đang đọc trang web và tạo công thức...' : 'Đang phân tích công thức...'}
           </p>
           <p className="text-xs text-text-light/60">Có thể mất 10–20 giây</p>
         </div>

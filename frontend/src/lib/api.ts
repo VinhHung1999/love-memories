@@ -183,7 +183,7 @@ export const profileApi = {
 
 // AI
 export const aiApi = {
-  generateRecipe: (mode: 'text' | 'youtube', input: string) =>
+  generateRecipe: (mode: 'text' | 'youtube' | 'url', input: string) =>
     request<Record<string, unknown>>('/ai/generate-recipe', {
       method: 'POST',
       body: JSON.stringify({ mode, input }),

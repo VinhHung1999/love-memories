@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import OpenAI from 'openai';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { z } from 'zod';
+import * as cheerio from 'cheerio';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const xai = new OpenAI({
 });
 
 const generateRecipeSchema = z.object({
-  mode: z.enum(['text', 'youtube']),
+  mode: z.enum(['text', 'youtube', 'url']),
   input: z.string().min(1),
 });
 
@@ -52,6 +53,61 @@ async function getYoutubeTranscript(url: string): Promise<string> {
   return segments.map((s: { text: string }) => s.text).join(' ');
 }
 
+async function fetchUrlContent(url: string): Promise<string> {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw new Error('URL không hợp lệ.');
+  }
+  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    throw new Error('URL không hợp lệ.');
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  let html: string;
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'vi,en;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)',
+      },
+    });
+    clearTimeout(timeout);
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('text/html') && !contentType.includes('xhtml')) {
+      throw new Error('URL không phải trang HTML.');
+    }
+    html = await response.text();
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') throw new Error('Trang web phản hồi quá chậm (timeout 15s).');
+    throw err;
+  }
+
+  const $ = cheerio.load(html);
+  $('script, style, nav, header, footer, aside, .ads, .advertisement, #ads').remove();
+
+  // Try recipe-specific selectors first, fall back to main content areas
+  let text = '';
+  for (const selector of ['[itemtype*="Recipe"]', 'article', 'main', '.recipe', '#recipe', '.content']) {
+    text = $(selector).first().text();
+    if (text.trim().length > 200) break;
+  }
+  if (text.trim().length < 200) {
+    text = $('body').text();
+  }
+
+  // Normalize whitespace and truncate
+  text = text.replace(/\s+/g, ' ').trim();
+  if (text.length === 0) throw new Error('Không thể đọc nội dung từ trang web này.');
+  return text.slice(0, 8000);
+}
+
 // POST /api/ai/generate-recipe
 router.post('/generate-recipe', async (req: Request, res: Response) => {
   try {
@@ -68,6 +124,14 @@ router.post('/generate-recipe', async (req: Request, res: Response) => {
         res.status(422).json({
           error: 'Không thể lấy transcript từ video này. Video có thể không có phụ đề.',
         });
+        return;
+      }
+    } else if (mode === 'url') {
+      tutorialUrl = input;
+      try {
+        textContent = await fetchUrlContent(input);
+      } catch (err: any) {
+        res.status(422).json({ error: err.message ?? 'Không thể đọc nội dung từ URL này.' });
         return;
       }
     } else {
