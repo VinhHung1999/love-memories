@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding love_scrum_dev...');
 
-  // Dev user
+  // Dev users (2 required for Love Letters partner lookup)
   const hashedPassword = await bcrypt.hash('dev123', 10);
   const user = await prisma.user.upsert({
     where: { email: 'dev@love-scrum.local' },
@@ -18,6 +18,17 @@ async function main() {
     },
   });
   console.log('User:', user.email, '/ password: dev123');
+
+  await prisma.user.upsert({
+    where: { email: 'partner@love-scrum.local' },
+    update: {},
+    create: {
+      email: 'partner@love-scrum.local',
+      password: hashedPassword,
+      name: 'Partner Dev',
+    },
+  });
+  console.log('User: partner@love-scrum.local / password: dev123');
 
   // Test moments
   await prisma.moment.createMany({
