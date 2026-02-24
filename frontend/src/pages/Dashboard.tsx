@@ -1,20 +1,24 @@
-import { Fragment, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { Fragment, useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, ArrowRight, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi } from '../lib/api';
+import 'swiper/css/pagination';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi, loveLettersApi } from '../lib/api';
 import { useUnreadCount } from '../lib/useUnreadCount';
-import type { CookingSession, DatePlan } from '../types';
+import type { CookingSession, DatePlan, LoveLetter } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
 import MomentCard from '../components/MomentCard';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
   const { data: foodSpots = [] } = useQuery({ queryKey: ['foodspots'], queryFn: foodSpotsApi.list });
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
@@ -57,6 +61,31 @@ export default function Dashboard() {
     ? Math.ceil((new Date(activeSprint.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : 0;
 
+  // ── Love Letter popup ──────────────────────────────────────────────────────
+  const { data: receivedLetters = [] } = useQuery({
+    queryKey: ['love-letters', 'received'],
+    queryFn: loveLettersApi.received,
+  });
+  // IDs already shown this session (persisted in sessionStorage)
+  const [dismissedIds] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(sessionStorage.getItem('ll-popup-dismissed') ?? '[]') as string[]);
+    } catch {
+      return new Set();
+    }
+  });
+  const [popupDismissed, setPopupDismissed] = useState(false);
+  const newUnread = receivedLetters.filter((l) => l.status === 'DELIVERED' && !dismissedIds.has(l.id));
+  const showLetterPopup = !popupDismissed && newUnread.length > 0;
+
+  const handlePopupClose = () => {
+    const updated = [...dismissedIds, ...newUnread.map((l) => l.id)];
+    sessionStorage.setItem('ll-popup-dismissed', JSON.stringify(updated));
+    setPopupDismissed(true);
+    queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+  };
+  // ── End love letter popup ──────────────────────────────────────────────────
+
   const [statsExpanded, setStatsExpanded] = useState(false);
 
   const primaryStats = [
@@ -96,6 +125,13 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* Love Letter Popup */}
+      <AnimatePresence>
+        {showLetterPopup && (
+          <LoveLetterPopup letters={newUnread} onClose={handlePopupClose} />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
@@ -262,6 +298,112 @@ export default function Dashboard() {
 
       <FAB />
     </div>
+  );
+}
+
+// ─── Love Letter Popup ────────────────────────────────────────────────────────
+
+const MOOD_EMOJI: Record<string, string> = {
+  romantic: '🌹', grateful: '🙏', playful: '😄',
+  encouragement: '💪', apology: '🥺', missing: '💭',
+};
+
+function LoveLetterPopup({ letters, onClose }: { letters: LoveLetter[]; onClose: () => void }) {
+  const markedRef = useRef<Set<string>>(new Set());
+
+  const markRead = (letter: LoveLetter) => {
+    if (!markedRef.current.has(letter.id)) {
+      markedRef.current.add(letter.id);
+      loveLettersApi.get(letter.id).catch(() => {});
+    }
+  };
+
+  // Mark first letter on mount
+  useEffect(() => {
+    if (letters[0]) markRead(letters[0]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[70] flex flex-col"
+      style={{ background: 'linear-gradient(135deg, #f8e4ea 0%, #fce8d5 50%, #e8f4f0 100%)' }}
+    >
+      {/* Close button */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 transition-colors"
+      >
+        <X className="w-4 h-4 text-gray-700" />
+      </button>
+
+      {/* Header label */}
+      <div className="text-center pt-12 pb-2 px-4 flex-shrink-0">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary/70">Thư tình mới 💌</p>
+        {letters.length > 1 && (
+          <p className="text-xs text-text-light mt-0.5">Vuốt để xem {letters.length} thư</p>
+        )}
+      </div>
+
+      {/* Swiper */}
+      <div className="flex-1 flex items-center min-h-0 px-4 pb-8">
+        <Swiper
+          modules={[Pagination]}
+          pagination={{ clickable: true }}
+          spaceBetween={16}
+          className="w-full h-full"
+          onSlideChange={(swiper) => {
+            const letter = letters[swiper.activeIndex];
+            if (letter) markRead(letter);
+          }}
+        >
+          {letters.map((letter) => (
+            <SwiperSlide key={letter.id} className="flex items-center justify-center h-full">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 24 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                className="w-full max-w-md mx-auto rounded-3xl shadow-2xl p-6 max-h-[70vh] overflow-y-auto"
+                style={{ background: 'linear-gradient(160deg, #fff9f9 0%, #fffdf8 100%)' }}
+              >
+                {/* Mood + header */}
+                <div className="text-center mb-6">
+                  <div className="text-4xl mb-2">{MOOD_EMOJI[letter.mood ?? ''] ?? '💌'}</div>
+                  <h2 className="text-xl font-heading font-bold text-gray-900 leading-snug">{letter.title}</h2>
+                  <p className="text-xs text-text-light mt-1.5">
+                    {letter.sender?.name ?? '—'} → {letter.recipient?.name ?? '—'}
+                  </p>
+                  {letter.deliveredAt && (
+                    <p className="text-xs text-text-light/60 mt-0.5">
+                      {format(new Date(letter.deliveredAt), "dd/MM/yyyy 'lúc' HH:mm", { locale: vi })}
+                    </p>
+                  )}
+                </div>
+
+                <div className="border-t border-dashed border-primary/20 mb-5" />
+
+                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-body">
+                  {letter.content}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-dashed border-primary/20 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-6 py-2 bg-primary text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Đóng 💕
+                  </button>
+                </div>
+              </motion.div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    </motion.div>
   );
 }
 
