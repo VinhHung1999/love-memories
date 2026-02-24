@@ -293,3 +293,22 @@ export interface DatePlan {
   stops: DatePlanStop[];
 }
 
+export type LetterStatus = 'DRAFT' | 'SCHEDULED' | 'DELIVERED' | 'READ';
+
+export interface LoveLetter {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  title: string;
+  content: string;
+  mood: string | null;
+  status: LetterStatus;
+  scheduledAt: string | null;
+  deliveredAt: string | null;
+  readAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  sender?: { id: string; name: string; avatar: string | null };
+  recipient?: { id: string; name: string; avatar: string | null };
+}
+

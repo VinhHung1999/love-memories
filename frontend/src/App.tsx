@@ -22,6 +22,7 @@ import AchievementsPage from './pages/AchievementsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import DatePlannerPage from './pages/DatePlannerPage';
 import DatePlanDetailPage from './pages/DatePlanDetailPage';
+import LoveLettersPage from './pages/LoveLettersPage';
 
 async function registerPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -93,6 +94,7 @@ export default function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/date-planner" element={<DatePlannerPage />} />
         <Route path="/date-planner/plans/:id" element={<DatePlanDetailPage />} />
+        <Route path="/love-letters" element={<LoveLettersPage />} />
       </Routes>
     </Layout>
   );

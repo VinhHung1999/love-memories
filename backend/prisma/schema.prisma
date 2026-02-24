@@ -18,8 +18,36 @@ model User {
   comments          MomentComment[]
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
+  sentLetters       LoveLetter[]       @relation("SentLetters")
+  receivedLetters   LoveLetter[]       @relation("ReceivedLetters")
 
   @@map("users")
+}
+
+enum LetterStatus {
+  DRAFT
+  SCHEDULED
+  DELIVERED
+  READ
+}
+
+model LoveLetter {
+  id          String       @id @default(uuid())
+  senderId    String
+  recipientId String
+  title       String
+  content     String
+  mood        String?
+  status      LetterStatus @default(DRAFT)
+  scheduledAt DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sender      User         @relation("SentLetters", fields: [senderId], references: [id])
+  recipient   User         @relation("ReceivedLetters", fields: [recipientId], references: [id])
+
+  @@map("love_letters")
 }
 
 model PushSubscription {

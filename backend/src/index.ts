@@ -21,6 +21,7 @@ import { pushRoutes } from './routes/push';
 import { dateWishRoutes } from './routes/dateWishes';
 import { datePlanRoutes } from './routes/datePlans';
 import { resolveLocationRoute } from './routes/resolveLocation';
+import { loveLetterRoutes } from './routes/loveLetters';
 import { requireAuth } from './middleware/auth';
 import prisma from './utils/prisma';
 import { createNotification } from './utils/notifications';
@@ -58,12 +59,42 @@ app.use('/api/notifications', requireAuth, notificationRoutes);
 app.use('/api/push', requireAuth, pushRoutes);
 app.use('/api/date-wishes', requireAuth, dateWishRoutes);
 app.use('/api/date-plans', requireAuth, datePlanRoutes);
+app.use('/api/love-letters', requireAuth, loveLetterRoutes);
 
 if (require.main === module) {
   const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
   server.timeout = 300_000; // 5 minutes — allow large file uploads
+
+  // Every minute: deliver SCHEDULED love letters where scheduledAt <= now
+  cron.schedule('* * * * *', async () => {
+    try {
+      const due = await prisma.loveLetter.findMany({
+        where: { status: 'SCHEDULED', scheduledAt: { lte: new Date() } },
+        include: { sender: { select: { name: true } } },
+      });
+      if (due.length === 0) return;
+      await Promise.all(
+        due.map(async (letter) => {
+          await prisma.loveLetter.update({
+            where: { id: letter.id },
+            data: { status: 'DELIVERED', deliveredAt: new Date() },
+          });
+          await createNotification(
+            letter.recipientId,
+            'love_letter',
+            `Thư tình mới từ ${letter.sender.name} 💌`,
+            letter.title,
+            '/love-letters',
+          ).catch(() => {});
+        }),
+      );
+      console.log(`[cron] delivered ${due.length} scheduled love letter(s)`);
+    } catch (err) {
+      console.error('[cron] love_letter delivery error:', err);
+    }
+  });
 
   // 6 AM daily reminder: notify all users if there's a planned/active DatePlan for today
   cron.schedule('0 6 * * *', async () => {
