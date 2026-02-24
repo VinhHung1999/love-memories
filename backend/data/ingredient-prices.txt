@@ -1,0 +1,42 @@
+# Bảng giá nguyên liệu nấu ăn (Tiki, VND)
+- thịt heo nạc (500g): ~416,000 VND
+- thịt heo ba chỉ (500g): ~166,000 VND
+- thịt bò (300g): ~54,700 VND
+- thịt gà (500g): ~24,000 VND
+- tôm tươi (300g): ~106,900 VND
+- cá phi lê (300g): ~416,000 VND
+- trứng gà (10 quả): ~100,000 VND
+- đậu hũ (300g): ~21,000 VND
+- xúc xích (200g): ~75,000 VND
+- cà chua (500g): ~35,000 VND
+- hành tây (500g): ~375,000 VND
+- tỏi (100g): ~59,900 VND
+- gừng (200g): ~61,600 VND
+- rau muống (300g): ~19,000 VND
+- cải thảo (500g): ~42,000 VND
+- cà rốt (500g): ~54,700 VND
+- khoai tây (500g): ~112,000 VND
+- bắp cải (500g): ~78,000 VND
+- đậu cove (300g): ~11,752 VND
+- nấm (200g): ~61,600 VND
+- chanh (5 quả): ~153,000 VND
+- ớt (100g): ~59,000 VND
+- ngò rí (100g): ~13,832 VND
+- hành lá (100g): ~110,000 VND
+- gạo (5kg): ~125,000 VND
+- bún tươi (500g): ~61,600 VND
+- mì gói (75g/gói): ~8,400 VND
+- bánh mì (300g): ~105,000 VND
+- dầu ăn (1 lít): ~285,120 VND
+- nước mắm (500ml): ~103,550 VND
+- nước tương (500ml): ~34,000 VND
+- dầu hào (255g): ~55,000 VND
+- đường (1kg): ~309,900 VND
+- muối (1kg): ~690,000 VND
+- tiêu xay (50g): ~350,000 VND
+- bột ngọt (200g): ~104,000 VND
+- hạt nêm (400g): ~60,000 VND
+- tương cà (300g): ~36,300 VND
+- sữa tươi (1 lít): ~63,000 VND
+- bơ (200g): ~189,000 VND
+- pho mát (140g): ~135,000 VND
