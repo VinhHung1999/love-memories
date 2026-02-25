@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mail, Send, Plus, Clock, Check, CheckCheck, Trash2, X, Calendar } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, Send, Plus, Clock, Check, CheckCheck, Trash2, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
+import LetterReadOverlay from '../components/LetterReadOverlay';
 import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
@@ -248,75 +249,6 @@ function ComposeLetterModal({ open, onClose }: { open: boolean; onClose: () => v
   );
 }
 
-function ReadLetterModal({ letter, onClose }: { letter: LoveLetter; onClose: () => void }) {
-  if (!letter) return null;
-
-  const mood = MOODS.find((m) => m.key === letter.mood);
-
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-        style={{ background: 'linear-gradient(135deg, #f8e4ea 0%, #fce8d5 50%, #e8f4f0 100%)' }}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 24 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 24 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="relative w-full max-w-md bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-6 max-h-[85vh] overflow-y-auto"
-          style={{ background: 'linear-gradient(160deg, #fff9f9 0%, #fffdf8 100%)' }}
-        >
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors"
-          >
-            <X className="w-4 h-4 text-gray-600" />
-          </button>
-
-          {/* Mood + header */}
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-2">{mood?.emoji ?? '💌'}</div>
-            {mood && <p className="text-xs text-text-light mb-1">{mood.label}</p>}
-            <h2 className="text-xl font-heading font-bold text-gray-900 leading-snug">{letter.title}</h2>
-            <p className="text-xs text-text-light mt-1.5">
-              {letter.sender?.name ?? '—'} → {letter.recipient?.name ?? '—'}
-            </p>
-            {letter.deliveredAt && (
-              <p className="text-xs text-text-light/60 mt-0.5">
-                {format(new Date(letter.deliveredAt), "dd/MM/yyyy 'lúc' HH:mm", { locale: vi })}
-              </p>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-dashed border-primary/20 mb-5" />
-
-          {/* Content */}
-          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-body">
-            {letter.content}
-          </div>
-
-          {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-dashed border-primary/20 flex justify-center">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 bg-primary text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              Đóng 💕
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
 
 export default function LoveLettersPage() {
   const queryClient = useQueryClient();
@@ -461,7 +393,7 @@ export default function LoveLettersPage() {
       <ComposeLetterModal open={composeOpen} onClose={() => setComposeOpen(false)} />
 
       {readLetter && (
-        <ReadLetterModal letter={readLetter} onClose={() => setReadLetter(null)} />
+        <LetterReadOverlay letters={[readLetter]} onClose={() => setReadLetter(null)} autoMarkRead={false} />
       )}
     </div>
   );
