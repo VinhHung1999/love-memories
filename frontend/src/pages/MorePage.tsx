@@ -1,12 +1,51 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail, Bell, MapPin, Mic, Shield } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
 import { settingsApi, profileApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import Modal from '../components/Modal';
+
+// ── App Permissions ──────────────────────────────────────────────────────────
+
+type PermStatus = 'granted' | 'denied' | 'prompt';
+type PermKey = 'notifications' | 'camera' | 'geolocation' | 'microphone';
+type PermStates = Record<PermKey, PermStatus>;
+
+const PERM_CONFIG: { key: PermKey; label: string; description: string; icon: React.ElementType }[] = [
+  { key: 'notifications', label: 'Thông báo',  description: 'Nhận thông báo thư tình, bình luận', icon: Bell   },
+  { key: 'camera',        label: 'Camera',      description: 'Chụp ảnh Photo Booth, đại diện',   icon: Camera },
+  { key: 'geolocation',   label: 'Vị trí',      description: 'Bản đồ quán ăn, hẹn hò',           icon: MapPin },
+  { key: 'microphone',    label: 'Microphone',  description: 'Ghi âm voice memo',                icon: Mic    },
+];
+
+async function checkAllPermissions(): Promise<PermStates> {
+  const notif: PermStatus = !('Notification' in window)
+    ? 'prompt'
+    : Notification.permission === 'default' ? 'prompt' : (Notification.permission as PermStatus);
+
+  const queryPerm = async (name: string): Promise<PermStatus> => {
+    if (!navigator.permissions) return 'prompt';
+    try {
+      const r = await navigator.permissions.query({ name: name as PermissionName });
+      return r.state === 'granted' ? 'granted' : r.state === 'denied' ? 'denied' : 'prompt';
+    } catch {
+      return 'prompt'; // iOS Safari: camera/microphone not supported
+    }
+  };
+
+  const [geolocation, camera, microphone] = await Promise.all([
+    queryPerm('geolocation'),
+    queryPerm('camera'),
+    queryPerm('microphone'),
+  ]);
+
+  return { notifications: notif, camera, geolocation, microphone };
+}
+
+// ── Modules ───────────────────────────────────────────────────────────────────
 
 const modules = [
   {
@@ -66,6 +105,49 @@ export default function MorePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Permissions
+  const [permStates, setPermStates] = useState<PermStates>({
+    notifications: 'prompt', camera: 'prompt', geolocation: 'prompt', microphone: 'prompt',
+  });
+
+  useEffect(() => {
+    checkAllPermissions().then(setPermStates);
+    const onVisibility = () => { if (!document.hidden) checkAllPermissions().then(setPermStates); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  const requestPermission = async (key: PermKey) => {
+    switch (key) {
+      case 'notifications':
+        if ('Notification' in window) await Notification.requestPermission();
+        break;
+      case 'camera':
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({ video: true });
+          s.getTracks().forEach((t) => t.stop());
+          setPermStates((p) => ({ ...p, camera: 'granted' }));
+        } catch {
+          setPermStates((p) => ({ ...p, camera: 'denied' }));
+        }
+        break;
+      case 'geolocation':
+        navigator.geolocation.getCurrentPosition(() => {}, () => {});
+        break;
+      case 'microphone':
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+          s.getTracks().forEach((t) => t.stop());
+          setPermStates((p) => ({ ...p, microphone: 'granted' }));
+        } catch {
+          setPermStates((p) => ({ ...p, microphone: 'denied' }));
+        }
+        break;
+    }
+    // Re-check after a short delay to pick up browser-level state changes
+    setTimeout(() => { checkAllPermissions().then(setPermStates); }, 600);
+  };
 
   // App customization
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
@@ -234,6 +316,41 @@ export default function MorePage() {
           >
             {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
           </button>
+        </div>
+      </div>
+
+      {/* App Permissions */}
+      <div className="mt-6">
+        <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
+          <Shield className="w-4 h-4 text-text-light" /> Quyền ứng dụng
+        </h2>
+        <div className="bg-white rounded-2xl shadow-sm divide-y divide-border">
+          {PERM_CONFIG.map((cfg) => {
+            const status = permStates[cfg.key];
+            return (
+              <button
+                key={cfg.key}
+                type="button"
+                onClick={() => requestPermission(cfg.key)}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+              >
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  <cfg.icon className="w-4.5 h-4.5" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-sm font-medium text-text">{cfg.label}</p>
+                  <p className="text-xs text-text-light">{cfg.description}</p>
+                  {status === 'denied' && (
+                    <p className="text-xs text-red-400 mt-0.5">Vào Cài đặt trình duyệt để bật lại</p>
+                  )}
+                </div>
+                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                  status === 'granted' ? 'bg-green-400' :
+                  status === 'denied'  ? 'bg-red-400'   : 'bg-yellow-400'
+                }`} />
+              </button>
+            );
+          })}
         </div>
       </div>
 
