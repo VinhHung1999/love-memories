@@ -104,7 +104,7 @@ function EnvelopeView({ letter, onOpen }: { letter: LoveLetter; onOpen: () => vo
           />
 
           {/* Wax seal */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center"
               style={{
@@ -116,19 +116,25 @@ function EnvelopeView({ letter, onOpen }: { letter: LoveLetter; onOpen: () => vo
             </div>
           </div>
 
-          {/* Top flap — 3D open animation */}
+          {/* Top flap — wrapper rotates in 3D; child holds clip-path in local space */}
           <motion.div
-            className="absolute top-0 left-0 right-0 rounded-t-xl pointer-events-none"
+            className="absolute top-0 left-0 right-0 pointer-events-none"
             style={{
               height: '52%',
-              clipPath: 'polygon(0 0, 50% 100%, 100% 0)',
-              background: 'linear-gradient(180deg, #fbeacb 0%, #fad9b0 100%)',
               transformOrigin: 'top center',
               backfaceVisibility: 'hidden',
             }}
             animate={flapOpen ? { rotateX: -175 } : { rotateX: 0 }}
             transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
-          />
+          >
+            <div
+              className="w-full h-full rounded-t-xl"
+              style={{
+                clipPath: 'polygon(0 0, 50% 100%, 100% 0)',
+                background: 'linear-gradient(180deg, #fbeacb 0%, #fad9b0 100%)',
+              }}
+            />
+          </motion.div>
         </div>
       </div>
 

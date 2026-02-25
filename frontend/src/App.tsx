@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './lib/auth';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -55,10 +56,20 @@ async function registerPush() {
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const wasAuthenticatedRef = useRef(false);
 
   useEffect(() => {
     if (isAuthenticated) registerPush();
   }, [isAuthenticated]);
+
+  // Invalidate all caches on login so Dashboard gets fresh letter data immediately
+  useEffect(() => {
+    if (isAuthenticated && !wasAuthenticatedRef.current) {
+      queryClient.invalidateQueries();
+    }
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated, queryClient]);
 
   if (isLoading) {
     return (

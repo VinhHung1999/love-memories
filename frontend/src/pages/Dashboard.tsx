@@ -63,6 +63,7 @@ export default function Dashboard() {
   const { data: receivedLetters = [] } = useQuery({
     queryKey: ['love-letters', 'received'],
     queryFn: loveLettersApi.received,
+    refetchOnMount: 'always',
   });
   // IDs already shown this session (persisted in sessionStorage)
   const [dismissedIds] = useState<Set<string>>(() => {
