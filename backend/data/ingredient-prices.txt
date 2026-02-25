@@ -1,0 +1,85 @@
+# Bảng giá nguyên liệu tham khảo (BHX + chợ VN, 02/2026)
+
+## Thịt heo (BHX - thương hiệu CP, Vissan, G Kitchen)
+- Thịt nạc dăm heo (500g): 82,000
+- Thịt đùi heo (500g): 72,000
+- Thịt ba rọi heo (500g): 96,000
+- Ba rọi rút sườn (500g): 123,000
+- Thịt vai heo (300g): 37,000
+- Nạc vai heo (300g): 49,000
+- Thịt heo xay (300g): 57,000
+- Sườn non heo (500g): 111,000
+- Chân giò heo (500g): 59,000
+
+## Thịt gà
+- Đùi gà (500g): 45,000
+- Ức gà (500g): 55,000
+- Cánh gà (500g): 40,000
+- Gà nguyên con (1.2kg): 95,000
+
+## Thịt bò
+- Thịt bò tươi (300g): 75,000
+- Bắp bò (500g): 140,000
+
+## Hải sản
+- Tôm tươi (300g): 65,000
+- Cá basa phi lê (500g): 55,000
+- Cá diêu hồng (500g): 60,000
+- Mực tươi (300g): 70,000
+
+## Trứng, đậu hũ
+- Trứng gà (10 quả): 32,000
+- Trứng vịt (10 quả): 38,000
+- Đậu hũ non (300g): 12,000
+- Đậu hũ chiên (200g): 15,000
+
+## Rau củ quả (giá chợ/siêu thị VN)
+- Cà chua (500g): 10,000
+- Hành tây (500g): 11,000
+- Khoai tây (500g): 13,000
+- Cà rốt (500g): 10,000
+- Rau muống (300g): 9,000
+- Cải thảo (500g): 9,000
+- Bắp cải (500g): 8,000
+- Cà tím (500g): 12,000
+- Dưa chuột (500g): 13,000
+- Bông cải xanh (300g): 12,000
+- Đậu cove (300g): 12,000
+- Nấm các loại (200g): 20,000
+- Giá đỗ (200g): 5,000
+
+## Gia vị tươi
+- Tỏi (100g): 10,000
+- Gừng (100g): 8,000
+- Hành lá (100g): 5,000
+- Ngò rí (100g): 5,000
+- Sả (100g): 5,000
+- Ớt tươi (100g): 10,000
+- Chanh (5 quả): 10,000
+
+## Gia vị khô & nước chấm (BHX)
+- Nước mắm (500ml): 25,000
+- Nước tương (500ml): 18,000
+- Dầu hào (270ml): 28,000
+- Dầu ăn (1 lít): 42,000
+- Đường (1kg): 22,000
+- Muối (500g): 7,000
+- Tiêu xay (50g): 18,000
+- Bột ngọt (200g): 16,000
+- Hạt nêm (400g): 35,000
+- Tương ớt (270g): 15,000
+- Tương cà (270g): 14,000
+- Giấm (500ml): 12,000
+- Bột nghệ (50g): 12,000
+- Bột ớt (50g): 10,000
+
+## Nguyên liệu khác
+- Gạo (5kg): 95,000
+- Bún tươi (500g): 12,000
+- Phở tươi (500g): 15,000
+- Mì gói (75g): 4,500
+- Bánh tráng (200g): 20,000
+- Nước cốt dừa (400ml): 25,000
+- Sữa tươi (1 lít): 32,000
+- Bơ (200g): 45,000
+- Phô mai (140g): 35,000

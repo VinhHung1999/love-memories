@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './lib/auth';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -22,6 +23,7 @@ import AchievementsPage from './pages/AchievementsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import DatePlannerPage from './pages/DatePlannerPage';
 import DatePlanDetailPage from './pages/DatePlanDetailPage';
+import LoveLettersPage from './pages/LoveLettersPage';
 
 async function registerPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -54,10 +56,20 @@ async function registerPush() {
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const wasAuthenticatedRef = useRef(false);
 
   useEffect(() => {
     if (isAuthenticated) registerPush();
   }, [isAuthenticated]);
+
+  // Invalidate all caches on login so Dashboard gets fresh letter data immediately
+  useEffect(() => {
+    if (isAuthenticated && !wasAuthenticatedRef.current) {
+      queryClient.invalidateQueries();
+    }
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated, queryClient]);
 
   if (isLoading) {
     return (
@@ -93,6 +105,7 @@ export default function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/date-planner" element={<DatePlannerPage />} />
         <Route path="/date-planner/plans/:id" element={<DatePlanDetailPage />} />
+        <Route path="/love-letters" element={<LoveLettersPage />} />
       </Routes>
     </Layout>
   );

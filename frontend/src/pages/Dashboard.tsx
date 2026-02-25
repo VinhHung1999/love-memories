@@ -1,20 +1,22 @@
 import { Fragment, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, MapPin, ArrowRight, Calendar, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, ArrowRight, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi } from '../lib/api';
+import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi, loveLettersApi } from '../lib/api';
 import { useUnreadCount } from '../lib/useUnreadCount';
 import type { CookingSession, DatePlan } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
 import FAB from '../components/FAB';
 import MomentCard from '../components/MomentCard';
+import LetterReadOverlay from '../components/LetterReadOverlay';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
   const { data: foodSpots = [] } = useQuery({ queryKey: ['foodspots'], queryFn: foodSpotsApi.list });
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
@@ -57,6 +59,32 @@ export default function Dashboard() {
     ? Math.ceil((new Date(activeSprint.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : 0;
 
+  // ── Love Letter popup ──────────────────────────────────────────────────────
+  const { data: receivedLetters = [] } = useQuery({
+    queryKey: ['love-letters', 'received'],
+    queryFn: loveLettersApi.received,
+    refetchOnMount: 'always',
+  });
+  // IDs already shown this session (persisted in sessionStorage)
+  const [dismissedIds] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(sessionStorage.getItem('ll-popup-dismissed') ?? '[]') as string[]);
+    } catch {
+      return new Set();
+    }
+  });
+  const [popupDismissed, setPopupDismissed] = useState(false);
+  const newUnread = receivedLetters.filter((l) => l.status === 'DELIVERED' && !dismissedIds.has(l.id));
+  const showLetterPopup = !popupDismissed && newUnread.length > 0;
+
+  const handlePopupClose = () => {
+    const updated = [...dismissedIds, ...newUnread.map((l) => l.id)];
+    sessionStorage.setItem('ll-popup-dismissed', JSON.stringify(updated));
+    setPopupDismissed(true);
+    queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+  };
+  // ── End love letter popup ──────────────────────────────────────────────────
+
   const [statsExpanded, setStatsExpanded] = useState(false);
 
   const primaryStats = [
@@ -96,6 +124,13 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* Love Letter Popup */}
+      <AnimatePresence>
+        {showLetterPopup && (
+          <LetterReadOverlay letters={newUnread} onClose={handlePopupClose} />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">

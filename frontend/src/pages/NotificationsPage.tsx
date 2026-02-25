@@ -18,6 +18,7 @@ const TYPE_ICON: Record<string, string> = {
   new_date_wish: '💝',
   new_date_plan: '📅',
   daily_plan_reminder: '⏰',
+  love_letter: '💌',
 };
 
 export default function NotificationsPage() {

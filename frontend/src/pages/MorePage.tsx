@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -49,6 +49,13 @@ const modules = [
     icon: CalendarHeart,
     label: 'Date Planner',
     description: 'Kế hoạch hẹn hò',
+    color: 'bg-primary/10 text-primary',
+  },
+  {
+    to: '/love-letters',
+    icon: Mail,
+    label: 'Love Letters',
+    description: 'Thư tình bất ngờ',
     color: 'bg-primary/10 text-primary',
   },
 ];

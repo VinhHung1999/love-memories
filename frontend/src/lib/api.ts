@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -183,7 +183,7 @@ export const profileApi = {
 
 // AI
 export const aiApi = {
-  generateRecipe: (mode: 'text' | 'youtube', input: string) =>
+  generateRecipe: (mode: 'text' | 'youtube' | 'url', input: string) =>
     request<Record<string, unknown>>('/ai/generate-recipe', {
       method: 'POST',
       body: JSON.stringify({ mode, input }),
@@ -259,4 +259,18 @@ export const goalsApi = {
   assign: (id: string, sprintId: string | null) => request<Goal>(`/goals/${id}/assign`, { method: 'PATCH', body: JSON.stringify({ sprintId }) }),
   reorder: (goals: { id: string; order: number; status?: string }[]) => request('/goals/reorder', { method: 'PATCH', body: JSON.stringify({ goals }) }),
   delete: (id: string) => request(`/goals/${id}`, { method: 'DELETE' }),
+};
+
+// Love Letters
+export const loveLettersApi = {
+  received: () => request<LoveLetter[]>('/love-letters/received'),
+  sent: () => request<LoveLetter[]>('/love-letters/sent'),
+  unreadCount: () => request<{ count: number }>('/love-letters/unread-count'),
+  get: (id: string) => request<LoveLetter>(`/love-letters/${id}`),
+  create: (data: { title: string; content: string; mood?: string; scheduledAt?: string; sendNow?: boolean }) =>
+    request<LoveLetter>('/love-letters', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: { title?: string; content?: string; mood?: string; scheduledAt?: string | null }) =>
+    request<LoveLetter>(`/love-letters/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  send: (id: string) => request<LoveLetter>(`/love-letters/${id}/send`, { method: 'PUT' }),
+  delete: (id: string) => request(`/love-letters/${id}`, { method: 'DELETE' }),
 };
