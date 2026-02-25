@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 22
-**Goal:** Date Planner Notifications + Address Search Fix
+**Sprint:** 24
+**Goal:** Recipe from URL + Love Letters
 
 ---
 
@@ -9,96 +9,143 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | Done | Sprint 22 deployed to production | 2026-02-23 |
-| DEV  | Done | Sprint 22 all tasks complete | 2026-02-23 |
+| PO   | SPRINT COMPLETE | Sprint 24 — 8/8 tasks approved ✅ | 2026-02-25 |
+| DEV  | IDLE | Awaiting Sprint 25 | 2026-02-25 |
 
 ---
 
-## Sprint 22 Spec
+## Sprint 24 Spec
 
-### Task 1: Backend — Date Planner Notifications (Event-driven)
-**Priority:** P0
+### Task 1: Recipe from URL (extend existing AI recipe)
 
-Add notifications when wishes/plans are created (follow existing pattern in `backend/src/utils/notifications.ts`).
-
-**New notification types:**
-
-| Type | Trigger | Title | Message |
-|------|---------|-------|---------|
-| `new_date_wish` | POST /api/date-wishes | "Ước mơ mới" | "{creator} thêm ước mơ: {title}" |
-| `new_date_plan` | POST /api/date-plans | "Kế hoạch hẹn hò mới" | "{creator} tạo kế hoạch: {title}" |
-
-**Implementation:**
-- In `date-wishes.ts` POST handler: call `createNotification()` for partner
-- In `date-plans.ts` POST handler: call `createNotification()` for partner
-- Link: `/date-planner` for both types
-
-**Frontend:**
-- Add type icons in `NotificationsPage.tsx`: `new_date_wish: '💫'`, `new_date_plan: '📅'`
+**What:** Add "URL" mode to AI recipe generation. User pastes a recipe webpage URL → app fetches content → AI extracts structured recipe.
 
 **Acceptance Criteria:**
-- [ ] Creating a wish sends notification to partner
-- [ ] Creating a plan sends notification to partner
-- [ ] Notifications appear in NotificationsPage with correct icons
-- [ ] Web push works for both types
-- [ ] Build + lint pass
+- [ ] New "URL" tab in AIRecipeModal (alongside Text + YouTube)
+- [ ] Backend fetches HTML from URL, extracts text content (use cheerio)
+- [ ] Extracted text sent to Grok for recipe JSON extraction
+- [ ] Source URL saved as `tutorialUrl` on the recipe
+- [ ] Works with Vietnamese recipe sites (e.g. bachhoaxanh.com, cooky.vn)
+- [ ] Error handling: invalid URL, non-HTML, empty content, timeout (15s)
+
+**Backend changes (`backend/src/routes/ai.ts`):**
+- Install `cheerio`: `cd backend && npm install cheerio`
+- Update Zod schema: `mode: z.enum(['text', 'youtube', 'url'])`
+- Add `fetchUrlContent(url)` function:
+  - Fetch with `Accept-Language: vi`, 15s timeout
+  - cheerio: strip scripts/nav/ads, try recipe selectors (`[itemtype*="Recipe"]`, `article`, `main`)
+  - Truncate to 8000 chars
+- Add `else if (mode === 'url')` branch (same pattern as youtube branch)
+
+**Frontend changes (`frontend/src/pages/RecipesPage.tsx`):**
+- Add `Globe` icon import from lucide-react
+- Add URL tab button (use blue color `bg-blue-500`)
+- Add URL input: `<input type="url" placeholder="https://www.bachhoaxanh.com/...">`
+- Update loading text: "Đang đọc trang web và tạo công thức..."
+- Update `frontend/src/lib/api.ts`: mode type `'text' | 'youtube' | 'url'`
 
 ---
 
-### Task 2: Backend — 6 AM Daily Plan Reminder (Scheduled)
-**Priority:** P0
+### Task 2: Love Letters
 
-Send a notification at 6:00 AM if there's an active/planned DatePlan for today.
-
-**Implementation:**
-- Install `node-cron` package
-- Create `backend/src/cron/dailyPlanReminder.ts`:
-  - Cron expression: `0 6 * * *` (6:00 AM daily, Asia/Ho_Chi_Minh timezone)
-  - Query: find DatePlans where `date` = today AND `status` in ('planned', 'active')
-  - For each matching plan: send notification to ALL users
-- Notification type: `daily_plan_reminder`
-- Title: "Hôm nay có hẹn!"
-- Message: "{plan.title} — {stops count} điểm đến"
-- Link: `/date-planner`
-- Register cron in `src/index.ts` (only when `require.main === module` to avoid running in tests)
-
-**Frontend:**
-- Add type icon: `daily_plan_reminder: '⏰'`
+**What:** New module for sending surprise love letters to partner, with optional scheduled delivery.
 
 **Acceptance Criteria:**
-- [ ] Cron job runs at 6 AM Asia/Ho_Chi_Minh
-- [ ] Only triggers if there's a plan for today
-- [ ] Sends to all users (both partners)
-- [ ] Notification + web push sent
-- [ ] Does NOT run during tests
-- [ ] Build + lint pass
+- [ ] Prisma model `LoveLetter` with status workflow (DRAFT → SCHEDULED → DELIVERED → READ)
+- [ ] 8 backend endpoints (see below)
+- [ ] Cron job delivers scheduled letters every minute
+- [ ] Frontend page with Inbox/Sent tabs
+- [ ] Compose modal with mood picker + schedule option
+- [ ] Immersive read experience (full-screen overlay)
+- [ ] Push notification on delivery
+- [ ] Recipients cannot see DRAFT/SCHEDULED letters (surprise!)
+- [ ] Accessible from MorePage
 
----
+**Database (`backend/prisma/schema.prisma`):**
+```prisma
+enum LetterStatus { DRAFT  SCHEDULED  DELIVERED  READ }
 
-### Task 3: Frontend — Fix Address Search (LocationPicker proximity bias)
-**Priority:** P0
-
-**Problem:** Searching "10 Nguyễn An Ninh" shows results from random cities, not from the user's local area (Ho Chi Minh City). Root cause: Mapbox Geocoding API call has no `proximity` parameter.
-
-**Current API call** (`LocationPicker.tsx` line ~67):
+model LoveLetter {
+  id            String       @id @default(uuid())
+  senderId      String
+  recipientId   String
+  title         String
+  content       String
+  mood          String?
+  status        LetterStatus @default(DRAFT)
+  scheduledAt   DateTime?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  sender        User         @relation("SentLetters", fields: [senderId], references: [id])
+  recipient     User         @relation("ReceivedLetters", fields: [recipientId], references: [id])
+  @@map("love_letters")
+}
 ```
-/geocoding/v5/mapbox.places/{query}.json?access_token=...&limit=5&language=vi&country=vn
-```
++ Add `sentLetters`/`receivedLetters` to User model
 
-**Fix — add `proximity` parameter:**
-- Use the **map's current center** as proximity bias
-- Format: `&proximity={lng},{lat}`
-- This tells Mapbox to prefer results near the map center
-- Default center is already HCM: `[106.6297, 10.8231]`
+**Backend endpoints (`backend/src/routes/loveLetters.ts`):**
 
-**Also add `types` filter:**
-- `&types=address,poi,place` to prioritize addresses and POIs over regions/districts
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | /received | Inbox (DELIVERED + READ) |
+| GET | /sent | Sent letters (all statuses) |
+| GET | /unread-count | Count DELIVERED letters |
+| GET | /:id | Get letter (auto-mark READ if recipient) |
+| POST | / | Create (DRAFT/SCHEDULED/immediate DELIVERED) |
+| PUT | /:id | Edit DRAFT/SCHEDULED only |
+| PUT | /:id/send | Send DRAFT immediately |
+| DELETE | /:id | Delete DRAFT/SCHEDULED only |
+
+**Cron (`backend/src/index.ts`):** Every minute, deliver SCHEDULED letters where `scheduledAt <= now`.
+
+**Frontend (`frontend/src/pages/LoveLettersPage.tsx`):**
+- Tabs: "Hộp thư" (Inbox) | "Thư đã gửi" (Sent)
+- LetterCard: envelope metaphor, mood icon, unread dot
+- ComposeLetterModal: title, content textarea, mood picker (6 moods), schedule toggle + datetime-local
+- ReadLetterModal: full-screen overlay, warm gradient bg, paper card, framer-motion entrance
+- Moods: romantic/grateful/playful/encouragement/apology/missing
+
+**Other frontend files:**
+- `types/index.ts`: Add LoveLetter + LetterStatus types
+- `lib/api.ts`: Add loveLettersApi
+- `App.tsx`: Add `/love-letters` route
+- `MorePage.tsx`: Add module with Mail icon
+- `NotificationsPage.tsx`: Add `love_letter` icon
+
+---
+
+### Task 3: AI Price Search + 2-Person Portions
+
+**What:** Enhance AI recipe generation with real ingredient price lookup (prioritize Bach Hoa Xanh) and auto-adjust portions for 2 people.
 
 **Acceptance Criteria:**
-- [ ] Searching "10 Nguyễn An Ninh" shows HCM results first
-- [ ] Proximity uses map's current center (updates when map is panned)
-- [ ] Results are more relevant for local addresses
-- [ ] Build + lint pass
+- [ ] AI uses real prices from Bach Hoa Xanh search (not guessed prices)
+- [ ] Fallback: if BHX has no result, AI estimates price as before
+- [ ] System prompt updated: adjust all ingredient quantities for 2-person portions
+- [ ] Price lookup works for all 3 modes (text, youtube, url)
+
+**Implementation approach — Price search tool for Grok:**
+
+Use Grok's function/tool calling via OpenAI SDK. Give Grok a `search_ingredient_price` tool:
+
+1. When generating a recipe, Grok calls the tool for each ingredient
+2. Tool handler fetches `https://www.bachhoaxanh.com/tim-kiem?q={ingredient}` (BHX uses Next.js SSR so search HTML should contain product data)
+3. Use cheerio to extract product name + price from the search results HTML
+4. Return top 1-3 results with name + price to Grok
+5. Grok uses real prices in the JSON output
+
+**If BHX SSR doesn't contain product data in HTML:**
+- Fallback: use Google search `{ingredient} giá site:bachhoaxanh.com` via web fetch
+- Or try Shopee API: `https://shopee.vn/api/v4/search/search_items?keyword={ingredient}&limit=5` (unauthenticated, needs browser User-Agent + Referer headers)
+
+**System prompt changes (`backend/src/routes/ai.ts`):**
+- Add rule: "Điều chỉnh khẩu phần cho 2 người ăn (couple). Nếu công thức gốc cho nhiều người hơn, giảm nguyên liệu tương ứng."
+- Add rule: "Sử dụng giá thực tế từ tool search_ingredient_price khi có. Chỉ ước tính khi tool không trả về kết quả."
+
+**Files to change:**
+- `backend/src/routes/ai.ts` — Add tool definition, tool handler, update system prompt
 
 ---
 
@@ -106,23 +153,26 @@ Send a notification at 6:00 AM if there's an active/planned DatePlan for today.
 
 | # | Task | Priority | Status | Assignee |
 |---|------|----------|--------|----------|
-| 1 | Backend: Date Planner notifications | P0 | DONE ✅ | DEV |
-| 2 | Backend: 6 AM daily plan reminder | P0 | DONE ✅ | DEV |
-| 3 | Frontend: Fix address search proximity | P0 | DONE ✅ | DEV |
-| H1 | Fix: Strip postcode from address display | P0 | DONE ✅ | PO |
+| 1 | Recipe from URL | P0 | DONE - PO Approved ✅ | DEV |
+| 2 | Love Letters | P0 | DONE - PO Approved ✅ | DEV |
+| 3 | Static price file (PO curated) + 2-person portions | P0 | DONE ✅ | PO+DEV |
+| 4 | Bug fix: Love Letters migration on dev DB | P0 | DONE ✅ | DEV |
+| 5 | Bug fix: Dev seed needs 2nd user for Love Letters | P0 | DONE - PO Verified ✅ | DEV |
+| 6 | Love Letter auto-popup on Dashboard + swipe | P0 | DONE - PO Approved ✅ | DEV |
+| 7 | Love Letter popup: fix centering + WOW effects | P1 | DONE - PO Approved ✅ | DEV |
+| 8 | Shared LetterReadOverlay + envelope open animation | P0 | DONE - PO Approved ✅ | DEV |
 
 ---
 
-## Backlog (Sprint 22+)
+## Backlog (Future)
 
 | # | Feature | Notes |
 |---|---------|-------|
 | 1 | What to Eat — Rating & Stats | Rate experience, cooking stats over time |
 | 2 | Photo Booth — Fun Effects | Stickers, filters, AR effects |
-| 3 | Love Letters | Gửi thư bất ngờ cho nhau, hẹn giờ gửi |
-| 4 | Mood Check-in | Check-in tâm trạng hàng ngày, xem trend theo tuần/tháng |
-| 5 | Weekly Recap | Auto-generated summary cuối tuần: moments, cooking, achievements |
-| 6 | Onboarding Tutorial | Hướng dẫn sử dụng app cho user mới, walkthrough các tính năng |
+| 3 | Mood Check-in | Check-in tâm trạng hàng ngày, xem trend theo tuần/tháng |
+| 4 | Weekly Recap | Auto-generated summary cuối tuần: moments, cooking, achievements |
+| 5 | Onboarding Tutorial | Hướng dẫn sử dụng app cho user mới, walkthrough các tính năng |
 
 ---
 
@@ -144,6 +194,8 @@ _Sprint 19 — In-App Notification System + Web Push: APPROVED & DEPLOYED (2026-
 _Sprint 20 — Image Upload Optimization: APPROVED & DEPLOYED (2026-02-23)_
 _Sprint 21 — Date Planner (Wishlist + Itinerary + Gallery): APPROVED & DEPLOYED (2026-02-23)_
 _Sprint 22 — Date Planner Notifications + Address Search Fix: APPROVED & DEPLOYED (2026-02-23)_
+_Sprint 23 — Plan Edit UX + Animation Fixes + Photo Upload: COMMITTED TO MAIN (2026-02-24)_
+_Sprint 24 — Recipe from URL + Love Letters + Shared LetterReadOverlay + 3D Envelope: ALL 8 TASKS APPROVED (2026-02-25)_
 
 ---
 
