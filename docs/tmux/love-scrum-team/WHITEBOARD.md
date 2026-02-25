@@ -9,7 +9,7 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | SPRINT COMPLETE | Sprint 24 — 9/9 tasks approved ✅ | 2026-02-25 |
+| PO   | SPRINT COMPLETE | Sprint 24 — 10/10 tasks approved ✅ | 2026-02-25 |
 | DEV  | IDLE | Awaiting Sprint 25 | 2026-02-25 |
 
 ---
@@ -162,6 +162,7 @@ Use Grok's function/tool calling via OpenAI SDK. Give Grok a `search_ingredient_
 | 7 | Love Letter popup: fix centering + WOW effects | P1 | DONE - PO Approved ✅ | DEV |
 | 8 | Shared LetterReadOverlay + envelope open animation | P0 | DONE - PO Approved ✅ | DEV |
 | 9 | Fix: seal z-index + flap 3D clip-path + login letter popup | P0 | DONE - PO Approved ✅ | DEV |
+| 10 | Fix: envelope flap visible open via clip-path animation | P0 | DONE - PO Approved ✅ | DEV |
 
 ---
 
@@ -196,7 +197,7 @@ _Sprint 20 — Image Upload Optimization: APPROVED & DEPLOYED (2026-02-23)_
 _Sprint 21 — Date Planner (Wishlist + Itinerary + Gallery): APPROVED & DEPLOYED (2026-02-23)_
 _Sprint 22 — Date Planner Notifications + Address Search Fix: APPROVED & DEPLOYED (2026-02-23)_
 _Sprint 23 — Plan Edit UX + Animation Fixes + Photo Upload: COMMITTED TO MAIN (2026-02-24)_
-_Sprint 24 — Recipe from URL + Love Letters + Shared LetterReadOverlay + 3D Envelope + Bug Fixes: ALL 9 TASKS APPROVED (2026-02-25)_
+_Sprint 24 — Recipe from URL + Love Letters + Shared LetterReadOverlay + Envelope Animation + Bug Fixes: ALL 10 TASKS APPROVED (2026-02-25)_
 
 ---
 
