@@ -123,7 +123,7 @@ function EnvelopeView({ letter, onOpen }: { letter: LoveLetter; onOpen: () => vo
               background: 'linear-gradient(180deg, #fbeacb 0%, #fad9b0 100%)',
             }}
             animate={flapOpen
-              ? { clipPath: 'polygon(0 0, 50% -80%, 100% 0)' }
+              ? { clipPath: 'polygon(0 0, 50% 0%, 100% 0)' }
               : { clipPath: 'polygon(0 0, 50% 100%, 100% 0)' }
             }
             transition={{ duration: 0.6, ease: 'easeInOut' }}
