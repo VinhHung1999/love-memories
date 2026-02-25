@@ -71,13 +71,14 @@ export default function OnboardingOverlay({ onComplete }: { onComplete: () => vo
 
   const title = currentStep === 0 ? `Chào mừng đến với ${appName}! 💕` : step.title;
 
-  // Position card above spotlight on mobile, centered otherwise
+  // Position card above spotlight on mobile, centered otherwise.
+  // Use top (not bottom) — window.innerHeight is unreliable on iOS with URL bar / safe areas.
   const cardStyle: React.CSSProperties = spotlightRect
     ? {
         position: 'fixed',
         left: '50%',
         transform: 'translateX(-50%)',
-        bottom: window.innerHeight - spotlightRect.top + 24,
+        top: Math.max(16, spotlightRect.top - 180),
         width: 'calc(100vw - 3rem)',
         maxWidth: '28rem',
       }
