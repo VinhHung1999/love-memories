@@ -7,6 +7,7 @@ import { useAuth } from '../lib/auth';
 import { settingsApi, profileApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import Modal from '../components/Modal';
+import OnboardingOverlay from '../components/OnboardingOverlay';
 
 // ── App Permissions ──────────────────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ export default function MorePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Permissions
   const [permStates, setPermStates] = useState<PermStates>({
@@ -326,6 +328,13 @@ export default function MorePage() {
           >
             {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
           </button>
+          <button
+            type="button"
+            onClick={() => setShowOnboarding(true)}
+            className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Xem lại hướng dẫn
+          </button>
         </div>
       </div>
 
@@ -406,6 +415,8 @@ export default function MorePage() {
           </div>
         </div>
       </Modal>
+
+      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
     </div>
   );
 }
