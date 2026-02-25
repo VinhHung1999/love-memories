@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Camera, UtensilsCrossed, Utensils, Mail, CalendarHeart, Target, Trophy } from 'lucide-react';
 import { recapApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -107,6 +108,10 @@ export default function WeeklyRecapPage() {
   const [currentWeek, setCurrentWeek] = useState(previousWeekStr);
   const isCurrentWeek = currentWeek >= currentWeekStr();
 
+  useModuleTour('weekly-recap', [
+    { element: '[data-tour="week-nav"]', popover: { title: '📊 Tuần của chúng mình', description: 'Xem tổng kết hoạt động theo từng tuần — dùng mũi tên để chuyển tuần.', side: 'bottom' } },
+  ]);
+
   const { data: recap, isLoading } = useQuery({
     queryKey: ['recap', 'weekly', currentWeek],
     queryFn: () => recapApi.weekly(currentWeek),
@@ -128,7 +133,7 @@ export default function WeeklyRecapPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-heading font-bold text-gray-900 mb-3">Tuần của chúng mình 📊</h1>
-        <div className="flex items-center gap-3">
+        <div data-tour="week-nav" className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setCurrentWeek((w) => offsetWeek(w, -1))}

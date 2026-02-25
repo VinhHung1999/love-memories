@@ -6,6 +6,7 @@ import { format, isPast } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { sprintsApi, goalsApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { Goal, Sprint, SprintStatus, GoalPriority } from '../types';
 import Modal from '../components/Modal';
 import EmptyState from '../components/EmptyState';
@@ -29,6 +30,11 @@ export default function GoalsPage() {
   const [showBacklogForm, setShowBacklogForm] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
 
+  useModuleTour('goals', [
+    { element: '[data-tour="create-sprint"]', popover: { title: '🏃 Tạo Sprint', description: 'Tạo sprint mới với các mục tiêu chung cho 2 người.', side: 'bottom' } },
+    { element: '[data-tour="sprint-card"]', popover: { title: '📋 Xem Sprint', description: 'Bấm vào sprint để xem bảng Kanban — kéo thả card giữa Todo, Doing, Done.', side: 'bottom' } },
+  ]);
+
   const { data: sprints = [], isLoading: sprintsLoading } = useQuery({
     queryKey: ['sprints'],
     queryFn: sprintsApi.list,
@@ -49,6 +55,7 @@ export default function GoalsPage() {
           <p className="text-text-light text-sm mt-1">Our shared goals and sprints</p>
         </div>
         <button
+          data-tour="create-sprint"
           onClick={() => setShowSprintForm(true)}
           className="bg-accent text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-accent-dark transition-colors"
         >
@@ -115,9 +122,15 @@ export default function GoalsPage() {
               />
             ) : (
               <div className="space-y-4">
-                {sprints.map((sprint, i) => (
-                  <SprintCard key={sprint.id} sprint={sprint} index={i} />
-                ))}
+                {sprints.map((sprint, i) =>
+                  i === 0 ? (
+                    <div key={sprint.id} data-tour="sprint-card">
+                      <SprintCard sprint={sprint} index={i} />
+                    </div>
+                  ) : (
+                    <SprintCard key={sprint.id} sprint={sprint} index={i} />
+                  )
+                )}
               </div>
             )}
           </div>

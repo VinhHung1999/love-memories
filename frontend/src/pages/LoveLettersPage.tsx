@@ -7,6 +7,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { loveLettersApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { LoveLetter, LetterStatus } from '../types';
 import Modal from '../components/Modal';
 
@@ -256,6 +257,11 @@ export default function LoveLettersPage() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [readLetter, setReadLetter] = useState<LoveLetter | null>(null);
 
+  useModuleTour('love-letters', [
+    { element: '[data-tour="compose-letter"]', popover: { title: '✉️ Viết thư tình', description: 'Gửi những điều muốn nói đến người ấy — có thể hẹn giờ gửi lãng mạn hơn!', side: 'bottom' } },
+    { element: '[data-tour="letter-tabs"]', popover: { title: '📬 Hộp thư', description: 'Chuyển qua lại giữa thư nhận và thư đã gửi.', side: 'bottom' } },
+  ]);
+
   const { data: received = [], isLoading: loadingInbox } = useQuery({
     queryKey: ['love-letters', 'received'],
     queryFn: loveLettersApi.received,
@@ -314,6 +320,7 @@ export default function LoveLettersPage() {
           )}
         </div>
         <button
+          data-tour="compose-letter"
           type="button"
           onClick={() => setComposeOpen(true)}
           className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-opacity shadow-sm"
@@ -323,7 +330,7 @@ export default function LoveLettersPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex rounded-xl overflow-hidden border border-border mb-5">
+      <div data-tour="letter-tabs" className="flex rounded-xl overflow-hidden border border-border mb-5">
         <button
           type="button"
           onClick={() => setTab('inbox')}

@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { recipesApi, foodSpotsApi, aiApi, settingsApi } from '../lib/api';
 import { useCheckAchievements } from '../lib/achievements';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { Recipe } from '../types';
 
 function formatVnd(price: number): string {
@@ -21,6 +22,11 @@ export default function RecipesPage() {
   const [showAI, setShowAI] = useState(false);
   const [filterTag, setFilterTag] = useState('');
   const [searchParams] = useSearchParams();
+
+  useModuleTour('recipes', [
+    { element: '[data-tour="create-recipe"]', popover: { title: '🍳 Thêm Công thức', description: 'Lưu lại công thức nấu ăn yêu thích của hai người.', side: 'left' } },
+    { element: '[data-tour="ai-recipe"]', popover: { title: '✨ AI Gợi ý', description: 'Để AI gợi ý công thức dựa trên nguyên liệu bạn có!', side: 'left' } },
+  ]);
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setShowForm(true);
@@ -43,12 +49,14 @@ export default function RecipesPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            data-tour="ai-recipe"
             onClick={() => setShowAI(true)}
             className="border border-accent text-accent px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-accent/5 transition-colors"
           >
             <Sparkles className="w-4 h-4" /> AI
           </button>
           <button
+            data-tour="create-recipe"
             onClick={() => setShowForm(true)}
             className="bg-accent text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
           >

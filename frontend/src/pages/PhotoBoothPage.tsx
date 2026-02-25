@@ -11,6 +11,7 @@ import CameraCapture from '../components/photobooth/CameraCapture';
 import ColorPicker from '../components/photobooth/ColorPicker';
 import { FRAMES } from '../lib/photobooth/frames';
 import { createPlacedSticker, type PlacedSticker } from '../lib/photobooth/stickers';
+import { useModuleTour } from '../lib/useModuleTour';
 
 type AppMode = 'landing' | 'camera' | 'gallery';
 type CameraStep = 0 | 1 | 2 | 3;
@@ -26,6 +27,11 @@ const GAL_EMOJIS  = ['🖼️', '📷', '🎨', '✨', '⬇️'];
 
 export default function PhotoBoothPage() {
   const [mode, setMode] = useState<AppMode>('landing');
+
+  useModuleTour('photobooth', [
+    { element: '[data-tour="camera-btn"]', popover: { title: '📸 Camera Mode', description: 'Chụp ảnh trực tiếp với đếm ngược, ghép strip ảnh đẹp cùng filter.', side: 'bottom' } },
+    { element: '[data-tour="gallery-btn"]', popover: { title: '🖼️ Gallery Mode', description: 'Chọn ảnh từ Moments, thêm frame, filter và sticker sáng tạo!', side: 'bottom' } },
+  ]);
 
   // Camera mode state
   const [cameraStep, setCameraStep] = useState<CameraStep>(0);
@@ -78,6 +84,7 @@ export default function PhotoBoothPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Camera Mode */}
           <motion.button
+            data-tour="camera-btn"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -96,6 +103,7 @@ export default function PhotoBoothPage() {
 
           {/* Gallery Mode */}
           <motion.button
+            data-tour="gallery-btn"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.08 }}

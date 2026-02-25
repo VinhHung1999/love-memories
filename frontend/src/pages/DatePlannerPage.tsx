@@ -5,6 +5,7 @@ import { CalendarHeart, Heart, Plus, Trash2, Check, MapPin, Calendar } from 'luc
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { dateWishesApi, datePlansApi, momentsApi, foodSpotsApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { DateWish, DatePlan } from '../types';
 import Modal from '../components/Modal';
 import LocationPicker from '../components/LocationPicker';
@@ -54,6 +55,11 @@ function formatDate(iso: string): string {
 
 export default function DatePlannerPage() {
   const [activeTab, setActiveTab] = useState<Tab>('wishes');
+
+  useModuleTour('date-planner', [
+    { element: '[data-tour="create-wish"]', popover: { title: '💕 Muốn đi', description: 'Thêm những nơi hai người muốn đến — quán ăn, du lịch, cafe...', side: 'bottom' } },
+    { element: '[data-tour="create-plan"]', popover: { title: '📅 Kế hoạch', description: 'Lên kế hoạch chi tiết cho những buổi hẹn hò sắp tới.', side: 'bottom' } },
+  ]);
   // Wishes state
   const [showForm, setShowForm] = useState(false);
   const [editWish, setEditWish] = useState<DateWish | null>(null);
@@ -116,6 +122,7 @@ export default function DatePlannerPage() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            data-tour={tab.id === 'wishes' ? 'create-wish' : 'create-plan'}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === tab.id
