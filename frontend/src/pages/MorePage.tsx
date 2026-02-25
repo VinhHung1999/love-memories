@@ -119,6 +119,16 @@ export default function MorePage() {
   }, []);
 
   const requestPermission = async (key: PermKey) => {
+    const status = permStates[key];
+    if (status === 'granted') {
+      toast('Vào Cài đặt trình duyệt để tắt quyền này', { icon: '⚙️' });
+      return;
+    }
+    if (status === 'denied') {
+      toast('Vào Cài đặt trình duyệt để bật quyền này', { icon: '⚙️' });
+      return;
+    }
+    // status === 'prompt' — trigger browser request
     switch (key) {
       case 'notifications':
         if ('Notification' in window) await Notification.requestPermission();
@@ -344,10 +354,14 @@ export default function MorePage() {
                     <p className="text-xs text-red-400 mt-0.5">Vào Cài đặt trình duyệt để bật lại</p>
                   )}
                 </div>
-                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                  status === 'granted' ? 'bg-green-400' :
-                  status === 'denied'  ? 'bg-red-400'   : 'bg-yellow-400'
-                }`} />
+                {/* Toggle switch */}
+                <div className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${
+                  status === 'granted' ? 'bg-green-400' : 'bg-gray-300'
+                }`}>
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    status === 'granted' ? 'translate-x-4' : 'translate-x-0'
+                  }`} />
+                </div>
               </button>
             );
           })}
