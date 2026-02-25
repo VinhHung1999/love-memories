@@ -22,6 +22,7 @@ import { dateWishRoutes } from './routes/dateWishes';
 import { datePlanRoutes } from './routes/datePlans';
 import { resolveLocationRoute } from './routes/resolveLocation';
 import { loveLetterRoutes } from './routes/loveLetters';
+import { recapRoutes } from './routes/recap';
 import { requireAuth } from './middleware/auth';
 import prisma from './utils/prisma';
 import { createNotification } from './utils/notifications';
@@ -60,6 +61,7 @@ app.use('/api/push', requireAuth, pushRoutes);
 app.use('/api/date-wishes', requireAuth, dateWishRoutes);
 app.use('/api/date-plans', requireAuth, datePlanRoutes);
 app.use('/api/love-letters', requireAuth, loveLetterRoutes);
+app.use('/api/recap', requireAuth, recapRoutes);
 
 if (require.main === module) {
   const server = app.listen(PORT, () => {
@@ -121,6 +123,21 @@ if (require.main === module) {
       console.log(`[cron] daily_plan_reminder sent to ${users.length} users`);
     } catch (err) {
       console.error('[cron] daily_plan_reminder error:', err);
+    }
+  }, { timezone: 'Asia/Ho_Chi_Minh' });
+
+  // 9 AM every Monday — weekly recap notification
+  cron.schedule('0 9 * * 1', async () => {
+    try {
+      const users = await prisma.user.findMany({ select: { id: true } });
+      await Promise.all(
+        users.map((u) =>
+          createNotification(u.id, 'weekly_recap', 'Recap tuần qua 📊', 'Xem tổng kết tuần của hai bạn!', '/weekly-recap'),
+        ),
+      );
+      console.log(`[cron] weekly_recap sent to ${users.length} users`);
+    } catch (err) {
+      console.error('[cron] weekly_recap error:', err);
     }
   }, { timezone: 'Asia/Ho_Chi_Minh' });
 }
