@@ -72,12 +72,11 @@ function EnvelopeView({ letter, onOpen }: { letter: LoveLetter; onOpen: () => vo
       className="flex flex-col items-center gap-5 cursor-pointer select-none"
       onClick={handleTap}
     >
-      {/* 3D envelope */}
-      <div style={{ perspective: '700px' }}>
-        <div
-          className="relative"
-          style={{ width: 280, height: 176, transformStyle: 'preserve-3d' }}
-        >
+      {/* Envelope */}
+      <div
+        className="relative"
+        style={{ width: 280, height: 176 }}
+      >
           {/* Body */}
           <div
             className="absolute inset-0 rounded-xl"
@@ -116,26 +115,19 @@ function EnvelopeView({ letter, onOpen }: { letter: LoveLetter; onOpen: () => vo
             </div>
           </div>
 
-          {/* Top flap — wrapper rotates in 3D; child holds clip-path in local space */}
+          {/* Top flap — animate clip-path directly (2D, reliable across all browsers) */}
           <motion.div
             className="absolute top-0 left-0 right-0 pointer-events-none"
             style={{
               height: '52%',
-              transformOrigin: 'top center',
-              backfaceVisibility: 'hidden',
+              background: 'linear-gradient(180deg, #fbeacb 0%, #fad9b0 100%)',
             }}
-            animate={flapOpen ? { rotateX: -175 } : { rotateX: 0 }}
-            transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <div
-              className="w-full h-full rounded-t-xl"
-              style={{
-                clipPath: 'polygon(0 0, 50% 100%, 100% 0)',
-                background: 'linear-gradient(180deg, #fbeacb 0%, #fad9b0 100%)',
-              }}
-            />
-          </motion.div>
-        </div>
+            animate={flapOpen
+              ? { clipPath: 'polygon(0 0, 50% -80%, 100% 0)' }
+              : { clipPath: 'polygon(0 0, 50% 100%, 100% 0)' }
+            }
+            transition={{ duration: 0.6, ease: 'easeInOut' }}
+          />
       </div>
 
       {/* Info below envelope */}
