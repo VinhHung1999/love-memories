@@ -1,168 +1,206 @@
-import { useState, useLayoutEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 import { useAppName } from '../lib/useAppName';
 
-type StepDef = {
-  navIndex: number | null;
-  title: string;
-  description: string;
-};
+// ── Gradient background keyframes ─────────────────────────────────────────────
 
-const STEPS: StepDef[] = [
+const KEYFRAMES = `
+  @keyframes ob-bg-shift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+`;
+
+// ── Slide definitions ──────────────────────────────────────────────────────────
+
+type Slide =
+  | { kind: 'welcome' }
+  | { kind: 'module'; emoji: string; title: string; subtitle: string; steps: string[] }
+  | { kind: 'done' };
+
+const SLIDES: Slide[] = [
+  { kind: 'welcome' },
   {
-    navIndex: null,
-    title: '__WELCOME__', // replaced with appName at render
-    description: 'Ứng dụng dành riêng cho hai bạn',
+    kind: 'module',
+    emoji: '📸',
+    title: 'Kỷ niệm',
+    subtitle: 'Lưu lại khoảnh khắc đáng nhớ',
+    steps: [
+      'Bấm + để tạo kỷ niệm mới',
+      'Thêm ảnh, ghi chú, voice memo',
+      'Gắn địa điểm và nhạc Spotify',
+      'Bình luận và react với nhau',
+    ],
   },
   {
-    navIndex: 1,
-    title: '📸 Kỷ niệm',
-    description: 'Lưu lại kỷ niệm đáng nhớ — ảnh, ghi chú, voice memo, địa điểm',
+    kind: 'module',
+    emoji: '🗺️',
+    title: 'Bản đồ',
+    subtitle: 'Bản đồ quán ăn & địa điểm',
+    steps: [
+      'Xem tất cả quán ăn trên bản đồ',
+      'Bấm pin để xem chi tiết',
+      'Lọc theo tag (cafe, ăn vặt, nhà hàng...)',
+    ],
   },
   {
-    navIndex: 2,
-    title: '🗺️ Bản đồ',
-    description: 'Xem quán ăn yêu thích và nơi đã đi trên bản đồ',
+    kind: 'module',
+    emoji: '🎯',
+    title: 'Mục tiêu',
+    subtitle: 'Theo dõi mục tiêu chung',
+    steps: [
+      'Tạo sprint với các mục tiêu',
+      'Kéo thả card giữa Todo → Doing → Done',
+      'Theo dõi tiến độ cùng nhau',
+    ],
   },
   {
-    navIndex: 3,
-    title: '🎯 Mục tiêu',
-    description: 'Theo dõi mục tiêu chung với scrum board',
+    kind: 'module',
+    emoji: '🍳',
+    title: 'Nấu ăn',
+    subtitle: 'Quyết định hôm nay ăn gì',
+    steps: [
+      'Chọn công thức và bắt đầu nấu',
+      'Timer theo dõi thời gian nấu',
+      'Quay random quán ăn gần đây',
+    ],
   },
   {
-    navIndex: 4,
-    title: '✨ Khám phá thêm',
-    description: 'Photo Booth, Recipes, Love Letters, Date Planner, Weekly Recap...',
+    kind: 'module',
+    emoji: '👨‍🍳',
+    title: 'Công thức',
+    subtitle: 'Tạo và lưu công thức nấu ăn',
+    steps: [
+      'Tự tạo hoặc dùng AI tạo từ text/YouTube/URL',
+      'Xem nguyên liệu và giá ước tính',
+      'Lưu tutorial YouTube kèm công thức',
+    ],
   },
+  {
+    kind: 'module',
+    emoji: '💌',
+    title: 'Thư tình',
+    subtitle: 'Gửi thư tình bất ngờ',
+    steps: [
+      'Viết thư với mood (romantic, playful...)',
+      'Hẹn giờ gửi hoặc gửi ngay',
+      'Đối phương nhận thông báo bất ngờ',
+    ],
+  },
+  {
+    kind: 'module',
+    emoji: '📅',
+    title: 'Hẹn hò',
+    subtitle: 'Lên kế hoạch hẹn hò',
+    steps: [
+      'Thêm wish list địa điểm muốn đi',
+      'Tạo plan với các điểm dừng',
+      'Chụp ảnh tại mỗi điểm dừng',
+    ],
+  },
+  { kind: 'done' },
 ];
+
+// ── Card components ────────────────────────────────────────────────────────────
+
+function WelcomeCard({ appName }: { appName: string }) {
+  return (
+    <div className="bg-white rounded-3xl p-8 mx-4 max-w-md shadow-xl text-center">
+      <div className="text-6xl mb-4">❤️</div>
+      <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">{appName}</h2>
+      <p className="text-sm text-text-light mb-6">Ứng dụng dành riêng cho hai bạn 💕</p>
+      <p className="text-xs text-text-light/70">Vuốt để xem hướng dẫn →</p>
+    </div>
+  );
+}
+
+function ModuleCard({ slide }: { slide: Extract<Slide, { kind: 'module' }> }) {
+  return (
+    <div className="bg-white rounded-3xl p-6 mx-4 max-w-md shadow-xl">
+      <div className="text-4xl mb-3">{slide.emoji}</div>
+      <h2 className="text-lg font-heading font-bold text-gray-900 mb-1">{slide.title}</h2>
+      <p className="text-sm text-text-light mb-4">{slide.subtitle}</p>
+      <div className="space-y-2.5">
+        {slide.steps.map((step, i) => (
+          <div key={i} className="flex items-start gap-2.5">
+            <span className="text-primary text-sm font-bold mt-0.5">•</span>
+            <p className="text-sm text-gray-700">{step}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DoneCard({ onComplete }: { onComplete: () => void }) {
+  return (
+    <div className="bg-white rounded-3xl p-8 mx-4 max-w-md shadow-xl text-center">
+      <div className="text-5xl mb-4">🚀</div>
+      <h2 className="text-xl font-heading font-bold text-gray-900 mb-2">Sẵn sàng rồi!</h2>
+      <p className="text-sm text-text-light mb-6">
+        Khám phá thêm Photo Booth, Achievements, Weekly Recap trong tab More
+      </p>
+      <button
+        onClick={onComplete}
+        className="bg-primary text-white px-8 py-3 rounded-2xl text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all shadow-lg"
+      >
+        Bắt đầu thôi! 🚀
+      </button>
+    </div>
+  );
+}
+
+// ── Main overlay ───────────────────────────────────────────────────────────────
 
 export default function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
   const appName = useAppName();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
-
-  const isMobile = window.innerWidth < 768;
-  const step = STEPS[currentStep]!;
-  const isLast = currentStep === STEPS.length - 1;
-
-  useLayoutEffect(() => {
-    if (step.navIndex === null || !isMobile) {
-      setSpotlightRect(null);
-      return;
-    }
-    const frame = requestAnimationFrame(() => {
-      const nav = document.querySelector('nav.md\\:hidden') as HTMLElement | null;
-      if (!nav) { setSpotlightRect(null); return; }
-      const links = nav.querySelectorAll('a');
-      const target = links[step.navIndex!] as HTMLElement | undefined;
-      if (!target) { setSpotlightRect(null); return; }
-      setSpotlightRect(target.getBoundingClientRect());
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [currentStep, isMobile, step.navIndex]);
-
-  const advance = () => {
-    if (isLast) {
-      onComplete();
-    } else {
-      setCurrentStep((s) => s + 1);
-    }
-  };
-
-  const title = currentStep === 0 ? `Chào mừng đến với ${appName}! 💕` : step.title;
-
-  // Position card above spotlight on mobile, centered otherwise.
-  // Use top (not bottom) — window.innerHeight is unreliable on iOS with URL bar / safe areas.
-  const cardStyle: React.CSSProperties = spotlightRect
-    ? {
-        position: 'fixed',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        top: Math.max(16, spotlightRect.top - 180),
-        width: 'calc(100vw - 3rem)',
-        maxWidth: '28rem',
-      }
-    : {
-        position: 'fixed',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 'calc(100vw - 3rem)',
-        maxWidth: '28rem',
-      };
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const isLast = currentIndex === SLIDES.length - 1;
 
   return (
     <div
-      className="fixed inset-0 z-[80]"
-      onMouseDown={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 z-[80] flex flex-col items-center justify-center"
+      style={{
+        background: 'linear-gradient(135deg, #f8e4ea, #fce8d5, #e8d5f4, #d5eaf4)',
+        backgroundSize: '300% 300%',
+        animation: 'ob-bg-shift 8s ease infinite',
+      }}
     >
-      {/* Dark overlay when no spotlight */}
-      {!spotlightRect && <div className="absolute inset-0 bg-black/60" />}
+      <style>{KEYFRAMES}</style>
 
-      {/* Spotlight hole via box-shadow */}
-      {spotlightRect && (
-        <div
-          style={{
-            position: 'absolute',
-            top: spotlightRect.top - 8,
-            left: spotlightRect.left - 8,
-            width: spotlightRect.width + 16,
-            height: spotlightRect.height + 16,
-            borderRadius: 12,
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)',
-            pointerEvents: 'none',
-          }}
-        />
+      {/* Skip button */}
+      {!isLast && (
+        <button
+          onClick={onComplete}
+          className="absolute top-4 right-4 text-sm text-gray-500 hover:text-gray-700 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full transition-colors"
+          style={{ zIndex: 10 }}
+        >
+          Bỏ qua
+        </button>
       )}
 
-      {/* Info card */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2 }}
-          style={cardStyle}
-          className="bg-white rounded-2xl p-5 shadow-xl"
+      {/* Swiper */}
+      <div className="w-full max-w-lg">
+        <Swiper
+          modules={[Pagination]}
+          pagination={{ clickable: true }}
+          onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+          className="onboarding-swiper pb-10"
+          style={{ paddingBottom: '2.5rem' }}
         >
-          <p className="text-base font-heading font-bold text-gray-900 mb-1">{title}</p>
-          <p className="text-sm text-text-light mb-4">{step.description}</p>
-
-          <div className="flex items-center justify-between">
-            {/* Step dots */}
-            <div className="flex gap-1.5">
-              {STEPS.map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    i === currentStep ? 'bg-primary' : 'bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* Buttons */}
-            <div className="flex items-center gap-3">
-              {!isLast && (
-                <button
-                  onClick={onComplete}
-                  className="text-xs text-text-light hover:text-gray-600 transition-colors"
-                >
-                  Bỏ qua
-                </button>
-              )}
-              <button
-                onClick={advance}
-                className="bg-primary text-white px-4 py-1.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-              >
-                {isLast ? 'Bắt đầu thôi! 🚀' : 'Tiếp →'}
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+          {SLIDES.map((slide, i) => (
+            <SwiperSlide key={i} className="flex items-center justify-center px-2">
+              {slide.kind === 'welcome' && <WelcomeCard appName={appName} />}
+              {slide.kind === 'module' && <ModuleCard slide={slide} />}
+              {slide.kind === 'done' && <DoneCard onComplete={onComplete} />}
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
     </div>
   );
 }
