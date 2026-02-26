@@ -64,6 +64,41 @@ input[type="date"]::-webkit-date-and-time-value {
 .hide-scrollbar { scrollbar-width: none; }
 
 
+/* Driver.js custom styling */
+.driver-popover {
+  border-radius: 16px !important;
+  padding: 20px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.driver-popover-title {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #E8788A !important;
+}
+.driver-popover-description {
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: #666 !important;
+}
+.driver-popover-prev-btn,
+.driver-popover-next-btn {
+  background: #E8788A !important;
+  border: none !important;
+  border-radius: 10px !important;
+  color: white !important;
+  padding: 6px 16px !important;
+  font-size: 13px !important;
+  text-shadow: none !important;
+}
+.driver-popover-close-btn {
+  color: #999 !important;
+}
+.driver-popover-progress-text {
+  font-size: 11px !important;
+  color: #aaa !important;
+}
+
 .mapboxgl-popup-content {
   border-radius: 12px !important;
   padding: 0 !important;
