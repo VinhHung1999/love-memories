@@ -26,6 +26,7 @@ import DatePlanDetailPage from './pages/DatePlanDetailPage';
 import LoveLettersPage from './pages/LoveLettersPage';
 import WeeklyRecapPage from './pages/WeeklyRecapPage';
 import MonthlyRecapPage from './pages/MonthlyRecapPage';
+import ExpensesPage from './pages/ExpensesPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
 async function registerPush() {
@@ -111,6 +112,7 @@ export default function App() {
         <Route path="/love-letters" element={<LoveLettersPage />} />
         <Route path="/weekly-recap" element={<WeeklyRecapPage />} />
         <Route path="/monthly-recap" element={<MonthlyRecapPage />} />
+        <Route path="/expenses" element={<ExpensesPage />} />
       </Routes>
     </Layout>
   );

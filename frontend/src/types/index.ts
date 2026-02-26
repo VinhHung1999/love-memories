@@ -323,6 +323,26 @@ export interface MonthlyRecap {
   achievementsUnlocked: string[];
 }
 
+export type ExpenseCategory = 'food' | 'dating' | 'shopping' | 'transport' | 'gifts' | 'other';
+
+export interface Expense {
+  id: string;
+  amount: number;
+  description: string;
+  category: ExpenseCategory;
+  date: string;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseStats {
+  total: number;
+  count: number;
+  month: string | null;
+  byCategory: Record<ExpenseCategory, { total: number; count: number }>;
+}
+
 export type LetterStatus = 'DRAFT' | 'SCHEDULED' | 'DELIVERED' | 'READ';
 
 export interface LoveLetter {

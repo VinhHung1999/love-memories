@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap, MonthlyRecap } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -273,6 +273,20 @@ export const loveLettersApi = {
     request<LoveLetter>(`/love-letters/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   send: (id: string) => request<LoveLetter>(`/love-letters/${id}/send`, { method: 'PUT' }),
   delete: (id: string) => request(`/love-letters/${id}`, { method: 'DELETE' }),
+};
+
+// Expenses
+export const expensesApi = {
+  list: (month?: string) =>
+    request<Expense[]>(`/expenses${month ? `?month=${month}` : ''}`),
+  stats: (month?: string) =>
+    request<ExpenseStats>(`/expenses/stats${month ? `?month=${month}` : ''}`),
+  get: (id: string) => request<Expense>(`/expenses/${id}`),
+  create: (data: { amount: number; description: string; category: string; date: string; note?: string }) =>
+    request<Expense>('/expenses', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<{ amount: number; description: string; category: string; date: string; note: string }>) =>
+    request<Expense>(`/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => request(`/expenses/${id}`, { method: 'DELETE' }),
 };
 
 export const recapApi = {
