@@ -94,6 +94,19 @@ export const toggleCookingStepSchema = z.object({
   checkedBy: z.string().optional(),
 });
 
+export const EXPENSE_CATEGORIES = ['food', 'dating', 'shopping', 'transport', 'gifts', 'other'] as const;
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+export const createExpenseSchema = z.object({
+  amount: z.number().positive(),
+  description: z.string().min(1).max(500),
+  category: z.enum(EXPENSE_CATEGORIES),
+  date: z.string().transform((s) => new Date(s)),
+  note: z.string().optional(),
+});
+
+export const updateExpenseSchema = createExpenseSchema.partial();
+
 export const reorderGoalsSchema = z.object({
   goals: z.array(z.object({
     id: z.string(),

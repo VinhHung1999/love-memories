@@ -32,6 +32,7 @@ afterAll(async () => {
   await prisma.recipePhoto.deleteMany();
   await prisma.recipe.deleteMany();
   await prisma.foodSpot.deleteMany();
+  await prisma.expense.deleteMany();
   await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
   await prisma.$disconnect();
 });
@@ -746,5 +747,87 @@ describe('Notifications', () => {
   it('GET /api/notifications returns 401 without auth', async () => {
     const res = await request(app).get('/api/notifications');
     expect(res.status).toBe(401);
+  });
+});
+
+// ─── Expenses ─────────────────────────────────────────────────────────────────
+describe('Expenses', () => {
+  let expenseId: string;
+  const testExpense = {
+    amount: 150000,
+    description: 'Bún bò Huế',
+    category: 'food',
+    date: '2026-02-15T12:00:00.000Z',
+    note: 'Ngon lắm',
+  };
+
+  it('GET /api/expenses returns 401 without auth', async () => {
+    const res = await request(app).get('/api/expenses');
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/expenses creates expense', async () => {
+    const res = await request(app).post('/api/expenses').set(auth()).send(testExpense);
+    expect(res.status).toBe(201);
+    expect(res.body.description).toBe('Bún bò Huế');
+    expect(res.body.category).toBe('food');
+    expect(res.body.amount).toBe(150000);
+    expenseId = res.body.id;
+  });
+
+  it('POST /api/expenses rejects invalid category', async () => {
+    const res = await request(app).post('/api/expenses').set(auth()).send({ ...testExpense, category: 'invalid' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/expenses rejects negative amount', async () => {
+    const res = await request(app).post('/api/expenses').set(auth()).send({ ...testExpense, amount: -100 });
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/expenses lists expenses', async () => {
+    const res = await request(app).get('/api/expenses').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+  });
+
+  it('GET /api/expenses?month=2026-02 filters by month', async () => {
+    const res = await request(app).get('/api/expenses?month=2026-02').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.every((e: any) => e.date.startsWith('2026-02'))).toBe(true);
+  });
+
+  it('GET /api/expenses/stats returns totals', async () => {
+    const res = await request(app).get('/api/expenses/stats?month=2026-02').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.total).toBeGreaterThan(0);
+    expect(res.body.byCategory).toBeDefined();
+    expect(res.body.byCategory.food).toBeDefined();
+    expect(res.body.byCategory.food.total).toBe(150000);
+  });
+
+  it('GET /api/expenses/:id fetches single expense', async () => {
+    const res = await request(app).get(`/api/expenses/${expenseId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(expenseId);
+  });
+
+  it('PUT /api/expenses/:id updates expense', async () => {
+    const res = await request(app).put(`/api/expenses/${expenseId}`).set(auth()).send({ amount: 200000, description: 'Phở bò' });
+    expect(res.status).toBe(200);
+    expect(res.body.amount).toBe(200000);
+    expect(res.body.description).toBe('Phở bò');
+  });
+
+  it('DELETE /api/expenses/:id deletes expense', async () => {
+    const res = await request(app).delete(`/api/expenses/${expenseId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Expense deleted');
+  });
+
+  it('GET /api/expenses/:id returns 404 after delete', async () => {
+    const res = await request(app).get(`/api/expenses/${expenseId}`).set(auth());
+    expect(res.status).toBe(404);
   });
 });
