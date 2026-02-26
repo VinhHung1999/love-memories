@@ -43,6 +43,12 @@ _(Record error response format, status code conventions)_
 - DELETE /:id/stops/:stopId/spots/:spotId — delete sub-spot
 - DELETE /:id — cascade deletes stops
 
+## xAI Integration Pattern (Sprint 26)
+
+- Import: `import OpenAI from 'openai'`; instantiate inline: `new OpenAI({ apiKey: process.env.XAI_API_KEY, baseURL: 'https://api.x.ai/v1' })`
+- Model: `grok-4-1-fast-non-reasoning`; always wrap in try/catch and return `null` (non-critical endpoints)
+- Non-critical AI endpoints: return `res.json({ caption: null })` on error — never 500
+
 ## Conventions
 
 _(Record naming conventions, versioning strategy, rate limiting)_

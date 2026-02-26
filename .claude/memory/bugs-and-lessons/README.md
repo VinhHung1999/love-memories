@@ -116,6 +116,25 @@ _(Add lessons from debugging, design mistakes, or surprising behaviors)_
 - Must check `daddr=` for both coordinate format (`10.805,106.697`) and text format (`Cơm Tấm Tài, 1 Nguyễn An Ninh...`). Skip daddr as place name when it's coords.
 - Key takeaway: when building URL parsers for external services, always trace real redirect chains with `curl -v -L` first — never assume URL format from docs alone.
 
+### AuthRequest is not generic — typed params pattern
+- `AuthRequest<IdParam>` causes TS2315. AuthRequest extends Request but does not accept a generic.
+- Fix: `AuthRequest & { params: IdParam }` for route handlers that need both auth + typed params.
+- Key takeaway: custom auth-extended request types lose the Request generic; intersect with `{ params: T }` instead.
+
+### 3D rotateX envelope flap disappears — use clip-path animation instead (Sprint 24)
+- backfaceVisibility:hidden + rotateX causes element to vanish at ~90deg — no visible "open" state
+- Fix: animate clip-path polygon points directly (sealed: `50% 100%` apex → opened: `50% -80%` apex). 2D, reliable, visually clear
+- Previous fix (parent rotates/child clip-path) still had the disappear problem — 2D clip-path animation is the only reliable approach
+
+### CSS clip-path breaks 3D rotateX animation (Sprint 24)
+- Cause: clip-path on the same element as rotateX is applied after 3D compositing → triangle stays 2D, rotation invisible
+- Fix: parent `motion.div` owns `rotateX` (no clip-path), child `div` holds `clip-path` in local space — child's visual rotates correctly in 3D with parent
+
+### Dev seed missing partner user — Love Letters broken (Sprint 24)
+- getPartner() needs 2 users in DB. Dev seed only created 1 → null → "No partner found" error.
+- Fix: always seed 2 users (dev@ + partner@) via upsert in seed.ts. Production works because it has real 2-user data.
+- Key takeaway: any feature requiring a "partner" lookup must have 2 users in dev seed from day one.
+
 ## Migration not applied to dev DB (2026-02-23 — URGENT bug)
 After every commit that contains new Prisma migrations, ALWAYS run:
 `DATABASE_URL="postgresql://hungphu@localhost:5432/love_scrum_dev" npx prisma migrate deploy`

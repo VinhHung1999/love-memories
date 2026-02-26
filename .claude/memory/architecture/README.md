@@ -98,13 +98,22 @@ Always respect this order when adding new overlay or panel components.
 - API: `GET/PUT /api/settings/:key` — upsert pattern, protected route
 - Frontend: `settingsApi` in `api.ts`; used by RelationshipTimer for cross-device sync
 
-## Z-Index Hierarchy (updated Sprint 9)
+## Z-Index Hierarchy (updated Sprint 26)
 
 - `z-50` — bottom nav (`Layout.tsx`)
 - `z-[54]` — FAB backdrop (closes speed dial)
 - `z-[55]` — FAB component (`FAB.tsx`)
 - `z-[60]` — modals (`Modal.tsx`)
-- `z-[70]` — full-screen gallery overlay (`PhotoGallery.tsx`)
+- `z-[70]` — full-screen overlays (`PhotoGallery.tsx`, `MonthlyRecapPage.tsx`)
+- `z-[71..73]` — internal layers within full-screen overlay (bg, content, controls)
+
+### Instagram Stories pattern (MonthlyRecapPage.tsx, Sprint 26)
+- `fixed inset-0 z-[70]` for the page root; bg z-[70], slide content z-[71], tap zones z-[72], progress+controls z-[73]
+- Progress bars: CSS `@keyframes progressFill` (width 0%→100%), restart by changing React key
+- Hold-to-pause: `setTimeout(200ms)` sets `isHoldRef.current = true` + `setIsPaused(true)`; pointerUp clears timer, resumes, and skips tap if hold
+- Tap zones: two flex buttons (w-[35%] / w-[65%]) spanning `top: 5rem` to `bottom: 5rem`
+- Auto-advance: `setTimeout(SLIDE_DURATION)` in useEffect, deps `[currentIdx, isPaused, slides.length]`
+- AnimatedNumber: `setInterval` count-up (30 steps × 50ms), `useEffect([value])` resets to 0 on each new slide
 
 ## Environment Separation (Sprint 6)
 

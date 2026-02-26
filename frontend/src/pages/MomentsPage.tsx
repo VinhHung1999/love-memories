@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { momentsApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import { uploadQueue } from '../lib/uploadQueue';
 import { useCheckAchievements } from '../lib/achievements';
 import type { Moment } from '../types';
@@ -21,6 +22,11 @@ export default function MomentsPage() {
   const [editingMoment, setEditingMoment] = useState<Moment | null>(null);
   const [filterTag, setFilterTag] = useState('');
   const [searchParams] = useSearchParams();
+
+  useModuleTour('moments', [
+    { element: '[data-tour="create-moment"]', popover: { title: '➕ Tạo kỷ niệm', description: 'Bấm vào đây để lưu lại khoảnh khắc mới — thêm ảnh, ghi chú, địa điểm.', side: 'left' } },
+    { element: '[data-tour="moment-card"]', popover: { title: '📸 Xem chi tiết', description: 'Bấm vào kỷ niệm để xem ảnh, nghe voice memo, bình luận và react.', side: 'bottom' } },
+  ]);
 
   useEffect(() => {
     if (searchParams.get('new') === '1') {
@@ -45,6 +51,7 @@ export default function MomentsPage() {
           <p className="text-text-light text-sm mt-1">Our special memories together</p>
         </div>
         <button
+          data-tour="create-moment"
           onClick={() => { setEditingMoment(null); setShowForm(true); }}
           className="bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-primary-dark transition-colors"
         >
@@ -88,7 +95,7 @@ export default function MomentsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((moment, i) => (
-            <MomentCard key={moment.id} moment={moment} index={i} />
+            <MomentCard key={moment.id} moment={moment} index={i} dataTour={i === 0 ? 'moment-card' : undefined} />
           ))}
         </div>
       )}
@@ -102,12 +109,13 @@ export default function MomentsPage() {
   );
 }
 
-function MomentCard({ moment, index }: { moment: Moment; index: number }) {
+function MomentCard({ moment, index, dataTour }: { moment: Moment; index: number; dataTour?: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
+      {...(dataTour ? { 'data-tour': dataTour } : {})}
     >
       <Link
         to={`/moments/${moment.id}`}

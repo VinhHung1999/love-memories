@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import { Heart, Utensils, Filter } from 'lucide-react';
 import { mapApi, tagsApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { MapPin } from '../types';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
@@ -123,6 +124,11 @@ export default function MapPage() {
   const [filter, setFilter] = useState<'all' | 'moment' | 'foodspot'>('all');
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [pickerTag, setPickerTag] = useState<string | null>(null);
+
+  useModuleTour('map', [
+    { popover: { title: '🗺️ Bản đồ', description: 'Xem tất cả quán ăn yêu thích trên bản đồ. Mỗi pin là một quán đã lưu.' } },
+    { element: '[data-tour="map-filter"]', popover: { title: '🏷️ Lọc theo tag', description: 'Bấm vào tag để lọc quán theo loại: cafe, ăn vặt, nhà hàng...', side: 'bottom' } },
+  ]);
 
   const { data: pins = [] } = useQuery({
     queryKey: ['map-pins'],
@@ -280,7 +286,7 @@ export default function MapPage() {
   return (
     <div className="h-[calc(100vh-6rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] md:h-[calc(100vh-3rem)] relative">
       {/* Filter Controls */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 max-w-[calc(100%-2rem)]">
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 max-w-[calc(100%-2rem)]" data-tour="map-filter">
         {/* Type filter */}
         <div className="flex gap-2 bg-white rounded-xl shadow-lg p-1.5">
           <button

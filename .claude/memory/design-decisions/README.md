@@ -30,6 +30,20 @@ _(Record font choices, sizing scale, readability decisions)_
 - On mobile the gallery slides over everything at `z-[70]`; background content is visually hidden but not unmounted.
 - Swipe-to-navigate and pinch-to-zoom are implemented with native touch events rather than a third-party carousel library to minimise bundle size.
 
+## Dashboard Recap Pin Card (Sprint 26)
+
+- Monthly recap card uses vibrant gradient (pink→rose→orange) with floating emoji hearts and a `.shimmer-overlay` CSS sweep
+- Floating hearts: 4 `motion.span` elements with absolute positioning inside `relative overflow-hidden` Link, staggered `animate={{ y, opacity, scale }}` infinite loops
+- `.shimmer-overlay` in `index.css`: `position: absolute; inset: 0; background: linear-gradient(105deg, transparent, rgba(255,255,255,0.28), transparent); animation: shimmer 2.4s infinite`
+- Weekly recap pin removed — only monthly shown (days 1–3 of month)
+
+## Monthly Recap Stories Design (Sprint 26)
+
+- Each data category gets its own slide with a distinct gradient palette (purple=moments, orange=cooking, green=food, pink=letters, cyan=dates, yellow=goals)
+- Intro and Outro always shown; data slides skipped if count is 0
+- Count-up numbers (`AnimatedNumber`) are the hero element — `text-8xl font-heading font-bold text-white`
+- Hold-to-pause mirrors Instagram behavior: visual feedback is progress bar freezing in place
+
 ## Mapbox GeolocateControl (Sprint 4)
 
 - Added Mapbox's built-in `GeolocateControl` to `MapPage` for current-location centering.

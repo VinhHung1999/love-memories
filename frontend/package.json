@@ -16,6 +16,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "^1.9.4",
     "date-fns": "^4.1.0",
+    "driver.js": "^1.4.0",
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.474.0",
     "mapbox-gl": "^3.9.4",

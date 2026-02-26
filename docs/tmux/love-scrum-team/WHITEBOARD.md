@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 24
-**Goal:** Recipe from URL + Love Letters
+**Sprint:** 26
+**Goal:** Weekly Recap + Onboarding Tutorial
 
 ---
 
@@ -9,160 +9,149 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | SPRINT COMPLETE | Sprint 24 — 10/10 tasks approved ✅ | 2026-02-25 |
-| DEV  | IDLE | Awaiting Sprint 25 | 2026-02-25 |
+| PO   | REVIEWING | Task 7 approved ✅ — awaiting Boss | 2026-02-26 |
+| DEV  | IDLE | Task 7 complete + approved | 2026-02-26 |
 
 ---
 
-## Sprint 24 Spec
+## Sprint 26 Spec
 
-### Task 1: Recipe from URL (extend existing AI recipe)
+### Task 1: Weekly Recap — Backend API
 
-**What:** Add "URL" mode to AI recipe generation. User pastes a recipe webpage URL → app fetches content → AI extracts structured recipe.
+**What:** New backend endpoint that aggregates weekly activity data + cron job to send recap notification every Monday.
 
-**Acceptance Criteria:**
-- [ ] New "URL" tab in AIRecipeModal (alongside Text + YouTube)
-- [ ] Backend fetches HTML from URL, extracts text content (use cheerio)
-- [ ] Extracted text sent to Grok for recipe JSON extraction
-- [ ] Source URL saved as `tutorialUrl` on the recipe
-- [ ] Works with Vietnamese recipe sites (e.g. bachhoaxanh.com, cooky.vn)
-- [ ] Error handling: invalid URL, non-HTML, empty content, timeout (15s)
-
-**Backend changes (`backend/src/routes/ai.ts`):**
-- Install `cheerio`: `cd backend && npm install cheerio`
-- Update Zod schema: `mode: z.enum(['text', 'youtube', 'url'])`
-- Add `fetchUrlContent(url)` function:
-  - Fetch with `Accept-Language: vi`, 15s timeout
-  - cheerio: strip scripts/nav/ads, try recipe selectors (`[itemtype*="Recipe"]`, `article`, `main`)
-  - Truncate to 8000 chars
-- Add `else if (mode === 'url')` branch (same pattern as youtube branch)
-
-**Frontend changes (`frontend/src/pages/RecipesPage.tsx`):**
-- Add `Globe` icon import from lucide-react
-- Add URL tab button (use blue color `bg-blue-500`)
-- Add URL input: `<input type="url" placeholder="https://www.bachhoaxanh.com/...">`
-- Update loading text: "Đang đọc trang web và tạo công thức..."
-- Update `frontend/src/lib/api.ts`: mode type `'text' | 'youtube' | 'url'`
-
----
-
-### Task 2: Love Letters
-
-**What:** New module for sending surprise love letters to partner, with optional scheduled delivery.
-
-**Acceptance Criteria:**
-- [ ] Prisma model `LoveLetter` with status workflow (DRAFT → SCHEDULED → DELIVERED → READ)
-- [ ] 8 backend endpoints (see below)
-- [ ] Cron job delivers scheduled letters every minute
-- [ ] Frontend page with Inbox/Sent tabs
-- [ ] Compose modal with mood picker + schedule option
-- [ ] Immersive read experience (full-screen overlay)
-- [ ] Push notification on delivery
-- [ ] Recipients cannot see DRAFT/SCHEDULED letters (surprise!)
-- [ ] Accessible from MorePage
-
-**Database (`backend/prisma/schema.prisma`):**
-```prisma
-enum LetterStatus { DRAFT  SCHEDULED  DELIVERED  READ }
-
-model LoveLetter {
-  id            String       @id @default(uuid())
-  senderId      String
-  recipientId   String
-  title         String
-  content       String
-  mood          String?
-  status        LetterStatus @default(DRAFT)
-  scheduledAt   DateTime?
-  deliveredAt   DateTime?
-  readAt        DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  sender        User         @relation("SentLetters", fields: [senderId], references: [id])
-  recipient     User         @relation("ReceivedLetters", fields: [recipientId], references: [id])
-  @@map("love_letters")
-}
-```
-+ Add `sentLetters`/`receivedLetters` to User model
-
-**Backend endpoints (`backend/src/routes/loveLetters.ts`):**
+**Backend endpoint (`backend/src/routes/recap.ts` — NEW file):**
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | /received | Inbox (DELIVERED + READ) |
-| GET | /sent | Sent letters (all statuses) |
-| GET | /unread-count | Count DELIVERED letters |
-| GET | /:id | Get letter (auto-mark READ if recipient) |
-| POST | / | Create (DRAFT/SCHEDULED/immediate DELIVERED) |
-| PUT | /:id | Edit DRAFT/SCHEDULED only |
-| PUT | /:id/send | Send DRAFT immediately |
-| DELETE | /:id | Delete DRAFT/SCHEDULED only |
+| GET | /api/recap/weekly?week=2026-W09 | Get weekly recap data (defaults to last week) |
 
-**Cron (`backend/src/index.ts`):** Every minute, deliver SCHEDULED letters where `scheduledAt <= now`.
+**Response shape:**
+```json
+{
+  "week": "2026-W09",
+  "startDate": "2026-02-23",
+  "endDate": "2026-03-01",
+  "moments": { "count": 5, "photoCount": 12, "highlights": [{ "id", "title", "date", "photoUrl" }] },
+  "cooking": { "count": 3, "totalTimeMs": 7200000, "recipes": ["Phở bò", "Cơm tấm"] },
+  "foodSpots": { "count": 2, "names": ["Bánh mì Huỳnh Hoa"] },
+  "datePlans": { "count": 1, "titles": ["Cafe date"] },
+  "loveLetters": { "sent": 2, "received": 1 },
+  "goalsCompleted": 4,
+  "achievementsUnlocked": ["First Recipe", "Cooking Streak"]
+}
+```
 
-**Frontend (`frontend/src/pages/LoveLettersPage.tsx`):**
-- Tabs: "Hộp thư" (Inbox) | "Thư đã gửi" (Sent)
-- LetterCard: envelope metaphor, mood icon, unread dot
-- ComposeLetterModal: title, content textarea, mood picker (6 moods), schedule toggle + datetime-local
-- ReadLetterModal: full-screen overlay, warm gradient bg, paper card, framer-motion entrance
-- Moods: romantic/grateful/playful/encouragement/apology/missing
+**Implementation:**
+- Parse `week` param (ISO week format `YYYY-Www`) → compute startDate (Monday) + endDate (Sunday)
+- Query each table with `createdAt/date BETWEEN startDate AND endDate`:
+  - `prisma.moment.findMany({ where: { date: { gte, lte } } })` — count + first 3 with photos as highlights
+  - `prisma.cookingSession.findMany({ where: { completedAt: { gte, lte }, status: 'completed' } })` — count + total time + recipe names
+  - `prisma.foodSpot.findMany({ where: { createdAt: { gte, lte } } })` — count + names
+  - `prisma.datePlan.findMany({ where: { date: { gte, lte } } })` — count + titles
+  - `prisma.loveLetter.findMany({ where: { deliveredAt: { gte, lte }, status: { in: ['DELIVERED','READ'] } } })` — sent/received counts
+  - `prisma.goal.findMany({ where: { status: 'DONE', updatedAt: { gte, lte } } })` — count
+  - `prisma.achievement.findMany({ where: { unlockedAt: { gte, lte } } })` — names
+- Return aggregated JSON
 
-**Other frontend files:**
-- `types/index.ts`: Add LoveLetter + LetterStatus types
-- `lib/api.ts`: Add loveLettersApi
-- `App.tsx`: Add `/love-letters` route
-- `MorePage.tsx`: Add module with Mail icon
-- `NotificationsPage.tsx`: Add `love_letter` icon
+**Cron job (`backend/src/index.ts`):**
+- Schedule: `0 9 * * 1` (9 AM every Monday, Asia/Ho_Chi_Minh)
+- Create notification for all users: type `weekly_recap`, title `Recap tuần qua 📊`, link `/weekly-recap`
 
----
-
-### Task 3: AI Price Search + 2-Person Portions
-
-**What:** Enhance AI recipe generation with real ingredient price lookup (prioritize Bach Hoa Xanh) and auto-adjust portions for 2 people.
-
-**Acceptance Criteria:**
-- [ ] AI uses real prices from Bach Hoa Xanh search (not guessed prices)
-- [ ] Fallback: if BHX has no result, AI estimates price as before
-- [ ] System prompt updated: adjust all ingredient quantities for 2-person portions
-- [ ] Price lookup works for all 3 modes (text, youtube, url)
-
-**Implementation approach — Price search tool for Grok:**
-
-Use Grok's function/tool calling via OpenAI SDK. Give Grok a `search_ingredient_price` tool:
-
-1. When generating a recipe, Grok calls the tool for each ingredient
-2. Tool handler fetches `https://www.bachhoaxanh.com/tim-kiem?q={ingredient}` (BHX uses Next.js SSR so search HTML should contain product data)
-3. Use cheerio to extract product name + price from the search results HTML
-4. Return top 1-3 results with name + price to Grok
-5. Grok uses real prices in the JSON output
-
-**If BHX SSR doesn't contain product data in HTML:**
-- Fallback: use Google search `{ingredient} giá site:bachhoaxanh.com` via web fetch
-- Or try Shopee API: `https://shopee.vn/api/v4/search/search_items?keyword={ingredient}&limit=5` (unauthenticated, needs browser User-Agent + Referer headers)
-
-**System prompt changes (`backend/src/routes/ai.ts`):**
-- Add rule: "Điều chỉnh khẩu phần cho 2 người ăn (couple). Nếu công thức gốc cho nhiều người hơn, giảm nguyên liệu tương ứng."
-- Add rule: "Sử dụng giá thực tế từ tool search_ingredient_price khi có. Chỉ ước tính khi tool không trả về kết quả."
-
-**Files to change:**
-- `backend/src/routes/ai.ts` — Add tool definition, tool handler, update system prompt
+**Register:** `app.use('/api/recap', requireAuth, recapRoutes)`
 
 ---
 
-## Sprint Backlog
+### Task 2: Weekly Recap — Frontend Page
+
+**What:** New page showing weekly stats with visual cards and highlights.
+
+**New file: `frontend/src/pages/WeeklyRecapPage.tsx`**
+
+**Layout:**
+- Header: "Tuần của chúng mình 📊" + week navigation (← tuần trước / tuần sau →)
+- Stats grid (2 columns): Each stat is a card with icon + number + label
+  - 📸 Moments: count + photo count
+  - 🍳 Cooking: count + total time (formatted)
+  - 🍜 Food Spots: count
+  - 💌 Love Letters: sent + received
+  - 📅 Date Plans: count
+  - 🎯 Goals: completed count
+- Highlights section: Carousel of top moments with photos (reuse Swiper)
+- Achievements section: List of newly unlocked achievements
+- Empty state: "Tuần này chưa có hoạt động nào. Hãy tạo kỷ niệm mới! 💕"
+
+**Other frontend changes:**
+- `frontend/src/types/index.ts`: Add `WeeklyRecap` type
+- `frontend/src/lib/api.ts`: Add `recapApi.weekly(week?: string)`
+- `frontend/src/App.tsx`: Add route `/weekly-recap`
+- `frontend/src/pages/NotificationsPage.tsx`: Add `weekly_recap` icon
+
+---
+
+### Task 3: Onboarding Tutorial — Frontend
+
+**What:** Interactive step-by-step tutorial for new users. Shows on first login, can be replayed from More page.
+
+**Approach:** Overlay-based spotlight tutorial (NOT separate pages). Use framer-motion for transitions.
+
+**New file: `frontend/src/components/OnboardingOverlay.tsx`**
+
+**Steps (5 total):**
+1. **Welcome** — Full-screen welcome card: "Chào mừng đến với {appName}! 💕" + "Ứng dụng dành riêng cho hai bạn" + Bắt đầu button
+2. **Moments** — Spotlight on Moments nav item: "Lưu lại kỷ niệm đáng nhớ — ảnh, ghi chú, địa điểm"
+3. **Map** — Spotlight on Map nav item: "Bản đồ quán ăn yêu thích và nơi đã đi"
+4. **Goals** — Spotlight on Goals nav item: "Theo dõi mục tiêu chung với scrum board"
+5. **More** — Spotlight on More nav item: "Khám phá thêm: Photo Booth, Recipes, Love Letters, Date Planner..." + "Bắt đầu thôi! 🚀" button
+
+**Spotlight mechanics:**
+- Dark overlay (bg-black/60) with a "hole" around the target element
+- Use `element.getBoundingClientRect()` to position the hole
+- Info card below/above the spotlight with text + Next/Skip buttons
+- Step indicators (dots) at bottom
+- Skip button on all steps
+
+**Trigger logic (in `App.tsx` or `Layout.tsx`):**
+- On login, check `settingsApi.get('onboarding_completed__{userId}')`
+- If not found → show OnboardingOverlay
+- On complete/skip → `settingsApi.set('onboarding_completed__{userId}', 'true')`
+- "Xem lại hướng dẫn" button in MorePage (Tùy chỉnh section) to replay
+
+**Other changes:**
+- `frontend/src/pages/MorePage.tsx`: Add "Xem lại hướng dẫn" button in Tùy chỉnh section
+
+---
+
+## Sprint 26 Backlog
 
 | # | Task | Priority | Status | Assignee |
 |---|------|----------|--------|----------|
-| 1 | Recipe from URL | P0 | DONE - PO Approved ✅ | DEV |
-| 2 | Love Letters | P0 | DONE - PO Approved ✅ | DEV |
-| 3 | Static price file (PO curated) + 2-person portions | P0 | DONE ✅ | PO+DEV |
-| 4 | Bug fix: Love Letters migration on dev DB | P0 | DONE ✅ | DEV |
-| 5 | Bug fix: Dev seed needs 2nd user for Love Letters | P0 | DONE - PO Verified ✅ | DEV |
-| 6 | Love Letter auto-popup on Dashboard + swipe | P0 | DONE - PO Approved ✅ | DEV |
-| 7 | Love Letter popup: fix centering + WOW effects | P1 | DONE - PO Approved ✅ | DEV |
-| 8 | Shared LetterReadOverlay + envelope open animation | P0 | DONE - PO Approved ✅ | DEV |
-| 9 | Fix: seal z-index + flap 3D clip-path + login letter popup | P0 | DONE - PO Approved ✅ | DEV |
-| 10 | Fix: envelope flap visible open via clip-path animation | P0 | DONE - PO Approved ✅ | DEV |
+| 1 | Weekly Recap — Backend API + Cron | P0 | DONE - PO Approved ✅ | DEV |
+| 2 | Weekly Recap — Frontend Page | P0 | DONE - PO Approved ✅ | DEV |
+| 3 | Onboarding Tutorial — Swiper (replaced by Task 4) | P0 | REPLACED | DEV |
+| 4 | Per-Module Driver.js Tours | P0 | DONE - PO Approved ✅ | DEV |
+| 5 | Missing tours (FoodSpots, Achievements, What to Eat) + button text fix | P0 | DONE - PO Approved ✅ | DEV |
+| 6 | Fake seed data + Monthly Recap + Dashboard recap pins + MorePage entries | P0 | DONE - PO Approved ✅ | DEV |
+| 7 | Monthly Recap Stories UI + Dashboard eye-catching card | P0 | DONE - PO Approved ✅ | DEV |
+
+---
+
+## Upcoming Sprints
+
+**Sprint 27 — Budget Tracker Core**
+| # | Task | Notes |
+|---|------|-------|
+| 1 | DB model Expense + CRUD API + Zod validation | Backend |
+| 2 | Frontend page: danh sách chi tiêu, form thêm/sửa, filter | Frontend |
+| 3 | Categories: 🍜 Ăn uống, 💑 Hẹn hò, 🛍️ Mua sắm, 🚗 Di chuyển, 🎁 Quà tặng, 📦 Khác | Icon + màu riêng |
+| 4 | Dashboard stats (tổng tháng) + biểu đồ danh mục + MorePage entry | Frontend |
+
+**Sprint 28 — Budget Tracker Advanced**
+| # | Task | Notes |
+|---|------|-------|
+| 1 | Shared expenses: ai trả (mình/người yêu/chia đôi), balance ai nợ ai | Backend + Frontend |
+| 2 | Budget limit: set ngân sách tháng, cảnh báo khi sắp vượt | Backend + Frontend |
+| 3 | Integration: link chi tiêu với FoodSpots + Date Plans | Backend + Frontend |
 
 ---
 
@@ -173,8 +162,6 @@ Use Grok's function/tool calling via OpenAI SDK. Give Grok a `search_ingredient_
 | 1 | What to Eat — Rating & Stats | Rate experience, cooking stats over time |
 | 2 | Photo Booth — Fun Effects | Stickers, filters, AR effects |
 | 3 | Mood Check-in | Check-in tâm trạng hàng ngày, xem trend theo tuần/tháng |
-| 4 | Weekly Recap | Auto-generated summary cuối tuần: moments, cooking, achievements |
-| 5 | Onboarding Tutorial | Hướng dẫn sử dụng app cho user mới, walkthrough các tính năng |
 
 ---
 
@@ -198,6 +185,8 @@ _Sprint 21 — Date Planner (Wishlist + Itinerary + Gallery): APPROVED & DEPLOYE
 _Sprint 22 — Date Planner Notifications + Address Search Fix: APPROVED & DEPLOYED (2026-02-23)_
 _Sprint 23 — Plan Edit UX + Animation Fixes + Photo Upload: COMMITTED TO MAIN (2026-02-24)_
 _Sprint 24 — Recipe from URL + Love Letters + Shared LetterReadOverlay + Envelope Animation + Bug Fixes: ALL 10 TASKS APPROVED (2026-02-25)_
+_Sprint 25 — App Permissions Manager + Toggle Switches: DEPLOYED (2026-02-25)_
+_Sprint 26 — Weekly Recap + Onboarding Tutorial: IN PROGRESS (2026-02-26)_
 
 ---
 
