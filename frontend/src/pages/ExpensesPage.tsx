@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, Tooltip as ChartTooltip,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as ChartTooltip,
 } from 'recharts';
 import Modal from '../components/Modal';
 import AddExpenseModal from '../components/AddExpenseModal';
@@ -267,6 +267,30 @@ export default function ExpensesPage() {
             })}
           </div>
         )}
+        {/* Over-limit warnings */}
+        {(() => {
+          const overLimit = CATEGORIES.filter((c) => {
+            const spent = stats?.byCategory[c.key]?.total ?? 0;
+            const limit = limits[c.key];
+            return limit != null && spent > limit;
+          });
+          if (overLimit.length === 0) return null;
+          return (
+            <div className="mt-3 pt-3 border-t border-white/20 space-y-1">
+              {overLimit.map((c) => {
+                const spent = stats?.byCategory[c.key]?.total ?? 0;
+                const limit = limits[c.key]!;
+                const over = spent - limit;
+                return (
+                  <div key={c.key} className="flex items-center justify-between text-xs text-red-200">
+                    <span>⚠️ {c.emoji} {c.label}: {formatVND(spent)}/{formatVND(limit)}</span>
+                    <span className="font-semibold">+{formatVND(over)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Daily bar chart */}
@@ -286,14 +310,25 @@ export default function ExpensesPage() {
               </button>
             )}
           </div>
-          <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={chartData} onClick={handleBarClick} barSize={6} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={chartData} onClick={handleBarClick} barSize={6} margin={{ top: 2, right: 0, left: 36, bottom: 0 }}>
               <XAxis
                 dataKey="day"
                 tick={{ fontSize: 9, fill: '#9CA3AF' }}
                 tickLine={false}
                 axisLine={false}
                 interval={4}
+              />
+              <YAxis
+                tick={{ fontSize: 9, fill: '#9CA3AF' }}
+                tickLine={false}
+                axisLine={false}
+                width={36}
+                tickFormatter={(v: number) => {
+                  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}tr`;
+                  if (v >= 1_000) return `${Math.round(v / 1_000)}k`;
+                  return String(v);
+                }}
               />
               <ChartTooltip
                 cursor={{ fill: 'rgba(0,0,0,0.04)' }}
