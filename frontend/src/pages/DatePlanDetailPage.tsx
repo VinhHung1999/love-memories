@@ -333,7 +333,7 @@ export default function DatePlanDetailPage() {
                         onBlur={() => saveCost(stop.id, stop.cost)}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                         className="w-28 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40"
-                        style={{ fontSize: '14px' }}
+                        style={{ fontSize: '16px' }}
                       />
                       <span className="text-xs text-text-light">₫</span>
                       {stop.cost != null && (
@@ -421,7 +421,7 @@ export default function DatePlanDetailPage() {
                             onBlur={() => saveCost(stop.id, stop.cost)}
                             onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                             className="w-28 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40"
-                            style={{ fontSize: '14px' }}
+                            style={{ fontSize: '16px' }}
                           />
                           <span className="text-xs text-text-light">₫</span>
                           {stop.cost != null && (
