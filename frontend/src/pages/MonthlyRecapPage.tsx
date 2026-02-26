@@ -48,35 +48,41 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{display}</>;
 }
 
-// ── PhotoGrid ──────────────────────────────────────────────────────────────
-// 3×3 grid of photos, rotated and scaled as a background decoration
+// ── PhotoStrip ─────────────────────────────────────────────────────────────
+// Two rows of photos auto-scrolling in opposite directions (infinite loop)
 
-function PhotoGrid({ photos }: { photos: string[] }) {
+function PhotoStrip({ photos }: { photos: string[] }) {
   if (photos.length === 0) return null;
 
-  // Fill up to 9 cells by repeating photos
-  const cells: string[] = [];
-  while (cells.length < 9) cells.push(...photos);
-  const grid = cells.slice(0, 9);
+  // Triple-duplicate for seamless infinite loop
+  const strip = [...photos, ...photos, ...photos];
+  const loopWidth = photos.length * 140; // 128px img + 8px gap ≈ 140px per cell
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        className="absolute inset-[-20%] grid grid-cols-3 gap-1.5 opacity-40"
-        style={{ transform: 'rotate(-8deg) scale(1.2)' }}
+      {/* Row 1 — scrolls left */}
+      <motion.div
+        className="flex gap-2 absolute"
+        style={{ top: '15%', width: 'max-content' }}
+        animate={{ x: [0, -loopWidth] }}
+        transition={{ duration: photos.length * 4, repeat: Infinity, ease: 'linear' }}
       >
-        {grid.map((url, i) => (
-          <motion.img
-            key={`${url}-${i}`}
-            src={url}
-            alt=""
-            className="w-full aspect-square object-cover rounded-lg"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.08, duration: 0.4 }}
-          />
+        {strip.map((url, i) => (
+          <img key={i} src={url} alt="" className="w-32 h-32 object-cover rounded-xl opacity-45 flex-shrink-0" />
         ))}
-      </div>
+      </motion.div>
+
+      {/* Row 2 — scrolls right */}
+      <motion.div
+        className="flex gap-2 absolute"
+        style={{ top: '55%', width: 'max-content' }}
+        animate={{ x: [-loopWidth, 0] }}
+        transition={{ duration: photos.length * 5, repeat: Infinity, ease: 'linear' }}
+      >
+        {strip.map((url, i) => (
+          <img key={i} src={url} alt="" className="w-28 h-28 object-cover rounded-xl opacity-35 flex-shrink-0" />
+        ))}
+      </motion.div>
     </div>
   );
 }
@@ -125,7 +131,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
       bg: 'linear-gradient(160deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)',
       node: (
         <div className="relative flex-1 min-h-0">
-          <PhotoGrid photos={momentPhotos} />
+          <PhotoStrip photos={momentPhotos} />
           {momentPhotos.length > 0 && (
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
           )}
@@ -153,7 +159,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
     bg: 'linear-gradient(160deg, #fb923c 0%, #f97316 50%, #ea580c 100%)',
     node: (
       <div className="relative flex-1 min-h-0">
-        <PhotoGrid photos={recap.cooking.photos} />
+        <PhotoStrip photos={recap.cooking.photos} />
         {recap.cooking.photos.length > 0 && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
         )}
@@ -180,7 +186,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
     bg: 'linear-gradient(160deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
     node: (
       <div className="relative flex-1 min-h-0">
-        <PhotoGrid photos={recap.foodSpots.photos} />
+        <PhotoStrip photos={recap.foodSpots.photos} />
         {recap.foodSpots.photos.length > 0 && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
         )}
