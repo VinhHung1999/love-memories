@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { foodSpotsApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import { useCheckAchievements } from '../lib/achievements';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { FoodSpot } from '../types';
 import Modal from '../components/Modal';
 import PhotoUpload from '../components/PhotoUpload';
@@ -21,6 +22,11 @@ export default function FoodSpotsPage() {
   const [showForm, setShowForm] = useState(false);
   const [filterTag, setFilterTag] = useState('');
   const [searchParams] = useSearchParams();
+
+  useModuleTour('foodspots', [
+    { element: '[data-tour="add-foodspot"]', popover: { title: '➕ Thêm quán', description: 'Lưu quán ăn yêu thích — thêm ảnh, địa chỉ, tag và ghi chú.', side: 'left' } },
+    { element: '[data-tour="foodspot-card"]', popover: { title: '🍜 Xem chi tiết', description: 'Bấm vào quán để xem ảnh, vị trí trên bản đồ và ghi chú.', side: 'bottom' } },
+  ]);
 
   useEffect(() => {
     if (searchParams.get('new') === '1') setShowForm(true);
@@ -42,6 +48,7 @@ export default function FoodSpotsPage() {
           <p className="text-text-light text-sm mt-1">Our favorite places to eat</p>
         </div>
         <button
+          data-tour="add-foodspot"
           onClick={() => setShowForm(true)}
           className="bg-secondary text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
@@ -84,9 +91,15 @@ export default function FoodSpotsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((spot, i) => (
-            <FoodSpotCard key={spot.id} spot={spot} index={i} />
-          ))}
+          {filtered.map((spot, i) =>
+            i === 0 ? (
+              <div key={spot.id} data-tour="foodspot-card">
+                <FoodSpotCard spot={spot} index={i} />
+              </div>
+            ) : (
+              <FoodSpotCard key={spot.id} spot={spot} index={i} />
+            )
+          )}
         </div>
       )}
 

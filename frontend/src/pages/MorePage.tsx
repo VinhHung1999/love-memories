@@ -7,7 +7,6 @@ import { useAuth } from '../lib/auth';
 import { settingsApi, profileApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import Modal from '../components/Modal';
-import OnboardingOverlay from '../components/OnboardingOverlay';
 
 // ── App Permissions ──────────────────────────────────────────────────────────
 
@@ -106,7 +105,13 @@ export default function MorePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const TOUR_KEYS = ['dashboard', 'moments', 'map', 'goals', 'recipes', 'love-letters', 'date-planner', 'photobooth', 'weekly-recap', 'foodspots', 'achievements', 'what-to-eat'];
+  const handleReplayTours = async () => {
+    if (!user?.id) return;
+    await Promise.all(TOUR_KEYS.map((k) => settingsApi.set(`tour_done__${k}__${user.id}`, '')));
+    window.location.reload();
+  };
 
   // Permissions
   const [permStates, setPermStates] = useState<PermStates>({
@@ -330,7 +335,7 @@ export default function MorePage() {
           </button>
           <button
             type="button"
-            onClick={() => setShowOnboarding(true)}
+            onClick={handleReplayTours}
             className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             Xem lại hướng dẫn
@@ -416,7 +421,6 @@ export default function MorePage() {
         </div>
       </Modal>
 
-      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Trophy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { achievementsApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { Achievement } from '../types';
 
 const CATEGORY_ORDER = ['moments', 'cooking', 'recipes', 'foodspots', 'goals', 'time'] as const;
@@ -19,9 +20,10 @@ const CATEGORY_META: Record<string, { label: string; icon: string }> = {
 
 // ── Standard achievement card ──────────────────────────────────────────────────
 
-function AchievementCard({ achievement }: { achievement: Achievement }) {
+function AchievementCard({ achievement, dataTour }: { achievement: Achievement; dataTour?: string }) {
   return (
     <div
+      {...(dataTour ? { 'data-tour': dataTour } : {})}
       className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
         achievement.unlocked
           ? 'bg-white border-accent/20 shadow-sm'
@@ -64,6 +66,11 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function AchievementsPage() {
+  useModuleTour('achievements', [
+    { popover: { title: '🏆 Thành tích', description: 'Xem tất cả thành tích của hai bạn. Hoàn thành các hoạt động để mở khóa!' } },
+    { element: '[data-tour="achievement-card"]', popover: { title: '🔓 Mở khóa', description: 'Thành tích sáng = đã mở khóa. Thành tích mờ = chưa đạt. Cố gắng lên nào!', side: 'bottom' } },
+  ]);
+
   const { data: achievements = [], isLoading } = useQuery({
     queryKey: ['achievements'],
     queryFn: achievementsApi.list,
@@ -134,29 +141,34 @@ export default function AchievementsPage() {
         transition={{ duration: 0.3 }}
         className="space-y-6"
       >
-        {CATEGORY_ORDER.map((cat) => {
-          const group = achievements.filter((a) => a.category === cat);
-          const meta = CATEGORY_META[cat];
-          if (!meta || group.length === 0) return null;
-          const catUnlocked = group.filter((a) => a.unlocked).length;
+        {(() => {
+          let isFirst = true;
+          return CATEGORY_ORDER.map((cat) => {
+            const group = achievements.filter((a) => a.category === cat);
+            const meta = CATEGORY_META[cat];
+            if (!meta || group.length === 0) return null;
+            const catUnlocked = group.filter((a) => a.unlocked).length;
 
-          return (
-            <div key={cat}>
-              <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-base">{meta.icon}</span>
-                <h2 className="text-sm font-semibold text-text-light uppercase tracking-wide flex-1">
-                  {meta.label}
-                </h2>
-                <span className="text-xs text-text-light">{catUnlocked}/{group.length}</span>
+            return (
+              <div key={cat}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-base">{meta.icon}</span>
+                  <h2 className="text-sm font-semibold text-text-light uppercase tracking-wide flex-1">
+                    {meta.label}
+                  </h2>
+                  <span className="text-xs text-text-light">{catUnlocked}/{group.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {group.map((achievement) => {
+                    const dt = isFirst ? 'achievement-card' : undefined;
+                    if (isFirst) isFirst = false;
+                    return <AchievementCard key={achievement.key} achievement={achievement} dataTour={dt} />;
+                  })}
+                </div>
               </div>
-              <div className="space-y-2">
-                {group.map((achievement) => (
-                  <AchievementCard key={achievement.key} achievement={achievement} />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
       </motion.div>
     </div>
   );

@@ -5,6 +5,7 @@ import { UtensilsCrossed, ChefHat, ArrowRight, CheckCircle2, Clock } from 'lucid
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { recipesApi, cookingSessionsApi } from '../lib/api';
+import { useModuleTour } from '../lib/useModuleTour';
 import type { Recipe } from '../types';
 import { GridSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
@@ -21,6 +22,10 @@ export default function CookingSessionPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  useModuleTour('what-to-eat', [
+    { element: '[data-tour="pick-recipe"]', popover: { title: '🍳 Chọn món', description: 'Chọn công thức để bắt đầu nấu cùng nhau.', side: 'bottom' } },
+  ]);
 
   const { data: recipes = [], isLoading: recipesLoading } = useQuery({
     queryKey: ['recipes'],
@@ -178,6 +183,7 @@ export default function CookingSessionPage() {
               index={i}
               isSelected={selected.has(recipe.id)}
               onToggle={() => toggleRecipe(recipe.id)}
+              dataTour={i === 0 ? 'pick-recipe' : undefined}
             />
           ))}
         </div>
@@ -229,14 +235,17 @@ function SelectableRecipeCard({
   index,
   isSelected,
   onToggle,
+  dataTour,
 }: {
   recipe: Recipe;
   index: number;
   isSelected: boolean;
   onToggle: () => void;
+  dataTour?: string;
 }) {
   return (
     <motion.div
+      {...(dataTour ? { 'data-tour': dataTour } : {})}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
