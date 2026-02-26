@@ -186,6 +186,7 @@ export interface CookingSession {
   completedAt: string | null;
   totalTimeMs: number | null;
   notes: string | null;
+  rating: number | null;
   createdAt: string;
   updatedAt: string;
   recipes: CookingSessionRecipe[];
@@ -332,6 +333,9 @@ export interface Expense {
   category: ExpenseCategory;
   date: string;
   note: string | null;
+  receiptUrl: string | null;
+  foodSpotId: string | null;
+  datePlanId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -341,6 +345,11 @@ export interface ExpenseStats {
   count: number;
   month: string | null;
   byCategory: Record<ExpenseCategory, { total: number; count: number }>;
+}
+
+export interface DailyStats {
+  month: string;
+  days: { date: string; total: number; byCategory: Record<string, number> }[];
 }
 
 export type LetterStatus = 'DRAFT' | 'SCHEDULED' | 'DELIVERED' | 'READ';

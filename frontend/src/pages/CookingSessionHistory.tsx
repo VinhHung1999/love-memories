@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, ChefHat, Clock, ArrowLeft } from 'lucide-react';
+import { UtensilsCrossed, ChefHat, Clock, ArrowLeft, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cookingSessionsApi } from '../lib/api';
 import type { CookingSession } from '../types';
@@ -18,6 +18,22 @@ function formatDuration(ms: number | null): string {
   return `${s}s`;
 }
 
+function StarDisplay({ rating }: { rating: number | null }) {
+  if (!rating) return null;
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Star
+          key={s}
+          className={`w-3 h-3 ${s <= rating ? 'text-amber-400' : 'text-gray-200'}`}
+          fill={s <= rating ? 'currentColor' : 'none'}
+          strokeWidth={1.5}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function CookingSessionHistory() {
   const navigate = useNavigate();
 
@@ -27,6 +43,17 @@ export default function CookingSessionHistory() {
   });
 
   const completed = sessions.filter((s) => s.status === 'completed');
+
+  // Summary stats
+  const totalSessions = completed.length;
+  const rated = completed.filter((s) => s.rating != null);
+  const avgRating = rated.length > 0
+    ? rated.reduce((sum, s) => sum + (s.rating ?? 0), 0) / rated.length
+    : null;
+  const timed = completed.filter((s) => s.totalTimeMs != null);
+  const avgTimeMs = timed.length > 0
+    ? timed.reduce((sum, s) => sum + (s.totalTimeMs ?? 0), 0) / timed.length
+    : null;
 
   return (
     <div>
@@ -39,12 +66,34 @@ export default function CookingSessionHistory() {
         </button>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="font-heading text-3xl font-bold">Lịch sử nấu ăn</h1>
-        <p className="text-text-light text-sm mt-1">
-          {completed.length} phiên đã hoàn thành
-        </p>
       </div>
+
+      {/* Stats summary */}
+      {totalSessions > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+            <p className="font-bold text-xl text-primary">{totalSessions}</p>
+            <p className="text-xs text-text-light mt-0.5">Phiên nấu</p>
+          </div>
+          <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+            <div className="flex items-center justify-center gap-0.5 mb-0.5">
+              <span className="font-bold text-xl text-amber-500">
+                {avgRating != null ? avgRating.toFixed(1) : '—'}
+              </span>
+              {avgRating != null && <Star className="w-4 h-4 text-amber-400" fill="currentColor" strokeWidth={1.5} />}
+            </div>
+            <p className="text-xs text-text-light">Đánh giá TB</p>
+          </div>
+          <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+            <p className="font-bold text-xl text-secondary leading-tight">
+              {formatDuration(avgTimeMs)}
+            </p>
+            <p className="text-xs text-text-light mt-0.5">Thời gian TB</p>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <GridSkeleton count={3} />
@@ -108,7 +157,7 @@ function HistoryCard({ session, index }: { session: CookingSession; index: numbe
         <div className="flex-1 min-w-0">
           <p className="font-heading font-semibold text-base truncate">{dishNames}</p>
           <p className="text-text-light text-xs mt-0.5">{date}</p>
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-text-light">
+          <div className="flex items-center gap-3 mt-1.5 text-xs text-text-light flex-wrap">
             <span>{session.recipes.length} món</span>
             {session.totalTimeMs != null && (
               <>
@@ -123,6 +172,12 @@ function HistoryCard({ session, index }: { session: CookingSession; index: numbe
               <>
                 <span>·</span>
                 <span>📸 {session.photos.length}</span>
+              </>
+            )}
+            {session.rating != null && (
+              <>
+                <span>·</span>
+                <StarDisplay rating={session.rating} />
               </>
             )}
           </div>

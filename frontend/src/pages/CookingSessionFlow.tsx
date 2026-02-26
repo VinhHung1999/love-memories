@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X, Youtube, Facebook, Music2 } from 'lucide-react';
+import { ChefHat, ArrowLeft, ArrowRight, Check, ShoppingCart, Timer, Camera, ExternalLink, X, Youtube, Facebook, Music2, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { cookingSessionsApi } from '../lib/api';
+import AddExpenseModal from '../components/AddExpenseModal';
 import { uploadQueue } from '../lib/uploadQueue';
 import { useCheckAchievements } from '../lib/achievements';
 import { useAuth } from '../lib/auth';
@@ -170,6 +171,7 @@ function SelectingPhase({
 function ShoppingPhase({ session }: { session: CookingSession }) {
   const queryClient = useQueryClient();
   const [advancing, setAdvancing] = useState(false);
+  const [showExpensePrompt, setShowExpensePrompt] = useState(false);
   const { cancel, cancelling } = useCancelSession(session.id);
 
   const checkedCount = session.items.filter((i) => i.checked).length;
@@ -212,6 +214,8 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
       setAdvancing(false);
     }
   };
+
+  const recipeNames = session.recipes.map((r) => r.recipe.title).join(', ');
 
   return (
     <div className="max-w-lg mx-auto">
@@ -298,7 +302,7 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
 
       {/* Done Shopping button */}
       <button
-        onClick={handleAdvance}
+        onClick={() => setShowExpensePrompt(true)}
         disabled={advancing}
         className="w-full flex items-center justify-center gap-2 bg-secondary text-white py-3.5 rounded-2xl font-semibold text-base shadow-lg shadow-secondary/20 hover:bg-secondary/90 active:scale-95 transition-all disabled:opacity-60"
       >
@@ -312,6 +316,19 @@ function ShoppingPhase({ session }: { session: CookingSession }) {
           </>
         )}
       </button>
+
+      {/* Expense prompt after shopping */}
+      <AddExpenseModal
+        open={showExpensePrompt}
+        onClose={() => { setShowExpensePrompt(false); handleAdvance(); }}
+        onSaved={() => { setShowExpensePrompt(false); handleAdvance(); }}
+        defaults={{
+          description: `Đi chợ: ${recipeNames}`,
+          category: 'food',
+          amount: totalCost > 0 ? totalCost : undefined,
+        }}
+        extraAction={{ label: 'Bỏ qua', onClick: () => { setShowExpensePrompt(false); handleAdvance(); } }}
+      />
     </div>
   );
 }
@@ -883,6 +900,25 @@ function formatDuration(ms: number | null): string {
 
 function CompletedPhase({ session }: { session: CookingSession }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [rating, setRating] = useState(session.rating ?? 0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingLoading, setRatingLoading] = useState(false);
+
+  async function handleRate(value: number) {
+    if (ratingLoading) return;
+    setRating(value);
+    setRatingLoading(true);
+    try {
+      await cookingSessionsApi.rate(session.id, value);
+      queryClient.invalidateQueries({ queryKey: ['cooking-session', session.id] });
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions'] });
+    } catch {
+      toast.error('Không thể lưu đánh giá');
+    } finally {
+      setRatingLoading(false);
+    }
+  }
 
   // Side-cannon confetti on mount
   useEffect(() => {
@@ -999,13 +1035,47 @@ function CompletedPhase({ session }: { session: CookingSession }) {
 
       {/* Notes */}
       {session.notes && (
-        <div className="bg-gray-50 rounded-2xl p-4 mb-5">
+        <div className="bg-gray-50 rounded-2xl p-4 mb-4">
           <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-1.5">
             Ghi chú
           </p>
           <p className="text-sm text-text leading-relaxed">{session.notes}</p>
         </div>
       )}
+
+      {/* Star rating */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm mb-5">
+        <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-3 text-center">
+          Đánh giá buổi nấu ăn
+        </p>
+        <div className="flex items-center justify-center gap-2">
+          {[1, 2, 3, 4, 5].map((star) => {
+            const filled = star <= (hoverRating || rating);
+            return (
+              <button
+                key={star}
+                type="button"
+                onClick={() => handleRate(star)}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+                disabled={ratingLoading}
+                className="transition-transform active:scale-90 disabled:opacity-60"
+              >
+                <Star
+                  className={`w-9 h-9 transition-colors ${filled ? 'text-amber-400' : 'text-gray-200'}`}
+                  fill={filled ? 'currentColor' : 'none'}
+                  strokeWidth={1.5}
+                />
+              </button>
+            );
+          })}
+        </div>
+        {rating > 0 && (
+          <p className="text-center text-xs text-text-light mt-2">
+            {['', '😕 Chưa ổn', '😐 Tạm được', '🙂 Khá ổn', '😊 Ngon!', '🤩 Tuyệt vời!'][rating]}
+          </p>
+        )}
+      </div>
 
       {/* Actions */}
       <div className="flex gap-3">

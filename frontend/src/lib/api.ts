@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -160,6 +160,11 @@ export const cookingSessionsApi = {
     return uploadWithProgress(`${API}/cooking-sessions/${id}/photos`, formData, getToken(), onProgress);
   },
   delete: (id: string) => request(`/cooking-sessions/${id}`, { method: 'DELETE' }),
+  rate: (id: string, rating: number) =>
+    request<CookingSession>(`/cooking-sessions/${id}/rate`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rating }),
+    }),
 };
 
 // Achievements
@@ -188,6 +193,21 @@ export const aiApi = {
       method: 'POST',
       body: JSON.stringify({ mode, input }),
     }),
+  scanReceipt: async (file: File): Promise<{ amount: number; description: string; category: string; date: string; items?: string[] }> => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('photo', file);
+    const res = await fetch(`${API}/ai/scan-receipt`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || 'Failed to scan receipt');
+    }
+    return res.json();
+  },
 };
 
 // Notifications
@@ -281,10 +301,30 @@ export const expensesApi = {
     request<Expense[]>(`/expenses${month ? `?month=${month}` : ''}`),
   stats: (month?: string) =>
     request<ExpenseStats>(`/expenses/stats${month ? `?month=${month}` : ''}`),
+  dailyStats: (month?: string) =>
+    request<DailyStats>(`/expenses/daily-stats${month ? `?month=${month}` : ''}`),
+  getLimits: () => request<Record<string, number | null>>('/expenses/limits'),
+  setLimits: (limits: Record<string, number | null>) =>
+    request<Record<string, number | null>>('/expenses/limits', { method: 'PUT', body: JSON.stringify(limits) }),
+  uploadReceipt: async (file: File): Promise<{ url: string }> => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('photo', file);
+    const res = await fetch(`${API}/expenses/upload-receipt`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || 'Failed to upload receipt');
+    }
+    return res.json();
+  },
   get: (id: string) => request<Expense>(`/expenses/${id}`),
-  create: (data: { amount: number; description: string; category: string; date: string; note?: string }) =>
+  create: (data: Partial<Expense> & { amount: number; description: string; category: string; date: string }) =>
     request<Expense>('/expenses', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<{ amount: number; description: string; category: string; date: string; note: string }>) =>
+  update: (id: string, data: Partial<Expense>) =>
     request<Expense>(`/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) => request(`/expenses/${id}`, { method: 'DELETE' }),
 };
