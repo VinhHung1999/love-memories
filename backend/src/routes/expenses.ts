@@ -77,6 +77,7 @@ router.post('/', async (req: Request, res: Response) => {
     const expense = await prisma.expense.create({ data });
     res.status(201).json(expense);
   } catch (error: any) {
+    console.error('Create expense error:', error);
     if (error.name === 'ZodError') { res.status(400).json({ error: error.errors }); return; }
     res.status(500).json({ error: 'Failed to create expense' });
   }
@@ -92,6 +93,7 @@ router.put('/:id', async (req: Request<IdParam>, res: Response) => {
     });
     res.json(expense);
   } catch (error: any) {
+    console.error('Update expense error:', error);
     if (error.name === 'ZodError') { res.status(400).json({ error: error.errors }); return; }
     res.status(500).json({ error: 'Failed to update expense' });
   }
