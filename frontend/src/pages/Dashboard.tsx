@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, ArrowRight, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart } from 'lucide-react';
+import { Heart, Camera, Utensils, Target, ArrowRight, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -10,6 +10,7 @@ import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, 
 import { useUnreadCount } from '../lib/useUnreadCount';
 import type { CookingSession, DatePlan } from '../types';
 import RelationshipTimer from '../components/RelationshipTimer';
+import { useModuleTour } from '../lib/useModuleTour';
 import FAB from '../components/FAB';
 import MomentCard from '../components/MomentCard';
 import LetterReadOverlay from '../components/LetterReadOverlay';
@@ -86,6 +87,12 @@ export default function Dashboard() {
   // ── End love letter popup ──────────────────────────────────────────────────
 
   const [statsExpanded, setStatsExpanded] = useState(false);
+
+  useModuleTour('dashboard', [
+    { popover: { title: '🏠 Trang chủ', description: 'Đây là trang tổng quan — xem kỷ niệm gần đây, mục tiêu, và hoạt động của hai bạn.' } },
+    { element: '[data-tour="recent-moments"]', popover: { title: '📸 Kỷ niệm gần đây', description: 'Xem những kỷ niệm mới nhất. Vuốt sang trái/phải để xem thêm.', side: 'bottom' } },
+    { element: '[data-tour="active-sprint"]', popover: { title: '🎯 Sprint hiện tại', description: 'Theo dõi tiến độ mục tiêu chung trong sprint đang chạy.', side: 'top' } },
+  ]);
 
   const primaryStats = [
     { icon: Camera, label: 'kỷ niệm', value: moments.length, to: '/moments' },
@@ -185,8 +192,46 @@ export default function Dashboard() {
       </AnimatePresence>
       {/* ── END ACTIVE DATE PLAN PIN ─────────────────────────────────── */}
 
+      {/* ── RECAP PINS ────────────────────────────────────────────────── */}
+      {(() => {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const dayOfMonth = today.getDate();
+        const showWeeklyPin = dayOfWeek === 1 || dayOfWeek === 2;
+        const showMonthlyPin = dayOfMonth <= 3;
+        return (
+          <>
+            {showWeeklyPin && (
+              <Link to="/weekly-recap" className="block bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 mb-4 border border-blue-100">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">📊</div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Recap tuần qua</p>
+                    <p className="text-xs text-text-light">Xem tổng kết hoạt động tuần trước</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
+                </div>
+              </Link>
+            )}
+            {showMonthlyPin && (
+              <Link to="/monthly-recap" className="block bg-gradient-to-r from-pink-50 to-orange-50 rounded-2xl p-4 mb-4 border border-pink-100">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">📅</div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Tổng kết tháng</p>
+                    <p className="text-xs text-text-light">Xem tổng kết tháng vừa qua</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
+                </div>
+              </Link>
+            )}
+          </>
+        );
+      })()}
+      {/* ── END RECAP PINS ────────────────────────────────────────────── */}
+
       {/* ── RECENT MOMENTS ────────────────────────────────────────────── */}
-      <div className="mb-4">
+      <div className="mb-4" data-tour="recent-moments">
         {recentMoments.length === 0 ? (
           <div className="h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
             <Camera className="w-10 h-10 text-gray-300" />
@@ -242,7 +287,7 @@ export default function Dashboard() {
               Xem chi tiết <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="relative bg-gradient-to-br from-white to-accent/5 rounded-2xl p-6 shadow-sm border border-accent/20 overflow-hidden">
+          <div className="relative bg-gradient-to-br from-white to-accent/5 rounded-2xl p-6 shadow-sm border border-accent/20 overflow-hidden" data-tour="active-sprint">
             {/* Decorative circle */}
             <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-accent/5 pointer-events-none" />
 

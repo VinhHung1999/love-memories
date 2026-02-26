@@ -145,4 +145,122 @@ router.get('/weekly', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// ── Month helpers ─────────────────────────────────────────────────────────────
+
+function monthToRange(monthStr: string): { startDate: Date; endDate: Date } {
+  const match = monthStr.match(/^(\d{4})-(\d{2})$/);
+  if (!match) throw new Error('Invalid month format. Use YYYY-MM');
+  const year = parseInt(match[1]!);
+  const month = parseInt(match[2]!) - 1; // 0-indexed
+
+  const startDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999)); // day=0 → last day of month
+
+  return { startDate, endDate };
+}
+
+function previousMonthStr(): string {
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth(); // 0-indexed current month → previous month number (1-indexed)
+  if (month === 0) { year -= 1; month = 12; }
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+// ── GET /api/recap/monthly?month=2026-02 ─────────────────────────────────────
+
+router.get('/monthly', async (req: AuthRequest, res: Response) => {
+  try {
+    const monthStr = (req.query.month as string | undefined) || previousMonthStr();
+
+    let startDate: Date;
+    let endDate: Date;
+    try {
+      ({ startDate, endDate } = monthToRange(monthStr));
+    } catch {
+      res.status(400).json({ error: 'Invalid month format. Use YYYY-MM (e.g. 2026-02)' });
+      return;
+    }
+
+    const userId = req.user!.userId;
+    const gte = startDate;
+    const lte = endDate;
+
+    const [moments, cookingSessions, foodSpots, datePlans, loveLetters, goals, achievements] =
+      await Promise.all([
+        prisma.moment.findMany({
+          where: { date: { gte, lte } },
+          include: { photos: { select: { url: true } } },
+          orderBy: { date: 'desc' },
+        }),
+        prisma.cookingSession.findMany({
+          where: { completedAt: { gte, lte }, status: 'completed' },
+          include: { recipes: { include: { recipe: true } } },
+        }),
+        prisma.foodSpot.findMany({
+          where: { createdAt: { gte, lte } },
+          select: { name: true },
+        }),
+        prisma.datePlan.findMany({
+          where: { date: { gte, lte } },
+          select: { title: true },
+        }),
+        prisma.loveLetter.findMany({
+          where: {
+            deliveredAt: { gte, lte },
+            status: { in: ['DELIVERED', 'READ'] },
+          },
+          select: { senderId: true },
+        }),
+        prisma.goal.findMany({
+          where: { status: 'DONE', updatedAt: { gte, lte } },
+          select: { id: true },
+        }),
+        prisma.achievement.findMany({
+          where: { unlockedAt: { gte, lte } },
+        }),
+      ]);
+
+    const photoCount = moments.reduce((sum, m) => sum + m.photos.length, 0);
+    const highlights = moments
+      .filter((m) => m.photos.length > 0)
+      .slice(0, 3)
+      .map((m) => ({
+        id: m.id,
+        title: m.title,
+        date: m.date.toISOString().split('T')[0],
+        photoUrl: m.photos[0]!.url,
+      }));
+
+    const recipeNames = [
+      ...new Set(cookingSessions.flatMap((s) => s.recipes.map((r) => r.recipe.title))),
+    ];
+    const totalTimeMs = cookingSessions.reduce((sum, s) => sum + (s.totalTimeMs ?? 0), 0);
+
+    const sent = loveLetters.filter((l) => l.senderId === userId).length;
+    const received = loveLetters.filter((l) => l.senderId !== userId).length;
+
+    const achievementTitles = achievements.map((a) => {
+      const def = ACHIEVEMENT_DEFS.find((d) => d.key === a.key);
+      return def?.title ?? a.key;
+    });
+
+    res.json({
+      month: monthStr,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      moments: { count: moments.length, photoCount, highlights },
+      cooking: { count: cookingSessions.length, totalTimeMs, recipes: recipeNames },
+      foodSpots: { count: foodSpots.length, names: foodSpots.map((f) => f.name) },
+      datePlans: { count: datePlans.length, titles: datePlans.map((p) => p.title) },
+      loveLetters: { sent, received },
+      goalsCompleted: goals.length,
+      achievementsUnlocked: achievementTitles,
+    });
+  } catch (err) {
+    console.error('[recap] monthly error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export { router as recapRoutes };

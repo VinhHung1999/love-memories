@@ -1,8 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './lib/auth';
-import { settingsApi } from './lib/api';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
@@ -26,6 +25,7 @@ import DatePlannerPage from './pages/DatePlannerPage';
 import DatePlanDetailPage from './pages/DatePlanDetailPage';
 import LoveLettersPage from './pages/LoveLettersPage';
 import WeeklyRecapPage from './pages/WeeklyRecapPage';
+import MonthlyRecapPage from './pages/MonthlyRecapPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
 async function registerPush() {
@@ -58,33 +58,9 @@ async function registerPush() {
 }
 
 export default function App() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const wasAuthenticatedRef = useRef(false);
-
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const { data: onboardingSetting } = useQuery({
-    queryKey: ['settings', `onboarding_completed__${user?.id}`],
-    queryFn: async () => {
-      try {
-        return await settingsApi.get(`onboarding_completed__${user!.id}`);
-      } catch {
-        return { key: `onboarding_completed__${user!.id}`, value: null } as { key: string; value: string | null };
-      }
-    },
-    enabled: !!user?.id,
-  });
-
-  useEffect(() => {
-    if (onboardingSetting && !onboardingSetting.value) {
-      setShowOnboarding(true);
-    }
-  }, [onboardingSetting]);
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    if (user?.id) settingsApi.set(`onboarding_completed__${user.id}`, 'true');
-  };
 
   useEffect(() => {
     if (isAuthenticated) registerPush();
@@ -111,7 +87,6 @@ export default function App() {
   }
 
   return (
-    <>
     <Layout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
@@ -135,9 +110,8 @@ export default function App() {
         <Route path="/date-planner/plans/:id" element={<DatePlanDetailPage />} />
         <Route path="/love-letters" element={<LoveLettersPage />} />
         <Route path="/weekly-recap" element={<WeeklyRecapPage />} />
+        <Route path="/monthly-recap" element={<MonthlyRecapPage />} />
       </Routes>
     </Layout>
-    {showOnboarding && <OnboardingOverlay onComplete={handleOnboardingComplete} />}
-    </>
   );
 }

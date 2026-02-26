@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap, MonthlyRecap } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -278,4 +278,6 @@ export const loveLettersApi = {
 export const recapApi = {
   weekly: (week?: string) =>
     request<WeeklyRecap>(`/recap/weekly${week ? `?week=${week}` : ''}`),
+  monthly: (month?: string) =>
+    request<MonthlyRecap>(`/recap/monthly${month ? `?month=${month}` : ''}`),
 };

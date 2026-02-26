@@ -280,6 +280,97 @@ async function main() {
     });
     console.log('Recipes: 5 Vietnamese recipes created with tutorialUrl');
 
+  // ── W08 2026 recap seed data (2026-02-16 → 2026-02-22) ────────────────────
+  const partner = await prisma.user.findUnique({ where: { email: 'partner@love-scrum.local' } });
+  const firstRecipe = await prisma.recipe.findFirst({ where: { title: 'Phở Bò' } });
+
+  // 3 moments with photos
+  const w08Moments = [
+    { title: 'Ăn sáng cùng nhau', date: new Date('2026-02-17'), tags: ['sáng', 'cafe'], photo: 'seed-photo-1.jpg' },
+    { title: 'Đi dạo công viên',  date: new Date('2026-02-19'), tags: ['dạo', 'park'],  photo: 'seed-photo-2.jpg' },
+    { title: 'Nấu ăn tối thứ 7',  date: new Date('2026-02-21'), tags: ['nấu ăn', 'tối'], photo: 'seed-photo-3.jpg' },
+  ];
+  for (const m of w08Moments) {
+    await prisma.moment.create({
+      data: {
+        title: m.title,
+        date: m.date,
+        tags: m.tags,
+        photos: { create: [{ filename: m.photo, url: `/uploads/${m.photo}` }] },
+      },
+    });
+  }
+  console.log('W08 Moments: 3 created with photos');
+
+  // 1 completed cooking session
+  if (firstRecipe) {
+    await prisma.cookingSession.create({
+      data: {
+        status: 'completed',
+        completedAt: new Date('2026-02-20'),
+        totalTimeMs: 5400000,
+        recipes: { create: [{ recipeId: firstRecipe.id, order: 0 }] },
+      },
+    });
+    console.log('W08 CookingSession: 1 completed created');
+  }
+
+  // 1 food spot with W08 createdAt
+  await prisma.foodSpot.create({
+    data: {
+      name: 'Bánh mì Phượng',
+      description: 'Bánh mì ngon nhất Hội An',
+      rating: 4.8,
+      location: '2B Phan Châu Trinh, Hội An',
+      tags: ['bánh mì', 'sáng'],
+      priceRange: 1,
+      createdAt: new Date('2026-02-18'),
+    },
+  });
+  console.log('W08 FoodSpot: 1 created');
+
+  // 1 date plan in W08
+  await prisma.datePlan.create({
+    data: {
+      title: 'Cafe date cuối tuần',
+      date: new Date('2026-02-22'),
+      status: 'planned',
+    },
+  });
+  console.log('W08 DatePlan: 1 created');
+
+  // 2 love letters (DELIVERED) in W08
+  if (partner) {
+    await prisma.loveLetter.createMany({
+      data: [
+        {
+          senderId: user.id,
+          recipientId: partner.id,
+          title: 'Thư yêu thương',
+          content: 'Em yêu anh nhiều lắm! Cảm ơn vì mọi thứ anh đã làm cho em.',
+          status: 'DELIVERED',
+          deliveredAt: new Date('2026-02-18'),
+        },
+        {
+          senderId: partner.id,
+          recipientId: user.id,
+          title: 'Nhớ em quá',
+          content: 'Anh nhớ em lắm, em ơi! Mỗi ngày được ở bên em là một ngày hạnh phúc.',
+          status: 'DELIVERED',
+          deliveredAt: new Date('2026-02-20'),
+        },
+      ],
+    });
+    console.log('W08 LoveLetters: 2 DELIVERED created');
+  }
+
+  // Update existing DONE goal's updatedAt to fall in W08
+  await prisma.$executeRaw`
+    UPDATE "goals" SET "updatedAt" = '2026-02-19 00:00:00+00'
+    WHERE id = (SELECT id FROM "goals" WHERE status = 'DONE' ORDER BY "createdAt" DESC LIMIT 1)
+  `;
+  console.log('W08 Goal DONE: updatedAt set to 2026-02-19');
+
   console.log('Seed complete.');
 }
 

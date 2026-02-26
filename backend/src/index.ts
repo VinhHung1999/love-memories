@@ -126,6 +126,21 @@ if (require.main === module) {
     }
   }, { timezone: 'Asia/Ho_Chi_Minh' });
 
+  // 9 AM on 1st of each month — monthly recap notification
+  cron.schedule('0 9 1 * *', async () => {
+    try {
+      const users = await prisma.user.findMany({ select: { id: true } });
+      await Promise.all(
+        users.map((u) =>
+          createNotification(u.id, 'monthly_recap', 'Tổng kết tháng 📅', 'Xem tổng kết tháng vừa qua của hai bạn!', '/monthly-recap'),
+        ),
+      );
+      console.log(`[cron] monthly_recap sent to ${users.length} users`);
+    } catch (err) {
+      console.error('[cron] monthly_recap error:', err);
+    }
+  }, { timezone: 'Asia/Ho_Chi_Minh' });
+
   // 9 AM every Monday — weekly recap notification
   cron.schedule('0 9 * * 1', async () => {
     try {

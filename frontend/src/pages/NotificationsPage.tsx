@@ -20,6 +20,7 @@ const TYPE_ICON: Record<string, string> = {
   daily_plan_reminder: '⏰',
   love_letter: '💌',
   weekly_recap: '📊',
+  monthly_recap: '📅',
 };
 
 export default function NotificationsPage() {

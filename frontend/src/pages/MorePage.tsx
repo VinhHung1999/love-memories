@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail, Bell, MapPin, Mic, Shield } from 'lucide-react';
+import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail, Bell, MapPin, Mic, Shield, BarChart3, CalendarDays } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -97,6 +97,20 @@ const modules = [
     description: 'Thư tình bất ngờ',
     color: 'bg-primary/10 text-primary',
   },
+  {
+    to: '/weekly-recap',
+    icon: BarChart3,
+    label: 'Weekly Recap',
+    description: 'Tổng kết tuần',
+    color: 'bg-blue-500/10 text-blue-500',
+  },
+  {
+    to: '/monthly-recap',
+    icon: CalendarDays,
+    label: 'Monthly Recap',
+    description: 'Tổng kết tháng',
+    color: 'bg-orange-500/10 text-orange-500',
+  },
 ];
 
 export default function MorePage() {
@@ -106,7 +120,7 @@ export default function MorePage() {
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const TOUR_KEYS = ['dashboard', 'moments', 'map', 'goals', 'recipes', 'love-letters', 'date-planner', 'photobooth', 'weekly-recap', 'foodspots', 'achievements', 'what-to-eat'];
+  const TOUR_KEYS = ['dashboard', 'moments', 'map', 'goals', 'recipes', 'love-letters', 'date-planner', 'photobooth', 'weekly-recap', 'foodspots', 'achievements', 'what-to-eat', 'monthly-recap'];
   const handleReplayTours = async () => {
     if (!user?.id) return;
     await Promise.all(TOUR_KEYS.map((k) => settingsApi.set(`tour_done__${k}__${user.id}`, '')));
