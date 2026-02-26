@@ -210,7 +210,7 @@ router.post('/scan-receipt', upload.single('photo'), async (req: Request, res: R
               text: `Analyze this receipt photo. Extract expense information and return ONLY valid JSON (no markdown, no extra text):
 {
   "amount": total_amount_in_vnd (number),
-  "description": "short description of what was purchased" (Vietnamese),
+  "description": "store/restaurant name from receipt (e.g. MiniStop, Highland Coffee), or short description if store name not found" (Vietnamese),
   "category": one of ["food","dating","shopping","transport","gifts","other"],
   "date": "YYYY-MM-DD" (from receipt, or today if unclear),
   "items": ["item1", "item2"] (optional, individual line items)
