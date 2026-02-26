@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Camera, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from './Modal';
-import { expensesApi, aiApi, foodSpotsApi, datePlansApi } from '../lib/api';
+import { expensesApi, aiApi } from '../lib/api';
 import type { Expense, ExpenseCategory } from '../types';
 
 const CATEGORIES: { key: ExpenseCategory; label: string; emoji: string }[] = [
@@ -24,8 +23,6 @@ export interface AddExpenseDefaults {
   category?: ExpenseCategory;
   amount?: number;
   date?: string;
-  foodSpotId?: string;
-  datePlanId?: string;
 }
 
 interface Props {
@@ -47,8 +44,6 @@ function buildForm(defaults?: AddExpenseDefaults, editing?: Expense | null) {
       date: editing.date.slice(0, 10),
       note: editing.note ?? '',
       receiptUrl: editing.receiptUrl ?? null,
-      foodSpotId: editing.foodSpotId ?? null,
-      datePlanId: editing.datePlanId ?? null,
     };
   }
   return {
@@ -58,8 +53,6 @@ function buildForm(defaults?: AddExpenseDefaults, editing?: Expense | null) {
     date: defaults?.date ?? new Date().toISOString().slice(0, 10),
     note: '',
     receiptUrl: null as string | null,
-    foodSpotId: defaults?.foodSpotId ?? null,
-    datePlanId: defaults?.datePlanId ?? null,
   };
 }
 
@@ -69,21 +62,6 @@ export default function AddExpenseModal({ open, onClose, onSaved, editing, defau
   const [scanning, setScanning] = useState(false);
   // Hidden file input always in DOM to avoid conditional render + ref bug
   const fileInputRef = useRef<HTMLInputElement | undefined>(undefined);
-
-  // Load food spots and date plans when modal is open
-  const { data: foodSpots = [] } = useQuery({
-    queryKey: ['foodspots'],
-    queryFn: foodSpotsApi.list,
-    enabled: open,
-    staleTime: 60_000,
-  });
-
-  const { data: datePlans = [] } = useQuery({
-    queryKey: ['date-plans'],
-    queryFn: datePlansApi.list,
-    enabled: open,
-    staleTime: 60_000,
-  });
 
   // Reset form whenever modal opens
   useEffect(() => {
@@ -134,8 +112,6 @@ export default function AddExpenseModal({ open, onClose, onSaved, editing, defau
         date: new Date(form.date).toISOString(),
         note: form.note.trim() || undefined,
         receiptUrl: form.receiptUrl || undefined,
-        foodSpotId: form.foodSpotId || undefined,
-        datePlanId: form.datePlanId || undefined,
       };
       if (editing) {
         await expensesApi.update(editing.id, payload);
@@ -150,9 +126,6 @@ export default function AddExpenseModal({ open, onClose, onSaved, editing, defau
       setSaving(false);
     }
   }
-
-  const selectedFoodSpot = foodSpots.find((f) => f.id === form.foodSpotId);
-  const selectedDatePlan = datePlans.find((d) => d.id === form.datePlanId);
 
   return (
     <Modal open={open} onClose={onClose} title={editing ? 'Sửa chi tiêu' : 'Thêm chi tiêu'}>
@@ -283,72 +256,6 @@ export default function AddExpenseModal({ open, onClose, onSaved, editing, defau
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40"
             style={{ fontSize: '16px' }}
           />
-        </div>
-
-        {/* Links: Food Spot + Date Plan */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Liên kết (tuỳ chọn)</label>
-
-          {/* Food Spot */}
-          {selectedFoodSpot ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 border border-orange-200 rounded-xl text-sm">
-              <span>🍜</span>
-              <span className="flex-1 text-orange-800 font-medium truncate">{selectedFoodSpot.name}</span>
-              <button
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, foodSpotId: null }))}
-                className="text-orange-400 hover:text-orange-600 transition-colors flex-shrink-0"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <select
-              value={form.foodSpotId ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, foodSpotId: e.target.value || null }))}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm text-gray-600 bg-white"
-              style={{ fontSize: '16px' }}
-            >
-              <option value="">🍜 Liên kết quán ăn...</option>
-              {foodSpots.map((fs) => (
-                <option key={fs.id} value={fs.id}>{fs.name}</option>
-              ))}
-            </select>
-          )}
-
-          {/* Date Plan */}
-          {selectedDatePlan ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-pink-50 border border-pink-200 rounded-xl text-sm">
-              <span>📅</span>
-              <span className="flex-1 text-pink-800 font-medium truncate">
-                {selectedDatePlan.title}
-                <span className="font-normal text-pink-500 ml-1">
-                  {new Date(selectedDatePlan.date).toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric' })}
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, datePlanId: null }))}
-                className="text-pink-400 hover:text-pink-600 transition-colors flex-shrink-0"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <select
-              value={form.datePlanId ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, datePlanId: e.target.value || null }))}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm text-gray-600 bg-white"
-              style={{ fontSize: '16px' }}
-            >
-              <option value="">📅 Liên kết kế hoạch hẹn hò...</option>
-              {datePlans.map((dp) => (
-                <option key={dp.id} value={dp.id}>
-                  {dp.title} ({new Date(dp.date).toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' })})
-                </option>
-              ))}
-            </select>
-          )}
         </div>
 
         {/* Actions */}

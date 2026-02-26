@@ -446,17 +446,9 @@ export default function ExpensesPage() {
                             {expense.note && (
                               <p className="text-xs text-gray-400 truncate">{expense.note}</p>
                             )}
-                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                              <span className={`text-xs px-2 py-0.5 rounded-full border ${cat?.color}`}>
-                                {cat?.label}
-                              </span>
-                              {expense.foodSpotId && (
-                                <span className="text-xs text-orange-500" title="Liên kết quán ăn">🍜</span>
-                              )}
-                              {expense.datePlanId && (
-                                <span className="text-xs text-pink-500" title="Liên kết kế hoạch hẹn hò">📅</span>
-                              )}
-                            </div>
+                            <span className={`inline-block mt-0.5 text-xs px-2 py-0.5 rounded-full border ${cat?.color}`}>
+                              {cat?.label}
+                            </span>
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             <p className="font-semibold text-gray-900 text-sm whitespace-nowrap">
