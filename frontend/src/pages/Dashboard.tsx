@@ -192,43 +192,46 @@ export default function Dashboard() {
       </AnimatePresence>
       {/* ── END ACTIVE DATE PLAN PIN ─────────────────────────────────── */}
 
-      {/* ── RECAP PINS ────────────────────────────────────────────────── */}
-      {(() => {
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        const dayOfMonth = today.getDate();
-        const showWeeklyPin = dayOfWeek === 1 || dayOfWeek === 2;
-        const showMonthlyPin = dayOfMonth <= 3;
-        return (
-          <>
-            {showWeeklyPin && (
-              <Link to="/weekly-recap" className="block bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 mb-4 border border-blue-100">
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl">📊</div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Recap tuần qua</p>
-                    <p className="text-xs text-text-light">Xem tổng kết hoạt động tuần trước</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
-                </div>
-              </Link>
-            )}
-            {showMonthlyPin && (
-              <Link to="/monthly-recap" className="block bg-gradient-to-r from-pink-50 to-orange-50 rounded-2xl p-4 mb-4 border border-pink-100">
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl">📅</div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Tổng kết tháng</p>
-                    <p className="text-xs text-text-light">Xem tổng kết tháng vừa qua</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
-                </div>
-              </Link>
-            )}
-          </>
-        );
-      })()}
-      {/* ── END RECAP PINS ────────────────────────────────────────────── */}
+      {/* ── MONTHLY RECAP PIN ─────────────────────────────────────────── */}
+      {new Date().getDate() <= 3 && (
+        <Link
+          to="/monthly-recap"
+          className="block relative overflow-hidden rounded-2xl mb-4"
+          style={{ background: 'linear-gradient(135deg, #f472b6 0%, #fb7185 45%, #fb923c 100%)' }}
+        >
+          {/* Shimmer sweep */}
+          <div className="shimmer-overlay" />
+
+          {/* Floating hearts */}
+          {([
+            { e: '💕', l: '8%',  t: '18%', dur: 2.0, delay: 0.0 },
+            { e: '💗', l: '28%', t: '62%', dur: 2.5, delay: 0.6 },
+            { e: '💖', l: '58%', t: '12%', dur: 2.2, delay: 1.1 },
+            { e: '💝', l: '78%', t: '58%', dur: 2.8, delay: 0.3 },
+          ] as const).map(({ e, l, t, dur, delay }) => (
+            <motion.span
+              key={e}
+              className="absolute text-sm select-none pointer-events-none"
+              style={{ left: l, top: t }}
+              animate={{ y: [0, -16, 0], opacity: [0.35, 0.75, 0.35], scale: [0.85, 1.15, 0.85] }}
+              transition={{ duration: dur, repeat: Infinity, delay, ease: 'easeInOut' }}
+            >
+              {e}
+            </motion.span>
+          ))}
+
+          {/* Content */}
+          <div className="relative z-10 flex items-center gap-3 p-4">
+            <div className="text-2xl">📅</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">Tổng kết tháng vừa qua ✨</p>
+              <p className="text-xs text-white/75">Nhìn lại những khoảnh khắc đẹp cùng nhau</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-white/80 flex-shrink-0" />
+          </div>
+        </Link>
+      )}
+      {/* ── END MONTHLY RECAP PIN ─────────────────────────────────────── */}
 
       {/* ── RECENT MOMENTS ────────────────────────────────────────────── */}
       <div className="mb-4" data-tour="recent-moments">

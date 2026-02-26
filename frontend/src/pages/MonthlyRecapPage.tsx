@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Camera, UtensilsCrossed, Utensils, Mail, CalendarHeart, Target, Trophy } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { recapApi } from '../lib/api';
-import { useModuleTour } from '../lib/useModuleTour';
+import type { MonthlyRecap } from '../types';
 
-// ── Month helpers ──────────────────────────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────────────────
+
+const SLIDE_DURATION = 6000;
+const HOLD_THRESHOLD = 200;
+
+// ── Month helpers ──────────────────────────────────────────────────────────
 
 function currentMonthStr(): string {
   const now = new Date();
@@ -16,93 +21,295 @@ function currentMonthStr(): string {
 function previousMonthStr(): string {
   const now = new Date();
   let year = now.getFullYear();
-  let month = now.getMonth(); // 0-indexed → this gives previous month number (1-indexed)
+  let month = now.getMonth(); // 0-indexed → gives previous month number 1-indexed
   if (month === 0) { year -= 1; month = 12; }
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
 function offsetMonth(monthStr: string, delta: number): string {
-  const [yearStr, monthStr2] = monthStr.split('-');
-  let year = parseInt(yearStr!);
-  let month = parseInt(monthStr2!) + delta; // 1-indexed after adding delta
+  const [y, m] = monthStr.split('-').map(Number) as [number, number];
+  let year = y;
+  let month = m + delta;
   if (month > 12) { year += Math.floor((month - 1) / 12); month = ((month - 1) % 12) + 1; }
-  if (month < 1)  { year += Math.ceil((month - 12) / 12) - 1; month = ((month - 1 + 12 * 100) % 12) + 1; }
+  if (month < 1)  { year -= Math.ceil((1 - month) / 12); month = ((month - 1 + 1200) % 12) + 1; }
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
-function formatMonthDisplay(monthStr: string): string {
-  const [yearStr, monthStr2] = monthStr.split('-');
-  return `Tháng ${monthStr2}/${yearStr}`;
+function formatMonthDisplay(s: string): string {
+  const [y, m] = s.split('-');
+  return `Tháng ${m}/${y}`;
 }
 
 function formatTime(ms: number): string {
-  if (ms === 0) return '0m';
+  if (!ms) return '0m';
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
-  if (h > 0 && m > 0) return `${h}h ${m}m`;
-  if (h > 0) return `${h}h`;
-  return `${m}m`;
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
+// ── AnimatedNumber ─────────────────────────────────────────────────────────
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.3 } }),
-};
+function AnimatedNumber({ value }: { value: number }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    setDisplay(0);
+    if (!value) return;
+    let step = 0;
+    const timer = setInterval(() => {
+      step++;
+      setDisplay(Math.round(value * step / 30));
+      if (step >= 30) { clearInterval(timer); setDisplay(value); }
+    }, 50);
+    return () => clearInterval(timer);
+  }, [value]);
+  return <>{display}</>;
+}
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  index,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  sub?: string;
-  index: number;
-}) {
-  return (
-    <motion.div
-      custom={index}
-      initial="hidden"
-      animate="visible"
-      variants={cardVariants}
-      className="bg-white rounded-2xl p-4 shadow-sm"
-    >
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${
-        value > 0 ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400'
-      }`}>
-        <Icon className="w-5 h-5" />
+// ── Slide builder ──────────────────────────────────────────────────────────
+
+type Slide = { id: string; bg: string; node: React.ReactNode };
+
+function buildSlides(recap: MonthlyRecap, month: string): Slide[] {
+  const slides: Slide[] = [];
+  const totalLetters = recap.loveLetters.sent + recap.loveLetters.received;
+
+  // ── Intro ──
+  slides.push({
+    id: 'intro',
+    bg: 'linear-gradient(160deg, #f9a8d4 0%, #fb7185 50%, #f97316 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          className="text-8xl mb-6"
+        >💕</motion.div>
+        <motion.h1
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="text-3xl font-heading font-bold text-white mb-2"
+        >{formatMonthDisplay(month)}</motion.h1>
+        <motion.p
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-white/80 text-lg"
+        >Hành trình của chúng mình 💕</motion.p>
       </div>
-      <p className={`text-2xl font-bold font-heading ${value > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
-        {value}
-      </p>
-      <p className="text-xs text-text-light mt-0.5">{label}</p>
-      {sub && <p className="text-xs text-text-light/70 mt-0.5">{sub}</p>}
-    </motion.div>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-export default function MonthlyRecapPage() {
-  const [currentMonth, setCurrentMonth] = useState(previousMonthStr);
-  const isCurrentMonth = currentMonth >= currentMonthStr();
-
-  useModuleTour('monthly-recap', [
-    { element: '[data-tour="month-nav"]', popover: { title: '📅 Tháng của chúng mình', description: 'Xem tổng kết hoạt động theo từng tháng — dùng mũi tên để chuyển tháng.', side: 'bottom' } },
-  ]);
-
-  const { data: recap, isLoading } = useQuery({
-    queryKey: ['recap', 'monthly', currentMonth],
-    queryFn: () => recapApi.monthly(currentMonth),
+    ),
   });
 
-  const isEmpty =
-    recap &&
+  // ── Moments ──
+  if (recap.moments.count > 0) slides.push({
+    id: 'moments',
+    bg: 'linear-gradient(160deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <div className="text-6xl mb-4">📸</div>
+        <div className="text-8xl font-heading font-bold text-white">
+          <AnimatedNumber value={recap.moments.count} />
+        </div>
+        <p className="text-2xl font-heading text-white mt-1 mb-2">kỷ niệm</p>
+        {recap.moments.photoCount > 0 && (
+          <p className="text-white/70 text-base">{recap.moments.photoCount} bức ảnh đã chụp</p>
+        )}
+        {recap.moments.highlights[0] && (
+          <p className="text-white/50 text-sm mt-4 italic">"{recap.moments.highlights[0].title}"</p>
+        )}
+      </div>
+    ),
+  });
+
+  // ── Cooking ──
+  if (recap.cooking.count > 0) slides.push({
+    id: 'cooking',
+    bg: 'linear-gradient(160deg, #fb923c 0%, #f97316 50%, #ea580c 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <div className="text-6xl mb-4">🍳</div>
+        <div className="text-8xl font-heading font-bold text-white">
+          <AnimatedNumber value={recap.cooking.count} />
+        </div>
+        <p className="text-2xl font-heading text-white mt-1 mb-2">lần nấu ăn cùng nhau</p>
+        {recap.cooking.totalTimeMs > 0 && (
+          <p className="text-white/70 text-base">Tổng {formatTime(recap.cooking.totalTimeMs)} trong bếp</p>
+        )}
+      </div>
+    ),
+  });
+
+  // ── Food spots ──
+  if (recap.foodSpots.count > 0) slides.push({
+    id: 'foodspots',
+    bg: 'linear-gradient(160deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <div className="text-6xl mb-4">🍜</div>
+        <div className="text-8xl font-heading font-bold text-white">
+          <AnimatedNumber value={recap.foodSpots.count} />
+        </div>
+        <p className="text-2xl font-heading text-white mt-1 mb-2">quán mới khám phá</p>
+      </div>
+    ),
+  });
+
+  // ── Love letters ──
+  if (totalLetters > 0) slides.push({
+    id: 'letters',
+    bg: 'linear-gradient(160deg, #f9a8d4 0%, #ec4899 50%, #be185d 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <div className="text-6xl mb-4">💌</div>
+        <div className="text-8xl font-heading font-bold text-white">
+          <AnimatedNumber value={totalLetters} />
+        </div>
+        <p className="text-2xl font-heading text-white mt-1 mb-2">thư tình</p>
+        <p className="text-white/70 text-base">{recap.loveLetters.sent} gửi · {recap.loveLetters.received} nhận</p>
+      </div>
+    ),
+  });
+
+  // ── Date plans ──
+  if (recap.datePlans.count > 0) slides.push({
+    id: 'dates',
+    bg: 'linear-gradient(160deg, #67e8f9 0%, #06b6d4 50%, #0284c7 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <div className="text-6xl mb-4">🌹</div>
+        <div className="text-8xl font-heading font-bold text-white">
+          <AnimatedNumber value={recap.datePlans.count} />
+        </div>
+        <p className="text-2xl font-heading text-white mt-1 mb-2">buổi hẹn hò</p>
+      </div>
+    ),
+  });
+
+  // ── Goals ──
+  if (recap.goalsCompleted > 0) slides.push({
+    id: 'goals',
+    bg: 'linear-gradient(160deg, #fde68a 0%, #fbbf24 50%, #d97706 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <div className="text-6xl mb-4">🎯</div>
+        <div className="text-8xl font-heading font-bold text-white">
+          <AnimatedNumber value={recap.goalsCompleted} />
+        </div>
+        <p className="text-2xl font-heading text-white mt-1 mb-2">mục tiêu hoàn thành</p>
+      </div>
+    ),
+  });
+
+  // ── Outro ──
+  slides.push({
+    id: 'outro',
+    bg: 'linear-gradient(160deg, #f9a8d4 0%, #fb7185 50%, #f97316 100%)',
+    node: (
+      <div className="flex flex-col items-center justify-center h-full text-center px-8">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          className="text-8xl mb-6"
+        >🎉</motion.div>
+        <motion.h2
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="text-3xl font-heading font-bold text-white mb-3"
+        >Tháng này thật tuyệt!</motion.h2>
+        <motion.p
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-white/80 text-base"
+        >Cảm ơn vì đã cùng nhau trải qua những khoảnh khắc đẹp 💕</motion.p>
+      </div>
+    ),
+  });
+
+  return slides;
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────
+
+export default function MonthlyRecapPage() {
+  const navigate = useNavigate();
+  const [month, setMonth] = useState(previousMonthStr);
+  const isCurrentMonth = month >= currentMonthStr();
+
+  const { data: recap, isLoading } = useQuery({
+    queryKey: ['recap', 'monthly', month],
+    queryFn: () => recapApi.monthly(month),
+  });
+
+  const slides = useMemo(
+    () => (recap ? buildSlides(recap, month) : []),
+    [recap, month],
+  );
+
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progressAnimKey = useRef(0);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHoldRef = useRef(false);
+
+  const advance = useCallback(() => {
+    setCurrentIdx((i) => {
+      if (i >= slides.length - 1) { navigate(-1); return i; }
+      progressAnimKey.current++;
+      return i + 1;
+    });
+  }, [slides.length, navigate]);
+
+  const retreat = useCallback(() => {
+    setCurrentIdx((i) => {
+      if (i <= 0) return 0;
+      progressAnimKey.current++;
+      return i - 1;
+    });
+  }, []);
+
+  // Auto-advance
+  useEffect(() => {
+    if (isPaused || slides.length === 0 || currentIdx >= slides.length - 1) return;
+    autoAdvanceRef.current = setTimeout(advance, SLIDE_DURATION);
+    return () => { if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current); };
+  }, [currentIdx, isPaused, slides.length, advance]);
+
+  // Reset on month change
+  useEffect(() => {
+    setCurrentIdx(0);
+    progressAnimKey.current = 0;
+  }, [month]);
+
+  const onPointerDown = () => {
+    isHoldRef.current = false;
+    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+    holdTimerRef.current = setTimeout(() => {
+      isHoldRef.current = true;
+      setIsPaused(true);
+    }, HOLD_THRESHOLD);
+  };
+
+  const onPointerUp = (action: 'prev' | 'next') => {
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    setIsPaused(false);
+    if (!isHoldRef.current) {
+      if (action === 'prev') retreat();
+      else advance();
+    }
+  };
+
+  const onPointerLeave = () => {
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    setIsPaused(false);
+    isHoldRef.current = false;
+  };
+
+  const isEmpty = recap &&
     recap.moments.count === 0 &&
     recap.cooking.count === 0 &&
     recap.foodSpots.count === 0 &&
@@ -110,129 +317,147 @@ export default function MonthlyRecapPage() {
     recap.loveLetters.sent + recap.loveLetters.received === 0 &&
     recap.goalsCompleted === 0;
 
-  const totalLetters = recap ? recap.loveLetters.sent + recap.loveLetters.received : 0;
+  const MonthNav = () => (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={() => setMonth((m) => offsetMonth(m, -1))}
+        className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 active:bg-white/35"
+      >
+        <ChevronLeft className="w-5 h-5 text-white" />
+      </button>
+      <span className="text-xs text-white/70 min-w-[70px] text-center">{formatMonthDisplay(month)}</span>
+      <button
+        onClick={() => { if (!isCurrentMonth) setMonth((m) => offsetMonth(m, 1)); }}
+        disabled={isCurrentMonth}
+        className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 disabled:opacity-30 active:bg-white/35"
+      >
+        <ChevronRight className="w-5 h-5 text-white" />
+      </button>
+    </div>
+  );
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-heading font-bold text-gray-900 mb-3">Tháng của chúng mình 📅</h1>
-        <div data-tour="month-nav" className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setCurrentMonth((m) => offsetMonth(m, -1))}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
-          </button>
-          <div className="flex-1 text-center">
-            <p className="text-sm font-semibold text-gray-800">{formatMonthDisplay(currentMonth)}</p>
-            <p className="text-xs text-text-light">{currentMonth}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setCurrentMonth((m) => offsetMonth(m, 1))}
-            disabled={isCurrentMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 disabled:opacity-30 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          </button>
-        </div>
-      </div>
+    <div className="fixed inset-0 z-[70]" style={{ background: '#000' }}>
 
-      {/* Loading */}
+      {/* ── Loading ─────────────────────────────────────────────────────── */}
       {isLoading && (
-        <div className="grid grid-cols-2 gap-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-28 bg-white rounded-2xl shadow-sm animate-pulse" />
-          ))}
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ background: 'linear-gradient(160deg, #f9a8d4, #fb7185, #f97316)' }}
+        >
+          <div className="w-10 h-10 border-[3px] border-white border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      {/* Empty state */}
+      {/* ── Empty state ──────────────────────────────────────────────────── */}
       {!isLoading && isEmpty && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-20 text-center"
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center text-center"
+          style={{ background: 'linear-gradient(160deg, #9ca3af, #6b7280)' }}
         >
-          <div className="text-6xl mb-4">💤</div>
-          <p className="font-semibold text-gray-700">Tháng này chưa có hoạt động nào</p>
-          <p className="text-sm text-text-light mt-1">Hãy tạo kỷ niệm mới nhé! 💕</p>
-        </motion.div>
+          <button onClick={() => navigate(-1)} className="absolute top-4 right-4 p-2 text-white/70">
+            <X className="w-6 h-6" />
+          </button>
+          <div className="text-7xl mb-4">💤</div>
+          <p className="text-2xl font-heading font-bold text-white mb-2">Tháng này chưa có gì cả</p>
+          <p className="text-white/70 text-sm mb-8">Hãy tạo kỷ niệm mới nhé!</p>
+          <MonthNav />
+        </div>
       )}
 
-      {/* Stats grid */}
-      {!isLoading && recap && !isEmpty && (
+      {/* ── Stories viewer ───────────────────────────────────────────────── */}
+      {!isLoading && !isEmpty && slides.length > 0 && (
         <>
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <StatCard icon={Camera}        label="Kỷ niệm"  value={recap.moments.count}    sub={recap.moments.photoCount > 0 ? `${recap.moments.photoCount} ảnh` : undefined}                                         index={0} />
-            <StatCard icon={UtensilsCrossed} label="Nấu ăn" value={recap.cooking.count}   sub={recap.cooking.totalTimeMs > 0 ? formatTime(recap.cooking.totalTimeMs) : undefined}                                     index={1} />
-            <StatCard icon={Utensils}      label="Quán mới" value={recap.foodSpots.count}                                                                                                                               index={2} />
-            <StatCard icon={Mail}          label="Thư tình" value={totalLetters}           sub={totalLetters > 0 ? `${recap.loveLetters.sent} gửi · ${recap.loveLetters.received} nhận` : undefined}                 index={3} />
-            <StatCard icon={CalendarHeart} label="Hẹn hò"   value={recap.datePlans.count}                                                                                                                              index={4} />
-            <StatCard icon={Target}        label="Mục tiêu" value={recap.goalsCompleted}                                                                                                                               index={5} />
+          {/* Gradient background (animated between slides) */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={slides[currentIdx]?.id + '-bg'}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ background: slides[currentIdx]?.bg }}
+            />
+          </AnimatePresence>
+
+          {/* Progress bars */}
+          <div
+            className="absolute left-0 right-0 z-[73] flex gap-1 px-4"
+            style={{ top: 'max(12px, env(safe-area-inset-top))' }}
+          >
+            {slides.map((s, i) => (
+              <div key={s.id} className="flex-1 h-[3px] rounded-full bg-white/30 overflow-hidden">
+                {i < currentIdx ? (
+                  <div className="h-full w-full bg-white" />
+                ) : i === currentIdx ? (
+                  <div
+                    key={`prog-${progressAnimKey.current}`}
+                    className="h-full bg-white"
+                    style={!isPaused ? {
+                      animation: `progressFill ${SLIDE_DURATION}ms linear forwards`,
+                    } : { width: '0%' }}
+                  />
+                ) : (
+                  <div className="h-full w-0 bg-white" />
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* Moment highlights */}
-          {recap.moments.highlights.length > 0 && (
-            <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.4 } }} className="mb-6">
-              <h2 className="font-heading text-base font-semibold text-gray-900 mb-3">Khoảnh khắc nổi bật</h2>
-              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-                {recap.moments.highlights.map((h) => (
-                  <Link
-                    key={h.id}
-                    to={`/moments/${h.id}`}
-                    className="flex-shrink-0 w-36 bg-white rounded-2xl shadow-sm overflow-hidden active:scale-95 transition-transform"
-                  >
-                    <img src={h.photoUrl} alt={h.title} className="w-full h-24 object-cover" />
-                    <div className="p-2">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{h.title}</p>
-                      <p className="text-xs text-text-light">
-                        {new Date(h.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </motion.section>
-          )}
+          {/* Top bar: month label + close */}
+          <div
+            className="absolute left-0 right-0 z-[73] flex items-center justify-between px-4"
+            style={{ top: 'max(28px, calc(env(safe-area-inset-top) + 16px))' }}
+          >
+            <p className="text-sm font-semibold text-white drop-shadow-sm">{formatMonthDisplay(month)}</p>
+            <button onClick={() => navigate(-1)} className="p-1">
+              <X className="w-5 h-5 text-white drop-shadow-sm" />
+            </button>
+          </div>
 
-          {/* Achievements */}
-          {recap.achievementsUnlocked.length > 0 && (
-            <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.5 } }} className="mb-6">
-              <h2 className="font-heading text-base font-semibold text-gray-900 mb-3">Thành tích mới 🏆</h2>
-              <div className="bg-white rounded-2xl shadow-sm divide-y divide-border">
-                {recap.achievementsUnlocked.map((name, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-3">
-                    <Trophy className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-                    <span className="text-sm font-medium text-gray-800">{name}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.section>
-          )}
+          {/* Slide content */}
+          <div className="absolute inset-0 z-[71]" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={slides[currentIdx]?.id}
+                className="h-full flex flex-col"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.04 }}
+                transition={{ duration: 0.2 }}
+              >
+                {slides[currentIdx]?.node}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-          {/* Cooking detail */}
-          {recap.cooking.count > 0 && (recap.cooking.recipes.length > 0 || recap.cooking.totalTimeMs > 0) && (
-            <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.55 } }} className="mb-6">
-              <h2 className="font-heading text-base font-semibold text-gray-900 mb-3">Chi tiết nấu ăn 🍳</h2>
-              <div className="bg-white rounded-2xl shadow-sm p-4 space-y-2">
-                {recap.cooking.recipes.length > 0 && (
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium text-text-light">Đã nấu:</span>{' '}
-                    {recap.cooking.recipes.join(', ')}
-                  </p>
-                )}
-                {recap.cooking.totalTimeMs > 0 && (
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium text-text-light">Tổng thời gian:</span>{' '}
-                    {formatTime(recap.cooking.totalTimeMs)}
-                  </p>
-                )}
-              </div>
-            </motion.section>
-          )}
+          {/* Bottom: month navigation */}
+          <div
+            className="absolute left-0 right-0 z-[73] flex items-center justify-center"
+            style={{ bottom: 'max(24px, env(safe-area-inset-bottom))' }}
+          >
+            <MonthNav />
+          </div>
+
+          {/* Tap zones (above content, below top/bottom controls) */}
+          <div
+            className="absolute left-0 right-0 z-[72] flex"
+            style={{ top: '5rem', bottom: '5rem' }}
+          >
+            <button
+              className="w-[35%] h-full"
+              onPointerDown={onPointerDown}
+              onPointerUp={() => onPointerUp('prev')}
+              onPointerLeave={onPointerLeave}
+            />
+            <button
+              className="w-[65%] h-full"
+              onPointerDown={onPointerDown}
+              onPointerUp={() => onPointerUp('next')}
+              onPointerLeave={onPointerLeave}
+            />
+          </div>
         </>
       )}
     </div>
