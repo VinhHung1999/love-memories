@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Modal from '../components/Modal';
 import { expensesApi } from '../lib/api';
 import type { Expense, ExpenseCategory } from '../types';
@@ -157,6 +158,8 @@ export default function ExpensesPage() {
       qc.invalidateQueries({ queryKey: ['expenses', month] });
       qc.invalidateQueries({ queryKey: ['expenses-stats', month] });
       setModalOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message || 'Không thể lưu chi tiêu');
     } finally {
       setSaving(false);
     }
