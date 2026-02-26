@@ -62,7 +62,7 @@ function PhotoSlideshow({ photos }: { photos: string[] }) {
   if (photos.length === 0) return null;
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <AnimatePresence mode="wait">
         <motion.img
           key={photos[idx]}
@@ -122,10 +122,10 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
       id: 'moments',
       bg: 'linear-gradient(160deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)',
       node: (
-        <div className="relative h-full">
+        <div className="relative flex-1 min-h-0">
           <PhotoSlideshow photos={momentPhotos} />
           {momentPhotos.length > 0 && (
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
           )}
           <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
             <div className="text-6xl mb-4">📸</div>
@@ -150,10 +150,10 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
     id: 'cooking',
     bg: 'linear-gradient(160deg, #fb923c 0%, #f97316 50%, #ea580c 100%)',
     node: (
-      <div className="relative h-full">
+      <div className="relative flex-1 min-h-0">
         <PhotoSlideshow photos={recap.cooking.photos} />
         {recap.cooking.photos.length > 0 && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
         )}
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
           <div className="text-6xl mb-4">🍳</div>
@@ -177,10 +177,10 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
     id: 'foodspots',
     bg: 'linear-gradient(160deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
     node: (
-      <div className="relative h-full">
+      <div className="relative flex-1 min-h-0">
         <PhotoSlideshow photos={recap.foodSpots.photos} />
         {recap.foodSpots.photos.length > 0 && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
         )}
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
           <div className="text-6xl mb-4">🍜</div>
@@ -363,7 +363,7 @@ export default function MonthlyRecapPage() {
     recap.goalsCompleted === 0;
 
   return (
-    <div className="fixed inset-0 z-[70]" style={{ background: '#000' }}>
+    <div className="fixed inset-0 z-[70] overflow-hidden" style={{ background: '#000' }}>
 
       {/* ── Loading ─────────────────────────────────────────────────────── */}
       {isLoading && (
@@ -412,7 +412,7 @@ export default function MonthlyRecapPage() {
             style={{ top: 'max(12px, env(safe-area-inset-top))' }}
           >
             {slides.map((s, i) => (
-              <div key={s.id} className="flex-1 h-[3px] rounded-full bg-white/30 overflow-hidden">
+              <div key={s.id} className="flex-1 h-1 rounded-full bg-white/30 overflow-hidden">
                 {i < currentIdx ? (
                   <div className="h-full w-full bg-white" />
                 ) : i === currentIdx ? (
