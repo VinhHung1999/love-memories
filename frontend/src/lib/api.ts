@@ -243,6 +243,7 @@ type PlanStopInput = {
   notes?: string;
   order: number;
   wishId?: string;
+  cost?: number | null;
 };
 
 // Date Plans
@@ -265,6 +266,8 @@ export const datePlansApi = {
     request(`/date-plans/${planId}/stops/${stopId}/spots`, { method: 'POST', body: JSON.stringify(data) }),
   deleteSpot: (planId: string, stopId: string, spotId: string) =>
     request(`/date-plans/${planId}/stops/${stopId}/spots/${spotId}`, { method: 'DELETE' }),
+  updateStopCost: (planId: string, stopId: string, cost: number | null) =>
+    request(`/date-plans/${planId}/stops/${stopId}/cost`, { method: 'PUT', body: JSON.stringify({ cost }) }),
   delete: (id: string) => request(`/date-plans/${id}`, { method: 'DELETE' }),
 };
 

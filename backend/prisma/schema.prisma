@@ -402,6 +402,7 @@ model DatePlanStop {
   wishId          String?
   linkedMomentId  String?
   linkedFoodSpotId String?
+  cost        Float?
   createdAt   DateTime       @default(now())
   spots       DatePlanSpot[]
 

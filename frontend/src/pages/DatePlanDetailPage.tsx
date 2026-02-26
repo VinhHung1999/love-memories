@@ -53,10 +53,16 @@ const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
+function formatVND(amount: number) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
+
 export default function DatePlanDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const [costDraft, setCostDraft] = useState<Record<string, string>>({});
 
   const { data: plan, isLoading } = useQuery<DatePlan>({
     queryKey: ['date-plans', id],
@@ -117,6 +123,24 @@ export default function DatePlanDetailPage() {
     },
     onError: () => toast.error('Không thể link Moment'),
   });
+
+  const updateStopCostMutation = useMutation({
+    mutationFn: ({ stopId, cost }: { stopId: string; cost: number | null }) =>
+      datePlansApi.updateStopCost(id!, stopId, cost),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['date-plans', id] });
+    },
+    onError: () => toast.error('Không thể lưu chi phí'),
+  });
+
+  function saveCost(stopId: string, currentCost: number | null) {
+    const raw = costDraft[stopId];
+    if (raw === undefined) return; // not edited
+    const val = raw.trim() === '' ? null : parseFloat(raw);
+    if (val !== null && isNaN(val)) return;
+    if (val === currentCost) return; // no change
+    updateStopCostMutation.mutate({ stopId, cost: val });
+  }
 
   const [showEdit, setShowEdit] = useState(false);
   const [selectedStopForMoment, setSelectedStopForMoment] = useState<string | null>(null);
@@ -278,7 +302,7 @@ export default function DatePlanDetailPage() {
               <div key={stop.id} className="py-2">
                 <div className="flex items-start gap-3">
                   <span className="text-xs font-bold text-primary flex-shrink-0 w-10 pt-0.5">{stop.time}</span>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-text">{stop.title}</p>
                     {stop.address && (
                       <p className="text-xs text-text-light flex items-center gap-1 mt-0.5">
@@ -298,6 +322,24 @@ export default function DatePlanDetailPage() {
                         />
                       </div>
                     )}
+                    {/* Cost input */}
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="text-xs">💰</span>
+                      <input
+                        type="number"
+                        placeholder="Chi phí"
+                        value={costDraft[stop.id] ?? (stop.cost != null ? String(stop.cost) : '')}
+                        onChange={(e) => setCostDraft((prev) => ({ ...prev, [stop.id]: e.target.value }))}
+                        onBlur={() => saveCost(stop.id, stop.cost)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                        className="w-28 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40"
+                        style={{ fontSize: '14px' }}
+                      />
+                      <span className="text-xs text-text-light">₫</span>
+                      {stop.cost != null && (
+                        <span className="text-xs text-primary font-medium">{formatVND(stop.cost)}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -367,6 +409,25 @@ export default function DatePlanDetailPage() {
                         {stop.description && (
                           <p className="text-xs text-text-light mt-0.5 line-clamp-2">{stop.description}</p>
                         )}
+
+                        {/* Cost input */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span className="text-xs">💰</span>
+                          <input
+                            type="number"
+                            placeholder="Chi phí"
+                            value={costDraft[stop.id] ?? (stop.cost != null ? String(stop.cost) : '')}
+                            onChange={(e) => setCostDraft((prev) => ({ ...prev, [stop.id]: e.target.value }))}
+                            onBlur={() => saveCost(stop.id, stop.cost)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                            className="w-28 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40"
+                            style={{ fontSize: '14px' }}
+                          />
+                          <span className="text-xs text-text-light">₫</span>
+                          {stop.cost != null && (
+                            <span className="text-xs text-primary font-medium">{formatVND(stop.cost)}</span>
+                          )}
+                        </div>
 
                         {/* Sub-spots */}
                         {stop.spots.length > 0 && (
@@ -447,6 +508,34 @@ export default function DatePlanDetailPage() {
           </div>
         )
       )}
+
+      {/* Total cost — shown when stops exist */}
+      {stops.length > 0 && (() => {
+        const total = stops.reduce((sum, s) => sum + (s.cost ?? 0), 0);
+        return (
+          <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">💰</span>
+                <p className="font-semibold text-text">Tổng chi phí</p>
+              </div>
+              <p className={`font-bold text-lg ${total > 0 ? 'text-primary' : 'text-text-light'}`}>
+                {total > 0 ? formatVND(total) : '—'}
+              </p>
+            </div>
+            {stops.some((s) => s.cost != null) && (
+              <div className="mt-2 pt-2 border-t border-gray-50 space-y-1">
+                {stops.filter((s) => s.cost != null).map((s) => (
+                  <div key={s.id} className="flex justify-between text-xs text-text-light">
+                    <span className="truncate mr-2">{s.title}</span>
+                    <span className="flex-shrink-0">{formatVND(s.cost!)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Celebration card — completed only */}
       {plan.status === 'completed' && (

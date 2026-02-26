@@ -89,6 +89,7 @@ type StopInput = {
   notes?: string;
   order: number;
   wishId?: string;
+  cost?: number | null;
 };
 
 // POST / — create plan + stops
@@ -124,6 +125,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
               notes: s.notes ?? null,
               order: s.order,
               wishId: s.wishId ?? null,
+              cost: s.cost ?? null,
             })),
           },
         },
@@ -185,6 +187,7 @@ router.put('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
             notes: s.notes ?? null,
             order: s.order,
             wishId: s.wishId ?? null,
+            cost: s.cost ?? null,
           };
           if (s.id) {
             await tx.datePlanStop.update({
@@ -252,6 +255,20 @@ router.put('/:id/stops/:stopId/foodspot', async (req: AuthRequest & { params: Pl
     res.json(stop);
   } catch {
     res.status(500).json({ error: 'Failed to link food spot to stop' });
+  }
+});
+
+// PUT /:id/stops/:stopId/cost — update cost for a stop
+router.put('/:id/stops/:stopId/cost', async (req: AuthRequest & { params: PlanStopParam }, res: Response) => {
+  try {
+    const { cost } = req.body as { cost: number | null };
+    const stop = await prisma.datePlanStop.update({
+      where: { id: req.params.stopId },
+      data: { cost: cost ?? null },
+    });
+    res.json(stop);
+  } catch {
+    res.status(500).json({ error: 'Failed to update stop cost' });
   }
 });
 
