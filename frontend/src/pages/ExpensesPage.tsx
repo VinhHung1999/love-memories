@@ -63,10 +63,11 @@ function monthLabel(m: string) {
 const TOUR_STEPS = [
   { element: '[data-tour="expenses-month-nav"]', popover: { title: 'Điều hướng tháng', description: 'Dùng mũi tên để xem chi tiêu tháng trước hoặc tháng sau.' } },
   { element: '[data-tour="expenses-summary"]', popover: { title: 'Tổng chi tiêu', description: 'Xem tổng số tiền và số lần chi tiêu trong tháng.' } },
-  { element: '[data-tour="expenses-chart"]', popover: { title: 'Biểu đồ chi tiêu', description: 'Chi tiêu theo ngày, phân theo danh mục màu sắc. Nhấn vào cột để lọc theo ngày đó.' } },
-  { element: '[data-tour="expenses-category-filter"]', popover: { title: 'Lọc theo danh mục', description: 'Chọn danh mục để lọc chi tiêu. Biểu tượng ⚠️ báo vượt ngân sách.' } },
-  { element: '[data-tour="expenses-list"]', popover: { title: 'Danh sách chi tiêu', description: 'Các khoản chi tiêu được nhóm theo ngày. Nhấn vào để sửa hoặc xoá.' } },
-  { element: '[data-tour="expenses-fab"]', popover: { title: 'Thêm chi tiêu', description: 'Nhấn để ghi lại khoản chi tiêu mới. Hỗ trợ quét hoá đơn bằng AI!' } },
+  { element: '[data-tour="expenses-chart"]', popover: { title: 'Biểu đồ theo ngày', description: 'Chi tiêu theo ngày, phân màu theo danh mục. Nhấn vào cột để lọc ngày đó.' } },
+  { element: '[data-tour="expenses-settings"]', popover: { title: 'Ngân sách tháng ⚙️', description: 'Đặt giới hạn chi tiêu cho từng danh mục. Khi vượt ngân sách, chip sẽ đổi đỏ và hiển thị ⚠️.' } },
+  { element: '[data-tour="expenses-category-filter"]', popover: { title: 'Lọc theo danh mục', description: 'Chọn danh mục để lọc chi tiêu. ⚠️ báo vượt ngân sách, số % cho biết đã tiêu bao nhiêu.' } },
+  { element: '[data-tour="expenses-list"]', popover: { title: 'Danh sách chi tiêu', description: 'Các khoản chi tiêu nhóm theo ngày. Nhấn vào để sửa hoặc xoá.' } },
+  { element: '[data-tour="expenses-fab"]', popover: { title: 'Thêm chi tiêu', description: 'Nhấn để ghi chi tiêu mới. Hỗ trợ chụp hoá đơn — AI tự điền số tiền, mô tả, danh mục!' } },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -212,6 +213,7 @@ export default function ExpensesPage() {
           <p className="text-sm text-gray-500 mt-1">Theo dõi chi tiêu của hai bạn</p>
         </div>
         <button
+          data-tour="expenses-settings"
           onClick={openLimits}
           className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
           title="Ngân sách"

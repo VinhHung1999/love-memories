@@ -1044,7 +1044,7 @@ function CompletedPhase({ session }: { session: CookingSession }) {
       )}
 
       {/* Star rating */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm mb-5">
+      <div data-tour="what-to-eat-rating" className="bg-white rounded-2xl p-4 shadow-sm mb-5">
         <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-3 text-center">
           Đánh giá buổi nấu ăn
         </p>

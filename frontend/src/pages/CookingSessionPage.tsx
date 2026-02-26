@@ -25,6 +25,7 @@ export default function CookingSessionPage() {
 
   useModuleTour('what-to-eat', [
     { element: '[data-tour="pick-recipe"]', popover: { title: '🍳 Chọn món', description: 'Chọn công thức để bắt đầu nấu cùng nhau.', side: 'bottom' } },
+    { element: '[data-tour="what-to-eat-rating"]', popover: { title: '⭐ Đánh giá buổi nấu', description: 'Sau khi hoàn thành, hãy cho 1–5 sao để ghi lại trải nghiệm. Điểm trung bình hiển thị trong lịch sử nấu ăn.' } },
   ]);
 
   const { data: recipes = [], isLoading: recipesLoading } = useQuery({
