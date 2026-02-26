@@ -303,7 +303,7 @@ router.get('/monthly/caption', async (req: AuthRequest, res: Response) => {
     ]);
 
     if (momentCount + cookingCount + foodSpotCount + letterCount + goalCount === 0) {
-      res.json({ caption: null });
+      res.json({ intro: null, outro: null });
       return;
     }
 
@@ -333,22 +333,33 @@ router.get('/monthly/caption', async (req: AuthRequest, res: Response) => {
       messages: [
         {
           role: 'system',
-          content: 'Bạn là trợ lý viết lời bình cho recap tháng của một cặp đôi. Viết ngắn gọn, dễ thương, tiếng Việt, tối đa 2 câu. Dùng emoji phù hợp. Giọng văn ấm áp, lãng mạn nhưng không sến.',
+          content: 'Bạn là trợ lý viết lời bình cho recap tháng của một cặp đôi. Viết tiếng Việt, dùng emoji phù hợp. Giọng văn ấm áp, lãng mạn nhưng không sến. Trả về JSON với 2 trường: intro (1 câu mở đầu ngắn gọn) và outro (1-2 câu kết thúc, cảm ơn, động viên).',
         },
         {
           role: 'user',
-          content: `Dựa vào hoạt động tháng này, viết 1 câu caption ngắn gọn dễ thương:\n\n${summary}`,
+          content: `Dựa vào hoạt động tháng này, viết lời bình:\n\n${summary}\n\nTrả về JSON: {"intro": "...", "outro": "..."}`,
         },
       ],
       temperature: 0.7,
-      max_tokens: 150,
+      max_tokens: 200,
     });
 
-    const caption = completion.choices[0]?.message?.content?.trim() || null;
-    res.json({ caption });
+    let intro: string | null = null;
+    let outro: string | null = null;
+    try {
+      const raw = completion.choices[0]?.message?.content?.trim() || '';
+      // Strip markdown code fences if model wraps output in ```json ... ```
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      const parsed = JSON.parse(cleaned) as { intro?: string; outro?: string };
+      intro = parsed.intro?.trim() || null;
+      outro = parsed.outro?.trim() || null;
+    } catch {
+      // JSON parse failed — leave both null
+    }
+    res.json({ intro, outro });
   } catch (err) {
     console.error('[recap] caption error:', err);
-    res.json({ caption: null });
+    res.json({ intro: null, outro: null });
   }
 });
 

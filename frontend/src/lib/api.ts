@@ -281,5 +281,5 @@ export const recapApi = {
   monthly: (month?: string) =>
     request<MonthlyRecap>(`/recap/monthly${month ? `?month=${month}` : ''}`),
   monthlyCaption: (month?: string) =>
-    request<{ caption: string | null }>(`/recap/monthly/caption${month ? `?month=${month}` : ''}`),
+    request<{ intro: string | null; outro: string | null }>(`/recap/monthly/caption${month ? `?month=${month}` : ''}`),
 };

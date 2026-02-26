@@ -91,7 +91,7 @@ function PhotoStrip({ photos }: { photos: string[] }) {
 
 type Slide = { id: string; bg: string; node: React.ReactNode };
 
-function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null): Slide[] {
+function buildSlides(recap: MonthlyRecap, month: string, intro?: string | null, outro?: string | null): Slide[] {
   const slides: Slide[] = [];
   const totalLetters = recap.loveLetters.sent + recap.loveLetters.received;
 
@@ -118,7 +118,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
           className="text-white/80 text-lg"
-        >{caption || 'Hành trình của chúng mình 💕'}</motion.p>
+        >{intro || 'Hành trình của chúng mình 💕'}</motion.p>
       </div>
     ),
   });
@@ -273,7 +273,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
           className="text-white/80 text-base"
-        >Cảm ơn vì đã cùng nhau trải qua những khoảnh khắc đẹp 💕</motion.p>
+        >{outro || 'Cảm ơn vì đã cùng nhau trải qua những khoảnh khắc đẹp 💕'}</motion.p>
       </div>
     ),
   });
@@ -304,7 +304,7 @@ export default function MonthlyRecapPage() {
   });
 
   const slides = useMemo(
-    () => (recap ? buildSlides(recap, month, captionData?.caption) : []),
+    () => (recap ? buildSlides(recap, month, captionData?.intro, captionData?.outro) : []),
     [recap, month, captionData],
   );
 
