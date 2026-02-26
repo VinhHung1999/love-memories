@@ -5,8 +5,9 @@ import { ArrowLeft, MapPin, CheckCircle2, Circle, Navigation, Trash2, Check, Pen
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
-import { datePlansApi, momentsApi, foodSpotsApi } from '../lib/api';
-import type { DatePlan, DatePlanStop, Moment, FoodSpot } from '../types';
+import { datePlansApi, momentsApi, foodSpotsApi, expensesApi } from '../lib/api';
+import type { DatePlan, DatePlanStop, Moment, FoodSpot, Expense, ExpenseCategory } from '../types';
+import AddExpenseModal, { type AddExpenseDefaults } from '../components/AddExpenseModal';
 import CreateMomentModal from '../components/CreateMomentModal';
 import CreateFoodSpotModal from '../components/CreateFoodSpotModal';
 import { ActionLink, ActionPill, DirectionsLink } from '../components/ActionButtons';
@@ -62,7 +63,8 @@ export default function DatePlanDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [costDraft, setCostDraft] = useState<Record<string, string>>({});
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
+  const [expenseStopDefaults, setExpenseStopDefaults] = useState<AddExpenseDefaults | undefined>();
 
   const { data: plan, isLoading } = useQuery<DatePlan>({
     queryKey: ['date-plans', id],
@@ -83,6 +85,12 @@ export default function DatePlanDetailPage() {
     queryKey: ['foodspots'],
     queryFn: foodSpotsApi.list,
     enabled: isCompleted,
+    staleTime: 30_000,
+  });
+
+  const { data: planExpenses = [] } = useQuery<Expense[]>({
+    queryKey: ['expenses-plan', id],
+    queryFn: () => expensesApi.listByPlan(id!),
     staleTime: 30_000,
   });
 
@@ -124,22 +132,13 @@ export default function DatePlanDetailPage() {
     onError: () => toast.error('Không thể link Moment'),
   });
 
-  const updateStopCostMutation = useMutation({
-    mutationFn: ({ stopId, cost }: { stopId: string; cost: number | null }) =>
-      datePlansApi.updateStopCost(id!, stopId, cost),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['date-plans', id] });
-    },
-    onError: () => toast.error('Không thể lưu chi phí'),
-  });
-
-  function saveCost(stopId: string, currentCost: number | null) {
-    const raw = costDraft[stopId];
-    if (raw === undefined) return; // not edited
-    const val = raw.trim() === '' ? null : parseFloat(raw);
-    if (val !== null && isNaN(val)) return;
-    if (val === currentCost) return; // no change
-    updateStopCostMutation.mutate({ stopId, cost: val });
+  function openExpenseForStop(stop: DatePlanStop) {
+    setExpenseStopDefaults({
+      description: stop.title,
+      category: 'dating' as ExpenseCategory,
+      datePlanId: id,
+    });
+    setExpenseModalOpen(true);
   }
 
   const [showEdit, setShowEdit] = useState(false);
@@ -322,24 +321,13 @@ export default function DatePlanDetailPage() {
                         />
                       </div>
                     )}
-                    {/* Cost input */}
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className="text-xs">💰</span>
-                      <input
-                        type="number"
-                        placeholder="Chi phí"
-                        value={costDraft[stop.id] ?? (stop.cost != null ? String(stop.cost) : '')}
-                        onChange={(e) => setCostDraft((prev) => ({ ...prev, [stop.id]: e.target.value }))}
-                        onBlur={() => saveCost(stop.id, stop.cost)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                        className="w-28 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40"
-                        style={{ fontSize: '16px' }}
-                      />
-                      <span className="text-xs text-text-light">₫</span>
-                      {stop.cost != null && (
-                        <span className="text-xs text-primary font-medium">{formatVND(stop.cost)}</span>
-                      )}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openExpenseForStop(stop)}
+                      className="mt-1.5 flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      💰 Thêm chi tiêu
+                    </button>
                   </div>
                 </div>
               </div>
@@ -410,25 +398,6 @@ export default function DatePlanDetailPage() {
                           <p className="text-xs text-text-light mt-0.5 line-clamp-2">{stop.description}</p>
                         )}
 
-                        {/* Cost input */}
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <span className="text-xs">💰</span>
-                          <input
-                            type="number"
-                            placeholder="Chi phí"
-                            value={costDraft[stop.id] ?? (stop.cost != null ? String(stop.cost) : '')}
-                            onChange={(e) => setCostDraft((prev) => ({ ...prev, [stop.id]: e.target.value }))}
-                            onBlur={() => saveCost(stop.id, stop.cost)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                            className="w-28 text-xs px-2 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/40"
-                            style={{ fontSize: '16px' }}
-                          />
-                          <span className="text-xs text-text-light">₫</span>
-                          {stop.cost != null && (
-                            <span className="text-xs text-primary font-medium">{formatVND(stop.cost)}</span>
-                          )}
-                        </div>
-
                         {/* Sub-spots */}
                         {stop.spots.length > 0 && (
                           <ul className="mt-1.5 space-y-1">
@@ -484,6 +453,7 @@ export default function DatePlanDetailPage() {
                           ) : !isDone ? (
                             <ActionLink onClick={() => setSelectedStopForFoodSpot(stop.id)} label="🍽️ Thêm quán" color="secondary" />
                           ) : null}
+                          <ActionLink onClick={() => openExpenseForStop(stop)} label="💰 Thêm chi tiêu" color="primary" />
                           {!isDone && (
                             <ActionPill
                               onClick={() => stopDoneMutation.mutate({ stopId: stop.id })}
@@ -509,12 +479,12 @@ export default function DatePlanDetailPage() {
         )
       )}
 
-      {/* Total cost — shown when stops exist */}
+      {/* Total cost — linked expenses for this date plan */}
       {stops.length > 0 && (() => {
-        const total = stops.reduce((sum, s) => sum + (s.cost ?? 0), 0);
+        const total = planExpenses.reduce((sum, e) => sum + e.amount, 0);
         return (
           <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-lg">💰</span>
                 <p className="font-semibold text-text">Tổng chi phí</p>
@@ -523,15 +493,17 @@ export default function DatePlanDetailPage() {
                 {total > 0 ? formatVND(total) : '—'}
               </p>
             </div>
-            {stops.some((s) => s.cost != null) && (
-              <div className="mt-2 pt-2 border-t border-gray-50 space-y-1">
-                {stops.filter((s) => s.cost != null).map((s) => (
-                  <div key={s.id} className="flex justify-between text-xs text-text-light">
-                    <span className="truncate mr-2">{s.title}</span>
-                    <span className="flex-shrink-0">{formatVND(s.cost!)}</span>
+            {planExpenses.length > 0 ? (
+              <div className="pt-2 border-t border-gray-50 space-y-1.5">
+                {planExpenses.map((e) => (
+                  <div key={e.id} className="flex justify-between text-xs text-text-light">
+                    <span className="truncate mr-2">{e.description}</span>
+                    <span className="flex-shrink-0 font-medium text-text">{formatVND(e.amount)}</span>
                   </div>
                 ))}
               </div>
+            ) : (
+              <p className="text-xs text-text-light">Chưa có chi tiêu nào</p>
             )}
           </div>
         );
@@ -599,6 +571,14 @@ export default function DatePlanDetailPage() {
         open={showEdit}
         plan={showEdit ? plan : null}
         onClose={() => setShowEdit(false)}
+      />
+
+      {/* Add expense modal — pre-filled from selected stop */}
+      <AddExpenseModal
+        open={expenseModalOpen}
+        onClose={() => setExpenseModalOpen(false)}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ['expenses-plan', id] })}
+        defaults={expenseStopDefaults}
       />
     </div>
   );

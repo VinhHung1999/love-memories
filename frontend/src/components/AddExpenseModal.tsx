@@ -23,6 +23,7 @@ export interface AddExpenseDefaults {
   category?: ExpenseCategory;
   amount?: number;
   date?: string;
+  datePlanId?: string;
 }
 
 interface Props {
@@ -44,6 +45,7 @@ function buildForm(defaults?: AddExpenseDefaults, editing?: Expense | null) {
       date: editing.date.slice(0, 10),
       note: editing.note ?? '',
       receiptUrl: editing.receiptUrl ?? null,
+      datePlanId: editing.datePlanId ?? null,
     };
   }
   return {
@@ -53,6 +55,7 @@ function buildForm(defaults?: AddExpenseDefaults, editing?: Expense | null) {
     date: defaults?.date ?? new Date().toISOString().slice(0, 10),
     note: '',
     receiptUrl: null as string | null,
+    datePlanId: defaults?.datePlanId ?? null,
   };
 }
 
@@ -112,6 +115,7 @@ export default function AddExpenseModal({ open, onClose, onSaved, editing, defau
         date: new Date(form.date).toISOString(),
         note: form.note.trim() || undefined,
         receiptUrl: form.receiptUrl || undefined,
+        datePlanId: form.datePlanId || undefined,
       };
       if (editing) {
         await expensesApi.update(editing.id, payload);

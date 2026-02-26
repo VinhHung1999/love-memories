@@ -24,11 +24,14 @@ function daysInMonth(year: number, month: number): number {
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { month } = req.query;
-    let where = {};
+    const { month, datePlanId } = req.query;
+    let where: Record<string, unknown> = {};
     if (month && typeof month === 'string') {
       const { start, end } = getMonthRange(month);
       where = { date: { gte: start, lt: end } };
+    }
+    if (datePlanId && typeof datePlanId === 'string') {
+      where = { ...where, datePlanId };
     }
     const expenses = await prisma.expense.findMany({ where, orderBy: { date: 'desc' } });
     res.json(expenses);
