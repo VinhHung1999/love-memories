@@ -9,8 +9,8 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | REVIEWING | Task 7 approved ✅ — awaiting Boss | 2026-02-26 |
-| DEV  | IDLE | Task 7 complete + approved | 2026-02-26 |
+| PO   | SPRINT CLOSED | Sprint 26 complete — all tasks done ✅ | 2026-02-26 |
+| DEV  | IDLE | Sprint 26 closed | 2026-02-26 |
 
 ---
 
@@ -133,6 +133,7 @@
 | 5 | Missing tours (FoodSpots, Achievements, What to Eat) + button text fix | P0 | DONE - PO Approved ✅ | DEV |
 | 6 | Fake seed data + Monthly Recap + Dashboard recap pins + MorePage entries | P0 | DONE - PO Approved ✅ | DEV |
 | 7 | Monthly Recap Stories UI + Dashboard eye-catching card | P0 | DONE - PO Approved ✅ | DEV |
+| 8 | Enhanced Recap: Photos + AI Captions + PhotoStrip + Outro | P0 | DONE - PO Approved ✅ | DEV |
 
 ---
 
@@ -186,7 +187,7 @@ _Sprint 22 — Date Planner Notifications + Address Search Fix: APPROVED & DEPLO
 _Sprint 23 — Plan Edit UX + Animation Fixes + Photo Upload: COMMITTED TO MAIN (2026-02-24)_
 _Sprint 24 — Recipe from URL + Love Letters + Shared LetterReadOverlay + Envelope Animation + Bug Fixes: ALL 10 TASKS APPROVED (2026-02-25)_
 _Sprint 25 — App Permissions Manager + Toggle Switches: DEPLOYED (2026-02-25)_
-_Sprint 26 — Weekly Recap + Onboarding Tutorial: IN PROGRESS (2026-02-26)_
+_Sprint 26 — Weekly/Monthly Recap + Onboarding + Driver.js Tours + Stories UI: CLOSED (2026-02-26)_
 
 ---
 
