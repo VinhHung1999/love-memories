@@ -6,6 +6,7 @@ import { z } from 'zod';
 import * as cheerio from 'cheerio';
 import * as fs from 'fs';
 import * as path from 'path';
+import { upload } from '../middleware/upload';
 
 const router = Router();
 
@@ -182,6 +183,58 @@ router.post('/generate-recipe', async (req: Request, res: Response) => {
       return;
     }
     res.status(500).json({ error: 'Không thể tạo công thức. Vui lòng thử lại.' });
+  }
+});
+
+// POST /scan-receipt — AI extracts expense data from receipt photo
+router.post('/scan-receipt', upload.single('photo'), async (req: Request, res: Response) => {
+  try {
+    const file = req.file;
+    if (!file) { res.status(400).json({ error: 'No photo uploaded' }); return; }
+
+    const base64 = file.buffer.toString('base64');
+    const mimeType = file.mimetype;
+
+    const response = await xai.chat.completions.create({
+      model: 'grok-4-1-fast-non-reasoning',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:${mimeType};base64,${base64}` },
+            },
+            {
+              type: 'text',
+              text: `Analyze this receipt photo. Extract expense information and return ONLY valid JSON (no markdown, no extra text):
+{
+  "amount": total_amount_in_vnd (number),
+  "description": "short description of what was purchased" (Vietnamese),
+  "category": one of ["food","dating","shopping","transport","gifts","other"],
+  "date": "YYYY-MM-DD" (from receipt, or today if unclear),
+  "items": ["item1", "item2"] (optional, individual line items)
+}`,
+            },
+          ],
+        },
+      ],
+      max_tokens: 500,
+    });
+
+    const content = response.choices[0]?.message?.content ?? '';
+    // Strip markdown fences if present
+    const jsonStr = content.replace(/```(?:json)?\n?/g, '').trim();
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch {
+      res.status(422).json({ error: 'AI could not parse receipt. Please try again.' });
+      return;
+    }
+    res.json(parsed);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to scan receipt' });
   }
 });
 

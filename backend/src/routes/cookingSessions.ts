@@ -10,6 +10,7 @@ import {
   updateCookingSessionStatusSchema,
   toggleCookingItemSchema,
   toggleCookingStepSchema,
+  ratingSchema,
 } from '../utils/validation';
 
 const router = Router();
@@ -236,6 +237,22 @@ router.post('/:id/photos', upload.array('photos', 10), async (req: Request<IdPar
     res.status(201).json(photos);
   } catch (_error) {
     res.status(500).json({ error: 'Failed to upload photos' });
+  }
+});
+
+// PATCH rate session
+router.patch('/:id/rate', async (req: Request<IdParam>, res: Response) => {
+  try {
+    const { rating } = ratingSchema.parse(req.body);
+    const session = await prisma.cookingSession.update({
+      where: { id: req.params.id },
+      data: { rating },
+      include: sessionInclude,
+    });
+    res.json(session);
+  } catch (error: any) {
+    if (error.name === 'ZodError') { res.status(400).json({ error: error.errors }); return; }
+    res.status(500).json({ error: 'Failed to rate session' });
   }
 });
 

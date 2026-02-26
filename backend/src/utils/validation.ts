@@ -103,9 +103,16 @@ export const createExpenseSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES),
   date: z.string().transform((s) => new Date(s)),
   note: z.string().optional(),
+  receiptUrl: z.string().url().optional().nullable(),
+  foodSpotId: z.string().uuid().optional().nullable(),
+  datePlanId: z.string().uuid().optional().nullable(),
 });
 
 export const updateExpenseSchema = createExpenseSchema.partial();
+
+export const ratingSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+});
 
 export const reorderGoalsSchema = z.object({
   goals: z.array(z.object({
