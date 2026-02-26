@@ -48,33 +48,35 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{display}</>;
 }
 
-// ── PhotoSlideshow ─────────────────────────────────────────────────────────
-// Shows photos as a full-bleed background, cycling every 2s with fade
+// ── PhotoGrid ──────────────────────────────────────────────────────────────
+// 3×3 grid of photos, rotated and scaled as a background decoration
 
-function PhotoSlideshow({ photos }: { photos: string[] }) {
-  const [idx, setIdx] = useState(0);
-  useEffect(() => {
-    if (photos.length <= 1) return;
-    const timer = setInterval(() => setIdx((i) => (i + 1) % photos.length), 2000);
-    return () => clearInterval(timer);
-  }, [photos.length]);
-
+function PhotoGrid({ photos }: { photos: string[] }) {
   if (photos.length === 0) return null;
+
+  // Fill up to 9 cells by repeating photos
+  const cells: string[] = [];
+  while (cells.length < 9) cells.push(...photos);
+  const grid = cells.slice(0, 9);
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <AnimatePresence mode="wait">
-        <motion.img
-          key={photos[idx]}
-          src={photos[idx]}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.38 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
-        />
-      </AnimatePresence>
+      <div
+        className="absolute inset-[-20%] grid grid-cols-3 gap-1.5 opacity-40"
+        style={{ transform: 'rotate(-8deg) scale(1.2)' }}
+      >
+        {grid.map((url, i) => (
+          <motion.img
+            key={`${url}-${i}`}
+            src={url}
+            alt=""
+            className="w-full aspect-square object-cover rounded-lg"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.08, duration: 0.4 }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -123,7 +125,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
       bg: 'linear-gradient(160deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)',
       node: (
         <div className="relative flex-1 min-h-0">
-          <PhotoSlideshow photos={momentPhotos} />
+          <PhotoGrid photos={momentPhotos} />
           {momentPhotos.length > 0 && (
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
           )}
@@ -151,7 +153,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
     bg: 'linear-gradient(160deg, #fb923c 0%, #f97316 50%, #ea580c 100%)',
     node: (
       <div className="relative flex-1 min-h-0">
-        <PhotoSlideshow photos={recap.cooking.photos} />
+        <PhotoGrid photos={recap.cooking.photos} />
         {recap.cooking.photos.length > 0 && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
         )}
@@ -178,7 +180,7 @@ function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null
     bg: 'linear-gradient(160deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
     node: (
       <div className="relative flex-1 min-h-0">
-        <PhotoSlideshow photos={recap.foodSpots.photos} />
+        <PhotoGrid photos={recap.foodSpots.photos} />
         {recap.foodSpots.photos.length > 0 && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 pointer-events-none" />
         )}
