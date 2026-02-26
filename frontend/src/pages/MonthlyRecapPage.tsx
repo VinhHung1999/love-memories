@@ -48,11 +48,42 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{display}</>;
 }
 
+// ── PhotoSlideshow ─────────────────────────────────────────────────────────
+// Shows photos as a full-bleed background, cycling every 2s with fade
+
+function PhotoSlideshow({ photos }: { photos: string[] }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (photos.length <= 1) return;
+    const timer = setInterval(() => setIdx((i) => (i + 1) % photos.length), 2000);
+    return () => clearInterval(timer);
+  }, [photos.length]);
+
+  if (photos.length === 0) return null;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={photos[idx]}
+          src={photos[idx]}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.38 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+        />
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── Slide builder ──────────────────────────────────────────────────────────
 
 type Slide = { id: string; bg: string; node: React.ReactNode };
 
-function buildSlides(recap: MonthlyRecap, month: string): Slide[] {
+function buildSlides(recap: MonthlyRecap, month: string, caption?: string | null): Slide[] {
   const slides: Slide[] = [];
   const totalLetters = recap.loveLetters.sent + recap.loveLetters.received;
 
@@ -79,46 +110,64 @@ function buildSlides(recap: MonthlyRecap, month: string): Slide[] {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
           className="text-white/80 text-lg"
-        >Hành trình của chúng mình 💕</motion.p>
+        >{caption || 'Hành trình của chúng mình 💕'}</motion.p>
       </div>
     ),
   });
 
   // ── Moments ──
-  if (recap.moments.count > 0) slides.push({
-    id: 'moments',
-    bg: 'linear-gradient(160deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)',
-    node: (
-      <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="text-6xl mb-4">📸</div>
-        <div className="text-8xl font-heading font-bold text-white">
-          <AnimatedNumber value={recap.moments.count} />
+  if (recap.moments.count > 0) {
+    const momentPhotos = recap.moments.highlights.flatMap((h) => h.photos);
+    slides.push({
+      id: 'moments',
+      bg: 'linear-gradient(160deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)',
+      node: (
+        <div className="relative h-full">
+          <PhotoSlideshow photos={momentPhotos} />
+          {momentPhotos.length > 0 && (
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+          )}
+          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
+            <div className="text-6xl mb-4">📸</div>
+            <div className="text-8xl font-heading font-bold text-white">
+              <AnimatedNumber value={recap.moments.count} />
+            </div>
+            <p className="text-2xl font-heading text-white mt-1 mb-2">kỷ niệm</p>
+            {recap.moments.photoCount > 0 && (
+              <p className="text-white/70 text-base">{recap.moments.photoCount} bức ảnh đã chụp</p>
+            )}
+            {recap.moments.highlights[0] && (
+              <p className="text-white/50 text-sm mt-4 italic">"{recap.moments.highlights[0].title}"</p>
+            )}
+          </div>
         </div>
-        <p className="text-2xl font-heading text-white mt-1 mb-2">kỷ niệm</p>
-        {recap.moments.photoCount > 0 && (
-          <p className="text-white/70 text-base">{recap.moments.photoCount} bức ảnh đã chụp</p>
-        )}
-        {recap.moments.highlights[0] && (
-          <p className="text-white/50 text-sm mt-4 italic">"{recap.moments.highlights[0].title}"</p>
-        )}
-      </div>
-    ),
-  });
+      ),
+    });
+  }
 
   // ── Cooking ──
   if (recap.cooking.count > 0) slides.push({
     id: 'cooking',
     bg: 'linear-gradient(160deg, #fb923c 0%, #f97316 50%, #ea580c 100%)',
     node: (
-      <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="text-6xl mb-4">🍳</div>
-        <div className="text-8xl font-heading font-bold text-white">
-          <AnimatedNumber value={recap.cooking.count} />
-        </div>
-        <p className="text-2xl font-heading text-white mt-1 mb-2">lần nấu ăn cùng nhau</p>
-        {recap.cooking.totalTimeMs > 0 && (
-          <p className="text-white/70 text-base">Tổng {formatTime(recap.cooking.totalTimeMs)} trong bếp</p>
+      <div className="relative h-full">
+        <PhotoSlideshow photos={recap.cooking.photos} />
+        {recap.cooking.photos.length > 0 && (
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
         )}
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
+          <div className="text-6xl mb-4">🍳</div>
+          <div className="text-8xl font-heading font-bold text-white">
+            <AnimatedNumber value={recap.cooking.count} />
+          </div>
+          <p className="text-2xl font-heading text-white mt-1 mb-2">lần nấu ăn cùng nhau</p>
+          {recap.cooking.totalTimeMs > 0 && (
+            <p className="text-white/70 text-base">Tổng {formatTime(recap.cooking.totalTimeMs)} trong bếp</p>
+          )}
+          {recap.cooking.recipes.length > 0 && (
+            <p className="text-white/55 text-sm mt-2">{recap.cooking.recipes.join(', ')}</p>
+          )}
+        </div>
       </div>
     ),
   });
@@ -128,12 +177,21 @@ function buildSlides(recap: MonthlyRecap, month: string): Slide[] {
     id: 'foodspots',
     bg: 'linear-gradient(160deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
     node: (
-      <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="text-6xl mb-4">🍜</div>
-        <div className="text-8xl font-heading font-bold text-white">
-          <AnimatedNumber value={recap.foodSpots.count} />
+      <div className="relative h-full">
+        <PhotoSlideshow photos={recap.foodSpots.photos} />
+        {recap.foodSpots.photos.length > 0 && (
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+        )}
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
+          <div className="text-6xl mb-4">🍜</div>
+          <div className="text-8xl font-heading font-bold text-white">
+            <AnimatedNumber value={recap.foodSpots.count} />
+          </div>
+          <p className="text-2xl font-heading text-white mt-1 mb-2">quán mới khám phá</p>
+          {recap.foodSpots.names.length > 0 && (
+            <p className="text-white/55 text-sm mt-2">{recap.foodSpots.names.join(', ')}</p>
+          )}
         </div>
-        <p className="text-2xl font-heading text-white mt-1 mb-2">quán mới khám phá</p>
       </div>
     ),
   });
@@ -226,9 +284,20 @@ export default function MonthlyRecapPage() {
     queryFn: () => recapApi.monthly(month),
   });
 
+  const { data: captionData } = useQuery({
+    queryKey: ['recap', 'monthly-caption', month],
+    queryFn: () => recapApi.monthlyCaption(month),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!recap && !!(
+      recap.moments.count + recap.cooking.count + recap.foodSpots.count +
+      recap.datePlans.count + recap.loveLetters.sent + recap.loveLetters.received +
+      recap.goalsCompleted
+    ),
+  });
+
   const slides = useMemo(
-    () => (recap ? buildSlides(recap, month) : []),
-    [recap, month],
+    () => (recap ? buildSlides(recap, month, captionData?.caption) : []),
+    [recap, month, captionData],
   );
 
   const [currentIdx, setCurrentIdx] = useState(0);

@@ -310,9 +310,13 @@ export interface MonthlyRecap {
   month: string;
   startDate: string;
   endDate: string;
-  moments: { count: number; photoCount: number; highlights: { id: string; title: string; date: string; photoUrl: string }[] };
-  cooking: { count: number; totalTimeMs: number; recipes: string[] };
-  foodSpots: { count: number; names: string[] };
+  moments: {
+    count: number;
+    photoCount: number;
+    highlights: { id: string; title: string; date: string; photos: string[] }[];
+  };
+  cooking: { count: number; totalTimeMs: number; recipes: string[]; photos: string[] };
+  foodSpots: { count: number; names: string[]; photos: string[] };
   datePlans: { count: number; titles: string[] };
   loveLetters: { sent: number; received: number };
   goalsCompleted: number;

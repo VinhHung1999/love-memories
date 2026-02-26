@@ -280,4 +280,6 @@ export const recapApi = {
     request<WeeklyRecap>(`/recap/weekly${week ? `?week=${week}` : ''}`),
   monthly: (month?: string) =>
     request<MonthlyRecap>(`/recap/monthly${month ? `?month=${month}` : ''}`),
+  monthlyCaption: (month?: string) =>
+    request<{ caption: string | null }>(`/recap/monthly/caption${month ? `?month=${month}` : ''}`),
 };

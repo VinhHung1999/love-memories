@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Response } from 'express';
+import OpenAI from 'openai';
 import prisma from '../utils/prisma';
 import type { AuthRequest } from '../middleware/auth';
 import { ACHIEVEMENT_DEFS } from './achievements';
@@ -167,6 +168,11 @@ function previousMonthStr(): string {
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
+function currentMonthStr(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
 // ── GET /api/recap/monthly?month=2026-02 ─────────────────────────────────────
 
 router.get('/monthly', async (req: AuthRequest, res: Response) => {
@@ -195,11 +201,14 @@ router.get('/monthly', async (req: AuthRequest, res: Response) => {
         }),
         prisma.cookingSession.findMany({
           where: { completedAt: { gte, lte }, status: 'completed' },
-          include: { recipes: { include: { recipe: true } } },
+          include: {
+            recipes: { include: { recipe: { include: { photos: { select: { url: true }, take: 1 } } } } },
+            photos: { select: { url: true }, take: 2 },
+          },
         }),
         prisma.foodSpot.findMany({
           where: { createdAt: { gte, lte } },
-          select: { name: true },
+          select: { name: true, photos: { select: { url: true }, take: 1 } },
         }),
         prisma.datePlan.findMany({
           where: { date: { gte, lte } },
@@ -224,18 +233,31 @@ router.get('/monthly', async (req: AuthRequest, res: Response) => {
     const photoCount = moments.reduce((sum, m) => sum + m.photos.length, 0);
     const highlights = moments
       .filter((m) => m.photos.length > 0)
-      .slice(0, 3)
+      .slice(0, 5)
       .map((m) => ({
         id: m.id,
         title: m.title,
         date: m.date.toISOString().split('T')[0],
-        photoUrl: m.photos[0]!.url,
+        photos: m.photos.slice(0, 3).map((p) => p.url),
       }));
 
     const recipeNames = [
       ...new Set(cookingSessions.flatMap((s) => s.recipes.map((r) => r.recipe.title))),
     ];
     const totalTimeMs = cookingSessions.reduce((sum, s) => sum + (s.totalTimeMs ?? 0), 0);
+
+    // Collect cooking photos from session photos + recipe cover photos
+    const rawCookingPhotos: string[] = [];
+    cookingSessions.forEach((s) => {
+      s.photos.forEach((p) => rawCookingPhotos.push(p.url));
+      s.recipes.forEach((r) => r.recipe.photos.forEach((p) => rawCookingPhotos.push(p.url)));
+    });
+    const cookingPhotos = [...new Set(rawCookingPhotos)].slice(0, 3);
+
+    // Food spot photos — first photo per spot
+    const foodSpotPhotos = foodSpots
+      .filter((f) => f.photos[0])
+      .map((f) => f.photos[0]!.url);
 
     const sent = loveLetters.filter((l) => l.senderId === userId).length;
     const received = loveLetters.filter((l) => l.senderId !== userId).length;
@@ -250,8 +272,8 @@ router.get('/monthly', async (req: AuthRequest, res: Response) => {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       moments: { count: moments.length, photoCount, highlights },
-      cooking: { count: cookingSessions.length, totalTimeMs, recipes: recipeNames },
-      foodSpots: { count: foodSpots.length, names: foodSpots.map((f) => f.name) },
+      cooking: { count: cookingSessions.length, totalTimeMs, recipes: recipeNames, photos: cookingPhotos },
+      foodSpots: { count: foodSpots.length, names: foodSpots.map((f) => f.name), photos: foodSpotPhotos },
       datePlans: { count: datePlans.length, titles: datePlans.map((p) => p.title) },
       loveLetters: { sent, received },
       goalsCompleted: goals.length,
@@ -260,6 +282,73 @@ router.get('/monthly', async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error('[recap] monthly error:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── GET /api/recap/monthly/caption?month=2026-02 ─────────────────────────────
+
+router.get('/monthly/caption', async (req: AuthRequest, res: Response) => {
+  try {
+    const monthStr = (req.query.month as string | undefined) || currentMonthStr();
+    const { startDate, endDate } = monthToRange(monthStr);
+    const gte = startDate;
+    const lte = endDate;
+
+    const [momentCount, cookingCount, foodSpotCount, letterCount, goalCount] = await Promise.all([
+      prisma.moment.count({ where: { date: { gte, lte } } }),
+      prisma.cookingSession.count({ where: { completedAt: { gte, lte }, status: 'completed' } }),
+      prisma.foodSpot.count({ where: { createdAt: { gte, lte } } }),
+      prisma.loveLetter.count({ where: { deliveredAt: { gte, lte }, status: { in: ['DELIVERED', 'READ'] } } }),
+      prisma.goal.count({ where: { status: 'DONE', updatedAt: { gte, lte } } }),
+    ]);
+
+    if (momentCount + cookingCount + foodSpotCount + letterCount + goalCount === 0) {
+      res.json({ caption: null });
+      return;
+    }
+
+    const [momentTitles, cookingSessions, foodNames] = await Promise.all([
+      prisma.moment.findMany({ where: { date: { gte, lte } }, select: { title: true }, take: 10 }),
+      prisma.cookingSession.findMany({
+        where: { completedAt: { gte, lte }, status: 'completed' },
+        include: { recipes: { include: { recipe: { select: { title: true } } } } },
+      }),
+      prisma.foodSpot.findMany({ where: { createdAt: { gte, lte } }, select: { name: true }, take: 10 }),
+    ]);
+
+    const recipeNames = [...new Set(cookingSessions.flatMap((s) => s.recipes.map((r) => r.recipe.title)))];
+
+    const summary = [
+      `Tháng ${monthStr}:`,
+      momentCount > 0 ? `- ${momentCount} kỷ niệm: ${momentTitles.map((m) => m.title).join(', ')}` : null,
+      cookingCount > 0 ? `- ${cookingCount} lần nấu ăn: ${recipeNames.join(', ')}` : null,
+      foodSpotCount > 0 ? `- ${foodSpotCount} quán mới: ${foodNames.map((f) => f.name).join(', ')}` : null,
+      letterCount > 0 ? `- ${letterCount} thư tình` : null,
+      goalCount > 0 ? `- ${goalCount} mục tiêu hoàn thành` : null,
+    ].filter(Boolean).join('\n');
+
+    const xai = new OpenAI({ apiKey: process.env.XAI_API_KEY, baseURL: 'https://api.x.ai/v1' });
+    const completion = await xai.chat.completions.create({
+      model: 'grok-4-1-fast-non-reasoning',
+      messages: [
+        {
+          role: 'system',
+          content: 'Bạn là trợ lý viết lời bình cho recap tháng của một cặp đôi. Viết ngắn gọn, dễ thương, tiếng Việt, tối đa 2 câu. Dùng emoji phù hợp. Giọng văn ấm áp, lãng mạn nhưng không sến.',
+        },
+        {
+          role: 'user',
+          content: `Dựa vào hoạt động tháng này, viết 1 câu caption ngắn gọn dễ thương:\n\n${summary}`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 150,
+    });
+
+    const caption = completion.choices[0]?.message?.content?.trim() || null;
+    res.json({ caption });
+  } catch (err) {
+    console.error('[recap] caption error:', err);
+    res.json({ caption: null });
   }
 });
 
