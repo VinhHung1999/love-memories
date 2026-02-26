@@ -87,7 +87,8 @@ export default function AddExpenseModal({ open, onClose, onSaved, editing, defau
         category: validCats.includes(result.category as ExpenseCategory)
           ? (result.category as ExpenseCategory)
           : f.category,
-        date: result.date ? result.date.slice(0, 10) : f.date,
+        // date: intentionally NOT set from receipt — old receipts have old dates
+        // which would save the expense to the wrong month
         receiptUrl: uploaded.url,
       }));
       toast.success('Đã quét hoá đơn thành công!');
