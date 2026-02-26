@@ -328,6 +328,12 @@ export default function DatePlanDetailPage() {
                     >
                       💰 Thêm chi tiêu
                     </button>
+                    {planExpenses.filter((e) => e.description === stop.title || e.description.includes(stop.title)).map((e) => (
+                      <div key={e.id} className="flex justify-between text-xs text-text-light mt-1">
+                        <span className="truncate mr-2">{e.description}</span>
+                        <span className="text-primary font-medium">{formatVND(e.amount)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -465,6 +471,12 @@ export default function DatePlanDetailPage() {
                             />
                           )}
                         </div>
+                        {planExpenses.filter((e) => e.description === stop.title || e.description.includes(stop.title)).map((e) => (
+                          <div key={e.id} className="flex justify-between text-xs text-text-light mt-1">
+                            <span className="truncate mr-2">{e.description}</span>
+                            <span className="text-primary font-medium">{formatVND(e.amount)}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   );
@@ -577,7 +589,12 @@ export default function DatePlanDetailPage() {
       <AddExpenseModal
         open={expenseModalOpen}
         onClose={() => setExpenseModalOpen(false)}
-        onSaved={() => queryClient.invalidateQueries({ queryKey: ['expenses-plan', id] })}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['expenses-plan', id] });
+          queryClient.invalidateQueries({ queryKey: ['expenses'] });
+          queryClient.invalidateQueries({ queryKey: ['expenses-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['expenses-daily-stats'] });
+        }}
         defaults={expenseStopDefaults}
       />
     </div>
