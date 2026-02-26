@@ -193,7 +193,8 @@ export default function Dashboard() {
       {/* ── END ACTIVE DATE PLAN PIN ─────────────────────────────────── */}
 
       {/* ── MONTHLY RECAP PIN ─────────────────────────────────────────── */}
-      {new Date().getDate() <= 3 && (
+      {/* eslint-disable-next-line no-constant-binary-expression */}
+      {true && ( // TODO: revert to `new Date().getDate() <= 3`
         <Link
           to="/monthly-recap"
           className="block relative overflow-hidden rounded-2xl mb-4"

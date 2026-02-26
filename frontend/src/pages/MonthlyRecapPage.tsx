@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { recapApi } from '../lib/api';
 import type { MonthlyRecap } from '../types';
 
@@ -16,23 +16,6 @@ const HOLD_THRESHOLD = 200;
 function currentMonthStr(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function previousMonthStr(): string {
-  const now = new Date();
-  let year = now.getFullYear();
-  let month = now.getMonth(); // 0-indexed → gives previous month number 1-indexed
-  if (month === 0) { year -= 1; month = 12; }
-  return `${year}-${String(month).padStart(2, '0')}`;
-}
-
-function offsetMonth(monthStr: string, delta: number): string {
-  const [y, m] = monthStr.split('-').map(Number) as [number, number];
-  let year = y;
-  let month = m + delta;
-  if (month > 12) { year += Math.floor((month - 1) / 12); month = ((month - 1) % 12) + 1; }
-  if (month < 1)  { year -= Math.ceil((1 - month) / 12); month = ((month - 1 + 1200) % 12) + 1; }
-  return `${year}-${String(month).padStart(2, '0')}`;
 }
 
 function formatMonthDisplay(s: string): string {
@@ -236,8 +219,7 @@ function buildSlides(recap: MonthlyRecap, month: string): Slide[] {
 
 export default function MonthlyRecapPage() {
   const navigate = useNavigate();
-  const [month, setMonth] = useState(previousMonthStr);
-  const isCurrentMonth = month >= currentMonthStr();
+  const month = currentMonthStr();
 
   const { data: recap, isLoading } = useQuery({
     queryKey: ['recap', 'monthly', month],
@@ -279,12 +261,6 @@ export default function MonthlyRecapPage() {
     return () => { if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current); };
   }, [currentIdx, isPaused, slides.length, advance]);
 
-  // Reset on month change
-  useEffect(() => {
-    setCurrentIdx(0);
-    progressAnimKey.current = 0;
-  }, [month]);
-
   const onPointerDown = () => {
     isHoldRef.current = false;
     if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
@@ -317,25 +293,6 @@ export default function MonthlyRecapPage() {
     recap.loveLetters.sent + recap.loveLetters.received === 0 &&
     recap.goalsCompleted === 0;
 
-  const MonthNav = () => (
-    <div className="flex items-center gap-4">
-      <button
-        onClick={() => setMonth((m) => offsetMonth(m, -1))}
-        className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 active:bg-white/35"
-      >
-        <ChevronLeft className="w-5 h-5 text-white" />
-      </button>
-      <span className="text-xs text-white/70 min-w-[70px] text-center">{formatMonthDisplay(month)}</span>
-      <button
-        onClick={() => { if (!isCurrentMonth) setMonth((m) => offsetMonth(m, 1)); }}
-        disabled={isCurrentMonth}
-        className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 disabled:opacity-30 active:bg-white/35"
-      >
-        <ChevronRight className="w-5 h-5 text-white" />
-      </button>
-    </div>
-  );
-
   return (
     <div className="fixed inset-0 z-[70]" style={{ background: '#000' }}>
 
@@ -360,8 +317,7 @@ export default function MonthlyRecapPage() {
           </button>
           <div className="text-7xl mb-4">💤</div>
           <p className="text-2xl font-heading font-bold text-white mb-2">Tháng này chưa có gì cả</p>
-          <p className="text-white/70 text-sm mb-8">Hãy tạo kỷ niệm mới nhé!</p>
-          <MonthNav />
+          <p className="text-white/70 text-sm">Hãy tạo kỷ niệm mới nhé!</p>
         </div>
       )}
 
@@ -417,7 +373,7 @@ export default function MonthlyRecapPage() {
           </div>
 
           {/* Slide content */}
-          <div className="absolute inset-0 z-[71]" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
+          <div className="absolute inset-0 z-[71]" style={{ paddingTop: '5rem' }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={slides[currentIdx]?.id}
@@ -432,18 +388,10 @@ export default function MonthlyRecapPage() {
             </AnimatePresence>
           </div>
 
-          {/* Bottom: month navigation */}
-          <div
-            className="absolute left-0 right-0 z-[73] flex items-center justify-center"
-            style={{ bottom: 'max(24px, env(safe-area-inset-bottom))' }}
-          >
-            <MonthNav />
-          </div>
-
-          {/* Tap zones (above content, below top/bottom controls) */}
+          {/* Tap zones */}
           <div
             className="absolute left-0 right-0 z-[72] flex"
-            style={{ top: '5rem', bottom: '5rem' }}
+            style={{ top: '5rem', bottom: 0 }}
           >
             <button
               className="w-[35%] h-full"
