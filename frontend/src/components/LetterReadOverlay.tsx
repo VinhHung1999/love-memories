@@ -166,65 +166,39 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
   const [lightboxPhoto, setLightboxPhoto] = useState<LetterPhoto | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [audioProgress, setAudioProgress] = useState(0);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
-  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const playStartRef = useRef(0);
-  const playDurationRef = useRef(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const stopAudio = () => {
-    if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-    try { sourceNodeRef.current?.stop(); } catch {}
-    sourceNodeRef.current = null;
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
     setPlayingAudioId(null);
     setAudioProgress(0);
   };
 
-  const toggleAudio = async (audio: LetterAudio) => {
-    if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-    try { sourceNodeRef.current?.stop(); } catch {}
-    sourceNodeRef.current = null;
+  const toggleAudio = (audio: LetterAudio) => {
+    const a = audioRef.current;
+    if (!a) return;
 
     if (playingAudioId === audio.id) {
+      a.pause();
       setPlayingAudioId(null);
       setAudioProgress(0);
       return;
     }
 
-    setPlayingAudioId(audio.id);
-    try {
-      // Create AudioContext in user gesture — unlocks iOS audio
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') await ctx.resume();
-
-      // Use backend proxy to bypass CDN CORS and fix video/mp4 → audio/mp4 content-type
-      const resp = await fetch(proxyAudioUrl(audio.url));
-      const buf = await resp.arrayBuffer();
-      const decoded = await ctx.decodeAudioData(buf);
-
-      const source = ctx.createBufferSource();
-      source.buffer = decoded;
-      source.connect(ctx.destination);
-      source.onended = () => { setPlayingAudioId(null); setAudioProgress(0); if (progressTimerRef.current) clearInterval(progressTimerRef.current); };
-      playStartRef.current = ctx.currentTime;
-      playDurationRef.current = decoded.duration;
-      source.start(0);
-      sourceNodeRef.current = source;
-
-      progressTimerRef.current = setInterval(() => {
-        if (!audioCtxRef.current) return;
-        const elapsed = audioCtxRef.current.currentTime - playStartRef.current;
-        setAudioProgress(Math.min(elapsed / playDurationRef.current, 1));
-      }, 100);
-    } catch (err: any) {
+    a.pause();
+    // Use backend proxy: same-origin (no CORS) + forces audio/mp4 content-type
+    a.src = proxyAudioUrl(audio.url);
+    a.onended = () => { setPlayingAudioId(null); setAudioProgress(0); };
+    a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
+    // Call play() synchronously within user gesture — required for iOS Safari
+    a.play().catch((err: any) => {
       console.error('Audio play failed:', err);
       import('react-hot-toast').then(({ default: toast }) =>
         toast.error(`Play lỗi: ${err?.name} — ${err?.message}`, { duration: 8000 })
       );
       setPlayingAudioId(null);
-      setAudioProgress(0);
-    }
+    });
+    setPlayingAudioId(audio.id);
   };
 
   const markRead = (letter: LoveLetter) => {
@@ -472,6 +446,8 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
         )}
       </AnimatePresence>
 
+      {/* Hidden audio element in DOM — iOS Safari requires element in DOM + not display:none */}
+      <audio ref={audioRef} preload="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }

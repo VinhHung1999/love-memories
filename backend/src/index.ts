@@ -43,10 +43,12 @@ app.get('/api/health', (_req, res) => {
 // Public routes
 app.use('/api/auth', authRoutes);
 app.use('/api/resolve-location', resolveLocationRoute);
+// proxy-audio is public: <audio src> can't send Authorization headers.
+// Security: endpoint validates URL must start with CDN_BASE_URL (our own CDN only).
+app.use('/api/proxy-audio', proxyAudioRoute);
 
 // Protected routes
 app.use('/api/proxy-image', requireAuth, proxyImageRoute);
-app.use('/api/proxy-audio', requireAuth, proxyAudioRoute);
 app.use('/api/moments', requireAuth, momentRoutes);
 app.use('/api/foodspots', requireAuth, foodSpotRoutes);
 app.use('/api/map', requireAuth, mapRoutes);

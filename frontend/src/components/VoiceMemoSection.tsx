@@ -45,43 +45,29 @@ export default function VoiceMemoSection({
   canRecord = true,
 }: VoiceMemoSectionProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
+  const audioElRef = useRef<HTMLAudioElement>(null);
 
-  const togglePlay = useCallback(async (url: string, audioId: string) => {
-    // Stop current playback
-    try { sourceNodeRef.current?.stop(); } catch {}
-    sourceNodeRef.current = null;
+  const togglePlay = useCallback((url: string, audioId: string) => {
+    const a = audioElRef.current;
+    if (!a) return;
 
     if (playingId === audioId) {
+      a.pause();
       setPlayingId(null);
       return;
     }
 
-    setPlayingId(audioId);
-    try {
-      // Create AudioContext in user gesture — unlocks iOS audio
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') await ctx.resume();
-
-      // Use backend proxy to bypass CDN CORS and fix video/mp4 → audio/mp4 content-type
-      const proxyUrl = url.startsWith('/') ? url : proxyAudioUrl(url);
-      const resp = await fetch(proxyUrl);
-      const buf = await resp.arrayBuffer();
-      const decoded = await ctx.decodeAudioData(buf);
-
-      const source = ctx.createBufferSource();
-      source.buffer = decoded;
-      source.connect(ctx.destination);
-      source.onended = () => setPlayingId(null);
-      source.start(0);
-      sourceNodeRef.current = source;
-    } catch (err: any) {
+    a.pause();
+    // Use backend proxy: same-origin (no CORS) + forces audio/mp4 content-type
+    a.src = url.startsWith('/') ? url : proxyAudioUrl(url);
+    a.onended = () => setPlayingId(null);
+    // Call play() synchronously within user gesture — required for iOS Safari
+    a.play().catch((err: any) => {
       console.error('Audio play failed:', err);
       toast.error(`Play lỗi: ${err?.name} — ${err?.message}`, { duration: 8000 });
       setPlayingId(null);
-    }
+    });
+    setPlayingId(audioId);
   }, [playingId]);
 
   const isEmpty = audios.length === 0 && !pendingAudioUrl && !isRecording;
@@ -181,6 +167,8 @@ export default function VoiceMemoSection({
         ))}
       </div>
 
+      {/* Hidden audio element in DOM — iOS Safari requires element in DOM + not display:none */}
+      <audio ref={audioElRef} preload="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }
