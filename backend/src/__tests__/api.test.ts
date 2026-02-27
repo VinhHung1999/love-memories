@@ -983,20 +983,20 @@ describe('Love Letters', () => {
     expect(res.status).toBe(404);
   });
 
-  it('PUT /api/love-letters/:id/send delivers letter; subsequent photo upload rejected (not DRAFT)', async () => {
+  it('PUT /api/love-letters/:id/send delivers letter; subsequent photo upload allowed (background upload support)', async () => {
     const res = await request(app).put(`/api/love-letters/${letterId}/send`).set(auth());
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('DELIVERED');
     expect(res.body.photos).toEqual([]);
     expect(res.body.audio).toEqual([]);
 
-    // Try to add photo to delivered letter — should be rejected
+    // Background uploads may arrive after send — must succeed on DELIVERED letters
     const uploadRes = await request(app)
       .post(`/api/love-letters/${letterId}/photos`)
       .set(auth())
       .attach('photos', Buffer.from('fake-image'), { filename: 'test.jpg', contentType: 'image/jpeg' });
-    expect(uploadRes.status).toBe(400);
-    expect(uploadRes.body.error).toMatch(/DRAFT or SCHEDULED/);
+    expect(uploadRes.status).toBe(201);
+    expect(Array.isArray(uploadRes.body)).toBe(true);
   });
 
   it('GET /api/love-letters/received returns 200 with photos/audio fields', async () => {

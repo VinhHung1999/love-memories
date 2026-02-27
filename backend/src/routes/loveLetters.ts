@@ -280,9 +280,6 @@ router.post('/:id/photos', upload.array('photos', 5), async (req: AuthRequest & 
     });
     if (!letter) { res.status(404).json({ error: 'Letter not found' }); return; }
     if (letter.senderId !== userId) { res.status(403).json({ error: 'Forbidden' }); return; }
-    if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
-      res.status(400).json({ error: 'Only DRAFT or SCHEDULED letters can have photos added' }); return;
-    }
 
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) { res.status(400).json({ error: 'No photos uploaded' }); return; }
@@ -334,9 +331,6 @@ router.post('/:id/audio', uploadAudio.single('audio'), async (req: AuthRequest &
     });
     if (!letter) { res.status(404).json({ error: 'Letter not found' }); return; }
     if (letter.senderId !== userId) { res.status(403).json({ error: 'Forbidden' }); return; }
-    if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
-      res.status(400).json({ error: 'Only DRAFT or SCHEDULED letters can have audio added' }); return;
-    }
     if (letter.audio.length > 0) {
       res.status(400).json({ error: 'Letter already has a voice memo. Delete it first.' }); return;
     }

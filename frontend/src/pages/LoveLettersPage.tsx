@@ -7,6 +7,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { loveLettersApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import { useModuleTour } from '../lib/useModuleTour';
 import type { LoveLetter, LetterStatus, LetterPhoto, LetterAudio } from '../types';
 import Modal from '../components/Modal';
@@ -214,7 +215,7 @@ function ComposeLetterModal({
 
   const handleClose = () => { onClose(); setTimeout(reset, 300); };
 
-  // Core save/send flow — create/update letter, upload pending media, then optionally send
+  // Core save/send flow — create/update letter, enqueue media uploads in background, optionally send immediately
   const executeFlow = async (shouldSend: boolean) => {
     if (!title.trim() || !content.trim()) return;
     setIsSaving(true);
@@ -230,26 +231,42 @@ function ComposeLetterModal({
         setDraftId(id);
       }
 
-      // 2. Upload pending photos (if any)
+      // 2. Enqueue photo uploads in background (fire-and-forget — backend allows uploads on any status)
       if (pendingPhotos.length > 0) {
-        const files = pendingPhotos.map((p) => p.file);
-        const newPhotos = await loveLettersApi.uploadPhotos(id, files);
-        setUploadedPhotos((prev) => [...prev, ...newPhotos]);
-        pendingPhotos.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+        const capturedPhotos = [...pendingPhotos];
         setPendingPhotos([]);
+        uploadQueue.enqueue(
+          `letter-photos-${id}`,
+          `Ảnh thư (${capturedPhotos.length})`,
+          (onProgress) => loveLettersApi.uploadPhotos(id!, capturedPhotos.map((p) => p.file), onProgress),
+          (result) => {
+            const newPhotos = result as LetterPhoto[];
+            setUploadedPhotos((prev) => [...prev, ...newPhotos]);
+            capturedPhotos.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+            queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+          },
+        );
       }
 
-      // 3. Upload pending audio (if any)
+      // 3. Enqueue audio upload in background (fire-and-forget)
       if (pendingAudio) {
-        const audio = await loveLettersApi.uploadAudio(id, pendingAudio.file, pendingAudio.duration);
-        setUploadedAudio(audio);
-        URL.revokeObjectURL(pendingAudio.objectUrl);
+        const capturedAudio = pendingAudio;
         setPendingAudio(null);
+        uploadQueue.enqueue(
+          `letter-audio-${id}`,
+          'Voice memo thư',
+          (onProgress) => loveLettersApi.uploadAudio(id!, capturedAudio.file, capturedAudio.duration, onProgress),
+          (result) => {
+            setUploadedAudio(result as LetterAudio);
+            URL.revokeObjectURL(capturedAudio.objectUrl);
+            queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+          },
+        );
       }
 
       queryClient.invalidateQueries({ queryKey: ['love-letters'] });
 
-      // 4. Send or just save
+      // 4. Send immediately or just save — uploads continue in background regardless
       if (shouldSend) {
         await loveLettersApi.send(id);
         toast.success('Đã gửi thư!');
@@ -257,7 +274,8 @@ function ComposeLetterModal({
       } else {
         toast.success('Đã lưu nháp!');
       }
-    } catch {
+    } catch (err) {
+      console.error('[executeFlow] error:', err);
       toast.error(shouldSend ? 'Không thể gửi thư. Thử lại nhé.' : 'Không thể lưu thư. Thử lại nhé.');
     } finally {
       setIsSaving(false);
@@ -276,13 +294,15 @@ function ComposeLetterModal({
     setPendingPhotos((prev) => [...prev, ...newEntries]);
   };
 
-  const handleDeleteUploadedPhoto = async (photoId: string) => {
-    if (!draftId) return;
+  const handleDeleteUploadedPhoto = async (photo: LetterPhoto) => {
+    const id = draftId ?? photo.letterId;
+    if (!id) return;
     try {
-      await loveLettersApi.deletePhoto(draftId, photoId);
-      setUploadedPhotos((prev) => prev.filter((p) => p.id !== photoId));
+      await loveLettersApi.deletePhoto(id, photo.id);
+      setUploadedPhotos((prev) => prev.filter((p) => p.id !== photo.id));
       queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-    } catch {
+    } catch (err) {
+      console.error('[deleteUploadedPhoto] error:', err);
       toast.error('Không thể xóa ảnh');
     }
   };
@@ -340,15 +360,18 @@ function ComposeLetterModal({
   }, []);
 
   const handleDeleteUploadedAudio = async () => {
-    if (!draftId || !uploadedAudio) return;
+    if (!uploadedAudio) return;
+    const id = draftId ?? uploadedAudio.letterId;
+    if (!id) return;
     try {
-      await loveLettersApi.deleteAudio(draftId, uploadedAudio.id);
+      await loveLettersApi.deleteAudio(id, uploadedAudio.id);
       setUploadedAudio(null);
       audioPlayerRef.current?.pause();
       audioPlayerRef.current = null;
       setIsPlaying(false);
       queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-    } catch {
+    } catch (err) {
+      console.error('[deleteUploadedAudio] error:', err);
       toast.error('Không thể xóa voice memo');
     }
   };
@@ -421,7 +444,7 @@ function ComposeLetterModal({
                   <img src={photo.url} alt="" className="w-20 h-20 object-cover rounded-xl border border-border" />
                   <button
                     type="button"
-                    onClick={() => handleDeleteUploadedPhoto(photo.id)}
+                    onClick={() => handleDeleteUploadedPhoto(photo)}
                     className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                   >
                     <X className="w-3 h-3" />
