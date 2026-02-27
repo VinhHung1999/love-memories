@@ -11,7 +11,7 @@ const navItems = [
   { to: '/moments', icon: Camera, label: 'Moments' },
   { to: '/map', icon: Map, label: 'Map' },
   { to: '/goals', icon: Target, label: 'Goals' },
-  { to: '/more', icon: MoreHorizontal, label: 'More' },
+  { to: '/more', icon: MoreHorizontal, label: 'Profile' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

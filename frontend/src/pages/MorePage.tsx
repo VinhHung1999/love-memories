@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail, Bell, MapPin, Mic, Shield, CalendarDays, Wallet } from 'lucide-react';
+
+import { Pencil, Check, X, LogOut, Settings, Camera, Bell, MapPin, Mic, Shield } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -45,78 +45,12 @@ async function checkAllPermissions(): Promise<PermStates> {
   return { notifications: notif, camera, geolocation, microphone };
 }
 
-// ── Modules ───────────────────────────────────────────────────────────────────
-
-const modules = [
-  {
-    to: '/what-to-eat',
-    icon: UtensilsCrossed,
-    label: 'What to Eat',
-    description: 'Nấu ăn cùng nhau',
-    color: 'bg-gradient-to-br from-secondary/10 to-accent/10 text-secondary',
-  },
-  {
-    to: '/foodspots',
-    icon: Utensils,
-    label: 'Food Spots',
-    description: 'Quán ăn yêu thích',
-    color: 'bg-secondary/10 text-secondary',
-  },
-  {
-    to: '/recipes',
-    icon: ChefHat,
-    label: 'Recipes',
-    description: 'Công thức nấu ăn',
-    color: 'bg-accent/10 text-accent',
-  },
-  {
-    to: '/photobooth',
-    icon: Sparkles,
-    label: 'Photo Booth',
-    description: 'Chụp ảnh kỷ niệm',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    to: '/achievements',
-    icon: Trophy,
-    label: 'Achievements',
-    description: 'Thành tích của chúng mình',
-    color: 'bg-secondary/10 text-secondary',
-  },
-  {
-    to: '/date-planner',
-    icon: CalendarHeart,
-    label: 'Date Planner',
-    description: 'Kế hoạch hẹn hò',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    to: '/love-letters',
-    icon: Mail,
-    label: 'Love Letters',
-    description: 'Thư tình bất ngờ',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    to: '/monthly-recap',
-    icon: CalendarDays,
-    label: 'Monthly Recap',
-    description: 'Tổng kết tháng',
-    color: 'bg-orange-500/10 text-orange-500',
-  },
-  {
-    to: '/expenses',
-    icon: Wallet,
-    label: 'Budget',
-    description: 'Theo dõi chi tiêu',
-    color: 'bg-emerald-500/10 text-emerald-600',
-  },
-];
 
 export default function MorePage() {
   const { user, logout, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -204,6 +138,7 @@ export default function MorePage() {
       queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
       queryClient.invalidateQueries({ queryKey: ['settings', 'relationship-start-date'] });
       toast.success('Đã lưu!');
+      setCustomOpen(false);
     },
     onError: () => toast.error('Không thể lưu'),
   });
@@ -293,68 +228,25 @@ export default function MorePage() {
         </div>
       </div>
 
-      {/* Modules grid */}
-      <h2 className="font-heading text-base font-semibold text-text mb-3">Modules</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {modules.map(({ to, icon: Icon, label, description, color }) => (
-          <Link key={to} to={to} className="block bg-white rounded-2xl p-5 shadow-sm border border-transparent transition-all hover:shadow-md hover:border-black/5 active:scale-95">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-              <Icon className="w-5 h-5" />
-            </div>
-            <p className="font-semibold text-sm text-text">{label}</p>
-            <p className="text-text-light text-xs mt-0.5">{description}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* App Customization */}
+      {/* App Customization — tap to open modal */}
       <div className="mt-6">
         <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
           <Settings className="w-4 h-4 text-text-light" /> Tùy chỉnh
         </h2>
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-text-light mb-1">Tên app</label>
-            <input
-              value={appNameInput}
-              onChange={(e) => setAppNameInput(e.target.value)}
-              placeholder="Love Scrum"
-              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
+        <button
+          type="button"
+          onClick={() => setCustomOpen(true)}
+          className="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 hover:bg-gray-50 active:scale-[0.99] transition-all text-left"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+            <Settings className="w-4.5 h-4.5" />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-text-light mb-1">Slogan</label>
-            <input
-              value={appSloganInput}
-              onChange={(e) => setAppSloganInput(e.target.value)}
-              placeholder="Our little world, beautifully organized"
-              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-text">Tùy chỉnh ứng dụng</p>
+            <p className="text-xs text-text-light truncate">{appNameInput || 'Love Scrum'} · {appSloganInput || 'Our little world...'}</p>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-text-light mb-1">Ngày yêu nhau</label>
-            <input
-              type="date"
-              value={dateInput}
-              onChange={(e) => setDateInput(e.target.value)}
-              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <button
-            onClick={() => saveCustomMutation.mutate()}
-            disabled={saveCustomMutation.isPending}
-            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
-          </button>
-          <button
-            type="button"
-            onClick={handleReplayTours}
-            className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
-          >
-            Xem lại hướng dẫn
-          </button>
-        </div>
+          <X className="w-4 h-4 text-text-light/40 rotate-45 flex-shrink-0" />
+        </button>
       </div>
 
       {/* App Permissions */}
@@ -406,6 +298,53 @@ export default function MorePage() {
           Log Out
         </button>
       </div>
+
+      {/* Customization modal */}
+      <Modal open={customOpen} onClose={() => setCustomOpen(false)} title="Tùy chỉnh ứng dụng">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Tên app</label>
+            <input
+              value={appNameInput}
+              onChange={(e) => setAppNameInput(e.target.value)}
+              placeholder="Love Scrum"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Slogan</label>
+            <input
+              value={appSloganInput}
+              onChange={(e) => setAppSloganInput(e.target.value)}
+              placeholder="Our little world, beautifully organized"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Ngày yêu nhau</label>
+            <input
+              type="date"
+              value={dateInput}
+              onChange={(e) => setDateInput(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <button
+            onClick={() => saveCustomMutation.mutate()}
+            disabled={saveCustomMutation.isPending}
+            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+          </button>
+          <button
+            type="button"
+            onClick={handleReplayTours}
+            className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Xem lại hướng dẫn
+          </button>
+        </div>
+      </Modal>
 
       {/* Edit name modal */}
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Profile">
