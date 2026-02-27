@@ -177,6 +177,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       if (!a) return;
       a.pause();
       a.src = audio.url;
+      a.load();
       a.onended = () => { setPlayingAudioId(null); setAudioProgress(0); };
       a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
       a.play().catch((err) => {
@@ -439,7 +440,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       </AnimatePresence>
 
       {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
-      <audio ref={audioRef} preload="none" style={{ display: 'none' }} />
+      <audio ref={audioRef} preload="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }

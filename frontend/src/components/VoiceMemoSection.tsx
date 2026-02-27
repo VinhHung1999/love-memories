@@ -55,6 +55,7 @@ export default function VoiceMemoSection({
       if (!a) return;
       a.pause();
       a.src = url;
+      a.load();
       a.onended = () => setPlayingId(null);
       a.play().catch((err) => {
         console.error('Audio play failed:', err);
@@ -163,7 +164,7 @@ export default function VoiceMemoSection({
       </div>
 
       {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
-      <audio ref={audioElRef} preload="none" style={{ display: 'none' }} />
+      <audio ref={audioElRef} preload="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }
