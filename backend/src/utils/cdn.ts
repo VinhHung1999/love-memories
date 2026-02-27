@@ -4,10 +4,11 @@ const CDN_PROJECT = process.env.CDN_PROJECT!;
 
 export async function uploadToCdn(
   fileBuffer: Buffer,
-  originalName: string
+  originalName: string,
+  mimeType?: string,
 ): Promise<{ filename: string; url: string }> {
   const formData = new FormData();
-  const blob = new Blob([fileBuffer]);
+  const blob = new Blob([fileBuffer], mimeType ? { type: mimeType } : undefined);
   formData.append('file', blob, originalName);
 
   const controller = new AbortController();

@@ -339,7 +339,7 @@ router.post('/:id/audio', uploadAudio.single('audio'), async (req: AuthRequest &
     if (!file) { res.status(400).json({ error: 'No audio file uploaded' }); return; }
 
     const duration = req.body.duration ? parseFloat(req.body.duration) : undefined;
-    const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+    const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
     const audio = await prisma.letterAudio.create({
       data: { letterId: letter.id, filename, url, duration: duration ?? null },
     });
