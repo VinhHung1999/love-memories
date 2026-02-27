@@ -44,16 +44,16 @@ export default function VoiceMemoSection({
   canRecord = true,
 }: VoiceMemoSectionProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | undefined>(undefined);
+  const audioElRef = useRef<HTMLAudioElement>(null);
 
   const togglePlay = useCallback((url: string, audioId: string) => {
     if (playingId === audioId) {
-      audioRef.current?.pause();
+      audioElRef.current?.pause();
       setPlayingId(null);
     } else {
-      if (audioRef.current) audioRef.current.pause();
-      // Use video element to handle both audio/* and video/mp4 content-types from CDN
-      const a = document.createElement('video');
+      const a = audioElRef.current;
+      if (!a) return;
+      a.pause();
       a.src = url;
       a.onended = () => setPlayingId(null);
       a.play().catch((err) => {
@@ -61,7 +61,6 @@ export default function VoiceMemoSection({
         toast.error('Không thể phát voice memo');
         setPlayingId(null);
       });
-      audioRef.current = a;
       setPlayingId(audioId);
     }
   }, [playingId]);
@@ -162,6 +161,9 @@ export default function VoiceMemoSection({
           </div>
         ))}
       </div>
+
+      {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
+      <audio ref={audioElRef} preload="none" style={{ display: 'none' }} />
     </>
   );
 }

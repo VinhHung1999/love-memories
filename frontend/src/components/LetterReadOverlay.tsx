@@ -166,16 +166,16 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
   const [lightboxPhoto, setLightboxPhoto] = useState<LetterPhoto | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [audioProgress, setAudioProgress] = useState(0);
-  const audioRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const toggleAudio = (audio: LetterAudio) => {
     if (playingAudioId === audio.id) {
       audioRef.current?.pause();
       setPlayingAudioId(null);
     } else {
-      audioRef.current?.pause();
-      // Use video element to handle both audio/* and video/mp4 content-types from CDN
-      const a = document.createElement('video');
+      const a = audioRef.current;
+      if (!a) return;
+      a.pause();
       a.src = audio.url;
       a.onended = () => { setPlayingAudioId(null); setAudioProgress(0); };
       a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
@@ -183,14 +183,12 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
         console.error('Audio play failed:', err);
         setPlayingAudioId(null);
       });
-      audioRef.current = a;
       setPlayingAudioId(audio.id);
     }
   };
 
   const stopAudio = () => {
     audioRef.current?.pause();
-    audioRef.current = null;
     setPlayingAudioId(null);
     setAudioProgress(0);
   };
@@ -439,6 +437,9 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
+      <audio ref={audioRef} preload="none" style={{ display: 'none' }} />
     </>
   );
 }
