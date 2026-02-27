@@ -408,15 +408,15 @@ export default function Dashboard() {
       {/* ── ROW 4: MODULES GRID ──────────────────────────────────────── */}
       <div className="mb-4">
         <h2 className="font-heading text-sm font-semibold text-text-light mb-2">Tất cả tính năng</h2>
-        <div className="grid grid-cols-3 gap-3" data-tour="modules-grid">
+        <div className="grid grid-cols-4 gap-2" data-tour="modules-grid">
           {modules.map(({ to, icon: Icon, label, color }) => (
             <Link
               key={to}
               to={to}
-              className="block bg-white rounded-2xl shadow-sm p-3 text-center active:scale-95 transition-transform"
+              className="block bg-white rounded-xl shadow-sm p-2.5 text-center active:scale-95 transition-transform"
             >
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-1.5 ${color}`}>
-                <Icon className="w-4 h-4" />
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center mx-auto mb-1 ${color}`}>
+                <Icon className="w-3.5 h-3.5" />
               </div>
               <p className="text-xs font-medium text-text leading-tight">{label}</p>
             </Link>
