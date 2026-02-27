@@ -7,7 +7,6 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { loveLettersApi } from '../lib/api';
-import { uploadQueue } from '../lib/uploadQueue';
 import { useModuleTour } from '../lib/useModuleTour';
 import type { LoveLetter, LetterStatus, LetterPhoto, LetterAudio } from '../types';
 import Modal from '../components/Modal';
@@ -167,13 +166,18 @@ function ComposeLetterModal({
   const [mood, setMood] = useState(initialLetter?.mood ?? '');
   const [scheduleMode, setScheduleMode] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Draft state — set once letter is saved
+  // Draft ID (set after first save; used for editing existing drafts)
   const [draftId, setDraftId] = useState<string | null>(initialLetter?.id ?? null);
 
-  // Media state
-  const [photos, setPhotos] = useState<LetterPhoto[]>(initialLetter?.photos ?? []);
-  const [audioEntry, setAudioEntry] = useState<LetterAudio | null>(initialLetter?.audio?.[0] ?? null);
+  // Already-uploaded media (from server)
+  const [uploadedPhotos, setUploadedPhotos] = useState<LetterPhoto[]>(initialLetter?.photos ?? []);
+  const [uploadedAudio, setUploadedAudio] = useState<LetterAudio | null>(initialLetter?.audio?.[0] ?? null);
+
+  // Pending media — selected locally, not yet uploaded
+  const [pendingPhotos, setPendingPhotos] = useState<{ file: File; objectUrl: string }[]>([]);
+  const [pendingAudio, setPendingAudio] = useState<{ file: File; duration: number; objectUrl: string } | null>(null);
 
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -181,145 +185,131 @@ function ComposeLetterModal({
   const mediaRecorderRef = useRef<MediaRecorder | undefined>(undefined);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const recordDurationRef = useRef(0);
 
   // Audio playback
   const [isPlaying, setIsPlaying] = useState(false);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  const totalPhotos = uploadedPhotos.length + pendingPhotos.length;
+
+  const revokePendingUrls = () => {
+    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+    if (pendingAudio) URL.revokeObjectURL(pendingAudio.objectUrl);
+  };
+
   const reset = () => {
-    setTitle('');
-    setContent('');
-    setMood('');
-    setScheduleMode(false);
-    setScheduledAt('');
+    revokePendingUrls();
+    setTitle(''); setContent(''); setMood('');
+    setScheduleMode(false); setScheduledAt('');
     setDraftId(null);
-    setPhotos([]);
-    setAudioEntry(null);
-    setIsRecording(false);
-    setRecordSeconds(0);
+    setUploadedPhotos([]); setUploadedAudio(null);
+    setPendingPhotos([]); setPendingAudio(null);
+    setIsRecording(false); setRecordSeconds(0); recordDurationRef.current = 0;
     setIsPlaying(false);
     clearInterval(timerRef.current);
     audioPlayerRef.current?.pause();
     audioPlayerRef.current = null;
   };
 
-  const handleClose = () => {
-    onClose();
-    setTimeout(reset, 300);
+  const handleClose = () => { onClose(); setTimeout(reset, 300); };
+
+  // Core save/send flow — create/update letter, upload pending media, then optionally send
+  const executeFlow = async (shouldSend: boolean) => {
+    if (!title.trim() || !content.trim()) return;
+    setIsSaving(true);
+    try {
+      // 1. Create or update the letter text
+      let id = draftId;
+      const schedAt = scheduleMode && scheduledAt ? new Date(scheduledAt).toISOString() : undefined;
+      if (id) {
+        await loveLettersApi.update(id, { title, content, mood: mood || undefined, scheduledAt: schedAt ?? null });
+      } else {
+        const draft = await loveLettersApi.create({ title, content, mood: mood || undefined, scheduledAt: schedAt });
+        id = draft.id;
+        setDraftId(id);
+      }
+
+      // 2. Upload pending photos (if any)
+      if (pendingPhotos.length > 0) {
+        const files = pendingPhotos.map((p) => p.file);
+        const newPhotos = await loveLettersApi.uploadPhotos(id, files);
+        setUploadedPhotos((prev) => [...prev, ...newPhotos]);
+        pendingPhotos.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+        setPendingPhotos([]);
+      }
+
+      // 3. Upload pending audio (if any)
+      if (pendingAudio) {
+        const audio = await loveLettersApi.uploadAudio(id, pendingAudio.file, pendingAudio.duration);
+        setUploadedAudio(audio);
+        URL.revokeObjectURL(pendingAudio.objectUrl);
+        setPendingAudio(null);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+
+      // 4. Send or just save
+      if (shouldSend) {
+        await loveLettersApi.send(id);
+        toast.success('Đã gửi thư!');
+        handleClose();
+      } else {
+        toast.success('Đã lưu nháp!');
+      }
+    } catch {
+      toast.error(shouldSend ? 'Không thể gửi thư. Thử lại nhé.' : 'Không thể lưu thư. Thử lại nhé.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Save draft (create or update)
-  const saveDraftMutation = useMutation({
-    mutationFn: () => {
-      if (draftId) {
-        return loveLettersApi.update(draftId, {
-          title,
-          content,
-          mood: mood || undefined,
-          scheduledAt: scheduleMode && scheduledAt ? new Date(scheduledAt).toISOString() : null,
-        });
-      }
-      return loveLettersApi.create({
-        title,
-        content,
-        mood: mood || undefined,
-        scheduledAt: scheduleMode && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
-      });
-    },
-    onSuccess: (letter) => {
-      setDraftId(letter.id);
-      setPhotos(letter.photos ?? []);
-      setAudioEntry(letter.audio?.[0] ?? null);
-      queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-      toast.success('Đã lưu nháp!');
-    },
-    onError: () => toast.error('Không thể lưu thư. Thử lại nhé.'),
-  });
-
-  // Send letter
-  const sendMutation = useMutation({
-    mutationFn: async () => {
-      let id = draftId;
-      if (!id) {
-        const draft = await loveLettersApi.create({
-          title,
-          content,
-          mood: mood || undefined,
-          scheduledAt: scheduleMode && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
-        });
-        id = draft.id;
-      }
-      return loveLettersApi.send(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-      toast.success('Đã gửi thư!');
-      handleClose();
-    },
-    onError: () => toast.error('Không thể gửi thư. Thử lại nhé.'),
-  });
-
-  // Photo upload
-  const photoInputRef = useRef<HTMLInputElement>(null);
-
+  // Photo selection — store locally, show preview immediately
   const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
-    if (!files.length || !draftId) return;
-    const remaining = 5 - photos.length;
-    const toUpload = files.slice(0, remaining);
-    if (toUpload.length === 0) return;
-    const label = toUpload.length === 1 ? `Đang tải ảnh...` : `Đang tải ${toUpload.length} ảnh...`;
-    uploadQueue.enqueue(
-      `letter-photos-${draftId}-${Date.now()}`,
-      label,
-      (onProgress) => loveLettersApi.uploadPhotos(draftId, toUpload, onProgress),
-      (result) => {
-        setPhotos((prev) => [...prev, ...(result as LetterPhoto[])]);
-        queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-      },
-    );
+    if (!files.length) return;
+    const remaining = 5 - totalPhotos;
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length === 0) return;
+    const newEntries = toAdd.map((f) => ({ file: f, objectUrl: URL.createObjectURL(f) }));
+    setPendingPhotos((prev) => [...prev, ...newEntries]);
   };
 
-  const handleDeletePhoto = async (photoId: string) => {
+  const handleDeleteUploadedPhoto = async (photoId: string) => {
     if (!draftId) return;
     try {
       await loveLettersApi.deletePhoto(draftId, photoId);
-      setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+      setUploadedPhotos((prev) => prev.filter((p) => p.id !== photoId));
       queryClient.invalidateQueries({ queryKey: ['love-letters'] });
     } catch {
       toast.error('Không thể xóa ảnh');
     }
   };
 
-  // Audio recording
+  const handleRemovePendingPhoto = (objectUrl: string) => {
+    URL.revokeObjectURL(objectUrl);
+    setPendingPhotos((prev) => prev.filter((p) => p.objectUrl !== objectUrl));
+  };
+
+  // Audio recording — store blob locally, play preview immediately
   const startRecording = useCallback(async () => {
-    if (!draftId) {
-      toast.error('Lưu nháp trước khi ghi âm');
-      return;
-    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mr = new MediaRecorder(stream);
       chunksRef.current = [];
+      recordDurationRef.current = 0;
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
         const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm';
         const file = new File([blob], `voice-memo-${Date.now()}.${ext}`, { type: blob.type });
-        const dur = recordSeconds;
-        uploadQueue.enqueue(
-          `letter-audio-${draftId}-${Date.now()}`,
-          'Đang lưu voice memo...',
-          (onProgress) => loveLettersApi.uploadAudio(draftId, file, dur, onProgress),
-          (result) => {
-            setAudioEntry(result as LetterAudio);
-            queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-          },
-        );
+        const objectUrl = URL.createObjectURL(blob);
+        setPendingAudio({ file, duration: recordDurationRef.current, objectUrl });
         clearInterval(timerRef.current);
         setRecordSeconds(0);
+        recordDurationRef.current = 0;
       };
       mediaRecorderRef.current = mr;
       mr.start();
@@ -327,19 +317,21 @@ function ComposeLetterModal({
       setRecordSeconds(0);
       timerRef.current = setInterval(() => {
         setRecordSeconds((s) => {
-          if (s >= 29) {
+          const next = s + 1;
+          recordDurationRef.current = next;
+          if (next >= 30) {
             mediaRecorderRef.current?.stop();
             setIsRecording(false);
             clearInterval(timerRef.current);
             return 30;
           }
-          return s + 1;
+          return next;
         });
       }, 1000);
     } catch {
       toast.error('Không thể truy cập microphone');
     }
-  }, [draftId, recordSeconds, queryClient]);
+  }, []);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
@@ -347,11 +339,11 @@ function ComposeLetterModal({
     clearInterval(timerRef.current);
   }, []);
 
-  const handleDeleteAudio = async () => {
-    if (!draftId || !audioEntry) return;
+  const handleDeleteUploadedAudio = async () => {
+    if (!draftId || !uploadedAudio) return;
     try {
-      await loveLettersApi.deleteAudio(draftId, audioEntry.id);
-      setAudioEntry(null);
+      await loveLettersApi.deleteAudio(draftId, uploadedAudio.id);
+      setUploadedAudio(null);
       audioPlayerRef.current?.pause();
       audioPlayerRef.current = null;
       setIsPlaying(false);
@@ -361,13 +353,21 @@ function ComposeLetterModal({
     }
   };
 
-  const togglePlay = () => {
-    if (!audioEntry) return;
+  const handleRemovePendingAudio = () => {
+    if (pendingAudio) URL.revokeObjectURL(pendingAudio.objectUrl);
+    setPendingAudio(null);
+    audioPlayerRef.current?.pause();
+    audioPlayerRef.current = null;
+    setIsPlaying(false);
+  };
+
+  const togglePlay = (url: string) => {
     if (isPlaying) {
       audioPlayerRef.current?.pause();
       setIsPlaying(false);
     } else {
-      const a = new Audio(audioEntry.url);
+      audioPlayerRef.current?.pause();
+      const a = new Audio(url);
       a.onended = () => setIsPlaying(false);
       a.play();
       audioPlayerRef.current = a;
@@ -376,6 +376,12 @@ function ComposeLetterModal({
   };
 
   const canSubmit = title.trim() && content.trim();
+  // Determine which audio to show (uploaded takes priority over pending)
+  const displayAudio = uploadedAudio
+    ? { url: uploadedAudio.url, duration: uploadedAudio.duration, isPending: false }
+    : pendingAudio
+    ? { url: pendingAudio.objectUrl, duration: pendingAudio.duration, isPending: true }
+    : null;
 
   return (
     <Modal open={open} onClose={handleClose} title="Viết thư tình 💌">
@@ -404,99 +410,106 @@ function ComposeLetterModal({
           />
         </div>
 
-        {/* Photo section — visible only after draft saved */}
-        {draftId && (
-          <div>
-            <label className="block text-sm font-medium mb-2">📷 Ảnh đính kèm (tùy chọn)</label>
-            {photos.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
-                {photos.map((photo) => (
-                  <div key={photo.id} className="relative flex-shrink-0">
-                    <img
-                      src={photo.url}
-                      alt=""
-                      className="w-20 h-20 object-cover rounded-xl border border-border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleDeletePhoto(photo.id)}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {photos.length < 5 && (
-              <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs text-text-light cursor-pointer hover:bg-gray-50 transition-colors">
-                <Camera className="w-4 h-4" />
-                Thêm ảnh ({photos.length}/5)
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleAddPhotos}
-                />
-              </label>
-            )}
-          </div>
-        )}
-
-        {/* Voice memo section — visible only after draft saved */}
-        {draftId && (
-          <div>
-            <label className="block text-sm font-medium mb-2">🎤 Voice memo (tùy chọn, tối đa 30 giây)</label>
-            {audioEntry ? (
-              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-border">
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors flex-shrink-0"
-                >
-                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-text-light">Voice memo</p>
-                  {audioEntry.duration != null && (
-                    <p className="text-xs font-medium">{Math.round(audioEntry.duration)}s</p>
-                  )}
+        {/* Photo section — always visible */}
+        <div>
+          <label className="block text-sm font-medium mb-2">📷 Ảnh đính kèm (tùy chọn)</label>
+          {totalPhotos > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
+              {/* Uploaded photos */}
+              {uploadedPhotos.map((photo) => (
+                <div key={photo.id} className="relative flex-shrink-0">
+                  <img src={photo.url} alt="" className="w-20 h-20 object-cover rounded-xl border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteUploadedPhoto(photo.id)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleDeleteAudio}
-                  className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
-                  title="Xóa voice memo"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ) : isRecording ? (
-              <div className="flex items-center gap-3 bg-red-50 rounded-xl px-3 py-2 border border-red-200">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-                <span className="text-sm font-medium text-red-700 flex-1">{recordSeconds}s / 30s</span>
-                <button
-                  type="button"
-                  onClick={stopRecording}
-                  className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  Dừng
-                </button>
-              </div>
-            ) : (
+              ))}
+              {/* Pending photos — show preview from objectUrl */}
+              {pendingPhotos.map((p) => (
+                <div key={p.objectUrl} className="relative flex-shrink-0">
+                  <img src={p.objectUrl} alt="" className="w-20 h-20 object-cover rounded-xl border border-border opacity-80" />
+                  <div className="absolute inset-0 rounded-xl bg-black/10 flex items-center justify-center">
+                    <span className="text-[9px] text-white font-medium bg-black/40 px-1 rounded">Chưa lưu</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePendingPhoto(p.objectUrl)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {totalPhotos < 5 && (
+            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs text-text-light cursor-pointer hover:bg-gray-50 transition-colors">
+              <Camera className="w-4 h-4" />
+              Thêm ảnh ({totalPhotos}/5)
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleAddPhotos}
+              />
+            </label>
+          )}
+        </div>
+
+        {/* Voice memo section — always visible */}
+        <div>
+          <label className="block text-sm font-medium mb-2">🎤 Voice memo (tùy chọn, tối đa 30 giây)</label>
+          {displayAudio ? (
+            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-border">
               <button
                 type="button"
-                onClick={startRecording}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs text-text-light hover:bg-gray-50 transition-colors"
+                onClick={() => togglePlay(displayAudio.url)}
+                className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors flex-shrink-0"
               >
-                <Mic className="w-4 h-4" />
-                Ghi âm
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               </button>
-            )}
-          </div>
-        )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-text-light">{displayAudio.isPending ? 'Voice memo (chưa lưu)' : 'Voice memo'}</p>
+                {displayAudio.duration != null && (
+                  <p className="text-xs font-medium">{Math.round(displayAudio.duration)}s</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={displayAudio.isPending ? handleRemovePendingAudio : handleDeleteUploadedAudio}
+                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ) : isRecording ? (
+            <div className="flex items-center gap-3 bg-red-50 rounded-xl px-3 py-2 border border-red-200">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+              <span className="text-sm font-medium text-red-700 flex-1">{recordSeconds}s / 30s</span>
+              <button
+                type="button"
+                onClick={stopRecording}
+                className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Dừng
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={startRecording}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs text-text-light hover:bg-gray-50 transition-colors"
+            >
+              <Mic className="w-4 h-4" />
+              Ghi âm
+            </button>
+          )}
+        </div>
 
         {/* Mood picker */}
         <div>
@@ -520,94 +533,56 @@ function ComposeLetterModal({
         </div>
 
         {/* Schedule toggle */}
-        {!draftId && (
-          <div className="border border-border rounded-xl p-3">
-            <button
-              type="button"
-              onClick={() => setScheduleMode(!scheduleMode)}
-              className="flex items-center gap-2 text-sm font-medium text-text-light w-full"
-            >
-              <Calendar className="w-4 h-4" />
-              Hẹn giờ gửi
-              <span className={`ml-auto w-9 h-5 rounded-full transition-colors ${scheduleMode ? 'bg-primary' : 'bg-gray-200'} relative`}>
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${scheduleMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
-              </span>
-            </button>
-            {scheduleMode && (
-              <input
-                type="datetime-local"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                style={{ fontSize: 16 }}
-                className="mt-3 w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            )}
-          </div>
-        )}
-
-        {/* Media hint when not yet saved */}
-        {!draftId && (
-          <p className="text-xs text-text-light/70 text-center">
-            💡 Lưu nháp trước để đính kèm ảnh và voice memo
-          </p>
-        )}
+        <div className="border border-border rounded-xl p-3">
+          <button
+            type="button"
+            onClick={() => setScheduleMode(!scheduleMode)}
+            className="flex items-center gap-2 text-sm font-medium text-text-light w-full"
+          >
+            <Calendar className="w-4 h-4" />
+            Hẹn giờ gửi
+            <span className={`ml-auto w-9 h-5 rounded-full transition-colors ${scheduleMode ? 'bg-primary' : 'bg-gray-200'} relative`}>
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${scheduleMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </span>
+          </button>
+          {scheduleMode && (
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+              style={{ fontSize: 16 }}
+              className="mt-3 w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          )}
+        </div>
 
         {/* Action buttons */}
         <div className="flex gap-3 pt-2 pb-1 sticky bottom-0 bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-border mt-2">
-          {draftId ? (
-            <>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50"
-              >
-                Đóng
-              </button>
-              <button
-                type="button"
-                onClick={() => saveDraftMutation.mutate()}
-                disabled={!canSubmit || saveDraftMutation.isPending}
-                className="px-4 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
-              >
-                Cập nhật
-              </button>
-              <button
-                type="button"
-                onClick={() => sendMutation.mutate()}
-                disabled={!canSubmit || sendMutation.isPending}
-                className="flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <Send className="w-4 h-4" /> Gửi ngay
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={() => saveDraftMutation.mutate()}
-                disabled={!canSubmit || saveDraftMutation.isPending}
-                className="px-4 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
-              >
-                Lưu nháp
-              </button>
-              <button
-                type="button"
-                onClick={() => sendMutation.mutate()}
-                disabled={!canSubmit || sendMutation.isPending}
-                className="flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <Send className="w-4 h-4" /> Gửi ngay
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isSaving}
+            className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+          >
+            {draftId ? 'Đóng' : 'Hủy'}
+          </button>
+          <button
+            type="button"
+            onClick={() => executeFlow(false)}
+            disabled={!canSubmit || isSaving}
+            className="px-4 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+          >
+            {draftId ? 'Cập nhật' : 'Lưu nháp'}
+          </button>
+          <button
+            type="button"
+            onClick={() => executeFlow(true)}
+            disabled={!canSubmit || isSaving}
+            className="flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <Send className="w-4 h-4" /> Gửi ngay
+          </button>
         </div>
       </div>
     </Modal>
