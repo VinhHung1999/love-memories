@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 27
-**Goal:** Budget Tracker Core
+**Sprint:** 29
+**Goal:** Dashboard Bento Grid Refactor
 
 ---
 
@@ -9,276 +9,174 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | SPRINT CLOSED | Sprint 27 merged to main + deployed to production | 2026-02-26 |
-| DEV  | IDLE | Sprint 27 closed | 2026-02-26 |
+| PO   | IDLE | Sprint 29 DEPLOYED ✅ | 2026-02-27 |
+| DEV  | IDLE | Sprint 29 complete | 2026-02-27 |
 
 ---
 
-## Sprint 27 Spec
+## Sprint 29 Spec
 
-### Task 1: Expense Model + CRUD API + Stats Endpoint (Backend)
+### Task 1: Dashboard Bento Grid Refactor
 
-**What:** New `Expense` Prisma model with full CRUD REST API, Zod validation, and a stats aggregation endpoint for monthly summary by category.
+**Context:** Boss finds the current Dashboard too vertically stretched — RelationshipTimer (~250px) and AchievementSummary (~120px) take excessive space. Boss wants a compact bento grid layout that also brings all 9 modules from MorePage onto Dashboard for quick access.
 
-**Prisma model (`backend/prisma/schema.prisma`):**
+**Boss's exact words:**
+> "Chỗ Timer với achievement gom lại thành Hero Card thông minh, chỗ chi tiêu tháng với lại active sprint biến thành bento hàng 2. Move toàn bộ modules ra dashboard thành bento hàng 4."
 
-```prisma
-model Expense {
-  id          String   @id @default(uuid())
-  amount      Float
-  description String
-  category    String
-  date        DateTime
-  note        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+**Boss's change request:**
+> Hero card hiển thị dạng "4 năm 3 tháng 2 ngày bên nhau" (full năm/tháng/ngày breakdown), KHÔNG phải "285 ngày bên nhau".
 
-  @@map("expenses")
-}
+#### Target Layout
+
+```
+[Header: Love Scrum + bell]              ← unchanged
+[Active Cooking Pin]                      ← conditional, unchanged
+[Active Date Plan Pin]                    ← conditional, unchanged
+[Monthly Recap Pin]                       ← conditional (days 1-3), unchanged
+
+ROW 1 — Hero Card (compact, ~72px)
+┌───────────────────────────────────────┐
+│ ❤️ 4 năm 3 tháng 2 ngày bên nhau     │
+│ 🏆 12/20  · 📸 45 kỷ niệm · 🎯 3    │
+└───────────────────────────────────────┘
+
+ROW 2 — Bento 2-col
+┌─────────────────┐ ┌─────────────────┐
+│ 💰 Chi tiêu      │ │ 🎯 Sprint 26    │
+│ 2,500,000₫      │ │ 3/5 · 60%       │
+│ 5 khoản         │ │ ████░░░░        │
+│ ██ Ăn · █ Hẹn   │ │ ⏳ 3d left       │
+└─────────────────┘ └─────────────────┘
+
+ROW 3 — Recent Moments Swiper           ← unchanged
+
+ROW 4 — Modules Grid (3-col)
+┌──────┐ ┌──────┐ ┌──────┐
+│ 🍴   │ │ 🍜   │ │ 👨‍🍳   │
+│W2Eat │ │Foods │ │Recip │
+├──────┤ ├──────┤ ├──────┤
+│ ✨   │ │ 🏆   │ │ 💕   │
+│Photo │ │Achie │ │Date  │
+├──────┤ ├──────┤ ├──────┤
+│ 💌   │ │ 📅   │ │ 💰   │
+│Love  │ │Recap │ │Budge │
+└──────┘ └──────┘ └──────┘
+
+[FAB]                                     ← unchanged
 ```
 
-**Categories (hardcoded constants, NOT a separate table):**
+#### Sub-tasks
 
-| Key | Label | Icon | Color (hex) |
-|-----|-------|------|-------------|
-| food | Ăn uống | 🍜 | #F97316 (orange) |
-| dating | Hẹn hò | 💑 | #EC4899 (pink) |
-| shopping | Mua sắm | 🛍️ | #8B5CF6 (purple) |
-| transport | Di chuyển | 🚗 | #3B82F6 (blue) |
-| gifts | Quà tặng | 🎁 | #EF4444 (red) |
-| other | Khác | 📦 | #6B7280 (gray) |
+**1A. Create shared modules constant**
 
-**New file: `backend/src/routes/expenses.ts`**
+**New file:** `frontend/src/lib/modules.ts`
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | /api/expenses?month=YYYY-MM&category=food | List expenses (filter by month, category). Default: current month. Sorted by date DESC |
-| GET | /api/expenses/stats?month=YYYY-MM | Monthly stats: total + breakdown by category. Default: current month |
-| GET | /api/expenses/:id | Get single expense |
-| POST | /api/expenses | Create expense |
-| PUT | /api/expenses/:id | Update expense |
-| DELETE | /api/expenses/:id | Delete expense |
+Extract the 9-module array from `MorePage.tsx` (lines 50-114) into a shared file. Each entry: `{ to, icon, label, description, color }`. Both Dashboard and MorePage import from here.
 
-**Stats response shape (`GET /api/expenses/stats`):**
-```json
-{
-  "month": "2026-02",
-  "total": 2500000,
-  "byCategory": [
-    { "category": "food", "total": 1200000, "count": 15 },
-    { "category": "dating", "total": 800000, "count": 3 },
-    { "category": "transport", "total": 300000, "count": 8 },
-    { "category": "gifts", "total": 200000, "count": 1 }
-  ],
-  "count": 27
-}
-```
+**1B. Refactor Dashboard.tsx**
 
-**Zod schemas (`backend/src/utils/validation.ts`):**
-```
-createExpenseSchema:
-  amount: z.number().positive()
-  description: z.string().min(1).max(500)
-  category: z.enum(['food','dating','shopping','transport','gifts','other'])
-  date: z.string().transform → Date
-  note: z.string().max(1000).optional()
+**File:** `frontend/src/pages/Dashboard.tsx` (611 lines → major rewrite)
 
-updateExpenseSchema: createExpenseSchema.partial()
-```
+**Hero Card (replace RelationshipTimer + AchievementSummary):**
+- Remove `<RelationshipTimer footer={statsFooter} />` and `<AchievementSummary>`
+- Inline compact timer: query `relationship-start-date` setting (already available via settingsApi), compute years/months/days using `calcDiff` logic from RelationshipTimer.tsx
+- **IMPORTANT:** Display as "❤️ 4 năm 3 tháng 2 ngày bên nhau" (full breakdown), NOT totalDays
+  - If years=0, skip "X năm". If months=0 and years=0, skip "X tháng". Always show days.
+- Single card with gradient bg (`from-primary/10 via-secondary/5 to-accent/10`), height ~72px
+- Row 1: `❤️ {years} năm {months} tháng {days} ngày bên nhau` (Link to /more for settings)
+- Row 2: `🏆 {unlocked}/{total}` (Link to /achievements) + stats footer (existing `primaryStats` + `extraStats` logic)
+- No live h:m:s clock on dashboard (saves a 1s interval)
+- `data-tour="hero-card"` attribute
+- Edge case: no date → show "Chưa cấu hình" + Link to /more
 
-**Register in `backend/src/index.ts`:**
-```
-app.use('/api/expenses', requireAuth, expenseRoutes)
-```
+**Bento Row 2 (replace old Budget + Sprint sections):**
+- Wrap Budget + Sprint in `<div className="grid grid-cols-2 gap-3 mb-4">`
+- **Budget card (left):** Compact version of current card
+  - Violet gradient, `p-3`, font `text-lg` (was `text-2xl`)
+  - Show total + count + top 2 category bars (was 3)
+  - Empty state: "Chưa có 💸" shorter text
+  - Entire card is Link to `/expenses`
+- **Sprint card (right):** Compact version
+  - Accent gradient border, `p-3`
+  - Show: sprint name, `{done}/{total} · {pct}%`, progress bar, remaining days badge
+  - Drop: date range, 3 goal items list
+  - Link to `/goals/sprint/${id}`
+  - When no active sprint: Budget card takes `col-span-2`
+- `data-tour="bento-row"` on the grid container
 
-**Acceptance criteria:**
-- [ ] Prisma migration creates `expenses` table
-- [ ] All 6 CRUD endpoints work
-- [ ] Stats endpoint returns correct totals by category
-- [ ] Month filter defaults to current month
-- [ ] Category filter works (optional query param)
-- [ ] Zod validation rejects invalid data (bad category, negative amount, missing fields)
-- [ ] Tests pass
+**Modules Grid (new section, after Recent Moments):**
+- Import modules array from `frontend/src/lib/modules.ts`
+- Section heading: "Tất cả tính năng" with subtle text
+- `<div className="grid grid-cols-3 gap-3 mb-4" data-tour="modules-grid">`
+- Each card: compact `rounded-2xl bg-white shadow-sm p-3 text-center` with icon (w-8 h-8) + label (text-xs font-medium)
+- Each card is a `<Link to={module.to}>`
+
+**Remove unused code:**
+- Delete inline `AchievementSummary` function (lines 417-464)
+- Remove `import RelationshipTimer` (line 12)
+- Clean up unused stats/expanded state if no longer needed
+
+**Update driver.js tour — replace existing 3 steps with 5:**
+1. General intro (no element)
+2. `[data-tour="hero-card"]` — Timer + Achievement
+3. `[data-tour="recent-moments"]` — Recent Moments (kept)
+4. `[data-tour="bento-row"]` — Budget + Sprint
+5. `[data-tour="modules-grid"]` — All modules
+
+**1C. Update MorePage.tsx**
+
+- Remove inline `modules` array (lines 50-114)
+- Remove "Modules" heading + grid section (lines 296-308)
+- Import from shared `modules.ts` only if needed (it won't be — grid is removed)
+- MorePage becomes Settings & Profile only
+
+**1D. Verify tour keys**
+
+In `MorePage.tsx` line 123, verify `TOUR_KEYS` array includes all module keys.
+
+#### Critical Files
+
+| File | Change |
+|------|--------|
+| `frontend/src/pages/Dashboard.tsx` | Major rewrite — hero card, bento row, modules grid |
+| `frontend/src/pages/MorePage.tsx` | Remove modules grid |
+| `frontend/src/lib/modules.ts` | New — shared modules array |
+| `frontend/src/components/RelationshipTimer.tsx` | Reference only for calcDiff logic |
+
+#### Edge Cases
+
+- **No relationship date set:** Hero card shows "Chưa cấu hình" with link to /more
+- **No active sprint:** Budget card takes `col-span-2`
+- **No expense stats:** Budget half shows "Chưa có chi tiêu 💸"
+- **0 achievements:** Show "🏆 0/0" with "Bắt đầu khám phá!" text
+
+#### Acceptance Criteria
+
+- [ ] Dashboard loads with new bento layout, all 4 rows visible without excessive scrolling
+- [ ] Hero card shows "X năm Y tháng Z ngày bên nhau" (full breakdown, not just totalDays)
+- [ ] Navigation: All 9 module cards link to correct routes
+- [ ] Data: Budget shows current month stats, Sprint shows active sprint progress
+- [ ] Conditional pins: Cooking session, Date plan, Monthly recap pins still appear when active
+- [ ] MorePage: No modules grid, only profile/settings/permissions/logout
+- [ ] Tour: New 5-step tour triggers on first visit after reset
+- [ ] Mobile: Test on 375px width — bento cards don't overflow, module grid fits 3 cols
+- [ ] Build + lint pass, no regressions
 
 ---
 
-### Task 2: Expenses Frontend Page (Frontend)
-
-**What:** New page to list, add, edit, and delete expenses with month navigation and category filter.
-
-**New file: `frontend/src/pages/ExpensesPage.tsx`**
-
-**Layout:**
-
-1. **Header:** "Chi tiêu" + month navigation (← tháng trước / tháng sau →) showing "Tháng 2, 2026"
-2. **Month summary card:** Total amount (formatted VND: `1.500.000₫`) + number of expenses
-3. **Category filter:** Horizontal scrollable chips (All + 6 categories). Each chip = icon + label. Active chip highlighted with category color.
-4. **Expense list:** Grouped by date (headers like "Hôm nay", "Hôm qua", "24/02/2026"). Each item shows:
-   - Category icon (left)
-   - Description + category label (center)
-   - Amount in VND (right, bold)
-   - Tap to edit
-5. **FAB (Floating Action Button):** Bottom-right "+" button to add new expense
-6. **Empty state:** "Chưa có chi tiêu nào tháng này. Thêm chi tiêu đầu tiên! 💰"
-
-**Add/Edit form (Modal — bottom sheet on mobile):**
-- Amount input (number, VND — large, prominent)
-- Description input (text)
-- Category selector (grid of 6 category buttons with icon + label)
-- Date picker (default today)
-- Note (optional textarea)
-- Save / Delete buttons
-
-**Currency formatting:**
-- Use `Intl.NumberFormat('vi-VN')` for VND display
-- Input: raw number, no currency symbol during typing
-- Display: `1.500.000₫` format
-
-**Types (`frontend/src/types/index.ts`):**
-```ts
-export interface Expense {
-  id: string;
-  amount: number;
-  description: string;
-  category: string;
-  date: string;
-  note: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ExpenseStats {
-  month: string;
-  total: number;
-  byCategory: { category: string; total: number; count: number }[];
-  count: number;
-}
-```
-
-**API client (`frontend/src/lib/api.ts`):**
-```ts
-export const expensesApi = {
-  list: (month?: string, category?: string) => request<Expense[]>(`/expenses?${params}`),
-  stats: (month?: string) => request<ExpenseStats>(`/expenses/stats?month=${month}`),
-  get: (id: string) => request<Expense>(`/expenses/${id}`),
-  create: (data) => request<Expense>('/expenses', { method: 'POST', body }),
-  update: (id, data) => request<Expense>(`/expenses/${id}`, { method: 'PUT', body }),
-  delete: (id) => request(`/expenses/${id}`, { method: 'DELETE' }),
-};
-```
-
-**Routing (`frontend/src/App.tsx`):**
-- Add: `<Route path="/expenses" element={<ExpensesPage />} />`
-- Import `ExpensesPage`
-
-**Acceptance criteria:**
-- [ ] Expense list renders with correct VND formatting
-- [ ] Month navigation works (prev/next)
-- [ ] Category filter chips filter the list
-- [ ] Add expense via FAB + modal form works
-- [ ] Edit expense by tapping list item works
-- [ ] Delete expense from edit form works
-- [ ] Empty state shows when no expenses
-- [ ] Form validates required fields (amount, description, category)
-
----
-
-### Task 3: Dashboard Budget Card + MorePage Entry + Driver.js Tour
-
-**What:** Add budget summary to Dashboard, entry in MorePage modules list, and driver.js tour for the expenses module.
-
-**Dashboard (`frontend/src/pages/Dashboard.tsx`):**
-- New card section between existing stats: "Chi tiêu tháng này"
-- Show: total VND this month (large number) + mini horizontal bar showing top 3 categories with colors
-- Tap navigates to `/expenses`
-- Use `expensesApi.stats()` (current month)
-- If total is 0, show subtle "Chưa có chi tiêu" instead of hiding
-
-**MorePage (`frontend/src/pages/MorePage.tsx`):**
-- Add new module entry in the `modules` array:
-  - `to: '/expenses'`
-  - `icon: Wallet` (from lucide-react)
-  - `label: 'Budget'`
-  - `description: 'Theo dõi chi tiêu'`
-  - `color: 'bg-emerald-500/10 text-emerald-500'`
-- Position: after "Monthly Recap" entry
-
-**Driver.js tour (`ExpensesPage.tsx`):**
-- Module key: `expenses`
-- Add `data-tour` attributes to: month nav, summary card, category filters, expense list, FAB
-- Steps:
-  1. Month nav: "Chuyển tháng để xem chi tiêu từng tháng"
-  2. Summary card: "Tổng chi tiêu tháng này"
-  3. Category filters: "Lọc theo danh mục: ăn uống, hẹn hò, mua sắm..."
-  4. Expense list: "Danh sách chi tiêu, chạm để sửa"
-  5. FAB: "Thêm chi tiêu mới"
-- Add `'expenses'` to TOUR_KEYS in MorePage
-
-**NotificationsPage:** Add `expense` icon type (Wallet icon) for future use.
-
-**Acceptance criteria:**
-- [ ] Dashboard shows budget card with current month total
-- [ ] MorePage has Budget entry navigating to /expenses
-- [ ] Driver.js tour runs on first visit (5 steps)
-- [ ] Tour key `expenses` added to TOUR_KEYS reset list
-- [ ] Build passes, no lint errors
-
----
-
-## Sprint 27 Backlog
+## Sprint 29 Backlog
 
 | # | Task | Priority | Status | Assignee |
 |---|------|----------|--------|----------|
-| 1 | Expense Model + CRUD API + Stats Endpoint | P0 | DONE - PO Approved ✅ | DEV |
-| 2 | Expenses Frontend Page | P0 | DONE - PO Approved ✅ | DEV |
-| 3 | Dashboard Card + MorePage + Driver.js Tour | P0 | DONE - PO Approved ✅ | DEV |
-| 4 | Remove Weekly Recap entry from MorePage (keep Monthly Recap) | P1 | DONE - PO Approved ✅ | DEV |
+| 1 | Dashboard Bento Grid Refactor | P0 | ASSIGNED | DEV |
 
 ---
 
-## Upcoming Sprints
+## Previous Sprints
 
-**Sprint 28 — Budget Tracker Advanced**
-| # | Task | Notes |
-|---|------|-------|
-| 1 | Shared expenses: ai trả (mình/người yêu/chia đôi), balance ai nợ ai | Backend + Frontend |
-| 2 | Budget limit: set ngân sách tháng, cảnh báo khi sắp vượt | Backend + Frontend |
-| 3 | Integration: link chi tiêu với FoodSpots + Date Plans | Backend + Frontend |
-
----
-
-## Backlog (Future)
-
-| # | Feature | Notes |
-|---|---------|-------|
-| 1 | What to Eat — Rating & Stats | Rate experience, cooking stats over time |
-| 2 | Photo Booth — Fun Effects | Stickers, filters, AR effects |
-| 3 | Mood Check-in | Check-in tâm trạng hàng ngày, xem trend theo tuần/tháng |
-
----
-
-## Notes
-
-_Sprint 7 — PicaPica Booth: APPROVED & MERGED (2026-02-20)_
-_Sprint 8 — Bug Fix + Sticker Upgrade: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 9 — Dashboard Timer + Voice Recording + Map Tag Filter + Swiper Carousel + FAB: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 10 — Dashboard UI Redesign: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 11 — Spotify Embed + Map Tag Icons + Goal Edit Bug Fix + Emoji Picker: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 12 — Timer Realtime h:m:s + Spotify Layout + Timezone Fix: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 13 — Nav Restructure (More tab) + More Page + Dashboard Stats Expand: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 14 — Recipes Module + Logout + Auto-focus + Cooked Status: APPROVED & DEPLOYED (2026-02-21)_
-_Sprint 15 — What to Eat Today (Gamified Cooking Session): APPROVED & DEPLOYED (2026-02-22)_
-_Sprint 16 — AI Recipe Creator + Ingredient Pricing + Confetti: APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 17 — Custom App Name + Achievements System + Profile Edit: APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 18 — Comments & Reactions on Moments: APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 19 — In-App Notification System + Web Push: APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 20 — Image Upload Optimization: APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 21 — Date Planner (Wishlist + Itinerary + Gallery): APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 22 — Date Planner Notifications + Address Search Fix: APPROVED & DEPLOYED (2026-02-23)_
-_Sprint 23 — Plan Edit UX + Animation Fixes + Photo Upload: COMMITTED TO MAIN (2026-02-24)_
-_Sprint 24 — Recipe from URL + Love Letters + Shared LetterReadOverlay + Envelope Animation + Bug Fixes: ALL 10 TASKS APPROVED (2026-02-25)_
-_Sprint 25 — App Permissions Manager + Toggle Switches: DEPLOYED (2026-02-25)_
-_Sprint 26 — Weekly/Monthly Recap + Onboarding + Driver.js Tours + Stories UI: CLOSED (2026-02-26)_
+_Sprint 7–27: See git history_
+_Sprint 28 — Budget Tracker Advanced + What to Eat Rating: DEPLOYED_
+_Sprint 29 — Dashboard Bento Grid Refactor: DEPLOYED_
 
 ---
 
