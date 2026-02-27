@@ -50,6 +50,7 @@ export default function MorePage() {
   const { user, logout, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -137,6 +138,7 @@ export default function MorePage() {
       queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
       queryClient.invalidateQueries({ queryKey: ['settings', 'relationship-start-date'] });
       toast.success('Đã lưu!');
+      setCustomOpen(false);
     },
     onError: () => toast.error('Không thể lưu'),
   });
@@ -226,54 +228,25 @@ export default function MorePage() {
         </div>
       </div>
 
-      {/* App Customization */}
+      {/* App Customization — tap to open modal */}
       <div className="mt-6">
         <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
           <Settings className="w-4 h-4 text-text-light" /> Tùy chỉnh
         </h2>
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-text-light mb-1">Tên app</label>
-            <input
-              value={appNameInput}
-              onChange={(e) => setAppNameInput(e.target.value)}
-              placeholder="Love Scrum"
-              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
+        <button
+          type="button"
+          onClick={() => setCustomOpen(true)}
+          className="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 hover:bg-gray-50 active:scale-[0.99] transition-all text-left"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+            <Settings className="w-4.5 h-4.5" />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-text-light mb-1">Slogan</label>
-            <input
-              value={appSloganInput}
-              onChange={(e) => setAppSloganInput(e.target.value)}
-              placeholder="Our little world, beautifully organized"
-              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-text">Tùy chỉnh ứng dụng</p>
+            <p className="text-xs text-text-light truncate">{appNameInput || 'Love Scrum'} · {appSloganInput || 'Our little world...'}</p>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-text-light mb-1">Ngày yêu nhau</label>
-            <input
-              type="date"
-              value={dateInput}
-              onChange={(e) => setDateInput(e.target.value)}
-              className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <button
-            onClick={() => saveCustomMutation.mutate()}
-            disabled={saveCustomMutation.isPending}
-            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
-          </button>
-          <button
-            type="button"
-            onClick={handleReplayTours}
-            className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
-          >
-            Xem lại hướng dẫn
-          </button>
-        </div>
+          <X className="w-4 h-4 text-text-light/40 rotate-45 flex-shrink-0" />
+        </button>
       </div>
 
       {/* App Permissions */}
@@ -325,6 +298,53 @@ export default function MorePage() {
           Log Out
         </button>
       </div>
+
+      {/* Customization modal */}
+      <Modal open={customOpen} onClose={() => setCustomOpen(false)} title="Tùy chỉnh ứng dụng">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Tên app</label>
+            <input
+              value={appNameInput}
+              onChange={(e) => setAppNameInput(e.target.value)}
+              placeholder="Love Scrum"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Slogan</label>
+            <input
+              value={appSloganInput}
+              onChange={(e) => setAppSloganInput(e.target.value)}
+              placeholder="Our little world, beautifully organized"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Ngày yêu nhau</label>
+            <input
+              type="date"
+              value={dateInput}
+              onChange={(e) => setDateInput(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <button
+            onClick={() => saveCustomMutation.mutate()}
+            disabled={saveCustomMutation.isPending}
+            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+          </button>
+          <button
+            type="button"
+            onClick={handleReplayTours}
+            className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Xem lại hướng dẫn
+          </button>
+        </div>
+      </Modal>
 
       {/* Edit name modal */}
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Profile">
