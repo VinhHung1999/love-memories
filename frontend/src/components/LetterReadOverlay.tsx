@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
-import { X } from 'lucide-react';
+import { X, Play, Pause } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { loveLettersApi } from '../lib/api';
-import type { LoveLetter } from '../types';
+import type { LoveLetter, LetterPhoto, LetterAudio } from '../types';
 
 // ── Shared constants ──────────────────────────────────────────────────────────
 
@@ -162,6 +162,34 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
   const [phase, setPhase] = useState<'envelope' | 'letter'>('envelope');
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Media state
+  const [lightboxPhoto, setLightboxPhoto] = useState<LetterPhoto | null>(null);
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleAudio = (audio: LetterAudio) => {
+    if (playingAudioId === audio.id) {
+      audioRef.current?.pause();
+      setPlayingAudioId(null);
+    } else {
+      audioRef.current?.pause();
+      const a = new Audio(audio.url);
+      a.onended = () => { setPlayingAudioId(null); setAudioProgress(0); };
+      a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
+      a.play();
+      audioRef.current = a;
+      setPlayingAudioId(audio.id);
+    }
+  };
+
+  const stopAudio = () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setPlayingAudioId(null);
+    setAudioProgress(0);
+  };
+
   const markRead = (letter: LoveLetter) => {
     if (!autoMarkRead) return;
     if (!markedRef.current.has(letter.id)) {
@@ -211,7 +239,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
         {/* Close button */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => { stopAudio(); onClose(); }}
           className="absolute top-4 right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 transition-colors"
         >
           <X className="w-4 h-4 text-gray-700" />
@@ -258,6 +286,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
                 className="w-full h-full"
                 onSlideChange={(swiper) => {
                   setActiveIndex(swiper.activeIndex);
+                  stopAudio();
                   const letter = letters[swiper.activeIndex];
                   if (letter) markRead(letter);
                 }}
@@ -308,10 +337,61 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
                           {letter.content}
                         </div>
 
+                        {/* Photos */}
+                        {(letter.photos?.length ?? 0) > 0 && (
+                          <div className="mt-5">
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                              {letter.photos!.map((photo) => (
+                                <img
+                                  key={photo.id}
+                                  src={photo.url}
+                                  alt=""
+                                  className="h-40 w-auto object-cover rounded-xl shadow-sm cursor-pointer flex-shrink-0 hover:opacity-90 transition-opacity"
+                                  onClick={() => setLightboxPhoto(photo)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Voice memo */}
+                        {(letter.audio?.length ?? 0) > 0 && letter.audio![0] && (
+                          <div className="mt-3 space-y-2">
+                            {letter.audio!.map((audio) => {
+                              const isThis = playingAudioId === audio.id;
+                              return (
+                                <div
+                                  key={audio.id}
+                                  className="flex items-center gap-2 bg-primary/5 rounded-xl px-3 py-2 border border-primary/15"
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleAudio(audio)}
+                                    className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25 transition-colors flex-shrink-0"
+                                  >
+                                    {isThis ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                  </button>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="h-1.5 bg-primary/15 rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-primary rounded-full transition-all duration-200"
+                                        style={{ width: isThis ? `${audioProgress * 100}%` : '0%' }}
+                                      />
+                                    </div>
+                                    {audio.duration != null && (
+                                      <p className="text-xs text-text-light mt-0.5">{Math.round(audio.duration)}s</p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
                         <div className="mt-6 pt-4 border-t border-dashed border-primary/20 flex justify-center">
                           <button
                             type="button"
-                            onClick={onClose}
+                            onClick={() => { stopAudio(); onClose(); }}
                             className="px-7 py-2.5 bg-primary text-white rounded-full text-sm font-semibold hover:opacity-90 active:scale-95 transition-all shadow-md shadow-primary/30"
                           >
                             {btnLabel}
@@ -326,6 +406,34 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
           </motion.div>
         )}
       </motion.div>
+
+      {/* Photo lightbox — z-[80] above the overlay */}
+      <AnimatePresence>
+        {lightboxPhoto && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] bg-black/92 flex items-center justify-center"
+            onClick={() => setLightboxPhoto(null)}
+          >
+            <img
+              src={lightboxPhoto.url}
+              alt=""
+              className="max-w-full max-h-full object-contain rounded-xl"
+              style={{ maxHeight: '90vh', maxWidth: '90vw' }}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              type="button"
+              onClick={() => setLightboxPhoto(null)}
+              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
