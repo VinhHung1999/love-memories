@@ -182,6 +182,9 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
       a.play().catch((err) => {
         console.error('Audio play failed:', err);
+        import('react-hot-toast').then(({ default: toast }) =>
+          toast.error(`Play lỗi: ${err?.name} — ${err?.message}`, { duration: 8000 })
+        );
         setPlayingAudioId(null);
       });
       setPlayingAudioId(audio.id);

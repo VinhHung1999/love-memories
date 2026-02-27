@@ -59,7 +59,7 @@ export default function VoiceMemoSection({
       a.onended = () => setPlayingId(null);
       a.play().catch((err) => {
         console.error('Audio play failed:', err);
-        toast.error('Không thể phát voice memo');
+        toast.error(`Play lỗi: ${err?.name} — ${err?.message}`, { duration: 8000 });
         setPlayingId(null);
       });
       setPlayingId(audioId);
