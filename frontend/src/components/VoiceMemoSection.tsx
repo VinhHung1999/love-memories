@@ -44,25 +44,40 @@ export default function VoiceMemoSection({
   canRecord = true,
 }: VoiceMemoSectionProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const audioElRef = useRef<HTMLVideoElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
 
-  const togglePlay = useCallback((url: string, audioId: string) => {
+  const togglePlay = useCallback(async (url: string, audioId: string) => {
+    // Stop current playback
+    try { sourceNodeRef.current?.stop(); } catch {}
+    sourceNodeRef.current = null;
+
     if (playingId === audioId) {
-      audioElRef.current?.pause();
       setPlayingId(null);
-    } else {
-      const a = audioElRef.current;
-      if (!a) return;
-      a.pause();
-      a.src = url;
-      // Do NOT call a.load() — causes AbortError on iOS when play() follows immediately
-      a.onended = () => setPlayingId(null);
-      a.play().catch((err) => {
-        console.error('Audio play failed:', err);
-        toast.error(`Play lỗi: ${err?.name} — ${err?.message}`, { duration: 8000 });
-        setPlayingId(null);
-      });
-      setPlayingId(audioId);
+      return;
+    }
+
+    setPlayingId(audioId);
+    try {
+      // Create AudioContext in user gesture — unlocks iOS audio
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') await ctx.resume();
+
+      const resp = await fetch(url);
+      const buf = await resp.arrayBuffer();
+      const decoded = await ctx.decodeAudioData(buf);
+
+      const source = ctx.createBufferSource();
+      source.buffer = decoded;
+      source.connect(ctx.destination);
+      source.onended = () => setPlayingId(null);
+      source.start(0);
+      sourceNodeRef.current = source;
+    } catch (err: any) {
+      console.error('Audio play failed:', err);
+      toast.error(`Play lỗi: ${err?.name} — ${err?.message}`, { duration: 8000 });
+      setPlayingId(null);
     }
   }, [playingId]);
 
@@ -163,9 +178,6 @@ export default function VoiceMemoSection({
         ))}
       </div>
 
-      {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
-      {/* video element handles both audio/* and video/mp4 content-types; must be in DOM for iOS Safari */}
-      <video ref={audioElRef} preload="none" playsInline style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }
