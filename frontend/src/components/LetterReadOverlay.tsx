@@ -166,7 +166,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
   const [lightboxPhoto, setLightboxPhoto] = useState<LetterPhoto | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [audioProgress, setAudioProgress] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLVideoElement | null>(null);
 
   const toggleAudio = (audio: LetterAudio) => {
     if (playingAudioId === audio.id) {
@@ -174,10 +174,15 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       setPlayingAudioId(null);
     } else {
       audioRef.current?.pause();
-      const a = new Audio(audio.url);
+      // Use video element to handle both audio/* and video/mp4 content-types from CDN
+      const a = document.createElement('video');
+      a.src = audio.url;
       a.onended = () => { setPlayingAudioId(null); setAudioProgress(0); };
       a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
-      a.play();
+      a.play().catch((err) => {
+        console.error('Audio play failed:', err);
+        setPlayingAudioId(null);
+      });
       audioRef.current = a;
       setPlayingAudioId(audio.id);
     }

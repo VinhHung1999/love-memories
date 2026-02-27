@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mail, Send, Plus, Clock, Check, CheckCheck, Trash2, Calendar, Camera, Mic, Play, Pause, Edit2, X } from 'lucide-react';
+import { Mail, Send, Plus, Clock, Check, CheckCheck, Trash2, Calendar, Camera, Mic, Edit2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LetterReadOverlay from '../components/LetterReadOverlay';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -9,8 +9,10 @@ import toast from 'react-hot-toast';
 import { loveLettersApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import { useModuleTour } from '../lib/useModuleTour';
+import { useVoiceRecorder } from '../lib/useVoiceRecorder';
 import type { LoveLetter, LetterStatus, LetterPhoto, LetterAudio } from '../types';
 import Modal from '../components/Modal';
+import VoiceMemoSection from '../components/VoiceMemoSection';
 
 const MOODS = [
   { key: 'romantic', label: 'Lãng mạn', emoji: '🌹' },
@@ -180,17 +182,13 @@ function ComposeLetterModal({
   const [pendingPhotos, setPendingPhotos] = useState<{ file: File; objectUrl: string }[]>([]);
   const [pendingAudio, setPendingAudio] = useState<{ file: File; duration: number; objectUrl: string } | null>(null);
 
-  // Recording state
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordSeconds, setRecordSeconds] = useState(0);
-  const mediaRecorderRef = useRef<MediaRecorder | undefined>(undefined);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  const recordDurationRef = useRef(0);
-
-  // Audio playback
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+  const { isRecording, recordSeconds, startRecording, stopRecording } = useVoiceRecorder({
+    maxDuration: 30,
+    onRecordingComplete: (file, duration) => {
+      const objectUrl = URL.createObjectURL(file);
+      setPendingAudio({ file, duration, objectUrl });
+    },
+  });
 
   const totalPhotos = uploadedPhotos.length + pendingPhotos.length;
 
@@ -206,11 +204,7 @@ function ComposeLetterModal({
     setDraftId(null);
     setUploadedPhotos([]); setUploadedAudio(null);
     setPendingPhotos([]); setPendingAudio(null);
-    setIsRecording(false); setRecordSeconds(0); recordDurationRef.current = 0;
-    setIsPlaying(false);
-    clearInterval(timerRef.current);
-    audioPlayerRef.current?.pause();
-    audioPlayerRef.current = null;
+    if (isRecording) stopRecording();
   };
 
   const handleClose = () => { onClose(); setTimeout(reset, 300); };
@@ -312,53 +306,6 @@ function ComposeLetterModal({
     setPendingPhotos((prev) => prev.filter((p) => p.objectUrl !== objectUrl));
   };
 
-  // Audio recording — store blob locally, play preview immediately
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      chunksRef.current = [];
-      recordDurationRef.current = 0;
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      mr.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
-        const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm';
-        const file = new File([blob], `voice-memo-${Date.now()}.${ext}`, { type: blob.type });
-        const objectUrl = URL.createObjectURL(blob);
-        setPendingAudio({ file, duration: recordDurationRef.current, objectUrl });
-        clearInterval(timerRef.current);
-        setRecordSeconds(0);
-        recordDurationRef.current = 0;
-      };
-      mediaRecorderRef.current = mr;
-      mr.start();
-      setIsRecording(true);
-      setRecordSeconds(0);
-      timerRef.current = setInterval(() => {
-        setRecordSeconds((s) => {
-          const next = s + 1;
-          recordDurationRef.current = next;
-          if (next >= 30) {
-            mediaRecorderRef.current?.stop();
-            setIsRecording(false);
-            clearInterval(timerRef.current);
-            return 30;
-          }
-          return next;
-        });
-      }, 1000);
-    } catch {
-      toast.error('Không thể truy cập microphone');
-    }
-  }, []);
-
-  const stopRecording = useCallback(() => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-    clearInterval(timerRef.current);
-  }, []);
-
   const handleDeleteUploadedAudio = async () => {
     if (!uploadedAudio) return;
     const id = draftId ?? uploadedAudio.letterId;
@@ -366,9 +313,6 @@ function ComposeLetterModal({
     try {
       await loveLettersApi.deleteAudio(id, uploadedAudio.id);
       setUploadedAudio(null);
-      audioPlayerRef.current?.pause();
-      audioPlayerRef.current = null;
-      setIsPlaying(false);
       queryClient.invalidateQueries({ queryKey: ['love-letters'] });
     } catch (err) {
       console.error('[deleteUploadedAudio] error:', err);
@@ -376,35 +320,7 @@ function ComposeLetterModal({
     }
   };
 
-  const handleRemovePendingAudio = () => {
-    if (pendingAudio) URL.revokeObjectURL(pendingAudio.objectUrl);
-    setPendingAudio(null);
-    audioPlayerRef.current?.pause();
-    audioPlayerRef.current = null;
-    setIsPlaying(false);
-  };
-
-  const togglePlay = (url: string) => {
-    if (isPlaying) {
-      audioPlayerRef.current?.pause();
-      setIsPlaying(false);
-    } else {
-      audioPlayerRef.current?.pause();
-      const a = new Audio(url);
-      a.onended = () => setIsPlaying(false);
-      a.play();
-      audioPlayerRef.current = a;
-      setIsPlaying(true);
-    }
-  };
-
   const canSubmit = title.trim() && content.trim();
-  // Determine which audio to show (uploaded takes priority over pending)
-  const displayAudio = uploadedAudio
-    ? { url: uploadedAudio.url, duration: uploadedAudio.duration, isPending: false }
-    : pendingAudio
-    ? { url: pendingAudio.objectUrl, duration: pendingAudio.duration, isPending: true }
-    : null;
 
   return (
     <Modal open={open} onClose={handleClose} title="Viết thư tình 💌">
@@ -486,52 +402,23 @@ function ComposeLetterModal({
 
         {/* Voice memo section — always visible */}
         <div>
-          <label className="block text-sm font-medium mb-2">🎤 Voice memo (tùy chọn, tối đa 30 giây)</label>
-          {displayAudio ? (
-            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-border">
-              <button
-                type="button"
-                onClick={() => togglePlay(displayAudio.url)}
-                className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors flex-shrink-0"
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-text-light">{displayAudio.isPending ? 'Voice memo (chưa lưu)' : 'Voice memo'}</p>
-                {displayAudio.duration != null && (
-                  <p className="text-xs font-medium">{Math.round(displayAudio.duration)}s</p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={displayAudio.isPending ? handleRemovePendingAudio : handleDeleteUploadedAudio}
-                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ) : isRecording ? (
-            <div className="flex items-center gap-3 bg-red-50 rounded-xl px-3 py-2 border border-red-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-              <span className="text-sm font-medium text-red-700 flex-1">{recordSeconds}s / 30s</span>
-              <button
-                type="button"
-                onClick={stopRecording}
-                className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Dừng
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={startRecording}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs text-text-light hover:bg-gray-50 transition-colors"
-            >
-              <Mic className="w-4 h-4" />
-              Ghi âm
-            </button>
-          )}
+          <VoiceMemoSection
+            isRecording={isRecording}
+            recordSeconds={recordSeconds}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            audios={uploadedAudio ? [{ id: uploadedAudio.id, url: uploadedAudio.url, duration: uploadedAudio.duration }] : []}
+            onDeleteAudio={() => handleDeleteUploadedAudio()}
+            pendingAudioUrl={pendingAudio?.objectUrl}
+            pendingAudioDuration={pendingAudio?.duration}
+            onDeletePending={() => {
+              if (pendingAudio) URL.revokeObjectURL(pendingAudio.objectUrl);
+              setPendingAudio(null);
+            }}
+            canRecord={!uploadedAudio && !pendingAudio}
+            label="🎤 Voice memo (tùy chọn, tối đa 30 giây)"
+            emptyText="Chưa có voice memo. Nhấn Record để ghi âm."
+          />
         </div>
 
         {/* Mood picker */}
