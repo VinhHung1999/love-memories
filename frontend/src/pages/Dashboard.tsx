@@ -1,46 +1,60 @@
-import { Fragment, useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Utensils, Target, ArrowRight, Clock, CheckCircle2, Circle, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, ChevronRight, Wallet } from 'lucide-react';
-import { format } from 'date-fns';
+import { Heart, Camera, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, ChevronRight, Clock, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, foodSpotsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi, loveLettersApi, expensesApi } from '../lib/api';
+import { momentsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi, loveLettersApi, expensesApi } from '../lib/api';
 import { useUnreadCount } from '../lib/useUnreadCount';
 import type { CookingSession, DatePlan } from '../types';
-import RelationshipTimer from '../components/RelationshipTimer';
 import { useModuleTour } from '../lib/useModuleTour';
 import FAB from '../components/FAB';
 import MomentCard from '../components/MomentCard';
 import LetterReadOverlay from '../components/LetterReadOverlay';
+import { modules } from '../lib/modules';
+
+// ─── Date diff helpers (inlined from RelationshipTimer, no live clock) ────────
+
+function parseLocalDate(dateStr: string): Date {
+  const parts = dateStr.split('-');
+  const y = parseInt(parts[0] ?? '0', 10);
+  const m = parseInt(parts[1] ?? '1', 10);
+  const d = parseInt(parts[2] ?? '1', 10);
+  return new Date(y, m - 1, d);
+}
+
+function calcDiff(startDateStr: string, now: Date) {
+  const start = parseLocalDate(startDateStr);
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  let days = now.getDate() - start.getDate();
+  if (days < 0) {
+    months--;
+    days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+  }
+  if (months < 0) { years--; months += 12; }
+  return { years, months, days };
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
   const { data: moments = [] } = useQuery({ queryKey: ['moments'], queryFn: momentsApi.list });
-  const { data: foodSpots = [] } = useQuery({ queryKey: ['foodspots'], queryFn: foodSpotsApi.list });
   const { data: sprints = [] } = useQuery({ queryKey: ['sprints'], queryFn: sprintsApi.list });
   const { data: activeSession } = useQuery({
     queryKey: ['cooking-sessions', 'active'],
     queryFn: cookingSessionsApi.getActive,
     refetchInterval: 30_000,
   });
-
   const { data: datePlans = [] } = useQuery({
     queryKey: ['date-plans'],
     queryFn: datePlansApi.list,
     refetchInterval: 60_000,
   });
-  const activeDatePlan = (() => {
-    const today = new Date();
-    return datePlans.find((p) => {
-      const pd = new Date(p.date);
-      const isToday = pd.getDate() === today.getDate() && pd.getMonth() === today.getMonth() && pd.getFullYear() === today.getFullYear();
-      return p.status === 'active' && isToday;
-    }) ?? null;
-  })();
-
   const { data: achievements = [] } = useQuery({ queryKey: ['achievements'], queryFn: achievementsApi.list });
   const achievementsUnlocked = achievements.filter((a) => a.unlocked).length;
 
@@ -58,7 +72,21 @@ export default function Dashboard() {
   const appName = appNameSetting?.value || 'Love Scrum';
   const appSlogan = appSloganSetting?.value || 'Our little world, beautifully organized';
 
+  const { data: relDateData } = useQuery({
+    queryKey: ['settings', 'relationship-start-date'],
+    queryFn: () => settingsApi.get('relationship-start-date'),
+  });
+
   const activeSprint = sprints.find((s) => s.status === 'ACTIVE');
+  const activeDatePlan = (() => {
+    const today = new Date();
+    return datePlans.find((p) => {
+      const pd = new Date(p.date);
+      const isToday = pd.getDate() === today.getDate() && pd.getMonth() === today.getMonth() && pd.getFullYear() === today.getFullYear();
+      return p.status === 'active' && isToday;
+    }) ?? null;
+  })();
+
   const recentMoments = moments.slice(0, 3);
   const doneGoals = activeSprint?.goals.filter((g) => g.status === 'DONE').length || 0;
   const totalGoals = activeSprint?.goals.length || 0;
@@ -73,7 +101,6 @@ export default function Dashboard() {
     queryFn: loveLettersApi.received,
     refetchOnMount: 'always',
   });
-  // IDs already shown this session (persisted in sessionStorage)
   const [dismissedIds] = useState<Set<string>>(() => {
     try {
       return new Set(JSON.parse(sessionStorage.getItem('ll-popup-dismissed') ?? '[]') as string[]);
@@ -93,48 +120,23 @@ export default function Dashboard() {
   };
   // ── End love letter popup ──────────────────────────────────────────────────
 
-  const [statsExpanded, setStatsExpanded] = useState(false);
+  // Hero card: compute time breakdown (no live clock — static render)
+  const startDate = relDateData?.value ?? '';
+  const heroTimeParts: string[] = [];
+  if (startDate) {
+    const { years, months, days } = calcDiff(startDate, new Date());
+    if (years > 0) heroTimeParts.push(`${years} năm`);
+    if (months > 0 || years > 0) heroTimeParts.push(`${months} tháng`);
+    heroTimeParts.push(`${days} ngày`);
+  }
 
   useModuleTour('dashboard', [
-    { popover: { title: '🏠 Trang chủ', description: 'Đây là trang tổng quan — xem kỷ niệm gần đây, mục tiêu, và hoạt động của hai bạn.' } },
+    { popover: { title: '🏠 Trang chủ', description: 'Đây là trang tổng quan — xem thời gian yêu nhau, chi tiêu, mục tiêu, và truy cập nhanh tất cả tính năng.' } },
+    { element: '[data-tour="hero-card"]', popover: { title: '❤️ Hero Card', description: 'Tóm tắt hành trình: thời gian bên nhau, thành tích và kỷ niệm.', side: 'bottom' } },
+    { element: '[data-tour="bento-row"]', popover: { title: '💰🎯 Chi tiêu & Sprint', description: 'Xem nhanh chi tiêu tháng này và tiến độ sprint đang chạy.', side: 'bottom' } },
     { element: '[data-tour="recent-moments"]', popover: { title: '📸 Kỷ niệm gần đây', description: 'Xem những kỷ niệm mới nhất. Vuốt sang trái/phải để xem thêm.', side: 'bottom' } },
-    { element: '[data-tour="active-sprint"]', popover: { title: '🎯 Sprint hiện tại', description: 'Theo dõi tiến độ mục tiêu chung trong sprint đang chạy.', side: 'top' } },
+    { element: '[data-tour="modules-grid"]', popover: { title: '✨ Tất cả tính năng', description: 'Truy cập nhanh vào tất cả 9 tính năng của ứng dụng.', side: 'top' } },
   ]);
-
-  const primaryStats = [
-    { icon: Camera, label: 'kỷ niệm', value: moments.length, to: '/moments' },
-    { icon: Target, label: 'goals xong', value: doneGoals, to: '/goals' },
-  ];
-  const extraStats = [
-    { icon: Utensils, label: 'quán ăn', value: foodSpots.length, to: '/foodspots' },
-  ];
-  const visibleStats = statsExpanded ? [...primaryStats, ...extraStats] : primaryStats;
-
-  // Stats row — rendered inside the hero card as its footer
-  const statsFooter = (
-    <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-2">
-      {visibleStats.map((stat, i) => (
-        <Fragment key={stat.label}>
-          {i > 0 && <span className="text-text-light/40 text-[10px] select-none">·</span>}
-          <Link
-            to={stat.to}
-            className="flex items-center gap-1 hover:opacity-70 active:opacity-50 transition-opacity"
-          >
-            <stat.icon className="w-3 h-3 text-text-light flex-shrink-0" />
-            <span className="text-sm font-bold text-text">{stat.value}</span>
-            <span className="text-xs text-text-light">{stat.label}</span>
-          </Link>
-        </Fragment>
-      ))}
-      <span className="text-text-light/40 text-[10px] select-none">·</span>
-      <button
-        onClick={() => setStatsExpanded((v) => !v)}
-        className="text-xs text-text-light/60 hover:text-text-light transition-colors"
-      >
-        {statsExpanded ? 'ẩn bớt' : 'xem thêm'}
-      </button>
-    </div>
-  );
 
   return (
     <div>
@@ -240,7 +242,110 @@ export default function Dashboard() {
       )}
       {/* ── END MONTHLY RECAP PIN ─────────────────────────────────────── */}
 
-      {/* ── RECENT MOMENTS ────────────────────────────────────────────── */}
+      {/* ── ROW 1: HERO CARD ─────────────────────────────────────────── */}
+      <div
+        className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-4 py-3 mb-4"
+        data-tour="hero-card"
+      >
+        {startDate ? (
+          <>
+            <Link to="/more" className="flex items-center gap-1.5 mb-1.5 hover:opacity-80 transition-opacity">
+              <Heart className="w-4 h-4 text-primary fill-primary flex-shrink-0" />
+              <span className="text-sm font-semibold text-text">{heroTimeParts.join(' ')} bên nhau</span>
+            </Link>
+            <div className="flex items-center gap-2 text-xs text-text-light flex-wrap">
+              <Link to="/achievements" className="hover:opacity-80 transition-opacity">🏆 {achievementsUnlocked}/{achievements.length}</Link>
+              <span className="text-text-light/40">·</span>
+              <span>📸 {moments.length} kỷ niệm</span>
+              <span className="text-text-light/40">·</span>
+              <span>🎯 {doneGoals} mục tiêu</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Heart className="w-4 h-4 text-primary/40" />
+              <span className="text-sm font-medium text-primary/60">Chưa cấu hình</span>
+              <Link to="/more" className="text-xs text-primary underline ml-1">Cài đặt ngày yêu nhau →</Link>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-text-light flex-wrap">
+              <Link to="/achievements" className="hover:opacity-80">🏆 {achievementsUnlocked}/{achievements.length}</Link>
+              <span className="text-text-light/40">·</span>
+              <span>📸 {moments.length} kỷ niệm</span>
+              <span className="text-text-light/40">·</span>
+              <span>🎯 {doneGoals} mục tiêu</span>
+            </div>
+          </>
+        )}
+      </div>
+      {/* ── END ROW 1: HERO CARD ─────────────────────────────────────── */}
+
+      {/* ── ROW 2: BENTO — Budget + Sprint ───────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 mb-4" data-tour="bento-row">
+        {/* Budget card */}
+        <Link
+          to="/expenses"
+          className={`block bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-3 shadow-md text-white${!activeSprint ? ' col-span-2' : ''}`}
+        >
+          <p className="text-xs text-white/70 mb-1 font-medium">💰 Chi tiêu</p>
+          {!expenseStats || expenseStats.count === 0 ? (
+            <p className="text-sm text-white/60">Chưa có 💸</p>
+          ) : (
+            <>
+              <p className="text-lg font-heading font-bold leading-tight">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(expenseStats.total)}
+              </p>
+              <p className="text-xs text-white/70 mb-2">{expenseStats.count} khoản</p>
+              <div className="space-y-1">
+                {(Object.entries(expenseStats.byCategory) as [string, { total: number; count: number }][])
+                  .filter(([, v]) => v.total > 0)
+                  .sort(([, a], [, b]) => b.total - a.total)
+                  .slice(0, 2)
+                  .map(([cat, v]) => {
+                    const pct = Math.round((v.total / expenseStats.total) * 100);
+                    const catEmoji: Record<string, string> = { food: '🍜', dating: '💑', shopping: '🛍️', transport: '🚗', gifts: '🎁', other: '📦' };
+                    const catLabel: Record<string, string> = { food: 'Ăn uống', dating: 'Hẹn hò', shopping: 'Mua sắm', transport: 'Di chuyển', gifts: 'Quà', other: 'Khác' };
+                    return (
+                      <div key={cat} className="flex items-center gap-1.5 text-xs">
+                        <span className="shrink-0 text-white/80 min-w-[4.5rem]">{catEmoji[cat]} {catLabel[cat]}</span>
+                        <div className="flex-1 bg-white/20 rounded-full h-1">
+                          <div className="bg-white rounded-full h-1" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
+          )}
+        </Link>
+
+        {/* Sprint card — only when active */}
+        {activeSprint && (
+          <Link
+            to={`/goals/sprint/${activeSprint.id}`}
+            className="block bg-white rounded-2xl p-3 shadow-sm border border-accent/20"
+          >
+            <p className="text-xs text-text-light font-medium mb-0.5">🎯 Sprint</p>
+            <p className="text-xs font-semibold text-text truncate mb-1">{activeSprint.name}</p>
+            <p className="text-xs text-text-light mb-2">{doneGoals}/{totalGoals} · {sprintProgress}%</p>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-accent to-primary"
+                style={{ width: `${sprintProgress}%` }}
+              />
+            </div>
+            {remainingDays > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">
+                <Clock className="w-3 h-3" />
+                {remainingDays}d left
+              </span>
+            )}
+          </Link>
+        )}
+      </div>
+      {/* ── END ROW 2: BENTO ─────────────────────────────────────────── */}
+
+      {/* ── ROW 3: RECENT MOMENTS ────────────────────────────────────── */}
       <div className="mb-4" data-tour="recent-moments">
         {recentMoments.length === 0 ? (
           <div className="h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
@@ -266,7 +371,7 @@ export default function Dashboard() {
               </Swiper>
             </div>
 
-            {/* Desktop: 2-row grid (3 cols × 2 rows = 6 items) */}
+            {/* Desktop: grid */}
             <div className="hidden md:grid md:grid-cols-3 gap-4">
               {recentMoments.map((moment) => (
                 <MomentCard key={moment.id} moment={moment} />
@@ -275,195 +380,32 @@ export default function Dashboard() {
           </>
         )}
       </div>
-      {/* ── END RECENT MOMENTS ────────────────────────────────────────── */}
+      {/* ── END ROW 3: RECENT MOMENTS ────────────────────────────────── */}
 
-      {/* ── UNIFIED HERO: Timer + Stats ───────────────────────────────── */}
+      {/* ── ROW 4: MODULES GRID ──────────────────────────────────────── */}
       <div className="mb-4">
-        <RelationshipTimer footer={statsFooter} />
-      </div>
-
-      {/* ── ACHIEVEMENT SUMMARY ────────────────────────────────────────── */}
-      <div className="mb-6">
-        <AchievementSummary achievements={achievements} />
-      </div>
-
-      {/* ── BUDGET SUMMARY CARD ───────────────────────────────────────── */}
-      {expenseStats !== undefined && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mb-6"
-        >
-          <Link to="/expenses" className="block group">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-heading text-base font-semibold text-text flex items-center gap-1.5">
-                <Wallet className="w-4 h-4 text-text-light" /> Chi tiêu tháng này
-              </h2>
-              <span className="text-accent text-xs flex items-center gap-1 group-hover:underline">
-                Xem chi tiết <ArrowRight className="w-3 h-3" />
-              </span>
-            </div>
-            <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-4 shadow-md text-white">
-              {expenseStats.count === 0 ? (
-                <p className="text-sm text-white/70 py-2">Chưa có chi tiêu tháng này 💸</p>
-              ) : (
-                <>
-                  <p className="text-2xl font-heading font-bold">
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(expenseStats.total)}
-                  </p>
-                  <p className="text-sm text-white/70 mb-3">{expenseStats.count} khoản chi tiêu</p>
-                  {/* Top 3 category bars */}
-                  <div className="space-y-1.5">
-                    {(Object.entries(expenseStats.byCategory) as [string, { total: number; count: number }][])
-                      .filter(([, v]) => v.total > 0)
-                      .sort(([, a], [, b]) => b.total - a.total)
-                      .slice(0, 3)
-                      .map(([cat, v]) => {
-                        const pct = Math.round((v.total / expenseStats.total) * 100);
-                        const catEmoji: Record<string, string> = { food: '🍜', dating: '💑', shopping: '🛍️', transport: '🚗', gifts: '🎁', other: '📦' };
-                        const catLabel: Record<string, string> = { food: 'Ăn uống', dating: 'Hẹn hò', shopping: 'Mua sắm', transport: 'Di chuyển', gifts: 'Quà tặng', other: 'Khác' };
-                        return (
-                          <div key={cat} className="flex items-center gap-2 text-xs">
-                            <span className="w-20 shrink-0 text-white/80">{catEmoji[cat]} {catLabel[cat]}</span>
-                            <div className="flex-1 bg-white/20 rounded-full h-1.5">
-                              <div className="bg-white rounded-full h-1.5" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="w-8 text-right text-white/80">{pct}%</span>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </>
-              )}
-            </div>
-          </Link>
-        </motion.div>
-      )}
-      {/* ── END BUDGET SUMMARY CARD ───────────────────────────────────── */}
-
-      {/* Active Sprint */}
-      {activeSprint && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          {/* Section header — outside the card, matching "Kỷ niệm gần đây" pattern */}
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-heading text-base font-semibold text-text">Active Sprint</h2>
-            <Link to={`/goals/sprint/${activeSprint.id}`} className="text-accent text-xs flex items-center gap-1 hover:underline">
-              Xem chi tiết <ArrowRight className="w-3 h-3" />
+        <h2 className="font-heading text-sm font-semibold text-text-light mb-2">Tất cả tính năng</h2>
+        <div className="grid grid-cols-3 gap-3" data-tour="modules-grid">
+          {modules.map(({ to, icon: Icon, label, color }) => (
+            <Link
+              key={to}
+              to={to}
+              className="block bg-white rounded-2xl shadow-sm p-3 text-center active:scale-95 transition-transform"
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-1.5 ${color}`}>
+                <Icon className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-medium text-text leading-tight">{label}</p>
             </Link>
-          </div>
-          <div className="relative bg-gradient-to-br from-white to-accent/5 rounded-2xl p-6 shadow-sm border border-accent/20 overflow-hidden" data-tour="active-sprint">
-            {/* Decorative circle */}
-            <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-accent/5 pointer-events-none" />
-
-            {/* Sprint name + dates + remaining days */}
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="font-medium text-sm">{activeSprint.name}</h3>
-                <p className="text-text-light text-xs mt-0.5">
-                  {format(new Date(activeSprint.startDate), 'MMM d')} — {format(new Date(activeSprint.endDate), 'MMM d')}
-                </p>
-              </div>
-              {remainingDays > 0 && (
-                <span className="flex items-center gap-1 text-xs bg-accent/10 text-accent-dark px-2 py-0.5 rounded-full font-medium flex-shrink-0 ml-2">
-                  <Clock className="w-3 h-3" />
-                  {remainingDays}d left
-                </span>
-              )}
-            </div>
-
-            {/* Gradient progress bar */}
-            <div className="mb-4">
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-text-light">{doneGoals}/{totalGoals} goals</span>
-                <span className="font-semibold text-accent">{sprintProgress}%</span>
-              </div>
-              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-accent to-primary"
-                  style={{ width: `${sprintProgress}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Goals with status icons */}
-            <div className="space-y-1.5">
-              {activeSprint.goals.slice(0, 3).map((goal) => (
-                <div key={goal.id} className="flex items-center gap-2 text-sm">
-                  {goal.status === 'DONE' ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                  ) : goal.status === 'IN_PROGRESS' ? (
-                    <Clock className="w-4 h-4 text-blue-400 flex-shrink-0 animate-pulse" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-gray-300 flex-shrink-0" />
-                  )}
-                  <span className={`${goal.status === 'DONE' ? 'line-through text-text-light' : ''} min-w-0 truncate`}>{goal.title}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      )}
+          ))}
+        </div>
+      </div>
+      {/* ── END ROW 4: MODULES GRID ──────────────────────────────────── */}
 
       <FAB />
     </div>
   );
 }
-
-// ─── Achievement Summary ──────────────────────────────────────────────────────
-
-import type { Achievement } from '../types';
-
-function AchievementSummary({ achievements }: { achievements: Achievement[] }) {
-  const total = achievements.length;
-  const unlocked = achievements.filter((a) => a.unlocked);
-  const progress = total > 0 ? Math.round((unlocked.length / total) * 100) : 0;
-
-  // Most recently unlocked, up to 4
-  const recent = [...unlocked]
-    .sort((a, b) => (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''))
-    .slice(0, 4);
-
-  return (
-    <div className="rounded-2xl bg-gradient-to-br from-secondary/5 to-accent/5 border border-secondary/10 px-4 py-3">
-      {/* Header */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-base">🏆</span>
-        <h2 className="font-heading text-sm font-semibold text-text flex-1">Achievements</h2>
-        <span className="text-xs text-text-light mr-2">{unlocked.length}/{total} đã mở khóa</span>
-        <Link to="/achievements" className="text-xs text-secondary font-medium hover:opacity-80 transition-opacity whitespace-nowrap">
-          Xem tất cả →
-        </Link>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 bg-black/8 rounded-full overflow-hidden mb-3">
-        <div
-          className="h-full bg-gradient-to-r from-secondary to-accent rounded-full transition-all duration-700"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      {/* Recent unlocks */}
-      {recent.length === 0 ? (
-        <p className="text-xs text-text-light text-center py-1">Hãy bắt đầu khám phá! ✨</p>
-      ) : (
-        <div className="flex items-start gap-3 flex-wrap">
-          {recent.map((a) => (
-            <div key={a.key} className="flex flex-col items-center gap-1 w-12">
-              <div className="w-9 h-9 rounded-full bg-white/70 flex items-center justify-center text-lg shadow-sm border border-secondary/10">
-                {a.icon}
-              </div>
-              <p className="text-[10px] text-text-light text-center leading-tight line-clamp-2">{a.title}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// MomentCard is now in src/components/MomentCard.tsx
 
 // ─── Active Cooking Session Pin ───────────────────────────────────────────────
 
@@ -531,7 +473,6 @@ function ActiveSessionPin({ session }: { session: CookingSession }) {
   const PhaseIcon = cfg.icon;
   const dishNames = session.recipes.map((r) => r.recipe.title).join(', ') || 'Đang nấu';
 
-  // Phase-specific progress
   let detail = '';
   let progress: number | null = null;
 
@@ -557,23 +498,19 @@ function ActiveSessionPin({ session }: { session: CookingSession }) {
       className={`block rounded-2xl overflow-hidden ring-1 ${cfg.ringColor} shadow-md active:scale-[0.98] transition-transform`}
     >
       <div className="relative bg-gradient-to-r from-primary/8 to-secondary/8 p-4">
-        {/* Subtle animated gradient shimmer */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
 
         <div className="flex items-center gap-3">
-          {/* Phase icon with pulse ring */}
           <div className="relative flex-shrink-0">
-            <div className={`w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shadow-sm`}>
+            <div className="w-10 h-10 rounded-xl bg-white/70 flex items-center justify-center shadow-sm">
               <PhaseIcon className={`w-5 h-5 ${cfg.color}`} />
             </div>
-            {/* Pulse dot */}
             <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${session.status === 'cooking' ? 'bg-orange-400' : 'bg-primary'}`} />
               <span className={`relative inline-flex rounded-full h-3 w-3 ${session.status === 'cooking' ? 'bg-orange-400' : 'bg-primary'}`} />
             </span>
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <p className="text-xs font-semibold text-text-light uppercase tracking-wide">
@@ -586,7 +523,6 @@ function ActiveSessionPin({ session }: { session: CookingSession }) {
             <p className="font-heading font-semibold text-sm truncate text-text">{dishNames}</p>
             {detail && <p className="text-xs text-text-light mt-0.5">{detail}</p>}
 
-            {/* Progress bar — only for shopping and cooking */}
             {progress !== null && (
               <div className="mt-2 h-1.5 bg-black/8 rounded-full overflow-hidden">
                 <div
@@ -601,7 +537,6 @@ function ActiveSessionPin({ session }: { session: CookingSession }) {
             )}
           </div>
 
-          {/* Arrow */}
           <ArrowRight className="w-4 h-4 text-text-light flex-shrink-0" />
         </div>
       </div>

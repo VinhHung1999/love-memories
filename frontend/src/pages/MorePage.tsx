@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Utensils, ChefHat, Sparkles, UtensilsCrossed, Pencil, Check, X, LogOut, Settings, Trophy, Camera, CalendarHeart, Mail, Bell, MapPin, Mic, Shield, CalendarDays, Wallet } from 'lucide-react';
+
+import { Pencil, Check, X, LogOut, Settings, Camera, Bell, MapPin, Mic, Shield } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -45,73 +45,6 @@ async function checkAllPermissions(): Promise<PermStates> {
   return { notifications: notif, camera, geolocation, microphone };
 }
 
-// ── Modules ───────────────────────────────────────────────────────────────────
-
-const modules = [
-  {
-    to: '/what-to-eat',
-    icon: UtensilsCrossed,
-    label: 'What to Eat',
-    description: 'Nấu ăn cùng nhau',
-    color: 'bg-gradient-to-br from-secondary/10 to-accent/10 text-secondary',
-  },
-  {
-    to: '/foodspots',
-    icon: Utensils,
-    label: 'Food Spots',
-    description: 'Quán ăn yêu thích',
-    color: 'bg-secondary/10 text-secondary',
-  },
-  {
-    to: '/recipes',
-    icon: ChefHat,
-    label: 'Recipes',
-    description: 'Công thức nấu ăn',
-    color: 'bg-accent/10 text-accent',
-  },
-  {
-    to: '/photobooth',
-    icon: Sparkles,
-    label: 'Photo Booth',
-    description: 'Chụp ảnh kỷ niệm',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    to: '/achievements',
-    icon: Trophy,
-    label: 'Achievements',
-    description: 'Thành tích của chúng mình',
-    color: 'bg-secondary/10 text-secondary',
-  },
-  {
-    to: '/date-planner',
-    icon: CalendarHeart,
-    label: 'Date Planner',
-    description: 'Kế hoạch hẹn hò',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    to: '/love-letters',
-    icon: Mail,
-    label: 'Love Letters',
-    description: 'Thư tình bất ngờ',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    to: '/monthly-recap',
-    icon: CalendarDays,
-    label: 'Monthly Recap',
-    description: 'Tổng kết tháng',
-    color: 'bg-orange-500/10 text-orange-500',
-  },
-  {
-    to: '/expenses',
-    icon: Wallet,
-    label: 'Budget',
-    description: 'Theo dõi chi tiêu',
-    color: 'bg-emerald-500/10 text-emerald-600',
-  },
-];
 
 export default function MorePage() {
   const { user, logout, updateUser } = useAuth();
@@ -291,20 +224,6 @@ export default function MorePage() {
             Edit
           </button>
         </div>
-      </div>
-
-      {/* Modules grid */}
-      <h2 className="font-heading text-base font-semibold text-text mb-3">Modules</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {modules.map(({ to, icon: Icon, label, description, color }) => (
-          <Link key={to} to={to} className="block bg-white rounded-2xl p-5 shadow-sm border border-transparent transition-all hover:shadow-md hover:border-black/5 active:scale-95">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-              <Icon className="w-5 h-5" />
-            </div>
-            <p className="font-semibold text-sm text-text">{label}</p>
-            <p className="text-text-light text-xs mt-0.5">{description}</p>
-          </Link>
-        ))}
       </div>
 
       {/* App Customization */}
