@@ -4,6 +4,11 @@ import { uploadWithProgress } from './uploadWithProgress';
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
 
+/** Proxy a CDN audio URL through our backend to bypass CORS and fix content-type */
+export function proxyAudioUrl(cdnUrl: string): string {
+  return `${API}/proxy-audio?url=${encodeURIComponent(cdnUrl)}`;
+}
+
 function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }

@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { loveLettersApi } from '../lib/api';
+import { loveLettersApi, proxyAudioUrl } from '../lib/api';
 import type { LoveLetter, LetterPhoto, LetterAudio } from '../types';
 
 // ── Shared constants ──────────────────────────────────────────────────────────
@@ -198,7 +198,8 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') await ctx.resume();
 
-      const resp = await fetch(audio.url);
+      // Use backend proxy to bypass CDN CORS and fix video/mp4 → audio/mp4 content-type
+      const resp = await fetch(proxyAudioUrl(audio.url));
       const buf = await resp.arrayBuffer();
       const decoded = await ctx.decodeAudioData(buf);
 

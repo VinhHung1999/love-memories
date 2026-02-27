@@ -16,6 +16,7 @@ import { aiRoutes } from './routes/ai';
 import { achievementRoutes } from './routes/achievements';
 import { profileRoutes } from './routes/profile';
 import { proxyImageRoute } from './routes/proxy-image';
+import { proxyAudioRoute } from './routes/proxy-audio';
 import { notificationRoutes } from './routes/notifications';
 import { pushRoutes } from './routes/push';
 import { dateWishRoutes } from './routes/dateWishes';
@@ -45,6 +46,7 @@ app.use('/api/resolve-location', resolveLocationRoute);
 
 // Protected routes
 app.use('/api/proxy-image', requireAuth, proxyImageRoute);
+app.use('/api/proxy-audio', requireAuth, proxyAudioRoute);
 app.use('/api/moments', requireAuth, momentRoutes);
 app.use('/api/foodspots', requireAuth, foodSpotRoutes);
 app.use('/api/map', requireAuth, mapRoutes);

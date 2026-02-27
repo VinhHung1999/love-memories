@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { Mic, Square, Play, Pause, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { proxyAudioUrl } from '../lib/api';
 
 interface AudioItem {
   id: string;
@@ -64,7 +65,9 @@ export default function VoiceMemoSection({
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') await ctx.resume();
 
-      const resp = await fetch(url);
+      // Use backend proxy to bypass CDN CORS and fix video/mp4 → audio/mp4 content-type
+      const proxyUrl = url.startsWith('/') ? url : proxyAudioUrl(url);
+      const resp = await fetch(proxyUrl);
       const buf = await resp.arrayBuffer();
       const decoded = await ctx.decodeAudioData(buf);
 
