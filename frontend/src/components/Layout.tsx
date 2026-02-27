@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Map, Target, Home, LogOut, MoreHorizontal, Bell } from 'lucide-react';
+import { Heart, Camera, Map, Target, Home, LogOut, User, Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth';
 import { useAppName } from '../lib/useAppName';
@@ -11,7 +11,7 @@ const navItems = [
   { to: '/moments', icon: Camera, label: 'Moments' },
   { to: '/map', icon: Map, label: 'Map' },
   { to: '/goals', icon: Target, label: 'Goals' },
-  { to: '/more', icon: MoreHorizontal, label: 'Profile' },
+  { to: '/more', icon: User, label: 'Profile' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
