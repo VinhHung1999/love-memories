@@ -16,6 +16,7 @@ import { aiRoutes } from './routes/ai';
 import { achievementRoutes } from './routes/achievements';
 import { profileRoutes } from './routes/profile';
 import { proxyImageRoute } from './routes/proxy-image';
+import { proxyAudioRoute } from './routes/proxy-audio';
 import { notificationRoutes } from './routes/notifications';
 import { pushRoutes } from './routes/push';
 import { dateWishRoutes } from './routes/dateWishes';
@@ -42,6 +43,9 @@ app.get('/api/health', (_req, res) => {
 // Public routes
 app.use('/api/auth', authRoutes);
 app.use('/api/resolve-location', resolveLocationRoute);
+// proxy-audio is public: <audio src> can't send Authorization headers.
+// Security: endpoint validates URL must start with CDN_BASE_URL (our own CDN only).
+app.use('/api/proxy-audio', proxyAudioRoute);
 
 // Protected routes
 app.use('/api/proxy-image', requireAuth, proxyImageRoute);

@@ -140,3 +140,14 @@ Always respect this order when adding new overlay or panel components.
 - Backend GET /date-plans: planned→active if date=today, active→completed if past+all done
 - Backend PUT /stops/:stopId/done: marks stop done, checks all done → auto-completes plan atomically (no frontend chaining)
 - Dashboard: ActiveDatePlanPin shows only when `status === 'active' && isToday`
+
+### DatePlan Expense Linking (Sprint 28)
+- AddExpenseModal accepts `datePlanId` via `AddExpenseDefaults`; carried through `buildForm` + `handleSave` payload
+- Backend: `GET /api/expenses?datePlanId=` filters server-side; `expensesApi.listByPlan(id)` in frontend
+- `onSaved` must invalidate 4 keys: `['expenses-plan',id]`, `['expenses']`, `['expenses-stats']`, `['expenses-daily-stats']`
+- Per-stop expense display: filter `planExpenses` by `e.description.includes(stop.title)`
+
+### Dashboard Bento Grid (Sprint 29)
+- Shared modules constant: `frontend/src/lib/modules.ts` — 9-entry array (`to/icon/label/description/color`), typed with `LucideIcon`. Both Dashboard and any future consumer import from here; MorePage no longer owns it.
+- Dashboard layout order (Boss-approved): Recent Moments → Hero Card → Bento Row → Modules Grid
+- Hero Card live timer: Boss requires `useState(new Date()) + useEffect setInterval(1s)` even on Dashboard — do NOT ship static/no-clock version. Full `calcDiff` must return `{ years, months, days, hours, minutes, seconds }`.

@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 29
-**Goal:** Dashboard Bento Grid Refactor
+**Sprint:** 30
+**Goal:** Love Letters — Photos & Voice Memo
 
 ---
 
@@ -9,174 +9,244 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | IDLE | Sprint 29 DEPLOYED ✅ | 2026-02-27 |
-| DEV  | IDLE | Sprint 29 complete | 2026-02-27 |
+| PO   | ACTIVE | Sprint 30 impl done, awaiting PO review | 2026-02-27 |
+| DEV  | DONE | Sprint 30 all 4 tasks complete | 2026-02-27 |
 
 ---
 
-## Sprint 29 Spec
+## Sprint 30 Spec
 
-### Task 1: Dashboard Bento Grid Refactor
+### Task 1: Backend — LetterPhoto + LetterAudio Models & Endpoints
 
-**Context:** Boss finds the current Dashboard too vertically stretched — RelationshipTimer (~250px) and AchievementSummary (~120px) take excessive space. Boss wants a compact bento grid layout that also brings all 9 modules from MorePage onto Dashboard for quick access.
+**What:** Add optional photo (max 5) and voice memo (max 30s) support to Love Letters, following the Moments media pattern.
 
-**Boss's exact words:**
-> "Chỗ Timer với achievement gom lại thành Hero Card thông minh, chỗ chi tiêu tháng với lại active sprint biến thành bento hàng 2. Move toàn bộ modules ra dashboard thành bento hàng 4."
+#### 1A. Prisma Schema Changes
 
-**Boss's change request:**
-> Hero card hiển thị dạng "4 năm 3 tháng 2 ngày bên nhau" (full năm/tháng/ngày breakdown), KHÔNG phải "285 ngày bên nhau".
+**New models (mirroring MomentPhoto/MomentAudio):**
 
-#### Target Layout
+```prisma
+model LetterPhoto {
+  id        String     @id @default(uuid())
+  letterId  String
+  filename  String
+  url       String
+  createdAt DateTime   @default(now())
+  letter    LoveLetter @relation(fields: [letterId], references: [id], onDelete: Cascade)
 
-```
-[Header: Love Scrum + bell]              ← unchanged
-[Active Cooking Pin]                      ← conditional, unchanged
-[Active Date Plan Pin]                    ← conditional, unchanged
-[Monthly Recap Pin]                       ← conditional (days 1-3), unchanged
+  @@map("letter_photos")
+}
 
-ROW 1 — Hero Card (compact, ~72px)
-┌───────────────────────────────────────┐
-│ ❤️ 4 năm 3 tháng 2 ngày bên nhau     │
-│ 🏆 12/20  · 📸 45 kỷ niệm · 🎯 3    │
-└───────────────────────────────────────┘
+model LetterAudio {
+  id        String     @id @default(uuid())
+  letterId  String
+  filename  String
+  url       String
+  duration  Float?
+  createdAt DateTime   @default(now())
+  letter    LoveLetter @relation(fields: [letterId], references: [id], onDelete: Cascade)
 
-ROW 2 — Bento 2-col
-┌─────────────────┐ ┌─────────────────┐
-│ 💰 Chi tiêu      │ │ 🎯 Sprint 26    │
-│ 2,500,000₫      │ │ 3/5 · 60%       │
-│ 5 khoản         │ │ ████░░░░        │
-│ ██ Ăn · █ Hẹn   │ │ ⏳ 3d left       │
-└─────────────────┘ └─────────────────┘
-
-ROW 3 — Recent Moments Swiper           ← unchanged
-
-ROW 4 — Modules Grid (3-col)
-┌──────┐ ┌──────┐ ┌──────┐
-│ 🍴   │ │ 🍜   │ │ 👨‍🍳   │
-│W2Eat │ │Foods │ │Recip │
-├──────┤ ├──────┤ ├──────┤
-│ ✨   │ │ 🏆   │ │ 💕   │
-│Photo │ │Achie │ │Date  │
-├──────┤ ├──────┤ ├──────┤
-│ 💌   │ │ 📅   │ │ 💰   │
-│Love  │ │Recap │ │Budge │
-└──────┘ └──────┘ └──────┘
-
-[FAB]                                     ← unchanged
+  @@map("letter_audio")
+}
 ```
 
-#### Sub-tasks
+**Update LoveLetter model:**
+```prisma
+model LoveLetter {
+  // ... existing fields ...
+  photos    LetterPhoto[]
+  audio     LetterAudio[]
+}
+```
 
-**1A. Create shared modules constant**
+Run `npx prisma migrate dev --name add_letter_media`.
 
-**New file:** `frontend/src/lib/modules.ts`
+#### 1B. New API Endpoints
 
-Extract the 9-module array from `MorePage.tsx` (lines 50-114) into a shared file. Each entry: `{ to, icon, label, description, color }`. Both Dashboard and MorePage import from here.
+Add to `backend/src/routes/loveLetters.ts`:
 
-**1B. Refactor Dashboard.tsx**
+| Method | Path | Purpose | Notes |
+|--------|------|---------|-------|
+| POST | /api/love-letters/:id/photos | Upload photos (max 5) | Multer, images only, 10MB limit. Only sender can upload. Only DRAFT/SCHEDULED status. |
+| DELETE | /api/love-letters/:id/photos/:photoId | Delete a photo | Only sender, only DRAFT/SCHEDULED |
+| POST | /api/love-letters/:id/audio | Upload voice memo (1 only) | Multer, audio types, 10MB limit. Only sender, only DRAFT/SCHEDULED. |
+| DELETE | /api/love-letters/:id/audio/:audioId | Delete voice memo | Only sender, only DRAFT/SCHEDULED |
 
-**File:** `frontend/src/pages/Dashboard.tsx` (611 lines → major rewrite)
+**Upload logic:** Follow Moments pattern — use existing `uploadToCdn()` / `deleteFromCdn()` from upload middleware. UUID filenames.
 
-**Hero Card (replace RelationshipTimer + AchievementSummary):**
-- Remove `<RelationshipTimer footer={statsFooter} />` and `<AchievementSummary>`
-- Inline compact timer: query `relationship-start-date` setting (already available via settingsApi), compute years/months/days using `calcDiff` logic from RelationshipTimer.tsx
-- **IMPORTANT:** Display as "❤️ 4 năm 3 tháng 2 ngày bên nhau" (full breakdown), NOT totalDays
-  - If years=0, skip "X năm". If months=0 and years=0, skip "X tháng". Always show days.
-- Single card with gradient bg (`from-primary/10 via-secondary/5 to-accent/10`), height ~72px
-- Row 1: `❤️ {years} năm {months} tháng {days} ngày bên nhau` (Link to /more for settings)
-- Row 2: `🏆 {unlocked}/{total}` (Link to /achievements) + stats footer (existing `primaryStats` + `extraStats` logic)
-- No live h:m:s clock on dashboard (saves a 1s interval)
-- `data-tour="hero-card"` attribute
-- Edge case: no date → show "Chưa cấu hình" + Link to /more
+**Include media in all GET responses:** Update all letter queries to include `photos` and `audio` relations:
+```ts
+include: { sender: { select: ... }, recipient: { select: ... }, photos: true, audio: true }
+```
 
-**Bento Row 2 (replace old Budget + Sprint sections):**
-- Wrap Budget + Sprint in `<div className="grid grid-cols-2 gap-3 mb-4">`
-- **Budget card (left):** Compact version of current card
-  - Violet gradient, `p-3`, font `text-lg` (was `text-2xl`)
-  - Show total + count + top 2 category bars (was 3)
-  - Empty state: "Chưa có 💸" shorter text
-  - Entire card is Link to `/expenses`
-- **Sprint card (right):** Compact version
-  - Accent gradient border, `p-3`
-  - Show: sprint name, `{done}/{total} · {pct}%`, progress bar, remaining days badge
-  - Drop: date range, 3 goal items list
-  - Link to `/goals/sprint/${id}`
-  - When no active sprint: Budget card takes `col-span-2`
-- `data-tour="bento-row"` on the grid container
+**Validation:**
+- Photos: max 5 per letter. If uploading would exceed 5, reject with 400.
+- Audio: max 1 per letter. If audio already exists, reject with 400.
+- Only sender can add/remove media.
+- Only DRAFT or SCHEDULED letters can have media added/removed.
 
-**Modules Grid (new section, after Recent Moments):**
-- Import modules array from `frontend/src/lib/modules.ts`
-- Section heading: "Tất cả tính năng" with subtle text
-- `<div className="grid grid-cols-3 gap-3 mb-4" data-tour="modules-grid">`
-- Each card: compact `rounded-2xl bg-white shadow-sm p-3 text-center` with icon (w-8 h-8) + label (text-xs font-medium)
-- Each card is a `<Link to={module.to}>`
+#### 1C. Acceptance Criteria
 
-**Remove unused code:**
-- Delete inline `AchievementSummary` function (lines 417-464)
-- Remove `import RelationshipTimer` (line 12)
-- Clean up unused stats/expanded state if no longer needed
-
-**Update driver.js tour — replace existing 3 steps with 5:**
-1. General intro (no element)
-2. `[data-tour="hero-card"]` — Timer + Achievement
-3. `[data-tour="recent-moments"]` — Recent Moments (kept)
-4. `[data-tour="bento-row"]` — Budget + Sprint
-5. `[data-tour="modules-grid"]` — All modules
-
-**1C. Update MorePage.tsx**
-
-- Remove inline `modules` array (lines 50-114)
-- Remove "Modules" heading + grid section (lines 296-308)
-- Import from shared `modules.ts` only if needed (it won't be — grid is removed)
-- MorePage becomes Settings & Profile only
-
-**1D. Verify tour keys**
-
-In `MorePage.tsx` line 123, verify `TOUR_KEYS` array includes all module keys.
-
-#### Critical Files
-
-| File | Change |
-|------|--------|
-| `frontend/src/pages/Dashboard.tsx` | Major rewrite — hero card, bento row, modules grid |
-| `frontend/src/pages/MorePage.tsx` | Remove modules grid |
-| `frontend/src/lib/modules.ts` | New — shared modules array |
-| `frontend/src/components/RelationshipTimer.tsx` | Reference only for calcDiff logic |
-
-#### Edge Cases
-
-- **No relationship date set:** Hero card shows "Chưa cấu hình" with link to /more
-- **No active sprint:** Budget card takes `col-span-2`
-- **No expense stats:** Budget half shows "Chưa có chi tiêu 💸"
-- **0 achievements:** Show "🏆 0/0" with "Bắt đầu khám phá!" text
-
-#### Acceptance Criteria
-
-- [ ] Dashboard loads with new bento layout, all 4 rows visible without excessive scrolling
-- [ ] Hero card shows "X năm Y tháng Z ngày bên nhau" (full breakdown, not just totalDays)
-- [ ] Navigation: All 9 module cards link to correct routes
-- [ ] Data: Budget shows current month stats, Sprint shows active sprint progress
-- [ ] Conditional pins: Cooking session, Date plan, Monthly recap pins still appear when active
-- [ ] MorePage: No modules grid, only profile/settings/permissions/logout
-- [ ] Tour: New 5-step tour triggers on first visit after reset
-- [ ] Mobile: Test on 375px width — bento cards don't overflow, module grid fits 3 cols
-- [ ] Build + lint pass, no regressions
+- [ ] Migration runs cleanly
+- [ ] Photo upload/delete works (max 5)
+- [ ] Audio upload/delete works (max 1, with duration)
+- [ ] Media included in all GET responses (received, sent, get by id)
+- [ ] Only sender can manage media, only on unsent letters
+- [ ] Cascade delete: deleting letter removes its media
+- [ ] Existing tests still pass + new tests for media endpoints
 
 ---
 
-## Sprint 29 Backlog
+### Task 2: Frontend — Compose with Photos & Voice Memo
+
+**What:** Update ComposeLetterModal to allow attaching optional photos and voice memo.
+
+#### 2A. Update Types
+
+**File:** `frontend/src/types/index.ts`
+
+```ts
+export interface LetterPhoto {
+  id: string;
+  letterId: string;
+  filename: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface LetterAudio {
+  id: string;
+  letterId: string;
+  filename: string;
+  url: string;
+  duration: number | null;
+  createdAt: string;
+}
+
+export interface LoveLetter {
+  // ... existing fields ...
+  photos?: LetterPhoto[];
+  audio?: LetterAudio[];
+}
+```
+
+#### 2B. Update API Client
+
+**File:** `frontend/src/lib/api.ts`
+
+Add to `loveLettersApi`:
+```ts
+uploadPhotos: (id: string, files: File[], onProgress?) => uploadWithProgress(...)
+deletePhoto: (letterId: string, photoId: string) => request(DELETE)
+uploadAudio: (id: string, file: File, duration?: number, onProgress?) => uploadWithProgress(...)
+deleteAudio: (letterId: string, audioId: string) => request(DELETE)
+```
+
+Follow the exact same pattern as `momentsApi.uploadPhotos` / `momentsApi.uploadAudio`.
+
+#### 2C. Update ComposeLetterModal
+
+**File:** `frontend/src/pages/LoveLettersPage.tsx` (ComposeLetterModal section)
+
+**Flow:** User creates letter as DRAFT first (if not editing existing), then can add photos/audio to the saved draft before sending.
+
+**Add below content textarea, above mood picker:**
+
+1. **Photo section:**
+   - Label: "📷 Ảnh đính kèm (tùy chọn)"
+   - Show attached photo thumbnails in a horizontal scroll row
+   - "Thêm ảnh" button (disabled if 5 photos already)
+   - Each thumbnail has X button to delete
+   - `<input type="file" accept="image/*" multiple>` — cap selection to (5 - existing)
+   - Use `uploadQueue.enqueue()` for upload progress (follow existing pattern)
+
+2. **Voice memo section:**
+   - Label: "🎤 Voice memo (tùy chọn, tối đa 30 giây)"
+   - If no audio: show "Ghi âm" button
+   - Recording UI: red pulsing dot + elapsed time + "Dừng" button
+   - Auto-stop at 30 seconds
+   - After recording: show audio player (play/pause, duration) + "Xóa" button
+   - Use `navigator.mediaDevices.getUserMedia({ audio: true })` + MediaRecorder
+   - Upload as WebM/audio format
+   - If audio already exists: show player + "Xóa" option
+
+**Important UX notes:**
+- Photos/audio sections only appear AFTER the letter is saved as draft (need letter ID for upload)
+- If creating new letter: "Lưu nháp" first, then media sections appear
+- If editing existing draft: media sections available immediately
+- All inputs fontSize: 16px (iOS zoom prevention)
+
+#### 2D. Acceptance Criteria
+
+- [ ] Can attach up to 5 photos to a draft letter
+- [ ] Can record and attach voice memo (max 30s, auto-stop)
+- [ ] Can delete individual photos and voice memo
+- [ ] Photo thumbnails display correctly
+- [ ] Audio player works (play/pause)
+- [ ] Media sections only available after letter has an ID (saved draft)
+- [ ] Build + lint pass
+
+---
+
+### Task 3: Frontend — Display Media in LetterReadOverlay
+
+**What:** Show photos and voice memo when reading a love letter.
+
+#### 3A. Update LetterReadOverlay
+
+**File:** `frontend/src/components/LetterReadOverlay.tsx`
+
+**Display location:** After the letter content text, before the ornamental divider (✦ ✦ ✦).
+
+1. **Photos:** If `letter.photos?.length > 0`:
+   - Horizontal scrollable row of photos (rounded corners, shadow)
+   - Tap on photo → full-screen lightbox view (fixed z-[80], tap to dismiss)
+   - Photo sizes: ~160px height, auto width, rounded-xl
+
+2. **Voice memo:** If `letter.audio?.length > 0`:
+   - Compact audio player bar below photos
+   - Play/pause button + waveform-style progress bar + duration text
+   - Styled to match the letter's romantic aesthetic (soft colors, rounded)
+
+**All media displayed inline with the letter — cùng lúc mở thư (Boss's preference).**
+
+#### 3B. Also update Letter detail view in LoveLettersPage
+
+When viewing a sent letter (sender's view), also display attached photos/audio in the letter card or detail view.
+
+#### 3C. Acceptance Criteria
+
+- [ ] Photos display in horizontal scroll when reading letter
+- [ ] Tap photo opens full-screen lightbox
+- [ ] Voice memo player works in read overlay
+- [ ] Media displays for both sender and recipient views
+- [ ] No layout breakage when no media attached
+- [ ] Animations still work smoothly with media
+
+---
+
+### Task 4: Driver.js Tour Update
+
+- Update love-letters tour to mention photo/voice memo feature in compose step
+- Acceptance: tour works, build passes
+
+---
+
+## Sprint 30 Backlog
 
 | # | Task | Priority | Status | Assignee |
 |---|------|----------|--------|----------|
-| 1 | Dashboard Bento Grid Refactor | P0 | ASSIGNED | DEV |
+| 1 | Backend: LetterPhoto + LetterAudio | P0 | DONE | DEV |
+| 2 | Frontend: Compose with Photos & Memo | P0 | DONE | DEV |
+| 3 | Frontend: Display Media in ReadOverlay | P0 | DONE | DEV |
+| 4 | Driver.js Tour Update | P2 | DONE | DEV |
 
 ---
 
 ## Previous Sprints
 
-_Sprint 7–27: See git history_
-_Sprint 28 — Budget Tracker Advanced + What to Eat Rating: DEPLOYED_
+_Sprint 7–28: See git history_
 _Sprint 29 — Dashboard Bento Grid Refactor: DEPLOYED_
+_Sprint 30 — Love Letters Photos & Voice Memo: PENDING REVIEW_
 
 ---
 

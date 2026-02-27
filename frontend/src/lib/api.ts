@@ -1,8 +1,13 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
+
+/** Proxy a CDN audio URL through our backend to bypass CORS and fix content-type */
+export function proxyAudioUrl(cdnUrl: string): string {
+  return `${API}/proxy-audio?url=${encodeURIComponent(cdnUrl)}`;
+}
 
 function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -296,6 +301,21 @@ export const loveLettersApi = {
     request<LoveLetter>(`/love-letters/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   send: (id: string) => request<LoveLetter>(`/love-letters/${id}/send`, { method: 'PUT' }),
   delete: (id: string) => request(`/love-letters/${id}`, { method: 'DELETE' }),
+  uploadPhotos: (id: string, files: File[], onProgress?: (percent: number) => void) => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('photos', f));
+    return uploadWithProgress(`${API}/love-letters/${id}/photos`, formData, getToken(), onProgress) as Promise<LetterPhoto[]>;
+  },
+  deletePhoto: (letterId: string, photoId: string) =>
+    request(`/love-letters/${letterId}/photos/${photoId}`, { method: 'DELETE' }),
+  uploadAudio: (id: string, file: File, duration?: number, onProgress?: (percent: number) => void) => {
+    const formData = new FormData();
+    formData.append('audio', file);
+    if (duration != null) formData.append('duration', String(duration));
+    return uploadWithProgress(`${API}/love-letters/${id}/audio`, formData, getToken(), onProgress) as Promise<LetterAudio>;
+  },
+  deleteAudio: (letterId: string, audioId: string) =>
+    request(`/love-letters/${letterId}/audio/${audioId}`, { method: 'DELETE' }),
 };
 
 // Expenses

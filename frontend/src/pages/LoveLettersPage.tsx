@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mail, Send, Plus, Clock, Check, CheckCheck, Trash2, Calendar } from 'lucide-react';
+import { Mail, Send, Plus, Clock, Check, CheckCheck, Trash2, Calendar, Camera, Mic, Edit2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LetterReadOverlay from '../components/LetterReadOverlay';
 import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { loveLettersApi } from '../lib/api';
+import { uploadQueue } from '../lib/uploadQueue';
 import { useModuleTour } from '../lib/useModuleTour';
-import type { LoveLetter, LetterStatus } from '../types';
+import { useVoiceRecorder } from '../lib/useVoiceRecorder';
+import type { LoveLetter, LetterStatus, LetterPhoto, LetterAudio } from '../types';
 import Modal from '../components/Modal';
+import VoiceMemoSection from '../components/VoiceMemoSection';
 
 const MOODS = [
   { key: 'romantic', label: 'Lãng mạn', emoji: '🌹' },
@@ -41,15 +44,18 @@ function LetterCard({
   onRead,
   onDelete,
   onSend,
+  onEdit,
 }: {
   letter: LoveLetter;
   view: 'inbox' | 'sent';
   onRead: (letter: LoveLetter) => void;
   onDelete?: (id: string) => void;
   onSend?: (id: string) => void;
+  onEdit?: (letter: LoveLetter) => void;
 }) {
   const isUnread = letter.status === 'DELIVERED';
   const person = view === 'inbox' ? letter.sender : letter.recipient;
+  const isDraft = letter.status === 'DRAFT';
 
   return (
     <motion.div
@@ -84,16 +90,41 @@ function LetterCard({
               ? formatDistanceToNow(new Date(letter.deliveredAt), { addSuffix: true, locale: vi })
               : formatDistanceToNow(new Date(letter.createdAt), { addSuffix: true, locale: vi })}
           </p>
+          {/* Media indicators */}
+          {((letter.photos?.length ?? 0) > 0 || (letter.audio?.length ?? 0) > 0) && (
+            <div className="flex gap-1.5 mt-1">
+              {(letter.photos?.length ?? 0) > 0 && (
+                <span className="text-xs text-text-light/60 flex items-center gap-0.5">
+                  <Camera className="w-3 h-3" /> {letter.photos!.length}
+                </span>
+              )}
+              {(letter.audio?.length ?? 0) > 0 && (
+                <span className="text-xs text-text-light/60 flex items-center gap-0.5">
+                  <Mic className="w-3 h-3" />
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Status icon */}
+        {/* Action icons */}
         <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
           {letter.status === 'READ' && <CheckCheck className="w-4 h-4 text-green-500" />}
           {letter.status === 'DELIVERED' && <Check className="w-4 h-4 text-primary" />}
           {letter.status === 'SCHEDULED' && <Clock className="w-4 h-4 text-blue-500" />}
-          {view === 'sent' && (letter.status === 'DRAFT' || letter.status === 'SCHEDULED') && (
+          {view === 'sent' && (isDraft || letter.status === 'SCHEDULED') && (
             <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
-              {letter.status === 'DRAFT' && onSend && (
+              {isDraft && onEdit && (
+                <button
+                  type="button"
+                  onClick={() => onEdit(letter)}
+                  className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                  title="Chỉnh sửa"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {isDraft && onSend && (
                 <button
                   type="button"
                   onClick={() => onSend(letter.id)}
@@ -121,36 +152,173 @@ function LetterCard({
   );
 }
 
-function ComposeLetterModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function ComposeLetterModal({
+  open,
+  onClose,
+  initialLetter,
+}: {
+  open: boolean;
+  onClose: () => void;
+  initialLetter?: LoveLetter;
+}) {
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [mood, setMood] = useState('');
+
+  // Form state
+  const [title, setTitle] = useState(initialLetter?.title ?? '');
+  const [content, setContent] = useState(initialLetter?.content ?? '');
+  const [mood, setMood] = useState(initialLetter?.mood ?? '');
   const [scheduleMode, setScheduleMode] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Draft ID (set after first save; used for editing existing drafts)
+  const [draftId, setDraftId] = useState<string | null>(initialLetter?.id ?? null);
+
+  // Already-uploaded media (from server)
+  const [uploadedPhotos, setUploadedPhotos] = useState<LetterPhoto[]>(initialLetter?.photos ?? []);
+  const [uploadedAudio, setUploadedAudio] = useState<LetterAudio | null>(initialLetter?.audio?.[0] ?? null);
+
+  // Pending media — selected locally, not yet uploaded
+  const [pendingPhotos, setPendingPhotos] = useState<{ file: File; objectUrl: string }[]>([]);
+  const [pendingAudio, setPendingAudio] = useState<{ file: File; duration: number; objectUrl: string } | null>(null);
+
+  const { isRecording, recordSeconds, startRecording, stopRecording } = useVoiceRecorder({
+    maxDuration: 30,
+    onRecordingComplete: (file, duration) => {
+      const objectUrl = URL.createObjectURL(file);
+      setPendingAudio({ file, duration, objectUrl });
+    },
+  });
+
+  const totalPhotos = uploadedPhotos.length + pendingPhotos.length;
+
+  const revokePendingUrls = () => {
+    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+    if (pendingAudio) URL.revokeObjectURL(pendingAudio.objectUrl);
+  };
 
   const reset = () => {
-    setTitle(''); setContent(''); setMood(''); setScheduleMode(false); setScheduledAt('');
+    revokePendingUrls();
+    setTitle(''); setContent(''); setMood('');
+    setScheduleMode(false); setScheduledAt('');
+    setDraftId(null);
+    setUploadedPhotos([]); setUploadedAudio(null);
+    setPendingPhotos([]); setPendingAudio(null);
+    if (isRecording) stopRecording();
   };
 
   const handleClose = () => { onClose(); setTimeout(reset, 300); };
 
-  const createMutation = useMutation({
-    mutationFn: (sendNow: boolean) =>
-      loveLettersApi.create({
-        title,
-        content,
-        mood: mood || undefined,
-        scheduledAt: scheduleMode && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
-        sendNow: sendNow || undefined,
-      }),
-    onSuccess: () => {
+  // Core save/send flow — create/update letter, enqueue media uploads in background, optionally send immediately
+  const executeFlow = async (shouldSend: boolean) => {
+    if (!title.trim() || !content.trim()) return;
+    setIsSaving(true);
+    try {
+      // 1. Create or update the letter text
+      let id = draftId;
+      const schedAt = scheduleMode && scheduledAt ? new Date(scheduledAt).toISOString() : undefined;
+      if (id) {
+        await loveLettersApi.update(id, { title, content, mood: mood || undefined, scheduledAt: schedAt ?? null });
+      } else {
+        const draft = await loveLettersApi.create({ title, content, mood: mood || undefined, scheduledAt: schedAt });
+        id = draft.id;
+        setDraftId(id);
+      }
+
+      // 2. Enqueue photo uploads in background (fire-and-forget — backend allows uploads on any status)
+      if (pendingPhotos.length > 0) {
+        const capturedPhotos = [...pendingPhotos];
+        setPendingPhotos([]);
+        uploadQueue.enqueue(
+          `letter-photos-${id}`,
+          `Ảnh thư (${capturedPhotos.length})`,
+          (onProgress) => loveLettersApi.uploadPhotos(id!, capturedPhotos.map((p) => p.file), onProgress),
+          (result) => {
+            const newPhotos = result as LetterPhoto[];
+            setUploadedPhotos((prev) => [...prev, ...newPhotos]);
+            capturedPhotos.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+            queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+          },
+        );
+      }
+
+      // 3. Enqueue audio upload in background (fire-and-forget)
+      if (pendingAudio) {
+        const capturedAudio = pendingAudio;
+        setPendingAudio(null);
+        uploadQueue.enqueue(
+          `letter-audio-${id}`,
+          'Voice memo thư',
+          (onProgress) => loveLettersApi.uploadAudio(id!, capturedAudio.file, capturedAudio.duration, onProgress),
+          (result) => {
+            setUploadedAudio(result as LetterAudio);
+            URL.revokeObjectURL(capturedAudio.objectUrl);
+            queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+          },
+        );
+      }
+
       queryClient.invalidateQueries({ queryKey: ['love-letters'] });
-      toast.success('Thư đã được lưu!');
-      handleClose();
-    },
-    onError: () => toast.error('Không thể lưu thư. Thử lại nhé.'),
-  });
+
+      // 4. Send immediately or just save — uploads continue in background regardless
+      if (shouldSend) {
+        await loveLettersApi.send(id);
+        toast.success('Đã gửi thư!');
+        handleClose();
+      } else {
+        toast.success('Đã lưu nháp!');
+      }
+    } catch (err) {
+      console.error('[executeFlow] error:', err);
+      toast.error(shouldSend ? 'Không thể gửi thư. Thử lại nhé.' : 'Không thể lưu thư. Thử lại nhé.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Photo selection — store locally, show preview immediately
+  const handleAddPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    const remaining = 5 - totalPhotos;
+    const toAdd = files.slice(0, remaining);
+    if (toAdd.length === 0) return;
+    const newEntries = toAdd.map((f) => ({ file: f, objectUrl: URL.createObjectURL(f) }));
+    setPendingPhotos((prev) => [...prev, ...newEntries]);
+  };
+
+  const handleDeleteUploadedPhoto = async (photo: LetterPhoto) => {
+    const id = draftId ?? photo.letterId;
+    if (!id) return;
+    try {
+      await loveLettersApi.deletePhoto(id, photo.id);
+      setUploadedPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+      queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+    } catch (err) {
+      console.error('[deleteUploadedPhoto] error:', err);
+      toast.error('Không thể xóa ảnh');
+    }
+  };
+
+  const handleRemovePendingPhoto = (objectUrl: string) => {
+    URL.revokeObjectURL(objectUrl);
+    setPendingPhotos((prev) => prev.filter((p) => p.objectUrl !== objectUrl));
+  };
+
+  const handleDeleteUploadedAudio = async () => {
+    if (!uploadedAudio) return;
+    const id = draftId ?? uploadedAudio.letterId;
+    if (!id) return;
+    try {
+      await loveLettersApi.deleteAudio(id, uploadedAudio.id);
+      setUploadedAudio(null);
+      queryClient.invalidateQueries({ queryKey: ['love-letters'] });
+    } catch (err) {
+      console.error('[deleteUploadedAudio] error:', err);
+      toast.error('Không thể xóa voice memo');
+    }
+  };
 
   const canSubmit = title.trim() && content.trim();
 
@@ -164,6 +332,7 @@ function ComposeLetterModal({ open, onClose }: { open: boolean; onClose: () => v
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Gửi người ấy..."
             autoFocus
+            style={{ fontSize: 16 }}
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
@@ -175,7 +344,80 @@ function ComposeLetterModal({ open, onClose }: { open: boolean; onClose: () => v
             onChange={(e) => setContent(e.target.value)}
             placeholder="Viết điều bạn muốn nói..."
             rows={6}
+            style={{ fontSize: 16 }}
             className="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+          />
+        </div>
+
+        {/* Photo section — always visible */}
+        <div>
+          <label className="block text-sm font-medium mb-2">📷 Ảnh đính kèm (tùy chọn)</label>
+          {totalPhotos > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
+              {/* Uploaded photos */}
+              {uploadedPhotos.map((photo) => (
+                <div key={photo.id} className="relative flex-shrink-0">
+                  <img src={photo.url} alt="" className="w-20 h-20 object-cover rounded-xl border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteUploadedPhoto(photo)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {/* Pending photos — show preview from objectUrl */}
+              {pendingPhotos.map((p) => (
+                <div key={p.objectUrl} className="relative flex-shrink-0">
+                  <img src={p.objectUrl} alt="" className="w-20 h-20 object-cover rounded-xl border border-border opacity-80" />
+                  <div className="absolute inset-0 rounded-xl bg-black/10 flex items-center justify-center">
+                    <span className="text-[9px] text-white font-medium bg-black/40 px-1 rounded">Chưa lưu</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePendingPhoto(p.objectUrl)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {totalPhotos < 5 && (
+            <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs text-text-light cursor-pointer hover:bg-gray-50 transition-colors">
+              <Camera className="w-4 h-4" />
+              Thêm ảnh ({totalPhotos}/5)
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleAddPhotos}
+              />
+            </label>
+          )}
+        </div>
+
+        {/* Voice memo section — always visible */}
+        <div>
+          <VoiceMemoSection
+            isRecording={isRecording}
+            recordSeconds={recordSeconds}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            audios={uploadedAudio ? [{ id: uploadedAudio.id, url: uploadedAudio.url, duration: uploadedAudio.duration }] : []}
+            onDeleteAudio={() => handleDeleteUploadedAudio()}
+            pendingAudioUrl={pendingAudio?.objectUrl}
+            pendingAudioDuration={pendingAudio?.duration}
+            onDeletePending={() => {
+              if (pendingAudio) URL.revokeObjectURL(pendingAudio.objectUrl);
+              setPendingAudio(null);
+            }}
+            canRecord={!uploadedAudio && !pendingAudio}
+            label="🎤 Voice memo (tùy chọn, tối đa 30 giây)"
+            emptyText="Chưa có voice memo. Nhấn Record để ghi âm."
           />
         </div>
 
@@ -219,27 +461,34 @@ function ComposeLetterModal({ open, onClose }: { open: boolean; onClose: () => v
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
               min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+              style={{ fontSize: 16 }}
               className="mt-3 w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           )}
         </div>
 
+        {/* Action buttons */}
         <div className="flex gap-3 pt-2 pb-1 sticky bottom-0 bg-white -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-border mt-2">
-          <button type="button" onClick={handleClose} className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">
-            Hủy
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isSaving}
+            className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+          >
+            {draftId ? 'Đóng' : 'Hủy'}
           </button>
           <button
             type="button"
-            onClick={() => createMutation.mutate(false)}
-            disabled={!canSubmit || createMutation.isPending}
+            onClick={() => executeFlow(false)}
+            disabled={!canSubmit || isSaving}
             className="px-4 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
           >
-            Lưu nháp
+            {draftId ? 'Cập nhật' : 'Lưu nháp'}
           </button>
           <button
             type="button"
-            onClick={() => createMutation.mutate(true)}
-            disabled={!canSubmit || createMutation.isPending}
+            onClick={() => executeFlow(true)}
+            disabled={!canSubmit || isSaving}
             className="flex-1 bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <Send className="w-4 h-4" /> Gửi ngay
@@ -255,11 +504,12 @@ export default function LoveLettersPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<'inbox' | 'sent'>('inbox');
   const [composeOpen, setComposeOpen] = useState(false);
+  const [editingLetter, setEditingLetter] = useState<LoveLetter | undefined>(undefined);
   const [readLetter, setReadLetter] = useState<LoveLetter | null>(null);
 
   useModuleTour('love-letters', [
-    { element: '[data-tour="compose-letter"]', popover: { title: '✉️ Viết thư tình', description: 'Gửi những điều muốn nói đến người ấy — có thể hẹn giờ gửi lãng mạn hơn!', side: 'bottom' } },
-    { element: '[data-tour="letter-tabs"]', popover: { title: '📬 Hộp thư', description: 'Chuyển qua lại giữa thư nhận và thư đã gửi.', side: 'bottom' } },
+    { element: '[data-tour="compose-letter"]', popover: { title: '✉️ Viết thư tình', description: 'Bấm để viết thư tình gửi người ấy. Có thể hẹn giờ gửi và đính kèm ảnh + voice memo lãng mạn!', side: 'bottom' } },
+    { element: '[data-tour="letter-tabs"]', popover: { title: '📬 Hộp thư', description: 'Xem thư nhận (từ người ấy) và thư đã gửi. Thư nháp có thể chỉnh sửa, thêm ảnh/ghi âm trước khi gửi.', side: 'bottom' } },
   ]);
 
   const { data: received = [], isLoading: loadingInbox } = useQuery({
@@ -304,6 +554,16 @@ export default function LoveLettersPage() {
     }
   };
 
+  const handleEdit = (letter: LoveLetter) => {
+    setEditingLetter(letter);
+    setComposeOpen(true);
+  };
+
+  const handleComposeClose = () => {
+    setComposeOpen(false);
+    setTimeout(() => setEditingLetter(undefined), 300);
+  };
+
   const letters = tab === 'inbox' ? received : sent;
   const isLoading = tab === 'inbox' ? loadingInbox : loadingSent;
   const unreadCount = received.filter((l) => l.status === 'DELIVERED').length;
@@ -322,7 +582,7 @@ export default function LoveLettersPage() {
         <button
           data-tour="compose-letter"
           type="button"
-          onClick={() => setComposeOpen(true)}
+          onClick={() => { setEditingLetter(undefined); setComposeOpen(true); }}
           className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-opacity shadow-sm"
         >
           <Plus className="w-4 h-4" /> Viết thư
@@ -375,7 +635,7 @@ export default function LoveLettersPage() {
           {tab === 'sent' && (
             <button
               type="button"
-              onClick={() => setComposeOpen(true)}
+              onClick={() => { setEditingLetter(undefined); setComposeOpen(true); }}
               className="mt-4 bg-primary text-white px-5 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
             >
               Viết thư ngay
@@ -392,12 +652,18 @@ export default function LoveLettersPage() {
               onRead={handleRead}
               onDelete={tab === 'sent' ? (id) => deleteMutation.mutate(id) : undefined}
               onSend={tab === 'sent' ? (id) => sendMutation.mutate(id) : undefined}
+              onEdit={tab === 'sent' ? handleEdit : undefined}
             />
           ))}
         </div>
       )}
 
-      <ComposeLetterModal open={composeOpen} onClose={() => setComposeOpen(false)} />
+      <ComposeLetterModal
+        open={composeOpen}
+        onClose={handleComposeClose}
+        initialLetter={editingLetter}
+        key={editingLetter?.id ?? 'new'}
+      />
 
       {readLetter && (
         <LetterReadOverlay letters={[readLetter]} onClose={() => setReadLetter(null)} autoMarkRead={false} />

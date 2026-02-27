@@ -355,6 +355,23 @@ export interface DailyStats {
 
 export type LetterStatus = 'DRAFT' | 'SCHEDULED' | 'DELIVERED' | 'READ';
 
+export interface LetterPhoto {
+  id: string;
+  letterId: string;
+  filename: string;
+  url: string;
+  createdAt: string;
+}
+
+export interface LetterAudio {
+  id: string;
+  letterId: string;
+  filename: string;
+  url: string;
+  duration: number | null;
+  createdAt: string;
+}
+
 export interface LoveLetter {
   id: string;
   senderId: string;
@@ -370,5 +387,7 @@ export interface LoveLetter {
   updatedAt: string;
   sender?: { id: string; name: string; avatar: string | null };
   recipient?: { id: string; name: string; avatar: string | null };
+  photos?: LetterPhoto[];
+  audio?: LetterAudio[];
 }
 

@@ -32,22 +32,47 @@ enum LetterStatus {
 }
 
 model LoveLetter {
-  id          String       @id @default(uuid())
+  id          String        @id @default(uuid())
   senderId    String
   recipientId String
   title       String
   content     String
   mood        String?
-  status      LetterStatus @default(DRAFT)
+  status      LetterStatus  @default(DRAFT)
   scheduledAt DateTime?
   deliveredAt DateTime?
   readAt      DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  sender      User         @relation("SentLetters", fields: [senderId], references: [id])
-  recipient   User         @relation("ReceivedLetters", fields: [recipientId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  sender      User          @relation("SentLetters", fields: [senderId], references: [id])
+  recipient   User          @relation("ReceivedLetters", fields: [recipientId], references: [id])
+  photos      LetterPhoto[]
+  audio       LetterAudio[]
 
   @@map("love_letters")
+}
+
+model LetterPhoto {
+  id        String      @id @default(uuid())
+  letterId  String
+  filename  String
+  url       String
+  createdAt DateTime    @default(now())
+  letter    LoveLetter  @relation(fields: [letterId], references: [id], onDelete: Cascade)
+
+  @@map("letter_photos")
+}
+
+model LetterAudio {
+  id        String      @id @default(uuid())
+  letterId  String
+  filename  String
+  url       String
+  duration  Float?
+  createdAt DateTime    @default(now())
+  letter    LoveLetter  @relation(fields: [letterId], references: [id], onDelete: Cascade)
+
+  @@map("letter_audio")
 }
 
 model PushSubscription {
