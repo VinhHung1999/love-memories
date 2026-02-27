@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Camera, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, ChevronRight, Clock, ArrowRight } from 'lucide-react';
@@ -14,7 +14,7 @@ import MomentCard from '../components/MomentCard';
 import LetterReadOverlay from '../components/LetterReadOverlay';
 import { modules } from '../lib/modules';
 
-// ─── Date diff helpers (inlined from RelationshipTimer, no live clock) ────────
+// ─── Date diff helpers (inlined from RelationshipTimer, with live clock) ─────
 
 function parseLocalDate(dateStr: string): Date {
   const parts = dateStr.split('-');
@@ -34,7 +34,16 @@ function calcDiff(startDateStr: string, now: Date) {
     days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
   }
   if (months < 0) { years--; months += 12; }
-  return { years, months, days };
+  // h/m/s: remainder after subtracting full calendar years+months+days
+  const reference = new Date(start);
+  reference.setFullYear(reference.getFullYear() + years);
+  reference.setMonth(reference.getMonth() + months);
+  reference.setDate(reference.getDate() + days);
+  const remainderMs = now.getTime() - reference.getTime();
+  const hours = Math.floor(remainderMs / (1000 * 60 * 60));
+  const minutes = Math.floor((remainderMs % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((remainderMs % (1000 * 60)) / 1000);
+  return { years, months, days, hours, minutes, seconds };
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -120,15 +129,17 @@ export default function Dashboard() {
   };
   // ── End love letter popup ──────────────────────────────────────────────────
 
-  // Hero card: compute time breakdown (no live clock — static render)
+  // Hero card: live clock — updates every second
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1_000);
+    return () => clearInterval(t);
+  }, []);
+
   const startDate = relDateData?.value ?? '';
-  const heroTimeParts: string[] = [];
-  if (startDate) {
-    const { years, months, days } = calcDiff(startDate, new Date());
-    if (years > 0) heroTimeParts.push(`${years} năm`);
-    if (months > 0 || years > 0) heroTimeParts.push(`${months} tháng`);
-    heroTimeParts.push(`${days} ngày`);
-  }
+  let heroDiff = { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
+  if (startDate) heroDiff = calcDiff(startDate, now);
+  const { years: hYears, months: hMonths, days: hDays, hours: hHours, minutes: hMinutes, seconds: hSeconds } = heroDiff;
 
   useModuleTour('dashboard', [
     { popover: { title: '🏠 Trang chủ', description: 'Đây là trang tổng quan — xem thời gian yêu nhau, chi tiêu, mục tiêu, và truy cập nhanh tất cả tính năng.' } },
@@ -286,10 +297,22 @@ export default function Dashboard() {
       >
         {startDate ? (
           <>
-            <Link to="/more" className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity">
+            {/* Row 1: years / months / days */}
+            <Link to="/more" className="flex items-center gap-2 mb-1.5 hover:opacity-80 transition-opacity">
               <Heart className="w-5 h-5 text-primary fill-primary flex-shrink-0" />
-              <span className="text-base font-semibold text-text">{heroTimeParts.join(' ')} bên nhau</span>
+              <span className="text-base font-semibold text-text">
+                {[
+                  hYears > 0 ? `${hYears} năm` : null,
+                  (hMonths > 0 || hYears > 0) ? `${hMonths} tháng` : null,
+                  `${hDays} ngày`,
+                ].filter(Boolean).join(' ')} bên nhau
+              </span>
             </Link>
+            {/* Row 2: live h:m:s */}
+            <p className="text-sm tabular-nums text-text/60 font-medium mb-2">
+              {String(hHours).padStart(2, '0')} giờ · {String(hMinutes).padStart(2, '0')} phút · {String(hSeconds).padStart(2, '0')} giây
+            </p>
+            {/* Row 3: stats */}
             <div className="flex items-center gap-2.5 text-sm text-text-light flex-wrap">
               <Link to="/achievements" className="hover:opacity-80 transition-opacity">🏆 {achievementsUnlocked}/{achievements.length}</Link>
               <span className="text-text-light/40">·</span>
