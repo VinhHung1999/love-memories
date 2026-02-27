@@ -623,8 +623,8 @@ export default function LoveLettersPage() {
   const [readLetter, setReadLetter] = useState<LoveLetter | null>(null);
 
   useModuleTour('love-letters', [
-    { element: '[data-tour="compose-letter"]', popover: { title: '✉️ Viết thư tình', description: 'Gửi những điều muốn nói đến người ấy — có thể đính kèm ảnh và voice memo!', side: 'bottom' } },
-    { element: '[data-tour="letter-tabs"]', popover: { title: '📬 Hộp thư', description: 'Chuyển qua lại giữa thư nhận và thư đã gửi.', side: 'bottom' } },
+    { element: '[data-tour="compose-letter"]', popover: { title: '✉️ Viết thư tình', description: 'Bấm để viết thư tình gửi người ấy. Có thể hẹn giờ gửi và đính kèm ảnh + voice memo lãng mạn!', side: 'bottom' } },
+    { element: '[data-tour="letter-tabs"]', popover: { title: '📬 Hộp thư', description: 'Xem thư nhận (từ người ấy) và thư đã gửi. Thư nháp có thể chỉnh sửa, thêm ảnh/ghi âm trước khi gửi.', side: 'bottom' } },
   ]);
 
   const { data: received = [], isLoading: loadingInbox } = useQuery({
