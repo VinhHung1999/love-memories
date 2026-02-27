@@ -4,15 +4,20 @@ import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
 
 let token: string;
+let partnerToken: string;
 
 // Create test user directly via Prisma (bypasses whitelist) and generate token
 beforeAll(async () => {
-  await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
+  await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test'] } } });
   const hashed = await hashPassword('testpass123');
   const user = await prisma.user.create({
     data: { email: 'test@lovescrum.test', password: hashed, name: 'Test User' },
   });
+  const partner = await prisma.user.create({
+    data: { email: 'partner@lovescrum.test', password: hashed, name: 'Test Partner' },
+  });
   token = generateToken(user.id);
+  partnerToken = generateToken(partner.id);
 });
 
 // Clean up after all tests
@@ -33,11 +38,15 @@ afterAll(async () => {
   await prisma.recipe.deleteMany();
   await prisma.foodSpot.deleteMany();
   await prisma.expense.deleteMany();
-  await prisma.user.deleteMany({ where: { email: 'test@lovescrum.test' } });
+  await prisma.letterPhoto.deleteMany();
+  await prisma.letterAudio.deleteMany();
+  await prisma.loveLetter.deleteMany();
+  await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test'] } } });
   await prisma.$disconnect();
 });
 
 const auth = () => ({ Authorization: `Bearer ${token}` });
+const partnerAuth = () => ({ Authorization: `Bearer ${partnerToken}` });
 
 describe('Health', () => {
   it('GET /api/health returns ok', async () => {
@@ -908,5 +917,96 @@ describe('Cooking Session Rating', () => {
   it('PATCH /api/cooking-sessions/:id/rate returns 401 without auth', async () => {
     const res = await request(app).patch(`/api/cooking-sessions/${sessionId}/rate`).send({ rating: 3 });
     expect(res.status).toBe(401);
+  });
+});
+
+// ─── Love Letters ─────────────────────────────────────────────────────────────
+describe('Love Letters', () => {
+  let letterId: string;
+
+  it('POST /api/love-letters creates a DRAFT letter with empty photos/audio', async () => {
+    const res = await request(app).post('/api/love-letters').set(auth()).send({
+      title: 'Test Letter',
+      content: 'Hello my love',
+      mood: 'happy',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe('DRAFT');
+    expect(res.body.photos).toEqual([]);
+    expect(res.body.audio).toEqual([]);
+    letterId = res.body.id;
+  });
+
+  it('GET /api/love-letters/sent returns letters with photos and audio fields', async () => {
+    const res = await request(app).get('/api/love-letters/sent').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    const letter = res.body.find((l: { id: string }) => l.id === letterId);
+    expect(letter).toBeDefined();
+    expect(letter.photos).toEqual([]);
+    expect(letter.audio).toEqual([]);
+  });
+
+  it('GET /api/love-letters/:id returns letter with photos and audio fields', async () => {
+    const res = await request(app).get(`/api/love-letters/${letterId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.photos).toEqual([]);
+    expect(res.body.audio).toEqual([]);
+  });
+
+  it('POST /api/love-letters/:id/photos returns 403 for non-sender', async () => {
+    const res = await request(app)
+      .post(`/api/love-letters/${letterId}/photos`)
+      .set(partnerAuth())
+      .attach('photos', Buffer.from('fake-image'), { filename: 'test.jpg', contentType: 'image/jpeg' });
+    expect(res.status).toBe(403);
+  });
+
+  it('POST /api/love-letters/:id/photos returns 401 without auth', async () => {
+    const res = await request(app).post(`/api/love-letters/${letterId}/photos`);
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/love-letters/:id/audio returns 403 for non-sender', async () => {
+    const res = await request(app)
+      .post(`/api/love-letters/${letterId}/audio`)
+      .set(partnerAuth())
+      .attach('audio', Buffer.from('fake-audio'), { filename: 'memo.webm', contentType: 'audio/webm' });
+    expect(res.status).toBe(403);
+  });
+
+  it('DELETE /api/love-letters/:id/photos/:photoId returns 404 for non-existent photo', async () => {
+    const fakeId = '00000000-0000-0000-0000-000000000000';
+    const res = await request(app)
+      .delete(`/api/love-letters/${letterId}/photos/${fakeId}`)
+      .set(auth());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/love-letters/:id/send delivers letter; subsequent photo upload rejected (not DRAFT)', async () => {
+    const res = await request(app).put(`/api/love-letters/${letterId}/send`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('DELIVERED');
+    expect(res.body.photos).toEqual([]);
+    expect(res.body.audio).toEqual([]);
+
+    // Try to add photo to delivered letter — should be rejected
+    const uploadRes = await request(app)
+      .post(`/api/love-letters/${letterId}/photos`)
+      .set(auth())
+      .attach('photos', Buffer.from('fake-image'), { filename: 'test.jpg', contentType: 'image/jpeg' });
+    expect(uploadRes.status).toBe(400);
+    expect(uploadRes.body.error).toMatch(/DRAFT or SCHEDULED/);
+  });
+
+  it('GET /api/love-letters/received returns 200 with photos/audio fields', async () => {
+    const res = await request(app).get('/api/love-letters/received').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    // Each letter in inbox should have photos and audio arrays
+    for (const letter of res.body) {
+      expect(Array.isArray(letter.photos)).toBe(true);
+      expect(Array.isArray(letter.audio)).toBe(true);
+    }
   });
 });
