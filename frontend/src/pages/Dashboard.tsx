@@ -242,7 +242,44 @@ export default function Dashboard() {
       )}
       {/* ── END MONTHLY RECAP PIN ─────────────────────────────────────── */}
 
-      {/* ── ROW 1: HERO CARD ─────────────────────────────────────────── */}
+      {/* ── ROW 1: RECENT MOMENTS ────────────────────────────────────── */}
+      <div className="mb-4" data-tour="recent-moments">
+        {recentMoments.length === 0 ? (
+          <div className="h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
+            <Camera className="w-10 h-10 text-gray-300" />
+            <p className="text-sm">Chưa có kỷ niệm nào.</p>
+            <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
+          </div>
+        ) : (
+          <>
+            {/* Mobile: Swiper carousel */}
+            <div className="-mx-4 overflow-hidden md:hidden">
+              <Swiper
+                slidesPerView={1.15}
+                spaceBetween={12}
+                slidesOffsetBefore={16}
+                slidesOffsetAfter={16}
+              >
+                {recentMoments.map((moment) => (
+                  <SwiperSlide key={moment.id}>
+                    <MomentCard moment={moment} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+
+            {/* Desktop: grid */}
+            <div className="hidden md:grid md:grid-cols-3 gap-4">
+              {recentMoments.map((moment) => (
+                <MomentCard key={moment.id} moment={moment} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      {/* ── END ROW 1: RECENT MOMENTS ────────────────────────────────── */}
+
+      {/* ── ROW 2: HERO CARD ─────────────────────────────────────────── */}
       <div
         className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-4 py-3 mb-4"
         data-tour="hero-card"
@@ -278,9 +315,9 @@ export default function Dashboard() {
           </>
         )}
       </div>
-      {/* ── END ROW 1: HERO CARD ─────────────────────────────────────── */}
+      {/* ── END ROW 2: HERO CARD ─────────────────────────────────────── */}
 
-      {/* ── ROW 2: BENTO — Budget + Sprint ───────────────────────────── */}
+      {/* ── ROW 3: BENTO — Budget + Sprint ───────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 mb-4" data-tour="bento-row">
         {/* Budget card */}
         <Link
@@ -343,44 +380,7 @@ export default function Dashboard() {
           </Link>
         )}
       </div>
-      {/* ── END ROW 2: BENTO ─────────────────────────────────────────── */}
-
-      {/* ── ROW 3: RECENT MOMENTS ────────────────────────────────────── */}
-      <div className="mb-4" data-tour="recent-moments">
-        {recentMoments.length === 0 ? (
-          <div className="h-44 rounded-3xl bg-gray-100 flex flex-col items-center justify-center text-text-light gap-3">
-            <Camera className="w-10 h-10 text-gray-300" />
-            <p className="text-sm">Chưa có kỷ niệm nào.</p>
-            <Link to="/moments?new=1" className="text-xs text-primary font-medium hover:underline">Tạo moment đầu tiên →</Link>
-          </div>
-        ) : (
-          <>
-            {/* Mobile: Swiper carousel */}
-            <div className="-mx-4 overflow-hidden md:hidden">
-              <Swiper
-                slidesPerView={1.15}
-                spaceBetween={12}
-                slidesOffsetBefore={16}
-                slidesOffsetAfter={16}
-              >
-                {recentMoments.map((moment) => (
-                  <SwiperSlide key={moment.id}>
-                    <MomentCard moment={moment} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
-
-            {/* Desktop: grid */}
-            <div className="hidden md:grid md:grid-cols-3 gap-4">
-              {recentMoments.map((moment) => (
-                <MomentCard key={moment.id} moment={moment} />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-      {/* ── END ROW 3: RECENT MOMENTS ────────────────────────────────── */}
+      {/* ── END ROW 3: BENTO ─────────────────────────────────────────── */}
 
       {/* ── ROW 4: MODULES GRID ──────────────────────────────────────── */}
       <div className="mb-4">
