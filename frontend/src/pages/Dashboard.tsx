@@ -281,16 +281,16 @@ export default function Dashboard() {
 
       {/* ── ROW 2: HERO CARD ─────────────────────────────────────────── */}
       <div
-        className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-4 py-3 mb-4"
+        className="rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 px-5 py-4 mb-4"
         data-tour="hero-card"
       >
         {startDate ? (
           <>
-            <Link to="/more" className="flex items-center gap-1.5 mb-1.5 hover:opacity-80 transition-opacity">
-              <Heart className="w-4 h-4 text-primary fill-primary flex-shrink-0" />
-              <span className="text-sm font-semibold text-text">{heroTimeParts.join(' ')} bên nhau</span>
+            <Link to="/more" className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity">
+              <Heart className="w-5 h-5 text-primary fill-primary flex-shrink-0" />
+              <span className="text-base font-semibold text-text">{heroTimeParts.join(' ')} bên nhau</span>
             </Link>
-            <div className="flex items-center gap-2 text-xs text-text-light flex-wrap">
+            <div className="flex items-center gap-2.5 text-sm text-text-light flex-wrap">
               <Link to="/achievements" className="hover:opacity-80 transition-opacity">🏆 {achievementsUnlocked}/{achievements.length}</Link>
               <span className="text-text-light/40">·</span>
               <span>📸 {moments.length} kỷ niệm</span>
@@ -300,12 +300,12 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Heart className="w-4 h-4 text-primary/40" />
-              <span className="text-sm font-medium text-primary/60">Chưa cấu hình</span>
-              <Link to="/more" className="text-xs text-primary underline ml-1">Cài đặt ngày yêu nhau →</Link>
+            <div className="flex items-center gap-2 mb-2">
+              <Heart className="w-5 h-5 text-primary/40" />
+              <span className="text-base font-medium text-primary/60">Chưa cấu hình</span>
+              <Link to="/more" className="text-sm text-primary underline ml-1">Cài đặt ngày yêu nhau →</Link>
             </div>
-            <div className="flex items-center gap-2 text-xs text-text-light flex-wrap">
+            <div className="flex items-center gap-2.5 text-sm text-text-light flex-wrap">
               <Link to="/achievements" className="hover:opacity-80">🏆 {achievementsUnlocked}/{achievements.length}</Link>
               <span className="text-text-light/40">·</span>
               <span>📸 {moments.length} kỷ niệm</span>
@@ -322,18 +322,18 @@ export default function Dashboard() {
         {/* Budget card */}
         <Link
           to="/expenses"
-          className={`block bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-3 shadow-md text-white${!activeSprint ? ' col-span-2' : ''}`}
+          className={`block bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-4 shadow-md text-white${!activeSprint ? ' col-span-2' : ''}`}
         >
-          <p className="text-xs text-white/70 mb-1 font-medium">💰 Chi tiêu</p>
+          <p className="text-xs text-white/70 mb-1.5 font-medium">💰 Chi tiêu</p>
           {!expenseStats || expenseStats.count === 0 ? (
             <p className="text-sm text-white/60">Chưa có 💸</p>
           ) : (
             <>
-              <p className="text-lg font-heading font-bold leading-tight">
+              <p className="text-xl font-heading font-bold leading-tight">
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(expenseStats.total)}
               </p>
-              <p className="text-xs text-white/70 mb-2">{expenseStats.count} khoản</p>
-              <div className="space-y-1">
+              <p className="text-xs text-white/70 mb-3">{expenseStats.count} khoản</p>
+              <div className="space-y-1.5">
                 {(Object.entries(expenseStats.byCategory) as [string, { total: number; count: number }][])
                   .filter(([, v]) => v.total > 0)
                   .sort(([, a], [, b]) => b.total - a.total)
@@ -345,8 +345,8 @@ export default function Dashboard() {
                     return (
                       <div key={cat} className="flex items-center gap-1.5 text-xs">
                         <span className="shrink-0 text-white/80 min-w-[4.5rem]">{catEmoji[cat]} {catLabel[cat]}</span>
-                        <div className="flex-1 bg-white/20 rounded-full h-1">
-                          <div className="bg-white rounded-full h-1" style={{ width: `${pct}%` }} />
+                        <div className="flex-1 bg-white/20 rounded-full h-1.5">
+                          <div className="bg-white rounded-full h-1.5" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -360,12 +360,12 @@ export default function Dashboard() {
         {activeSprint && (
           <Link
             to={`/goals/sprint/${activeSprint.id}`}
-            className="block bg-white rounded-2xl p-3 shadow-sm border border-accent/20"
+            className="block bg-white rounded-2xl p-4 shadow-sm border border-accent/20"
           >
-            <p className="text-xs text-text-light font-medium mb-0.5">🎯 Sprint</p>
-            <p className="text-xs font-semibold text-text truncate mb-1">{activeSprint.name}</p>
-            <p className="text-xs text-text-light mb-2">{doneGoals}/{totalGoals} · {sprintProgress}%</p>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
+            <p className="text-xs text-text-light font-medium mb-1">🎯 Sprint</p>
+            <p className="text-sm font-semibold text-text truncate mb-1">{activeSprint.name}</p>
+            <p className="text-xs text-text-light mb-2.5">{doneGoals}/{totalGoals} · {sprintProgress}%</p>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2.5">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-accent to-primary"
                 style={{ width: `${sprintProgress}%` }}
