@@ -44,7 +44,7 @@ export default function VoiceMemoSection({
   canRecord = true,
 }: VoiceMemoSectionProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const audioElRef = useRef<HTMLAudioElement>(null);
+  const audioElRef = useRef<HTMLVideoElement>(null);
 
   const togglePlay = useCallback((url: string, audioId: string) => {
     if (playingId === audioId) {
@@ -55,7 +55,7 @@ export default function VoiceMemoSection({
       if (!a) return;
       a.pause();
       a.src = url;
-      a.load();
+      // Do NOT call a.load() — causes AbortError on iOS when play() follows immediately
       a.onended = () => setPlayingId(null);
       a.play().catch((err) => {
         console.error('Audio play failed:', err);
@@ -164,7 +164,8 @@ export default function VoiceMemoSection({
       </div>
 
       {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
-      <audio ref={audioElRef} preload="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
+      {/* video element handles both audio/* and video/mp4 content-types; must be in DOM for iOS Safari */}
+      <video ref={audioElRef} preload="none" playsInline style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }

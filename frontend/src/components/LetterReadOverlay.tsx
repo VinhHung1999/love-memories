@@ -166,7 +166,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
   const [lightboxPhoto, setLightboxPhoto] = useState<LetterPhoto | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [audioProgress, setAudioProgress] = useState(0);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLVideoElement>(null);
 
   const toggleAudio = (audio: LetterAudio) => {
     if (playingAudioId === audio.id) {
@@ -177,7 +177,7 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       if (!a) return;
       a.pause();
       a.src = audio.url;
-      a.load();
+      // Do NOT call a.load() — causes AbortError on iOS when play() follows immediately
       a.onended = () => { setPlayingAudioId(null); setAudioProgress(0); };
       a.ontimeupdate = () => { if (a.duration) setAudioProgress(a.currentTime / a.duration); };
       a.play().catch((err) => {
@@ -440,7 +440,8 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
       </AnimatePresence>
 
       {/* Hidden audio element — must be in DOM for iOS Safari to allow playback */}
-      <audio ref={audioRef} preload="none" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
+      {/* video element handles both audio/* and video/mp4 content-types; must be in DOM for iOS Safari */}
+      <video ref={audioRef} preload="none" playsInline style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }} />
     </>
   );
 }
