@@ -11,6 +11,7 @@ const registerSchema = z.object({
   password: z.string().min(6),
   name: z.string().min(1),
   inviteCode: z.string().optional(),
+  coupleName: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -32,10 +33,14 @@ async function createRefreshToken(userId: string) {
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, inviteCode } = registerSchema.parse(req.body);
+    const { email, password, name, inviteCode, coupleName } = registerSchema.parse(req.body);
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       res.status(409).json({ error: 'Email already registered' });
+      return;
+    }
+    if (!inviteCode && !coupleName) {
+      res.status(400).json({ error: 'Must either create a new couple (coupleName) or join one (inviteCode)' });
       return;
     }
     const hashed = await hashPassword(password);
@@ -48,10 +53,7 @@ router.post('/register', async (req: Request, res: Response) => {
         return;
       }
     } else {
-      couple = await prisma.couple.findFirst();
-      if (!couple) {
-        couple = await prisma.couple.create({ data: { name: 'Love Scrum' } });
-      }
+      couple = await prisma.couple.create({ data: { name: coupleName!.trim() } });
     }
 
     const user = await prisma.user.create({

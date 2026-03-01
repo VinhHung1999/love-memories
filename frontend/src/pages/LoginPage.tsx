@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Plus, Users } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useAppName } from '../lib/useAppName';
 
@@ -7,9 +7,11 @@ export default function LoginPage() {
   const { login, register } = useAuth();
   const appName = useAppName();
   const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [coupleMode, setCoupleMode] = useState<'create' | 'join' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [coupleName, setCoupleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,12 +19,27 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (mode === 'register' && !coupleMode) {
+      setError('Please select an option: create a new couple or join an existing one');
+      return;
+    }
+    if (mode === 'register' && coupleMode === 'create' && !coupleName.trim()) {
+      setError('Please enter a couple name');
+      return;
+    }
+    if (mode === 'register' && coupleMode === 'join' && !inviteCode.trim()) {
+      setError('Please enter an invite code');
+      return;
+    }
     setLoading(true);
     try {
       if (mode === 'login') {
         await login(email, password);
       } else {
-        await register(email, password, name, inviteCode || undefined);
+        await register(email, password, name, {
+          inviteCode: coupleMode === 'join' ? inviteCode : undefined,
+          coupleName: coupleMode === 'create' ? coupleName.trim() : undefined,
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -63,16 +80,65 @@ export default function LoginPage() {
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
+
+                {/* Couple option selector */}
                 <div>
-                  <label className="block text-sm font-medium mb-1">Invite Code <span className="text-text-light font-normal">(optional)</span></label>
-                  <input
-                    type="text"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value)}
-                    placeholder="Enter invite code to join a couple"
-                    className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
+                  <label className="block text-sm font-medium mb-2">Couple</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setCoupleMode('create'); setError(''); }}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
+                        coupleMode === 'create'
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border text-text-light hover:border-primary/30'
+                      }`}
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span className="text-xs font-medium">Create new</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setCoupleMode('join'); setError(''); }}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
+                        coupleMode === 'join'
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border text-text-light hover:border-primary/30'
+                      }`}
+                    >
+                      <Users className="w-5 h-5" />
+                      <span className="text-xs font-medium">Join existing</span>
+                    </button>
+                  </div>
                 </div>
+
+                {coupleMode === 'create' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Couple name</label>
+                    <input
+                      type="text"
+                      value={coupleName}
+                      onChange={(e) => setCoupleName(e.target.value)}
+                      placeholder="e.g. Hung & Nhu"
+                      required
+                      className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                )}
+
+                {coupleMode === 'join' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Invite code</label>
+                    <input
+                      type="text"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value)}
+                      placeholder="Enter code from your partner"
+                      required
+                      className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                )}
               </>
             )}
 
@@ -117,7 +183,7 @@ export default function LoginPage() {
           <div className="text-center pt-1">
             <button
               type="button"
-              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
+              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setCoupleMode(null); setError(''); }}
               className="text-sm text-primary hover:underline"
             >
               {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Sign in'}

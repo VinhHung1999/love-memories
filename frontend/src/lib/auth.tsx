@@ -18,7 +18,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, inviteCode?: string) => Promise<void>;
+  register: (email: string, password: string, name: string, opts?: { inviteCode?: string; coupleName?: string }) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<AuthUser>) => void;
 }
@@ -97,11 +97,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(data.user);
   }, []);
 
-  const register = useCallback(async (email: string, password: string, name: string, inviteCode?: string) => {
+  const register = useCallback(async (email: string, password: string, name: string, opts?: { inviteCode?: string; coupleName?: string }) => {
     const res = await fetch(`${API}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name, inviteCode: inviteCode || undefined }),
+      body: JSON.stringify({ email, password, name, inviteCode: opts?.inviteCode || undefined, coupleName: opts?.coupleName || undefined }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
