@@ -16,7 +16,7 @@ A single app that replaces scattered tools (Google Photos, Notes, Maps, Trello, 
 
 ### Key Principles
 
-- **No authentication complexity** — whitelist-only registration (2 allowed emails)
+- **Open registration** — anyone can register; couples managed via invite codes
 - **Offline-friendly** — PWA with standalone display mode
 - **Mobile-first** — bottom navigation, safe-area-aware, touch-optimized
 - **Non-blocking uploads** — all file uploads happen in the background via upload queue
