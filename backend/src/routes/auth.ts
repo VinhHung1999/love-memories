@@ -35,9 +35,18 @@ router.post('/register', async (req: Request, res: Response) => {
       return;
     }
     const hashed = await hashPassword(password);
-    const user = await prisma.user.create({ data: { email, password: hashed, name } });
-    const token = generateToken(user.id);
-    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name } });
+
+    // Phase 1: assign to existing couple (first couple found, or create default)
+    let couple = await prisma.couple.findFirst();
+    if (!couple) {
+      couple = await prisma.couple.create({ data: { name: 'Default Couple' } });
+    }
+
+    const user = await prisma.user.create({
+      data: { email, password: hashed, name, coupleId: couple.id },
+    });
+    const token = generateToken(user.id, user.coupleId);
+    res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, coupleId: user.coupleId } });
   } catch (err) {
     if (err instanceof z.ZodError) {
       res.status(400).json({ error: err.errors[0]?.message || 'Invalid input' });
@@ -61,8 +70,8 @@ router.post('/login', async (req: Request, res: Response) => {
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
-    const token = generateToken(user.id);
-    res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
+    const token = generateToken(user.id, user.coupleId);
+    res.json({ token, user: { id: user.id, email: user.email, name: user.name, coupleId: user.coupleId } });
   } catch (err) {
     if (err instanceof z.ZodError) {
       res.status(400).json({ error: err.errors[0]?.message || 'Invalid input' });
@@ -77,7 +86,7 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
-      select: { id: true, email: true, name: true, avatar: true, createdAt: true },
+      select: { id: true, email: true, name: true, avatar: true, coupleId: true, createdAt: true },
     });
     if (!user) {
       res.status(404).json({ error: 'User not found' });

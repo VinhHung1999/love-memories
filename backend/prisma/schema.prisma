@@ -7,20 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Couple {
+  id        String   @id @default(uuid())
+  name      String?
+  createdAt DateTime @default(now())
+
+  users              User[]
+  moments            Moment[]
+  foodSpots          FoodSpot[]
+  recipes            Recipe[]
+  cookingSessions    CookingSession[]
+  sprints            Sprint[]
+  goals              Goal[]
+  datePlans          DatePlan[]
+  dateWishes         DateWish[]
+  expenses           Expense[]
+  loveLetters        LoveLetter[]
+  customAchievements CustomAchievement[]
+  tags               Tag[]
+  appSettings        AppSetting[]
+  achievements       Achievement[]
+
+  @@map("couples")
+}
+
 model User {
   id                String             @id @default(uuid())
   email             String             @unique
   password          String
   name              String
   avatar            String?
+  coupleId          String
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  couple            Couple             @relation(fields: [coupleId], references: [id])
   comments          MomentComment[]
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   sentLetters       LoveLetter[]       @relation("SentLetters")
   receivedLetters   LoveLetter[]       @relation("ReceivedLetters")
 
+  @@index([coupleId])
   @@map("users")
 }
 
@@ -35,6 +62,7 @@ model LoveLetter {
   id          String        @id @default(uuid())
   senderId    String
   recipientId String
+  coupleId    String
   title       String
   content     String
   mood        String?
@@ -44,11 +72,13 @@ model LoveLetter {
   readAt      DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  couple      Couple       @relation(fields: [coupleId], references: [id])
   sender      User          @relation("SentLetters", fields: [senderId], references: [id])
   recipient   User          @relation("ReceivedLetters", fields: [recipientId], references: [id])
   photos      LetterPhoto[]
   audio       LetterAudio[]
 
+  @@index([coupleId])
   @@map("love_letters")
 }
 
@@ -102,7 +132,8 @@ model Notification {
 }
 
 model Moment {
-  id          String        @id @default(uuid())
+  id          String           @id @default(uuid())
+  coupleId    String
   title       String
   caption     String?
   date        DateTime
@@ -111,16 +142,17 @@ model Moment {
   location    String?
   tags        String[]
   spotifyUrl  String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  couple      Couple          @relation(fields: [coupleId], references: [id])
   photos      MomentPhoto[]
   audios      MomentAudio[]
   comments    MomentComment[]
   reactions   MomentReaction[]
 
+  @@index([coupleId])
   @@map("moments")
 }
-
 
 model MomentPhoto {
   id        String   @id @default(uuid())
@@ -172,6 +204,7 @@ model MomentReaction {
 
 model FoodSpot {
   id          String          @id @default(uuid())
+  coupleId    String
   name        String
   description String?
   rating      Float           @default(0)
@@ -182,14 +215,17 @@ model FoodSpot {
   priceRange  Int             @default(2)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  couple      Couple         @relation(fields: [coupleId], references: [id])
   photos      FoodSpotPhoto[]
   recipes     Recipe[]
 
+  @@index([coupleId])
   @@map("food_spots")
 }
 
 model Recipe {
   id              String                 @id @default(uuid())
+  coupleId        String
   title           String
   description     String?
   ingredients      String[]
@@ -204,14 +240,17 @@ model Recipe {
   foodSpot        FoodSpot?              @relation(fields: [foodSpotId], references: [id])
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
+  couple          Couple                @relation(fields: [coupleId], references: [id])
   photos          RecipePhoto[]
   cookingSessions CookingSessionRecipe[]
 
+  @@index([coupleId])
   @@map("recipes")
 }
 
 model CookingSession {
   id          String                 @id @default(uuid())
+  coupleId    String
   status      String                 @default("selecting")
   startedAt   DateTime?
   completedAt DateTime?
@@ -220,12 +259,14 @@ model CookingSession {
   rating      Int?
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @updatedAt
+  couple      Couple                @relation(fields: [coupleId], references: [id])
 
   recipes     CookingSessionRecipe[]
   items       CookingSessionItem[]
   steps       CookingSessionStep[]
   photos      CookingSessionPhoto[]
 
+  @@index([coupleId])
   @@map("cooking_sessions")
 }
 
@@ -322,6 +363,7 @@ enum GoalPriority {
 
 model Sprint {
   id          String       @id @default(uuid())
+  coupleId    String
   name        String
   description String?
   startDate   DateTime
@@ -329,52 +371,70 @@ model Sprint {
   status      SprintStatus @default(PLANNING)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  couple      Couple      @relation(fields: [coupleId], references: [id])
   goals       Goal[]
 
+  @@index([coupleId])
   @@map("sprints")
 }
 
 model Tag {
-  id    String  @id @default(uuid())
-  name  String  @unique
-  icon  String  @default("🏷️")
-  color String?
+  id       String @id @default(uuid())
+  coupleId String
+  name     String
+  icon     String @default("🏷️")
+  color    String?
+  couple   Couple @relation(fields: [coupleId], references: [id])
 
+  @@unique([name, coupleId])
+  @@index([coupleId])
   @@map("tags")
 }
 
 model Achievement {
   id         String   @id @default(uuid())
-  key        String   @unique
+  coupleId   String
+  key        String
   unlockedAt DateTime @default(now())
   createdAt  DateTime @default(now())
+  couple     Couple   @relation(fields: [coupleId], references: [id])
 
+  @@unique([key, coupleId])
+  @@index([coupleId])
   @@map("achievements")
 }
 
 model AppSetting {
   id        String   @id @default(uuid())
-  key       String   @unique
+  coupleId  String
+  key       String
   value     String
   updatedAt DateTime @updatedAt
+  couple    Couple  @relation(fields: [coupleId], references: [id])
 
+  @@unique([key, coupleId])
+  @@index([coupleId])
   @@map("app_settings")
 }
 
 model CustomAchievement {
   id          String    @id @default(uuid())
+  coupleId    String
   title       String
   description String?
   icon        String    @default("🏅")
   unlocked    Boolean   @default(false)
   unlockedAt  DateTime?
   createdAt   DateTime  @default(now())
+  couple      Couple   @relation(fields: [coupleId], references: [id])
 
+  @@index([coupleId])
   @@map("custom_achievements")
 }
 
 model DateWish {
   id               String    @id @default(uuid())
+  coupleId         String
   title            String
   description      String?
   category         String
@@ -390,20 +450,25 @@ model DateWish {
   createdBy        String
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  couple           Couple   @relation(fields: [coupleId], references: [id])
 
+  @@index([coupleId])
   @@map("date_wishes")
 }
 
 model DatePlan {
   id        String         @id @default(uuid())
+  coupleId  String
   title     String
   date      DateTime
   notes     String?
   status    String         @default("planned")
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  couple    Couple        @relation(fields: [coupleId], references: [id])
   stops     DatePlanStop[]
 
+  @@index([coupleId])
   @@map("date_plans")
 }
 
@@ -452,6 +517,7 @@ model DatePlanSpot {
 
 model Expense {
   id          String   @id @default(uuid())
+  coupleId    String
   amount      Float
   description String
   category    String
@@ -462,12 +528,15 @@ model Expense {
   datePlanId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  couple      Couple  @relation(fields: [coupleId], references: [id])
 
+  @@index([coupleId])
   @@map("expenses")
 }
 
 model Goal {
   id          String       @id @default(uuid())
+  coupleId    String
   title       String
   description String?
   status      GoalStatus   @default(TODO)
@@ -478,7 +547,9 @@ model Goal {
   sprintId    String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  couple      Couple      @relation(fields: [coupleId], references: [id])
   sprint      Sprint?      @relation(fields: [sprintId], references: [id], onDelete: Cascade)
 
+  @@index([coupleId])
   @@map("goals")
 }

@@ -35,9 +35,9 @@ const updateLetterSchema = z.object({
   scheduledAt: z.string().datetime().optional().nullable(),
 });
 
-async function getPartner(senderId: string): Promise<{ id: string; name: string } | null> {
+async function getPartner(senderId: string, coupleId: string): Promise<{ id: string; name: string } | null> {
   const partner = await prisma.user.findFirst({
-    where: { id: { not: senderId } },
+    where: { coupleId, id: { not: senderId } },
     select: { id: true, name: true },
   });
   return partner;
@@ -127,10 +127,10 @@ router.get('/:id', async (req: AuthRequest & { params: IdParam }, res: Response)
 // POST /api/love-letters — create letter
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const { userId, coupleId } = req.user!;
     const data = createLetterSchema.parse(req.body);
 
-    const partner = await getPartner(userId);
+    const partner = await getPartner(userId, coupleId);
     if (!partner) { res.status(400).json({ error: 'No partner found' }); return; }
 
     let status: 'DRAFT' | 'SCHEDULED' | 'DELIVERED' = 'DRAFT';
@@ -153,6 +153,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 
     const letter = await prisma.loveLetter.create({
       data: {
+        coupleId,
         senderId: userId,
         recipientId: partner.id,
         title: data.title,

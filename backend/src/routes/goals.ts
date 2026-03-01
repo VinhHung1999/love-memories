@@ -8,6 +8,7 @@ import {
   assignGoalSchema,
   reorderGoalsSchema,
 } from '../utils/validation';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -15,10 +16,11 @@ type SprintIdParam = { sprintId: string };
 type IdParam = { id: string };
 
 // GET backlog goals (no sprint assigned) — must be before /:id routes
-router.get('/backlog', async (_req: Request, res: Response) => {
+router.get('/backlog', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const goals = await prisma.goal.findMany({
-      where: { sprintId: null },
+      where: { coupleId, sprintId: null },
       orderBy: { order: 'asc' },
     });
     res.json(goals);
@@ -44,7 +46,8 @@ router.get('/sprint/:sprintId', async (req: Request<SprintIdParam>, res: Respons
 router.post('/', async (req: Request, res: Response) => {
   try {
     const data = createGoalSchema.parse(req.body);
-    const goal = await prisma.goal.create({ data });
+    const { coupleId } = (req as AuthRequest).user!;
+    const goal = await prisma.goal.create({ data: { ...data, coupleId } });
     res.status(201).json(goal);
   } catch (error: any) {
     if (error.name === 'ZodError') {
@@ -58,8 +61,9 @@ router.post('/', async (req: Request, res: Response) => {
 router.post('/sprint/:sprintId', async (req: Request<SprintIdParam>, res: Response) => {
   try {
     const data = createGoalSchema.parse(req.body);
+    const { coupleId } = (req as AuthRequest).user!;
     const goal = await prisma.goal.create({
-      data: { ...data, sprintId: req.params.sprintId },
+      data: { ...data, coupleId, sprintId: req.params.sprintId },
     });
     res.status(201).json(goal);
   } catch (error: any) {

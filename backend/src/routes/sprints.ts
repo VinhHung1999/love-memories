@@ -2,15 +2,18 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { createSprintSchema, updateSprintSchema, updateSprintStatusSchema } from '../utils/validation';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 type IdParam = { id: string };
 
 // GET all sprints
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const sprints = await prisma.sprint.findMany({
+      where: { coupleId },
       include: { goals: { orderBy: { order: 'asc' } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -21,10 +24,11 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 // GET active sprint
-router.get('/active', async (_req: Request, res: Response) => {
+router.get('/active', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const sprint = await prisma.sprint.findFirst({
-      where: { status: 'ACTIVE' },
+      where: { coupleId, status: 'ACTIVE' },
       include: { goals: { orderBy: { order: 'asc' } } },
     });
     if (!sprint) { res.status(404).json({ error: 'No active sprint' }); return; }
@@ -52,8 +56,9 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const data = createSprintSchema.parse(req.body);
+    const { coupleId } = (req as AuthRequest).user!;
     const sprint = await prisma.sprint.create({
-      data,
+      data: { ...data, coupleId },
       include: { goals: true },
     });
     res.status(201).json(sprint);

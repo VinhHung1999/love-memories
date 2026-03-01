@@ -5,19 +5,57 @@ import { hashPassword, generateToken } from '../utils/auth';
 
 let token: string;
 let partnerToken: string;
+let testCoupleId: string;
 
-// Create test user directly via Prisma (bypasses whitelist) and generate token
+// Create test couple + users directly via Prisma (bypasses whitelist) and generate tokens
 beforeAll(async () => {
+  // Clean up previous test data referencing this couple
+  await prisma.achievement.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.appSetting.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.notification.deleteMany();
+  await prisma.letterPhoto.deleteMany();
+  await prisma.letterAudio.deleteMany();
+  await prisma.loveLetter.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.expense.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.momentComment.deleteMany();
+  await prisma.momentReaction.deleteMany();
+  await prisma.momentPhoto.deleteMany();
+  await prisma.momentAudio.deleteMany();
+  await prisma.moment.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.foodSpotPhoto.deleteMany();
+  await prisma.foodSpot.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.cookingSessionPhoto.deleteMany();
+  await prisma.cookingSessionStep.deleteMany();
+  await prisma.cookingSessionItem.deleteMany();
+  await prisma.cookingSessionRecipe.deleteMany();
+  await prisma.cookingSession.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.recipePhoto.deleteMany();
+  await prisma.recipe.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.goal.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.sprint.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.datePlanSpot.deleteMany();
+  await prisma.datePlanStop.deleteMany();
+  await prisma.datePlan.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.dateWish.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.tag.deleteMany({ where: { coupleId: 'test-couple' } });
   await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test'] } } });
+
+  const couple = await prisma.couple.upsert({
+    where: { id: 'test-couple' },
+    update: {},
+    create: { id: 'test-couple', name: 'Test Couple' },
+  });
+  testCoupleId = couple.id;
+
   const hashed = await hashPassword('testpass123');
   const user = await prisma.user.create({
-    data: { email: 'test@lovescrum.test', password: hashed, name: 'Test User' },
+    data: { email: 'test@lovescrum.test', password: hashed, name: 'Test User', coupleId: testCoupleId },
   });
   const partner = await prisma.user.create({
-    data: { email: 'partner@lovescrum.test', password: hashed, name: 'Test Partner' },
+    data: { email: 'partner@lovescrum.test', password: hashed, name: 'Test Partner', coupleId: testCoupleId },
   });
-  token = generateToken(user.id);
-  partnerToken = generateToken(partner.id);
+  token = generateToken(user.id, testCoupleId);
+  partnerToken = generateToken(partner.id, testCoupleId);
 });
 
 // Clean up after all tests
@@ -42,6 +80,7 @@ afterAll(async () => {
   await prisma.letterAudio.deleteMany();
   await prisma.loveLetter.deleteMany();
   await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test'] } } });
+  // Couple cleanup handled by beforeAll on next run (cascade order is complex)
   await prisma.$disconnect();
 });
 
@@ -202,10 +241,10 @@ describe('Food Spots CRUD', () => {
 describe('Map Pins', () => {
   beforeAll(async () => {
     await prisma.moment.create({
-      data: { title: 'Map Moment', date: new Date(), latitude: 10.77, longitude: 106.69, tags: [] },
+      data: { coupleId: testCoupleId, title: 'Map Moment', date: new Date(), latitude: 10.77, longitude: 106.69, tags: [] },
     });
     await prisma.foodSpot.create({
-      data: { name: 'Map Spot', latitude: 10.78, longitude: 106.70, tags: [] },
+      data: { coupleId: testCoupleId, name: 'Map Spot', latitude: 10.78, longitude: 106.70, tags: [] },
     });
   });
 
@@ -365,6 +404,7 @@ describe('CookingSessions', () => {
     // Create a test recipe with ingredients and steps
     const recipe = await prisma.recipe.create({
       data: {
+        coupleId: testCoupleId,
         title: 'Test Dish',
         ingredients: ['Onion', 'Garlic', 'Tomato'],
         steps: ['Chop onion', 'Fry garlic', 'Add tomato'],
@@ -692,6 +732,8 @@ describe('Notifications', () => {
   let notifId: string;
 
   beforeAll(async () => {
+    // Clean up any notifications from prior tests (moments/foodspots create trigger partner notifications)
+    await prisma.notification.deleteMany();
     // Seed a notification for the test user via prisma directly
     const user = await prisma.user.findUniqueOrThrow({ where: { email: 'test@lovescrum.test' } });
     const notif = await prisma.notification.create({

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Response } from 'express';
 import prisma from '../utils/prisma';
 import type { AuthRequest } from '../middleware/auth';
-import { createNotification, getOtherUserId } from '../utils/notifications';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -18,9 +18,11 @@ const STOPS_INCLUDE = {
 };
 
 // GET / — list all plans, newest date first, include stops + auto-update statuses
-router.get('/', async (_req: AuthRequest, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const plans = await prisma.datePlan.findMany({
+      where: { coupleId },
       orderBy: { date: 'desc' },
       include: STOPS_INCLUDE,
     });
@@ -48,6 +50,7 @@ router.get('/', async (_req: AuthRequest, res: Response) => {
         ...toComplete.map((id) => prisma.datePlan.update({ where: { id }, data: { status: 'completed' } })),
       ]);
       const updated = await prisma.datePlan.findMany({
+        where: { coupleId },
         orderBy: { date: 'desc' },
         include: STOPS_INCLUDE,
       });
@@ -105,8 +108,10 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       res.status(400).json({ error: 'title and date are required' });
       return;
     }
+    const { userId: currentUserId, coupleId } = req.user!;
     const plan = await prisma.datePlan.create({
       data: {
+        coupleId,
         title,
         date: new Date(date),
         notes: notes ?? null,
@@ -133,9 +138,8 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       include: STOPS_INCLUDE,
     });
     res.status(201).json(plan);
-    // Notify other user
-    const currentUserId = req.user!.userId;
-    const otherUserId = await getOtherUserId(currentUserId);
+    // Notify partner
+    const otherUserId = await getPartnerUserId(currentUserId, coupleId);
     if (otherUserId) {
       await createNotification(otherUserId, 'new_date_plan', 'Kế hoạch hẹn hò mới', `Có kế hoạch mới: ${plan.title}`, '/date-planner');
     }

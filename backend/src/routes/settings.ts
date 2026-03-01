@@ -1,22 +1,26 @@
 import { Router } from 'express';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import prisma from '../utils/prisma';
-import { requireAuth } from '../middleware/auth';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-// GET is public — display-only data (app name, slogan)
-router.get('/:key', async (req: Request<{ key: string }>, res: Response) => {
-  const setting = await prisma.appSetting.findUnique({ where: { key: req.params.key } });
+// GET setting by key — scoped by couple
+router.get('/:key', async (req: AuthRequest & { params: { key: string } }, res: Response) => {
+  const { coupleId } = req.user!;
+  const setting = await prisma.appSetting.findUnique({
+    where: { key_coupleId: { key: req.params.key, coupleId } },
+  });
   res.json({ key: req.params.key, value: setting?.value ?? null });
 });
 
-// PUT requires auth — only authenticated users can change settings
-router.put('/:key', requireAuth, async (req: Request<{ key: string }>, res: Response) => {
+// PUT upsert setting — scoped by couple
+router.put('/:key', async (req: AuthRequest & { params: { key: string } }, res: Response) => {
+  const { coupleId } = req.user!;
   const { value } = req.body as { value: string };
   const setting = await prisma.appSetting.upsert({
-    where: { key: req.params.key },
-    create: { key: req.params.key, value },
+    where: { key_coupleId: { key: req.params.key, coupleId } },
+    create: { key: req.params.key, value, coupleId },
     update: { value },
   });
   res.json(setting);

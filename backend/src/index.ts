@@ -54,7 +54,7 @@ app.use('/api/foodspots', requireAuth, foodSpotRoutes);
 app.use('/api/map', requireAuth, mapRoutes);
 app.use('/api/sprints', requireAuth, sprintRoutes);
 app.use('/api/goals', requireAuth, goalRoutes);
-app.use('/api/settings', settingsRoutes);
+app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/tags', requireAuth, tagRoutes);
 app.use('/api/recipes', requireAuth, recipeRoutes);
 app.use('/api/cooking-sessions', requireAuth, cookingSessionRoutes);
@@ -104,29 +104,30 @@ if (require.main === module) {
     }
   });
 
-  // 6 AM daily reminder: notify all users if there's a planned/active DatePlan for today
+  // 6 AM daily reminder: notify couple's users if there's a planned/active DatePlan for today
   cron.schedule('0 6 * * *', async () => {
     try {
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-      const plans = await prisma.datePlan.findMany({
-        where: {
-          date: { gte: todayStart, lt: todayEnd },
-          status: { in: ['planned', 'active'] },
-        },
-        select: { id: true, title: true },
-      });
-      if (plans.length === 0) return;
-      const users = await prisma.user.findMany({ select: { id: true } });
-      const title = 'Nhắc hẹn hò hôm nay 💑';
-      const message = plans.length === 1
-        ? `Hôm nay có kế hoạch: ${plans[0].title}`
-        : `Hôm nay có ${plans.length} kế hoạch hẹn hò đang chờ!`;
-      await Promise.all(
-        users.map((u) => createNotification(u.id, 'daily_plan_reminder', title, message, '/date-planner')),
-      );
-      console.log(`[cron] daily_plan_reminder sent to ${users.length} users`);
+      const couples = await prisma.couple.findMany({ include: { users: { select: { id: true } } } });
+      let totalSent = 0;
+      for (const couple of couples) {
+        const plans = await prisma.datePlan.findMany({
+          where: { coupleId: couple.id, date: { gte: todayStart, lt: todayEnd }, status: { in: ['planned', 'active'] } },
+          select: { title: true },
+        });
+        if (plans.length === 0) continue;
+        const title = 'Nhắc hẹn hò hôm nay 💑';
+        const message = plans.length === 1
+          ? `Hôm nay có kế hoạch: ${plans[0]!.title}`
+          : `Hôm nay có ${plans.length} kế hoạch hẹn hò đang chờ!`;
+        await Promise.all(
+          couple.users.map((u) => createNotification(u.id, 'daily_plan_reminder', title, message, '/date-planner')),
+        );
+        totalSent += couple.users.length;
+      }
+      if (totalSent > 0) console.log(`[cron] daily_plan_reminder sent to ${totalSent} users`);
     } catch (err) {
       console.error('[cron] daily_plan_reminder error:', err);
     }

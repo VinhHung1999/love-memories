@@ -6,7 +6,7 @@ import { createFoodSpotSchema, updateFoodSpotSchema } from '../utils/validation'
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import { haversineDistance } from '../utils/geo';
 import type { AuthRequest } from '../middleware/auth';
-import { createNotification, getOtherUserId } from '../utils/notifications';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -14,9 +14,11 @@ type IdParam = { id: string };
 type PhotoParam = { id: string; photoId: string };
 
 // GET all food spots
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const foodSpots = await prisma.foodSpot.findMany({
+      where: { coupleId },
       include: { photos: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -38,8 +40,9 @@ router.get('/random', async (req: Request, res: Response) => {
       return;
     }
 
+    const { coupleId } = (req as AuthRequest).user!;
     const allSpots = await prisma.foodSpot.findMany({
-      where: { latitude: { not: null }, longitude: { not: null } },
+      where: { coupleId, latitude: { not: null }, longitude: { not: null } },
       include: { photos: { take: 1 } },
     });
 
@@ -80,19 +83,17 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const data = createFoodSpotSchema.parse(req.body);
+    const { userId: currentUserId, coupleId } = (req as AuthRequest).user!;
     const foodSpot = await prisma.foodSpot.create({
-      data,
+      data: { ...data, coupleId },
       include: { photos: true },
     });
     res.status(201).json(foodSpot);
-    // Notify other user
-    const currentUserId = (req as AuthRequest).user?.userId;
-    if (currentUserId) {
-      const otherUserId = await getOtherUserId(currentUserId);
-      const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
-      if (otherUserId) {
-        await createNotification(otherUserId, 'new_foodspot', 'Quán mới', `${author} thêm quán: ${foodSpot.name}`, '/foodspots');
-      }
+    // Notify partner
+    const otherUserId = await getPartnerUserId(currentUserId, coupleId);
+    const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
+    if (otherUserId) {
+      await createNotification(otherUserId, 'new_foodspot', 'Quán mới', `${author} thêm quán: ${foodSpot.name}`, '/foodspots');
     }
   } catch (error: any) {
     if (error.name === 'ZodError') {

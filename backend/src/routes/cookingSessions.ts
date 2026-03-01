@@ -4,7 +4,7 @@ import prisma from '../utils/prisma';
 import { upload } from '../middleware/upload';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import type { AuthRequest } from '../middleware/auth';
-import { createNotification, getOtherUserId } from '../utils/notifications';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 import {
   createCookingSessionSchema,
   updateCookingSessionStatusSchema,
@@ -30,10 +30,11 @@ const sessionInclude = {
 };
 
 // GET /active — MUST be before /:id
-router.get('/active', async (_req: Request, res: Response) => {
+router.get('/active', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const session = await prisma.cookingSession.findFirst({
-      where: { status: { not: 'completed' } },
+      where: { coupleId, status: { not: 'completed' } },
       include: sessionInclude,
       orderBy: { createdAt: 'desc' },
     });
@@ -44,9 +45,11 @@ router.get('/active', async (_req: Request, res: Response) => {
 });
 
 // GET all sessions (history)
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const sessions = await prisma.cookingSession.findMany({
+      where: { coupleId },
       include: sessionInclude,
       orderBy: { createdAt: 'desc' },
     });
@@ -75,9 +78,10 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const { recipeIds } = createCookingSessionSchema.parse(req.body);
 
+    const { userId: currentUserId, coupleId } = (req as AuthRequest).user!;
     // Guard: reject if an active session already exists
     const existing = await prisma.cookingSession.findFirst({
-      where: { status: { not: 'completed' } },
+      where: { coupleId, status: { not: 'completed' } },
     });
     if (existing) {
       res.status(409).json({ error: 'An active session already exists', sessionId: existing.id });
@@ -116,6 +120,7 @@ router.post('/', async (req: Request, res: Response) => {
     // Create session with all nested data
     const session = await prisma.cookingSession.create({
       data: {
+        coupleId,
         status: 'selecting',
         recipes: {
           create: recipes.map(({ recipe, order }) => ({
@@ -171,9 +176,9 @@ router.put('/:id/status', async (req: Request<IdParam>, res: Response) => {
     res.json(session);
     // Notify other user when session completed
     if (data.status === 'completed') {
-      const currentUserId = (req as AuthRequest).user?.userId;
-      if (currentUserId) {
-        const otherUserId = await getOtherUserId(currentUserId);
+      const cUser = (req as AuthRequest).user;
+      if (cUser) {
+        const otherUserId = await getPartnerUserId(cUser.userId, cUser.coupleId);
         if (otherUserId) {
           await createNotification(otherUserId, 'cooking_completed', 'Nấu xong!', 'Phiên nấu ăn hoàn thành!', '/what-to-eat');
         }

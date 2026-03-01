@@ -19,7 +19,10 @@ export async function createNotification(
   }
 }
 
-export async function getOtherUserId(currentUserId: string): Promise<string | null> {
-  const users = await prisma.user.findMany({ select: { id: true } });
-  return users.find((u) => u.id !== currentUserId)?.id ?? null;
+export async function getPartnerUserId(currentUserId: string, coupleId: string): Promise<string | null> {
+  const partner = await prisma.user.findFirst({
+    where: { coupleId, id: { not: currentUserId } },
+    select: { id: true },
+  });
+  return partner?.id ?? null;
 }

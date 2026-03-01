@@ -4,6 +4,7 @@ import prisma from '../utils/prisma';
 import { upload } from '../middleware/upload';
 import { uploadToCdn } from '../utils/cdn';
 import { createExpenseSchema, updateExpenseSchema, EXPENSE_CATEGORIES } from '../utils/validation';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -22,13 +23,14 @@ function daysInMonth(year: number, month: number): number {
 
 // ── GET all expenses (optional ?month=YYYY-MM) ────────────────────────────────
 
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const { month, datePlanId } = req.query;
-    let where: Record<string, unknown> = {};
+    let where: Record<string, unknown> = { coupleId };
     if (month && typeof month === 'string') {
       const { start, end } = getMonthRange(month);
-      where = { date: { gte: start, lt: end } };
+      where = { ...where, date: { gte: start, lt: end } };
     }
     if (datePlanId && typeof datePlanId === 'string') {
       where = { ...where, datePlanId };
@@ -42,13 +44,14 @@ router.get('/', async (req: Request, res: Response) => {
 
 // ── GET stats ?month=YYYY-MM ──────────────────────────────────────────────────
 
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const { month } = req.query;
-    let where = {};
+    let where: Record<string, unknown> = { coupleId };
     if (month && typeof month === 'string') {
       const { start, end } = getMonthRange(month);
-      where = { date: { gte: start, lt: end } };
+      where = { ...where, date: { gte: start, lt: end } };
     }
     const expenses = await prisma.expense.findMany({ where });
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -65,8 +68,9 @@ router.get('/stats', async (req: Request, res: Response) => {
 
 // ── GET daily-stats ?month=YYYY-MM ────────────────────────────────────────────
 
-router.get('/daily-stats', async (req: Request, res: Response) => {
+router.get('/daily-stats', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const month = typeof req.query.month === 'string' ? req.query.month : null;
     const targetMonth = month ?? (() => {
       const d = new Date();
@@ -78,7 +82,7 @@ router.get('/daily-stats', async (req: Request, res: Response) => {
     const numDays = daysInMonth(year!, mon!);
 
     const expenses = await prisma.expense.findMany({
-      where: { date: { gte: start, lt: end } },
+      where: { coupleId, date: { gte: start, lt: end } },
     });
 
     const days = Array.from({ length: numDays }, (_, i) => {
@@ -107,10 +111,11 @@ router.get('/daily-stats', async (req: Request, res: Response) => {
 
 // ── GET budget limits ─────────────────────────────────────────────────────────
 
-router.get('/limits', async (_req: Request, res: Response) => {
+router.get('/limits', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const settings = await prisma.appSetting.findMany({
-      where: { key: { startsWith: 'budget_limit__' } },
+      where: { coupleId, key: { startsWith: 'budget_limit__' } },
     });
     const limits: Record<string, number | null> = {};
     for (const cat of EXPENSE_CATEGORIES) {
@@ -125,26 +130,27 @@ router.get('/limits', async (_req: Request, res: Response) => {
 
 // ── PUT budget limits ─────────────────────────────────────────────────────────
 
-router.put('/limits', async (req: Request, res: Response) => {
+router.put('/limits', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const body = req.body as Record<string, number | null>;
     await Promise.all(
       Object.entries(body).map(([cat, value]) => {
         if (!EXPENSE_CATEGORIES.includes(cat as any)) return;
         const key = `budget_limit__${cat}`;
         if (value === null || value === 0) {
-          return prisma.appSetting.deleteMany({ where: { key } });
+          return prisma.appSetting.deleteMany({ where: { key, coupleId } });
         }
         return prisma.appSetting.upsert({
-          where: { key },
+          where: { key_coupleId: { key, coupleId } },
           update: { value: String(value) },
-          create: { key, value: String(value) },
+          create: { key, value: String(value), coupleId },
         });
       })
     );
     // Return updated limits
     const settings = await prisma.appSetting.findMany({
-      where: { key: { startsWith: 'budget_limit__' } },
+      where: { coupleId, key: { startsWith: 'budget_limit__' } },
     });
     const limits: Record<string, number | null> = {};
     for (const cat of EXPENSE_CATEGORIES) {
@@ -184,10 +190,11 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
 
 // ── POST create expense ───────────────────────────────────────────────────────
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const data = createExpenseSchema.parse(req.body);
-    const expense = await prisma.expense.create({ data });
+    const expense = await prisma.expense.create({ data: { ...data, coupleId } });
     res.status(201).json(expense);
   } catch (error: any) {
     console.error('Create expense error:', error);

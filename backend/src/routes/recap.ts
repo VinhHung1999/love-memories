@@ -59,44 +59,45 @@ router.get('/weekly', async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const userId = req.user!.userId;
+    const { userId, coupleId } = req.user!;
     const gte = startDate;
     const lte = endDate;
 
     const [moments, cookingSessions, foodSpots, datePlans, loveLetters, goals, achievements] =
       await Promise.all([
         prisma.moment.findMany({
-          where: { date: { gte, lte } },
+          where: { coupleId, date: { gte, lte } },
           include: { photos: { select: { url: true } } },
           orderBy: { date: 'desc' },
         }),
         prisma.cookingSession.findMany({
-          where: { completedAt: { gte, lte }, status: 'completed' },
+          where: { coupleId, completedAt: { gte, lte }, status: 'completed' },
           include: {
             recipes: { include: { recipe: true } },
           },
         }),
         prisma.foodSpot.findMany({
-          where: { createdAt: { gte, lte } },
+          where: { coupleId, createdAt: { gte, lte } },
           select: { name: true },
         }),
         prisma.datePlan.findMany({
-          where: { date: { gte, lte } },
+          where: { coupleId, date: { gte, lte } },
           select: { title: true },
         }),
         prisma.loveLetter.findMany({
           where: {
+            coupleId,
             deliveredAt: { gte, lte },
             status: { in: ['DELIVERED', 'READ'] },
           },
           select: { senderId: true },
         }),
         prisma.goal.findMany({
-          where: { status: 'DONE', updatedAt: { gte, lte } },
+          where: { coupleId, status: 'DONE', updatedAt: { gte, lte } },
           select: { id: true },
         }),
         prisma.achievement.findMany({
-          where: { unlockedAt: { gte, lte } },
+          where: { coupleId, unlockedAt: { gte, lte } },
         }),
       ]);
 
@@ -188,45 +189,46 @@ router.get('/monthly', async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const userId = req.user!.userId;
+    const { userId, coupleId } = req.user!;
     const gte = startDate;
     const lte = endDate;
 
     const [moments, cookingSessions, foodSpots, datePlans, loveLetters, goals, achievements] =
       await Promise.all([
         prisma.moment.findMany({
-          where: { date: { gte, lte } },
+          where: { coupleId, date: { gte, lte } },
           include: { photos: { select: { url: true } } },
           orderBy: { date: 'desc' },
         }),
         prisma.cookingSession.findMany({
-          where: { completedAt: { gte, lte }, status: 'completed' },
+          where: { coupleId, completedAt: { gte, lte }, status: 'completed' },
           include: {
             recipes: { include: { recipe: { include: { photos: { select: { url: true }, take: 1 } } } } },
             photos: { select: { url: true }, take: 2 },
           },
         }),
         prisma.foodSpot.findMany({
-          where: { createdAt: { gte, lte } },
+          where: { coupleId, createdAt: { gte, lte } },
           select: { name: true, photos: { select: { url: true }, take: 1 } },
         }),
         prisma.datePlan.findMany({
-          where: { date: { gte, lte } },
+          where: { coupleId, date: { gte, lte } },
           select: { title: true },
         }),
         prisma.loveLetter.findMany({
           where: {
+            coupleId,
             deliveredAt: { gte, lte },
             status: { in: ['DELIVERED', 'READ'] },
           },
           select: { senderId: true },
         }),
         prisma.goal.findMany({
-          where: { status: 'DONE', updatedAt: { gte, lte } },
+          where: { coupleId, status: 'DONE', updatedAt: { gte, lte } },
           select: { id: true },
         }),
         prisma.achievement.findMany({
-          where: { unlockedAt: { gte, lte } },
+          where: { coupleId, unlockedAt: { gte, lte } },
         }),
       ]);
 
@@ -294,12 +296,13 @@ router.get('/monthly/caption', async (req: AuthRequest, res: Response) => {
     const gte = startDate;
     const lte = endDate;
 
+    const { coupleId } = req.user!;
     const [momentCount, cookingCount, foodSpotCount, letterCount, goalCount] = await Promise.all([
-      prisma.moment.count({ where: { date: { gte, lte } } }),
-      prisma.cookingSession.count({ where: { completedAt: { gte, lte }, status: 'completed' } }),
-      prisma.foodSpot.count({ where: { createdAt: { gte, lte } } }),
-      prisma.loveLetter.count({ where: { deliveredAt: { gte, lte }, status: { in: ['DELIVERED', 'READ'] } } }),
-      prisma.goal.count({ where: { status: 'DONE', updatedAt: { gte, lte } } }),
+      prisma.moment.count({ where: { coupleId, date: { gte, lte } } }),
+      prisma.cookingSession.count({ where: { coupleId, completedAt: { gte, lte }, status: 'completed' } }),
+      prisma.foodSpot.count({ where: { coupleId, createdAt: { gte, lte } } }),
+      prisma.loveLetter.count({ where: { coupleId, deliveredAt: { gte, lte }, status: { in: ['DELIVERED', 'READ'] } } }),
+      prisma.goal.count({ where: { coupleId, status: 'DONE', updatedAt: { gte, lte } } }),
     ]);
 
     if (momentCount + cookingCount + foodSpotCount + letterCount + goalCount === 0) {
@@ -308,12 +311,12 @@ router.get('/monthly/caption', async (req: AuthRequest, res: Response) => {
     }
 
     const [momentTitles, cookingSessions, foodNames] = await Promise.all([
-      prisma.moment.findMany({ where: { date: { gte, lte } }, select: { title: true }, take: 10 }),
+      prisma.moment.findMany({ where: { coupleId, date: { gte, lte } }, select: { title: true }, take: 10 }),
       prisma.cookingSession.findMany({
-        where: { completedAt: { gte, lte }, status: 'completed' },
+        where: { coupleId, completedAt: { gte, lte }, status: 'completed' },
         include: { recipes: { include: { recipe: { select: { title: true } } } } },
       }),
-      prisma.foodSpot.findMany({ where: { createdAt: { gte, lte } }, select: { name: true }, take: 10 }),
+      prisma.foodSpot.findMany({ where: { coupleId, createdAt: { gte, lte } }, select: { name: true }, take: 10 }),
     ]);
 
     const recipeNames = [...new Set(cookingSessions.flatMap((s) => s.recipes.map((r) => r.recipe.title)))];

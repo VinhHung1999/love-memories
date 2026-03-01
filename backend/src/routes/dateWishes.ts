@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Response } from 'express';
 import prisma from '../utils/prisma';
 import type { AuthRequest } from '../middleware/auth';
-import { createNotification, getOtherUserId } from '../utils/notifications';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -11,7 +11,9 @@ type IdParam = { id: string };
 // GET / — list all wishes, newest first
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const wishes = await prisma.dateWish.findMany({
+      where: { coupleId },
       orderBy: { createdAt: 'desc' },
     });
     res.json(wishes);
@@ -37,8 +39,10 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       res.status(400).json({ error: 'title and category are required' });
       return;
     }
+    const { userId: currentUserId, coupleId } = req.user!;
     const wish = await prisma.dateWish.create({
       data: {
+        coupleId,
         title,
         description: description ?? null,
         category,
@@ -47,13 +51,12 @@ router.post('/', async (req: AuthRequest, res: Response) => {
         longitude: longitude ?? null,
         url: url ?? null,
         tags: tags ?? [],
-        createdBy: req.user!.userId,
+        createdBy: currentUserId,
       },
     });
     res.status(201).json(wish);
-    // Notify other user
-    const currentUserId = req.user!.userId;
-    const otherUserId = await getOtherUserId(currentUserId);
+    // Notify partner
+    const otherUserId = await getPartnerUserId(currentUserId, coupleId);
     if (otherUserId) {
       await createNotification(otherUserId, 'new_date_wish', 'Ước muốn mới', `Có ước muốn mới: ${wish.title}`, '/date-planner');
     }

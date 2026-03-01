@@ -220,6 +220,9 @@ export default function MorePage() {
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-base truncate">{user?.name}</p>
             <p className="text-text-light text-sm truncate">{user?.email}</p>
+            {user?.coupleId && (
+              <p className="text-text-light/50 text-xs truncate mt-0.5 font-mono">Couple: {user.coupleId}</p>
+            )}
           </div>
           <button
             onClick={() => { setNameInput(user?.name ?? ''); setEditOpen(true); }}

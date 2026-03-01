@@ -5,7 +5,7 @@ import { upload } from '../middleware/upload';
 import { createRecipeSchema, updateRecipeSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import type { AuthRequest } from '../middleware/auth';
-import { createNotification, getOtherUserId } from '../utils/notifications';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -13,9 +13,11 @@ type IdParam = { id: string };
 type PhotoParam = { id: string; photoId: string };
 
 // GET all recipes
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const recipes = await prisma.recipe.findMany({
+      where: { coupleId },
       include: { photos: true, foodSpot: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -43,19 +45,17 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const data = createRecipeSchema.parse(req.body);
+    const { userId: currentUserId, coupleId } = (req as AuthRequest).user!;
     const recipe = await prisma.recipe.create({
-      data,
+      data: { ...data, coupleId },
       include: { photos: true, foodSpot: { select: { id: true, name: true } } },
     });
     res.status(201).json(recipe);
-    // Notify other user
-    const currentUserId = (req as AuthRequest).user?.userId;
-    if (currentUserId) {
-      const otherUserId = await getOtherUserId(currentUserId);
-      const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
-      if (otherUserId) {
-        await createNotification(otherUserId, 'new_recipe', 'Công thức mới', `${author} thêm công thức: ${recipe.title}`, '/recipes');
-      }
+    // Notify partner
+    const otherUserId = await getPartnerUserId(currentUserId, coupleId);
+    const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
+    if (otherUserId) {
+      await createNotification(otherUserId, 'new_recipe', 'Công thức mới', `${author} thêm công thức: ${recipe.title}`, '/recipes');
     }
   } catch (error: any) {
     if (error.name === 'ZodError') { res.status(400).json({ error: error.errors }); return; }

@@ -6,7 +6,7 @@ import { upload, uploadAudio } from '../middleware/upload';
 import { createMomentSchema, updateMomentSchema } from '../utils/validation';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import type { AuthRequest } from '../middleware/auth';
-import { createNotification, getOtherUserId } from '../utils/notifications';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 
 const router = Router();
 
@@ -28,9 +28,11 @@ const reactionSchema = z.object({
 });
 
 // GET all moments
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const { coupleId } = (req as AuthRequest).user!;
     const moments = await prisma.moment.findMany({
+      where: { coupleId },
       include: { photos: true, audios: true },
       orderBy: { date: 'desc' },
     });
@@ -63,19 +65,17 @@ router.get('/:id', async (req: Request<IdParam>, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const data = createMomentSchema.parse(req.body);
+    const { userId: currentUserId, coupleId } = (req as AuthRequest).user!;
     const moment = await prisma.moment.create({
-      data,
+      data: { ...data, coupleId },
       include: { photos: true },
     });
     res.status(201).json(moment);
-    // Notify other user
-    const currentUserId = (req as AuthRequest).user?.userId;
-    if (currentUserId) {
-      const otherUserId = await getOtherUserId(currentUserId);
-      const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
-      if (otherUserId) {
-        await createNotification(otherUserId, 'new_moment', 'Kỷ niệm mới', `${author} đã thêm kỷ niệm: ${moment.title}`, `/moments/${moment.id}`);
-      }
+    // Notify partner
+    const otherUserId = await getPartnerUserId(currentUserId, coupleId);
+    const author = (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))?.name ?? 'Ai đó';
+    if (otherUserId) {
+      await createNotification(otherUserId, 'new_moment', 'Kỷ niệm mới', `${author} đã thêm kỷ niệm: ${moment.title}`, `/moments/${moment.id}`);
     }
   } catch (error: any) {
     if (error.name === 'ZodError') {
@@ -232,9 +232,10 @@ router.post('/:id/comments', async (req: Request<IdParam>, res: Response) => {
       include: { user: { select: { name: true, avatar: true } } },
     });
     res.status(201).json(comment);
-    // Notify other user
+    // Notify partner
     if (userId) {
-      const otherUserId = await getOtherUserId(userId);
+      const { coupleId: cId } = (req as AuthRequest).user!;
+      const otherUserId = await getPartnerUserId(userId, cId);
       const preview = content.length > 50 ? `${content.slice(0, 50)}…` : content;
       if (otherUserId) {
         await createNotification(otherUserId, 'new_comment', 'Bình luận mới', `${author} bình luận: ${preview}`, `/moments/${req.params.id}`);
@@ -286,8 +287,9 @@ router.post('/:id/reactions', async (req: Request<IdParam>, res: Response) => {
     // Notify other user only when adding (not removing) a reaction
     if (isAdding) {
       const currentUserId = (req as AuthRequest).user?.userId;
-      if (currentUserId) {
-        const otherUserId = await getOtherUserId(currentUserId);
+      const reactionCoupleId = (req as AuthRequest).user?.coupleId;
+      if (currentUserId && reactionCoupleId) {
+        const otherUserId = await getPartnerUserId(currentUserId, reactionCoupleId);
         if (otherUserId) {
           await createNotification(otherUserId, 'new_reaction', 'Cảm xúc mới', `${author} đã ${emoji} kỷ niệm của bạn`, `/moments/${momentId}`);
         }

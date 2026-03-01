@@ -12,10 +12,10 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 }
 
-export function generateToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+export function generateToken(userId: string, coupleId: string): string {
+  return jwt.sign({ userId, coupleId }, JWT_SECRET, { expiresIn: '30d' });
 }
 
-export function verifyToken(token: string): { userId: string } {
-  return jwt.verify(token, JWT_SECRET) as { userId: string };
+export function verifyToken(token: string): { userId: string; coupleId?: string } {
+  return jwt.verify(token, JWT_SECRET) as { userId: string; coupleId?: string };
 }

@@ -6,26 +6,37 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding love_scrum_dev...');
 
+  // Create couple first
+  const couple = await prisma.couple.upsert({
+    where: { id: 'dev-couple' },
+    update: {},
+    create: { id: 'dev-couple', name: 'Dev Couple' },
+  });
+  console.log('Couple:', couple.id);
+  const coupleId = couple.id;
+
   // Dev users (2 required for Love Letters partner lookup)
   const hashedPassword = await bcrypt.hash('dev123', 10);
   const user = await prisma.user.upsert({
     where: { email: 'dev@love-scrum.local' },
-    update: {},
+    update: { coupleId },
     create: {
       email: 'dev@love-scrum.local',
       password: hashedPassword,
       name: 'Dev User',
+      coupleId,
     },
   });
   console.log('User:', user.email, '/ password: dev123');
 
   await prisma.user.upsert({
     where: { email: 'partner@love-scrum.local' },
-    update: {},
+    update: { coupleId },
     create: {
       email: 'partner@love-scrum.local',
       password: hashedPassword,
       name: 'Partner Dev',
+      coupleId,
     },
   });
   console.log('User: partner@love-scrum.local / password: dev123');
@@ -35,6 +46,7 @@ async function main() {
     skipDuplicates: true,
     data: [
       {
+        coupleId,
         title: 'Cà phê sáng Highlands',
         caption: 'Cùng nhau uống cà phê buổi sáng',
         date: new Date('2026-01-15'),
@@ -44,6 +56,7 @@ async function main() {
         tags: ['cafe', 'morning'],
       },
       {
+        coupleId,
         title: 'Dạo biển Vũng Tàu',
         caption: 'Trip đầu năm 2026',
         date: new Date('2026-02-01'),
@@ -61,6 +74,7 @@ async function main() {
     skipDuplicates: true,
     data: [
       {
+        coupleId,
         name: 'Phở Hòa Pasteur',
         description: 'Phở nổi tiếng Sài Gòn',
         rating: 4.5,
@@ -71,6 +85,7 @@ async function main() {
         priceRange: 2,
       },
       {
+        coupleId,
         name: 'Bún bò Huế O Xuân',
         description: 'Bún bò chuẩn vị Huế',
         rating: 4.2,
@@ -87,6 +102,7 @@ async function main() {
   // Test sprint
   await prisma.sprint.create({
     data: {
+      coupleId,
       name: 'Sprint Dev Test',
       description: 'Sprint dùng để test tính năng',
       startDate: new Date('2026-02-01'),
@@ -94,9 +110,9 @@ async function main() {
       status: 'ACTIVE',
       goals: {
         create: [
-          { title: 'Test goal TODO', status: 'TODO', priority: 'HIGH', order: 0 },
-          { title: 'Test goal IN_PROGRESS', status: 'IN_PROGRESS', priority: 'MEDIUM', order: 1 },
-          { title: 'Test goal DONE', status: 'DONE', priority: 'LOW', order: 2 },
+          { title: 'Test goal TODO', status: 'TODO', priority: 'HIGH', order: 0, coupleId },
+          { title: 'Test goal IN_PROGRESS', status: 'IN_PROGRESS', priority: 'MEDIUM', order: 1, coupleId },
+          { title: 'Test goal DONE', status: 'DONE', priority: 'LOW', order: 2, coupleId },
         ],
       },
     },
@@ -110,6 +126,7 @@ async function main() {
   await prisma.recipe.createMany({
     data: [
         {
+          coupleId,
           title: 'Phở Bò',
           description: 'Phở bò truyền thống Hà Nội với nước dùng ninh từ xương bò thơm ngon',
           tags: ['phở', 'súp', 'bò', 'bữa sáng'],
@@ -144,6 +161,7 @@ async function main() {
           tutorialUrl: 'https://www.youtube.com/watch?v=AlqTo1BDgPM',
         },
         {
+          coupleId,
           title: 'Bún Bò Huế',
           description: 'Bún bò chuẩn vị Huế với nước dùng sả mắm ruốc cay thơm đậm đà',
           tags: ['bún bò', 'Huế', 'cay', 'bữa sáng'],
@@ -177,6 +195,7 @@ async function main() {
           tutorialUrl: 'https://www.youtube.com/watch?v=qWK_HYlKrAA',
         },
         {
+          coupleId,
           title: 'Cơm Tấm Sườn Bì Chả',
           description: 'Cơm tấm Sài Gòn đặc trưng với sườn nướng mật ong, bì trộn thính và chả trứng hấp',
           tags: ['cơm tấm', 'Sài Gòn', 'sườn', 'bữa trưa'],
@@ -211,6 +230,7 @@ async function main() {
           tutorialUrl: 'https://www.youtube.com/watch?v=h0HkRXMu4_Q',
         },
         {
+          coupleId,
           title: 'Bánh Xèo Miền Nam',
           description: 'Bánh xèo giòn rụm nhân tôm thịt ăn kèm rau sống và nước chấm chua ngọt',
           tags: ['bánh xèo', 'chiên', 'tôm', 'bữa chiều'],
@@ -244,6 +264,7 @@ async function main() {
           tutorialUrl: 'https://www.youtube.com/watch?v=AF9H5hpTrSA',
         },
         {
+          coupleId,
           title: 'Gỏi Cuốn Tôm Thịt',
           description: 'Gỏi cuốn tươi mát với tôm luộc, thịt heo, bún và rau sống, chấm tương hoisin đậu phộng',
           tags: ['gỏi cuốn', 'tươi', 'tôm', 'lành mạnh'],
@@ -293,6 +314,7 @@ async function main() {
   for (const m of w08Moments) {
     await prisma.moment.create({
       data: {
+        coupleId,
         title: m.title,
         date: m.date,
         tags: m.tags,
@@ -306,6 +328,7 @@ async function main() {
   if (firstRecipe) {
     await prisma.cookingSession.create({
       data: {
+        coupleId,
         status: 'completed',
         completedAt: new Date('2026-02-20'),
         totalTimeMs: 5400000,
@@ -318,6 +341,7 @@ async function main() {
   // 1 food spot with W08 createdAt
   await prisma.foodSpot.create({
     data: {
+      coupleId,
       name: 'Bánh mì Phượng',
       description: 'Bánh mì ngon nhất Hội An',
       rating: 4.8,
@@ -332,6 +356,7 @@ async function main() {
   // 1 date plan in W08
   await prisma.datePlan.create({
     data: {
+      coupleId,
       title: 'Cafe date cuối tuần',
       date: new Date('2026-02-22'),
       status: 'planned',
@@ -344,6 +369,7 @@ async function main() {
     await prisma.loveLetter.createMany({
       data: [
         {
+          coupleId,
           senderId: user.id,
           recipientId: partner.id,
           title: 'Thư yêu thương',
@@ -352,6 +378,7 @@ async function main() {
           deliveredAt: new Date('2026-02-18'),
         },
         {
+          coupleId,
           senderId: partner.id,
           recipientId: user.id,
           title: 'Nhớ em quá',

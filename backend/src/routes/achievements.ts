@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import prisma from '../utils/prisma';
 import type { AuthRequest } from '../middleware/auth';
 import { createNotification } from '../utils/notifications';
@@ -43,18 +43,19 @@ export const ACHIEVEMENT_DEFS = [
 
 // GET /api/achievements
 // Evaluates conditions, auto-unlocks newly met achievements, returns all with status.
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const [momentCount, recipeCount, foodSpotCount, completedSessionCount, completedSprintCount, doneGoalCount, aiRecipeSetting, firstMoment] =
       await Promise.all([
-        prisma.moment.count(),
-        prisma.recipe.count(),
-        prisma.foodSpot.count(),
-        prisma.cookingSession.count({ where: { status: 'completed' } }),
-        prisma.sprint.count({ where: { status: 'COMPLETED' } }),
-        prisma.goal.count({ where: { status: 'DONE' } }),
-        prisma.appSetting.findUnique({ where: { key: 'ai_recipe_created' } }),
-        prisma.moment.findFirst({ orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
+        prisma.moment.count({ where: { coupleId } }),
+        prisma.recipe.count({ where: { coupleId } }),
+        prisma.foodSpot.count({ where: { coupleId } }),
+        prisma.cookingSession.count({ where: { coupleId, status: 'completed' } }),
+        prisma.sprint.count({ where: { coupleId, status: 'COMPLETED' } }),
+        prisma.goal.count({ where: { coupleId, status: 'DONE' } }),
+        prisma.appSetting.findFirst({ where: { key: 'ai_recipe_created', coupleId } }),
+        prisma.moment.findFirst({ where: { coupleId }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
       ]);
 
     // Days since first moment was created (time-based achievements)
@@ -96,7 +97,7 @@ router.get('/', async (req: Request, res: Response) => {
     };
 
     // Load already-unlocked keys
-    const existing = await prisma.achievement.findMany();
+    const existing = await prisma.achievement.findMany({ where: { coupleId } });
     const unlockedKeys = new Set(existing.map((a) => a.key));
 
     // Auto-unlock newly met achievements
@@ -106,11 +107,11 @@ router.get('/', async (req: Request, res: Response) => {
 
     if (newKeys.length > 0) {
       await prisma.achievement.createMany({
-        data: newKeys.map((key) => ({ key })),
+        data: newKeys.map((key) => ({ key, coupleId })),
         skipDuplicates: true,
       });
       // Notify current user for each newly unlocked achievement
-      const currentUserId = (req as AuthRequest).user?.userId;
+      const currentUserId = req.user?.userId;
       if (currentUserId) {
         for (const key of newKeys) {
           const def = ACHIEVEMENT_DEFS.find((d) => d.key === key);
@@ -122,7 +123,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Final state
-    const finalUnlocked = await prisma.achievement.findMany();
+    const finalUnlocked = await prisma.achievement.findMany({ where: { coupleId } });
     const unlockedMap = new Map(finalUnlocked.map((a) => [a.key, a]));
 
     const systemAchievements = ACHIEVEMENT_DEFS.map((def) => {

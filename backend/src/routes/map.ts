@@ -1,14 +1,17 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import prisma from '../utils/prisma';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 // GET all map pins (combined moments + food spots with coordinates)
-router.get('/pins', async (_req: Request, res: Response) => {
+router.get('/pins', async (req: AuthRequest, res: Response) => {
   try {
+    const { coupleId } = req.user!;
     const [moments, foodSpots, tagRecords] = await Promise.all([
       prisma.moment.findMany({
         where: {
+          coupleId,
           latitude: { not: null },
           longitude: { not: null },
         },
@@ -16,12 +19,13 @@ router.get('/pins', async (_req: Request, res: Response) => {
       }),
       prisma.foodSpot.findMany({
         where: {
+          coupleId,
           latitude: { not: null },
           longitude: { not: null },
         },
         include: { photos: true },
       }),
-      prisma.tag.findMany(),
+      prisma.tag.findMany({ where: { coupleId } }),
     ]);
 
     const tagMap = Object.fromEntries(tagRecords.map((t) => [t.name, t]));
