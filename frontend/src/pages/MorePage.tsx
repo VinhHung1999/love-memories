@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Pencil, Check, X, LogOut, Settings, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users } from 'lucide-react';
+import { Pencil, Check, X, LogOut, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
@@ -50,7 +50,6 @@ export default function MorePage() {
   const { user, logout, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
-  const [customOpen, setCustomOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,13 +89,6 @@ export default function MorePage() {
   });
 
   const partner = coupleProfile?.users.find((u) => u.id !== user?.id);
-
-  const TOUR_KEYS = ['dashboard', 'moments', 'map', 'goals', 'recipes', 'love-letters', 'date-planner', 'photobooth', 'weekly-recap', 'foodspots', 'achievements', 'what-to-eat', 'monthly-recap', 'expenses'];
-  const handleReplayTours = async () => {
-    if (!user?.id) return;
-    await Promise.all(TOUR_KEYS.map((k) => settingsApi.set(`tour_done__${k}__${user.id}`, '')));
-    window.location.reload();
-  };
 
   // Permissions
   const [permStates, setPermStates] = useState<PermStates>({
@@ -157,30 +149,22 @@ export default function MorePage() {
   // App customization
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
   const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
-  const { data: dateStartSetting } = useQuery({ queryKey: ['settings', 'relationship-start-date'], queryFn: () => settingsApi.get('relationship-start-date') });
   const [appNameInput, setAppNameInput] = useState('');
   const [appSloganInput, setAppSloganInput] = useState('');
-  const [dateInput, setDateInput] = useState('');
 
   // Sync inputs when settings load (only on first load)
   useEffect(() => { if (appNameSetting?.value != null) setAppNameInput(appNameSetting.value); }, [appNameSetting?.value]);
   useEffect(() => { if (appSloganSetting?.value != null) setAppSloganInput(appSloganSetting.value); }, [appSloganSetting?.value]);
-  useEffect(() => { if (dateStartSetting?.value != null) setDateInput(dateStartSetting.value); }, [dateStartSetting?.value]);
 
   const saveCustomMutation = useMutation({
     mutationFn: async () => {
       await settingsApi.set('app_name', appNameInput.trim() || 'Love Scrum');
       await settingsApi.set('app_slogan', appSloganInput.trim() || 'Our little world, beautifully organized');
-      if (dateInput) await settingsApi.set('relationship-start-date', dateInput);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings', 'app_name'] });
       queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
-      queryClient.invalidateQueries({ queryKey: ['settings', 'relationship-start-date'] });
-      toast.success('Đã lưu!');
-      setCustomOpen(false);
     },
-    onError: () => toast.error('Không thể lưu'),
   });
 
   const initials = (user?.name ?? 'U')
@@ -294,26 +278,6 @@ export default function MorePage() {
         </button>
       </div>
 
-      {/* App Customization — tap to open modal */}
-      <div className="mt-6">
-        <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
-          <Settings className="w-4 h-4 text-text-light" /> Tùy chỉnh
-        </h2>
-        <button
-          type="button"
-          onClick={() => setCustomOpen(true)}
-          className="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 hover:bg-gray-50 active:scale-[0.99] transition-all text-left"
-        >
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-            <Settings className="w-4.5 h-4.5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-text">Tùy chỉnh ứng dụng</p>
-            <p className="text-xs text-text-light truncate">{appNameInput || 'Love Scrum'} · {appSloganInput || 'Our little world...'}</p>
-          </div>
-          <X className="w-4 h-4 text-text-light/40 rotate-45 flex-shrink-0" />
-        </button>
-      </div>
 
       {/* App Permissions */}
       <div className="mt-6">
@@ -365,54 +329,7 @@ export default function MorePage() {
         </button>
       </div>
 
-      {/* Customization modal */}
-      <Modal open={customOpen} onClose={() => setCustomOpen(false)} title="Tùy chỉnh ứng dụng">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Tên app</label>
-            <input
-              value={appNameInput}
-              onChange={(e) => setAppNameInput(e.target.value)}
-              placeholder="Love Scrum"
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Slogan</label>
-            <input
-              value={appSloganInput}
-              onChange={(e) => setAppSloganInput(e.target.value)}
-              placeholder="Our little world, beautifully organized"
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Ngày yêu nhau</label>
-            <input
-              type="date"
-              value={dateInput}
-              onChange={(e) => setDateInput(e.target.value)}
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <button
-            onClick={() => saveCustomMutation.mutate()}
-            disabled={saveCustomMutation.isPending}
-            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            {saveCustomMutation.isPending ? 'Đang lưu...' : 'Lưu'}
-          </button>
-          <button
-            type="button"
-            onClick={handleReplayTours}
-            className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
-          >
-            Xem lại hướng dẫn
-          </button>
-        </div>
-      </Modal>
-
-      {/* Couple profile modal */}
+      {/* Couple profile modal (includes app customization) */}
       <Modal open={coupleOpen} onClose={() => setCoupleOpen(false)} title="Hồ sơ cặp đôi">
         <div className="space-y-4">
           <div data-tour="couple-name">
@@ -480,12 +397,42 @@ export default function MorePage() {
             </div>
             <p className="text-xs text-text-light mt-1">Chia sẻ mã này để mời partner tham gia</p>
           </div>
+
+          {/* Divider */}
+          <div className="border-t border-border pt-4">
+            <p className="text-xs text-text-light font-medium uppercase tracking-wider mb-3">Tùy chỉnh ứng dụng</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Tên app</label>
+            <input
+              value={appNameInput}
+              onChange={(e) => setAppNameInput(e.target.value)}
+              placeholder="Love Scrum"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Slogan</label>
+            <input
+              value={appSloganInput}
+              onChange={(e) => setAppSloganInput(e.target.value)}
+              placeholder="Our little world, beautifully organized"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+
           <button
-            onClick={() => coupleUpdateMutation.mutate()}
-            disabled={coupleUpdateMutation.isPending}
+            onClick={() => {
+              // Save both couple profile + app customization
+              Promise.all([
+                coupleUpdateMutation.mutateAsync(),
+                saveCustomMutation.mutateAsync(),
+              ]).catch(() => {});
+            }}
+            disabled={coupleUpdateMutation.isPending || saveCustomMutation.isPending}
             className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {coupleUpdateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
+            {(coupleUpdateMutation.isPending || saveCustomMutation.isPending) ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
       </Modal>
