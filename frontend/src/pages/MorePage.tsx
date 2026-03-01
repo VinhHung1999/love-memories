@@ -65,14 +65,22 @@ export default function MorePage() {
   }, [coupleProfile?.name, coupleProfile?.anniversaryDate]);
 
   const coupleUpdateMutation = useMutation({
-    mutationFn: () => coupleApi.update({
-      name: coupleNameInput.trim() || undefined,
-      anniversaryDate: coupleAnniversaryInput || null,
-    }),
+    mutationFn: async () => {
+      const name = coupleNameInput.trim() || undefined;
+      await coupleApi.update({
+        name,
+        anniversaryDate: coupleAnniversaryInput || null,
+      });
+      // Sync couple name → app name + save slogan
+      await settingsApi.set('app_name', name || 'Love Scrum');
+      await settingsApi.set('app_slogan', appSloganInput.trim() || 'Our little world, beautifully organized');
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['couple'] });
       queryClient.invalidateQueries({ queryKey: ['settings', 'relationship-start-date'] });
-      toast.success('Đã lưu hồ sơ cặp đôi!');
+      queryClient.invalidateQueries({ queryKey: ['settings', 'app_name'] });
+      queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
+      toast.success('Đã lưu!');
       setCoupleOpen(false);
     },
     onError: () => toast.error('Không thể lưu'),
@@ -146,26 +154,11 @@ export default function MorePage() {
     setTimeout(() => { checkAllPermissions().then(setPermStates); }, 600);
   };
 
-  // App customization
-  const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
+  // App customization (slogan only — app name synced from couple name)
   const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
-  const [appNameInput, setAppNameInput] = useState('');
   const [appSloganInput, setAppSloganInput] = useState('');
 
-  // Sync inputs when settings load (only on first load)
-  useEffect(() => { if (appNameSetting?.value != null) setAppNameInput(appNameSetting.value); }, [appNameSetting?.value]);
   useEffect(() => { if (appSloganSetting?.value != null) setAppSloganInput(appSloganSetting.value); }, [appSloganSetting?.value]);
-
-  const saveCustomMutation = useMutation({
-    mutationFn: async () => {
-      await settingsApi.set('app_name', appNameInput.trim() || 'Love Scrum');
-      await settingsApi.set('app_slogan', appSloganInput.trim() || 'Our little world, beautifully organized');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings', 'app_name'] });
-      queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
-    },
-  });
 
   const initials = (user?.name ?? 'U')
     .split(' ')
@@ -333,13 +326,14 @@ export default function MorePage() {
       <Modal open={coupleOpen} onClose={() => setCoupleOpen(false)} title="Hồ sơ cặp đôi">
         <div className="space-y-4">
           <div data-tour="couple-name">
-            <label className="block text-sm font-medium mb-1.5">Tên cặp đôi</label>
+            <label className="block text-sm font-medium mb-1.5">Tên cặp đôi / Tên app</label>
             <input
               value={coupleNameInput}
               onChange={(e) => setCoupleNameInput(e.target.value)}
               placeholder="VD: Hung & Nhu"
               className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
+            <p className="text-xs text-text-light mt-1">Hiển thị trên tiêu đề app và màn hình login</p>
           </div>
           <div data-tour="couple-anniversary">
             <label className="block text-sm font-medium mb-1.5">Ngày yêu nhau</label>
@@ -398,19 +392,6 @@ export default function MorePage() {
             <p className="text-xs text-text-light mt-1">Chia sẻ mã này để mời partner tham gia</p>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-border pt-4">
-            <p className="text-xs text-text-light font-medium uppercase tracking-wider mb-3">Tùy chỉnh ứng dụng</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Tên app</label>
-            <input
-              value={appNameInput}
-              onChange={(e) => setAppNameInput(e.target.value)}
-              placeholder="Love Scrum"
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Slogan</label>
             <input
@@ -422,17 +403,11 @@ export default function MorePage() {
           </div>
 
           <button
-            onClick={() => {
-              // Save both couple profile + app customization
-              Promise.all([
-                coupleUpdateMutation.mutateAsync(),
-                saveCustomMutation.mutateAsync(),
-              ]).catch(() => {});
-            }}
-            disabled={coupleUpdateMutation.isPending || saveCustomMutation.isPending}
+            onClick={() => coupleUpdateMutation.mutate()}
+            disabled={coupleUpdateMutation.isPending}
             className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {(coupleUpdateMutation.isPending || saveCustomMutation.isPending) ? 'Đang lưu...' : 'Lưu'}
+            {coupleUpdateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
       </Modal>
