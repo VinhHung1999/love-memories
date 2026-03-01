@@ -98,7 +98,10 @@ export default function MorePage() {
         }
         break;
       case 'geolocation':
-        navigator.geolocation.getCurrentPosition(() => {}, () => {});
+        navigator.geolocation.getCurrentPosition(
+          () => setPermStates((p) => ({ ...p, geolocation: 'granted' })),
+          () => setPermStates((p) => ({ ...p, geolocation: 'denied' })),
+        );
         break;
       case 'microphone':
         try {

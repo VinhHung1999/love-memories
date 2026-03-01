@@ -132,9 +132,13 @@ if (require.main === module) {
     }
   }, { timezone: 'Asia/Ho_Chi_Minh' });
 
-  // 9 AM on 1st of each month — monthly recap notification
-  cron.schedule('0 9 1 * *', async () => {
+  // 9 AM on last day of each month — monthly recap notification
+  // cron has no "last day" syntax, so run on days 28-31 and check at runtime
+  cron.schedule('0 9 28-31 * *', async () => {
     try {
+      const now = new Date();
+      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      if (now.getDate() !== lastDayOfMonth) return;
       const users = await prisma.user.findMany({ select: { id: true } });
       await Promise.all(
         users.map((u) =>
