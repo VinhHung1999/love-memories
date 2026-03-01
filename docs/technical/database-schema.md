@@ -39,7 +39,8 @@ DRAFT | SCHEDULED | DELIVERED | READ
 |-------|------|-------------|-------|
 | id | String | `@id @default(uuid())` | Primary key |
 | email | String | `@unique` | Login email |
-| password | String | | Bcrypt hash |
+| password | String? | | Bcrypt hash; null for Google-only users (Sprint 33) |
+| googleId | String? | `@unique` | Google OAuth sub (Sprint 33) |
 | name | String | | Display name |
 | avatar | String? | | Avatar CDN URL |
 | coupleId | String? | FK → Couple | Sprint 32: Couple association |

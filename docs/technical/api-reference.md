@@ -81,8 +81,75 @@ Get current authenticated user profile.
 
 **Response (200):**
 ```json
-{ "id": "uuid", "email": "...", "name": "...", "avatar": "url|null" }
+{ "id": "uuid", "email": "...", "name": "...", "avatar": "url|null", "googleId": "string|null" }
 ```
+
+**Sprint 33:** Now returns `googleId` field.
+
+---
+
+## Google OAuth (Sprint 33)
+
+### `POST /api/auth/google` — Public
+
+Verify Google ID token. Returns tokens for existing users; returns `needsCouple` for new users.
+
+**Request:**
+```json
+{ "idToken": "google-id-token-from-frontend" }
+```
+
+**Response — existing or auto-linked user (200):**
+```json
+{ "accessToken": "jwt...", "refreshToken": "...", "user": { "id": "uuid", "email": "...", "name": "...", "googleId": "..." } }
+```
+
+**Response — new Google user (200):**
+```json
+{ "needsCouple": true, "googleProfile": { "googleId": "...", "email": "...", "name": "...", "picture": "url" } }
+```
+
+**Errors:** `400` missing idToken, `401` invalid token, `500` server error
+
+---
+
+### `POST /api/auth/google/complete` — Public
+
+Complete signup for a new Google user: creates account + couple.
+
+**Request:**
+```json
+{ "idToken": "google-id-token", "coupleName": "Hung & Nhu" }
+```
+or
+```json
+{ "idToken": "google-id-token", "inviteCode": "abc12345" }
+```
+
+**Response (201):**
+```json
+{ "accessToken": "jwt...", "refreshToken": "...", "user": { "id": "uuid", "email": "...", "googleId": "..." } }
+```
+
+**Errors:** `400` missing idToken or couple info, `400` invalid invite code, `409` account already exists, `401` invalid token
+
+---
+
+### `POST /api/auth/google/link`
+
+Link Google account to an already-logged-in user.
+
+**Request:**
+```json
+{ "idToken": "google-id-token" }
+```
+
+**Response (200):**
+```json
+{ "ok": true, "googleId": "google-uid-123" }
+```
+
+**Errors:** `400` missing idToken, `401` invalid token, `409` Google account already linked to another user
 
 ---
 
