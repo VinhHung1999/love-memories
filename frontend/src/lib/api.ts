@@ -52,8 +52,8 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     ...options,
   });
 
-  // On 401, try refresh once
-  if (res.status === 401) {
+  // On 401, try refresh once (only if we had a token — skip if already unauthenticated)
+  if (res.status === 401 && token) {
     const refreshed = await tryRefreshToken();
     if (refreshed) {
       const newToken = getToken();
