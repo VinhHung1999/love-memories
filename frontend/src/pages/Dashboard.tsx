@@ -213,7 +213,7 @@ export default function Dashboard() {
       {/* ── END ACTIVE DATE PLAN PIN ─────────────────────────────────── */}
 
       {/* ── MONTHLY RECAP PIN ─────────────────────────────────────────── */}
-      {new Date().getDate() <= 3 && (
+      {(() => { const d = new Date(); return d.getDate() === new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); })() && (
         <Link
           to="/monthly-recap"
           className="block relative overflow-hidden rounded-2xl mb-4"
