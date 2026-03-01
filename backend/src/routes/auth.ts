@@ -50,7 +50,7 @@ router.post('/register', async (req: Request, res: Response) => {
     } else {
       couple = await prisma.couple.findFirst();
       if (!couple) {
-        couple = await prisma.couple.create({ data: { name: 'Default Couple' } });
+        couple = await prisma.couple.create({ data: { name: 'Love Scrum' } });
       }
     }
 
