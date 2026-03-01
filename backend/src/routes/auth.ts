@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { OAuth2Client } from 'google-auth-library';
 import prisma from '../utils/prisma';
 import { hashPassword, comparePassword, generateToken, generateAccessToken, generateRefreshTokenValue } from '../utils/auth';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = Router();
 
@@ -86,6 +89,10 @@ router.post('/login', async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       res.status(401).json({ error: 'Invalid email or password' });
+      return;
+    }
+    if (!user.password) {
+      res.status(401).json({ error: 'This account uses Google Sign-In. Please sign in with Google.' });
       return;
     }
     const valid = await comparePassword(password, user.password);
@@ -179,7 +186,7 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
-      select: { id: true, email: true, name: true, avatar: true, coupleId: true, createdAt: true },
+      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, createdAt: true },
     });
     if (!user) {
       res.status(404).json({ error: 'User not found' });
@@ -188,6 +195,186 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
     res.json(user);
   } catch {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Google OAuth helpers ──────────────────────────────────────────────────────
+
+interface GoogleProfile {
+  googleId: string;
+  email: string;
+  name: string;
+  picture: string;
+}
+
+async function verifyGoogleToken(idToken: string): Promise<GoogleProfile> {
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.sub || !payload.email) {
+      throw new Error('Invalid Google token');
+    }
+    return {
+      googleId: payload.sub,
+      email: payload.email,
+      name: payload.name || payload.email,
+      picture: payload.picture || '',
+    };
+  } catch (err) {
+    throw new Error('Invalid Google token');
+  }
+}
+
+function buildAuthResponse(user: { id: string; email: string; name: string; avatar: string | null; coupleId: string; googleId: string | null }, accessToken: string, legacyToken: string, refreshToken: string) {
+  return {
+    token: legacyToken,
+    accessToken,
+    refreshToken,
+    user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, coupleId: user.coupleId, googleId: user.googleId },
+  };
+}
+
+// POST /api/auth/google — verify Google ID token, auto-link or return needsCouple
+router.post('/google', async (req: Request, res: Response) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken || typeof idToken !== 'string') {
+      res.status(400).json({ error: 'idToken required' });
+      return;
+    }
+
+    const profile = await verifyGoogleToken(idToken);
+
+    // 1. Look up by googleId
+    let user = await prisma.user.findUnique({ where: { googleId: profile.googleId } });
+
+    // 2. Auto-link by email match
+    if (!user) {
+      const byEmail = await prisma.user.findUnique({ where: { email: profile.email } });
+      if (byEmail) {
+        user = await prisma.user.update({
+          where: { id: byEmail.id },
+          data: {
+            googleId: profile.googleId,
+            avatar: byEmail.avatar ?? (profile.picture || null),
+          },
+        });
+      }
+    }
+
+    // 3. No user found — new Google user needs couple setup
+    if (!user) {
+      res.json({ needsCouple: true, googleProfile: profile });
+      return;
+    }
+
+    const accessToken = generateAccessToken(user.id, user.coupleId);
+    const legacyToken = generateToken(user.id, user.coupleId);
+    const refreshToken = await createRefreshToken(user.id);
+
+    res.json(buildAuthResponse(user, accessToken, legacyToken, refreshToken));
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('Invalid Google')) {
+      res.status(401).json({ error: 'Invalid Google token' });
+    } else {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+});
+
+// POST /api/auth/google/complete — new Google user sets up couple
+router.post('/google/complete', async (req: Request, res: Response) => {
+  try {
+    const { idToken, inviteCode, coupleName } = req.body;
+    if (!idToken || typeof idToken !== 'string') {
+      res.status(400).json({ error: 'idToken required' });
+      return;
+    }
+    if (!inviteCode && !coupleName) {
+      res.status(400).json({ error: 'Must either create a new couple (coupleName) or join one (inviteCode)' });
+      return;
+    }
+
+    const profile = await verifyGoogleToken(idToken);
+
+    // Guard: don't create duplicate
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ googleId: profile.googleId }, { email: profile.email }] },
+    });
+    if (existing) {
+      res.status(409).json({ error: 'Account already exists. Please use the Google login button.' });
+      return;
+    }
+
+    let couple;
+    if (inviteCode) {
+      couple = await prisma.couple.findUnique({ where: { inviteCode } });
+      if (!couple) {
+        res.status(400).json({ error: 'Invalid invite code' });
+        return;
+      }
+    } else {
+      couple = await prisma.couple.create({ data: { name: coupleName.trim() } });
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        email: profile.email,
+        name: profile.name,
+        avatar: profile.picture || null,
+        googleId: profile.googleId,
+        password: null,
+        coupleId: couple.id,
+      },
+    });
+
+    const accessToken = generateAccessToken(user.id, user.coupleId);
+    const legacyToken = generateToken(user.id, user.coupleId);
+    const refreshToken = await createRefreshToken(user.id);
+
+    res.status(201).json(buildAuthResponse(user, accessToken, legacyToken, refreshToken));
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('Invalid Google')) {
+      res.status(401).json({ error: 'Invalid Google token' });
+    } else {
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+});
+
+// POST /api/auth/google/link — logged-in user links their Google account
+router.post('/google/link', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken || typeof idToken !== 'string') {
+      res.status(400).json({ error: 'idToken required' });
+      return;
+    }
+
+    const profile = await verifyGoogleToken(idToken);
+
+    // Check googleId not already used by another user
+    const existing = await prisma.user.findUnique({ where: { googleId: profile.googleId } });
+    if (existing && existing.id !== req.user!.userId) {
+      res.status(409).json({ error: 'This Google account is already linked to another user' });
+      return;
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { googleId: profile.googleId },
+    });
+
+    res.json({ ok: true, googleId: user.googleId });
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('Invalid Google')) {
+      res.status(401).json({ error: 'Invalid Google token' });
+    } else {
+      res.status(500).json({ error: 'Server error' });
+    }
   }
 });
 

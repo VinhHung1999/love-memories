@@ -3,6 +3,37 @@ import app from '../index';
 import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
 
+// Mock google-auth-library so Google token tests don't require real tokens
+jest.mock('google-auth-library', () => {
+  return {
+    OAuth2Client: jest.fn().mockImplementation(() => ({
+      verifyIdToken: jest.fn().mockImplementation(({ idToken }: { idToken: string }) => {
+        if (idToken === 'valid-google-token') {
+          return Promise.resolve({
+            getPayload: () => ({
+              sub: 'google-uid-123',
+              email: 'googleuser@example.com',
+              name: 'Google User',
+              picture: 'https://example.com/pic.jpg',
+            }),
+          });
+        }
+        if (idToken === 'existing-user-google-token') {
+          return Promise.resolve({
+            getPayload: () => ({
+              sub: 'google-uid-existing',
+              email: 'test@lovescrum.test', // matches existing test user
+              name: 'Test User',
+              picture: '',
+            }),
+          });
+        }
+        return Promise.reject(new Error('Invalid token'));
+      }),
+    })),
+  };
+});
+
 let token: string;
 let partnerToken: string;
 let testCoupleId: string;
@@ -134,6 +165,85 @@ describe('Auth', () => {
 
   it('GET /api/moments returns 401 without token', async () => {
     const res = await request(app).get('/api/moments');
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/auth/login returns 401 for Google-only user (no password)', async () => {
+    // Create a Google-only user (no password)
+    const couple = await prisma.couple.findUnique({ where: { id: 'test-couple' } });
+    await prisma.user.create({
+      data: { email: 'googleonly@lovescrum.test', password: null, name: 'Google Only', coupleId: couple!.id, googleId: 'gid-test-only' },
+    });
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'googleonly@lovescrum.test',
+      password: 'anypassword',
+    });
+    expect(res.status).toBe(401);
+    expect(res.body.error).toContain('Google Sign-In');
+    await prisma.user.deleteMany({ where: { email: 'googleonly@lovescrum.test' } });
+  });
+});
+
+describe('Google OAuth', () => {
+  it('POST /api/auth/google returns 400 without idToken', async () => {
+    const res = await request(app).post('/api/auth/google').send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/auth/google returns 401 for invalid token', async () => {
+    const res = await request(app).post('/api/auth/google').send({ idToken: 'bad-token' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/auth/google returns needsCouple for new Google user', async () => {
+    const res = await request(app).post('/api/auth/google').send({ idToken: 'valid-google-token' });
+    expect(res.status).toBe(200);
+    expect(res.body.needsCouple).toBe(true);
+    expect(res.body.googleProfile.email).toBe('googleuser@example.com');
+  });
+
+  it('POST /api/auth/google auto-links existing user by email and logs in', async () => {
+    const res = await request(app).post('/api/auth/google').send({ idToken: 'existing-user-google-token' });
+    expect(res.status).toBe(200);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.email).toBe('test@lovescrum.test');
+    // Verify googleId was set on the user
+    const user = await prisma.user.findUnique({ where: { email: 'test@lovescrum.test' } });
+    expect(user?.googleId).toBe('google-uid-existing');
+    // Cleanup
+    await prisma.user.update({ where: { email: 'test@lovescrum.test' }, data: { googleId: null } });
+  });
+
+  it('POST /api/auth/google/complete returns 400 without couple info', async () => {
+    const res = await request(app).post('/api/auth/google/complete').send({ idToken: 'valid-google-token' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/auth/google/complete creates user with couple', async () => {
+    const res = await request(app).post('/api/auth/google/complete').send({
+      idToken: 'valid-google-token',
+      coupleName: 'Test Google Couple',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.email).toBe('googleuser@example.com');
+    expect(res.body.user.googleId).toBe('google-uid-123');
+    // Cleanup
+    const user = await prisma.user.findUnique({ where: { email: 'googleuser@example.com' } });
+    if (user) {
+      await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+      await prisma.couple.delete({ where: { id: user.coupleId } }).catch(() => {});
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  });
+
+  it('POST /api/auth/google/link returns 400 without idToken', async () => {
+    const res = await request(app).post('/api/auth/google/link').set(auth()).send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/auth/google/link returns 401 without auth', async () => {
+    const res = await request(app).post('/api/auth/google/link').send({ idToken: 'valid-google-token' });
     expect(res.status).toBe(401);
   });
 });
