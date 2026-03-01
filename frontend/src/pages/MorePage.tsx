@@ -335,6 +335,15 @@ export default function MorePage() {
             />
             <p className="text-xs text-text-light mt-1">Hiển thị trên tiêu đề app và màn hình login</p>
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Slogan</label>
+            <input
+              value={appSloganInput}
+              onChange={(e) => setAppSloganInput(e.target.value)}
+              placeholder="Our little world, beautifully organized"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
           <div data-tour="couple-anniversary">
             <label className="block text-sm font-medium mb-1.5">Ngày yêu nhau</label>
             <input
@@ -390,16 +399,6 @@ export default function MorePage() {
               </button>
             </div>
             <p className="text-xs text-text-light mt-1">Chia sẻ mã này để mời partner tham gia</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Slogan</label>
-            <input
-              value={appSloganInput}
-              onChange={(e) => setAppSloganInput(e.target.value)}
-              placeholder="Our little world, beautifully organized"
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
           </div>
 
           <button
