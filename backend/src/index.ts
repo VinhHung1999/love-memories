@@ -25,6 +25,8 @@ import { resolveLocationRoute } from './routes/resolveLocation';
 import { loveLetterRoutes } from './routes/loveLetters';
 import { recapRoutes } from './routes/recap';
 import { expenseRoutes } from './routes/expenses';
+import { coupleRoutes } from './routes/couple';
+import { shareRoutes } from './routes/share';
 import { requireAuth } from './middleware/auth';
 import prisma from './utils/prisma';
 import { createNotification } from './utils/notifications';
@@ -68,6 +70,8 @@ app.use('/api/date-plans', requireAuth, datePlanRoutes);
 app.use('/api/love-letters', requireAuth, loveLetterRoutes);
 app.use('/api/recap', requireAuth, recapRoutes);
 app.use('/api/expenses', requireAuth, expenseRoutes);
+app.use('/api/couple', requireAuth, coupleRoutes);
+app.use('/api/share', shareRoutes);
 
 if (require.main === module) {
   const server = app.listen(PORT, () => {

@@ -151,3 +151,27 @@ Always respect this order when adding new overlay or panel components.
 - Shared modules constant: `frontend/src/lib/modules.ts` — 9-entry array (`to/icon/label/description/color`), typed with `LucideIcon`. Both Dashboard and any future consumer import from here; MorePage no longer owns it.
 - Dashboard layout order (Boss-approved): Recent Moments → Hero Card → Bento Row → Modules Grid
 - Hero Card live timer: Boss requires `useState(new Date()) + useEffect setInterval(1s)` even on Dashboard — do NOT ship static/no-clock version. Full `calcDiff` must return `{ years, months, days, hours, minutes, seconds }`.
+
+## JWT Auth + Shared Links + Couple Profile (Sprint 32)
+
+### JWT Auth Upgrade
+- **Access token (15min):** `generateAccessToken(userId, coupleId)` in `utils/auth.ts` — JWT with `type: 'access'`
+- **Refresh token (30 days):** `RefreshToken` model in DB, rotated on each refresh. `generateRefreshTokenValue()` = `crypto.randomBytes(64).toString('hex')`
+- **Backward compat:** Old 30-day `generateToken()` still works. Login/register returns `{ token, accessToken, refreshToken }`
+- **Routes:** POST `/auth/refresh` (rotate), POST `/auth/logout` (revoke)
+- **Frontend interceptor:** `api.ts` `tryRefreshToken()` mutex — on 401, try refresh once before redirecting to /login. Stores `love-scrum-token` + `love-scrum-refresh-token` in localStorage
+
+### Couple Profile
+- **Backend:** `routes/couple.ts` — GET/PUT /api/couple, POST /api/couple/generate-invite
+- **Couple model:** Added `anniversaryDate DateTime?`, `inviteCode String? @unique`
+- **Backward compat:** PUT /api/couple syncs `anniversaryDate` back to `AppSetting('relationship-start-date')` for existing timer
+- **Invite code:** `crypto.randomBytes(4).toString('hex')` — 8 hex chars. Register with `inviteCode` param joins that couple
+- **Frontend:** MorePage "Hồ sơ cặp đôi" section with modal — couple name, anniversary, partner info, invite code (copy/generate)
+
+### Shared Links
+- **Backend:** `routes/share.ts` — mixed auth: POST/GET-list/DELETE use requireAuth, GET /:token is public
+- **ShareLink model:** token (unique, 64-byte hex), type (moment|letter|recipe), targetId, coupleId, viewCount
+- **Letter restriction:** Only DELIVERED/READ letters can be shared (DRAFT/SCHEDULED → 400)
+- **Image proxy:** GET /api/share/:token/image — validates share token, proxies CDN image with `Cache-Control: public, max-age=86400`
+- **Frontend viewer:** `/s/:token` route (public, outside auth gate). Uses raw `fetch()` for public API. Images via share proxy
+- **Share buttons:** MomentDetail, RecipeDetail, LetterReadOverlay — `navigator.share()` with clipboard fallback

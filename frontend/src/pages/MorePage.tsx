@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Pencil, Check, X, LogOut, Settings, Camera, Bell, MapPin, Mic, Shield } from 'lucide-react';
+import { Pencil, Check, X, LogOut, Settings, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuth } from '../lib/auth';
-import { settingsApi, profileApi } from '../lib/api';
+import { settingsApi, profileApi, coupleApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import Modal from '../components/Modal';
 
@@ -53,6 +53,43 @@ export default function MorePage() {
   const [customOpen, setCustomOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Couple profile
+  const [coupleOpen, setCoupleOpen] = useState(false);
+  const { data: coupleProfile } = useQuery({ queryKey: ['couple'], queryFn: () => coupleApi.get() });
+  const [coupleNameInput, setCoupleNameInput] = useState('');
+  const [coupleAnniversaryInput, setCoupleAnniversaryInput] = useState('');
+
+  useEffect(() => {
+    if (coupleProfile?.name != null) setCoupleNameInput(coupleProfile.name);
+    if (coupleProfile?.anniversaryDate) setCoupleAnniversaryInput(coupleProfile.anniversaryDate.slice(0, 10));
+  }, [coupleProfile?.name, coupleProfile?.anniversaryDate]);
+
+  const coupleUpdateMutation = useMutation({
+    mutationFn: () => coupleApi.update({
+      name: coupleNameInput.trim() || undefined,
+      anniversaryDate: coupleAnniversaryInput || null,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['couple'] });
+      queryClient.invalidateQueries({ queryKey: ['settings', 'relationship-start-date'] });
+      toast.success('Đã lưu hồ sơ cặp đôi!');
+      setCoupleOpen(false);
+    },
+    onError: () => toast.error('Không thể lưu'),
+  });
+
+  const generateInviteMutation = useMutation({
+    mutationFn: () => coupleApi.generateInvite(),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['couple'] });
+      navigator.clipboard.writeText(data.inviteCode).catch(() => {});
+      toast.success(`Mã mời: ${data.inviteCode} (đã copy)`);
+    },
+    onError: () => toast.error('Không thể tạo mã mời'),
+  });
+
+  const partner = coupleProfile?.users.find((u) => u.id !== user?.id);
 
   const TOUR_KEYS = ['dashboard', 'moments', 'map', 'goals', 'recipes', 'love-letters', 'date-planner', 'photobooth', 'weekly-recap', 'foodspots', 'achievements', 'what-to-eat', 'monthly-recap', 'expenses'];
   const handleReplayTours = async () => {
@@ -234,6 +271,29 @@ export default function MorePage() {
         </div>
       </div>
 
+      {/* Couple Profile */}
+      <div className="mt-6" data-tour="couple-profile">
+        <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
+          <Heart className="w-4 h-4 text-primary" /> Hồ sơ cặp đôi
+        </h2>
+        <button
+          type="button"
+          onClick={() => setCoupleOpen(true)}
+          className="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 hover:bg-gray-50 active:scale-[0.99] transition-all text-left"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+            <Users className="w-4.5 h-4.5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-text">{coupleProfile?.name || 'Chưa đặt tên'}</p>
+            <p className="text-xs text-text-light truncate">
+              {partner ? `${partner.name}` : 'Chưa có partner'} · {coupleProfile?.anniversaryDate ? new Date(coupleProfile.anniversaryDate).toLocaleDateString('vi-VN') : 'Chưa có ngày kỷ niệm'}
+            </p>
+          </div>
+          <X className="w-4 h-4 text-text-light/40 rotate-45 flex-shrink-0" />
+        </button>
+      </div>
+
       {/* App Customization — tap to open modal */}
       <div className="mt-6">
         <h2 className="font-heading text-base font-semibold text-text mb-3 flex items-center gap-2">
@@ -348,6 +408,84 @@ export default function MorePage() {
             className="w-full border border-border text-text-light rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             Xem lại hướng dẫn
+          </button>
+        </div>
+      </Modal>
+
+      {/* Couple profile modal */}
+      <Modal open={coupleOpen} onClose={() => setCoupleOpen(false)} title="Hồ sơ cặp đôi">
+        <div className="space-y-4">
+          <div data-tour="couple-name">
+            <label className="block text-sm font-medium mb-1.5">Tên cặp đôi</label>
+            <input
+              value={coupleNameInput}
+              onChange={(e) => setCoupleNameInput(e.target.value)}
+              placeholder="VD: Hung & Nhu"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div data-tour="couple-anniversary">
+            <label className="block text-sm font-medium mb-1.5">Ngày yêu nhau</label>
+            <input
+              type="date"
+              value={coupleAnniversaryInput}
+              onChange={(e) => setCoupleAnniversaryInput(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          {partner && (
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Partner</label>
+              <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                {partner.avatar ? (
+                  <img src={partner.avatar} alt={partner.name} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
+                    {partner.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium">{partner.name}</p>
+                  <p className="text-xs text-text-light">{partner.email}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div data-tour="couple-invite">
+            <label className="block text-sm font-medium mb-1.5">Mã mời</label>
+            <div className="flex gap-2">
+              <div className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-gray-50 font-mono">
+                {coupleProfile?.inviteCode || '—'}
+              </div>
+              {coupleProfile?.inviteCode && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(coupleProfile.inviteCode!);
+                    toast.success('Đã copy mã mời!');
+                  }}
+                  className="px-3 py-2.5 border border-border rounded-xl hover:bg-gray-50 transition-colors"
+                  title="Copy"
+                >
+                  <Copy className="w-4 h-4 text-text-light" />
+                </button>
+              )}
+              <button
+                onClick={() => generateInviteMutation.mutate()}
+                disabled={generateInviteMutation.isPending}
+                className="px-3 py-2.5 border border-primary/30 text-primary rounded-xl hover:bg-primary/5 transition-colors disabled:opacity-50"
+                title="Tạo mã mới"
+              >
+                <RefreshCw className={`w-4 h-4 ${generateInviteMutation.isPending ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            <p className="text-xs text-text-light mt-1">Chia sẻ mã này để mời partner tham gia</p>
+          </div>
+          <button
+            onClick={() => coupleUpdateMutation.mutate()}
+            disabled={coupleUpdateMutation.isPending}
+            className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {coupleUpdateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
           </button>
         </div>
       </Modal>

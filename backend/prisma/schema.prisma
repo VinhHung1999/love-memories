@@ -8,9 +8,11 @@ datasource db {
 }
 
 model Couple {
-  id        String   @id @default(uuid())
-  name      String?
-  createdAt DateTime @default(now())
+  id              String    @id @default(uuid())
+  name            String?
+  anniversaryDate DateTime?
+  inviteCode      String?   @unique
+  createdAt       DateTime  @default(now())
 
   users              User[]
   moments            Moment[]
@@ -27,6 +29,7 @@ model Couple {
   tags               Tag[]
   appSettings        AppSetting[]
   achievements       Achievement[]
+  shareLinks         ShareLink[]
 
   @@map("couples")
 }
@@ -46,6 +49,7 @@ model User {
   pushSubscriptions PushSubscription[]
   sentLetters       LoveLetter[]       @relation("SentLetters")
   receivedLetters   LoveLetter[]       @relation("ReceivedLetters")
+  refreshTokens     RefreshToken[]
 
   @@index([coupleId])
   @@map("users")
@@ -552,4 +556,32 @@ model Goal {
 
   @@index([coupleId])
   @@map("goals")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model ShareLink {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  type      String
+  targetId  String
+  coupleId  String
+  expiresAt DateTime?
+  viewCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  couple    Couple    @relation(fields: [coupleId], references: [id])
+
+  @@index([coupleId])
+  @@map("share_links")
 }

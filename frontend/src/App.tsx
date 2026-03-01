@@ -27,6 +27,7 @@ import LoveLettersPage from './pages/LoveLettersPage';
 import WeeklyRecapPage from './pages/WeeklyRecapPage';
 import MonthlyRecapPage from './pages/MonthlyRecapPage';
 import ExpensesPage from './pages/ExpensesPage';
+import ShareViewerPage from './pages/ShareViewerPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
 async function registerPush() {
@@ -74,6 +75,17 @@ export default function App() {
     }
     wasAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);
+
+  // Public routes (outside auth gate)
+  // Check if current path is a share link
+  const isShareRoute = window.location.pathname.startsWith('/s/');
+  if (isShareRoute) {
+    return (
+      <Routes>
+        <Route path="/s/:token" element={<ShareViewerPage />} />
+      </Routes>
+    );
+  }
 
   if (isLoading) {
     return (

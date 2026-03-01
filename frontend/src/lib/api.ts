@@ -1,16 +1,45 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats, CoupleProfile, ShareLinkItem } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
 const TOKEN_KEY = 'love-scrum-token';
+const REFRESH_TOKEN_KEY = 'love-scrum-refresh-token';
 
 /** Proxy a CDN audio URL through our backend to bypass CORS and fix content-type */
 export function proxyAudioUrl(cdnUrl: string): string {
   return `${API}/proxy-audio?url=${encodeURIComponent(cdnUrl)}`;
 }
 
-function getToken(): string | null {
+export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
+}
+
+// Mutex for concurrent refresh attempts
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) return false;
+    try {
+      const res = await fetch(`${API}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      localStorage.setItem(TOKEN_KEY, data.accessToken || data.token);
+      if (data.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+  return refreshPromise;
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -18,15 +47,26 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API}${url}`, {
+  let res = await fetch(`${API}${url}`, {
     headers,
     ...options,
   });
 
+  // On 401, try refresh once
   if (res.status === 401) {
-    localStorage.removeItem(TOKEN_KEY);
-    window.location.href = '/login';
-    throw new Error('Unauthorized');
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      const newToken = getToken();
+      const retryHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (newToken) retryHeaders['Authorization'] = `Bearer ${newToken}`;
+      res = await fetch(`${API}${url}`, { headers: retryHeaders, ...options });
+    }
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
   }
 
   if (!res.ok) {
@@ -361,4 +401,29 @@ export const recapApi = {
     request<MonthlyRecap>(`/recap/monthly${month ? `?month=${month}` : ''}`),
   monthlyCaption: (month?: string) =>
     request<{ intro: string | null; outro: string | null }>(`/recap/monthly/caption${month ? `?month=${month}` : ''}`),
+};
+
+// Couple Profile
+export const coupleApi = {
+  get: () => request<CoupleProfile>('/couple'),
+  update: (data: { name?: string; anniversaryDate?: string | null }) =>
+    request<CoupleProfile>('/couple', { method: 'PUT', body: JSON.stringify(data) }),
+  generateInvite: () =>
+    request<{ inviteCode: string }>('/couple/generate-invite', { method: 'POST' }),
+};
+
+// Share Links
+export const shareApi = {
+  create: (type: string, targetId: string) =>
+    request<ShareLinkItem>('/share', { method: 'POST', body: JSON.stringify({ type, targetId }) }),
+  list: () => request<ShareLinkItem[]>('/share'),
+  revoke: (token: string) => request(`/share/${token}`, { method: 'DELETE' }),
+  getPublic: async (token: string) => {
+    const res = await fetch(`${API}/share/${token}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || 'Failed to load shared item');
+    }
+    return res.json();
+  },
 };

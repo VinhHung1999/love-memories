@@ -10,6 +10,8 @@ let testCoupleId: string;
 // Create test couple + users directly via Prisma (bypasses whitelist) and generate tokens
 beforeAll(async () => {
   // Clean up previous test data referencing this couple
+  await prisma.shareLink.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.refreshToken.deleteMany();
   await prisma.achievement.deleteMany({ where: { coupleId: 'test-couple' } });
   await prisma.appSetting.deleteMany({ where: { coupleId: 'test-couple' } });
   await prisma.notification.deleteMany();
@@ -60,6 +62,8 @@ beforeAll(async () => {
 
 // Clean up after all tests
 afterAll(async () => {
+  await prisma.shareLink.deleteMany();
+  await prisma.refreshToken.deleteMany();
   await prisma.momentComment.deleteMany();
   await prisma.momentReaction.deleteMany();
   await prisma.momentPhoto.deleteMany();
@@ -79,7 +83,7 @@ afterAll(async () => {
   await prisma.letterPhoto.deleteMany();
   await prisma.letterAudio.deleteMany();
   await prisma.loveLetter.deleteMany();
-  await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test'] } } });
+  await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test', 'invite-test@lovescrum.test'] } } });
   // Couple cleanup handled by beforeAll on next run (cascade order is complex)
   await prisma.$disconnect();
 });
@@ -1050,5 +1054,211 @@ describe('Love Letters', () => {
       expect(Array.isArray(letter.photos)).toBe(true);
       expect(Array.isArray(letter.audio)).toBe(true);
     }
+  });
+});
+
+// ─── JWT Auth Upgrade ────────────────────────────────────────────────────────
+describe('JWT Auth Upgrade', () => {
+  let refreshToken: string;
+  let accessToken: string;
+
+  it('POST /api/auth/login returns accessToken + refreshToken', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@lovescrum.test',
+      password: 'testpass123',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.refreshToken).toBeTruthy();
+    expect(res.body.token).toBeTruthy(); // backward compat
+    expect(res.body.user.email).toBe('test@lovescrum.test');
+    refreshToken = res.body.refreshToken;
+    accessToken = res.body.accessToken;
+  });
+
+  it('POST /api/auth/refresh returns new token pair', async () => {
+    const res = await request(app).post('/api/auth/refresh').send({ refreshToken });
+    expect(res.status).toBe(200);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.refreshToken).toBeTruthy();
+    expect(res.body.refreshToken).not.toBe(refreshToken); // rotated
+    refreshToken = res.body.refreshToken;
+  });
+
+  it('POST /api/auth/refresh with revoked token returns 401', async () => {
+    // Use old refreshToken which was rotated (revoked)
+    const res = await request(app).post('/api/auth/refresh').send({ refreshToken: 'revoked-token' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/auth/logout revokes refresh token', async () => {
+    const res = await request(app)
+      .post('/api/auth/logout')
+      .set({ Authorization: `Bearer ${accessToken}` })
+      .send({ refreshToken });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    // Token is now revoked
+    const refreshRes = await request(app).post('/api/auth/refresh').send({ refreshToken });
+    expect(refreshRes.status).toBe(401);
+  });
+
+  it('Old 30-day tokens still work for protected routes', async () => {
+    // token from beforeAll is a 30-day token
+    const res = await request(app).get('/api/auth/me').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.email).toBe('test@lovescrum.test');
+  });
+});
+
+// ─── Couple Profile ──────────────────────────────────────────────────────────
+describe('Couple Profile', () => {
+  it('GET /api/couple returns couple info with users', async () => {
+    const res = await request(app).get('/api/couple').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(testCoupleId);
+    expect(Array.isArray(res.body.users)).toBe(true);
+    expect(res.body.users.length).toBe(2);
+  });
+
+  it('PUT /api/couple updates name and anniversaryDate', async () => {
+    const res = await request(app).put('/api/couple').set(auth()).send({
+      name: 'Test Couple Updated',
+      anniversaryDate: '2020-06-15',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('Test Couple Updated');
+    expect(res.body.anniversaryDate).toBeTruthy();
+  });
+
+  it('PUT /api/couple syncs anniversaryDate to AppSetting', async () => {
+    // Check that the setting was synced
+    const res = await request(app).get('/api/settings/relationship-start-date').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.value).toBe('2020-06-15');
+  });
+
+  it('POST /api/couple/generate-invite generates 8-char code', async () => {
+    const res = await request(app).post('/api/couple/generate-invite').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.inviteCode).toBeTruthy();
+    expect(res.body.inviteCode.length).toBe(8);
+  });
+
+  it('GET /api/couple returns inviteCode after generation', async () => {
+    const res = await request(app).get('/api/couple').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.inviteCode).toBeTruthy();
+  });
+
+  it('GET /api/couple returns 401 without auth', async () => {
+    const res = await request(app).get('/api/couple');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Share Links ─────────────────────────────────────────────────────────────
+describe('Share Links', () => {
+  let momentId: string;
+  let shareToken: string;
+  let letterId: string;
+  let recipeId: string;
+
+  beforeAll(async () => {
+    // Create test moment
+    const momentRes = await request(app).post('/api/moments').set(auth()).send({
+      title: 'Share Test Moment', date: '2026-03-01', tags: [],
+    });
+    momentId = momentRes.body.id;
+
+    // Create test recipe
+    const recipeRes = await request(app).post('/api/recipes').set(auth()).send({
+      title: 'Share Test Recipe', ingredients: ['test'], steps: ['step 1'],
+    });
+    recipeId = recipeRes.body.id;
+
+    // Create test letter and deliver it
+    const letterRes = await request(app).post('/api/love-letters').set(auth()).send({
+      title: 'Share Test Letter', content: 'Hello!',
+    });
+    letterId = letterRes.body.id;
+    await request(app).put(`/api/love-letters/${letterId}/send`).set(auth());
+  });
+
+  it('POST /api/share creates share link for moment', async () => {
+    const res = await request(app).post('/api/share').set(auth()).send({
+      type: 'moment', targetId: momentId,
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.token).toBeTruthy();
+    expect(res.body.type).toBe('moment');
+    shareToken = res.body.token;
+  });
+
+  it('POST /api/share creates share link for recipe', async () => {
+    const res = await request(app).post('/api/share').set(auth()).send({
+      type: 'recipe', targetId: recipeId,
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.type).toBe('recipe');
+  });
+
+  it('POST /api/share creates share link for delivered letter', async () => {
+    const res = await request(app).post('/api/share').set(auth()).send({
+      type: 'letter', targetId: letterId,
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.type).toBe('letter');
+  });
+
+  it('POST /api/share rejects DRAFT letter', async () => {
+    const draftRes = await request(app).post('/api/love-letters').set(auth()).send({
+      title: 'Draft Letter', content: 'Draft!',
+    });
+    const res = await request(app).post('/api/share').set(auth()).send({
+      type: 'letter', targetId: draftRes.body.id,
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/share/:token returns shared data (public)', async () => {
+    const res = await request(app).get(`/api/share/${shareToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.type).toBe('moment');
+    expect(res.body.data).toBeTruthy();
+    expect(res.body.coupleName).toBeTruthy();
+  });
+
+  it('GET /api/share/:token increments viewCount', async () => {
+    await request(app).get(`/api/share/${shareToken}`);
+    const link = await prisma.shareLink.findUnique({ where: { token: shareToken } });
+    expect(link!.viewCount).toBeGreaterThanOrEqual(2);
+  });
+
+  it('GET /api/share lists share links (protected)', async () => {
+    const res = await request(app).get('/api/share').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('DELETE /api/share/:token revokes link', async () => {
+    const res = await request(app).delete(`/api/share/${shareToken}`).set(auth());
+    expect(res.status).toBe(200);
+
+    // Link no longer works
+    const getRes = await request(app).get(`/api/share/${shareToken}`);
+    expect(getRes.status).toBe(404);
+  });
+
+  it('GET /api/share/nonexistent returns 404', async () => {
+    const res = await request(app).get('/api/share/nonexistent-token');
+    expect(res.status).toBe(404);
+  });
+
+  it('POST /api/share returns 401 without auth', async () => {
+    const res = await request(app).post('/api/share').send({ type: 'moment', targetId: momentId });
+    expect(res.status).toBe(401);
   });
 });

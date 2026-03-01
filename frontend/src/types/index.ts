@@ -391,3 +391,22 @@ export interface LoveLetter {
   audio?: LetterAudio[];
 }
 
+export interface CoupleProfile {
+  id: string;
+  name: string | null;
+  anniversaryDate: string | null;
+  inviteCode: string | null;
+  createdAt: string;
+  users: { id: string; name: string; email: string; avatar: string | null }[];
+}
+
+export interface ShareLinkItem {
+  id: string;
+  token: string;
+  type: string;
+  targetId: string;
+  expiresAt: string | null;
+  viewCount: number;
+  createdAt: string;
+}
+

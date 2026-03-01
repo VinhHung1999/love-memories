@@ -1,11 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus, MessageCircle, Send } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar, MapPin, Navigation, Tag, Trash2, Pencil, Plus, MessageCircle, Send, Share2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { momentsApi } from '../lib/api';
+import { momentsApi, shareApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import { useAuth } from '../lib/auth';
 import { useVoiceRecorder } from '../lib/useVoiceRecorder';
@@ -241,6 +241,25 @@ export default function MomentDetail() {
         <div className="flex items-start justify-between">
           <h1 className="font-heading text-3xl font-bold">{moment.title}</h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  const link = await shareApi.create('moment', id!);
+                  const url = `${window.location.origin}/s/${link.token}`;
+                  if (navigator.share) {
+                    await navigator.share({ title: moment.title, url });
+                  } else {
+                    await navigator.clipboard.writeText(url);
+                  }
+                  toast.success('Đã tạo link chia sẻ!');
+                } catch { /* user cancelled share */ }
+              }}
+              className="text-text-light hover:text-primary p-2 rounded-lg hover:bg-primary/5 transition-colors"
+              data-tour="share-button"
+              title="Chia sẻ"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
             <button
               onClick={() => setEditOpen(true)}
               className="text-text-light hover:text-primary p-2 rounded-lg hover:bg-primary/5 transition-colors"

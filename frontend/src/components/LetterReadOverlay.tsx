@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
-import { X, Play, Pause } from 'lucide-react';
+import { X, Play, Pause, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { loveLettersApi, proxyAudioUrl } from '../lib/api';
+import { loveLettersApi, proxyAudioUrl, shareApi } from '../lib/api';
+import toast from 'react-hot-toast';
 import type { LoveLetter, LetterPhoto, LetterAudio } from '../types';
 
 // ── Shared constants ──────────────────────────────────────────────────────────
@@ -248,6 +249,26 @@ export default function LetterReadOverlay({ letters, onClose, autoMarkRead = tru
         ))}
 
         {/* Close button */}
+        <button
+          type="button"
+          onClick={async () => {
+            const letter = letters[activeIndex];
+            if (!letter || letter.status === 'DRAFT' || letter.status === 'SCHEDULED') return;
+            try {
+              const link = await shareApi.create('letter', letter.id);
+              const url = `${window.location.origin}/s/${link.token}`;
+              if (navigator.share) {
+                await navigator.share({ title: letter.title, url });
+              } else {
+                await navigator.clipboard.writeText(url);
+              }
+              toast.success('Đã tạo link chia sẻ!');
+            } catch { /* user cancelled share */ }
+          }}
+          className="absolute top-4 right-14 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 transition-colors"
+        >
+          <Share2 className="w-4 h-4 text-gray-700" />
+        </button>
         <button
           type="button"
           onClick={() => { stopAudio(); onClose(); }}

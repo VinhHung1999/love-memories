@@ -1,10 +1,10 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer, Youtube, Facebook, Music2 } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Tag, Trash2, Pencil, Plus, X, ChefHat, ExternalLink, CheckCircle2, Clock, Timer, Youtube, Facebook, Music2, Share2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
-import { recipesApi, foodSpotsApi } from '../lib/api';
+import { recipesApi, foodSpotsApi, shareApi } from '../lib/api';
 import { uploadQueue } from '../lib/uploadQueue';
 import type { Recipe } from '../types';
 import Modal from '../components/Modal';
@@ -243,6 +243,25 @@ export default function RecipeDetail() {
             >
               <CheckCircle2 className={`w-3.5 h-3.5 ${recipe.cooked ? 'fill-green-500 text-green-500' : ''}`} />
               {recipe.cooked ? 'Đã nấu' : 'Chưa nấu'}
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const link = await shareApi.create('recipe', id!);
+                  const url = `${window.location.origin}/s/${link.token}`;
+                  if (navigator.share) {
+                    await navigator.share({ title: recipe.title, url });
+                  } else {
+                    await navigator.clipboard.writeText(url);
+                  }
+                  toast.success('Đã tạo link chia sẻ!');
+                } catch { /* user cancelled share */ }
+              }}
+              className="text-text-light hover:text-accent p-2 rounded-lg hover:bg-accent/5 transition-colors"
+              data-tour="share-button"
+              title="Chia sẻ"
+            >
+              <Share2 className="w-5 h-5" />
             </button>
             <button onClick={() => setEditOpen(true)} className="text-text-light hover:text-accent p-2 rounded-lg hover:bg-accent/5 transition-colors">
               <Pencil className="w-5 h-5" />
