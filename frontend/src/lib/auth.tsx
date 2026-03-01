@@ -51,15 +51,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser((prev) => (prev ? { ...prev, ...updates } : prev));
   }, []);
 
-  // On mount, verify stored token
+  // On mount, verify stored token (5s timeout to avoid infinite spinner if backend is down)
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY);
     if (!storedToken) {
       setIsLoading(false);
       return;
     }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     fetch(`${API}/auth/me`, {
       headers: { Authorization: `Bearer ${storedToken}` },
+      signal: controller.signal,
     })
       .then((res) => {
         if (!res.ok) throw new Error('Invalid token');
@@ -74,7 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(REFRESH_TOKEN_KEY);
         setToken(null);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setIsLoading(false);
+      });
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
