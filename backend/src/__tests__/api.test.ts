@@ -100,13 +100,13 @@ describe('Health', () => {
 });
 
 describe('Auth', () => {
-  it('POST /api/auth/register returns 403 for non-whitelisted email', async () => {
+  it('POST /api/auth/register returns 400 without coupleName or inviteCode', async () => {
     const res = await request(app).post('/api/auth/register').send({
       email: 'random@example.com',
       password: 'testpass123',
       name: 'Random',
     });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(400);
   });
 
   it('POST /api/auth/login returns token', async () => {
