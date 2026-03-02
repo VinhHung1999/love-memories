@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthProvider } from './src/lib/auth';
+import { LoadingProvider } from './src/contexts/LoadingContext';
 import RootNavigator from './src/navigation';
 import './src/global.css';
 
@@ -26,9 +27,11 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
+        <LoadingProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </LoadingProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
   );

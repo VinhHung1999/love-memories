@@ -6,10 +6,12 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { useAuth } from '../../lib/auth';
+import { useLoading } from '../../contexts/LoadingContext';
 import { coupleApi, profileApi } from '../../lib/api';
 
 export function useProfileViewModel() {
   const { user, logout, updateUser, linkGoogle } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   const queryClient = useQueryClient();
 
   const [editNameOpen, setEditNameOpen] = useState(false);
@@ -29,6 +31,8 @@ export function useProfileViewModel() {
 
   const nameMutation = useMutation({
     mutationFn: () => profileApi.updateName(nameInput.trim()),
+    onMutate: showLoading,
+    onSettled: hideLoading,
     onSuccess: data => {
       updateUser({ name: data.name });
       setEditNameOpen(false);
@@ -47,6 +51,7 @@ export function useProfileViewModel() {
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleLinkGoogle = async () => {
+    showLoading();
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
@@ -58,6 +63,8 @@ export function useProfileViewModel() {
       const e = err as { code?: string };
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
       Alert.alert('Error', err instanceof Error ? err.message : 'Google linking failed');
+    } finally {
+      hideLoading();
     }
   };
 

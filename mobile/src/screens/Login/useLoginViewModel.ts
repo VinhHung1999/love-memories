@@ -4,6 +4,7 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { useAuth } from '../../lib/auth';
+import { useLoading } from '../../contexts/LoadingContext';
 import { GoogleProfile } from '../../types';
 
 export type Mode = 'login' | 'register';
@@ -12,6 +13,7 @@ export type GoogleStep = 'idle' | 'couple-setup';
 
 export function useLoginViewModel() {
   const { login, register, loginWithGoogle, completeGoogleSignup } = useAuth();
+  const { showLoading, hideLoading, isLoading } = useLoading();
 
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
@@ -20,7 +22,6 @@ export function useLoginViewModel() {
   const [coupleMode, _setCoupleMode] = useState<CoupleMode>(null);
   const [coupleName, setCoupleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [googleStep, setGoogleStep] = useState<GoogleStep>('idle');
@@ -44,7 +45,7 @@ export function useLoginViewModel() {
       if (coupleMode === 'create' && !coupleName.trim()) { setError('Please enter couple name'); return; }
       if (coupleMode === 'join'   && !inviteCode.trim()) { setError('Please enter invite code'); return; }
     }
-    setLoading(true);
+    showLoading();
     try {
       if (mode === 'login') {
         await login(email.trim(), password);
@@ -57,7 +58,7 @@ export function useLoginViewModel() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
@@ -68,7 +69,7 @@ export function useLoginViewModel() {
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
       if (!idToken) { setError('Google Sign-In failed: no ID token'); return; }
-      setLoading(true);
+      showLoading();
       const result = await loginWithGoogle(idToken);
       if (result?.needsCouple) {
         setPendingGoogleIdToken(idToken);
@@ -82,7 +83,7 @@ export function useLoginViewModel() {
       if (e?.code === statusCodes.IN_PROGRESS)        return;
       setError(err instanceof Error ? err.message : 'Google Sign-In failed');
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
@@ -91,7 +92,7 @@ export function useLoginViewModel() {
     if (!googleCoupleMode)                                          { setError('Please select create or join'); return; }
     if (googleCoupleMode === 'create' && !googleCoupleName.trim()) { setError('Please enter couple name'); return; }
     if (googleCoupleMode === 'join'   && !googleInviteCode.trim()) { setError('Please enter invite code'); return; }
-    setLoading(true);
+    showLoading();
     try {
       await completeGoogleSignup(pendingGoogleIdToken, {
         inviteCode: googleCoupleMode === 'join'   ? googleInviteCode.trim() : undefined,
@@ -100,7 +101,7 @@ export function useLoginViewModel() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google signup failed');
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
@@ -119,7 +120,8 @@ export function useLoginViewModel() {
     // state
     mode, email, password, name,
     coupleMode, coupleName, inviteCode,
-    loading, error,
+    loading: isLoading, // driven by global overlay context
+    error,
     googleStep, pendingGoogleProfile,
     googleCoupleMode, googleCoupleName, googleInviteCode,
     // setters

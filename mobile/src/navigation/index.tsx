@@ -6,6 +6,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
 import { AppTheme } from './theme';
+import { LoadingOverlay } from '../components/LoadingOverlay';
 
 // ---------------------------------------------------------------------------
 // Stack param types
@@ -80,6 +81,8 @@ export default function RootNavigator() {
   return (
     <NavigationContainer theme={AppTheme}>
       {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+      {/* Global overlay — inside NavigationContainer for useAppColors() access */}
+      <LoadingOverlay />
     </NavigationContainer>
   );
 }
