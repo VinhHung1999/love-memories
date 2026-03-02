@@ -139,3 +139,8 @@ _(Add lessons from debugging, design mistakes, or surprising behaviors)_
 After every commit that contains new Prisma migrations, ALWAYS run:
 `DATABASE_URL="postgresql://hungphu@localhost:5432/love_scrum_dev" npx prisma migrate deploy`
 from `backend/` before reloading PM2. Skipping this caused a 500 error on all writes to the affected table.
+
+### Prisma migration drift — `migrate dev` blocked by modified migration (Sprint 33)
+- Cause: A previous migration file was edited after being applied → `npx prisma migrate dev` errors with "migration modified after applied".
+- Fix: Create new migration SQL manually → `psql ... -f migration.sql` on both DBs → `npx prisma migrate resolve --applied <name>`.
+- Key takeaway: Never edit applied migration files. If drift occurs, write a new migration and apply manually with `psql`.

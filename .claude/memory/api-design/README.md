@@ -15,7 +15,16 @@ _(Record API endpoints and their patterns)_
 
 ## Authentication
 
-_(Record auth strategy: JWT, session, API keys, etc.)_
+**JWT (Sprint 32):** Access token (15min, `type: 'access'`) + refresh token (stored in DB, 30d). Response shape: `{ token, accessToken, refreshToken, user }`. `token` = legacy 30d JWT kept for backward compat.
+
+**Google OAuth (Sprint 33):**
+- `POST /api/auth/google` — verify Google ID token (`google-auth-library` OAuth2Client.verifyIdToken), auto-link by email, return `{ needsCouple, googleProfile }` for new users
+- `POST /api/auth/google/complete` — new Google user + couple setup
+- `POST /api/auth/google/link` — requireAuth, link googleId to current user
+- User.password is now `String?` (nullable) — Google-only users have no password
+- Login returns 401 with message `"This account uses Google Sign-In"` if `user.password === null`
+- `verifyGoogleToken()` helper normalizes all errors to `new Error('Invalid Google token')` — catch handles `err.message.includes('Invalid Google')`
+- Frontend: `@react-oauth/google` GoogleOAuthProvider wraps app in `main.tsx`; `GoogleLogin` component used on LoginPage and MorePage
 
 ## Error Handling
 
