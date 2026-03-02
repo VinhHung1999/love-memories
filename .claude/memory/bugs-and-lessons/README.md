@@ -144,3 +144,9 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - Cause: A previous migration file was edited after being applied → `npx prisma migrate dev` errors with "migration modified after applied".
 - Fix: Create new migration SQL manually → `psql ... -f migration.sql` on both DBs → `npx prisma migrate resolve --applied <name>`.
 - Key takeaway: Never edit applied migration files. If drift occurs, write a new migration and apply manually with `psql`.
+
+### NativeWind v4 babel: preset not plugin
+- `nativewind/babel` must be in `presets[]`, NOT `plugins[]` in babel.config.js
+- It returns `{ plugins: [...] }` (a preset), so in `plugins[]` Babel throws "[BABEL] .plugins is not a valid Plugin property"
+- Internally includes `react-native-worklets/plugin` — no separate reanimated Babel plugin needed
+- `nativewind-env.d.ts` belongs at project root; Metro needs `watchFolders` for any alias resolving outside project root

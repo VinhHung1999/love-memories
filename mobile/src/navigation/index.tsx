@@ -4,9 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../lib/auth';
-import LoginScreen from '../screens/LoginScreen';
-import DashboardScreen from '../screens/DashboardScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
+import { AppTheme } from './theme';
 
 // ---------------------------------------------------------------------------
 // Stack param types
@@ -44,9 +43,9 @@ function MainNavigator() {
   return (
     <MainTab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#E8788A',
-        tabBarInactiveTintColor: '#6B7280',
-        tabBarStyle: { borderTopColor: '#E5E7EB' },
+        tabBarActiveTintColor: AppTheme.colors.primary,
+        tabBarInactiveTintColor: AppTheme.colors.textMid,
+        tabBarStyle: { borderTopColor: AppTheme.colors.border },
         headerShown: false,
       }}>
       <MainTab.Screen
@@ -73,13 +72,13 @@ export default function RootNavigator() {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#E8788A" />
+        <ActivityIndicator size="large" color={AppTheme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={AppTheme}>
       {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );

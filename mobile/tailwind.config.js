@@ -5,14 +5,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#E8788A',
-        secondary: '#F4A261',
-        accent: '#7EC8B5',
-        border: '#E5E7EB',
-        text: {
-          DEFAULT: '#1F2937',
-          light: '#6B7280',
-        },
+        // ── Brand ──────────────────────────────────────────────────────────
+        primary:     '#E8788A',
+        primaryLight: '#F4A8B4',
+        secondary:   '#F4A261',
+        accent:      '#7EC8B5',
+        // ── Text ────────────────────────────────────────────────────────────
+        textDark:    '#1A1624',
+        textMid:     '#5C4E60',
+        textLight:   '#A898AD',
+        // ── UI ──────────────────────────────────────────────────────────────
+        border:      '#E2DCE8',
+        // ── Status ──────────────────────────────────────────────────────────
+        error:       '#D94F58',
+        errorBg:     '#FFF0F0',
+        success:     '#34A853',
+        successBg:   '#F0FFF4',
       },
       fontFamily: {
         heading: ['PlayfairDisplay-Bold'],

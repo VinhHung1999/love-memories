@@ -175,3 +175,34 @@ Always respect this order when adding new overlay or panel components.
 - **Image proxy:** GET /api/share/:token/image — validates share token, proxies CDN image with `Cache-Control: public, max-age=86400`
 - **Frontend viewer:** `/s/:token` route (public, outside auth gate). Uses raw `fetch()` for public API. Images via share proxy
 - **Share buttons:** MomentDetail, RecipeDetail, LetterReadOverlay — `navigator.share()` with clipboard fallback
+
+## React Native Mobile App (Sprint 34+)
+
+### Architecture — MVVM Pattern (Boss mandated)
+- **Models:** `src/types/` — data interfaces (AuthUser, CoupleProfile, etc.)
+- **Screens = folders:** Each screen is a folder with view + viewmodel co-located:
+  ```
+  src/screens/
+  ├── Login/
+  │   ├── LoginScreen.tsx          # View — pure UI rendering
+  │   └── useLoginViewModel.ts     # ViewModel — logic, state, API calls
+  ├── Profile/
+  │   ├── ProfileScreen.tsx
+  │   └── useProfileViewModel.ts
+  └── Dashboard/
+      ├── DashboardScreen.tsx
+      └── useDashboardViewModel.ts
+  ```
+- **Components:** `src/components/` — reusable UI (Input, Button, etc.)
+
+### Key Conventions
+- **Theme:** `src/lib/theme.ts` — centralized colors, spacing, fonts. NO hardcoded hex values in screens/components
+- **i18n:** `src/locales/en.ts` — all UI strings extracted. Prepared for multi-language support
+- **NativeWind v4:** Metro config only (`withNativeWind`), NOT babel plugin. `'nativewind/babel'` in babel.config causes `.plugins is not a valid Plugin property` error on RN 0.84
+- **Token storage:** react-native-keychain (NOT AsyncStorage)
+- **API base:** `__DEV__` → dev-love-scrum-api.hungphu.work, prod → love-scrum-api.hungphu.work
+- **Google Sign-In:** `@react-native-google-signin/google-signin`, native. Needs Web + iOS + Android Client IDs
+
+### Project Location
+- Folder: `mobile/` in monorepo (alongside `frontend/` and `backend/`)
+- `shared/` for types, API paths, validation (shared between web + mobile)
