@@ -1,24 +1,11 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import type { AuthUser, GoogleProfile } from '@shared/types';
+
+export type { AuthUser, GoogleProfile };
 
 const TOKEN_KEY = 'love-scrum-token';
 const REFRESH_TOKEN_KEY = 'love-scrum-refresh-token';
 const API = '/api';
-
-interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string | null;
-  coupleId?: string;
-  googleId?: string | null;
-}
-
-export interface GoogleProfile {
-  googleId: string;
-  email: string;
-  name: string;
-  picture: string;
-}
 
 interface AuthContextValue {
   user: AuthUser | null;

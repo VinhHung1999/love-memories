@@ -4,7 +4,9 @@
     "types": ["jest"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/src/*"],
+      "@shared": ["../shared/src/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

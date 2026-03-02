@@ -10,6 +10,7 @@ module.exports = {
         extensions: ['.ios.js', '.android.js', '.js', '.ts', '.tsx', '.json'],
         alias: {
           '@': './src',
+          '@shared': '../shared/src',
         },
       },
     ],

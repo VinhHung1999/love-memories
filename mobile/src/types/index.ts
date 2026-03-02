@@ -1,30 +1,3 @@
-export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string | null;
-  coupleId?: string;
-  googleId?: string | null;
-}
-
-export interface GoogleProfile {
-  googleId: string;
-  email: string;
-  name: string;
-  picture: string;
-}
-
-export interface CoupleProfile {
-  id: string;
-  name: string | null;
-  anniversaryDate: string | null;
-  inviteCode: string | null;
-  users: { id: string; name: string; email: string; avatar: string | null }[];
-}
-
-export interface AuthResponse {
-  token: string;
-  accessToken: string;
-  refreshToken: string;
-  user: AuthUser;
-}
+// All types are now maintained in shared/src/types/index.ts
+// Re-exported here so existing imports (@/types, ../types) continue to work unchanged.
+export * from '@shared/types';
