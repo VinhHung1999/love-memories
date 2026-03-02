@@ -49,3 +49,15 @@ _(Record font choices, sizing scale, readability decisions)_
 - Added Mapbox's built-in `GeolocateControl` to `MapPage` for current-location centering.
 - No custom geolocation implementation — `GeolocateControl` handles permission prompts, accuracy circles, and iOS/Android quirks out of the box.
 - Positioned `bottom-right` so it does not overlap the bottom nav on mobile.
+
+## No `style` prop in React Native (Sprint 35 — Boss Rule)
+- ALL styling via NativeWind `className` only. Zero `style` prop, zero `StyleSheet.create()`
+- Shadows → `shadow-sm` / `shadow-lg` className. Dynamic positions → `top-[40%]`, etc.
+- contentContainerStyle workaround: inner `<View className="min-h-full px-7 ...">` child
+- **ONLY exception**: `Animated.Value` transforms/opacity — literally impossible as className
+
+## React Navigation Theme over custom theme.ts (Sprint 35)
+- Custom theme.ts deleted; navigation/theme.ts extends DefaultTheme
+- Benefit: NavigationContainer auto-applies colors to tab bars, headers, borders
+- Dark mode ready: swap AppTheme for DarkAppTheme in one place
+- Components access colors via useAppColors() hook, not direct import
