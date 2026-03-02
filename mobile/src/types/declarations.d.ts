@@ -13,6 +13,33 @@ declare module 'react-native-vector-icons/MaterialCommunityIcons' {
   export default class Icon extends Component<IconProps> {}
 }
 
+declare module 'react-native-svg' {
+  import { Component } from 'react';
+  import { ViewProps } from 'react-native';
+
+  interface SvgProps extends ViewProps {
+    width?: number | string;
+    height?: number | string;
+    viewBox?: string;
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: number | string;
+    color?: string;
+  }
+
+  interface PathProps {
+    d?: string;
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: number | string;
+    fillRule?: string;
+    clipRule?: string;
+  }
+
+  export class Path extends Component<PathProps> {}
+  export default class Svg extends Component<SvgProps> {}
+}
+
 declare module 'react-native-linear-gradient' {
   import { Component } from 'react';
   import { ViewProps } from 'react-native';
