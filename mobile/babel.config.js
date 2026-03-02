@@ -1,10 +1,13 @@
 module.exports = {
   presets: ['module:@react-native/babel-preset'],
   plugins: [
-    // NOTE: 'nativewind/babel' is intentionally absent here.
-    // withNativeWind in metro.config.js injects it internally via its custom
-    // babel-transformer. Adding it here too causes double-injection which
-    // manifests as "[BABEL] .plugins is not a valid Plugin property" on RN 0.84.
+    // nativewind/babel MUST be here — it transforms JSX className props into
+    // React Native style objects at compile time. Without it className is ignored.
+    // The previous crash ("[BABEL] .plugins is not a valid Plugin property") was
+    // caused by module-resolver failing on @shared paths that were outside
+    // Metro's project root (missing watchFolders), not by this plugin.
+    // watchFolders is now set in metro.config.js, which fixes that crash.
+    'nativewind/babel',
     [
       'module-resolver',
       {
