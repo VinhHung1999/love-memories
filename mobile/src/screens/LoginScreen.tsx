@@ -379,6 +379,21 @@ export default function LoginScreen() {
               {mode === 'login' ? 'Welcome back' : 'Create account'}
             </Text>
 
+            {/* Google full-width button — Spotify style, top of form */}
+            <SpringPressable style={styles.btnGoogle} onPress={handleGoogleSignIn} disabled={loading}>
+              <GoogleGLogo size={20} />
+              <Text style={styles.btnGoogleText}>
+                {mode === 'login' ? 'Continue with Google' : 'Sign up with Google'}
+              </Text>
+            </SpringPressable>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
             {/* Register-only fields */}
             {mode === 'register' && (
               <>
@@ -419,20 +434,6 @@ export default function LoginScreen() {
                 {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Sign in'}
               </Text>
             </Pressable>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Social icons row — small circular buttons, no text */}
-            <View style={styles.socialRow}>
-              <SpringPressable style={styles.socialBtn} onPress={handleGoogleSignIn} disabled={loading}>
-                <GoogleGLogo size={22} />
-              </SpringPressable>
-            </View>
           </Animated.View>
 
         </ScrollView>
@@ -522,6 +523,31 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
 
+  // ── Google full-width button (Spotify style) ──
+  btnGoogle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    height: 50,
+    backgroundColor: C.inputBg,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    marginBottom: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  btnGoogleText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: C.dark,
+    letterSpacing: 0.1,
+  },
+
   // ── Divider ──
   divider: {
     flexDirection: 'row',
@@ -532,28 +558,6 @@ const styles = StyleSheet.create({
   },
   dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(90,70,95,0.15)' },
   dividerText: { fontSize: 12, color: C.light, fontWeight: '500' },
-
-  // ── Social icons row ──
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  socialBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: C.inputBg,
-    borderWidth: 1.5,
-    borderColor: C.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
-  },
 
   // ── Couple selector ──
   coupleSelectorRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
