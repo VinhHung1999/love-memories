@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -138,7 +137,6 @@ export default function LoginScreen() {
 
   const inputCls = 'w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 bg-white mb-3';
   const btnPrimary = 'w-full bg-primary rounded-2xl py-3 items-center mb-3';
-  const btnSecondary = 'w-full border border-primary rounded-2xl py-3 items-center mb-2';
 
   // ---------------------------------------------------------------------------
   // Google couple setup screen

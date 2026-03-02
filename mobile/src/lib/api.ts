@@ -77,7 +77,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
     ...(options.headers as Record<string, string>),
   };
   if (stored?.accessToken) {
-    headers['Authorization'] = `Bearer ${stored.accessToken}`;
+    headers.Authorization = `Bearer ${stored.accessToken}`;
   }
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });

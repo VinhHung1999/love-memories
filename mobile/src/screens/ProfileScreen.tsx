@@ -27,9 +27,6 @@ export default function ProfileScreen() {
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
 
-  // Invite code
-  const [showInvite, setShowInvite] = useState(false);
-
   // ---------------------------------------------------------------------------
   // Couple data
   // ---------------------------------------------------------------------------
