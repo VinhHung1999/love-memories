@@ -349,22 +349,7 @@ export default function LoginScreen() {
               {mode === 'login' ? 'Welcome back' : 'Create account'}
             </Text>
 
-            {/* Google */}
-            <SpringPressable style={styles.btnGoogle} onPress={handleGoogleSignIn} disabled={loading}>
-              <Icon name="google" size={20} color="#4285F4" />
-              <Text style={styles.btnGoogleText}>
-                {mode === 'login' ? 'Continue with Google' : 'Sign up with Google'}
-              </Text>
-            </SpringPressable>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Register-only */}
+            {/* Register-only fields */}
             {mode === 'register' && (
               <>
                 <Text style={styles.fieldLabel}>Name</Text>
@@ -382,6 +367,7 @@ export default function LoginScreen() {
               </>
             )}
 
+            {/* Email + Password */}
             <Text style={styles.fieldLabel}>Email</Text>
             <StyledInput placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
 
@@ -390,17 +376,33 @@ export default function LoginScreen() {
 
             {!!error && <ErrorBox message={error} />}
 
+            {/* Primary submit */}
             <SpringPressable style={[styles.btnPrimary, loading && styles.btnDisabled]} onPress={handleSubmit} disabled={loading}>
               {loading
                 ? <ActivityIndicator color={C.white} />
                 : <Text style={styles.btnPrimaryText}>{mode === 'login' ? 'Sign in' : 'Create account'}</Text>}
             </SpringPressable>
 
+            {/* Toggle mode */}
             <Pressable onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setCoupleMode(null); setError(''); }}>
               <Text style={styles.toggleText}>
                 {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Sign in'}
               </Text>
             </Pressable>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social icons row — small circular buttons, no text */}
+            <View style={styles.socialRow}>
+              <SpringPressable style={styles.socialBtn} onPress={handleGoogleSignIn} disabled={loading}>
+                <Icon name="google" size={22} color="#4285F4" />
+              </SpringPressable>
+            </View>
           </Animated.View>
 
         </ScrollView>
@@ -496,40 +498,38 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
 
-  // ── Google button ──
-  btnGoogle: {
+  // ── Divider ──
+  divider: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(90,70,95,0.15)' },
+  dividerText: { fontSize: 12, color: C.light, fontWeight: '500' },
+
+  // ── Social icons row ──
+  socialRow: {
+    flexDirection: 'row',
     justifyContent: 'center',
-    gap: 10,
-    height: 54,
+    gap: 16,
+  },
+  socialBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: C.inputBg,
-    borderRadius: 16,
     borderWidth: 1.5,
     borderColor: C.border,
-    marginBottom: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 2,
   },
-  btnGoogleText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: C.dark,
-    letterSpacing: 0.1,
-  },
-
-  // ── Divider ──
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 18,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(90,70,95,0.15)' },
-  dividerText: { fontSize: 12, color: C.light, fontWeight: '500' },
 
   // ── Couple selector ──
   coupleSelectorRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
