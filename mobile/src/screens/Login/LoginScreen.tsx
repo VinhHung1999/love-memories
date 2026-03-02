@@ -70,20 +70,16 @@ function HeartLogo() {
   }, [pulse]);
 
   return (
-    <View style={{ width: 64, height: 64, alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+    <View className="w-16 h-16 items-center justify-center mb-[10px]">
+      {/* Halo ring — only transform stays inline (Animated.Value) */}
       <Animated.View
-        style={{
-          position: 'absolute', width: 64, height: 64, borderRadius: 32,
-          borderWidth: 2, borderColor: 'rgba(232,120,138,0.30)',
-          backgroundColor: 'rgba(232,120,138,0.07)',
-          transform: [{ scale: pulse }],
-        }}
+        className="absolute w-16 h-16 rounded-full border-2 border-primary/30 bg-primary/[7%]"
+        style={{ transform: [{ scale: pulse }] }}
       />
+      {/* Badge — only shadow stays inline (custom shadowColor needs theme value) */}
       <View
+        className="w-12 h-12 rounded-full bg-primary items-center justify-center"
         style={{
-          width: 48, height: 48, borderRadius: 24,
-          backgroundColor: colors.primary,
-          alignItems: 'center', justifyContent: 'center',
           shadowColor: colors.primary,
           shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 12,
           elevation: 10,
