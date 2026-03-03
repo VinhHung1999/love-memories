@@ -16,6 +16,7 @@ interface CollapsibleHeaderProps {
   collapsedHeight?: number;
   renderExpandedContent?: () => React.ReactNode;
   renderRight?: () => React.ReactNode;
+  renderFooter?: () => React.ReactNode;
   scrollY: SharedValue<number>;
 }
 
@@ -27,6 +28,7 @@ export default function CollapsibleHeader({
   renderExpandedContent,
   renderRight,
   scrollY,
+  renderFooter,
 }: CollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
   const scrollRange = expandedHeight - collapsedHeight;
@@ -116,8 +118,9 @@ export default function CollapsibleHeader({
             {renderRight ? <View className="ml-3">{renderRight()}</View> : null}
           </View>
         </View>
-
+        {renderFooter?.()}
       </Animated.View>
+      
     </>
   );
 }

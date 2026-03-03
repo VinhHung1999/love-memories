@@ -27,19 +27,29 @@ import TagBadge from '../../components/TagBadge';
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 // ── MomentCard ────────────────────────────────────────────────────────────────
 
-function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }) {
+function MomentCard({
+  moment,
+  onPress,
+}: {
+  moment: Moment;
+  onPress: () => void;
+}) {
   const colors = useAppColors();
   const coverPhoto = moment.photos[0];
 
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3">
+      className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3"
+    >
       {/* Photo */}
       <View className="w-full min-h-[110px]">
         {coverPhoto ? (
@@ -55,14 +65,17 @@ function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }
         )}
         {/* Date badge */}
         <View className="absolute top-2 right-2 rounded-xl px-2 py-0.5 bg-white/90">
-          <Text className="text-[10px] font-bold text-textDark">{formatDate(moment.date)}</Text>
+          <Text className="text-[10px] font-bold text-textDark">
+            {formatDate(moment.date)}
+          </Text>
         </View>
         {/* Location */}
         {moment.location ? (
           <View className="absolute bottom-2 left-2">
             <Text
               className="text-[9px] font-semibold text-white/95"
-              numberOfLines={1}>
+              numberOfLines={1}
+            >
               📍 {moment.location}
             </Text>
           </View>
@@ -71,7 +84,10 @@ function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Text className="text-sm font-semibold text-textDark leading-snug mb-1.5" numberOfLines={2}>
+        <Text
+          className="text-sm font-semibold text-textDark leading-snug mb-1.5"
+          numberOfLines={2}
+        >
           {moment.title}
         </Text>
         {moment.tags.length > 0 ? (
@@ -101,46 +117,52 @@ export default function MomentsScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-
       {/* ── Collapsible Header ── */}
       <CollapsibleHeader
         title={t.moments.title}
         subtitle={t.moments.subtitle}
-        expandedHeight={100}
-        collapsedHeight={56}
+        expandedHeight={140}
+        collapsedHeight={96}
         scrollY={scrollY}
         renderRight={() => (
           <TouchableOpacity
             onPress={openCreateSheet}
-            className="w-10 h-10 rounded-full items-center justify-center bg-primary">
+            className="w-10 h-10 rounded-full items-center justify-center bg-primary"
+          >
             <Icon name="plus" size={22} color="#fff" />
           </TouchableOpacity>
+        )}
+        renderFooter={() => (
+          <View className="bg-[#FFF5EE]">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="px-5"
+              onLayout={e => {
+                console.log(e.nativeEvent.layout.height);
+              }}
+            >
+              <View className="flex-row gap-2 py-2 pr-5">
+                <TagBadge
+                  label={t.moments.allFilter}
+                  active={!vm.activeTag}
+                  onPress={() => vm.handleTagPress(null)}
+                />
+                {vm.allTags.map(tag => (
+                  <TagBadge
+                    key={tag}
+                    label={tag}
+                    active={vm.activeTag === tag}
+                    onPress={() => vm.handleTagPress(tag)}
+                  />
+                ))}
+              </View>
+            </ScrollView>
+          </View>
         )}
       />
 
       {/* ── Tag filter bar — always visible ── */}
-      <View className="bg-[#FFF5EE]">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="px-5">
-          <View className="flex-row gap-2 py-2 pr-5">
-            <TagBadge
-              label={t.moments.allFilter}
-              active={!vm.activeTag}
-              onPress={() => vm.handleTagPress(null)}
-            />
-            {vm.allTags.map(tag => (
-              <TagBadge
-                key={tag}
-                label={tag}
-                active={vm.activeTag === tag}
-                onPress={() => vm.handleTagPress(tag)}
-              />
-            ))}
-          </View>
-        </ScrollView>
-      </View>
 
       {/* ── Body ── */}
       {vm.isLoading ? (
@@ -167,8 +189,12 @@ export default function MomentsScreen() {
               onRefresh={vm.handleRefresh}
               tintColor={colors.primary}
             />
-          }>
-          <View className="px-[14px] pt-3 pb-[100px]" style={{ paddingTop: 44 + 12 }}>
+          }
+        >
+          <View
+            className="px-[14px] pt-3 pb-[100px]"
+            style={{ paddingTop: 44 + 12 }}
+          >
             <View className="flex-row gap-3">
               <View className="flex-1">
                 {vm.leftColumn.map(moment => (
