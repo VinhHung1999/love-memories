@@ -4,10 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import AudioRecorderPlayer, { type PlayBackType } from 'react-native-audio-recorder-player';
-
-// v3 exports a class — module-level instance shared across renders
-const audioPlayer = new AudioRecorderPlayer();
+import audioPlayer, { type PlayBackType } from 'react-native-audio-recorder-player';
 import type { MomentsStackParamList } from '../../navigation';
 import { momentsApi } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
