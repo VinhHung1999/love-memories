@@ -3,12 +3,13 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
-  ScrollView,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -16,6 +17,7 @@ import { useProfileViewModel } from './useProfileViewModel';
 import EditNameModal from './components/EditNameModal';
 import EditCoupleModal from './components/EditCoupleModal';
 import GoogleGLogo from '../../components/GoogleGLogo';
+import CollapsibleHeader from '../../components/CollapsibleHeader';
 
 // ── Reusable row inside a card ────────────────────────────────────────────────
 function InfoRow({
@@ -109,55 +111,52 @@ function AvatarCircle({
 export default function ProfileScreen() {
   const colors = useAppColors();
   const vm = useProfileViewModel();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(event => {
+    scrollY.value = event.contentOffset.y;
+  });
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+    <View className="flex-1 bg-gray-50">
 
-        {/* ── Hero Header ── */}
-        <LinearGradient
-          colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="pb-8 pt-2">
-
-          {/* Top row: title */}
-          <View className="flex-row items-center justify-between px-5 pb-4">
-            <Text className="text-lg font-bold text-textDark">{t.profile.title}</Text>
-          </View>
-
-          {/* Avatar + name block */}
-          <View className="items-center px-5">
+      {/* ── Collapsible Header ── */}
+      <CollapsibleHeader
+        title={vm.user?.name ?? t.profile.title}
+        subtitle={t.profile.title.toUpperCase()}
+        expandedHeight={170}
+        collapsedHeight={56}
+        scrollY={scrollY}
+        renderExpandedContent={() => (
+          <View className="items-center">
             <AvatarCircle
               uri={vm.user?.avatar}
               initials={vm.initials}
-              size={88}
+              size={72}
               onPress={vm.handleUploadAvatar}
             />
-            <Pressable onPress={vm.openEditName} className="mt-3 flex-row items-center gap-1">
-              <Text className="text-lg font-bold text-textDark">{vm.user?.name}</Text>
-              <Icon name="pencil-outline" size={14} color={colors.textLight} />
-            </Pressable>
-            <Text className="text-xs text-textMid mt-0.5">{vm.user?.email}</Text>
-
-            {/* Couple name badge */}
-            {vm.couple?.name && (
-              <View className="mt-3 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-4 py-1.5">
-                <Icon name="heart" size={12} color={colors.primary} />
-                <Text className="text-xs font-semibold text-primary">{vm.couple.name}</Text>
+            <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
+            {vm.couple?.name ? (
+              <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
+                <Icon name="heart" size={10} color={colors.primary} />
+                <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
               </View>
-            )}
-
-            {/* Anniversary badge */}
-            {vm.anniversaryDisplay && (
-              <View className="mt-2 flex-row items-center gap-1.5">
-                <Icon name="calendar-heart" size={12} color={colors.textLight} />
-                <Text className="text-xs text-textMid">Since {vm.anniversaryDisplay}</Text>
-              </View>
-            )}
+            ) : null}
           </View>
-        </LinearGradient>
+        )}
+        renderRight={() => (
+          <Pressable
+            onPress={vm.openEditName}
+            className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
+            <Icon name="pencil-outline" size={16} color={colors.textLight} />
+          </Pressable>
+        )}
+      />
 
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}>
         <View className="mt-4">
 
           {/* ── Partner card ── */}
@@ -275,7 +274,7 @@ export default function ProfileScreen() {
           </Pressable>
 
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* ── Modals ── */}
       <EditNameModal
@@ -296,6 +295,6 @@ export default function ProfileScreen() {
         onSave={vm.saveCouple}
         onClose={vm.closeEditCouple}
       />
-    </SafeAreaView>
+    </View>
   );
 }

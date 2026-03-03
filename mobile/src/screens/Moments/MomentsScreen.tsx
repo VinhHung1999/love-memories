@@ -9,8 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
@@ -18,6 +20,7 @@ import t from '../../locales/en';
 import type { Moment } from '../../types';
 import { useMomentsViewModel } from './useMomentsViewModel';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
+import CollapsibleHeader from '../../components/CollapsibleHeader';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -113,40 +116,39 @@ export default function MomentsScreen() {
   const colors = useAppColors();
   const vm = useMomentsViewModel();
   const sheetRef = useRef<BottomSheetModal>(null);
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(event => {
+    scrollY.value = event.contentOffset.y;
+  });
 
   const openCreateSheet = () => sheetRef.current?.present();
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <View className="flex-1 bg-gray-50">
 
-      {/* ── Gradient Header ── */}
-      <LinearGradient
-        colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="pb-3 pt-2">
-        <View className="flex-row items-center justify-between px-5 pb-3">
-          <View>
-            <Text className="text-[11px] font-semibold text-primary tracking-[1.5px] uppercase mb-0.5">
-              ♥ Our Story
-            </Text>
-            <Text className="text-2xl font-bold text-textDark tracking-tight">
-              {t.moments.title}
-            </Text>
-          </View>
+      {/* ── Collapsible Header ── */}
+      <CollapsibleHeader
+        title={t.moments.title}
+        subtitle="♥ Our Story"
+        expandedHeight={100}
+        collapsedHeight={56}
+        scrollY={scrollY}
+        renderRight={() => (
           <TouchableOpacity
             onPress={openCreateSheet}
             className="w-10 h-10 rounded-full items-center justify-center bg-primary">
             <Icon name="plus" size={22} color="#fff" />
           </TouchableOpacity>
-        </View>
+        )}
+      />
 
-        {/* Tag filter bar */}
+      {/* ── Tag filter bar — always visible ── */}
+      <View className="bg-[#FFF5EE]">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="-mx-5 px-5">
-          <View className="flex-row gap-2 pb-3 pr-5">
+          className="px-5">
+          <View className="flex-row gap-2 py-2 pr-5">
             <Pressable
               onPress={() => vm.handleTagPress(null)}
               className={`px-4 py-[5px] rounded-full ${
@@ -170,7 +172,7 @@ export default function MomentsScreen() {
             ))}
           </View>
         </ScrollView>
-      </LinearGradient>
+      </View>
 
       {/* ── Body ── */}
       {vm.isLoading ? (
@@ -180,9 +182,11 @@ export default function MomentsScreen() {
       ) : vm.isEmpty ? (
         <EmptyState onCreatePress={openCreateSheet} />
       ) : (
-        <ScrollView
+        <Animated.ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={vm.isRefetching}
@@ -212,7 +216,7 @@ export default function MomentsScreen() {
               </View>
             </View>
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       )}
 
       {/* ── Create Sheet ── */}
@@ -221,6 +225,6 @@ export default function MomentsScreen() {
         momentId={null}
         onSuccess={vm.handleRefresh}
       />
-    </SafeAreaView>
+    </View>
   );
 }
