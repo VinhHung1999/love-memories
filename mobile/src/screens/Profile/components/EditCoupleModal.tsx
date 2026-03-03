@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Modal, Platform, Pressable, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetView,
+  BottomSheetBackdropProps,
+} from '@gorhom/bottom-sheet';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../../navigation/theme';
@@ -29,15 +33,41 @@ export default function EditCoupleModal({
   onChangeName, onChangeAnniversary, onSave, onClose,
 }: Props) {
   const colors = useAppColors();
+  const sheetRef = useRef<BottomSheet>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  useEffect(() => {
+    if (visible) {
+      setShowDatePicker(false); // reset picker on open
+      sheetRef.current?.expand();
+    } else {
+      sheetRef.current?.close();
+    }
+  }, [visible]);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} pressBehavior="close" />
+    ),
+    [],
+  );
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <SafeAreaView className="flex-1 bg-white">
+    <BottomSheet
+      ref={sheetRef}
+      index={-1}
+      enableDynamicSizing
+      enablePanDownToClose
+      onClose={onClose}
+      backdropComponent={renderBackdrop}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}>
+      <BottomSheetView>
         {/* Header */}
-        <View className="px-5 pt-4 pb-2 flex-row items-center justify-between border-b border-border">
+        <View className="flex-row items-center justify-between px-5 py-3 border-b border-border">
           <Pressable onPress={onClose}>
-            <Text className="text-textMid text-sm">{t.profile.cancel}</Text>
+            <Text className="text-sm text-textMid">{t.profile.cancel}</Text>
           </Pressable>
           <Text className="font-semibold text-textDark">{t.profile.editCouple}</Text>
           <Pressable onPress={onSave} disabled={isSaving}>
@@ -47,7 +77,8 @@ export default function EditCoupleModal({
           </Pressable>
         </View>
 
-        <View className="p-5">
+        {/* Content */}
+        <View className="px-5 pt-4 pb-10">
           {/* Couple name */}
           <FieldLabel>{t.profile.labels.coupleName}</FieldLabel>
           <Input
@@ -60,22 +91,15 @@ export default function EditCoupleModal({
           {/* Anniversary date */}
           <FieldLabel>{t.profile.labels.anniversary}</FieldLabel>
           <Pressable
-            onPress={() => setShowDatePicker(true)}
+            onPress={() => setShowDatePicker(v => !v)}
             className="flex-row items-center justify-between bg-inputBg border border-border rounded-2xl px-4 h-[50px] mb-4">
             <Text className={anniversaryDate ? 'text-textDark text-sm' : 'text-textLight text-sm'}>
               {anniversaryDate ? formatDateDisplay(anniversaryDate) : t.profile.couple.noAnniversary}
             </Text>
-            <Icon name="calendar-heart" size={18} color={colors.primary} />
+            <Icon name={showDatePicker ? 'chevron-up' : 'calendar-heart'} size={18} color={colors.primary} />
           </Pressable>
 
-          {/* Clear anniversary */}
-          {anniversaryDate && (
-            <Pressable onPress={() => onChangeAnniversary(null)} className="mb-4">
-              <Text className="text-xs text-textLight text-center">Clear anniversary date</Text>
-            </Pressable>
-          )}
-
-          {/* Android DatePicker — shows native dialog */}
+          {/* Android DatePicker (native dialog) */}
           {showDatePicker && Platform.OS === 'android' && (
             <DateTimePicker
               value={anniversaryDate ?? new Date()}
@@ -89,9 +113,9 @@ export default function EditCoupleModal({
             />
           )}
 
-          {/* iOS DatePicker — inline spinner with Done button */}
+          {/* iOS DatePicker (inline spinner) */}
           {showDatePicker && Platform.OS === 'ios' && (
-            <View className="bg-gray-50 rounded-2xl overflow-hidden mb-2">
+            <View className="bg-gray-50 rounded-2xl overflow-hidden mb-4">
               <DateTimePicker
                 value={anniversaryDate ?? new Date()}
                 mode="date"
@@ -106,8 +130,15 @@ export default function EditCoupleModal({
               </Pressable>
             </View>
           )}
+
+          {/* Clear anniversary */}
+          {anniversaryDate && !showDatePicker && (
+            <Pressable onPress={() => onChangeAnniversary(null)} className="mb-2">
+              <Text className="text-xs text-textLight text-center">Clear anniversary date</Text>
+            </Pressable>
+          )}
         </View>
-      </SafeAreaView>
-    </Modal>
+      </BottomSheetView>
+    </BottomSheet>
   );
 }

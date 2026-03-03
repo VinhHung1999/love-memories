@@ -71,7 +71,7 @@ router.post('/register', async (req: Request, res: Response) => {
       token: legacyToken,
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email, name: user.name, coupleId: user.coupleId },
+      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, coupleId: user.coupleId, googleId: user.googleId },
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -109,7 +109,7 @@ router.post('/login', async (req: Request, res: Response) => {
       token: legacyToken,
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email, name: user.name, coupleId: user.coupleId },
+      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, coupleId: user.coupleId, googleId: user.googleId },
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -131,7 +131,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
 
     const stored = await prisma.refreshToken.findUnique({
       where: { token: refreshToken },
-      include: { user: { select: { id: true, coupleId: true, email: true, name: true } } },
+      include: { user: { select: { id: true, coupleId: true, email: true, name: true, avatar: true, googleId: true } } },
     });
 
     if (!stored || stored.revokedAt) {
@@ -158,7 +158,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       token: newLegacyToken,
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      user: { id: stored.user.id, email: stored.user.email, name: stored.user.name, coupleId: stored.user.coupleId },
+      user: { id: stored.user.id, email: stored.user.email, name: stored.user.name, avatar: stored.user.avatar, coupleId: stored.user.coupleId, googleId: stored.user.googleId },
     });
   } catch {
     res.status(500).json({ error: 'Server error' });

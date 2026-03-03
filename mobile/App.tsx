@@ -1,5 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -28,15 +29,17 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-        <LoadingProvider>
-          <AuthProvider>
-            <RootNavigator />
-          </AuthProvider>
-        </LoadingProvider>
-      </SafeAreaProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView className="flex-1">
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+          <LoadingProvider>
+            <AuthProvider>
+              <RootNavigator />
+            </AuthProvider>
+          </LoadingProvider>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
