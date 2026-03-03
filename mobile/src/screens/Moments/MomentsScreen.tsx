@@ -124,19 +124,19 @@ export default function MomentsScreen() {
         colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        className="pb-2 pt-2">
-        <View className="flex-row items-center justify-between px-5 pb-2">
+        className="pb-3 pt-2">
+        <View className="flex-row items-center justify-between px-5 pb-3">
           <View>
-            <Text className="text-xs text-textLight font-normal tracking-wide">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            <Text className="text-[11px] font-semibold text-primary tracking-[1.5px] uppercase mb-0.5">
+              ♥ Our Story
             </Text>
             <Text className="text-2xl font-bold text-textDark tracking-tight">
-              <Text className="text-primary">Our</Text> {t.moments.title.replace('Our ', '')}
+              {t.moments.title}
             </Text>
           </View>
           <TouchableOpacity
             onPress={openCreateSheet}
-            className="w-10 h-10 rounded-2xl items-center justify-center bg-primary">
+            className="w-10 h-10 rounded-full items-center justify-center bg-primary">
             <Icon name="plus" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
