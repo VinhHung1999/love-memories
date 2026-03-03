@@ -114,10 +114,90 @@ const en = {
     subtitle: 'Dashboard — Sprint 35',
   },
 
+  moments: {
+    title: 'Our Moments',
+    allFilter: 'All',
+    emptyTitle: 'No moments yet',
+    emptySubtitle: 'Start capturing your memories together',
+    emptyAction: 'Add First Moment',
+
+    detail: {
+      photos: 'Photos',
+      voiceMemo: 'Voice Memo',
+      reactions: 'Reactions',
+      comments: 'Comments',
+      spotifyLink: 'Spotify',
+      mapsLink: 'View on Maps',
+      viewGallery: 'View all photos',
+      addComment: 'Add a comment...',
+      noComments: 'No comments yet — be first!',
+      noVoiceMemos: 'No voice memos',
+      deleteTitle: 'Delete Moment',
+      deleteMessage: 'Are you sure you want to delete this moment? This cannot be undone.',
+      deleteConfirm: 'Delete',
+    },
+
+    create: {
+      newTitle: 'New Moment',
+      editTitle: 'Edit Moment',
+      save: 'Save',
+      saving: 'Saving...',
+      photos: 'Photos',
+      addPhoto: 'Add',
+      details: 'Details',
+      tags: 'Tags',
+      songAndMemo: 'Song & Voice Memo',
+      recordMemo: 'Record Voice Memo',
+      recordHint: 'Tap to start · Max 5 minutes',
+      recording: 'Recording...',
+      stopRecording: 'Tap to stop',
+      deleteAudio: 'Delete',
+      addLocation: 'Add a location...',
+      pickDate: 'Pick date',
+      typeTag: 'Type tag + Enter...',
+    },
+
+    labels: {
+      title: 'Title',
+      caption: 'Caption',
+      date: 'Date',
+      location: 'Location',
+      tags: 'Tags',
+      spotifyUrl: 'Spotify URL',
+    },
+
+    placeholders: {
+      title: 'Give this moment a title...',
+      caption: 'Describe this moment...',
+      spotifyUrl: 'Paste Spotify link...',
+    },
+
+    gallery: {
+      close: 'Close',
+      share: 'Share',
+    },
+
+    errors: {
+      titleRequired: 'Title is required',
+      titleTooLong: 'Title must be under 200 characters',
+      spotifyInvalid: 'Please enter a valid Spotify URL',
+      saveFailed: 'Failed to save moment',
+      deleteFailed: 'Failed to delete moment',
+      photoUploadFailed: 'Failed to upload photo',
+      audioUploadFailed: 'Failed to upload voice memo',
+      commentFailed: 'Failed to add comment',
+      reactionFailed: 'Failed to update reaction',
+    },
+  },
+
   common: {
     error: 'Error',
     success: 'Success',
     cancel: 'Cancel',
+    delete: 'Delete',
+    edit: 'Edit',
+    ok: 'OK',
+    loading: 'Loading...',
   },
 } as const;
 

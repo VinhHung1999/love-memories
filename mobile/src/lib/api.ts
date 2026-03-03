@@ -240,6 +240,151 @@ export const coupleApi = {
 };
 
 // ---------------------------------------------------------------------------
+// Moments API
+// ---------------------------------------------------------------------------
+
+export const momentsApi = {
+  list: async (): Promise<import('../types').Moment[]> => {
+    const res = await apiFetch('/api/moments');
+    if (!res.ok) throw new Error('Failed to fetch moments');
+    return res.json();
+  },
+
+  get: async (id: string): Promise<import('../types').Moment> => {
+    const res = await apiFetch(`/api/moments/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch moment');
+    return res.json();
+  },
+
+  create: async (data: {
+    title: string;
+    caption?: string;
+    date: string;
+    location?: string;
+    latitude?: number;
+    longitude?: number;
+    tags?: string[];
+    spotifyUrl?: string;
+  }): Promise<import('../types').Moment> => {
+    const res = await apiFetch('/api/moments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to create moment');
+    }
+    return res.json();
+  },
+
+  update: async (
+    id: string,
+    data: {
+      title?: string;
+      caption?: string;
+      date?: string;
+      location?: string;
+      latitude?: number;
+      longitude?: number;
+      tags?: string[];
+      spotifyUrl?: string;
+    },
+  ): Promise<import('../types').Moment> => {
+    const res = await apiFetch(`/api/moments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to update moment');
+    }
+    return res.json();
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/moments/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete moment');
+  },
+
+  uploadPhoto: async (
+    momentId: string,
+    imageUri: string,
+    mimeType: string,
+  ): Promise<import('../types').MomentPhoto> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+    formData.append('photo', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/moments/${momentId}/photos`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload photo');
+    return res.json();
+  },
+
+  deletePhoto: async (momentId: string, photoId: string): Promise<void> => {
+    const res = await apiFetch(`/api/moments/${momentId}/photos/${photoId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete photo');
+  },
+
+  uploadAudio: async (
+    momentId: string,
+    audioUri: string,
+  ): Promise<import('../types').MomentAudio> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    formData.append('audio', { uri: audioUri, type: 'audio/mp4', name: 'memo.m4a' } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/moments/${momentId}/audio`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload audio');
+    return res.json();
+  },
+
+  deleteAudio: async (momentId: string, audioId: string): Promise<void> => {
+    const res = await apiFetch(`/api/moments/${momentId}/audio/${audioId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete audio');
+  },
+
+  addComment: async (
+    momentId: string,
+    data: { content: string; author: string },
+  ): Promise<import('../types').MomentComment> => {
+    const res = await apiFetch(`/api/moments/${momentId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to add comment');
+    return res.json();
+  },
+
+  deleteComment: async (momentId: string, commentId: string): Promise<void> => {
+    const res = await apiFetch(`/api/moments/${momentId}/comments/${commentId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete comment');
+  },
+
+  toggleReaction: async (
+    momentId: string,
+    data: { emoji: string; author: string },
+  ): Promise<{ added: boolean }> => {
+    const res = await apiFetch(`/api/moments/${momentId}/reactions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to toggle reaction');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Profile API
 // ---------------------------------------------------------------------------
 
