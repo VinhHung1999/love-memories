@@ -1,24 +1,20 @@
 import React, { forwardRef, useCallback } from 'react';
 import {
   ActivityIndicator,
-  Platform,
-  Pressable,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useCreateMomentViewModel } from './useCreateMomentViewModel';
 import AlertModal from '../../components/AlertModal';
 import AppBottomSheet from '../../components/AppBottomSheet';
+import DatePickerField from '../../components/DatePickerField';
 import FieldLabel from '../../components/FieldLabel';
 import Input from '../../components/Input';
-import TagInput from './components/TagInput';
+import LocationPicker from '../../components/LocationPicker';
+import TagInput from '../../components/TagInput';
 import AudioRecorder from './components/AudioRecorder';
 import PhotoPicker from './components/PhotoPicker';
 
@@ -31,7 +27,7 @@ interface Props {
 
 const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
   ({ momentId, onSuccess }, ref) => {
-    const colors = useAppColors();
+    const colors = useAppColors(); // used by upload progress banner
 
     const handleClose = useCallback(() => {
       (ref as React.RefObject<BottomSheetModal>)?.current?.dismiss();
@@ -105,55 +101,20 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                 textAlignVertical="top"
               />
 
-              {/* Date */}
-              <View className="mb-3">
-                <FieldLabel>{t.moments.labels.date}</FieldLabel>
-                <Pressable
-                  onPress={() => vm.setShowDatePicker(true)}
-                  className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] h-[50px] bg-inputBg">
-                  <Icon name="calendar-outline" size={18} color={colors.textLight} />
-                  <Text className="text-base text-textDark flex-1">
-                    {vm.date.toLocaleDateString('en-US', {
-                      year: 'numeric', month: 'long', day: 'numeric',
-                    })}
-                  </Text>
-                  <Icon name="chevron-right" size={16} color={colors.textLight} />
-                </Pressable>
-                {vm.showDatePicker && (
-                  <DateTimePicker
-                    value={vm.date}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={vm.handleDateChange}
-                    maximumDate={new Date()}
-                  />
-                )}
-              </View>
+              <DatePickerField
+                label={t.moments.labels.date}
+                value={vm.date}
+                onChange={vm.setDate}
+                maximumDate={new Date()}
+              />
 
-              {/* Location */}
-              <View className="mb-4">
-                <FieldLabel>{t.moments.labels.location}</FieldLabel>
-                <View className="flex-row items-center rounded-2xl border-[1.5px] border-border px-[14px] h-[50px] bg-inputBg">
-                  <Icon name="map-marker-outline" size={18} color={colors.textLight} />
-                  <TextInput
-                    className="flex-1 text-base text-textDark px-2"
-                    placeholder={t.moments.create.addLocation}
-                    placeholderTextColor={colors.textLight}
-                    value={vm.location}
-                    onChangeText={vm.setLocation}
-                  />
-                  <TouchableOpacity
-                    onPress={vm.handleGetCurrentLocation}
-                    disabled={vm.isGettingLocation}
-                    className={`w-8 h-8 rounded-full items-center justify-center ml-1 ${
-                      vm.isGettingLocation ? 'bg-transparent' : 'bg-primary/12'
-                    }`}>
-                    {vm.isGettingLocation
-                      ? <ActivityIndicator size="small" color={colors.primary} />
-                      : <Icon name="crosshairs-gps" size={16} color={colors.primary} />}
-                  </TouchableOpacity>
-                </View>
-              </View>
+              <LocationPicker
+                label={t.moments.labels.location}
+                location={vm.location}
+                latitude={vm.latitude}
+                longitude={vm.longitude}
+                onLocationChange={vm.handleLocationChange}
+              />
             </View>
 
             <View className="h-[1px] bg-border/40 mx-5 mb-4" />

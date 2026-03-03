@@ -3,7 +3,6 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import Geolocation from '@react-native-community/geolocation';
 import audioRecorderPlayer, {
   AVEncoderAudioQualityIOSType,
   AudioEncoderAndroidType,
@@ -17,8 +16,6 @@ import type { Moment } from '../../types';
 import t from '../../locales/en';
 
 const SPOTIFY_REGEX = /^https:\/\/open\.spotify\.com\/.+/;
-// Token is stored in src/config/tokens.ts (gitignored). Copy tokens.example.ts to set it up.
-import { MAPBOX_ACCESS_TOKEN as MAPBOX_TOKEN } from '../../config/tokens';
 
 export interface LocalPhoto {
   uri: string;
@@ -45,7 +42,6 @@ interface FormState {
   tags: string[];
   spotifyUrl: string;
   showDatePicker: boolean;
-  isGettingLocation: boolean;
   photos: LocalPhoto[];
   isRecording: boolean;
   recordedAudioPath: string | null;
@@ -76,7 +72,6 @@ function makeInitialState(): FormState {
     tags: [],
     spotifyUrl: '',
     showDatePicker: false,
-    isGettingLocation: false,
     photos: [],
     isRecording: false,
     recordedAudioPath: null,
@@ -105,6 +100,8 @@ function formReducer(state: FormState, action: FormAction): FormState {
         caption: action.moment.caption ?? '',
         date: new Date(action.moment.date),
         location: action.moment.location ?? '',
+        latitude: action.moment.latitude ?? undefined,
+        longitude: action.moment.longitude ?? undefined,
         tags: action.moment.tags,
         spotifyUrl: action.moment.spotifyUrl ?? '',
       };
@@ -218,47 +215,6 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
       showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
   });
 
-  // ── Location: GPS + Mapbox reverse geocode ──────────────────────────────────
-  const handleGetCurrentLocation = useCallback(async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const result = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Location Permission',
-            message: 'Allow access to your location to tag this moment',
-            buttonPositive: 'Allow',
-            buttonNegative: 'Deny',
-          },
-        );
-        if (result !== PermissionsAndroid.RESULTS.GRANTED) return;
-      } catch { return; }
-    }
-
-    dispatch({ type: 'SET_FIELD', field: 'isGettingLocation', value: true });
-    Geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        dispatch({ type: 'SET_FIELD', field: 'latitude', value: lat });
-        dispatch({ type: 'SET_FIELD', field: 'longitude', value: lng });
-        try {
-          const res = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=address,place,locality&language=vi`,
-          );
-          const data = await res.json() as { features?: Array<{ place_name?: string }> };
-          const place = data.features?.[0]?.place_name;
-          if (place) dispatch({ type: 'SET_FIELD', field: 'location', value: place });
-        } catch { /* keep coords without address */ }
-        dispatch({ type: 'SET_FIELD', field: 'isGettingLocation', value: false });
-      },
-      () => {
-        dispatch({ type: 'SET_FIELD', field: 'isGettingLocation', value: false });
-        showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.locationFailed });
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  }, []);
-
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleBack = onClose;
 
@@ -306,11 +262,6 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
   const handleRemoveTag = (tag: string) => {
     dispatch({ type: 'REMOVE_TAG', tag });
-  };
-
-  const handleDateChange = (_: unknown, selectedDate?: Date) => {
-    dispatch({ type: 'SET_FIELD', field: 'showDatePicker', value: false });
-    if (selectedDate) dispatch({ type: 'SET_FIELD', field: 'date', value: selectedDate });
   };
 
   const handleStopRecording = useCallback(async () => {
@@ -414,13 +365,13 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
   return {
     isEdit,
-    title: s.title, caption: s.caption, date: s.date, location: s.location,
+    title: s.title, caption: s.caption, date: s.date,
+    location: s.location, latitude: s.latitude, longitude: s.longitude,
     tagInput: s.tagInput, tags: s.tags, spotifyUrl: s.spotifyUrl,
-    showDatePicker: s.showDatePicker, photos: s.photos,
+    photos: s.photos,
     isRecording: s.isRecording, recordedAudioPath: s.recordedAudioPath,
     recordingDuration: s.recordingDuration, isPlayingPreview: s.isPlayingPreview,
     isSaving: saveMutation.isPending,
-    isGettingLocation: s.isGettingLocation,
     uploadProgress: s.uploadProgress,
 
     // alert
@@ -429,16 +380,19 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
     setTitle: (v: string) => dispatch({ type: 'SET_FIELD', field: 'title', value: v }),
     setCaption: (v: string) => dispatch({ type: 'SET_FIELD', field: 'caption', value: v }),
-    setLocation: (v: string) => dispatch({ type: 'SET_FIELD', field: 'location', value: v }),
+    setDate: (v: Date) => dispatch({ type: 'SET_FIELD', field: 'date', value: v }),
     setTagInput: (v: string) => dispatch({ type: 'SET_FIELD', field: 'tagInput', value: v }),
     setSpotifyUrl: (v: string) => dispatch({ type: 'SET_FIELD', field: 'spotifyUrl', value: v }),
-    setShowDatePicker: (v: boolean) => dispatch({ type: 'SET_FIELD', field: 'showDatePicker', value: v }),
+    handleLocationChange: (loc: string, lat?: number, lng?: number) => {
+      dispatch({ type: 'SET_FIELD', field: 'location', value: loc });
+      dispatch({ type: 'SET_FIELD', field: 'latitude', value: lat });
+      dispatch({ type: 'SET_FIELD', field: 'longitude', value: lng });
+    },
 
     resetForm,
     handleBack, handleSave,
     handleAddPhotoFromLibrary, handleAddPhotoFromCamera, handleRemovePhoto,
-    handleAddTag, handleRemoveTag, handleDateChange,
+    handleAddTag, handleRemoveTag,
     handleStartRecording, handleStopRecording, handlePlayPreview, handleDeleteAudio,
-    handleGetCurrentLocation,
   };
 }

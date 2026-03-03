@@ -385,6 +385,20 @@ export const momentsApi = {
 };
 
 // ---------------------------------------------------------------------------
+// Location API (public — no auth required)
+// ---------------------------------------------------------------------------
+
+export async function resolveLocation(url: string): Promise<{ latitude?: number; longitude?: number; name: string }> {
+  const res = await fetch(`${API_BASE}/api/resolve-location`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+  if (!res.ok) throw new Error('Failed to resolve location');
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // Profile API
 // ---------------------------------------------------------------------------
 
