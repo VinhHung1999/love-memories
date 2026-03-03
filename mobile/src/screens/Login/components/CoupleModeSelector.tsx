@@ -20,21 +20,22 @@ export default function CoupleModeSelector({
       {(['create', 'join'] as const).map(opt => {
         const active = value === opt;
         return (
-          <SpringPressable
-            key={opt}
-            className={`flex-1 flex-col items-center gap-[6px] py-3 rounded-[14px] border-[1.5px] ${
-              active ? 'border-primary bg-primary/[8%]' : 'border-white/60 bg-white/70'
-            }`}
-            onPress={() => onChange(opt)}>
-            <Icon
-              name={opt === 'create' ? 'plus-circle-outline' : 'account-heart-outline'}
-              size={20}
-              color={active ? colors.primary : colors.textLight}
-            />
-            <Text className={`text-xs ${active ? 'text-primary font-semibold' : 'text-textLight font-medium'}`}>
-              {opt === 'create' ? t.login.couple.createNew : t.login.couple.joinExisting}
-            </Text>
-          </SpringPressable>
+          <View key={opt} className="flex-1">
+            <SpringPressable
+              className={`flex-col items-center gap-[6px] py-3 rounded-[14px] border-[1.5px] ${
+                active ? 'border-primary bg-primary/[8%]' : 'border-white/60 bg-white/70'
+              }`}
+              onPress={() => onChange(opt)}>
+              <Icon
+                name={opt === 'create' ? 'plus-circle-outline' : 'account-heart-outline'}
+                size={20}
+                color={active ? colors.primary : colors.textLight}
+              />
+              <Text className={`text-xs ${active ? 'text-primary font-semibold' : 'text-textLight font-medium'}`}>
+                {opt === 'create' ? t.login.couple.createNew : t.login.couple.joinExisting}
+              </Text>
+            </SpringPressable>
+          </View>
         );
       })}
     </View>
