@@ -24,7 +24,7 @@ const EditNameModal = forwardRef<BottomSheetModal, Props>(
         isSaving={isSaving}
         saveDisabled={!nameInput.trim()}
         onDismiss={onDismiss}>
-        <View className="px-5 pt-4 pb-10">
+        <View className="px-5 pb-10">
           <FieldLabel>{t.profile.labels.name}</FieldLabel>
           <Input
             value={nameInput}

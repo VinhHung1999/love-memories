@@ -1,4 +1,10 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import {
   BottomSheetBackdrop,
@@ -14,11 +20,11 @@ import t from '../locales/en';
 
 interface AppBottomSheetProps {
   title: string;
-  scrollable?: boolean;       // false=BottomSheetView+dynamicSizing, true=BottomSheetScrollView+snapPoints
-  snapPoints?: string[];      // default ['92%'], only used when scrollable=true
-  showHeader?: boolean;       // default true
-  cancelLabel?: string;       // default t.common.cancel
-  saveLabel?: string;         // default t.common.save
+  scrollable?: boolean; // false=BottomSheetView+dynamicSizing, true=BottomSheetScrollView+snapPoints
+  snapPoints?: string[]; // default ['92%'], only used when scrollable=true
+  showHeader?: boolean; // default true
+  cancelLabel?: string; // default t.common.cancel
+  saveLabel?: string; // default t.common.save
   onSave?: () => void;
   onDismiss?: () => void;
   saveDisabled?: boolean;
@@ -27,6 +33,8 @@ interface AppBottomSheetProps {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
+
+const HEADER_HEIGHT = 56;
 
 const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
   (
@@ -50,16 +58,23 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
 
     // Proxy methods so parent ref lazy-reads internalRef at call time,
     // avoiding the null-on-first-render race with empty deps [].
-    useImperativeHandle(externalRef, () => ({
-      present: (...args: any[]) => internalRef.current?.present(...args),
-      dismiss: (...args: any[]) => internalRef.current?.dismiss(...args),
-      snapToIndex: (index: number, ...rest: any[]) => (internalRef.current as any)?.snapToIndex(index, ...rest),
-      snapToPosition: (pos: string | number, ...rest: any[]) => (internalRef.current as any)?.snapToPosition(pos, ...rest),
-      close: (...args: any[]) => internalRef.current?.close(...args),
-      forceClose: (...args: any[]) => internalRef.current?.forceClose(...args),
-      expand: (...args: any[]) => internalRef.current?.expand(...args),
-      collapse: (...args: any[]) => internalRef.current?.collapse(...args),
-    }) as unknown as BottomSheetModal);
+    useImperativeHandle(
+      externalRef,
+      () =>
+        ({
+          present: (...args: any[]) => internalRef.current?.present(...args),
+          dismiss: (...args: any[]) => internalRef.current?.dismiss(...args),
+          snapToIndex: (index: number, ...rest: any[]) =>
+            (internalRef.current as any)?.snapToIndex(index, ...rest),
+          snapToPosition: (pos: string | number, ...rest: any[]) =>
+            (internalRef.current as any)?.snapToPosition(pos, ...rest),
+          close: (...args: any[]) => internalRef.current?.close(...args),
+          forceClose: (...args: any[]) =>
+            internalRef.current?.forceClose(...args),
+          expand: (...args: any[]) => internalRef.current?.expand(...args),
+          collapse: (...args: any[]) => internalRef.current?.collapse(...args),
+        } as unknown as BottomSheetModal),
+    );
 
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
@@ -78,6 +93,9 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
 
     const cancel = cancelLabel ?? t.common.cancel;
     const save = saveLabel ?? t.common.save;
+    const paddingTop = useMemo(() => {
+      return showHeader ? HEADER_HEIGHT : 0;
+    }, [showHeader]);
 
     return (
       <BottomSheetModal
@@ -90,26 +108,30 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
-        backgroundStyle={{ backgroundColor: '#ffffff' }}>
-
+        backgroundStyle={{ backgroundColor: '#ffffff' }}
+      >
         {/* Header */}
         {showHeader && (
           <View className="flex-row items-center px-5 py-3 border-b border-border">
             <Pressable onPress={handleCancel} className="w-[60px]">
               <Text className="text-sm text-textMid">{cancel}</Text>
             </Pressable>
-            <Text className="flex-1 text-center font-semibold text-textDark">{title}</Text>
+            <Text className="flex-1 text-center font-semibold text-textDark">
+              {title}
+            </Text>
             <Pressable
               onPress={onSave}
               disabled={saveDisabled || isSaving}
-              className="w-[60px] items-end">
+              className="w-[60px] items-end"
+            >
               {isSaving ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : (
                 <Text
                   className={`font-semibold text-sm ${
                     saveDisabled ? 'text-textLight' : 'text-primary'
-                  }`}>
+                  }`}
+                >
                   {save}
                 </Text>
               )}
@@ -121,13 +143,15 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         {scrollable ? (
           <BottomSheetScrollView
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
+            keyboardShouldPersistTaps="handled"
+          >
             {children}
           </BottomSheetScrollView>
         ) : (
-          <BottomSheetView>{children}</BottomSheetView>
+          <BottomSheetView>
+            <View style={{ paddingTop }}>{children}</View>
+          </BottomSheetView>
         )}
-
       </BottomSheetModal>
     );
   },
