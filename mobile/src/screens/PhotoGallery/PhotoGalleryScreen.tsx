@@ -28,8 +28,6 @@ import type { MomentPhoto } from '../../types';
 
 type Route = RouteProp<MomentsStackParamList, 'PhotoGallery'>;
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 // ── Zoomable image item ───────────────────────────────────────────────────────
 
 function ZoomableImage({ photo }: { photo: MomentPhoto }) {
@@ -90,6 +88,7 @@ function ZoomableImage({ photo }: { photo: MomentPhoto }) {
     panGesture,
   );
 
+  // Exception: Animated.Value transforms must stay in style
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: scale.value },
@@ -100,10 +99,11 @@ function ZoomableImage({ photo }: { photo: MomentPhoto }) {
 
   return (
     <GestureDetector gesture={composedGesture}>
-      <Animated.View style={[{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }, animatedStyle]}>
+      <Animated.View className="w-screen h-screen" style={animatedStyle}>
         <Image
           source={{ uri: photo.url }}
-          style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT, resizeMode: 'contain' }}
+          className="w-screen h-screen"
+          resizeMode="contain"
         />
       </Animated.View>
     </GestureDetector>
@@ -141,7 +141,7 @@ export default function PhotoGalleryScreen() {
   const keyExtractor = useCallback((item: MomentPhoto) => item.id, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0A0404' }}>
+    <GestureHandlerRootView className="flex-1 bg-[#0A0404]">
       <StatusBar hidden />
 
       {/* Photos list */}
@@ -154,83 +154,46 @@ export default function PhotoGalleryScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={initialIndex}
-        getItemLayout={(_data: ArrayLike<MomentPhoto> | null | undefined, index: number) => ({
-          length: SCREEN_WIDTH,
-          offset: SCREEN_WIDTH * index,
-          index,
-        })}
+        getItemLayout={(_data: ArrayLike<MomentPhoto> | null | undefined, index: number) => {
+          const w = Dimensions.get('window').width; // logic, not style
+          return { length: w, offset: w * index, index };
+        }}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         scrollEventThrottle={16}
       />
 
       {/* Top controls */}
-      <SafeAreaView
-        edges={['top']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 20,
-            paddingTop: 8,
-            paddingBottom: 20,
-          }}>
+      <SafeAreaView edges={['top']} className="absolute top-0 inset-x-0 z-10">
+        <View className="flex-row items-center justify-between px-5 pt-2 pb-5">
           {/* Close */}
           <TouchableOpacity
             onPress={handleClose}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: 'rgba(255,255,255,0.12)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+            className="w-10 h-10 rounded-full items-center justify-center bg-white/12">
             <Icon name="close" size={22} color="#fff" />
           </TouchableOpacity>
 
           {/* Counter */}
-          <View
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.12)',
-              paddingHorizontal: 14,
-              paddingVertical: 6,
-              borderRadius: 20,
-            }}>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: '500' }}>
+          <View className="bg-white/12 rounded-full px-[14px] py-[6px]">
+            <Text className="text-white/85 text-sm font-medium">
               {currentIndex + 1} / {photos.length}
             </Text>
           </View>
 
           {/* Share placeholder */}
-          <View style={{ width: 40 }} />
+          <View className="w-10" />
         </View>
       </SafeAreaView>
 
       {/* Dot indicators */}
       {photos.length > 1 && photos.length <= 10 ? (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 50,
-            left: 0,
-            right: 0,
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 6,
-            zIndex: 10,
-          }}>
+        <View className="absolute bottom-[50px] inset-x-0 flex-row justify-center gap-[6px] z-10">
           {photos.map((_, idx) => (
             <View
               key={idx}
-              style={{
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: idx === currentIndex ? '#fff' : 'rgba(255,255,255,0.3)',
-                width: idx === currentIndex ? 24 : 4,
-              }}
+              className={`h-1 rounded-sm ${
+                idx === currentIndex ? 'bg-white w-6' : 'bg-white/30 w-1'
+              }`}
             />
           ))}
         </View>
@@ -240,23 +203,13 @@ export default function PhotoGalleryScreen() {
       {photos.length > 1 ? (
         <SafeAreaView
           edges={['bottom']}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            paddingHorizontal: 16,
-            paddingBottom: 8,
-            paddingTop: 8,
-            backgroundColor: 'rgba(10,4,4,0.7)',
-          }}>
+          className="absolute bottom-0 inset-x-0 z-10 px-4 pb-2 pt-2 bg-[rgba(10,4,4,0.7)]">
           <FlatList
             data={photos}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={item => item.id}
-            contentContainerStyle={{ gap: 8 }}
+            ItemSeparatorComponent={() => <View className="w-2" />}
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 onPress={() => {
@@ -265,14 +218,11 @@ export default function PhotoGalleryScreen() {
                 }}>
                 <Image
                   source={{ uri: item.url }}
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 12,
-                    opacity: index === currentIndex ? 1 : 0.5,
-                    borderWidth: index === currentIndex ? 2 : 0,
-                    borderColor: '#fff',
-                  }}
+                  className={`w-[52px] h-[52px] rounded-xl ${
+                    index === currentIndex
+                      ? 'opacity-100 border-2 border-white'
+                      : 'opacity-50'
+                  }`}
                 />
               </TouchableOpacity>
             )}

@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
 import { AppTheme } from './theme';
@@ -126,9 +127,12 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer theme={AppTheme}>
-      {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
-      {/* Global overlay — inside NavigationContainer for useAppColors() access */}
-      <LoadingOverlay />
+      {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
+      <BottomSheetModalProvider>
+        {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+        {/* Global overlay — inside NavigationContainer for useAppColors() access */}
+        <LoadingOverlay />
+      </BottomSheetModalProvider>
     </NavigationContainer>
   );
 }

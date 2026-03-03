@@ -40,14 +40,12 @@ function CommentItem({
     <View className="flex-row gap-2.5 mb-3">
       {/* Avatar */}
       <View
-        className="w-8 h-8 rounded-full items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: isOwn ? colors.primary : colors.accent }}>
+        className={`w-8 h-8 rounded-full items-center justify-center flex-shrink-0 ${isOwn ? 'bg-primary' : 'bg-accent'}`}>
         <Text className="text-xs font-bold text-white">{initial}</Text>
       </View>
 
       {/* Bubble */}
-      <View className="flex-1 rounded-tl-none rounded-2xl px-3 py-2"
-        style={{ backgroundColor: 'rgba(26,22,36,0.04)' }}>
+      <View className="flex-1 rounded-tl-none rounded-2xl px-3 py-2 bg-textDark/4">
         <View className="flex-row items-center justify-between mb-0.5">
           <Text className="text-[11px] font-semibold text-textDark">{comment.author}</Text>
           {isOwn ? (
@@ -76,13 +74,6 @@ export default function CommentsSection({
 
   return (
     <View className="mb-4">
-      <View className="flex-row items-center gap-2 mb-3">
-        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.accent }} />
-        <Text className="text-[10px] font-bold text-textLight tracking-[1px] uppercase">
-          {t.moments.detail.comments} ({comments.length})
-        </Text>
-      </View>
-
       {comments.length === 0 ? (
         <Text className="text-xs text-textLight italic mb-3">{t.moments.detail.noComments}</Text>
       ) : (
@@ -97,26 +88,20 @@ export default function CommentsSection({
       )}
 
       {/* Input */}
-      <View
-        className="flex-row items-center gap-2 mt-1 p-2 rounded-2xl"
-        style={{ backgroundColor: 'rgba(26,22,36,0.04)' }}>
+      <View className="flex-row items-center gap-2 mt-1 p-2 rounded-2xl bg-textDark/4">
         <TextInput
-          className="flex-1 text-sm text-textDark px-2"
+          className="flex-1 text-[13px] text-textDark px-2 min-h-[36px] max-h-[80px]"
           placeholder={t.moments.detail.addComment}
           placeholderTextColor={colors.textLight}
           value={commentText}
           onChangeText={onChangeText}
           multiline
           maxLength={500}
-          style={{ fontSize: 13, minHeight: 36, maxHeight: 80 }}
         />
         <TouchableOpacity
           onPress={() => !isSubmitting && onSubmit()}
           disabled={!commentText.trim() || isSubmitting}
-          className="w-8 h-8 rounded-full items-center justify-center"
-          style={{
-            backgroundColor: commentText.trim() ? colors.primary : colors.primaryMuted,
-          }}>
+          className={`w-8 h-8 rounded-full items-center justify-center ${commentText.trim() ? 'bg-primary' : 'bg-primary/12'}`}>
           <Icon name="send" size={14} color="#fff" />
         </TouchableOpacity>
       </View>

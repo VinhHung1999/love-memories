@@ -36,37 +36,27 @@ function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }
       onPress={onPress}
       className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3">
       {/* Photo */}
-      <View className="w-full" style={{ minHeight: 110 }}>
+      <View className="w-full min-h-[110px]">
         {coverPhoto ? (
           <Image
             source={{ uri: coverPhoto.url }}
-            className="w-full"
-            style={{ height: 130, resizeMode: 'cover' }}
+            className="w-full h-[130px]"
+            resizeMode="cover"
           />
         ) : (
-          <View
-            className="w-full items-center justify-center"
-            style={{ height: 110, backgroundColor: colors.primaryMuted }}>
+          <View className="w-full h-[110px] items-center justify-center bg-primary/12">
             <Icon name="image-outline" size={28} color={colors.textLight} />
           </View>
         )}
         {/* Date badge */}
-        <View
-          className="absolute top-2 right-2 rounded-xl px-2 py-0.5"
-          style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
+        <View className="absolute top-2 right-2 rounded-xl px-2 py-0.5 bg-white/90">
           <Text className="text-[10px] font-bold text-textDark">{formatDate(moment.date)}</Text>
         </View>
         {/* Location */}
         {moment.location ? (
           <View className="absolute bottom-2 left-2">
             <Text
-              className="text-[9px] font-semibold"
-              style={{
-                color: 'rgba(255,255,255,0.95)',
-                textShadowColor: 'rgba(0,0,0,0.6)',
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 3,
-              }}
+              className="text-[9px] font-semibold text-white/95"
               numberOfLines={1}>
               📍 {moment.location}
             </Text>
@@ -82,7 +72,7 @@ function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }
         {moment.tags.length > 0 ? (
           <View className="flex-row flex-wrap gap-1">
             {moment.tags.slice(0, 2).map(tag => (
-              <View key={tag} className="px-2 py-[2px] rounded-lg" style={{ backgroundColor: colors.primaryMuted }}>
+              <View key={tag} className="px-2 py-[2px] rounded-lg bg-primary/12">
                 <Text className="text-[10px] font-medium text-primary">{tag}</Text>
               </View>
             ))}
@@ -99,9 +89,7 @@ function EmptyState({ onCreatePress }: { onCreatePress: () => void }) {
   const colors = useAppColors();
   return (
     <View className="flex-1 items-center justify-center px-8 py-16">
-      <View
-        className="w-20 h-20 rounded-full items-center justify-center mb-5"
-        style={{ backgroundColor: colors.primaryMuted }}>
+      <View className="w-20 h-20 rounded-full items-center justify-center mb-5 bg-primary/12">
         <Icon name="heart-multiple-outline" size={36} color={colors.primary} />
       </View>
       <Text className="text-xl font-bold text-textDark text-center mb-2">
@@ -112,8 +100,7 @@ function EmptyState({ onCreatePress }: { onCreatePress: () => void }) {
       </Text>
       <Pressable
         onPress={onCreatePress}
-        className="px-6 py-3 rounded-2xl"
-        style={{ backgroundColor: colors.primary }}>
+        className="px-6 py-3 rounded-2xl bg-primary">
         <Text className="text-white font-semibold text-sm">{t.moments.emptyAction}</Text>
       </Pressable>
     </View>
@@ -144,13 +131,12 @@ export default function MomentsScreen() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </Text>
             <Text className="text-2xl font-bold text-textDark tracking-tight">
-              <Text style={{ color: colors.primary }}>Our</Text> {t.moments.title.replace('Our ', '')}
+              <Text className="text-primary">Our</Text> {t.moments.title.replace('Our ', '')}
             </Text>
           </View>
           <TouchableOpacity
             onPress={openCreateSheet}
-            className="w-10 h-10 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: colors.primary }}>
+            className="w-10 h-10 rounded-2xl items-center justify-center bg-primary">
             <Icon name="plus" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -159,35 +145,30 @@ export default function MomentsScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="-mx-5 px-5"
-          contentContainerStyle={{ paddingRight: 20, gap: 8, flexDirection: 'row', paddingBottom: 12 }}>
-          <Pressable
-            onPress={() => vm.handleTagPress(null)}
-            className="px-4 py-[5px] rounded-full"
-            style={{
-              backgroundColor: !vm.activeTag ? colors.primary : 'rgba(255,255,255,0.7)',
-              borderWidth: !vm.activeTag ? 0 : 1,
-              borderColor: 'rgba(196,168,168,0.25)',
-            }}>
-            <Text className="text-xs font-semibold" style={{ color: !vm.activeTag ? '#fff' : colors.textMid }}>
-              {t.moments.allFilter}
-            </Text>
-          </Pressable>
-          {vm.allTags.map(tag => (
+          className="-mx-5 px-5">
+          <View className="flex-row gap-2 pb-3 pr-5">
             <Pressable
-              key={tag}
-              onPress={() => vm.handleTagPress(tag)}
-              className="px-4 py-[5px] rounded-full"
-              style={{
-                backgroundColor: vm.activeTag === tag ? colors.primary : 'rgba(255,255,255,0.7)',
-                borderWidth: vm.activeTag === tag ? 0 : 1,
-                borderColor: 'rgba(196,168,168,0.25)',
-              }}>
-              <Text className="text-xs font-semibold" style={{ color: vm.activeTag === tag ? '#fff' : colors.textMid }}>
-                {tag}
+              onPress={() => vm.handleTagPress(null)}
+              className={`px-4 py-[5px] rounded-full ${
+                !vm.activeTag ? 'bg-primary' : 'bg-white/70 border border-[rgba(196,168,168,0.25)]'
+              }`}>
+              <Text className={`text-xs font-semibold ${!vm.activeTag ? 'text-white' : 'text-textMid'}`}>
+                {t.moments.allFilter}
               </Text>
             </Pressable>
-          ))}
+            {vm.allTags.map(tag => (
+              <Pressable
+                key={tag}
+                onPress={() => vm.handleTagPress(tag)}
+                className={`px-4 py-[5px] rounded-full ${
+                  vm.activeTag === tag ? 'bg-primary' : 'bg-white/70 border border-[rgba(196,168,168,0.25)]'
+                }`}>
+                <Text className={`text-xs font-semibold ${vm.activeTag === tag ? 'text-white' : 'text-textMid'}`}>
+                  {tag}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </ScrollView>
       </LinearGradient>
 
@@ -201,7 +182,6 @@ export default function MomentsScreen() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -210,24 +190,26 @@ export default function MomentsScreen() {
               tintColor={colors.primary}
             />
           }>
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              {vm.leftColumn.map(moment => (
-                <MomentCard
-                  key={moment.id}
-                  moment={moment}
-                  onPress={() => vm.handleMomentPress(moment.id)}
-                />
-              ))}
-            </View>
-            <View className="flex-1 mt-6">
-              {vm.rightColumn.map(moment => (
-                <MomentCard
-                  key={moment.id}
-                  moment={moment}
-                  onPress={() => vm.handleMomentPress(moment.id)}
-                />
-              ))}
+          <View className="px-[14px] pt-3 pb-[100px]">
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                {vm.leftColumn.map(moment => (
+                  <MomentCard
+                    key={moment.id}
+                    moment={moment}
+                    onPress={() => vm.handleMomentPress(moment.id)}
+                  />
+                ))}
+              </View>
+              <View className="flex-1 mt-6">
+                {vm.rightColumn.map(moment => (
+                  <MomentCard
+                    key={moment.id}
+                    moment={moment}
+                    onPress={() => vm.handleMomentPress(moment.id)}
+                  />
+                ))}
+              </View>
             </View>
           </View>
         </ScrollView>

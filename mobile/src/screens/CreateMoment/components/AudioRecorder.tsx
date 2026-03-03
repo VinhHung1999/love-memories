@@ -35,13 +35,10 @@ export default function AudioRecorder({
 
   if (recordedPath) {
     return (
-      <View
-        className="flex-row items-center gap-3 p-3 rounded-2xl"
-        style={{ backgroundColor: colors.accentMuted, borderWidth: 1, borderColor: `rgba(126,200,181,0.2)` }}>
+      <View className="flex-row items-center gap-3 p-3 rounded-2xl bg-accent/10 border border-accent/20">
         <TouchableOpacity
           onPress={onPlayPreview}
-          className="w-12 h-12 rounded-full items-center justify-center"
-          style={{ backgroundColor: colors.accent }}>
+          className="w-12 h-12 rounded-full items-center justify-center bg-accent">
           <Icon name={isPlayingPreview ? 'pause' : 'play'} size={22} color="#fff" />
         </TouchableOpacity>
         <View className="flex-1">
@@ -58,16 +55,14 @@ export default function AudioRecorder({
   return (
     <TouchableOpacity
       onPress={isRecording ? onStopRecording : onStartRecording}
-      className="flex-row items-center gap-3 p-3 rounded-2xl"
-      style={{
-        backgroundColor: isRecording ? 'rgba(232,120,138,0.08)' : colors.accentMuted,
-        borderWidth: 1,
-        borderColor: isRecording ? `rgba(232,120,138,0.3)` : `rgba(126,200,181,0.2)`,
-      }}>
+      className={`flex-row items-center gap-3 p-3 rounded-2xl border ${
+        isRecording
+          ? 'bg-primary/8 border-primary/30'
+          : 'bg-accent/10 border-accent/20'
+      }`}>
       {/* Record button */}
       <View
-        className="w-12 h-12 rounded-full items-center justify-center"
-        style={{ backgroundColor: isRecording ? colors.primary : colors.accent }}>
+        className={`w-12 h-12 rounded-full items-center justify-center ${isRecording ? 'bg-primary' : 'bg-accent'}`}>
         {isRecording ? (
           <View className="w-4 h-4 rounded bg-white" />
         ) : (
