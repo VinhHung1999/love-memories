@@ -5,13 +5,17 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import audioRecorderPlayer, {
+import AudioRecorderPlayer, {
   AVEncoderAudioQualityIOSType,
+  AVEncodingOption,
   AudioEncoderAndroidType,
   AudioSourceAndroidType,
   type RecordBackType,
   type PlayBackType,
 } from 'react-native-audio-recorder-player';
+
+// v3 exports a class — module-level instance shared across renders
+const audioRecorderPlayer = new AudioRecorderPlayer();
 import type { MomentsStackParamList } from '../../navigation';
 import { momentsApi } from '../../lib/api';
 import t from '../../locales/en';
@@ -221,7 +225,7 @@ export function useCreateMomentViewModel() {
         AudioSourceAndroid: AudioSourceAndroidType.MIC,
         AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
         AVNumberOfChannelsKeyIOS: 2,
-        AVFormatIDKeyIOS: 'aac',
+        AVFormatIDKeyIOS: AVEncodingOption.aac,
       });
       audioRecorderPlayer.addRecordBackListener((e: RecordBackType) => {
         setRecordingDuration(Math.floor(e.currentPosition / 1000));
