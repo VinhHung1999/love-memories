@@ -145,6 +145,12 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - Fix: Create new migration SQL manually → `psql ... -f migration.sql` on both DBs → `npx prisma migrate resolve --applied <name>`.
 - Key takeaway: Never edit applied migration files. If drift occurs, write a new migration and apply manually with `psql`.
 
+### react-native-audio-recorder-player v4 API: singleton not class (Sprint 36)
+- v4 exports a pre-instantiated singleton (`const AudioRecorderPlayer`), NOT a class — do NOT use `new AudioRecorderPlayer()`
+- `AVEncodingOption` is a TypeScript type-only string union — use string literal `'aac'`, not `AVEncodingOption.aac`
+- v4.5.0 requires `react-native-nitro-modules` as peer dep — must install both together
+- v3.6.0 has a Kotlin compile error on RN 0.74+ new arch (`currentActivity` removed from `ReactContextBaseJavaModule` scope) — avoid v3 on new arch
+
 ### NativeWind v4 babel: preset not plugin
 - `nativewind/babel` must be in `presets[]`, NOT `plugins[]` in babel.config.js
 - It returns `{ plugins: [...] }` (a preset), so in `plugins[]` Babel throws "[BABEL] .plugins is not a valid Plugin property"

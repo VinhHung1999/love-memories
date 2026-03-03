@@ -1,10 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Alert } from 'react-native';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
+import Geolocation from '@react-native-community/geolocation';
 import audioRecorderPlayer, {
   AVEncoderAudioQualityIOSType,
   AudioEncoderAndroidType,
@@ -12,14 +10,13 @@ import audioRecorderPlayer, {
   type RecordBackType,
   type PlayBackType,
 } from 'react-native-audio-recorder-player';
-import type { MomentsStackParamList } from '../../navigation';
+
 import { momentsApi } from '../../lib/api';
 import t from '../../locales/en';
 
-type Nav = NativeStackNavigationProp<MomentsStackParamList>;
-type Route = RouteProp<MomentsStackParamList, 'CreateMoment'>;
-
 const SPOTIFY_REGEX = /^https:\/\/open\.spotify\.com\/.+/;
+// Token is stored in src/config/tokens.ts (gitignored). Copy tokens.example.ts to set it up.
+import { MAPBOX_ACCESS_TOKEN as MAPBOX_TOKEN } from '../../config/tokens';
 
 export interface LocalPhoto {
   uri: string;
@@ -28,37 +25,49 @@ export interface LocalPhoto {
   remotePhotoId?: string;
 }
 
+export interface UploadProgress {
+  done: number;
+  total: number;
+}
 
-export function useCreateMomentViewModel() {
-  const navigation = useNavigation<Nav>();
-  const route = useRoute<Route>();
-  const momentId = route.params?.momentId;
+interface Props {
+  momentId?: string | null;
+  onClose: () => void;
+}
+
+export function useCreateMomentViewModel({ momentId, onClose }: Props) {
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
 
-  // ── Form state ─────────────────────────────────────────────────────────────
+  // ── Form state ──────────────────────────────────────────────────────────────
   const [title, setTitle] = useState('');
   const [caption, setCaption] = useState('');
   const [date, setDate] = useState(new Date());
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | undefined>();
+  const [longitude, setLongitude] = useState<number | undefined>();
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [spotifyUrl, setSpotifyUrl] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // ── Photo state ────────────────────────────────────────────────────────────
+  // ── Photo state ─────────────────────────────────────────────────────────────
   const [photos, setPhotos] = useState<LocalPhoto[]>([]);
 
-  // ── Audio state ────────────────────────────────────────────────────────────
+  // ── Audio state ─────────────────────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudioPath, setRecordedAudioPath] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
-  // Ref holds latest handleStopRecording to avoid stale closure in addRecordBackListener
+  // ── Upload progress ─────────────────────────────────────────────────────────
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+
+  // Ref holds latest handleStopRecording to avoid stale closure
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
 
-  // ── Load existing data if editing ─────────────────────────────────────────
+  // ── Load existing data if editing ───────────────────────────────────────────
   const { data: existingMoment } = useQuery({
     queryKey: ['moment', momentId],
     queryFn: () => momentsApi.get(momentId!),
@@ -66,7 +75,6 @@ export function useCreateMomentViewModel() {
     staleTime: 0,
   });
 
-  // Populate form once on mount (useEffect avoids calling setState inside select → infinite loop)
   useEffect(() => {
     if (existingMoment) {
       setTitle(existingMoment.title);
@@ -77,10 +85,9 @@ export function useCreateMomentViewModel() {
       setSpotifyUrl(existingMoment.spotifyUrl ?? '');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingMoment?.id]); // key on id: re-populate only when a different moment loads
+  }, [existingMoment?.id]);
 
-  // ── Validation ─────────────────────────────────────────────────────────────
-
+  // ── Validation ──────────────────────────────────────────────────────────────
   const validate = useCallback((): string | null => {
     if (!title.trim()) return t.moments.errors.titleRequired;
     if (title.trim().length > 200) return t.moments.errors.titleTooLong;
@@ -89,8 +96,7 @@ export function useCreateMomentViewModel() {
     return null;
   }, [title, spotifyUrl]);
 
-  // ── Save mutation ──────────────────────────────────────────────────────────
-
+  // ── Save mutation ───────────────────────────────────────────────────────────
   const saveMutation = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -98,6 +104,8 @@ export function useCreateMomentViewModel() {
         caption: caption.trim() || undefined,
         date: date.toISOString(),
         location: location.trim() || undefined,
+        latitude,
+        longitude,
         tags,
         spotifyUrl: spotifyUrl.trim() || undefined,
       };
@@ -106,14 +114,18 @@ export function useCreateMomentViewModel() {
         ? await momentsApi.update(momentId!, payload)
         : await momentsApi.create(payload);
 
-      // Upload new photos in background (non-blocking — fire and forget)
+      // Upload photos with progress tracking (non-blocking)
       const pendingPhotos = photos.filter(p => !p.uploaded);
       if (pendingPhotos.length > 0) {
+        setUploadProgress({ done: 0, total: pendingPhotos.length });
         Promise.all(
           pendingPhotos.map(p =>
-            momentsApi.uploadPhoto(savedMoment.id, p.uri, p.mimeType).catch(() => null),
+            momentsApi.uploadPhoto(savedMoment.id, p.uri, p.mimeType)
+              .then(() => setUploadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null))
+              .catch(() => setUploadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)),
           ),
         ).then(() => {
+          setUploadProgress(null);
           queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] });
           queryClient.invalidateQueries({ queryKey: ['moments'] });
         });
@@ -122,9 +134,7 @@ export function useCreateMomentViewModel() {
       // Upload audio in background
       if (recordedAudioPath) {
         momentsApi.uploadAudio(savedMoment.id, recordedAudioPath)
-          .then(() => {
-            queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] });
-          })
+          .then(() => queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] }))
           .catch(() => null);
       }
 
@@ -133,14 +143,54 @@ export function useCreateMomentViewModel() {
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['moments'] });
       queryClient.invalidateQueries({ queryKey: ['moment', saved.id] });
-      navigation.goBack();
+      onClose();
     },
     onError: (err: Error) => Alert.alert(t.common.error, err.message || t.moments.errors.saveFailed),
   });
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Location: GPS + Mapbox reverse geocode ──────────────────────────────────
+  const handleGetCurrentLocation = useCallback(async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const result = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'Allow access to your location to tag this moment',
+            buttonPositive: 'Allow',
+            buttonNegative: 'Deny',
+          },
+        );
+        if (result !== PermissionsAndroid.RESULTS.GRANTED) return;
+      } catch { return; }
+    }
 
-  const handleBack = () => navigation.goBack();
+    setIsGettingLocation(true);
+    Geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        setLatitude(lat);
+        setLongitude(lng);
+        try {
+          const res = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=address,place,locality&language=vi`,
+          );
+          const data = await res.json() as { features?: Array<{ place_name?: string }> };
+          const place = data.features?.[0]?.place_name;
+          if (place) setLocation(place);
+        } catch { /* keep coords without address */ }
+        setIsGettingLocation(false);
+      },
+      () => {
+        setIsGettingLocation(false);
+        Alert.alert(t.common.error, 'Could not get your location.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }, []);
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
+  const handleBack = onClose;
 
   const handleSave = () => {
     const error = validate();
@@ -209,10 +259,28 @@ export function useCreateMomentViewModel() {
     }
   }, []);
 
-  // Keep ref pointing to latest handleStopRecording so the listener never has a stale closure
   stopRecordingRef.current = handleStopRecording;
 
   const handleStartRecording = async () => {
+    // Request mic permission on Android
+    if (Platform.OS === 'android') {
+      try {
+        const result = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          {
+            title: 'Microphone Permission',
+            message: 'Allow access to your microphone to record a voice memo',
+            buttonPositive: 'Allow',
+            buttonNegative: 'Deny',
+          },
+        );
+        if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(t.common.error, 'Microphone permission denied.');
+          return;
+        }
+      } catch { return; }
+    }
+
     try {
       setIsRecording(true);
       setRecordingDuration(0);
@@ -226,7 +294,6 @@ export function useCreateMomentViewModel() {
       audioRecorderPlayer.addRecordBackListener((e: RecordBackType) => {
         setRecordingDuration(Math.floor(e.currentPosition / 1000));
         if (e.currentPosition >= 300_000) {
-          // 5-minute max — call via ref to always use latest function, not stale closure
           stopRecordingRef.current();
         }
       });
@@ -268,39 +335,18 @@ export function useCreateMomentViewModel() {
 
   return {
     isEdit,
-    title,
-    caption,
-    date,
-    location,
-    tagInput,
-    tags,
-    spotifyUrl,
-    showDatePicker,
-    photos,
-    isRecording,
-    recordedAudioPath,
-    recordingDuration,
-    isPlayingPreview,
+    title, caption, date, location, tagInput, tags, spotifyUrl, showDatePicker, photos,
+    isRecording, recordedAudioPath, recordingDuration, isPlayingPreview,
     isSaving: saveMutation.isPending,
+    isGettingLocation,
+    uploadProgress,
 
-    setTitle,
-    setCaption,
-    setLocation,
-    setTagInput,
-    setSpotifyUrl,
-    setShowDatePicker,
+    setTitle, setCaption, setLocation, setTagInput, setSpotifyUrl, setShowDatePicker,
 
-    handleBack,
-    handleSave,
-    handleAddPhotoFromLibrary,
-    handleAddPhotoFromCamera,
-    handleRemovePhoto,
-    handleAddTag,
-    handleRemoveTag,
-    handleDateChange,
-    handleStartRecording,
-    handleStopRecording,
-    handlePlayPreview,
-    handleDeleteAudio,
+    handleBack, handleSave,
+    handleAddPhotoFromLibrary, handleAddPhotoFromCamera, handleRemovePhoto,
+    handleAddTag, handleRemoveTag, handleDateChange,
+    handleStartRecording, handleStopRecording, handlePlayPreview, handleDeleteAudio,
+    handleGetCurrentLocation,
   };
 }

@@ -89,7 +89,9 @@ export function useMomentDetailViewModel() {
 
   const handleBack = () => navigation.goBack();
 
-  const handleEdit = () => navigation.navigate('CreateMoment', { momentId });
+  // Edit is handled imperatively via the sheet ref in the screen (MVVM: view owns the ref)
+  // Kept as no-op so callers don't break — screens call sheetRef.current?.present() directly
+  const handleEdit = () => {};
 
   const handleOpenGallery = (photos: MomentPhoto[], initialIndex: number) => {
     navigation.navigate('PhotoGallery', { photos, initialIndex });

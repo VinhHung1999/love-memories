@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -20,22 +21,33 @@ import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
+import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HERO_HEIGHT = 300;
-
-// ── Section badge ──────────────────────────────────────────────────────────────
-
-function SectionDivider() {
-  return <View className="h-px bg-border/30 my-3" />;
-}
+const HERO_HEIGHT = 280;
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    year: 'numeric', month: 'long', day: 'numeric',
   });
+}
+
+// ── Card wrapper (ProfileScreen style) ────────────────────────────────────────
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <View className="bg-white rounded-3xl shadow-sm mx-4 mb-3 px-4 py-3">
+      {children}
+    </View>
+  );
+}
+
+function CardTitle({ children }: { children: string }) {
+  return (
+    <Text className="text-[10px] font-bold text-textLight tracking-[0.8px] uppercase mb-2">
+      {children}
+    </Text>
+  );
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
@@ -44,10 +56,11 @@ export default function MomentDetailScreen() {
   const colors = useAppColors();
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
+  const editSheetRef = useRef<BottomSheetModal>(null);
 
   if (vm.isLoading || !moment) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-white">
+      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50">
         <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
@@ -56,13 +69,13 @@ export default function MomentDetailScreen() {
   const coverPhoto = moment.photos[0];
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
+    <KeyboardAvoidingView className="flex-1 bg-gray-50" behavior="padding">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}>
+        contentContainerStyle={{ paddingBottom: 60 }}>
 
-        {/* Hero photo */}
+        {/* ── Hero photo ── */}
         <View style={{ height: HERO_HEIGHT, width: SCREEN_WIDTH }}>
           {coverPhoto ? (
             <Image
@@ -71,17 +84,16 @@ export default function MomentDetailScreen() {
             />
           ) : (
             <LinearGradient
-              colors={[colors.primaryLight, colors.primary, '#D4607A']}
+              colors={['#FFE4EA', colors.primary, '#D4607A']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}
             />
           )}
-          {/* Gradient overlay */}
           <LinearGradient
-            colors={['rgba(0,0,0,0.2)', 'transparent', 'rgba(0,0,0,0.35)']}
+            colors={['rgba(0,0,0,0.22)', 'transparent', 'rgba(0,0,0,0.3)']}
             locations={[0, 0.4, 1]}
-            style={{ position: 'absolute', inset: 0 } as object}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
 
           {/* Back + Actions */}
@@ -97,7 +109,7 @@ export default function MomentDetailScreen() {
               </TouchableOpacity>
               <View className="flex-row gap-2">
                 <TouchableOpacity
-                  onPress={vm.handleEdit}
+                  onPress={() => editSheetRef.current?.present()}
                   className="w-9 h-9 rounded-xl items-center justify-center"
                   style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
                   <Icon name="pencil-outline" size={18} color="#fff" />
@@ -125,39 +137,38 @@ export default function MomentDetailScreen() {
           ) : null}
         </View>
 
-        {/* Thumbnail strip */}
+        {/* ── Photo thumbnail strip ── */}
         {moment.photos.length > 1 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="bg-white"
-            contentContainerStyle={{ gap: 8, padding: 12 }}>
-            {moment.photos.map((photo, idx) => (
-              <Pressable
-                key={photo.id}
-                onPress={() => vm.handleOpenGallery(moment.photos, idx)}>
-                <Image
-                  source={{ uri: photo.url }}
-                  className="rounded-xl"
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 12,
-                    borderWidth: idx === 0 ? 2 : 0,
-                    borderColor: colors.primary,
-                  }}
-                />
-              </Pressable>
-            ))}
-          </ScrollView>
+          <View className="bg-white mx-4 -mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}>
+              {moment.photos.map((photo, idx) => (
+                <Pressable
+                  key={photo.id}
+                  onPress={() => vm.handleOpenGallery(moment.photos, idx)}>
+                  <Image
+                    source={{ uri: photo.url }}
+                    style={{
+                      width: 52, height: 52, borderRadius: 12,
+                      borderWidth: idx === 0 ? 2 : 0,
+                      borderColor: colors.primary,
+                      opacity: idx === 0 ? 1 : 0.75,
+                    }}
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
         ) : (
-          <View className="h-3" />
+          <View className="h-4" />
         )}
 
-        {/* Content */}
-        <View className="px-5">
-          {/* Date + Spotify */}
-          <View className="flex-row items-center justify-between mb-1">
+        {/* ── Title card ── */}
+        <Card>
+          {/* Date + Spotify row */}
+          <View className="flex-row items-center justify-between mb-2">
             <Text className="text-xs text-textMid">📅 {formatDate(moment.date)}</Text>
             {moment.spotifyUrl ? (
               <TouchableOpacity
@@ -172,12 +183,10 @@ export default function MomentDetailScreen() {
             ) : null}
           </View>
 
-          {/* Title */}
-          <Text className="text-2xl font-bold text-textDark leading-tight tracking-tight mb-2">
+          <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
             {moment.title}
           </Text>
 
-          {/* Caption */}
           {moment.caption ? (
             <Text className="text-sm text-textMid italic leading-relaxed mb-2">
               "{moment.caption}"
@@ -186,7 +195,7 @@ export default function MomentDetailScreen() {
 
           {/* Location */}
           {moment.location ? (
-            <View className="flex-row items-center gap-1.5 mb-3">
+            <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
               <Icon name="map-marker-outline" size={13} color={colors.textLight} />
               <Text className="text-xs text-textMid flex-1">{moment.location}</Text>
               {moment.latitude && moment.longitude ? (
@@ -206,54 +215,59 @@ export default function MomentDetailScreen() {
 
           {/* Tags */}
           {moment.tags.length > 0 ? (
-            <View className="flex-row flex-wrap gap-2 mb-3">
+            <View className="flex-row flex-wrap gap-1.5 pt-2">
               {moment.tags.map(tag => (
-                <View
-                  key={tag}
-                  className="px-3 py-1 rounded-lg"
-                  style={{ backgroundColor: colors.primaryMuted }}>
+                <View key={tag} className="px-2.5 py-[3px] rounded-lg" style={{ backgroundColor: colors.primaryMuted }}>
                   <Text className="text-[11px] font-medium text-primary">{tag}</Text>
                 </View>
               ))}
             </View>
           ) : null}
+        </Card>
 
-          <SectionDivider />
-
-          {/* View gallery button */}
-          {moment.photos.length > 0 ? (
+        {/* ── Photos gallery link ── */}
+        {moment.photos.length > 0 ? (
+          <Card>
             <TouchableOpacity
               onPress={() => vm.handleOpenGallery(moment.photos, 0)}
-              className="flex-row items-center gap-2 py-2 mb-2">
+              className="flex-row items-center gap-2 py-1">
               <Icon name="image-multiple-outline" size={16} color={colors.primary} />
-              <Text className="text-sm font-semibold text-primary">
+              <Text className="text-sm font-semibold text-primary flex-1">
                 {t.moments.detail.viewGallery} ({moment.photos.length})
               </Text>
+              <Icon name="chevron-right" size={16} color={colors.textLight} />
             </TouchableOpacity>
-          ) : null}
+          </Card>
+        ) : null}
 
-          {/* Voice Memos */}
-          <VoiceMemoSection
-            audios={moment.audios}
-            playingAudioId={vm.playingAudioId}
-            audioProgress={vm.audioProgress}
-            onPlay={vm.handlePlayAudio}
-            onStop={vm.handleStopAudio}
-          />
+        {/* ── Voice memos ── */}
+        {moment.audios.length > 0 ? (
+          <Card>
+            <CardTitle>{t.moments.detail.voiceMemo}</CardTitle>
+            <VoiceMemoSection
+              audios={moment.audios}
+              playingAudioId={vm.playingAudioId}
+              audioProgress={vm.audioProgress}
+              onPlay={vm.handlePlayAudio}
+              onStop={vm.handleStopAudio}
+            />
+          </Card>
+        ) : null}
 
-          {moment.audios.length > 0 ? <SectionDivider /> : null}
-
-          {/* Reactions */}
+        {/* ── Reactions ── */}
+        <Card>
+          <CardTitle>{t.moments.detail.reactions}</CardTitle>
           <ReactionsBar
             presetEmojis={vm.presetEmojis}
             reactionCounts={vm.reactionCounts}
             hasReacted={vm.hasReacted}
             onToggle={vm.handleToggleReaction}
           />
+        </Card>
 
-          <SectionDivider />
-
-          {/* Comments */}
+        {/* ── Comments ── */}
+        <Card>
+          <CardTitle>{t.moments.detail.comments}</CardTitle>
           <CommentsSection
             comments={moment.comments}
             commentText={vm.commentText}
@@ -263,8 +277,15 @@ export default function MomentDetailScreen() {
             onSubmit={vm.handleAddComment}
             onDelete={vm.handleDeleteComment}
           />
-        </View>
+        </Card>
+
       </ScrollView>
+
+      {/* ── Edit sheet ── */}
+      <CreateMomentSheet
+        ref={editSheetRef}
+        momentId={moment.id}
+      />
     </KeyboardAvoidingView>
   );
 }

@@ -27,7 +27,6 @@ export type MainTabParamList = {
 export type MomentsStackParamList = {
   MomentsList: undefined;
   MomentDetail: { momentId: string };
-  CreateMoment: { momentId?: string };
   PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
 };
 
@@ -53,7 +52,6 @@ function AuthNavigator() {
 
 import MomentsScreen from '../screens/Moments/MomentsScreen';
 import MomentDetailScreen from '../screens/MomentDetail/MomentDetailScreen';
-import CreateMomentScreen from '../screens/CreateMoment/CreateMomentScreen';
 import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
 
 function MomentsNavigator() {
@@ -61,7 +59,6 @@ function MomentsNavigator() {
     <MomentsStack.Navigator screenOptions={{ headerShown: false }}>
       <MomentsStack.Screen name="MomentsList" component={MomentsScreen} />
       <MomentsStack.Screen name="MomentDetail" component={MomentDetailScreen} />
-      <MomentsStack.Screen name="CreateMoment" component={CreateMomentScreen} />
       <MomentsStack.Screen
         name="PhotoGallery"
         component={PhotoGalleryScreen}

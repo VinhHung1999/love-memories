@@ -57,10 +57,6 @@ export function useMomentsViewModel() {
     navigation.navigate('MomentDetail', { momentId });
   };
 
-  const handleCreatePress = () => {
-    navigation.navigate('CreateMoment', {});
-  };
-
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['moments'] });
   };
@@ -75,7 +71,6 @@ export function useMomentsViewModel() {
     isEmpty: filteredMoments.length === 0,
     handleTagPress,
     handleMomentPress,
-    handleCreatePress,
     handleRefresh,
     refetch,
   };

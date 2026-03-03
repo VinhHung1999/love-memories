@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { AuthProvider } from './src/lib/auth';
 import { LoadingProvider } from './src/contexts/LoadingContext';
 import { warmupConnection } from './src/lib/api';
@@ -32,12 +33,14 @@ export default function App() {
     <GestureHandlerRootView className="flex-1">
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-          <LoadingProvider>
-            <AuthProvider>
-              <RootNavigator />
-            </AuthProvider>
-          </LoadingProvider>
+          <BottomSheetModalProvider>
+            <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+            <LoadingProvider>
+              <AuthProvider>
+                <RootNavigator />
+              </AuthProvider>
+            </LoadingProvider>
+          </BottomSheetModalProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
