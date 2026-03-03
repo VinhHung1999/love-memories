@@ -129,7 +129,7 @@ export default function MomentsScreen() {
       {/* ── Collapsible Header ── */}
       <CollapsibleHeader
         title={t.moments.title}
-        subtitle="♥ Our Story"
+        subtitle={t.moments.subtitle}
         expandedHeight={100}
         collapsedHeight={56}
         scrollY={scrollY}

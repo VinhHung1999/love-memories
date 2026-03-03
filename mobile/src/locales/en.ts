@@ -112,10 +112,12 @@ const en = {
   dashboard: {
     title: 'Love Scrum',
     subtitle: 'Dashboard — Sprint 35',
+    headerSubtitle: 'HOME',
   },
 
   moments: {
     title: 'Our Moments',
+    subtitle: '♥ Our Story',
     allFilter: 'All',
     emptyTitle: 'No moments yet',
     emptySubtitle: 'Start capturing your memories together',

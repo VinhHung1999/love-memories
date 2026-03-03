@@ -46,9 +46,12 @@ export default function CollapsibleHeader({
     fontSize: interpolate(scrollY.value, [0, scrollRange], [28, 18], Extrapolation.CLAMP),
   }));
 
-  // Exception: animated opacity — Animated.Value
+  // Exception: animated opacity + maxHeight — both are Animated.Value outputs
+  // maxHeight collapses layout space so collapsed header has no dead space
   const expandedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, scrollRange * 0.7], [1, 0], Extrapolation.CLAMP),
+    maxHeight: interpolate(scrollY.value, [0, scrollRange], [200, 0], Extrapolation.CLAMP),
+    overflow: 'hidden',
   }));
 
   return (

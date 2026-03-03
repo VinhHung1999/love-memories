@@ -123,7 +123,7 @@ export default function ProfileScreen() {
       <CollapsibleHeader
         title={vm.user?.name ?? t.profile.title}
         subtitle={t.profile.title.toUpperCase()}
-        expandedHeight={170}
+        expandedHeight={200}
         collapsedHeight={56}
         scrollY={scrollY}
         renderExpandedContent={() => (
@@ -139,6 +139,12 @@ export default function ProfileScreen() {
               <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
                 <Icon name="heart" size={10} color={colors.primary} />
                 <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
+              </View>
+            ) : null}
+            {vm.anniversaryDisplay ? (
+              <View className="mt-1.5 flex-row items-center gap-1">
+                <Icon name="calendar-heart" size={11} color={colors.textLight} />
+                <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
               </View>
             ) : null}
           </View>

@@ -14,7 +14,7 @@ export default function DashboardScreen() {
     <View className="flex-1 bg-rose-50">
       <CollapsibleHeader
         title={t.dashboard.title}
-        subtitle="HOME"
+        subtitle={t.dashboard.headerSubtitle}
         expandedHeight={100}
         collapsedHeight={56}
         scrollY={scrollY}
