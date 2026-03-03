@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 34 (approved — pending Boss build)
-**Goal:** React Native Project Setup + Auth
+**Sprint:** 35 CLOSED
+**Goal:** RN Mobile — Login/Profile UI polish, component extraction, backend auth fix
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | IDLE | Sprint 34 approved, awaiting Boss build | 2026-03-02 |
-| DEV  | IDLE | Sprint 34 complete | 2026-03-02 |
+| PO   | IDLE | Sprint 35 closed, BE deployed to production | 2026-03-03 |
+| DEV  | IDLE | Sprint 35 complete | 2026-03-03 |
 
 ---
 
@@ -39,7 +39,8 @@ _Sprint 30 — Love Letters Photos & Voice Memo: DEPLOYED_
 _Sprint 31 — Multi-Tenant coupleId Infrastructure: DEPLOYED_
 _Sprint 32 — JWT Auth, Shared Links, Couple Profile: DEPLOYED_
 _Sprint 33 — Google OAuth Login: DEPLOYED_
-_Sprint 34 — React Native Project Setup + Auth: APPROVED (Boss building)_
+_Sprint 34 — React Native Project Setup + Auth: DEPLOYED_
+_Sprint 35 — RN Login/Profile UI + BE auth fix: DEPLOYED (BE production)_
 
 ---
 
