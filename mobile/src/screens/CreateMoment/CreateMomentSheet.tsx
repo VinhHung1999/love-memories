@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useCreateMomentViewModel } from './useCreateMomentViewModel';
-import { Card, CardTitle } from '../../components/Card';
 import AlertModal from '../../components/AlertModal';
 import AppBottomSheet from '../../components/AppBottomSheet';
 import FieldLabel from '../../components/FieldLabel';
@@ -56,11 +55,11 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
           isSaving={vm.isSaving}
           onDismiss={vm.resetForm}>
 
-          <View className="pb-[60px] pt-1">
+          <View className="pb-[60px] pt-2">
 
             {/* Upload progress banner */}
             {vm.uploadProgress ? (
-              <View className="mx-4 mb-3 px-4 py-2.5 rounded-2xl flex-row items-center gap-3 bg-primary/12">
+              <View className="mx-5 mb-3 px-4 py-2.5 rounded-2xl flex-row items-center gap-3 bg-primary/12">
                 <ActivityIndicator size="small" color={colors.primary} />
                 <Text className="text-sm text-primary font-medium flex-1">
                   Uploading {vm.uploadProgress.done}/{vm.uploadProgress.total} photos...
@@ -68,21 +67,26 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
               </View>
             ) : null}
 
-            {/* Photos */}
-            <Card>
-              <CardTitle>{`📷  ${t.moments.create.photos}`}</CardTitle>
+            {/* ── Photos ── */}
+            <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+              {`📷  ${t.moments.create.photos}`}
+            </Text>
+            <View className="px-5 mb-4">
               <PhotoPicker
                 photos={vm.photos}
                 onAddFromLibrary={vm.handleAddPhotoFromLibrary}
                 onAddFromCamera={vm.handleAddPhotoFromCamera}
                 onRemove={vm.handleRemovePhoto}
               />
-            </Card>
+            </View>
 
-            {/* Details */}
-            <Card>
-              <CardTitle>{`✏️  ${t.moments.create.details}`}</CardTitle>
+            <View className="h-[1px] bg-border/40 mx-5 mb-4" />
 
+            {/* ── Details ── */}
+            <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+              {`✏️  ${t.moments.create.details}`}
+            </Text>
+            <View className="px-5">
               <FieldLabel>{`${t.moments.labels.title} *`}</FieldLabel>
               <Input
                 placeholder={t.moments.placeholders.title}
@@ -101,7 +105,7 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                 textAlignVertical="top"
               />
 
-              {/* Date — custom Pressable, not an Input */}
+              {/* Date */}
               <View className="mb-3">
                 <FieldLabel>{t.moments.labels.date}</FieldLabel>
                 <Pressable
@@ -126,8 +130,8 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                 )}
               </View>
 
-              {/* Location — custom wrapper with icon + GPS button (raw TextInput exception) */}
-              <View className="mb-3">
+              {/* Location */}
+              <View className="mb-4">
                 <FieldLabel>{t.moments.labels.location}</FieldLabel>
                 <View className="flex-row items-center rounded-2xl border-[1.5px] border-border px-[14px] h-[50px] bg-inputBg">
                   <Icon name="map-marker-outline" size={18} color={colors.textLight} />
@@ -150,11 +154,15 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                   </TouchableOpacity>
                 </View>
               </View>
-            </Card>
+            </View>
 
-            {/* Tags */}
-            <Card>
-              <CardTitle>{`🏷️  ${t.moments.labels.tags}`}</CardTitle>
+            <View className="h-[1px] bg-border/40 mx-5 mb-4" />
+
+            {/* ── Tags ── */}
+            <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+              {`🏷️  ${t.moments.labels.tags}`}
+            </Text>
+            <View className="px-5 mb-4">
               <TagInput
                 tags={vm.tags}
                 tagInput={vm.tagInput}
@@ -162,11 +170,15 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                 onAddTag={vm.handleAddTag}
                 onRemoveTag={vm.handleRemoveTag}
               />
-            </Card>
+            </View>
 
-            {/* Song + Voice Memo */}
-            <Card>
-              <CardTitle>{`🎵  ${t.moments.create.songAndMemo}`}</CardTitle>
+            <View className="h-[1px] bg-border/40 mx-5 mb-4" />
+
+            {/* ── Song + Voice Memo ── */}
+            <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+              {`🎵  ${t.moments.create.songAndMemo}`}
+            </Text>
+            <View className="px-5">
               <FieldLabel>{t.moments.labels.spotifyUrl}</FieldLabel>
               <Input
                 placeholder={t.moments.placeholders.spotifyUrl}
@@ -186,7 +198,7 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                 onPlayPreview={vm.handlePlayPreview}
                 onDelete={vm.handleDeleteAudio}
               />
-            </Card>
+            </View>
 
           </View>
         </AppBottomSheet>
