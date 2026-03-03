@@ -75,6 +75,7 @@ const en = {
     google: {
       title: 'Google Account',
       linked: '✓ Google account linked',
+      linkedSuccess: 'Google account linked!',
       linkHint: 'Link your Google account for easier sign-in',
       linkButton: 'Link Google Account',
     },
@@ -137,6 +138,9 @@ const en = {
       deleteTitle: 'Delete Moment',
       deleteMessage: 'Are you sure you want to delete this moment? This cannot be undone.',
       deleteConfirm: 'Delete',
+      deleteCommentTitle: 'Remove Comment',
+      deleteCommentMessage: 'Remove this comment?',
+      deleteCommentConfirm: 'Remove',
     },
 
     create: {
@@ -189,6 +193,10 @@ const en = {
       audioUploadFailed: 'Failed to upload voice memo',
       commentFailed: 'Failed to add comment',
       reactionFailed: 'Failed to update reaction',
+      locationFailed: 'Could not get your location',
+      maxPhotos: 'Maximum 10 photos allowed',
+      micPermissionDenied: 'Microphone permission denied',
+      recordFailed: 'Failed to start recording',
     },
   },
 
@@ -196,6 +204,7 @@ const en = {
     error: 'Error',
     success: 'Success',
     cancel: 'Cancel',
+    save: 'Save',
     delete: 'Delete',
     edit: 'Edit',
     ok: 'OK',

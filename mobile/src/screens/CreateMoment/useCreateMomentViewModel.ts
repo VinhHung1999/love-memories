@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Alert, PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
+import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import Geolocation from '@react-native-community/geolocation';
@@ -63,6 +64,12 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
   // ── Upload progress ─────────────────────────────────────────────────────────
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+
+  // ── Alert state ────────────────────────────────────────────────────────────
+  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
+  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
+    setAlert({ ...config, visible: true });
+  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // Ref holds latest handleStopRecording to avoid stale closure
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
@@ -145,7 +152,8 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: ['moment', saved.id] });
       onClose();
     },
-    onError: (err: Error) => Alert.alert(t.common.error, err.message || t.moments.errors.saveFailed),
+    onError: (err: Error) =>
+      showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
   });
 
   // ── Location: GPS + Mapbox reverse geocode ──────────────────────────────────
@@ -183,7 +191,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
       },
       () => {
         setIsGettingLocation(false);
-        Alert.alert(t.common.error, 'Could not get your location.');
+        showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.locationFailed });
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -194,14 +202,14 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
   const handleSave = () => {
     const error = validate();
-    if (error) { Alert.alert(t.common.error, error); return; }
+    if (error) { showAlert({ type: 'error', title: t.common.error, message: error }); return; }
     if (saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
   const handleAddPhotoFromLibrary = async () => {
     if (photos.length >= 10) {
-      Alert.alert(t.common.error, 'Maximum 10 photos allowed');
+      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
       return;
     }
     const result = await launchImageLibrary({
@@ -275,7 +283,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
           },
         );
         if (result !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert(t.common.error, 'Microphone permission denied.');
+          showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.micPermissionDenied });
           return;
         }
       } catch { return; }
@@ -300,7 +308,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     } catch {
       audioRecorderPlayer.removeRecordBackListener();
       setIsRecording(false);
-      Alert.alert(t.common.error, 'Could not start recording. Check microphone permissions.');
+      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
     }
   };
 
@@ -340,6 +348,10 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     isSaving: saveMutation.isPending,
     isGettingLocation,
     uploadProgress,
+
+    // alert
+    alert,
+    dismissAlert,
 
     setTitle, setCaption, setLocation, setTagInput, setSpotifyUrl, setShowDatePicker,
 

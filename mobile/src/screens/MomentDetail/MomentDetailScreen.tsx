@@ -17,6 +17,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
+import { Card, CardTitle } from '../../components/Card';
+import TagBadge from '../../components/TagBadge';
+import AlertModal from '../../components/AlertModal';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
@@ -26,24 +29,6 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   });
-}
-
-// ── Card wrapper (ProfileScreen style) ────────────────────────────────────────
-
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <View className="bg-white rounded-3xl shadow-sm mx-4 mb-3 px-4 py-3">
-      {children}
-    </View>
-  );
-}
-
-function CardTitle({ children }: { children: string }) {
-  return (
-    <Text className="text-[10px] font-bold text-textLight tracking-[0.8px] uppercase mb-2">
-      {children}
-    </Text>
-  );
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
@@ -208,9 +193,7 @@ export default function MomentDetailScreen() {
             {moment.tags.length > 0 ? (
               <View className="flex-row flex-wrap gap-1.5 pt-2">
                 {moment.tags.map(tag => (
-                  <View key={tag} className="px-2.5 py-[3px] rounded-lg bg-primary/12">
-                    <Text className="text-[11px] font-medium text-primary">{tag}</Text>
-                  </View>
+                  <TagBadge key={tag} label={tag} variant="display" />
                 ))}
               </View>
             ) : null}
@@ -278,6 +261,10 @@ export default function MomentDetailScreen() {
         ref={editSheetRef}
         momentId={moment.id}
       />
+
+      {/* ── Alert ── */}
+      <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
+
     </KeyboardAvoidingView>
   );
 }

@@ -21,6 +21,8 @@ import type { Moment } from '../../types';
 import { useMomentsViewModel } from './useMomentsViewModel';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import EmptyState from '../../components/EmptyState';
+import TagBadge from '../../components/TagBadge';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -75,38 +77,12 @@ function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }
         {moment.tags.length > 0 ? (
           <View className="flex-row flex-wrap gap-1">
             {moment.tags.slice(0, 2).map(tag => (
-              <View key={tag} className="px-2 py-[2px] rounded-lg bg-primary/12">
-                <Text className="text-[10px] font-medium text-primary">{tag}</Text>
-              </View>
+              <TagBadge key={tag} label={tag} variant="display" />
             ))}
           </View>
         ) : null}
       </View>
     </Pressable>
-  );
-}
-
-// ── Empty State ───────────────────────────────────────────────────────────────
-
-function EmptyState({ onCreatePress }: { onCreatePress: () => void }) {
-  const colors = useAppColors();
-  return (
-    <View className="flex-1 items-center justify-center px-8 py-16">
-      <View className="w-20 h-20 rounded-full items-center justify-center mb-5 bg-primary/12">
-        <Icon name="heart-multiple-outline" size={36} color={colors.primary} />
-      </View>
-      <Text className="text-xl font-bold text-textDark text-center mb-2">
-        {t.moments.emptyTitle}
-      </Text>
-      <Text className="text-sm text-textMid text-center mb-6 leading-relaxed">
-        {t.moments.emptySubtitle}
-      </Text>
-      <Pressable
-        onPress={onCreatePress}
-        className="px-6 py-3 rounded-2xl bg-primary">
-        <Text className="text-white font-semibold text-sm">{t.moments.emptyAction}</Text>
-      </Pressable>
-    </View>
   );
 }
 
@@ -149,26 +125,18 @@ export default function MomentsScreen() {
           showsHorizontalScrollIndicator={false}
           className="px-5">
           <View className="flex-row gap-2 py-2 pr-5">
-            <Pressable
+            <TagBadge
+              label={t.moments.allFilter}
+              active={!vm.activeTag}
               onPress={() => vm.handleTagPress(null)}
-              className={`px-4 py-[5px] rounded-full ${
-                !vm.activeTag ? 'bg-primary' : 'bg-white/70 border border-[rgba(196,168,168,0.25)]'
-              }`}>
-              <Text className={`text-xs font-semibold ${!vm.activeTag ? 'text-white' : 'text-textMid'}`}>
-                {t.moments.allFilter}
-              </Text>
-            </Pressable>
+            />
             {vm.allTags.map(tag => (
-              <Pressable
+              <TagBadge
                 key={tag}
+                label={tag}
+                active={vm.activeTag === tag}
                 onPress={() => vm.handleTagPress(tag)}
-                className={`px-4 py-[5px] rounded-full ${
-                  vm.activeTag === tag ? 'bg-primary' : 'bg-white/70 border border-[rgba(196,168,168,0.25)]'
-                }`}>
-                <Text className={`text-xs font-semibold ${vm.activeTag === tag ? 'text-white' : 'text-textMid'}`}>
-                  {tag}
-                </Text>
-              </Pressable>
+              />
             ))}
           </View>
         </ScrollView>
@@ -180,7 +148,13 @@ export default function MomentsScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : vm.isEmpty ? (
-        <EmptyState onCreatePress={openCreateSheet} />
+        <EmptyState
+          icon="heart-multiple-outline"
+          title={t.moments.emptyTitle}
+          subtitle={t.moments.emptySubtitle}
+          actionLabel={t.moments.emptyAction}
+          onAction={openCreateSheet}
+        />
       ) : (
         <Animated.ScrollView
           className="flex-1"

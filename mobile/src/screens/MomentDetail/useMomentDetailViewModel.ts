@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AlertConfig } from '../../components/AlertModal';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -31,6 +31,12 @@ export function useMomentDetailViewModel() {
   // ── Comment input ──────────────────────────────────────────────────────────
   const [commentText, setCommentText] = useState('');
 
+  // ── Alert state ────────────────────────────────────────────────────────────
+  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
+  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
+    setAlert({ ...config, visible: true });
+  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
+
   // ── Data ──────────────────────────────────────────────────────────────────
 
   const { data: moment, isLoading } = useQuery({
@@ -58,7 +64,7 @@ export function useMomentDetailViewModel() {
     mutationFn: (emoji: string) =>
       momentsApi.toggleReaction(momentId, { emoji, author: user?.name ?? 'Unknown' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['moment', momentId] }),
-    onError: () => Alert.alert(t.common.error, t.moments.errors.reactionFailed),
+    onError: () => showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.reactionFailed }),
   });
 
   const commentMutation = useMutation({
@@ -68,7 +74,7 @@ export function useMomentDetailViewModel() {
       queryClient.invalidateQueries({ queryKey: ['moment', momentId] });
       setCommentText('');
     },
-    onError: () => Alert.alert(t.common.error, t.moments.errors.commentFailed),
+    onError: () => showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.commentFailed }),
   });
 
   const deleteCommentMutation = useMutation({
@@ -82,7 +88,7 @@ export function useMomentDetailViewModel() {
       queryClient.invalidateQueries({ queryKey: ['moments'] });
       navigation.goBack();
     },
-    onError: () => Alert.alert(t.common.error, t.moments.errors.deleteFailed),
+    onError: () => showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.deleteFailed }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -109,21 +115,23 @@ export function useMomentDetailViewModel() {
   };
 
   const handleDeleteComment = (commentId: string) => {
-    Alert.alert(t.common.delete, 'Remove this comment?', [
-      { text: t.common.cancel, style: 'cancel' },
-      { text: t.common.delete, style: 'destructive', onPress: () => deleteCommentMutation.mutate(commentId) },
-    ]);
+    showAlert({
+      type: 'destructive',
+      title: t.moments.detail.deleteCommentTitle,
+      message: t.moments.detail.deleteCommentMessage,
+      confirmLabel: t.moments.detail.deleteCommentConfirm,
+      onConfirm: () => deleteCommentMutation.mutate(commentId),
+    });
   };
 
   const handleDeleteMoment = () => {
-    Alert.alert(t.moments.detail.deleteTitle, t.moments.detail.deleteMessage, [
-      { text: t.common.cancel, style: 'cancel' },
-      {
-        text: t.moments.detail.deleteConfirm,
-        style: 'destructive',
-        onPress: () => deleteMomentMutation.mutate(),
-      },
-    ]);
+    showAlert({
+      type: 'destructive',
+      title: t.moments.detail.deleteTitle,
+      message: t.moments.detail.deleteMessage,
+      confirmLabel: t.moments.detail.deleteConfirm,
+      onConfirm: () => deleteMomentMutation.mutate(),
+    });
   };
 
   const handlePlayAudio = async (audioId: string, url: string) => {
@@ -171,6 +179,10 @@ export function useMomentDetailViewModel() {
     commentText,
     isCommentSubmitting: commentMutation.isPending,
     isDeleting: deleteMomentMutation.isPending,
+
+    // alert
+    alert,
+    dismissAlert,
 
     reactionCounts,
     hasReacted,
