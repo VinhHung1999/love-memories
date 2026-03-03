@@ -19,7 +19,9 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/src/*"],
+      "@shared": ["../shared/src/index.ts"]
     }
   },
   "include": ["src", "vite-env.d.ts"]

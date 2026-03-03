@@ -175,3 +175,60 @@ Always respect this order when adding new overlay or panel components.
 - **Image proxy:** GET /api/share/:token/image — validates share token, proxies CDN image with `Cache-Control: public, max-age=86400`
 - **Frontend viewer:** `/s/:token` route (public, outside auth gate). Uses raw `fetch()` for public API. Images via share proxy
 - **Share buttons:** MomentDetail, RecipeDetail, LetterReadOverlay — `navigator.share()` with clipboard fallback
+
+## React Native Mobile App (Sprint 34+)
+
+### Architecture — MVVM Pattern (Boss mandated)
+- **Models:** `src/types/` — data interfaces (AuthUser, CoupleProfile, etc.)
+- **Screens = folders:** Each screen is a folder with view + viewmodel co-located:
+  ```
+  src/screens/
+  ├── Login/
+  │   ├── LoginScreen.tsx          # View — pure UI rendering
+  │   └── useLoginViewModel.ts     # ViewModel — logic, state, API calls
+  ├── Profile/
+  │   ├── ProfileScreen.tsx
+  │   └── useProfileViewModel.ts
+  └── Dashboard/
+      ├── DashboardScreen.tsx
+      └── useDashboardViewModel.ts
+  ```
+- **Components:** `src/components/` — reusable UI (Input, Button, etc.)
+
+### Key Conventions
+- **Theme:** `src/lib/theme.ts` — centralized colors, spacing, fonts. NO hardcoded hex values in screens/components
+- **i18n:** `src/locales/en.ts` — all UI strings extracted. Prepared for multi-language support
+- **NativeWind v4:** Metro config only (`withNativeWind`), NOT babel plugin. `'nativewind/babel'` in babel.config causes `.plugins is not a valid Plugin property` error on RN 0.84
+- **Token storage:** react-native-keychain (NOT AsyncStorage)
+- **API base:** `__DEV__` → dev-love-scrum-api.hungphu.work, prod → love-scrum-api.hungphu.work
+- **Google Sign-In:** `@react-native-google-signin/google-signin`, native. Needs Web + iOS + Android Client IDs
+
+### Project Location
+- Folder: `mobile/` in monorepo (alongside `frontend/` and `backend/`)
+- `shared/` for types, API paths, validation (shared between web + mobile)
+
+### React Native: MVVM Folder Structure (Sprint 35)
+- Each screen = folder: screens/Login/, Profile/, Dashboard/
+- View (LoginScreen.tsx) + ViewModel (useLoginViewModel.ts) co-located in same folder
+- screens/index.ts re-exports all screens for clean navigation imports
+- Navigation imports: `import { LoginScreen } from '../screens'`
+
+### React Native: Styling Convention
+- NativeWind (className) for ALL static styles — no StyleSheet.create() anywhere
+- Inline style objects for: animated/dynamic values, custom shadow colors, computed positions
+- Shadow with custom color → inline: { shadowColor: colors.primary, ... }
+
+### React Native: Theme System
+- src/navigation/theme.ts — AppTheme extends DefaultTheme with full brand palette
+- NavigationContainer receives theme={AppTheme} → tab bars/headers auto-apply brand colors
+- Components use `useAppColors()` hook (in navigation/theme.ts) instead of importing colors directly
+- useAppColors() wraps useTheme() from @react-navigation/native with AppColors type
+- Must be called inside NavigationContainer context (all screens/components qualify)
+- For non-React-component usage (navigation options): import AppTheme directly, use AppTheme.colors.xxx
+
+### React Native: Global Loading Overlay
+- src/contexts/LoadingContext.tsx — React context with showLoading() / hideLoading() / isLoading
+- src/components/LoadingOverlay.tsx — Modal-based full-screen overlay, blocks all touches
+- LoadingProvider wraps App.tsx; LoadingOverlay rendered inside NavigationContainer in RootNavigator
+- Any viewmodel calls showLoading()/hideLoading() around API calls
+- Replaces per-component loading state for actions that need full-screen blocking
