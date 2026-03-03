@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
 import { GoogleProfile } from '../../types';
+import t from '../../locales/en';
 
 export type Mode       = 'login' | 'register';
 export type CoupleMode = 'create' | 'join' | null;
@@ -91,11 +92,14 @@ export function useLoginViewModel() {
 
   const handleSubmit = async () => {
     dispatch({ type: 'SET_ERROR', message: '' });
+    // ── Validate both modes ──────────────────────────────────────────────
+    if (!s.email.trim())    { dispatch({ type: 'SET_ERROR', message: t.login.errors.emailRequired }); return; }
+    if (!s.password)        { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordRequired }); return; }
     if (s.mode === 'register') {
-      if (!s.name.trim())                                    { dispatch({ type: 'SET_ERROR', message: 'Please enter your name' }); return; }
-      if (!s.coupleMode)                                     { dispatch({ type: 'SET_ERROR', message: 'Please select create or join a couple' }); return; }
-      if (s.coupleMode === 'create' && !s.coupleName.trim()) { dispatch({ type: 'SET_ERROR', message: 'Please enter couple name' }); return; }
-      if (s.coupleMode === 'join'   && !s.inviteCode.trim()) { dispatch({ type: 'SET_ERROR', message: 'Please enter invite code' }); return; }
+      if (!s.name.trim())                                    { dispatch({ type: 'SET_ERROR', message: t.login.errors.nameRequired }); return; }
+      if (!s.coupleMode)                                     { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleModeRequired }); return; }
+      if (s.coupleMode === 'create' && !s.coupleName.trim()) { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleNameRequired }); return; }
+      if (s.coupleMode === 'join'   && !s.inviteCode.trim()) { dispatch({ type: 'SET_ERROR', message: t.login.errors.inviteCodeRequired }); return; }
     }
     showLoading();
     try {
@@ -108,7 +112,7 @@ export function useLoginViewModel() {
         });
       }
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : 'Something went wrong' });
+      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : t.login.errors.somethingWrong });
     } finally {
       hideLoading();
     }
@@ -120,7 +124,7 @@ export function useLoginViewModel() {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
-      if (!idToken) { dispatch({ type: 'SET_ERROR', message: 'Google Sign-In failed: no ID token' }); return; }
+      if (!idToken) { dispatch({ type: 'SET_ERROR', message: t.login.errors.googleNoToken }); return; }
       showLoading();
       const result = await loginWithGoogle(idToken);
       if (result?.needsCouple) {
@@ -130,7 +134,7 @@ export function useLoginViewModel() {
       const e = err as { code?: string };
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
       if (e?.code === statusCodes.IN_PROGRESS)        return;
-      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : 'Google Sign-In failed' });
+      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : t.login.errors.googleSignInFailed });
     } finally {
       hideLoading();
     }
@@ -138,9 +142,9 @@ export function useLoginViewModel() {
 
   const handleGoogleCoupleComplete = async () => {
     dispatch({ type: 'SET_ERROR', message: '' });
-    if (!s.googleCoupleMode)                                           { dispatch({ type: 'SET_ERROR', message: 'Please select create or join' }); return; }
-    if (s.googleCoupleMode === 'create' && !s.googleCoupleName.trim()) { dispatch({ type: 'SET_ERROR', message: 'Please enter couple name' }); return; }
-    if (s.googleCoupleMode === 'join'   && !s.googleInviteCode.trim()) { dispatch({ type: 'SET_ERROR', message: 'Please enter invite code' }); return; }
+    if (!s.googleCoupleMode)                                           { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleModeRequiredShort }); return; }
+    if (s.googleCoupleMode === 'create' && !s.googleCoupleName.trim()) { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleNameRequired }); return; }
+    if (s.googleCoupleMode === 'join'   && !s.googleInviteCode.trim()) { dispatch({ type: 'SET_ERROR', message: t.login.errors.inviteCodeRequired }); return; }
     showLoading();
     try {
       await completeGoogleSignup(s.pendingGoogleIdToken, {
@@ -148,7 +152,7 @@ export function useLoginViewModel() {
         coupleName: s.googleCoupleMode === 'create' ? s.googleCoupleName.trim() : undefined,
       });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : 'Google signup failed' });
+      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : t.login.errors.googleSignupFailed });
     } finally {
       hideLoading();
     }

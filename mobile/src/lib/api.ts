@@ -12,6 +12,14 @@ const API_BASE = __DEV__
 const KEYCHAIN_SERVICE = 'love-scrum';
 
 // ---------------------------------------------------------------------------
+// Warmup — pre-resolve DNS + TLS on app start so first real API call is fast
+// ---------------------------------------------------------------------------
+
+export function warmupConnection(): void {
+  fetch(`${API_BASE}/api/health`, { method: 'HEAD' }).catch(() => {});
+}
+
+// ---------------------------------------------------------------------------
 // Token storage helpers (keychain)
 // ---------------------------------------------------------------------------
 

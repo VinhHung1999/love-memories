@@ -45,6 +45,8 @@ const en = {
     },
 
     errors: {
+      emailRequired: 'Please enter your email',
+      passwordRequired: 'Please enter your password',
       nameRequired: 'Please enter your name',
       coupleModeRequired: 'Please select create or join a couple',
       coupleNameRequired: 'Please enter couple name',

@@ -5,8 +5,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthProvider } from './src/lib/auth';
 import { LoadingProvider } from './src/contexts/LoadingContext';
+import { warmupConnection } from './src/lib/api';
 import RootNavigator from './src/navigation';
 import './src/global.css';
+
+// Pre-warm DNS + TLS to Cloudflare Tunnel so first API call isn't slow
+warmupConnection();
 
 // Configure Google Sign-In once at app startup.
 // webClientId = your Google OAuth Web Client ID (same GOOGLE_CLIENT_ID used on backend).
