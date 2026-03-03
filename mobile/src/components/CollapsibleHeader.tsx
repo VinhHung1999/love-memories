@@ -34,20 +34,17 @@ export default function CollapsibleHeader({
 
   // ── Animated styles ─────────────────────────────────────────────────────────
 
-  // Outer container clips content via overflow-hidden.
-  // LinearGradient is NOT inside here — it sits on a fixed-size inner View
-  // so it never resizes → no per-frame re-draw.
-  const containerStyle = useAnimatedStyle(() => ({
-    height: interpolate(
-      scrollY.value,
-      [0, scrollRange],
-      [totalExpandedHeight, collapsedHeight + insets.top],
-      Extrapolation.CLAMP,
-    ),
+  // Outer container height is STATIC → zero layout recalculation on scroll.
+  // Inner wrapper slides up via translateY (GPU-only, no layout pass).
+  // Exception: Animated transform — cannot be expressed as className.
+  const innerTranslateStyle = useAnimatedStyle(() => ({
+    transform: [{
+      translateY: interpolate(scrollY.value, [0, scrollRange], [0, -scrollRange], Extrapolation.CLAMP),
+    }],
   }));
 
-  // Subtitle + renderExpandedContent: fade + collapse as user scrolls
-  // Exception: animated opacity + maxHeight — both are Animated.Value outputs
+  // Subtitle + renderExpandedContent: fade + collapse as user scrolls.
+  // Exception: animated opacity + maxHeight — both are Animated.Value outputs.
   const expandedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, scrollRange * 0.7], [1, 0], Extrapolation.CLAMP),
     maxHeight: interpolate(scrollY.value, [0, scrollRange], [200, 0], Extrapolation.CLAMP),
@@ -55,7 +52,7 @@ export default function CollapsibleHeader({
   }));
 
   // Title crossfade: large fades out, small fades in.
-  // Avoids animating fontSize (which forces JS-thread text layout on every frame).
+  // Avoids animating fontSize which forces JS-thread text layout per frame.
   const largeTitleStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, scrollRange * 0.5], [1, 0], Extrapolation.CLAMP),
   }));
@@ -64,11 +61,17 @@ export default function CollapsibleHeader({
   }));
 
   return (
-    <Animated.View style={containerStyle} className="overflow-hidden">
+    // STATIC height — content below header never shifts → no layout recalc on scroll.
+    // Exception: paddingTop via insets — device-specific runtime value.
+    <View style={{ height: collapsedHeight + insets.top, overflow: 'hidden' }}>
 
-      {/* Fixed-height inner View: LinearGradient absolute inside here so it
-          never resizes with the animated container → zero per-frame re-draw. */}
-      <View style={{ height: totalExpandedHeight }}>
+      {/* Inner wrapper: absolute, full expanded height, slides up via translateY.
+          LinearGradient is absolute inset-0 here — never resizes, zero re-draw. */}
+      <Animated.View
+        style={[
+          { position: 'absolute', top: 0, left: 0, right: 0, height: totalExpandedHeight },
+          innerTranslateStyle,
+        ]}>
 
         <LinearGradient
           colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
@@ -98,7 +101,7 @@ export default function CollapsibleHeader({
               ) : null}
 
               {/* Two static-font Text elements with opacity crossfade.
-                  Small title is absolute so it occupies no extra layout space. */}
+                  Small title is absolute so it takes no extra layout space. */}
               <View>
                 <Animated.Text
                   className="font-bold text-[28px] text-textDark tracking-tight"
@@ -119,8 +122,8 @@ export default function CollapsibleHeader({
           </View>
 
         </View>
-      </View>
+      </Animated.View>
 
-    </Animated.View>
+    </View>
   );
 }
