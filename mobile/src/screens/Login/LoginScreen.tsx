@@ -7,153 +7,20 @@ import {
   ScrollView,
   StatusBar,
   Text,
-  Vibration,
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Svg, { Path } from 'react-native-svg';
-import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { useLoginViewModel, CoupleMode } from './useLoginViewModel';
-
-// ── Animated spring wrapper ──────────────────────────────────────────────────
-// style prop kept: Animated.Value transform cannot be expressed as a className
-function SpringPressable({
-  onPress,
-  disabled,
-  children,
-  className: cls,
-}: {
-  onPress: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () =>
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, speed: 50, bounciness: 4 }).start();
-
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }).start();
-    if (!disabled) { Vibration.vibrate(8); onPress(); }
-  };
-
-  return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} disabled={disabled}>
-      <Animated.View className={cls} style={{ transform: [{ scale }] }}>
-        {children}
-      </Animated.View>
-    </Pressable>
-  );
-}
-
-// ── Pulsing heart logo ───────────────────────────────────────────────────────
-function HeartLogo() {
-  const colors = useAppColors(); // needed: Icon color prop
-  const pulse = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.08, duration: 900, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1,    duration: 900, useNativeDriver: true }),
-      ]),
-    ).start();
-  }, [pulse]);
-
-  return (
-    <View className="w-16 h-16 items-center justify-center mb-[10px]">
-      {/* style kept: Animated.Value transform */}
-      <Animated.View
-        className="absolute w-16 h-16 rounded-full border-2 border-primary/30 bg-primary/[7%]"
-        style={{ transform: [{ scale: pulse }] }}
-      />
-      <View className="w-12 h-12 rounded-full bg-primary items-center justify-center shadow-lg">
-        <Icon name="heart" size={22} color={colors.white} />
-      </View>
-    </View>
-  );
-}
-
-// ── Official 4-colour Google G ───────────────────────────────────────────────
-function GoogleGLogo({ size = 22 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-      <Path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-      <Path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-      <Path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-    </Svg>
-  );
-}
-
-// ── Couple mode selector ─────────────────────────────────────────────────────
-function CoupleModeSelector({ value, onChange }: { value: CoupleMode; onChange: (v: CoupleMode) => void }) {
-  const colors = useAppColors(); // needed: Icon color prop
-
-  return (
-    <View className="flex-row gap-[10px] mb-[14px]">
-      {(['create', 'join'] as const).map(opt => {
-        const active = value === opt;
-        return (
-          <View key={opt} className="flex-1">
-            <SpringPressable
-              className={`flex-col items-center gap-[6px] py-3 rounded-[14px] border-[1.5px] ${
-                active ? 'border-primary bg-primary/[8%]' : 'border-white/60 bg-white/70'
-              }`}
-              onPress={() => onChange(opt)}>
-              <Icon
-                name={opt === 'create' ? 'plus-circle-outline' : 'account-heart-outline'}
-                size={20}
-                color={active ? colors.primary : colors.textLight}
-              />
-              <Text className={`text-xs ${active ? 'text-primary font-semibold' : 'text-textLight font-medium'}`}>
-                {opt === 'create' ? t.login.couple.createNew : t.login.couple.joinExisting}
-              </Text>
-            </SpringPressable>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-// ── Error box ────────────────────────────────────────────────────────────────
-function ErrorBox({ message }: { message: string }) {
-  const colors = useAppColors(); // needed: Icon color prop
-
-  return (
-    <View className="flex-row items-center gap-[7px] bg-errorBg rounded-xl px-[14px] py-[10px] mb-3">
-      <Icon name="alert-circle-outline" size={14} color={colors.errorColor} />
-      <Text className="flex-1 text-[13px] leading-[18px] text-error">{message}</Text>
-    </View>
-  );
-}
-
-// ── Decorative background blobs ───────────────────────────────────────────────
-// top-[40%] replaces SCREEN_HEIGHT * 0.4 — parent is flex-1 (full screen), so 40% ≈ same result
-function DecoBlobs() {
-  return (
-    <>
-      <View className="absolute w-[300px] h-[300px] -top-[100px] -right-[70px] rounded-full bg-primary/[13%]" />
-      <View className="absolute w-[240px] h-[240px] -bottom-[80px] -left-[70px] rounded-full bg-secondary/[11%]" />
-      <View className="absolute w-[140px] h-[140px] top-[40%] -left-[50px] rounded-full bg-accent/10" />
-    </>
-  );
-}
-
-// ── Field label ──────────────────────────────────────────────────────────────
-function FieldLabel({ children }: { children: string }) {
-  return (
-    <Text className="text-[13px] font-semibold text-textDark mb-[6px] tracking-[0.1px]">
-      {children}
-    </Text>
-  );
-}
+import SpringPressable from '../../components/SpringPressable';
+import ErrorBox from '../../components/ErrorBox';
+import FieldLabel from '../../components/FieldLabel';
+import HeartLogo from './components/HeartLogo';
+import GoogleGLogo from './components/GoogleGLogo';
+import CoupleModeSelector from './components/CoupleModeSelector';
+import DecoBlobs from './components/DecoBlobs';
+import { useLoginViewModel } from './useLoginViewModel';
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen() {
