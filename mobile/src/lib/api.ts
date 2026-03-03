@@ -314,7 +314,7 @@ export const momentsApi = {
     const stored = await getStoredTokens();
     const formData = new FormData();
     const ext = mimeType === 'image/png' ? 'png' : 'jpg';
-    formData.append('photo', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
+    formData.append('photos', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
     const headers: Record<string, string> = {};
     if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
     const res = await fetch(`${API_BASE}/api/moments/${momentId}/photos`, {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -55,22 +55,29 @@ export function useCreateMomentViewModel() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
+  // Ref holds latest handleStopRecording to avoid stale closure in addRecordBackListener
+  const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
+
   // ── Load existing data if editing ─────────────────────────────────────────
-  useQuery({
+  const { data: existingMoment } = useQuery({
     queryKey: ['moment', momentId],
     queryFn: () => momentsApi.get(momentId!),
     enabled: isEdit,
     staleTime: 0,
-    select: data => {
-      setTitle(data.title);
-      setCaption(data.caption ?? '');
-      setDate(new Date(data.date));
-      setLocation(data.location ?? '');
-      setTags(data.tags);
-      setSpotifyUrl(data.spotifyUrl ?? '');
-      return data;
-    },
   });
+
+  // Populate form once on mount (useEffect avoids calling setState inside select → infinite loop)
+  useEffect(() => {
+    if (existingMoment) {
+      setTitle(existingMoment.title);
+      setCaption(existingMoment.caption ?? '');
+      setDate(new Date(existingMoment.date));
+      setLocation(existingMoment.location ?? '');
+      setTags(existingMoment.tags);
+      setSpotifyUrl(existingMoment.spotifyUrl ?? '');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingMoment?.id]); // key on id: re-populate only when a different moment loads
 
   // ── Validation ─────────────────────────────────────────────────────────────
 
@@ -190,6 +197,21 @@ export function useCreateMomentViewModel() {
     if (selectedDate) setDate(selectedDate);
   };
 
+  const handleStopRecording = useCallback(async () => {
+    try {
+      const path = await audioRecorderPlayer.stopRecorder();
+      audioRecorderPlayer.removeRecordBackListener();
+      setIsRecording(false);
+      if (path) setRecordedAudioPath(path);
+    } catch {
+      audioRecorderPlayer.removeRecordBackListener();
+      setIsRecording(false);
+    }
+  }, []);
+
+  // Keep ref pointing to latest handleStopRecording so the listener never has a stale closure
+  stopRecordingRef.current = handleStopRecording;
+
   const handleStartRecording = async () => {
     try {
       setIsRecording(true);
@@ -204,24 +226,14 @@ export function useCreateMomentViewModel() {
       audioRecorderPlayer.addRecordBackListener((e: RecordBackType) => {
         setRecordingDuration(Math.floor(e.currentPosition / 1000));
         if (e.currentPosition >= 300_000) {
-          // 5-minute max
-          handleStopRecording();
+          // 5-minute max — call via ref to always use latest function, not stale closure
+          stopRecordingRef.current();
         }
       });
     } catch {
-      setIsRecording(false);
-      Alert.alert(t.common.error, 'Could not start recording. Check microphone permissions.');
-    }
-  };
-
-  const handleStopRecording = async () => {
-    try {
-      const path = await audioRecorderPlayer.stopRecorder();
       audioRecorderPlayer.removeRecordBackListener();
       setIsRecording(false);
-      if (path) setRecordedAudioPath(path);
-    } catch {
-      setIsRecording(false);
+      Alert.alert(t.common.error, 'Could not start recording. Check microphone permissions.');
     }
   };
 
