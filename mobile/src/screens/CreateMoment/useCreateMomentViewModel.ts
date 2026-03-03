@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useReducer } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
 import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import audioRecorderPlayer, {
 } from 'react-native-audio-recorder-player';
 
 import { momentsApi } from '../../lib/api';
+import type { Moment } from '../../types';
 import t from '../../locales/en';
 
 const SPOTIFY_REGEX = /^https:\/\/open\.spotify\.com\/.+/;
@@ -31,6 +32,95 @@ export interface UploadProgress {
   total: number;
 }
 
+// ── Reducer ──────────────────────────────────────────────────────────────────
+
+interface FormState {
+  title: string;
+  caption: string;
+  date: Date;
+  location: string;
+  latitude: number | undefined;
+  longitude: number | undefined;
+  tagInput: string;
+  tags: string[];
+  spotifyUrl: string;
+  showDatePicker: boolean;
+  isGettingLocation: boolean;
+  photos: LocalPhoto[];
+  isRecording: boolean;
+  recordedAudioPath: string | null;
+  recordingDuration: number;
+  isPlayingPreview: boolean;
+  uploadProgress: UploadProgress | null;
+}
+
+type FormAction =
+  | { type: 'SET_FIELD'; field: keyof FormState; value: any }
+  | { type: 'ADD_PHOTOS'; photos: LocalPhoto[] }
+  | { type: 'REMOVE_PHOTO'; index: number }
+  | { type: 'ADD_TAG'; tag: string }
+  | { type: 'REMOVE_TAG'; tag: string }
+  | { type: 'LOAD_EXISTING'; moment: Moment }
+  | { type: 'INCREMENT_UPLOAD' }
+  | { type: 'RESET' };
+
+function makeInitialState(): FormState {
+  return {
+    title: '',
+    caption: '',
+    date: new Date(),
+    location: '',
+    latitude: undefined,
+    longitude: undefined,
+    tagInput: '',
+    tags: [],
+    spotifyUrl: '',
+    showDatePicker: false,
+    isGettingLocation: false,
+    photos: [],
+    isRecording: false,
+    recordedAudioPath: null,
+    recordingDuration: 0,
+    isPlayingPreview: false,
+    uploadProgress: null,
+  };
+}
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+    case 'ADD_PHOTOS':
+      return { ...state, photos: [...state.photos, ...action.photos] };
+    case 'REMOVE_PHOTO':
+      return { ...state, photos: state.photos.filter((_, i) => i !== action.index) };
+    case 'ADD_TAG':
+      return { ...state, tags: [...state.tags, action.tag], tagInput: '' };
+    case 'REMOVE_TAG':
+      return { ...state, tags: state.tags.filter(existing => existing !== action.tag) };
+    case 'LOAD_EXISTING':
+      return {
+        ...state,
+        title: action.moment.title,
+        caption: action.moment.caption ?? '',
+        date: new Date(action.moment.date),
+        location: action.moment.location ?? '',
+        tags: action.moment.tags,
+        spotifyUrl: action.moment.spotifyUrl ?? '',
+      };
+    case 'INCREMENT_UPLOAD':
+      return state.uploadProgress
+        ? { ...state, uploadProgress: { ...state.uploadProgress, done: state.uploadProgress.done + 1 } }
+        : state;
+    case 'RESET':
+      return makeInitialState();
+    default:
+      return state;
+  }
+}
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
+
 interface Props {
   momentId?: string | null;
   onClose: () => void;
@@ -40,38 +130,15 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
 
-  // ── Form state ──────────────────────────────────────────────────────────────
-  const [title, setTitle] = useState('');
-  const [caption, setCaption] = useState('');
-  const [date, setDate] = useState(new Date());
-  const [location, setLocation] = useState('');
-  const [latitude, setLatitude] = useState<number | undefined>();
-  const [longitude, setLongitude] = useState<number | undefined>();
-  const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [spotifyUrl, setSpotifyUrl] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
 
-  // ── Photo state ─────────────────────────────────────────────────────────────
-  const [photos, setPhotos] = useState<LocalPhoto[]>([]);
-
-  // ── Audio state ─────────────────────────────────────────────────────────────
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordedAudioPath, setRecordedAudioPath] = useState<string | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState(0);
-  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
-
-  // ── Upload progress ─────────────────────────────────────────────────────────
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
-
-  // ── Alert state ────────────────────────────────────────────────────────────
+  // ── Alert state (kept separate — AlertConfig has onConfirm callback) ─────────
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
   const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
     setAlert({ ...config, visible: true });
   const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
-  // Ref holds latest handleStopRecording to avoid stale closure
+  // Ref holds latest handleStopRecording to avoid stale closure in RecordBackListener
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
 
   // ── Load existing data if editing ───────────────────────────────────────────
@@ -84,37 +151,32 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
   useEffect(() => {
     if (existingMoment) {
-      setTitle(existingMoment.title);
-      setCaption(existingMoment.caption ?? '');
-      setDate(new Date(existingMoment.date));
-      setLocation(existingMoment.location ?? '');
-      setTags(existingMoment.tags);
-      setSpotifyUrl(existingMoment.spotifyUrl ?? '');
+      dispatch({ type: 'LOAD_EXISTING', moment: existingMoment });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingMoment?.id]);
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = useCallback((): string | null => {
-    if (!title.trim()) return t.moments.errors.titleRequired;
-    if (title.trim().length > 200) return t.moments.errors.titleTooLong;
-    if (spotifyUrl && !SPOTIFY_REGEX.test(spotifyUrl.trim()))
+    if (!s.title.trim()) return t.moments.errors.titleRequired;
+    if (s.title.trim().length > 200) return t.moments.errors.titleTooLong;
+    if (s.spotifyUrl && !SPOTIFY_REGEX.test(s.spotifyUrl.trim()))
       return t.moments.errors.spotifyInvalid;
     return null;
-  }, [title, spotifyUrl]);
+  }, [s.title, s.spotifyUrl]);
 
   // ── Save mutation ───────────────────────────────────────────────────────────
   const saveMutation = useMutation({
     mutationFn: async () => {
       const payload = {
-        title: title.trim(),
-        caption: caption.trim() || undefined,
-        date: date.toISOString(),
-        location: location.trim() || undefined,
-        latitude,
-        longitude,
-        tags,
-        spotifyUrl: spotifyUrl.trim() || undefined,
+        title: s.title.trim(),
+        caption: s.caption.trim() || undefined,
+        date: s.date.toISOString(),
+        location: s.location.trim() || undefined,
+        latitude: s.latitude,
+        longitude: s.longitude,
+        tags: s.tags,
+        spotifyUrl: s.spotifyUrl.trim() || undefined,
       };
 
       const savedMoment = isEdit
@@ -122,25 +184,25 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
         : await momentsApi.create(payload);
 
       // Upload photos with progress tracking (non-blocking)
-      const pendingPhotos = photos.filter(p => !p.uploaded);
+      const pendingPhotos = s.photos.filter(p => !p.uploaded);
       if (pendingPhotos.length > 0) {
-        setUploadProgress({ done: 0, total: pendingPhotos.length });
+        dispatch({ type: 'SET_FIELD', field: 'uploadProgress', value: { done: 0, total: pendingPhotos.length } });
         Promise.all(
           pendingPhotos.map(p =>
             momentsApi.uploadPhoto(savedMoment.id, p.uri, p.mimeType)
-              .then(() => setUploadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null))
-              .catch(() => setUploadProgress(prev => prev ? { ...prev, done: prev.done + 1 } : null)),
+              .then(() => dispatch({ type: 'INCREMENT_UPLOAD' }))
+              .catch(() => dispatch({ type: 'INCREMENT_UPLOAD' })),
           ),
         ).then(() => {
-          setUploadProgress(null);
+          dispatch({ type: 'SET_FIELD', field: 'uploadProgress', value: null });
           queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] });
           queryClient.invalidateQueries({ queryKey: ['moments'] });
         });
       }
 
       // Upload audio in background
-      if (recordedAudioPath) {
-        momentsApi.uploadAudio(savedMoment.id, recordedAudioPath)
+      if (s.recordedAudioPath) {
+        momentsApi.uploadAudio(savedMoment.id, s.recordedAudioPath)
           .then(() => queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] }))
           .catch(() => null);
       }
@@ -173,24 +235,24 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
       } catch { return; }
     }
 
-    setIsGettingLocation(true);
+    dispatch({ type: 'SET_FIELD', field: 'isGettingLocation', value: true });
     Geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        setLatitude(lat);
-        setLongitude(lng);
+        dispatch({ type: 'SET_FIELD', field: 'latitude', value: lat });
+        dispatch({ type: 'SET_FIELD', field: 'longitude', value: lng });
         try {
           const res = await fetch(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=address,place,locality&language=vi`,
           );
           const data = await res.json() as { features?: Array<{ place_name?: string }> };
           const place = data.features?.[0]?.place_name;
-          if (place) setLocation(place);
+          if (place) dispatch({ type: 'SET_FIELD', field: 'location', value: place });
         } catch { /* keep coords without address */ }
-        setIsGettingLocation(false);
+        dispatch({ type: 'SET_FIELD', field: 'isGettingLocation', value: false });
       },
       () => {
-        setIsGettingLocation(false);
+        dispatch({ type: 'SET_FIELD', field: 'isGettingLocation', value: false });
         showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.locationFailed });
       },
       { enableHighAccuracy: true, timeout: 10000 },
@@ -208,62 +270,58 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
   };
 
   const handleAddPhotoFromLibrary = async () => {
-    if (photos.length >= 10) {
+    if (s.photos.length >= 10) {
       showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
       return;
     }
     const result = await launchImageLibrary({
       mediaType: 'photo',
       quality: 1,
-      selectionLimit: Math.min(10 - photos.length, 5),
+      selectionLimit: Math.min(10 - s.photos.length, 5),
     });
     if (result.didCancel || !result.assets) return;
     const newPhotos: LocalPhoto[] = result.assets
       .filter(a => a.uri)
       .map(a => ({ uri: a.uri!, mimeType: a.type ?? 'image/jpeg', uploaded: false }));
-    setPhotos(prev => [...prev, ...newPhotos]);
+    dispatch({ type: 'ADD_PHOTOS', photos: newPhotos });
   };
 
   const handleAddPhotoFromCamera = async () => {
-    if (photos.length >= 10) return;
+    if (s.photos.length >= 10) return;
     const result = await launchCamera({ mediaType: 'photo', quality: 1 });
     if (result.didCancel || !result.assets?.[0]?.uri) return;
     const asset = result.assets[0];
-    setPhotos(prev => [
-      ...prev,
-      { uri: asset.uri!, mimeType: asset.type ?? 'image/jpeg', uploaded: false },
-    ]);
+    dispatch({ type: 'ADD_PHOTOS', photos: [{ uri: asset.uri!, mimeType: asset.type ?? 'image/jpeg', uploaded: false }] });
   };
 
   const handleRemovePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
+    dispatch({ type: 'REMOVE_PHOTO', index });
   };
 
   const handleAddTag = () => {
-    const tag = tagInput.trim();
-    if (!tag || tags.includes(tag) || tags.length >= 10) return;
-    setTags(prev => [...prev, tag]);
-    setTagInput('');
+    const tag = s.tagInput.trim();
+    if (!tag || s.tags.includes(tag) || s.tags.length >= 10) return;
+    dispatch({ type: 'ADD_TAG', tag });
   };
 
   const handleRemoveTag = (tag: string) => {
-    setTags(prev => prev.filter(existing => existing !== tag));
+    dispatch({ type: 'REMOVE_TAG', tag });
   };
 
   const handleDateChange = (_: unknown, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) setDate(selectedDate);
+    dispatch({ type: 'SET_FIELD', field: 'showDatePicker', value: false });
+    if (selectedDate) dispatch({ type: 'SET_FIELD', field: 'date', value: selectedDate });
   };
 
   const handleStopRecording = useCallback(async () => {
     try {
       const path = await audioRecorderPlayer.stopRecorder();
       audioRecorderPlayer.removeRecordBackListener();
-      setIsRecording(false);
-      if (path) setRecordedAudioPath(path);
+      dispatch({ type: 'SET_FIELD', field: 'isRecording', value: false });
+      if (path) dispatch({ type: 'SET_FIELD', field: 'recordedAudioPath', value: path });
     } catch {
       audioRecorderPlayer.removeRecordBackListener();
-      setIsRecording(false);
+      dispatch({ type: 'SET_FIELD', field: 'isRecording', value: false });
     }
   }, []);
 
@@ -290,8 +348,8 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     }
 
     try {
-      setIsRecording(true);
-      setRecordingDuration(0);
+      dispatch({ type: 'SET_FIELD', field: 'isRecording', value: true });
+      dispatch({ type: 'SET_FIELD', field: 'recordingDuration', value: 0 });
       await audioRecorderPlayer.startRecorder(undefined, {
         AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
         AudioSourceAndroid: AudioSourceAndroidType.MIC,
@@ -300,89 +358,81 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
         AVFormatIDKeyIOS: 'aac',
       });
       audioRecorderPlayer.addRecordBackListener((e: RecordBackType) => {
-        setRecordingDuration(Math.floor(e.currentPosition / 1000));
+        dispatch({ type: 'SET_FIELD', field: 'recordingDuration', value: Math.floor(e.currentPosition / 1000) });
         if (e.currentPosition >= 300_000) {
           stopRecordingRef.current();
         }
       });
     } catch {
       audioRecorderPlayer.removeRecordBackListener();
-      setIsRecording(false);
+      dispatch({ type: 'SET_FIELD', field: 'isRecording', value: false });
       showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
     }
   };
 
   const handlePlayPreview = async () => {
-    if (!recordedAudioPath) return;
+    if (!s.recordedAudioPath) return;
     try {
-      if (isPlayingPreview) {
+      if (s.isPlayingPreview) {
         await audioRecorderPlayer.stopPlayer();
         audioRecorderPlayer.removePlayBackListener();
-        setIsPlayingPreview(false);
+        dispatch({ type: 'SET_FIELD', field: 'isPlayingPreview', value: false });
         return;
       }
-      setIsPlayingPreview(true);
-      await audioRecorderPlayer.startPlayer(recordedAudioPath);
+      dispatch({ type: 'SET_FIELD', field: 'isPlayingPreview', value: true });
+      await audioRecorderPlayer.startPlayer(s.recordedAudioPath);
       audioRecorderPlayer.addPlayBackListener((e: PlayBackType) => {
         if (e.currentPosition >= e.duration && e.duration > 0) {
-          setIsPlayingPreview(false);
+          dispatch({ type: 'SET_FIELD', field: 'isPlayingPreview', value: false });
           audioRecorderPlayer.removePlayBackListener();
         }
       });
     } catch {
-      setIsPlayingPreview(false);
+      dispatch({ type: 'SET_FIELD', field: 'isPlayingPreview', value: false });
     }
   };
 
   const handleDeleteAudio = () => {
-    if (isRecording) handleStopRecording();
-    setRecordedAudioPath(null);
-    setRecordingDuration(0);
-    setIsPlayingPreview(false);
+    if (s.isRecording) handleStopRecording();
+    dispatch({ type: 'SET_FIELD', field: 'recordedAudioPath', value: null });
+    dispatch({ type: 'SET_FIELD', field: 'recordingDuration', value: 0 });
+    dispatch({ type: 'SET_FIELD', field: 'isPlayingPreview', value: false });
   };
 
   // ── Reset form — called on sheet dismiss to clear stale state ────────────────
   const resetForm = useCallback(async () => {
-    if (isRecording) {
+    if (s.isRecording) {
       await audioRecorderPlayer.stopRecorder().catch(() => {});
       audioRecorderPlayer.removeRecordBackListener();
-      setIsRecording(false);
     }
-    if (isPlayingPreview) {
+    if (s.isPlayingPreview) {
       await audioRecorderPlayer.stopPlayer().catch(() => {});
       audioRecorderPlayer.removePlayBackListener();
-      setIsPlayingPreview(false);
     }
-    setTitle('');
-    setCaption('');
-    setDate(new Date());
-    setLocation('');
-    setLatitude(undefined);
-    setLongitude(undefined);
-    setTagInput('');
-    setTags([]);
-    setSpotifyUrl('');
-    setShowDatePicker(false);
-    setPhotos([]);
-    setRecordedAudioPath(null);
-    setRecordingDuration(0);
-    setUploadProgress(null);
-    setAlert({ visible: false, title: '' });
-  }, [isRecording, isPlayingPreview]);
+    dispatch({ type: 'RESET' });
+  }, [s.isRecording, s.isPlayingPreview]);
 
   return {
     isEdit,
-    title, caption, date, location, tagInput, tags, spotifyUrl, showDatePicker, photos,
-    isRecording, recordedAudioPath, recordingDuration, isPlayingPreview,
+    title: s.title, caption: s.caption, date: s.date, location: s.location,
+    tagInput: s.tagInput, tags: s.tags, spotifyUrl: s.spotifyUrl,
+    showDatePicker: s.showDatePicker, photos: s.photos,
+    isRecording: s.isRecording, recordedAudioPath: s.recordedAudioPath,
+    recordingDuration: s.recordingDuration, isPlayingPreview: s.isPlayingPreview,
     isSaving: saveMutation.isPending,
-    isGettingLocation,
-    uploadProgress,
+    isGettingLocation: s.isGettingLocation,
+    uploadProgress: s.uploadProgress,
 
     // alert
     alert,
     dismissAlert,
 
-    setTitle, setCaption, setLocation, setTagInput, setSpotifyUrl, setShowDatePicker,
+    setTitle: (v: string) => dispatch({ type: 'SET_FIELD', field: 'title', value: v }),
+    setCaption: (v: string) => dispatch({ type: 'SET_FIELD', field: 'caption', value: v }),
+    setLocation: (v: string) => dispatch({ type: 'SET_FIELD', field: 'location', value: v }),
+    setTagInput: (v: string) => dispatch({ type: 'SET_FIELD', field: 'tagInput', value: v }),
+    setSpotifyUrl: (v: string) => dispatch({ type: 'SET_FIELD', field: 'spotifyUrl', value: v }),
+    setShowDatePicker: (v: boolean) => dispatch({ type: 'SET_FIELD', field: 'showDatePicker', value: v }),
 
     resetForm,
     handleBack, handleSave,

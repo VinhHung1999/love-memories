@@ -17,22 +17,11 @@ import { useCreateMomentViewModel } from './useCreateMomentViewModel';
 import { Card, CardTitle } from '../../components/Card';
 import AlertModal from '../../components/AlertModal';
 import AppBottomSheet from '../../components/AppBottomSheet';
+import FieldLabel from '../../components/FieldLabel';
+import Input from '../../components/Input';
 import TagInput from './components/TagInput';
 import AudioRecorder from './components/AudioRecorder';
 import PhotoPicker from './components/PhotoPicker';
-
-// ── Local field layout helper ──────────────────────────────────────────────────
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <View className="mb-3">
-      <Text className="text-[10px] font-semibold text-textLight tracking-[0.5px] uppercase mb-1.5">
-        {label}
-      </Text>
-      {children}
-    </View>
-  );
-}
 
 // ── Sheet ──────────────────────────────────────────────────────────────────────
 
@@ -94,36 +83,32 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
             <Card>
               <CardTitle>{`✏️  ${t.moments.create.details}`}</CardTitle>
 
-              <Field label={`${t.moments.labels.title} *`}>
-                <TextInput
-                  className="bg-textDark/4 rounded-xl px-3 py-[10px] text-[14px] text-textDark"
-                  placeholder={t.moments.placeholders.title}
-                  placeholderTextColor={colors.textLight}
-                  value={vm.title}
-                  onChangeText={vm.setTitle}
-                  maxLength={200}
-                />
-              </Field>
+              <FieldLabel>{`${t.moments.labels.title} *`}</FieldLabel>
+              <Input
+                placeholder={t.moments.placeholders.title}
+                value={vm.title}
+                onChangeText={vm.setTitle}
+                maxLength={200}
+              />
 
-              <Field label={t.moments.labels.caption}>
-                <TextInput
-                  className="bg-textDark/4 rounded-xl px-3 py-[10px] text-[14px] text-textDark min-h-[72px]"
-                  placeholder={t.moments.placeholders.caption}
-                  placeholderTextColor={colors.textLight}
-                  value={vm.caption}
-                  onChangeText={vm.setCaption}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                />
-              </Field>
+              <FieldLabel>{t.moments.labels.caption}</FieldLabel>
+              <Input
+                placeholder={t.moments.placeholders.caption}
+                value={vm.caption}
+                onChangeText={vm.setCaption}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
 
-              <Field label={t.moments.labels.date}>
+              {/* Date — custom Pressable, not an Input */}
+              <View className="mb-3">
+                <FieldLabel>{t.moments.labels.date}</FieldLabel>
                 <Pressable
                   onPress={() => vm.setShowDatePicker(true)}
-                  className="flex-row items-center gap-2 rounded-xl px-3 py-2.5 bg-textDark/4">
+                  className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] h-[50px] bg-inputBg">
                   <Icon name="calendar-outline" size={18} color={colors.textLight} />
-                  <Text className="text-sm text-textDark flex-1">
+                  <Text className="text-base text-textDark flex-1">
                     {vm.date.toLocaleDateString('en-US', {
                       year: 'numeric', month: 'long', day: 'numeric',
                     })}
@@ -139,14 +124,15 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                     maximumDate={new Date()}
                   />
                 )}
-              </Field>
+              </View>
 
-              {/* Location field with GPS button */}
-              <Field label={t.moments.labels.location}>
-                <View className="flex-row items-center rounded-xl px-3 bg-textDark/4">
+              {/* Location — custom wrapper with icon + GPS button (raw TextInput exception) */}
+              <View className="mb-3">
+                <FieldLabel>{t.moments.labels.location}</FieldLabel>
+                <View className="flex-row items-center rounded-2xl border-[1.5px] border-border px-[14px] h-[50px] bg-inputBg">
                   <Icon name="map-marker-outline" size={18} color={colors.textLight} />
                   <TextInput
-                    className="flex-1 text-[14px] py-[10px] px-2 text-textDark"
+                    className="flex-1 text-base text-textDark px-2"
                     placeholder={t.moments.create.addLocation}
                     placeholderTextColor={colors.textLight}
                     value={vm.location}
@@ -163,7 +149,7 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
                       : <Icon name="crosshairs-gps" size={16} color={colors.primary} />}
                   </TouchableOpacity>
                 </View>
-              </Field>
+              </View>
             </Card>
 
             {/* Tags */}
@@ -181,18 +167,15 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
             {/* Song + Voice Memo */}
             <Card>
               <CardTitle>{`🎵  ${t.moments.create.songAndMemo}`}</CardTitle>
-              <Field label={t.moments.labels.spotifyUrl}>
-                <TextInput
-                  className="bg-textDark/4 rounded-xl px-3 py-[10px] text-[14px] text-textDark"
-                  placeholder={t.moments.placeholders.spotifyUrl}
-                  placeholderTextColor={colors.textLight}
-                  value={vm.spotifyUrl}
-                  onChangeText={vm.setSpotifyUrl}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                />
-              </Field>
+              <FieldLabel>{t.moments.labels.spotifyUrl}</FieldLabel>
+              <Input
+                placeholder={t.moments.placeholders.spotifyUrl}
+                value={vm.spotifyUrl}
+                onChangeText={vm.setSpotifyUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+              />
               <AudioRecorder
                 isRecording={vm.isRecording}
                 recordedPath={vm.recordedAudioPath}
