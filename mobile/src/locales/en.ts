@@ -65,10 +65,12 @@ const en = {
     title: 'Profile',
     edit: 'Edit',
     editName: 'Edit Name',
+    editCouple: 'Edit Couple',
     cancel: 'Cancel',
     save: 'Save',
     logout: 'Log out',
     logoutMessage: 'Are you sure?',
+    changePhoto: 'Change photo',
 
     google: {
       title: 'Google Account',
@@ -81,18 +83,29 @@ const en = {
       title: '❤️ Couple',
       name: 'Couple name',
       partner: 'Partner',
+      partnerEmail: 'Email',
       inviteCode: 'Invite code',
-      generateInvite: 'Generate invite code',
-      shareHint: 'Share this code with your partner',
+      generateInvite: 'Generate new code',
+      shareHint: 'Share this code with your partner to connect',
+      anniversary: 'Anniversary',
+      noAnniversary: 'Set your anniversary date',
+      setDate: 'Pick date',
+      copy: 'Copy',
+      copied: 'Copied!',
+      noCode: 'No code yet',
     },
 
     labels: {
-      name: 'Name',
+      name: 'Your name',
+      coupleName: 'Couple name',
+      anniversary: 'Anniversary date',
     },
 
     errors: {
       noGoogleToken: 'No ID token from Google',
       googleLinkFailed: 'Google linking failed',
+      avatarFailed: 'Failed to upload photo',
+      coupleSaveFailed: 'Failed to save couple info',
     },
   },
 

@@ -223,6 +223,15 @@ export const coupleApi = {
     return res.json();
   },
 
+  update: async (data: { name?: string; anniversaryDate?: string | null }): Promise<CoupleProfile> => {
+    const res = await apiFetch('/api/couple', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update couple');
+    return res.json();
+  },
+
   generateInvite: async (): Promise<{ inviteCode: string }> => {
     const res = await apiFetch('/api/couple/generate-invite', { method: 'POST' });
     if (!res.ok) throw new Error('Failed to generate invite');
@@ -241,6 +250,18 @@ export const profileApi = {
       body: JSON.stringify({ name }),
     });
     if (!res.ok) throw new Error('Failed to update name');
+    return res.json();
+  },
+
+  uploadAvatar: async (imageUri: string, mimeType: string): Promise<import('../types').AuthUser> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    // React Native requires this cast for multipart file fields
+    formData.append('avatar', { uri: imageUri, type: mimeType, name: 'avatar.jpg' } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/profile/avatar`, { method: 'POST', headers, body: formData });
+    if (!res.ok) throw new Error('Failed to upload avatar');
     return res.json();
   },
 };
