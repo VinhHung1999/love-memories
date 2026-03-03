@@ -64,7 +64,8 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
           scrollable
           title={vm.isEdit ? t.moments.create.editTitle : t.moments.create.newTitle}
           onSave={vm.handleSave}
-          isSaving={vm.isSaving}>
+          isSaving={vm.isSaving}
+          onDismiss={vm.resetForm}>
 
           <View className="pb-[60px] pt-1">
 

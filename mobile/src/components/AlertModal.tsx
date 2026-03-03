@@ -12,7 +12,7 @@ export interface AlertConfig {
   message?: string;
   type?: 'info' | 'error' | 'confirm' | 'destructive';
   confirmLabel?: string;
-  onConfirm?: () => void;
+  onConfirm?: () => void | Promise<void>;
 }
 
 // ── AlertModal Props ──────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ export default function AlertModal({
 
   const handleBackdropPress = () => onDismiss?.();
   const handleCancel = () => { onCancel?.(); onDismiss?.(); };
-  const handleConfirm = () => { onConfirm?.(); onDismiss?.(); };
+  const handleConfirm = async () => { await onConfirm?.(); onDismiss?.(); };
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleBackdropPress}>

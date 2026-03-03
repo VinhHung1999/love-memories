@@ -48,8 +48,18 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     const colors = useAppColors();
     const internalRef = useRef<BottomSheetModal>(null);
 
-    // Expose internal ref methods to parent
-    useImperativeHandle(externalRef, () => internalRef.current!, []);
+    // Proxy methods so parent ref lazy-reads internalRef at call time,
+    // avoiding the null-on-first-render race with empty deps [].
+    useImperativeHandle(externalRef, () => ({
+      present: (...args: any[]) => internalRef.current?.present(...args),
+      dismiss: (...args: any[]) => internalRef.current?.dismiss(...args),
+      snapToIndex: (index: number, ...rest: any[]) => (internalRef.current as any)?.snapToIndex(index, ...rest),
+      snapToPosition: (pos: string | number, ...rest: any[]) => (internalRef.current as any)?.snapToPosition(pos, ...rest),
+      close: (...args: any[]) => internalRef.current?.close(...args),
+      forceClose: (...args: any[]) => internalRef.current?.forceClose(...args),
+      expand: (...args: any[]) => internalRef.current?.expand(...args),
+      collapse: (...args: any[]) => internalRef.current?.collapse(...args),
+    }) as unknown as BottomSheetModal);
 
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (

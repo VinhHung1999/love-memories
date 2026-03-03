@@ -341,6 +341,35 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     setIsPlayingPreview(false);
   };
 
+  // ── Reset form — called on sheet dismiss to clear stale state ────────────────
+  const resetForm = useCallback(async () => {
+    if (isRecording) {
+      await audioRecorderPlayer.stopRecorder().catch(() => {});
+      audioRecorderPlayer.removeRecordBackListener();
+      setIsRecording(false);
+    }
+    if (isPlayingPreview) {
+      await audioRecorderPlayer.stopPlayer().catch(() => {});
+      audioRecorderPlayer.removePlayBackListener();
+      setIsPlayingPreview(false);
+    }
+    setTitle('');
+    setCaption('');
+    setDate(new Date());
+    setLocation('');
+    setLatitude(undefined);
+    setLongitude(undefined);
+    setTagInput('');
+    setTags([]);
+    setSpotifyUrl('');
+    setShowDatePicker(false);
+    setPhotos([]);
+    setRecordedAudioPath(null);
+    setRecordingDuration(0);
+    setUploadProgress(null);
+    setAlert({ visible: false, title: '' });
+  }, [isRecording, isPlayingPreview]);
+
   return {
     isEdit,
     title, caption, date, location, tagInput, tags, spotifyUrl, showDatePicker, photos,
@@ -355,6 +384,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
     setTitle, setCaption, setLocation, setTagInput, setSpotifyUrl, setShowDatePicker,
 
+    resetForm,
     handleBack, handleSave,
     handleAddPhotoFromLibrary, handleAddPhotoFromCamera, handleRemovePhoto,
     handleAddTag, handleRemoveTag, handleDateChange,
