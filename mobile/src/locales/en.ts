@@ -46,7 +46,9 @@ const en = {
 
     errors: {
       emailRequired: 'Please enter your email',
+      emailInvalid: 'Please enter a valid email address',
       passwordRequired: 'Please enter your password',
+      passwordTooShort: 'Password must be at least 6 characters',
       nameRequired: 'Please enter your name',
       coupleModeRequired: 'Please select create or join a couple',
       coupleNameRequired: 'Please enter couple name',

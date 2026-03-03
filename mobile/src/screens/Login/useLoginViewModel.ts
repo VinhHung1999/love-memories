@@ -8,6 +8,9 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { GoogleProfile } from '../../types';
 import t from '../../locales/en';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 6;
+
 export type Mode       = 'login' | 'register';
 export type CoupleMode = 'create' | 'join' | null;
 export type GoogleStep = 'idle' | 'couple-setup';
@@ -93,9 +96,11 @@ export function useLoginViewModel() {
   const handleSubmit = async () => {
     dispatch({ type: 'SET_ERROR', message: '' });
     // ── Validate both modes ──────────────────────────────────────────────
-    if (!s.email.trim())    { dispatch({ type: 'SET_ERROR', message: t.login.errors.emailRequired }); return; }
-    if (!s.password)        { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordRequired }); return; }
+    if (!s.email.trim())                { dispatch({ type: 'SET_ERROR', message: t.login.errors.emailRequired }); return; }
+    if (!EMAIL_RE.test(s.email.trim())) { dispatch({ type: 'SET_ERROR', message: t.login.errors.emailInvalid }); return; }
+    if (!s.password)                    { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordRequired }); return; }
     if (s.mode === 'register') {
+      if (s.password.length < MIN_PASSWORD_LENGTH) { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordTooShort }); return; }
       if (!s.name.trim())                                    { dispatch({ type: 'SET_ERROR', message: t.login.errors.nameRequired }); return; }
       if (!s.coupleMode)                                     { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleModeRequired }); return; }
       if (s.coupleMode === 'create' && !s.coupleName.trim()) { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleNameRequired }); return; }
