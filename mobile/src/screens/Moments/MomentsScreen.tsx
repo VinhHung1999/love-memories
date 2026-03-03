@@ -168,7 +168,7 @@ export default function MomentsScreen() {
               tintColor={colors.primary}
             />
           }>
-          <View className="px-[14px] pt-3 pb-[100px]">
+          <View className="px-[14px] pt-3 pb-[100px]" style={{ paddingTop: 44 + 12 }}>
             <View className="flex-row gap-3">
               <View className="flex-1">
                 {vm.leftColumn.map(moment => (

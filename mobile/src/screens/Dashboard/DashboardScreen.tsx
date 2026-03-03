@@ -19,7 +19,7 @@ export default function DashboardScreen() {
         collapsedHeight={56}
         scrollY={scrollY}
       />
-      <View className="flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center" style={{ paddingTop: 44 }}>
         <Text className="text-4xl mb-3">❤️</Text>
         <Text className="text-sm text-gray-400 mt-2">{t.dashboard.subtitle}</Text>
       </View>

@@ -120,7 +120,8 @@ export default function ProfileScreen() {
         className="flex-1"
         onScroll={scrollHandler}
         scrollEventThrottle={16}>
-        <View className="mt-4">
+        {/* paddingTop = scrollRange (200-56=144) — bù phần expanded header overlay */}
+        <View style={{ paddingTop: 144 }} className="mt-0">
 
           {/* ── Partner card ── */}
           {vm.partner && (
