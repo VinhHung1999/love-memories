@@ -31,17 +31,27 @@ export default function CollapsibleHeader({
   const insets = useSafeAreaInsets();
   const scrollRange = expandedHeight - collapsedHeight;
 
-  // Exception: useAnimatedStyle output — Animated transforms required
-  const containerStyle = useAnimatedStyle(() => {
-    return  ({
-      height: interpolate(
-        scrollY.value,
-        [0, scrollRange],
-        [200 + insets.top, 56 + insets.top],
-        Extrapolation.CLAMP,
-      ),
-    })
-  });
+  // ── Animated styles ─────────────────────────────────────────────────────────
+
+  // Spacer: height animation drives layout so siblings (filter bar, ScrollView)
+  // move correctly — but spacer has NO children so its layout recalc is trivial.
+  const containerStyle = useAnimatedStyle(() => ({
+    height: interpolate(
+      scrollY.value,
+      [0, scrollRange],
+      [expandedHeight + insets.top, collapsedHeight + insets.top],
+      Extrapolation.CLAMP,
+    ),
+  }));
+
+  // Visual header: position:absolute + translateY (pure GPU, zero layout cost).
+  // As user scrolls, content slides upward out of view — same visual as shrinking height.
+  // Exception: Animated transform — cannot be expressed as className.
+  const innerTranslateStyle = useAnimatedStyle(() => ({
+    transform: [{
+      translateY: interpolate(scrollY.value, [0, scrollRange], [0, -scrollRange], Extrapolation.CLAMP),
+    }],
+  }));
 
   // Exception: animated fontSize cannot be expressed as className
   const titleStyle = useAnimatedStyle(() => ({
@@ -49,7 +59,6 @@ export default function CollapsibleHeader({
   }));
 
   // Exception: animated opacity + maxHeight — both are Animated.Value outputs
-  // maxHeight collapses layout space so collapsed header has no dead space
   const expandedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, scrollRange * 0.7], [1, 0], Extrapolation.CLAMP),
     maxHeight: interpolate(scrollY.value, [0, scrollRange], [200, 0], Extrapolation.CLAMP),
@@ -57,14 +66,35 @@ export default function CollapsibleHeader({
   }));
 
   return (
-    <Animated.View 
-    style={containerStyle}
-     className="overflow-hidden">
-      <LinearGradient
-        colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="flex-1">
+    <>
+      {/* Spacer — children-free, just pushes siblings down. Height recalc is cheap. */}
+      <Animated.View style={containerStyle} />
+
+      {/* Visual header — position:absolute so it has zero layout impact.
+          translateY slides content upward; overflow:hidden clips it.
+          LinearGradient is absolute inset-0: fixed size, never resizes, never re-draws. */}
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            // Exception: expandedHeight + insets.top — dynamic runtime value
+            height: expandedHeight + insets.top,
+            overflow: 'hidden',
+            zIndex: 1,
+          },
+          innerTranslateStyle,
+        ]}>
+
+        <LinearGradient
+          colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+
         {/* Exception: paddingTop from useSafeAreaInsets() — device-specific runtime value */}
         <View style={{ paddingTop: insets.top }} className="flex-1 px-5 pb-3 justify-end">
           {renderExpandedContent ? (
@@ -92,7 +122,8 @@ export default function CollapsibleHeader({
             {renderRight ? <View className="ml-3">{renderRight()}</View> : null}
           </View>
         </View>
-      </LinearGradient>
-    </Animated.View>
+
+      </Animated.View>
+    </>
   );
 }
