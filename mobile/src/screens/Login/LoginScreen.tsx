@@ -17,7 +17,7 @@ import SpringPressable from '../../components/SpringPressable';
 import ErrorBox from '../../components/ErrorBox';
 import FieldLabel from '../../components/FieldLabel';
 import HeartLogo from './components/HeartLogo';
-import GoogleGLogo from './components/GoogleGLogo';
+import GoogleGLogo from '../../components/GoogleGLogo';
 import CoupleModeSelector from './components/CoupleModeSelector';
 import DecoBlobs from './components/DecoBlobs';
 import { useLoginViewModel } from './useLoginViewModel';

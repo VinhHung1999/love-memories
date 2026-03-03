@@ -15,22 +15,25 @@ import t from '../../locales/en';
 import { useProfileViewModel } from './useProfileViewModel';
 import EditNameModal from './components/EditNameModal';
 import EditCoupleModal from './components/EditCoupleModal';
+import GoogleGLogo from '../../components/GoogleGLogo';
 
 // ── Reusable row inside a card ────────────────────────────────────────────────
 function InfoRow({
   label,
   value,
   icon,
+  isLast,
   onPress,
 }: {
   label: string;
   value: string;
   icon?: string;
+  isLast?: boolean;
   onPress?: () => void;
 }) {
   const colors = useAppColors();
   const inner = (
-    <View className="flex-row items-center justify-between py-[14px] border-b border-border/50">
+    <View className={`flex-row items-center justify-between py-[14px] ${isLast ? '' : 'border-b border-border/50'}`}>
       <Text className="text-sm text-textMid flex-1">{label}</Text>
       <View className="flex-row items-center gap-2">
         <Text className="text-sm font-medium text-textDark">{value}</Text>
@@ -187,6 +190,7 @@ export default function ProfileScreen() {
               label={t.profile.couple.anniversary}
               value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
               icon="calendar-heart"
+              isLast
               onPress={vm.openEditCouple}
             />
           </Card>
@@ -258,7 +262,7 @@ export default function ProfileScreen() {
                 <Pressable
                   onPress={vm.handleLinkGoogle}
                   className="border border-border rounded-2xl py-2.5 flex-row items-center justify-center gap-2">
-                  <Text className="text-base font-bold text-blue-500">G</Text>
+                  <GoogleGLogo size={18} />
                   <Text className="text-sm font-semibold text-textDark">{t.profile.google.linkButton}</Text>
                 </Pressable>
               </View>
