@@ -22,6 +22,7 @@ import { pushRoutes } from './routes/push';
 import { dateWishRoutes } from './routes/dateWishes';
 import { datePlanRoutes } from './routes/datePlans';
 import { resolveLocationRoute } from './routes/resolveLocation';
+import { geocodeRoutes } from './routes/geocode';
 import { loveLetterRoutes } from './routes/loveLetters';
 import { recapRoutes } from './routes/recap';
 import { expenseRoutes } from './routes/expenses';
@@ -45,6 +46,7 @@ app.get('/api/health', (_req, res) => {
 // Public routes
 app.use('/api/auth', authRoutes);
 app.use('/api/resolve-location', resolveLocationRoute);
+app.use('/api/geocode', geocodeRoutes);
 // proxy-audio is public: <audio src> can't send Authorization headers.
 // Security: endpoint validates URL must start with CDN_BASE_URL (our own CDN only).
 app.use('/api/proxy-audio', proxyAudioRoute);

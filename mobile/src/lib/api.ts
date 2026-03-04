@@ -398,6 +398,31 @@ export async function resolveLocation(url: string): Promise<{ latitude?: number;
   return res.json();
 }
 
+interface GeoFeature { place_name: string; center: [number, number]; }
+
+export const geocodeApi = {
+  forward: async (q: string, proximity?: string, limit = 5): Promise<{ features: GeoFeature[] }> => {
+    const params = new URLSearchParams({ q, limit: String(limit) });
+    if (proximity) params.set('proximity', proximity);
+    try {
+      const res = await fetch(`${API_BASE}/api/geocode/forward?${params}`);
+      if (!res.ok) return { features: [] };
+      return res.json();
+    } catch {
+      return { features: [] };
+    }
+  },
+  reverse: async (lat: number, lng: number): Promise<{ features: GeoFeature[] }> => {
+    try {
+      const res = await fetch(`${API_BASE}/api/geocode/reverse?lat=${lat}&lng=${lng}`);
+      if (!res.ok) return { features: [] };
+      return res.json();
+    } catch {
+      return { features: [] };
+    }
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Profile API
 // ---------------------------------------------------------------------------

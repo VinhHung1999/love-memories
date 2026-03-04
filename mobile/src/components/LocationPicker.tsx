@@ -13,8 +13,7 @@ import Geolocation from '@react-native-community/geolocation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../navigation/theme';
 import FieldLabel from './FieldLabel';
-import { MAPBOX_ACCESS_TOKEN } from '../config/tokens';
-import { resolveLocation as resolveLocationApi } from '../lib/api';
+import { geocodeApi, resolveLocation as resolveLocationApi } from '../lib/api';
 import t from '../locales/en';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -25,10 +24,7 @@ const HCMC_LAT = 10.8231;
 const GOOGLE_MAPS_RE =
   /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps)/;
 
-interface GeoResult {
-  place_name: string;
-  center: [number, number]; // [lng, lat]
-}
+type GeoResult = { place_name: string; center: [number, number] };
 
 /** Strip Vietnamese postal codes (e.g. ", 70000") from Mapbox place_name */
 const cleanPlaceName = (name: string) =>
@@ -72,18 +68,10 @@ export default function LocationPicker({
     async (q: string) => {
       if (!q.trim()) { setResults([]); return; }
       setIsSearching(true);
-      try {
-        const proxLng = longitude ?? HCMC_LNG;
-        const proxLat = latitude ?? HCMC_LAT;
-        const url =
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
-          `?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&language=vi&country=vn&proximity=${proxLng},${proxLat}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        setResults(data.features ?? []);
-      } catch {
-        setResults([]);
-      }
+      const proxLng = longitude ?? HCMC_LNG;
+      const proxLat = latitude ?? HCMC_LAT;
+      const data = await geocodeApi.forward(q, `${proxLng},${proxLat}`);
+      setResults(data.features ?? []);
       setIsSearching(false);
     },
     [latitude, longitude],
@@ -104,18 +92,14 @@ export default function LocationPicker({
           onLocationChange(name, lat, lng);
           setQuery(name);
         } else {
-          // Name only — forward geocode with Mapbox, pick first result
+          // Name only — forward geocode via backend proxy, pick first result
           const isCoords = /^-?\d+\.?\d*,\s*-?\d+\.?\d*$/.test(name.trim());
           const businessName = isCoords ? '' : (name.split(',')[0] ?? name).trim();
-          const geoUrl =
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json` +
-            `?access_token=${MAPBOX_ACCESS_TOKEN}&limit=1&language=vi&country=vn&proximity=${HCMC_LNG},${HCMC_LAT}`;
-          const geoRes = await fetch(geoUrl);
-          const geoData = await geoRes.json();
+          const geoData = await geocodeApi.forward(name, `${HCMC_LNG},${HCMC_LAT}`, 1);
           const first = geoData.features?.[0];
           if (first) {
-            const [fLng, fLat] = first.center as [number, number];
-            const addr = cleanPlaceName(first.place_name as string);
+            const [fLng, fLat] = first.center;
+            const addr = cleanPlaceName(first.place_name);
             const placeName =
               businessName && !addr.includes(businessName)
                 ? `${businessName}, ${addr}`
@@ -195,11 +179,7 @@ export default function LocationPicker({
       async pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
         try {
-          const res = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json` +
-            `?access_token=${MAPBOX_ACCESS_TOKEN}&types=address,place,locality&language=vi`,
-          );
-          const data = await res.json() as { features?: Array<{ place_name?: string }> };
+          const data = await geocodeApi.reverse(lat, lng);
           const raw = data.features?.[0]?.place_name ?? `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           const name = cleanPlaceName(raw);
           onLocationChange(name, lat, lng);
