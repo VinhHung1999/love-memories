@@ -226,7 +226,7 @@ function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => v
               key={i}
               name={i <= Math.round(spot.rating) ? 'star' : 'star-outline'}
               size={10}
-              color="#F59E0B"
+              color={colors.starRating}
             />
           ))}
           <Text className="text-[10px] text-textLight ml-0.5">{spot.rating}/5</Text>
@@ -384,28 +384,28 @@ export default function DashboardScreen() {
               <View className="flex-row gap-3">
                 <QuickActionButton
                   icon="heart-multiple-outline"
-                  label="Moments"
+                  label={t.dashboard.quickActions.moments}
                   iconColor={colors.primary}
                   bgClass="bg-primary/10"
                   onPress={() => vm.navigateTo('MomentsTab')}
                 />
                 <QuickActionButton
                   icon="food-fork-drink"
-                  label="Food"
+                  label={t.dashboard.quickActions.food}
                   iconColor={colors.secondary}
                   bgClass="bg-secondary/10"
                   onPress={() => vm.navigateTo('FoodSpotsTab')}
                 />
                 <QuickActionButton
                   icon="map-outline"
-                  label="Map"
+                  label={t.dashboard.quickActions.map}
                   iconColor={colors.accent}
                   bgClass="bg-accent/10"
                   onPress={() => vm.navigateTo('MapTab')}
                 />
                 <QuickActionButton
                   icon="account-circle-outline"
-                  label="Profile"
+                  label={t.dashboard.quickActions.profile}
                   iconColor={colors.textMid}
                   bgClass="bg-gray-100"
                   onPress={() => vm.navigateTo('ProfileTab')}

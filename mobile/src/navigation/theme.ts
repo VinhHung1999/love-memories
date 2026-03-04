@@ -45,6 +45,9 @@ export const AppTheme = {
     inputFocusBg:     '#FFFFFF',
     inputBorderFocus: 'rgba(232,120,138,0.60)',
 
+    // ── Misc ─────────────────────────────────────────────────────────────
+    starRating:  '#F59E0B',
+
     // ── Status ────────────────────────────────────────────────────────────
     errorColor:  '#D94F58',
     errorBg:     'rgba(255,240,240,0.95)',

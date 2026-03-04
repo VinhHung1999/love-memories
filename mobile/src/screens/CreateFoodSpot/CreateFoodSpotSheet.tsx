@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { FoodSpot } from '../../types';
 import { useCreateFoodSpotViewModel } from './useCreateFoodSpotViewModel';
@@ -15,6 +16,7 @@ import PhotoPicker from '../CreateMoment/components/PhotoPicker';
 // ── Star Rating Picker ────────────────────────────────────────────────────────
 
 function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const colors = useAppColors();
   return (
     <View className="flex-row gap-2 py-1">
       {[1, 2, 3, 4, 5].map(i => (
@@ -22,7 +24,7 @@ function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: nu
           <Icon
             name={i <= value ? 'star' : 'star-outline'}
             size={28}
-            color="#F59E0B"
+            color={colors.starRating}
           />
         </Pressable>
       ))}

@@ -40,7 +40,8 @@ export function useDashboardViewModel() {
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    // Day-level granularity — tick once per minute is sufficient
+    const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
 

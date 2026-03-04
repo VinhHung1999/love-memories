@@ -131,6 +131,12 @@ const en = {
       foodHighlights: 'Food Highlights',
       seeAll: 'See all',
     },
+    quickActions: {
+      moments: 'Moments',
+      food: 'Food',
+      map: 'Map',
+      profile: 'Profile',
+    },
     noMomentsYet: 'No moments yet\nAdd your first memory together',
     noFoodYet: 'No food spots yet',
   },
