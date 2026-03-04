@@ -5,6 +5,7 @@ interface TagBadgeProps {
   label: string;
   active?: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
   variant?: 'filter' | 'display';
 }
 
@@ -17,6 +18,7 @@ export default function TagBadge({
   label,
   active = false,
   onPress,
+  onLongPress,
   variant = 'filter',
 }: TagBadgeProps) {
   if (variant === 'display') {
@@ -30,8 +32,9 @@ export default function TagBadge({
   return (
     <Pressable
       onPress={onPress}
-      className={`px-4 py-[5px] rounded-full ${
-        active ? 'bg-primary' : 'bg-white/70 border border-[rgba(196,168,168,0.25)]'
+      onLongPress={onLongPress}
+      className={`px-3 py-1.5 rounded-xl ${
+        active ? 'bg-primary' : 'bg-white/70 border border-border'
       }`}>
       <Text className={`text-xs font-semibold ${active ? 'text-white' : 'text-textMid'}`}>
         {label}

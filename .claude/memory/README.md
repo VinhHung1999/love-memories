@@ -19,7 +19,9 @@ memory/
 │   └── README.md
 ├── data-model/
 │   └── README.md
-└── architecture/
+├── architecture/
+│   └── README.md
+└── mobile-architecture/
     └── README.md
 ```
 
@@ -63,6 +65,7 @@ One sentence summary.
 | `api-design` | Designing new endpoints, changing API behavior |
 | `data-model` | Changing schema, adding models, debugging queries |
 | `architecture` | Major refactoring, adding new modules, onboarding |
+| `mobile-architecture` | React Native navigation, shared components, CollapsibleHeader |
 
 ---
 

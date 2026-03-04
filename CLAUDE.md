@@ -117,3 +117,4 @@ Project memories are stored in `.claude/memory/`. Use `--project-recall` before 
 | [api-design](.claude/memory/api-design/README.md) | API endpoints, auth patterns, error handling |
 | [data-model](.claude/memory/data-model/README.md) | Database schema, ORM patterns, migrations |
 | [architecture](.claude/memory/architecture/README.md) | System structure, module boundaries, key patterns |
+| [mobile-architecture](.claude/memory/mobile-architecture/README.md) | RN navigation, shared components, CollapsibleHeader |

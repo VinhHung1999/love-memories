@@ -8,27 +8,17 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
+import { useUploadProgress } from '../../contexts/UploadProgressContext';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { coupleApi, profileApi } from '../../lib/api';
-import type { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
 
 export function useProfileViewModel() {
   const { user, logout, updateUser, linkGoogle } = useAuth();
   const { showLoading, hideLoading } = useLoading();
+  const { startUpload, incrementUpload } = useUploadProgress();
+  const navigation = useAppNavigation();
   const queryClient = useQueryClient();
-
-  // ── Name edit state ────────────────────────────────────────────────────────
-  const [nameInput, setNameInput] = useState(user?.name ?? '');
-
-  // ── Couple edit state ──────────────────────────────────────────────────────
-  const [coupleNameInput, setCoupleNameInput] = useState('');
-  const [anniversaryDate, setAnniversaryDate] = useState<Date | null>(null);
-
-  // ── Alert state ────────────────────────────────────────────────────────────
-  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
-  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
-    setAlert({ ...config, visible: true });
-  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // ── Invite code copy feedback ──────────────────────────────────────────────
   const [codeCopied, setCodeCopied] = useState(false);
@@ -44,28 +34,11 @@ export function useProfileViewModel() {
 
   // ── Mutations ──────────────────────────────────────────────────────────────
 
-  const nameMutation = useMutation({
-    mutationFn: () => profileApi.updateName(nameInput.trim()),
-    onMutate: showLoading,
-    onSettled: hideLoading,
-  });
-
-  const coupleMutation = useMutation({
-    mutationFn: () =>
-      coupleApi.update({
-        name: coupleNameInput.trim() || undefined,
-        anniversaryDate: anniversaryDate ? anniversaryDate.toISOString() : null,
-      }),
-    onMutate: showLoading,
-    onSettled: hideLoading,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['couple'] }),
-  });
-
   const inviteMutation = useMutation({
     mutationFn: coupleApi.generateInvite,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['couple'] }),
     onError: (err: Error) =>
-      showAlert({ type: 'error', title: t.common.error, message: err.message }),
+      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message }),
   });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -75,12 +48,14 @@ export function useProfileViewModel() {
     if (result.didCancel || !result.assets?.[0]) return;
     const asset = result.assets[0];
     if (!asset.uri) return;
-    showLoading();
+    startUpload(1);
     try {
       const updated = await profileApi.uploadAvatar(asset.uri, asset.type ?? 'image/jpeg');
       updateUser({ avatar: updated.avatar });
+      incrementUpload();
     } catch (err) {
-      showAlert({
+      incrementUpload(); // still complete the progress indicator
+      navigation.showAlert({
         type: 'error',
         title: t.common.error,
         message: err instanceof Error ? err.message : t.profile.errors.avatarFailed,
@@ -97,15 +72,15 @@ export function useProfileViewModel() {
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
       if (!idToken) {
-        showAlert({ type: 'error', title: t.common.error, message: t.profile.errors.noGoogleToken });
+        navigation.showAlert({ type: 'error', title: t.common.error, message: t.profile.errors.noGoogleToken });
         return;
       }
       await linkGoogle(idToken);
-      showAlert({ type: 'info', title: t.common.success, message: t.profile.google.linkedSuccess });
+      navigation.showAlert({ type: 'info', title: t.common.success, message: t.profile.google.linkedSuccess });
     } catch (err: unknown) {
       const e = err as { code?: string };
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
-      showAlert({
+      navigation.showAlert({
         type: 'error',
         title: t.common.error,
         message: err instanceof Error ? err.message : t.profile.errors.googleLinkFailed,
@@ -116,7 +91,7 @@ export function useProfileViewModel() {
   };
 
   const handleLogout = () => {
-    showAlert({
+    navigation.showAlert({
       type: 'destructive',
       title: t.profile.logout,
       message: t.profile.logoutMessage,
@@ -160,42 +135,6 @@ export function useProfileViewModel() {
     initials,
     anniversaryDisplay,
     codeCopied,
-
-    // alert
-    alert,
-    dismissAlert,
-
-    // name form
-    nameInput,
-    isNameSaving: nameMutation.isPending,
-    setNameInput,
-    prepareEditName: () => setNameInput(user?.name ?? ''),
-    saveName: (onClose: () => void) => {
-      if (!nameInput.trim()) return;
-      nameMutation.mutate(undefined, {
-        onSuccess: (data) => { updateUser({ name: data.name }); onClose(); },
-        onError: (err: Error) =>
-          showAlert({ type: 'error', title: t.common.error, message: err.message }),
-      });
-    },
-
-    // couple form
-    coupleNameInput,
-    anniversaryDate,
-    isCoupleSaving: coupleMutation.isPending,
-    setCoupleNameInput,
-    setAnniversaryDate,
-    prepareEditCouple: () => {
-      setCoupleNameInput(couple?.name ?? '');
-      setAnniversaryDate(couple?.anniversaryDate ? new Date(couple.anniversaryDate) : null);
-    },
-    saveCouple: (onClose: () => void) => {
-      coupleMutation.mutate(undefined, {
-        onSuccess: () => onClose(),
-        onError: (err: Error) =>
-          showAlert({ type: 'error', title: t.common.error, message: err.message }),
-      });
-    },
 
     // invite
     isInviteGenerating: inviteMutation.isPending,

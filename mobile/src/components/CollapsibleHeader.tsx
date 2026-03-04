@@ -15,8 +15,13 @@ interface CollapsibleHeaderProps {
   expandedHeight?: number;
   collapsedHeight?: number;
   renderExpandedContent?: () => React.ReactNode;
+  /** Replaces the default pink gradient — renders absolutely, fills entire header */
+  renderBackground?: () => React.ReactNode;
+  renderLeft?: () => React.ReactNode;
   renderRight?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
+  /** White title + subtitle text (for dark photo backgrounds) */
+  dark?: boolean;
   scrollY: SharedValue<number>;
 }
 
@@ -26,7 +31,10 @@ export default function CollapsibleHeader({
   expandedHeight = 120,
   collapsedHeight = 56,
   renderExpandedContent,
+  renderBackground,
+  renderLeft,
   renderRight,
+  dark = false,
   scrollY,
   renderFooter,
 }: CollapsibleHeaderProps) {
@@ -84,12 +92,16 @@ export default function CollapsibleHeader({
           innerTranslateStyle,
         ]}>
 
-        <LinearGradient
-          colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-        />
+        {renderBackground ? (
+          <View className="absolute inset-0">{renderBackground()}</View>
+        ) : (
+          <LinearGradient
+            colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+        )}
 
         {/* Exception: paddingTop from useSafeAreaInsets() — device-specific runtime value */}
         <View style={{ paddingTop: insets.top }} className="flex-1 px-5 pb-3 justify-end">
@@ -100,16 +112,17 @@ export default function CollapsibleHeader({
           ) : null}
 
           <View className="flex-row items-end justify-between">
+            {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
             <View className="flex-1">
               {subtitle ? (
                 <Animated.View style={expandedStyle}>
-                  <Text className="text-[11px] font-semibold text-primary tracking-[1.5px] uppercase mb-0.5">
+                  <Text className={`text-[11px] font-semibold tracking-[1.5px] uppercase mb-0.5 ${dark ? 'text-white/80' : 'text-primary'}`}>
                     {subtitle}
                   </Text>
                 </Animated.View>
               ) : null}
               <Animated.Text
-                className="font-bold text-textDark tracking-tight"
+                className={`font-bold tracking-tight ${dark ? 'text-white' : 'text-textDark'}`}
                 style={titleStyle}
                 numberOfLines={1}>
                 {title}

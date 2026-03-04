@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -11,15 +11,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
+import CollapsibleHeader from '../../components/CollapsibleHeader';
+import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
-import AlertModal from '../../components/AlertModal';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
@@ -75,9 +80,15 @@ function formatDate(dateStr: string): string {
 
 export default function MomentDetailScreen() {
   const colors = useAppColors();
+  const navigation = useAppNavigation();
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
-  const editSheetRef = useRef<BottomSheetModal>(null);
+
+  // Hooks must be unconditional — before early return
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => {
+    scrollY.value = e.contentOffset.y;
+  });
 
   if (vm.isLoading || !moment) {
     return <MomentDetailLoadingSkeleton />;
@@ -87,17 +98,20 @@ export default function MomentDetailScreen() {
 
   return (
     <KeyboardAvoidingView className="flex-1 bg-gray-50" behavior="padding">
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}>
-        <View className="pb-[60px]">
 
-          {/* ── Hero photo ── */}
-          <View className="h-[280px] w-screen">
+      {/* ── Collapsible header (hero photo + back/edit/delete) ── */}
+      <CollapsibleHeader
+        title={moment.title}
+        expandedHeight={280}
+        collapsedHeight={56}
+        dark
+        scrollY={scrollY}
+        renderBackground={() => (
+          <>
             {coverPhoto ? (
               <Image
                 source={{ uri: coverPhoto.url }}
-                className="w-screen h-[280px]"
+                className="absolute inset-0 w-full h-full"
                 resizeMode="cover"
               />
             ) : (
@@ -105,7 +119,7 @@ export default function MomentDetailScreen() {
                 colors={['#FFE4EA', colors.primary, '#D4607A']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                className="w-screen h-[280px]"
+                className="absolute inset-0"
               />
             )}
             <LinearGradient
@@ -113,42 +127,33 @@ export default function MomentDetailScreen() {
               locations={[0, 0.4, 1]}
               className="absolute inset-0"
             />
-
-            {/* Back + Actions */}
-            <SafeAreaView
-              edges={['top']}
-              className="absolute top-0 left-0 right-0">
-              <View className="flex-row items-center justify-between px-4 pt-2">
-                <TouchableOpacity
-                  onPress={vm.handleBack}
-                  className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-                  <Icon name="arrow-left" size={20} color="#fff" />
-                </TouchableOpacity>
-                <View className="flex-row gap-2">
-                  <TouchableOpacity
-                    onPress={() => editSheetRef.current?.present()}
-                    className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-                    <Icon name="pencil-outline" size={18} color="#fff" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={vm.handleDeleteMoment}
-                    disabled={vm.isDeleting}
-                    className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-                    <Icon name="trash-can-outline" size={18} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </SafeAreaView>
-
-            {/* Photo count */}
-            {moment.photos.length > 1 ? (
-              <View className="absolute bottom-3 right-4 px-2 py-1 rounded-xl bg-black/40">
-                <Text className="text-[11px] font-semibold text-white">
-                  1 / {moment.photos.length}
-                </Text>
-              </View>
-            ) : null}
+          </>
+        )}
+        renderLeft={() => (
+          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} />
+        )}
+        renderRight={() => (
+          <View className="flex-row gap-2">
+            <HeaderIconButton
+              name="pencil-outline"
+              onPress={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
+            />
+            <HeaderIconButton
+              name="trash-can-outline"
+              onPress={vm.handleDeleteMoment}
+              disabled={vm.isDeleting}
+            />
           </View>
+        )}
+      />
+
+      <Animated.ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}>
+        {/* paddingTop=224 = expandedHeight(280) - collapsedHeight(56) pushes content below expanded header */}
+        <View className="pt-[224px] pb-[60px]">
 
           {/* ── Photo thumbnail strip ── */}
           {moment.photos.length > 1 ? (
@@ -290,16 +295,7 @@ export default function MomentDetailScreen() {
           </Card>
 
         </View>
-      </ScrollView>
-
-      {/* ── Edit sheet ── */}
-      <CreateMomentSheet
-        ref={editSheetRef}
-        momentId={moment.id}
-      />
-
-      {/* ── Alert ── */}
-      <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
+      </Animated.ScrollView>
 
     </KeyboardAvoidingView>
   );

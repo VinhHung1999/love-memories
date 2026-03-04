@@ -346,6 +346,8 @@ async function main() {
       description: 'Bánh mì ngon nhất Hội An',
       rating: 4.8,
       location: '2B Phan Châu Trinh, Hội An',
+      latitude: 15.8801,
+      longitude: 108.335,
       tags: ['bánh mì', 'sáng'],
       priceRange: 1,
       createdAt: new Date('2026-02-18'),

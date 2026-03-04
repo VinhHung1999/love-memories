@@ -1,24 +1,22 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AlertConfig } from '../../components/AlertModal';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import audioPlayer, { type PlayBackType } from 'react-native-audio-recorder-player';
 import type { MomentsStackParamList } from '../../navigation';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { momentsApi } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import type { MomentPhoto } from '../../types';
 import t from '../../locales/en';
 
-type Nav = NativeStackNavigationProp<MomentsStackParamList>;
 type Route = RouteProp<MomentsStackParamList, 'MomentDetail'>;
 
 const PRESET_EMOJIS = ['❤️', '😂', '😍', '🥺', '🔥', '👏', '😢', '🎉'];
 
 
 export function useMomentDetailViewModel() {
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { momentId } = route.params;
   const { user } = useAuth();
@@ -30,12 +28,6 @@ export function useMomentDetailViewModel() {
 
   // ── Comment input ──────────────────────────────────────────────────────────
   const [commentText, setCommentText] = useState('');
-
-  // ── Alert state ────────────────────────────────────────────────────────────
-  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
-  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
-    setAlert({ ...config, visible: true });
-  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // ── Data ──────────────────────────────────────────────────────────────────
 
@@ -64,7 +56,7 @@ export function useMomentDetailViewModel() {
     mutationFn: (emoji: string) =>
       momentsApi.toggleReaction(momentId, { emoji, author: user?.name ?? 'Unknown' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['moment', momentId] }),
-    onError: () => showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.reactionFailed }),
+    onError: () => navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.reactionFailed }),
   });
 
   const commentMutation = useMutation({
@@ -74,7 +66,7 @@ export function useMomentDetailViewModel() {
       queryClient.invalidateQueries({ queryKey: ['moment', momentId] });
       setCommentText('');
     },
-    onError: () => showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.commentFailed }),
+    onError: () => navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.commentFailed }),
   });
 
   const deleteCommentMutation = useMutation({
@@ -88,7 +80,7 @@ export function useMomentDetailViewModel() {
       queryClient.invalidateQueries({ queryKey: ['moments'] });
       navigation.goBack();
     },
-    onError: () => showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.deleteFailed }),
+    onError: () => navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.deleteFailed }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -115,7 +107,7 @@ export function useMomentDetailViewModel() {
   };
 
   const handleDeleteComment = (commentId: string) => {
-    showAlert({
+    navigation.showAlert({
       type: 'destructive',
       title: t.moments.detail.deleteCommentTitle,
       message: t.moments.detail.deleteCommentMessage,
@@ -125,7 +117,7 @@ export function useMomentDetailViewModel() {
   };
 
   const handleDeleteMoment = () => {
-    showAlert({
+    navigation.showAlert({
       type: 'destructive',
       title: t.moments.detail.deleteTitle,
       message: t.moments.detail.deleteMessage,
@@ -179,10 +171,6 @@ export function useMomentDetailViewModel() {
     commentText,
     isCommentSubmitting: commentMutation.isPending,
     isDeleting: deleteMomentMutation.isPending,
-
-    // alert
-    alert,
-    dismissAlert,
 
     reactionCounts,
     hasReacted,

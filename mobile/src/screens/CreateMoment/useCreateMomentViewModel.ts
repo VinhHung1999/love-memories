@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect, useRef, useReducer } from 'react';
+import { useCallback, useEffect, useRef, useReducer } from 'react';
+import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { PermissionsAndroid, Platform } from 'react-native';
-import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import audioRecorderPlayer, {
   AVEncoderAudioQualityIOSType,
@@ -47,7 +48,6 @@ interface FormState {
   recordedAudioPath: string | null;
   recordingDuration: number;
   isPlayingPreview: boolean;
-  uploadProgress: UploadProgress | null;
 }
 
 type FormAction =
@@ -77,7 +77,6 @@ function makeInitialState(): FormState {
     recordedAudioPath: null,
     recordingDuration: 0,
     isPlayingPreview: false,
-    uploadProgress: null,
   };
 }
 
@@ -104,11 +103,15 @@ function formReducer(state: FormState, action: FormAction): FormState {
         longitude: action.moment.longitude ?? undefined,
         tags: action.moment.tags,
         spotifyUrl: action.moment.spotifyUrl ?? '',
+        photos: action.moment.photos.map(p => ({
+          uri: p.url,
+          mimeType: 'image/jpeg',
+          uploaded: true,
+          remotePhotoId: p.id,
+        })),
       };
     case 'INCREMENT_UPLOAD':
-      return state.uploadProgress
-        ? { ...state, uploadProgress: { ...state.uploadProgress, done: state.uploadProgress.done + 1 } }
-        : state;
+      return state;
     case 'RESET':
       return makeInitialState();
     default:
@@ -120,20 +123,17 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 interface Props {
   momentId?: string | null;
+  initialMoment?: Moment;
   onClose: () => void;
 }
 
-export function useCreateMomentViewModel({ momentId, onClose }: Props) {
+export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: Props) {
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
+  const navigation = useAppNavigation();
 
   const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
-
-  // ── Alert state (kept separate — AlertConfig has onConfirm callback) ─────────
-  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
-  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
-    setAlert({ ...config, visible: true });
-  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
+  const { startUpload, incrementUpload } = useUploadProgress();
 
   // Ref holds latest handleStopRecording to avoid stale closure in RecordBackListener
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
@@ -144,6 +144,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     queryFn: () => momentsApi.get(momentId!),
     enabled: isEdit,
     staleTime: 0,
+    initialData: initialMoment, // form fills instantly from nav params
   });
 
   useEffect(() => {
@@ -180,18 +181,17 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
         ? await momentsApi.update(momentId!, payload)
         : await momentsApi.create(payload);
 
-      // Upload photos with progress tracking (non-blocking)
+      // Upload photos with global progress tracking (non-blocking)
       const pendingPhotos = s.photos.filter(p => !p.uploaded);
       if (pendingPhotos.length > 0) {
-        dispatch({ type: 'SET_FIELD', field: 'uploadProgress', value: { done: 0, total: pendingPhotos.length } });
+        startUpload(pendingPhotos.length);
         Promise.all(
           pendingPhotos.map(p =>
             momentsApi.uploadPhoto(savedMoment.id, p.uri, p.mimeType)
-              .then(() => dispatch({ type: 'INCREMENT_UPLOAD' }))
-              .catch(() => dispatch({ type: 'INCREMENT_UPLOAD' })),
+              .then(() => incrementUpload())
+              .catch(() => incrementUpload()),
           ),
         ).then(() => {
-          dispatch({ type: 'SET_FIELD', field: 'uploadProgress', value: null });
           queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] });
           queryClient.invalidateQueries({ queryKey: ['moments'] });
         });
@@ -212,7 +212,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
       onClose();
     },
     onError: (err: Error) =>
-      showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
+      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
   });
 
   // ── Handlers ────────────────────────────────────────────────────────────────
@@ -220,14 +220,14 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
 
   const handleSave = () => {
     const error = validate();
-    if (error) { showAlert({ type: 'error', title: t.common.error, message: error }); return; }
+    if (error) { navigation.showAlert({ type: 'error', title: t.common.error, message: error }); return; }
     if (saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
   const handleAddPhotoFromLibrary = async () => {
     if (s.photos.length >= 10) {
-      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
       return;
     }
     const result = await launchImageLibrary({
@@ -251,6 +251,10 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
   };
 
   const handleRemovePhoto = (index: number) => {
+    const photo = s.photos[index];
+    if (photo.uploaded && photo.remotePhotoId && momentId) {
+      momentsApi.deletePhoto(momentId, photo.remotePhotoId).catch(() => null);
+    }
     dispatch({ type: 'REMOVE_PHOTO', index });
   };
 
@@ -292,7 +296,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
           },
         );
         if (result !== PermissionsAndroid.RESULTS.GRANTED) {
-          showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.micPermissionDenied });
+          navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.micPermissionDenied });
           return;
         }
       } catch { return; }
@@ -317,7 +321,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     } catch {
       audioRecorderPlayer.removeRecordBackListener();
       dispatch({ type: 'SET_FIELD', field: 'isRecording', value: false });
-      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
     }
   };
 
@@ -372,11 +376,6 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     isRecording: s.isRecording, recordedAudioPath: s.recordedAudioPath,
     recordingDuration: s.recordingDuration, isPlayingPreview: s.isPlayingPreview,
     isSaving: saveMutation.isPending,
-    uploadProgress: s.uploadProgress,
-
-    // alert
-    alert,
-    dismissAlert,
 
     setTitle: (v: string) => dispatch({ type: 'SET_FIELD', field: 'title', value: v }),
     setCaption: (v: string) => dispatch({ type: 'SET_FIELD', field: 'caption', value: v }),
