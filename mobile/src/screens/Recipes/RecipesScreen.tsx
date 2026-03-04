@@ -79,7 +79,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {coverPhoto ? (
           <FastImage
             source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
-            className="w-full h-[150px]"
+            style={{ width: '100%', height: 150 }}
             resizeMode={FastImage.resizeMode.cover}
           />
         ) : (

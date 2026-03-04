@@ -93,7 +93,7 @@ function MomentCard({
         {coverPhoto ? (
           <FastImage
             source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
-            className="w-full h-[130px]"
+            style={{ width: '100%', height: 130 }}
             resizeMode={FastImage.resizeMode.cover}
           />
         ) : (

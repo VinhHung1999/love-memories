@@ -88,7 +88,7 @@ export default function FoodSpotDetailScreen() {
             {coverPhoto ? (
               <FastImage
                 source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
-                className="absolute inset-0 w-full h-full"
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 resizeMode={FastImage.resizeMode.cover}
               />
             ) : (
@@ -143,11 +143,14 @@ export default function FoodSpotDetailScreen() {
                       onPress={() => vm.handleOpenGallery(spot.photos, idx)}>
                       <FastImage
                         source={{ uri: photo.url, priority: FastImage.priority.high }}
-                        className={`w-[52px] h-[52px] rounded-xl ${
-                          idx === 0
-                            ? 'border-2 border-secondary opacity-100'
-                            : 'opacity-75'
-                        }`}
+                        style={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: 12,
+                          borderWidth: idx === 0 ? 2 : 0,
+                          borderColor: colors.secondary,
+                          opacity: idx === 0 ? 1 : 0.75,
+                        }}
                         resizeMode={FastImage.resizeMode.cover}
                       />
                     </Pressable>

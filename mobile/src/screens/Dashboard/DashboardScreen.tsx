@@ -83,7 +83,7 @@ function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => vo
       {coverPhoto ? (
         <FastImage
           source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
-          className="absolute inset-0 w-full h-full"
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           resizeMode={FastImage.resizeMode.cover}
         />
       ) : (
@@ -231,7 +231,7 @@ function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => v
     <Pressable onPress={onPress} className="bg-white rounded-3xl overflow-hidden shadow-sm flex-row">
       <View className="w-[80px] h-[80px] bg-secondary/10 items-center justify-center flex-shrink-0">
         {coverPhoto ? (
-          <FastImage source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }} className="w-full h-full" resizeMode={FastImage.resizeMode.cover} />
+          <FastImage source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }} style={{ width: '100%', height: '100%' }} resizeMode={FastImage.resizeMode.cover} />
         ) : (
           <Icon name="food-fork-drink" size={24} color={colors.secondary} />
         )}
