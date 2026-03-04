@@ -24,6 +24,11 @@ interface AppBottomSheetProps {
   subtitle?: string;      // subtitle below title (triggers icon-style header when set)
   icon?: string;          // MaterialCommunityIcons name — enables icon+title+subtitle header style
   iconBgClass?: string;   // className for icon background, default 'bg-primary/10'
+  // icon-header action button (only used when icon is set)
+  actionLabel?: string;
+  onAction?: () => void;
+  actionLoading?: boolean;
+  actionDisabled?: boolean;
   scrollable?: boolean; // false=BottomSheetView+dynamicSizing, true=BottomSheetScrollView+snapPoints
   snapPoints?: string[]; // default ['92%'], only used when scrollable=true
   showHeader?: boolean; // default true
@@ -47,6 +52,10 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
       subtitle,
       icon,
       iconBgClass = 'bg-primary/10',
+      actionLabel,
+      onAction,
+      actionLoading = false,
+      actionDisabled = false,
       scrollable = false,
       snapPoints = ['92%'],
       showHeader = true,
@@ -120,14 +129,31 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         {/* Header */}
         {showHeader && (
           icon ? (
-            /* Icon + title + subtitle style (no Cancel/Save) */
-            <View className="items-center px-5 pt-4 pb-3 border-b border-border">
-              <View className={`w-12 h-12 rounded-2xl items-center justify-center mb-3 ${iconBgClass}`}>
+            /* Icon + title + subtitle style — row layout (no Cancel/Save) */
+            <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border">
+              <View className={`w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0 ${iconBgClass}`}>
                 <Icon name={icon} size={24} color={colors.primary} />
               </View>
-              <Text className="text-base font-bold text-textDark">{title}</Text>
-              {subtitle ? (
-                <Text className="text-sm text-textMid mt-0.5 text-center">{subtitle}</Text>
+              <View className="flex-1">
+                <Text className="text-base font-bold text-textDark">{title}</Text>
+                {subtitle ? (
+                  <Text className="text-sm text-textMid mt-0.5">{subtitle}</Text>
+                ) : null}
+              </View>
+              {actionLabel ? (
+                <Pressable
+                  onPress={onAction}
+                  disabled={actionDisabled || actionLoading}
+                  className="items-end"
+                >
+                  {actionLoading ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Text className={`font-semibold text-sm ${actionDisabled ? 'text-textLight' : 'text-primary'}`}>
+                      {actionLabel}
+                    </Text>
+                  )}
+                </Pressable>
               ) : null}
             </View>
           ) : (

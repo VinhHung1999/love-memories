@@ -410,7 +410,8 @@ const en = {
       title: 'What are we cooking?',
       subtitle: 'Pick one or more recipes',
       selected: 'selected',
-      startShopping: 'Next: Shopping',
+      recipesSelected: 'recipes selected',
+      startShopping: 'Let\'s Cook!',
     },
 
     shopping: {

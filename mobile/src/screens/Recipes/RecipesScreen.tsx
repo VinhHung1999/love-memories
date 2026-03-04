@@ -11,6 +11,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
+import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
@@ -76,10 +77,10 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
       {/* Photo / placeholder */}
       <View className="w-full">
         {coverPhoto ? (
-          <Animated.Image
-            source={{ uri: coverPhoto.url }}
+          <FastImage
+            source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
             className="w-full h-[150px]"
-            resizeMode="cover"
+            resizeMode={FastImage.resizeMode.cover}
           />
         ) : (
           <LinearGradient

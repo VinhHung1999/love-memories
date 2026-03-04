@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -81,10 +81,10 @@ function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => vo
   return (
     <Pressable onPress={onPress} className="w-[230px] h-[185px] rounded-2xl overflow-hidden">
       {coverPhoto ? (
-        <Image
-          source={{ uri: coverPhoto.url }}
+        <FastImage
+          source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
           className="absolute inset-0 w-full h-full"
-          resizeMode="cover"
+          resizeMode={FastImage.resizeMode.cover}
         />
       ) : (
         <LinearGradient
@@ -231,7 +231,7 @@ function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => v
     <Pressable onPress={onPress} className="bg-white rounded-3xl overflow-hidden shadow-sm flex-row">
       <View className="w-[80px] h-[80px] bg-secondary/10 items-center justify-center flex-shrink-0">
         {coverPhoto ? (
-          <Image source={{ uri: coverPhoto.url }} className="w-full h-full" resizeMode="cover" />
+          <FastImage source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }} className="w-full h-full" resizeMode={FastImage.resizeMode.cover} />
         ) : (
           <Icon name="food-fork-drink" size={24} color={colors.secondary} />
         )}

@@ -198,27 +198,26 @@ export default function WhatToEatScreen() {
         )
       )}
 
-      {/* ── Bottom CTA — compact floating pill, hidden when active session ── */}
+      {/* ── Bottom action bar — slim, appears when recipes selected ── */}
       {!vm.activeSession && vm.selectedIds.size > 0 ? (
-        <Animated.View
-          entering={FadeInDown}
-          className="absolute bottom-8 left-0 right-0 items-center px-5">
+        <Animated.View entering={FadeInDown} className="border-t border-border bg-white px-5 py-3 flex-row items-center">
+          <View className="flex-1 flex-row items-center gap-2">
+            <View className="w-7 h-7 rounded-full bg-primary/12 items-center justify-center">
+              <Text className="text-primary font-bold text-sm">{vm.selectedIds.size}</Text>
+            </View>
+            <Text className="text-sm text-textMid">{t.whatToEat.selecting.recipesSelected}</Text>
+          </View>
           <Pressable
             onPress={vm.handleStart}
             disabled={vm.isCreating}
-            className="rounded-full overflow-hidden shadow-md">
+            className="overflow-hidden rounded-2xl">
             <LinearGradient
               colors={[colors.primary, colors.secondary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="px-6 py-3.5 flex-row items-center gap-2">
-              <Icon name="chef-hat" size={16} color="#fff" />
-              <Text className="text-white font-bold text-sm">
-                {t.whatToEat.selecting.startShopping}
-              </Text>
-              <View className="w-5 h-5 rounded-full bg-white/30 items-center justify-center">
-                <Text className="text-white text-[11px] font-bold">{vm.selectedIds.size}</Text>
-              </View>
+              className="flex-row items-center gap-1.5 px-4 py-2.5">
+              <Icon name="chef-hat" size={14} color="#fff" />
+              <Text className="text-white font-bold text-sm">{t.whatToEat.selecting.startShopping}</Text>
             </LinearGradient>
           </Pressable>
         </Animated.View>

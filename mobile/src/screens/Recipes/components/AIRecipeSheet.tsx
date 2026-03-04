@@ -155,6 +155,11 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
     }
   };
 
+  const actionLabel = phase === 'preview' ? t.recipes.ai.save : phase === 'input' ? t.recipes.ai.generate : undefined;
+  const handleAction = phase === 'preview' ? handleSave : phase === 'input' ? handleGenerate : undefined;
+  const actionIsLoading = phase === 'loading' || isSaving;
+  const actionIsDisabled = phase === 'input' && !input.trim();
+
   return (
     <AppBottomSheet
       ref={sheetRef}
@@ -162,6 +167,10 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
       iconBgClass="bg-primary/10"
       title={t.recipes.ai.title}
       subtitle={t.recipes.ai.subtitle}
+      actionLabel={actionLabel}
+      onAction={handleAction}
+      actionLoading={actionIsLoading}
+      actionDisabled={actionIsDisabled}
       scrollable
       snapPoints={['92%']}
       onDismiss={onClose}
@@ -217,13 +226,6 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           />
 
           {error ? <Text className="text-xs text-red-500 mt-2">{error}</Text> : null}
-
-          <Pressable
-            onPress={handleGenerate}
-            className="mt-5 rounded-2xl bg-primary py-4 flex-row items-center justify-center gap-2">
-            <Icon name="auto-fix" size={18} color="#fff" />
-            <Text className="text-white font-bold text-base">{t.recipes.ai.generate}</Text>
-          </Pressable>
         </View>
 
       ) : (
@@ -316,17 +318,6 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           ) : null}
 
           {error ? <Text className="text-xs text-red-500 mb-3">{error}</Text> : null}
-
-          {/* Save CTA */}
-          <Pressable
-            onPress={handleSave}
-            disabled={isSaving || !title.trim()}
-            className={`mt-2 rounded-2xl py-4 flex-row items-center justify-center gap-2 ${title.trim() ? 'bg-primary' : 'bg-gray-200'}`}>
-            {isSaving
-              ? <ActivityIndicator size="small" color="#fff" />
-              : <Icon name="content-save-outline" size={18} color="#fff" />}
-            <Text className="text-white font-bold text-base">{t.recipes.ai.save}</Text>
-          </Pressable>
         </View>
 
       )}

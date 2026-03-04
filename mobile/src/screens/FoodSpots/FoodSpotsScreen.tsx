@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  Image,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -80,10 +80,10 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
         {coverPhoto ? (
-          <Image
-            source={{ uri: coverPhoto.url }}
+          <FastImage
+            source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
             className="w-full h-[130px]"
-            resizeMode="cover"
+            resizeMode={FastImage.resizeMode.cover}
           />
         ) : (
           <View className="w-full h-[110px] items-center justify-center bg-secondary/10">

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -8,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -86,11 +86,10 @@ export default function FoodSpotDetailScreen() {
         renderBackground={() => (
           <>
             {coverPhoto ? (
-              <Animated.Image
-                source={{ uri: coverPhoto.url }}
-                sharedTransitionTag={`foodspot-photo-${spot.id}`}
+              <FastImage
+                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
                 className="absolute inset-0 w-full h-full"
-                resizeMode="cover"
+                resizeMode={FastImage.resizeMode.cover}
               />
             ) : (
               <LinearGradient
@@ -142,13 +141,14 @@ export default function FoodSpotDetailScreen() {
                     <Pressable
                       key={photo.id}
                       onPress={() => vm.handleOpenGallery(spot.photos, idx)}>
-                      <Image
-                        source={{ uri: photo.url }}
+                      <FastImage
+                        source={{ uri: photo.url, priority: FastImage.priority.high }}
                         className={`w-[52px] h-[52px] rounded-xl ${
                           idx === 0
                             ? 'border-2 border-secondary opacity-100'
                             : 'opacity-75'
                         }`}
+                        resizeMode={FastImage.resizeMode.cover}
                       />
                     </Pressable>
                   ))}
