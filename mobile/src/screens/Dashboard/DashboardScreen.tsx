@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   Text,
@@ -80,7 +81,7 @@ function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => vo
   return (
     <Pressable onPress={onPress} className="w-[230px] h-[185px] rounded-2xl overflow-hidden">
       {coverPhoto ? (
-        <Animated.Image
+        <Image
           source={{ uri: coverPhoto.url }}
           className="absolute inset-0 w-full h-full"
           resizeMode="cover"
@@ -230,7 +231,7 @@ function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => v
     <Pressable onPress={onPress} className="bg-white rounded-3xl overflow-hidden shadow-sm flex-row">
       <View className="w-[80px] h-[80px] bg-secondary/10 items-center justify-center flex-shrink-0">
         {coverPhoto ? (
-          <Animated.Image source={{ uri: coverPhoto.url }} className="w-full h-full" resizeMode="cover" />
+          <Image source={{ uri: coverPhoto.url }} className="w-full h-full" resizeMode="cover" />
         ) : (
           <Icon name="food-fork-drink" size={24} color={colors.secondary} />
         )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -90,9 +91,8 @@ function MomentCard({
       {/* Photo */}
       <View className="w-full min-h-[110px]">
         {coverPhoto ? (
-          <Animated.Image
+          <Image
             source={{ uri: coverPhoto.url }}
-            sharedTransitionTag={`moment-photo-${moment.id}`}
             className="w-full h-[130px]"
             resizeMode="cover"
           />

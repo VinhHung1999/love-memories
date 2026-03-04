@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -79,9 +80,8 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
         {coverPhoto ? (
-          <Animated.Image
+          <Image
             source={{ uri: coverPhoto.url }}
-            sharedTransitionTag={`foodspot-photo-${spot.id}`}
             className="w-full h-[130px]"
             resizeMode="cover"
           />
