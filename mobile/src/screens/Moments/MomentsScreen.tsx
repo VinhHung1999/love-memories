@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import {
-  ActivityIndicator,
   Image,
   Pressable,
   RefreshControl,
@@ -23,6 +22,44 @@ import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
+import Skeleton from '../../components/Skeleton';
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function MomentCardSkeleton() {
+  return (
+    <View className="bg-white rounded-3xl overflow-hidden mb-3 shadow-sm">
+      <Skeleton className="w-full h-[130px]" />
+      <View className="px-3 pt-2 pb-3">
+        <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
+        <Skeleton className="w-1/2 h-3 rounded-md mb-2" />
+        <View className="flex-row gap-1">
+          <Skeleton className="w-12 h-[18px] rounded-full" />
+          <Skeleton className="w-10 h-[18px] rounded-full" />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function MomentsLoadingSkeleton() {
+  return (
+    <ScrollView scrollEnabled={false} className="flex-1">
+      <View className="px-[14px] pb-[100px]" style={{ paddingTop: 44 + 12 }}>
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <MomentCardSkeleton />
+            <MomentCardSkeleton />
+          </View>
+          <View className="flex-1 mt-6">
+            <MomentCardSkeleton />
+            <MomentCardSkeleton />
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -166,9 +203,7 @@ export default function MomentsScreen() {
 
       {/* ── Body ── */}
       {vm.isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <MomentsLoadingSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
           icon="heart-multiple-outline"

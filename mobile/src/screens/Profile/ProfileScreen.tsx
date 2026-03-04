@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   Text,
   View,
@@ -21,6 +20,7 @@ import CollapsibleHeader from '../../components/CollapsibleHeader';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
 import AlertModal from '../../components/AlertModal';
+import Skeleton from '../../components/Skeleton';
 
 // ── Reusable row inside a card ────────────────────────────────────────────────
 function InfoRow({
@@ -124,7 +124,17 @@ export default function ProfileScreen() {
         <View style={{ paddingTop: 144 }} className="mt-0">
 
           {/* ── Partner card ── */}
-          {vm.partner && (
+          {vm.isCoupleLoading ? (
+            <Card>
+              <View className="flex-row items-center gap-3 py-3">
+                <Skeleton className="w-11 h-11 rounded-full" />
+                <View className="flex-1 gap-2">
+                  <Skeleton className="w-28 h-3.5 rounded-md" />
+                  <Skeleton className="w-40 h-3 rounded-md" />
+                </View>
+              </View>
+            </Card>
+          ) : vm.partner ? (
             <Card>
               <CardTitle>{t.profile.couple.partner}</CardTitle>
               <View className="flex-row items-center gap-3 py-3">
@@ -140,27 +150,37 @@ export default function ProfileScreen() {
                 <View className="w-2 h-2 rounded-full bg-green-400" />
               </View>
             </Card>
-          )}
+          ) : null}
 
           {/* ── Couple settings card ── */}
-          <Card>
-            <CardTitle action={{ label: t.profile.edit, onPress: handleOpenEditCouple }}>
-              {t.profile.couple.title}
-            </CardTitle>
-            <InfoRow
-              label={t.profile.couple.name}
-              value={vm.couple?.name ?? '—'}
-              icon={vm.couple?.name ? undefined : 'plus'}
-              onPress={handleOpenEditCouple}
-            />
-            <InfoRow
-              label={t.profile.couple.anniversary}
-              value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
-              icon="calendar-heart"
-              isLast
-              onPress={handleOpenEditCouple}
-            />
-          </Card>
+          {vm.isCoupleLoading ? (
+            <Card>
+              <View className="gap-3 py-1">
+                <Skeleton className="w-3/4 h-3.5 rounded-md" />
+                <Skeleton className="w-full h-3 rounded-md" />
+                <Skeleton className="w-full h-3 rounded-md" />
+              </View>
+            </Card>
+          ) : (
+            <Card>
+              <CardTitle action={{ label: t.profile.edit, onPress: handleOpenEditCouple }}>
+                {t.profile.couple.title}
+              </CardTitle>
+              <InfoRow
+                label={t.profile.couple.name}
+                value={vm.couple?.name ?? '—'}
+                icon={vm.couple?.name ? undefined : 'plus'}
+                onPress={handleOpenEditCouple}
+              />
+              <InfoRow
+                label={t.profile.couple.anniversary}
+                value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
+                icon="calendar-heart"
+                isLast
+                onPress={handleOpenEditCouple}
+              />
+            </Card>
+          )}
 
           {/* ── Invite code card ── */}
           <Card>
@@ -192,7 +212,7 @@ export default function ProfileScreen() {
                     disabled={vm.isInviteGenerating}
                     className="mt-3 flex-row items-center justify-center gap-1.5 py-2">
                     {vm.isInviteGenerating
-                      ? <ActivityIndicator size="small" color={colors.textLight} />
+                      ? <Skeleton className="w-24 h-3.5 rounded-full" />
                       : <>
                           <Icon name="refresh" size={13} color={colors.textLight} />
                           <Text className="text-xs text-textLight">{t.profile.couple.generateInvite}</Text>
@@ -205,7 +225,7 @@ export default function ProfileScreen() {
                   disabled={vm.isInviteGenerating}
                   className="border border-primary/30 rounded-2xl py-3 flex-row items-center justify-center gap-2">
                   {vm.isInviteGenerating
-                    ? <ActivityIndicator size="small" color={colors.primary} />
+                    ? <Skeleton className="w-32 h-4 rounded-full" />
                     : <>
                         <Icon name="qrcode-plus" size={16} color={colors.primary} />
                         <Text className="text-sm font-medium text-primary">{t.profile.couple.generateInvite}</Text>

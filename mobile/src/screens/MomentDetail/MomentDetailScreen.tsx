@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import {
-  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Linking,
@@ -17,6 +16,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
+import Skeleton from '../../components/Skeleton';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import AlertModal from '../../components/AlertModal';
@@ -24,6 +24,46 @@ import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
+
+// ── Loading skeleton ───────────────────────────────────────────────────────────
+
+function MomentDetailLoadingSkeleton() {
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50">
+      {/* Hero */}
+      <Skeleton className="w-full h-[280px]" />
+      <View className="h-4" />
+      {/* Title card */}
+      <View className="bg-white mx-4 rounded-3xl px-4 py-4 mb-3">
+        <Skeleton className="w-28 h-3 rounded-md mb-3" />
+        <Skeleton className="w-3/4 h-5 rounded-md mb-2" />
+        <Skeleton className="w-full h-3 rounded-md mb-1" />
+        <Skeleton className="w-2/3 h-3 rounded-md mb-3" />
+        <View className="flex-row gap-1.5">
+          <Skeleton className="w-12 h-5 rounded-full" />
+          <Skeleton className="w-16 h-5 rounded-full" />
+        </View>
+      </View>
+      {/* Reactions card */}
+      <View className="bg-white mx-4 rounded-3xl px-4 py-4 mb-3">
+        <Skeleton className="w-20 h-3 rounded-md mb-3" />
+        <View className="flex-row gap-2">
+          {[0, 1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="w-9 h-9 rounded-full" />
+          ))}
+        </View>
+      </View>
+      {/* Comments card */}
+      <View className="bg-white mx-4 rounded-3xl px-4 py-4">
+        <Skeleton className="w-24 h-3 rounded-md mb-3" />
+        <Skeleton className="w-full h-3 rounded-md mb-1.5" />
+        <Skeleton className="w-4/5 h-3 rounded-md" />
+      </View>
+    </SafeAreaView>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -40,11 +80,7 @@ export default function MomentDetailScreen() {
   const editSheetRef = useRef<BottomSheetModal>(null);
 
   if (vm.isLoading || !moment) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color={colors.primary} />
-      </SafeAreaView>
-    );
+    return <MomentDetailLoadingSkeleton />;
   }
 
   const coverPhoto = moment.photos[0];

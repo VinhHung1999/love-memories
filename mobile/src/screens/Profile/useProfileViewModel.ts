@@ -34,7 +34,7 @@ export function useProfileViewModel() {
   const [codeCopied, setCodeCopied] = useState(false);
 
   // ── Couple data ────────────────────────────────────────────────────────────
-  const { data: couple } = useQuery({
+  const { data: couple, isLoading: isCoupleLoading } = useQuery({
     queryKey: ['couple'],
     queryFn: coupleApi.get,
     enabled: !!user,
@@ -155,6 +155,7 @@ export function useProfileViewModel() {
   return {
     user,
     couple,
+    isCoupleLoading,
     partner,
     initials,
     anniversaryDisplay,
