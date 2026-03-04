@@ -18,9 +18,7 @@ import { useMapViewModel } from './useMapViewModel';
 import type { PinTypeFilter } from './useMapViewModel';
 import TagBadge from '../../components/TagBadge';
 import type { MapPin, TagMetadata } from '../../types';
-import { MAPBOX_ACCESS_TOKEN } from '../../config/tokens';
-
-Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
+// Mapbox token initialized in App.tsx before NavigationContainer mounts
 
 // ── Emoji categories ──────────────────────────────────────────────────────────
 
@@ -55,16 +53,17 @@ const TYPE_FILTERS: { key: PinTypeFilter; label: string; icon: string }[] = [
 
 function EmojiPickerModal({
   tagName,
+  colors,
   onSelect,
   onClose,
   isSaving,
 }: {
   tagName: string;
+  colors: ReturnType<typeof useAppColors>;
   onSelect: (emoji: string) => void;
   onClose: () => void;
   isSaving: boolean;
 }) {
-  const colors = useAppColors();
   const [activeCategory, setActiveCategory] = useState(0);
   const [customEmoji, setCustomEmoji] = useState('');
 
@@ -374,28 +373,31 @@ export default function MapScreen() {
               setUserCoords([location.coords.longitude, location.coords.latitude]);
             }}
           />
+          {/* eslint-disable react-native/no-inline-styles */}
           {vm.pins.map(pin => (
             <Mapbox.PointAnnotation
               key={pin.id}
               id={pin.id}
               coordinate={[pin.longitude, pin.latitude]}
               onSelected={() => vm.handlePinPress(pin)}>
+              {/* style required: Mapbox.PointAnnotation children are native views — NativeWind CssInterop cannot wrap them */}
               {pin.tagIcon ? (
-                <View
-                  className={`w-8 h-8 rounded-full border-2 border-white items-center justify-center shadow-sm ${
-                    pin.type === 'foodspot' ? 'bg-secondary/20' : 'bg-primary/20'
-                  }`}>
-                  <Text className="text-base leading-tight">{pin.tagIcon}</Text>
+                <View style={{
+                  width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: '#fff',
+                  alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: pin.type === 'foodspot' ? 'rgba(244,162,97,0.2)' : 'rgba(232,120,138,0.2)',
+                }}>
+                  <Text style={{ fontSize: 16 }}>{pin.tagIcon}</Text>
                 </View>
               ) : (
-                <View
-                  className={`w-5 h-5 rounded-full border-2 border-white ${
-                    pin.type === 'foodspot' ? 'bg-secondary' : 'bg-primary'
-                  }`}
-                />
+                <View style={{
+                  width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#fff',
+                  backgroundColor: pin.type === 'foodspot' ? colors.secondary : colors.primary,
+                }} />
               )}
             </Mapbox.PointAnnotation>
           ))}
+          {/* eslint-enable react-native/no-inline-styles */}
         </Mapbox.MapView>
 
         {/* Callout overlay */}
@@ -421,6 +423,7 @@ export default function MapScreen() {
       {vm.selectedTagForEmoji ? (
         <EmojiPickerModal
           tagName={vm.selectedTagForEmoji}
+          colors={colors}
           onSelect={vm.handleEmojiSelect}
           onClose={vm.handleCloseEmojiPicker}
           isSaving={vm.isSavingEmoji}
