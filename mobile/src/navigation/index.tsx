@@ -4,10 +4,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
 import { AppTheme } from './theme';
 import { LoadingOverlay } from '../components/LoadingOverlay';
+import type { MomentPhoto } from '../types';
 
 // ---------------------------------------------------------------------------
 // Stack param types
@@ -19,11 +21,19 @@ export type AuthStackParamList = {
 
 export type MainTabParamList = {
   Dashboard: undefined;
+  MomentsTab: undefined;
   Profile: undefined;
+};
+
+export type MomentsStackParamList = {
+  MomentsList: undefined;
+  MomentDetail: { momentId: string };
+  PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
+const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 
 // ---------------------------------------------------------------------------
 // Auth stack (unauthenticated)
@@ -34,6 +44,28 @@ function AuthNavigator() {
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
     </AuthStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Moments stack navigator
+// ---------------------------------------------------------------------------
+
+import MomentsScreen from '../screens/Moments/MomentsScreen';
+import MomentDetailScreen from '../screens/MomentDetail/MomentDetailScreen';
+import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
+
+function MomentsNavigator() {
+  return (
+    <MomentsStack.Navigator screenOptions={{ headerShown: false }}>
+      <MomentsStack.Screen name="MomentsList" component={MomentsScreen} />
+      <MomentsStack.Screen name="MomentDetail" component={MomentDetailScreen} />
+      <MomentsStack.Screen
+        name="PhotoGallery"
+        component={PhotoGalleryScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+    </MomentsStack.Navigator>
   );
 }
 
@@ -56,6 +88,14 @@ function MainNavigator() {
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => <Icon name="home-heart" size={size} color={color} />,
+        }}
+      />
+      <MainTab.Screen
+        name="MomentsTab"
+        component={MomentsNavigator}
+        options={{
+          tabBarLabel: 'Moments',
+          tabBarIcon: ({ color, size }) => <Icon name="heart-multiple-outline" size={size} color={color} />,
         }}
       />
       <MainTab.Screen
@@ -87,9 +127,12 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer theme={AppTheme}>
-      {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
-      {/* Global overlay — inside NavigationContainer for useAppColors() access */}
-      <LoadingOverlay />
+      {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
+      <BottomSheetModalProvider>
+        {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+        {/* Global overlay — inside NavigationContainer for useAppColors() access */}
+        <LoadingOverlay />
+      </BottomSheetModalProvider>
     </NavigationContainer>
   );
 }

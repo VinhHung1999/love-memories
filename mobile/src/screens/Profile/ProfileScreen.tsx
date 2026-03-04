@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
-  ActivityIndicator,
-  Image,
   Pressable,
-  ScrollView,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -16,6 +16,11 @@ import { useProfileViewModel } from './useProfileViewModel';
 import EditNameModal from './components/EditNameModal';
 import EditCoupleModal from './components/EditCoupleModal';
 import GoogleGLogo from '../../components/GoogleGLogo';
+import CollapsibleHeader from '../../components/CollapsibleHeader';
+import { Card, CardTitle } from '../../components/Card';
+import AvatarCircle from '../../components/AvatarCircle';
+import AlertModal from '../../components/AlertModal';
+import Skeleton from '../../components/Skeleton';
 
 // ── Reusable row inside a card ────────────────────────────────────────────────
 function InfoRow({
@@ -45,127 +50,99 @@ function InfoRow({
   return inner;
 }
 
-// ── Card wrapper ──────────────────────────────────────────────────────────────
-function Card({ children, className: cls }: { children: React.ReactNode; className?: string }) {
-  return (
-    <View className={`bg-white rounded-3xl shadow-sm mx-4 mb-4 px-5 pt-2 pb-1 ${cls ?? ''}`}>
-      {children}
-    </View>
-  );
-}
-
-function CardTitle({ children, action, onAction }: { children: string; action?: string; onAction?: () => void }) {
-  return (
-    <View className="flex-row items-center justify-between pt-3 pb-1">
-      <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">{children}</Text>
-      {action && (
-        <Pressable onPress={onAction}>
-          <Text className="text-xs font-semibold text-primary">{action}</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
-
-// ── Avatar component ──────────────────────────────────────────────────────────
-function AvatarCircle({
-  uri,
-  initials,
-  size = 88,
-  onPress,
-}: {
-  uri?: string | null;
-  initials: string;
-  size?: number;
-  onPress?: () => void;
-}) {
-  const colors = useAppColors();
-  return (
-    <Pressable onPress={onPress} className="relative">
-      {uri ? (
-        <Image
-          source={{ uri }}
-          className="rounded-full border-4 border-white"
-          style={{ width: size, height: size }}
-        />
-      ) : (
-        <View
-          className="rounded-full bg-primary/[12%] border-4 border-white items-center justify-center"
-          style={{ width: size, height: size }}>
-          <Text className="font-bold text-primary" style={{ fontSize: size * 0.3 }}>{initials}</Text>
-        </View>
-      )}
-      {/* Camera badge */}
-      {onPress && (
-        <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary items-center justify-center border-2 border-white">
-          <Icon name="camera" size={13} color={colors.white} />
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const colors = useAppColors();
   const vm = useProfileViewModel();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(event => {
+    scrollY.value = event.contentOffset.y;
+  });
+
+  const editNameRef = useRef<BottomSheetModal>(null);
+  const editCoupleRef = useRef<BottomSheetModal>(null);
+
+  const handleOpenEditName = () => {
+    vm.prepareEditName();
+    editNameRef.current?.present();
+  };
+
+  const handleOpenEditCouple = () => {
+    vm.prepareEditCouple();
+    editCoupleRef.current?.present();
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+    <View className="flex-1 bg-gray-50">
 
-        {/* ── Hero Header ── */}
-        <LinearGradient
-          colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="pb-8 pt-2">
-
-          {/* Top row: title */}
-          <View className="flex-row items-center justify-between px-5 pb-4">
-            <Text className="text-lg font-bold text-textDark">{t.profile.title}</Text>
-          </View>
-
-          {/* Avatar + name block */}
-          <View className="items-center px-5">
+      {/* ── Collapsible Header ── */}
+      <CollapsibleHeader
+        title={vm.user?.name ?? t.profile.title}
+        subtitle={t.profile.title.toUpperCase()}
+        expandedHeight={200}
+        collapsedHeight={56}
+        scrollY={scrollY}
+        renderExpandedContent={() => (
+          <View className="items-center">
             <AvatarCircle
               uri={vm.user?.avatar}
               initials={vm.initials}
-              size={88}
+              size={72}
               onPress={vm.handleUploadAvatar}
+              showCameraBadge
             />
-            <Pressable onPress={vm.openEditName} className="mt-3 flex-row items-center gap-1">
-              <Text className="text-lg font-bold text-textDark">{vm.user?.name}</Text>
-              <Icon name="pencil-outline" size={14} color={colors.textLight} />
-            </Pressable>
-            <Text className="text-xs text-textMid mt-0.5">{vm.user?.email}</Text>
-
-            {/* Couple name badge */}
-            {vm.couple?.name && (
-              <View className="mt-3 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-4 py-1.5">
-                <Icon name="heart" size={12} color={colors.primary} />
-                <Text className="text-xs font-semibold text-primary">{vm.couple.name}</Text>
+            <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
+            {vm.couple?.name ? (
+              <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
+                <Icon name="heart" size={10} color={colors.primary} />
+                <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
               </View>
-            )}
-
-            {/* Anniversary badge */}
-            {vm.anniversaryDisplay && (
-              <View className="mt-2 flex-row items-center gap-1.5">
-                <Icon name="calendar-heart" size={12} color={colors.textLight} />
-                <Text className="text-xs text-textMid">Since {vm.anniversaryDisplay}</Text>
+            ) : null}
+            {vm.anniversaryDisplay ? (
+              <View className="mt-1.5 flex-row items-center gap-1">
+                <Icon name="calendar-heart" size={11} color={colors.textLight} />
+                <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
               </View>
-            )}
+            ) : null}
           </View>
-        </LinearGradient>
+        )}
+        renderRight={() => (
+          <Pressable
+            onPress={handleOpenEditName}
+            className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
+            <Icon name="pencil-outline" size={16} color={colors.textLight} />
+          </Pressable>
+        )}
+      />
 
-        <View className="mt-4">
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}>
+        {/* paddingTop = scrollRange (200-56=144) — bù phần expanded header overlay */}
+        <View style={{ paddingTop: 144 }} className="mt-0">
 
           {/* ── Partner card ── */}
-          {vm.partner && (
+          {vm.isCoupleLoading ? (
+            <Card>
+              <View className="flex-row items-center gap-3 py-3">
+                <Skeleton className="w-11 h-11 rounded-full" />
+                <View className="flex-1 gap-2">
+                  <Skeleton className="w-28 h-3.5 rounded-md" />
+                  <Skeleton className="w-40 h-3 rounded-md" />
+                </View>
+              </View>
+            </Card>
+          ) : vm.partner ? (
             <Card>
               <CardTitle>{t.profile.couple.partner}</CardTitle>
               <View className="flex-row items-center gap-3 py-3">
-                <AvatarCircle uri={vm.partner.avatar} initials={vm.partner.name.charAt(0).toUpperCase()} size={44} />
+                <AvatarCircle
+                  uri={vm.partner.avatar}
+                  initials={vm.partner.name.charAt(0).toUpperCase()}
+                  size={44}
+                />
                 <View className="flex-1">
                   <Text className="font-semibold text-sm text-textDark">{vm.partner.name}</Text>
                   <Text className="text-xs text-textMid mt-0.5">{vm.partner.email}</Text>
@@ -173,27 +150,37 @@ export default function ProfileScreen() {
                 <View className="w-2 h-2 rounded-full bg-green-400" />
               </View>
             </Card>
-          )}
+          ) : null}
 
           {/* ── Couple settings card ── */}
-          <Card>
-            <CardTitle action={t.profile.edit} onAction={vm.openEditCouple}>
-              {t.profile.couple.title}
-            </CardTitle>
-            <InfoRow
-              label={t.profile.couple.name}
-              value={vm.couple?.name ?? '—'}
-              icon={vm.couple?.name ? undefined : 'plus'}
-              onPress={vm.openEditCouple}
-            />
-            <InfoRow
-              label={t.profile.couple.anniversary}
-              value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
-              icon="calendar-heart"
-              isLast
-              onPress={vm.openEditCouple}
-            />
-          </Card>
+          {vm.isCoupleLoading ? (
+            <Card>
+              <View className="gap-3 py-1">
+                <Skeleton className="w-3/4 h-3.5 rounded-md" />
+                <Skeleton className="w-full h-3 rounded-md" />
+                <Skeleton className="w-full h-3 rounded-md" />
+              </View>
+            </Card>
+          ) : (
+            <Card>
+              <CardTitle action={{ label: t.profile.edit, onPress: handleOpenEditCouple }}>
+                {t.profile.couple.title}
+              </CardTitle>
+              <InfoRow
+                label={t.profile.couple.name}
+                value={vm.couple?.name ?? '—'}
+                icon={vm.couple?.name ? undefined : 'plus'}
+                onPress={handleOpenEditCouple}
+              />
+              <InfoRow
+                label={t.profile.couple.anniversary}
+                value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
+                icon="calendar-heart"
+                isLast
+                onPress={handleOpenEditCouple}
+              />
+            </Card>
+          )}
 
           {/* ── Invite code card ── */}
           <Card>
@@ -225,7 +212,7 @@ export default function ProfileScreen() {
                     disabled={vm.isInviteGenerating}
                     className="mt-3 flex-row items-center justify-center gap-1.5 py-2">
                     {vm.isInviteGenerating
-                      ? <ActivityIndicator size="small" color={colors.textLight} />
+                      ? <Skeleton className="w-24 h-3.5 rounded-full" />
                       : <>
                           <Icon name="refresh" size={13} color={colors.textLight} />
                           <Text className="text-xs text-textLight">{t.profile.couple.generateInvite}</Text>
@@ -238,7 +225,7 @@ export default function ProfileScreen() {
                   disabled={vm.isInviteGenerating}
                   className="border border-primary/30 rounded-2xl py-3 flex-row items-center justify-center gap-2">
                   {vm.isInviteGenerating
-                    ? <ActivityIndicator size="small" color={colors.primary} />
+                    ? <Skeleton className="w-32 h-4 rounded-full" />
                     : <>
                         <Icon name="qrcode-plus" size={16} color={colors.primary} />
                         <Text className="text-sm font-medium text-primary">{t.profile.couple.generateInvite}</Text>
@@ -275,27 +262,27 @@ export default function ProfileScreen() {
           </Pressable>
 
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* ── Modals ── */}
       <EditNameModal
-        visible={vm.editNameOpen}
+        ref={editNameRef}
         nameInput={vm.nameInput}
         isSaving={vm.isNameSaving}
         onChangeText={vm.setNameInput}
-        onSave={vm.saveName}
-        onClose={vm.closeEditName}
+        onSave={() => vm.saveName(() => editNameRef.current?.dismiss())}
       />
       <EditCoupleModal
-        visible={vm.editCoupleOpen}
+        ref={editCoupleRef}
         coupleNameInput={vm.coupleNameInput}
         anniversaryDate={vm.anniversaryDate}
         isSaving={vm.isCoupleSaving}
         onChangeName={vm.setCoupleNameInput}
         onChangeAnniversary={vm.setAnniversaryDate}
-        onSave={vm.saveCouple}
-        onClose={vm.closeEditCouple}
+        onSave={() => vm.saveCouple(() => editCoupleRef.current?.dismiss())}
       />
-    </SafeAreaView>
+      <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
+
+    </View>
   );
 }

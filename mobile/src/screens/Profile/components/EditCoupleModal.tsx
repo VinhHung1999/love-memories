@@ -1,14 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetView,
-  BottomSheetBackdropProps,
-} from '@gorhom/bottom-sheet';
+import React, { forwardRef, useState } from 'react';
+import { Platform, Pressable, Text, View } from 'react-native';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
+import AppBottomSheet from '../../../components/AppBottomSheet';
 import Input from '../../../components/Input';
 import FieldLabel from '../../../components/FieldLabel';
 
@@ -18,67 +15,35 @@ function formatDateDisplay(date: Date | null): string {
 }
 
 interface Props {
-  visible: boolean;
   coupleNameInput: string;
   anniversaryDate: Date | null;
   isSaving: boolean;
   onChangeName: (v: string) => void;
   onChangeAnniversary: (d: Date | null) => void;
   onSave: () => void;
-  onClose: () => void;
+  onDismiss?: () => void;
 }
 
-export default function EditCoupleModal({
-  visible, coupleNameInput, anniversaryDate, isSaving,
-  onChangeName, onChangeAnniversary, onSave, onClose,
-}: Props) {
-  const colors = useAppColors();
-  const sheetRef = useRef<BottomSheet>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+const EditCoupleModal = forwardRef<BottomSheetModal, Props>(
+  (
+    { coupleNameInput, anniversaryDate, isSaving, onChangeName, onChangeAnniversary, onSave, onDismiss },
+    ref,
+  ) => {
+    const colors = useAppColors();
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
-  useEffect(() => {
-    if (visible) {
-      setShowDatePicker(false); // reset picker on open
-      sheetRef.current?.expand();
-    } else {
-      sheetRef.current?.close();
-    }
-  }, [visible]);
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} pressBehavior="close" />
-    ),
-    [],
-  );
-
-  return (
-    <BottomSheet
-      ref={sheetRef}
-      index={-1}
-      enableDynamicSizing
-      enablePanDownToClose
-      onClose={onClose}
-      backdropComponent={renderBackdrop}
-      keyboardBehavior="interactive"
-      keyboardBlurBehavior="restore"
-      handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}>
-      <BottomSheetView>
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-5 py-3 border-b border-border">
-          <Pressable onPress={onClose}>
-            <Text className="text-sm text-textMid">{t.profile.cancel}</Text>
-          </Pressable>
-          <Text className="font-semibold text-textDark">{t.profile.editCouple}</Text>
-          <Pressable onPress={onSave} disabled={isSaving}>
-            {isSaving
-              ? <ActivityIndicator size="small" color={colors.primary} />
-              : <Text className="font-semibold text-sm text-primary">{t.profile.save}</Text>}
-          </Pressable>
-        </View>
-
-        {/* Content */}
+    return (
+      <AppBottomSheet
+        ref={ref}
+        title={t.profile.editCouple}
+        onSave={onSave}
+        isSaving={isSaving}
+        onDismiss={() => {
+          setShowDatePicker(false);
+          onDismiss?.();
+        }}>
         <View className="px-5 pt-4 pb-10">
+
           {/* Couple name */}
           <FieldLabel>{t.profile.labels.coupleName}</FieldLabel>
           <Input
@@ -96,7 +61,11 @@ export default function EditCoupleModal({
             <Text className={anniversaryDate ? 'text-textDark text-sm' : 'text-textLight text-sm'}>
               {anniversaryDate ? formatDateDisplay(anniversaryDate) : t.profile.couple.noAnniversary}
             </Text>
-            <Icon name={showDatePicker ? 'chevron-up' : 'calendar-heart'} size={18} color={colors.primary} />
+            <Icon
+              name={showDatePicker ? 'chevron-up' : 'calendar-heart'}
+              size={18}
+              color={colors.primary}
+            />
           </Pressable>
 
           {/* Android DatePicker (native dialog) */}
@@ -137,8 +106,12 @@ export default function EditCoupleModal({
               <Text className="text-xs text-textLight text-center">Clear anniversary date</Text>
             </Pressable>
           )}
+
         </View>
-      </BottomSheetView>
-    </BottomSheet>
-  );
-}
+      </AppBottomSheet>
+    );
+  },
+);
+
+EditCoupleModal.displayName = 'EditCoupleModal';
+export default EditCoupleModal;

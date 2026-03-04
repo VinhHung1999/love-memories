@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   GoogleSignin,
@@ -10,6 +9,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
 import { coupleApi, profileApi } from '../../lib/api';
+import type { AlertConfig } from '../../components/AlertModal';
+import t from '../../locales/en';
 
 export function useProfileViewModel() {
   const { user, logout, updateUser, linkGoogle } = useAuth();
@@ -17,19 +18,23 @@ export function useProfileViewModel() {
   const queryClient = useQueryClient();
 
   // ── Name edit state ────────────────────────────────────────────────────────
-  const [editNameOpen, setEditNameOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
 
   // ── Couple edit state ──────────────────────────────────────────────────────
-  const [editCoupleOpen, setEditCoupleOpen] = useState(false);
   const [coupleNameInput, setCoupleNameInput] = useState('');
   const [anniversaryDate, setAnniversaryDate] = useState<Date | null>(null);
+
+  // ── Alert state ────────────────────────────────────────────────────────────
+  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
+  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
+    setAlert({ ...config, visible: true });
+  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // ── Invite code copy feedback ──────────────────────────────────────────────
   const [codeCopied, setCodeCopied] = useState(false);
 
   // ── Couple data ────────────────────────────────────────────────────────────
-  const { data: couple } = useQuery({
+  const { data: couple, isLoading: isCoupleLoading } = useQuery({
     queryKey: ['couple'],
     queryFn: coupleApi.get,
     enabled: !!user,
@@ -43,11 +48,6 @@ export function useProfileViewModel() {
     mutationFn: () => profileApi.updateName(nameInput.trim()),
     onMutate: showLoading,
     onSettled: hideLoading,
-    onSuccess: data => {
-      updateUser({ name: data.name });
-      setEditNameOpen(false);
-    },
-    onError: (err: Error) => Alert.alert('Error', err.message),
   });
 
   const coupleMutation = useMutation({
@@ -58,19 +58,14 @@ export function useProfileViewModel() {
       }),
     onMutate: showLoading,
     onSettled: hideLoading,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['couple'] });
-      setEditCoupleOpen(false);
-    },
-    onError: (err: Error) => Alert.alert('Error', err.message),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['couple'] }),
   });
 
   const inviteMutation = useMutation({
     mutationFn: coupleApi.generateInvite,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['couple'] });
-    },
-    onError: (err: Error) => Alert.alert('Error', err.message),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['couple'] }),
+    onError: (err: Error) =>
+      showAlert({ type: 'error', title: t.common.error, message: err.message }),
   });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -85,7 +80,11 @@ export function useProfileViewModel() {
       const updated = await profileApi.uploadAvatar(asset.uri, asset.type ?? 'image/jpeg');
       updateUser({ avatar: updated.avatar });
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to upload photo');
+      showAlert({
+        type: 'error',
+        title: t.common.error,
+        message: err instanceof Error ? err.message : t.profile.errors.avatarFailed,
+      });
     } finally {
       hideLoading();
     }
@@ -97,30 +96,36 @@ export function useProfileViewModel() {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
-      if (!idToken) { Alert.alert('Error', 'No ID token from Google'); return; }
+      if (!idToken) {
+        showAlert({ type: 'error', title: t.common.error, message: t.profile.errors.noGoogleToken });
+        return;
+      }
       await linkGoogle(idToken);
-      Alert.alert('Success', 'Google account linked!');
+      showAlert({ type: 'info', title: t.common.success, message: t.profile.google.linkedSuccess });
     } catch (err: unknown) {
       const e = err as { code?: string };
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
-      Alert.alert('Error', err instanceof Error ? err.message : 'Google linking failed');
+      showAlert({
+        type: 'error',
+        title: t.common.error,
+        message: err instanceof Error ? err.message : t.profile.errors.googleLinkFailed,
+      });
     } finally {
       hideLoading();
     }
   };
 
   const handleLogout = () => {
-    Alert.alert('Log out', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log out',
-        style: 'destructive',
-        onPress: async () => {
-          await GoogleSignin.signOut().catch(() => {});
-          await logout();
-        },
+    showAlert({
+      type: 'destructive',
+      title: t.profile.logout,
+      message: t.profile.logoutMessage,
+      confirmLabel: t.profile.logout,
+      onConfirm: async () => {
+        await GoogleSignin.signOut().catch(() => {});
+        await logout();
       },
-    ]);
+    });
   };
 
   const copyInviteCode = () => {
@@ -140,40 +145,57 @@ export function useProfileViewModel() {
     .toUpperCase();
 
   const anniversaryDisplay = couple?.anniversaryDate
-    ? new Date(couple.anniversaryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(couple.anniversaryDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : null;
 
   return {
     user,
     couple,
+    isCoupleLoading,
     partner,
     initials,
     anniversaryDisplay,
     codeCopied,
 
-    // name modal
-    editNameOpen,
+    // alert
+    alert,
+    dismissAlert,
+
+    // name form
     nameInput,
     isNameSaving: nameMutation.isPending,
     setNameInput,
-    openEditName: () => { setNameInput(user?.name ?? ''); setEditNameOpen(true); },
-    closeEditName: () => setEditNameOpen(false),
-    saveName: () => { if (nameInput.trim()) nameMutation.mutate(); },
+    prepareEditName: () => setNameInput(user?.name ?? ''),
+    saveName: (onClose: () => void) => {
+      if (!nameInput.trim()) return;
+      nameMutation.mutate(undefined, {
+        onSuccess: (data) => { updateUser({ name: data.name }); onClose(); },
+        onError: (err: Error) =>
+          showAlert({ type: 'error', title: t.common.error, message: err.message }),
+      });
+    },
 
-    // couple modal
-    editCoupleOpen,
+    // couple form
     coupleNameInput,
     anniversaryDate,
     isCoupleSaving: coupleMutation.isPending,
     setCoupleNameInput,
     setAnniversaryDate,
-    openEditCouple: () => {
+    prepareEditCouple: () => {
       setCoupleNameInput(couple?.name ?? '');
       setAnniversaryDate(couple?.anniversaryDate ? new Date(couple.anniversaryDate) : null);
-      setEditCoupleOpen(true);
     },
-    closeEditCouple: () => setEditCoupleOpen(false),
-    saveCouple: () => coupleMutation.mutate(),
+    saveCouple: (onClose: () => void) => {
+      coupleMutation.mutate(undefined, {
+        onSuccess: () => onClose(),
+        onError: (err: Error) =>
+          showAlert({ type: 'error', title: t.common.error, message: err.message }),
+      });
+    },
 
     // invite
     isInviteGenerating: inviteMutation.isPending,

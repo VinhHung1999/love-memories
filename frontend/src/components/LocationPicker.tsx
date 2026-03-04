@@ -19,6 +19,8 @@ interface GeoResult {
 const cleanPlaceName = (name: string) =>
   name.replace(/,\s*\d{5,6}(?=\s*,|\s*$)/g, '').trim();
 
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
 export default function LocationPicker({ latitude, longitude, location, onChange, onClear }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -30,7 +32,6 @@ export default function LocationPicker({ latitude, longitude, location, onChange
   const [gettingLocation, setGettingLocation] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const token = mapboxgl.accessToken;
   const [resolvingUrl, setResolvingUrl] = useState(false);
 
   const GOOGLE_MAPS_RE = /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.com|www\.google\.com\/maps)/;
@@ -59,12 +60,11 @@ export default function LocationPicker({ latitude, longitude, location, onChange
         onChange({ latitude: lat, longitude: lng, location: name });
         setQuery(name);
         updateMarker(lng, lat);
-      } else if (token) {
-        // Name only (no coords) — forward geocode with Mapbox, auto-select first result
+      } else {
+        // Name only (no coords) — forward geocode via backend proxy, auto-select first result
         const proxLng = mapRef.current?.getCenter()?.lng ?? longitude ?? 106.6297;
         const proxLat = mapRef.current?.getCenter()?.lat ?? latitude ?? 10.8231;
-        const geoUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?access_token=${token}&limit=1&language=vi&country=vn&proximity=${proxLng},${proxLat}`;
-        const geoRes = await fetch(geoUrl);
+        const geoRes = await fetch(`/api/geocode/forward?q=${encodeURIComponent(name)}&proximity=${proxLng},${proxLat}&limit=1`);
         const geoData = await geoRes.json();
         const first = geoData.features?.[0];
         if (first) {
@@ -82,7 +82,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       // silent fail — user can still search manually
     }
     setResolvingUrl(false);
-  }, [token, onChange]);
+  }, [onChange]);
 
   // Get current location via browser geolocation
   const getCurrentLocation = () => {
@@ -92,20 +92,14 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
         updateMarker(lng, lat);
-        // Reverse geocode
-        if (token) {
-          try {
-            const res = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
-            );
-            const data = await res.json();
-            const placeName = cleanPlaceName(data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-            onChange({ latitude: lat, longitude: lng, location: placeName });
-            setQuery(placeName);
-          } catch {
-            onChange({ latitude: lat, longitude: lng, location: `${lat.toFixed(6)}, ${lng.toFixed(6)}` });
-          }
-        } else {
+        // Reverse geocode via backend proxy
+        try {
+          const res = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
+          const data = await res.json();
+          const placeName = cleanPlaceName(data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          onChange({ latitude: lat, longitude: lng, location: placeName });
+          setQuery(placeName);
+        } catch {
           onChange({ latitude: lat, longitude: lng, location: `${lat.toFixed(6)}, ${lng.toFixed(6)}` });
         }
         setGettingLocation(false);
@@ -115,24 +109,23 @@ export default function LocationPicker({ latitude, longitude, location, onChange
     );
   };
 
-  // Search geocoding API
+  // Search geocoding API via backend proxy
   const searchLocation = useCallback(async (q: string) => {
-    if (!q.trim() || !token) { setResults([]); return; }
+    if (!q.trim()) { setResults([]); return; }
     setSearching(true);
     try {
       // Use map center for proximity bias; fall back to current props or HCMC default
       const center = mapRef.current?.getCenter();
       const proxLng = center?.lng ?? longitude ?? 106.6297;
       const proxLat = center?.lat ?? latitude ?? 10.8231;
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${token}&limit=5&language=vi&country=vn&proximity=${proxLng},${proxLat}`;
-      const res = await fetch(url);
+      const res = await fetch(`/api/geocode/forward?q=${encodeURIComponent(q)}&proximity=${proxLng},${proxLat}&limit=5`);
       const data = await res.json();
       setResults(data.features || []);
     } catch {
       setResults([]);
     }
     setSearching(false);
-  }, [token, latitude, longitude]);
+  }, [latitude, longitude]);
 
   // Debounced search
   const handleQueryChange = (value: string) => {
@@ -143,7 +136,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       resolveGoogleUrl(value.trim());
       return;
     }
-    debounceRef.current = setTimeout(() => searchLocation(value), 400);
+    if (value.trim()) debounceRef.current = setTimeout(() => searchLocation(value), 400);
   };
 
   // Select a geocoding result
@@ -171,7 +164,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
 
   // Init map
   useEffect(() => {
-    if (!showMap || !mapContainer.current || mapRef.current || !token) return;
+    if (!showMap || !mapContainer.current || mapRef.current || !mapboxgl.accessToken) return;
 
     const center: [number, number] = longitude && latitude ? [longitude, latitude] : [106.6297, 10.8231];
 
@@ -187,11 +180,9 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       const { lng, lat } = e.lngLat;
       updateMarker(lng, lat);
 
-      // Reverse geocode
+      // Reverse geocode via backend proxy
       try {
-        const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&language=vi&country=vn`
-        );
+        const res = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
         const data = await res.json();
         const placeName = cleanPlaceName(data.features?.[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         onChange({ latitude: lat, longitude: lng, location: placeName });
@@ -298,7 +289,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       </div>
 
       {/* Mini map */}
-      {showMap && token && (
+      {showMap && mapboxgl.accessToken && (
         <div
           ref={mapContainer}
           className="w-full h-48 rounded-xl overflow-hidden border border-border"

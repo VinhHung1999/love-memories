@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 35 CLOSED
-**Goal:** RN Mobile — Login/Profile UI polish, component extraction, backend auth fix
+**Sprint:** 36 ACTIVE
+**Goal:** RN Mobile — Moments module (list, create, detail, photos, voice memo, comments, reactions)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | IDLE | Sprint 35 closed, BE deployed to production | 2026-03-03 |
-| DEV  | IDLE | Sprint 35 complete | 2026-03-03 |
+| PO   | ACTIVE | Sprint 36 spec written, assigned to DEV | 2026-03-03 |
+| DEV  | DONE | Sprint 36 — RN Moments module complete, ready for review | 2026-03-03 |
 
 ---
 
@@ -41,6 +41,7 @@ _Sprint 32 — JWT Auth, Shared Links, Couple Profile: DEPLOYED_
 _Sprint 33 — Google OAuth Login: DEPLOYED_
 _Sprint 34 — React Native Project Setup + Auth: DEPLOYED_
 _Sprint 35 — RN Login/Profile UI + BE auth fix: DEPLOYED (BE production)_
+_Sprint 36 — RN Moments: IN PROGRESS_
 
 ---
 

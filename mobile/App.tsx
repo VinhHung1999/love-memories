@@ -32,12 +32,12 @@ export default function App() {
     <GestureHandlerRootView className="flex-1">
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-          <LoadingProvider>
-            <AuthProvider>
-              <RootNavigator />
-            </AuthProvider>
-          </LoadingProvider>
+            <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+            <LoadingProvider>
+              <AuthProvider>
+                <RootNavigator />
+              </AuthProvider>
+            </LoadingProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

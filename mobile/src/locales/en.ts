@@ -75,6 +75,7 @@ const en = {
     google: {
       title: 'Google Account',
       linked: '✓ Google account linked',
+      linkedSuccess: 'Google account linked!',
       linkHint: 'Link your Google account for easier sign-in',
       linkButton: 'Link Google Account',
     },
@@ -112,12 +113,104 @@ const en = {
   dashboard: {
     title: 'Love Scrum',
     subtitle: 'Dashboard — Sprint 35',
+    headerSubtitle: 'HOME',
+  },
+
+  moments: {
+    title: 'Our Moments',
+    subtitle: '♥ Our Story',
+    allFilter: 'All',
+    emptyTitle: 'No moments yet',
+    emptySubtitle: 'Start capturing your memories together',
+    emptyAction: 'Add First Moment',
+
+    detail: {
+      photos: 'Photos',
+      voiceMemo: 'Voice Memo',
+      reactions: 'Reactions',
+      comments: 'Comments',
+      spotifyLink: 'Spotify',
+      mapsLink: 'View on Maps',
+      viewGallery: 'View all photos',
+      addComment: 'Add a comment...',
+      noComments: 'No comments yet — be first!',
+      noVoiceMemos: 'No voice memos',
+      deleteTitle: 'Delete Moment',
+      deleteMessage: 'Are you sure you want to delete this moment? This cannot be undone.',
+      deleteConfirm: 'Delete',
+      deleteCommentTitle: 'Remove Comment',
+      deleteCommentMessage: 'Remove this comment?',
+      deleteCommentConfirm: 'Remove',
+    },
+
+    create: {
+      newTitle: 'New Moment',
+      editTitle: 'Edit Moment',
+      save: 'Save',
+      saving: 'Saving...',
+      photos: 'Photos',
+      addPhoto: 'Add',
+      details: 'Details',
+      tags: 'Tags',
+      songAndMemo: 'Song & Voice Memo',
+      recordMemo: 'Record Voice Memo',
+      recordHint: 'Tap to start · Max 5 minutes',
+      recording: 'Recording...',
+      stopRecording: 'Tap to stop',
+      deleteAudio: 'Delete',
+      addLocation: 'Search or paste Google Maps link...',
+      gettingLocation: 'Getting location...',
+      resolvingUrl: 'Resolving...',
+      pickDate: 'Pick date',
+      typeTag: 'Type tag + Enter...',
+    },
+
+    labels: {
+      title: 'Title',
+      caption: 'Caption',
+      date: 'Date',
+      location: 'Location',
+      tags: 'Tags',
+      spotifyUrl: 'Spotify URL',
+    },
+
+    placeholders: {
+      title: 'Give this moment a title...',
+      caption: 'Describe this moment...',
+      spotifyUrl: 'Paste Spotify link...',
+    },
+
+    gallery: {
+      close: 'Close',
+      share: 'Share',
+    },
+
+    errors: {
+      titleRequired: 'Title is required',
+      titleTooLong: 'Title must be under 200 characters',
+      spotifyInvalid: 'Please enter a valid Spotify URL',
+      saveFailed: 'Failed to save moment',
+      deleteFailed: 'Failed to delete moment',
+      photoUploadFailed: 'Failed to upload photo',
+      audioUploadFailed: 'Failed to upload voice memo',
+      commentFailed: 'Failed to add comment',
+      reactionFailed: 'Failed to update reaction',
+      locationFailed: 'Could not get your location',
+      maxPhotos: 'Maximum 10 photos allowed',
+      micPermissionDenied: 'Microphone permission denied',
+      recordFailed: 'Failed to start recording',
+    },
   },
 
   common: {
     error: 'Error',
     success: 'Success',
     cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    edit: 'Edit',
+    ok: 'OK',
+    loading: 'Loading...',
   },
 } as const;
 
