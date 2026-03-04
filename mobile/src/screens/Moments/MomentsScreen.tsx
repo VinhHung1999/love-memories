@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   Image,
   Pressable,
@@ -12,13 +12,14 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Moment } from '../../types';
+import type { MomentsStackParamList } from '../../navigation';
 import { useMomentsViewModel } from './useMomentsViewModel';
-import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
@@ -141,16 +142,18 @@ function MomentCard({
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
+type Nav = NativeStackNavigationProp<MomentsStackParamList>;
+
 export default function MomentsScreen() {
   const colors = useAppColors();
+  const navigation = useNavigation<Nav>();
   const vm = useMomentsViewModel();
-  const sheetRef = useRef<BottomSheetModal>(null);
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(event => {
     scrollY.value = event.contentOffset.y;
   });
 
-  const openCreateSheet = () => sheetRef.current?.present();
+  const openCreateForm = () => navigation.navigate('FormScreen', { type: 'createMoment' });
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -163,7 +166,7 @@ export default function MomentsScreen() {
         scrollY={scrollY}
         renderRight={() => (
           <TouchableOpacity
-            onPress={openCreateSheet}
+            onPress={openCreateForm}
             className="w-10 h-10 rounded-full items-center justify-center bg-primary"
           >
             <Icon name="plus" size={22} color="#fff" />
@@ -210,7 +213,7 @@ export default function MomentsScreen() {
           title={t.moments.emptyTitle}
           subtitle={t.moments.emptySubtitle}
           actionLabel={t.moments.emptyAction}
-          onAction={openCreateSheet}
+          onAction={openCreateForm}
         />
       ) : (
         <Animated.ScrollView
@@ -254,12 +257,6 @@ export default function MomentsScreen() {
         </Animated.ScrollView>
       )}
 
-      {/* ── Create Sheet ── */}
-      <CreateMomentSheet
-        ref={sheetRef}
-        momentId={null}
-        onSuccess={vm.handleRefresh}
-      />
     </View>
   );
 }

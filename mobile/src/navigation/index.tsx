@@ -28,10 +28,18 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+// FormScreen route type — single route handles all create/edit forms
+export type FormType =
+  | 'createMoment'
+  | 'editMoment'
+  | 'createFoodSpot'
+  | 'editFoodSpot';
+
 export type MomentsStackParamList = {
   MomentsList: undefined;
   MomentDetail: { momentId: string };
   PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
+  FormScreen: { type: FormType; data?: any };
 };
 
 export type FoodSpotsStackParamList = {
@@ -39,6 +47,7 @@ export type FoodSpotsStackParamList = {
   FoodSpotDetail: { foodSpotId: string };
   // Uses MomentPhoto[] so PhotoGalleryScreen can be reused (structurally compatible)
   FoodSpotGallery: { photos: MomentPhoto[]; initialIndex: number };
+  FormScreen: { type: FormType; data?: any };
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -68,6 +77,7 @@ import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
 import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
 import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
 import MapScreen from '../screens/Map/MapScreen';
+import FormScreen from '../screens/FormScreen';
 
 function MomentsNavigator() {
   return (
@@ -78,6 +88,11 @@ function MomentsNavigator() {
         name="PhotoGallery"
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+      <MomentsStack.Screen
+        name="FormScreen"
+        component={FormScreen}
+        options={{ animation: 'none' }}
       />
     </MomentsStack.Navigator>
   );
@@ -96,6 +111,11 @@ function FoodSpotsNavigator() {
         name="FoodSpotGallery"
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+      <FoodSpotsStack.Screen
+        name="FormScreen"
+        component={FormScreen}
+        options={{ animation: 'none' }}
       />
     </FoodSpotsStack.Navigator>
   );

@@ -123,10 +123,11 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 interface Props {
   momentId?: string | null;
+  initialMoment?: Moment;
   onClose: () => void;
 }
 
-export function useCreateMomentViewModel({ momentId, onClose }: Props) {
+export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: Props) {
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
 
@@ -148,6 +149,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     queryFn: () => momentsApi.get(momentId!),
     enabled: isEdit,
     staleTime: 0,
+    initialData: initialMoment, // form fills instantly from nav params
   });
 
   useEffect(() => {

@@ -91,10 +91,11 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 interface Props {
   foodSpotId?: string | null;
+  initialFoodSpot?: FoodSpot;
   onClose: () => void;
 }
 
-export function useCreateFoodSpotViewModel({ foodSpotId, onClose }: Props) {
+export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClose }: Props) {
   const isEdit = !!foodSpotId;
   const queryClient = useQueryClient();
 
@@ -112,6 +113,7 @@ export function useCreateFoodSpotViewModel({ foodSpotId, onClose }: Props) {
     queryFn: () => foodSpotsApi.get(foodSpotId!),
     enabled: isEdit,
     staleTime: 0,
+    initialData: initialFoodSpot, // form fills instantly from nav params
   });
 
   useEffect(() => {

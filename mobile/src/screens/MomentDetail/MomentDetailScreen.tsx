@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,10 +15,12 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
+import type { MomentsStackParamList } from '../../navigation';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
@@ -29,7 +31,6 @@ import AlertModal from '../../components/AlertModal';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
-import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -79,11 +80,13 @@ function formatDate(dateStr: string): string {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
+type Nav = NativeStackNavigationProp<MomentsStackParamList>;
+
 export default function MomentDetailScreen() {
   const colors = useAppColors();
+  const navigation = useNavigation<Nav>();
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
-  const editSheetRef = useRef<BottomSheetModal>(null);
 
   // Hooks must be unconditional — before early return
   const scrollY = useSharedValue(0);
@@ -137,7 +140,7 @@ export default function MomentDetailScreen() {
           <View className="flex-row gap-2">
             <HeaderIconButton
               name="pencil-outline"
-              onPress={() => editSheetRef.current?.present()}
+              onPress={() => navigation.navigate('FormScreen', { type: 'editMoment', data: moment })}
             />
             <HeaderIconButton
               name="trash-can-outline"
@@ -297,12 +300,6 @@ export default function MomentDetailScreen() {
 
         </View>
       </Animated.ScrollView>
-
-      {/* ── Edit sheet ── */}
-      <CreateMomentSheet
-        ref={editSheetRef}
-        momentId={moment.id}
-      />
 
       {/* ── Alert ── */}
       <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />

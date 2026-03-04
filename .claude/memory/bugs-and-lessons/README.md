@@ -20,6 +20,17 @@ _(Add lessons from debugging, design mistakes, or surprising behaviors)_
 - Key takeaway
 ```
 
+### Mapbox public token URL restriction — backend fetch needs Referer header
+- Mapbox `pk.*` tokens can have URL whitelist restrictions. Server-side fetch has no Referer → Mapbox returns 403.
+- Fix: add `Referer: <api-domain>` header to all backend→Mapbox fetch calls.
+- Key takeaway: always send Referer when proxying Mapbox from backend; or use a secret token (`sk.*`) without URL restrictions.
+
+### backend/.env.development is a TRACKED file — never commit secrets to it
+- Unlike `.env` (gitignored), `.env.development` is committed to git history.
+- Appending a secret (e.g. MAPBOX_TOKEN) and including it in a commit triggers GitHub Secret Scanning and blocks the push.
+- Fix: `git reset HEAD~1`, remove the secret line, re-stage only code files, recommit.
+- Key takeaway: treat `.env.development` like a public file — store secrets in `.env` (gitignored) only.
+
 ### ESLint v9 flat config missing (Backend & Frontend)
 - Both backend and frontend were missing `eslint.config.js` for ESLint v9's flat config format.
 - Backend required installing `typescript-eslint` (`npm install --save-dev typescript-eslint`); frontend already had it.
@@ -150,6 +161,12 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - `AVEncodingOption` is a TypeScript type-only string union — use string literal `'aac'`, not `AVEncodingOption.aac`
 - v4.5.0 requires `react-native-nitro-modules` as peer dep — must install both together
 - v3.6.0 has a Kotlin compile error on RN 0.74+ new arch (`currentActivity` removed from `ReactContextBaseJavaModule` scope) — avoid v3 on new arch
+
+### RN 0.76 Gradle: allprojects{repositories} silently ignored — use settings.gradle (Sprint 37)
+- RN 0.76 Gradle plugin sets `dependencyResolutionManagement(PREFER_SETTINGS)` in settings.gradle → `allprojects { repositories }` in build.gradle is completely ignored.
+- Symptom: private Maven repo URL never appears in Gradle search list → "Could not find" error.
+- Fix: add private repos to `dependencyResolutionManagement { repositories {} }` in `settings.gradle` (after the react plugin block). Token via `providers.gradleProperty('TOKEN').orElse('').get()`.
+- Key takeaway: for RN 0.73+, ALL custom Maven repos must go in settings.gradle, not build.gradle.
 
 ### NativeWind v4 babel: preset not plugin
 - `nativewind/babel` must be in `presets[]`, NOT `plugins[]` in babel.config.js

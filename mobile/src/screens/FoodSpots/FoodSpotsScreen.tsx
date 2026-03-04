@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   Image,
   Pressable,
@@ -12,16 +12,17 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { FoodSpot } from '../../types';
+import type { FoodSpotsStackParamList } from '../../navigation';
 import { useFoodSpotsViewModel } from './useFoodSpotsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
-import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -146,10 +147,12 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
+type Nav = NativeStackNavigationProp<FoodSpotsStackParamList>;
+
 export default function FoodSpotsScreen() {
   const colors = useAppColors();
+  const navigation = useNavigation<Nav>();
   const vm = useFoodSpotsViewModel();
-  const createSheetRef = useRef<BottomSheetModal>(null);
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(event => {
@@ -166,7 +169,7 @@ export default function FoodSpotsScreen() {
         scrollY={scrollY}
         renderRight={() => (
           <Pressable
-            onPress={() => createSheetRef.current?.present()}
+            onPress={() => navigation.navigate('FormScreen', { type: 'createFoodSpot' })}
             className="w-10 h-10 rounded-full items-center justify-center bg-secondary">
             <Icon name="plus" size={22} color="#fff" />
           </Pressable>
@@ -205,7 +208,7 @@ export default function FoodSpotsScreen() {
           title={t.foodSpots.emptyTitle}
           subtitle={t.foodSpots.emptySubtitle}
           actionLabel={t.foodSpots.emptyAction}
-          onAction={() => createSheetRef.current?.present()}
+          onAction={() => navigation.navigate('FormScreen', { type: 'createFoodSpot' })}
         />
       ) : (
         <Animated.ScrollView
@@ -246,7 +249,6 @@ export default function FoodSpotsScreen() {
         </Animated.ScrollView>
       )}
 
-      <CreateFoodSpotSheet ref={createSheetRef} />
     </View>
   );
 }

@@ -226,6 +226,14 @@ Always respect this order when adding new overlay or panel components.
 - Must be called inside NavigationContainer context (all screens/components qualify)
 - For non-React-component usage (navigation options): import AppTheme directly, use AppTheme.colors.xxx
 
+### CollapsibleHeader Pattern (Sprint 36)
+- Component: `src/components/CollapsibleHeader.tsx` — shared iOS Large Title style header
+- Props: `title`, `subtitle`, `expandedHeight` (120), `collapsedHeight` (56), `renderExpandedContent`, `renderRight`, `scrollY: SharedValue<number>`
+- Caller creates `scrollY = useSharedValue(0)` + `scrollHandler = useAnimatedScrollHandler(...)` and passes to both `CollapsibleHeader` and `Animated.ScrollView`
+- 3 style exceptions (all `useAnimatedStyle` outputs): container height, title fontSize, expandedContent opacity
+- `style={{ paddingTop: insets.top }}` = legitimate exception (device runtime value)
+- Applied: MomentsScreen (expandedHeight=100), ProfileScreen (expandedHeight=170), DashboardScreen (static)
+
 ### React Native: Global Loading Overlay
 - src/contexts/LoadingContext.tsx — React context with showLoading() / hideLoading() / isLoading
 - src/components/LoadingOverlay.tsx — Modal-based full-screen overlay, blocks all touches
