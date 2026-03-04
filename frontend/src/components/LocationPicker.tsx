@@ -19,6 +19,8 @@ interface GeoResult {
 const cleanPlaceName = (name: string) =>
   name.replace(/,\s*\d{5,6}(?=\s*,|\s*$)/g, '').trim();
 
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
 export default function LocationPicker({ latitude, longitude, location, onChange, onClear }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -80,7 +82,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       // silent fail — user can still search manually
     }
     setResolvingUrl(false);
-  }, [token, onChange]);
+  }, [onChange]);
 
   // Get current location via browser geolocation
   const getCurrentLocation = () => {
@@ -162,7 +164,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
 
   // Init map
   useEffect(() => {
-    if (!showMap || !mapContainer.current || mapRef.current || !token) return;
+    if (!showMap || !mapContainer.current || mapRef.current || !mapboxgl.accessToken) return;
 
     const center: [number, number] = longitude && latitude ? [longitude, latitude] : [106.6297, 10.8231];
 
@@ -287,7 +289,7 @@ export default function LocationPicker({ latitude, longitude, location, onChange
       </div>
 
       {/* Mini map */}
-      {showMap && token && (
+      {showMap && mapboxgl.accessToken && (
         <div
           ref={mapContainer}
           className="w-full h-48 rounded-xl overflow-hidden border border-border"
