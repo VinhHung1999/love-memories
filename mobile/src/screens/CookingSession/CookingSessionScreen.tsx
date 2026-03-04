@@ -1,11 +1,523 @@
 import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { AppTheme } from '../../navigation/theme';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAppColors } from '../../navigation/theme';
+import t from '../../locales/en';
+import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../../types';
+import { useCookingSessionViewModel } from './useCookingSessionViewModel';
+import Skeleton from '../../components/Skeleton';
+
+// ── Progress steps bar ────────────────────────────────────────────────────────
+
+const PHASES = ['selecting', 'shopping', 'cooking', 'photo', 'completed'] as const;
+const PHASE_ICONS = ['clipboard-list-outline', 'cart-outline', 'chef-hat', 'camera-outline', 'check-circle-outline'] as const;
+
+function PhaseBar({ status }: { status: string }) {
+  const colors = useAppColors();
+  const currentIdx = PHASES.indexOf(status as any);
+
+  return (
+    <View className="flex-row items-center px-5 py-3 bg-white border-b border-border/30">
+      {PHASES.map((phase, idx) => {
+        const done = idx < currentIdx;
+        const active = idx === currentIdx;
+        return (
+          <React.Fragment key={phase}>
+            <View
+              className={`w-7 h-7 rounded-full items-center justify-center ${
+                done ? 'bg-green-500' : active ? 'bg-primary' : 'bg-gray-100'
+              }`}>
+              <Icon
+                name={done ? 'check' : PHASE_ICONS[idx]}
+                size={14}
+                color={done || active ? '#fff' : colors.textLight}
+              />
+            </View>
+            {idx < PHASES.length - 1 ? (
+              <View className={`flex-1 h-0.5 mx-0.5 ${idx < currentIdx ? 'bg-green-500' : 'bg-gray-200'}`} />
+            ) : null}
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
+
+// ── Shopping phase ────────────────────────────────────────────────────────────
+
+function ShoppingPhase({
+  session,
+  onToggleItem,
+  checkedCount,
+  allChecked,
+  onAdvance,
+  isAdvancing,
+}: {
+  session: CookingSession;
+  onToggleItem: (id: string, checked: boolean) => void;
+  checkedCount: number;
+  allChecked: boolean;
+  onAdvance: () => void;
+  isAdvancing: boolean;
+}) {
+  const colors = useAppColors();
+  const totalCost = session.items.reduce((sum, item) => sum + (item.price ?? 0), 0);
+
+  return (
+    <>
+      <View className="px-5 pt-4 pb-2">
+        <Text className="text-base font-bold text-textDark">{t.whatToEat.shopping.title}</Text>
+        <View className="flex-row items-center gap-2 mt-1">
+          <Text className="text-xs text-textLight">{t.whatToEat.shopping.subtitle}</Text>
+          <View className="bg-primary/10 rounded-full px-2 py-0.5">
+            <Text className="text-[10px] font-semibold text-primary">
+              {checkedCount}/{session.items.length}
+            </Text>
+          </View>
+        </View>
+        {totalCost > 0 ? (
+          <Text className="text-xs text-textMid mt-1">
+            {t.whatToEat.shopping.totalCost}: {totalCost.toLocaleString()}đ
+          </Text>
+        ) : null}
+      </View>
+
+      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+        <View className="bg-white rounded-2xl overflow-hidden mb-4">
+          {session.items.map((item: CookingSessionItem, idx) => (
+            <Pressable
+              key={item.id}
+              onPress={() => onToggleItem(item.id, !item.checked)}
+              className={`flex-row items-center gap-3 px-4 py-3 ${
+                idx < session.items.length - 1 ? 'border-b border-border/30' : ''
+              }`}>
+              <View
+                className={`w-5 h-5 rounded-md border-2 items-center justify-center ${
+                  item.checked ? 'bg-green-500 border-green-500' : 'border-border'
+                }`}>
+                {item.checked ? <Icon name="check" size={11} color="#fff" /> : null}
+              </View>
+              <Text
+                className={`flex-1 text-sm ${
+                  item.checked ? 'line-through text-textLight' : 'text-textDark'
+                }`}>
+                {item.ingredient}
+              </Text>
+              {item.price ? (
+                <Text className="text-xs text-textLight">{item.price.toLocaleString()}đ</Text>
+              ) : null}
+            </Pressable>
+          ))}
+        </View>
+        <View className="h-[100px]" />
+      </ScrollView>
+
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">
+        <Pressable
+          onPress={onAdvance}
+          disabled={!allChecked || isAdvancing}
+          className="rounded-2xl overflow-hidden">
+          <LinearGradient
+            colors={allChecked ? [colors.primary, colors.secondary] : ['#ccc', '#bbb']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="py-4 flex-row items-center justify-center gap-2">
+            <Icon name="chef-hat" size={18} color="#fff" />
+            <Text className="text-white font-bold text-base">
+              {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
+            </Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+// ── Cooking phase ─────────────────────────────────────────────────────────────
+
+function CookingPhase({
+  session,
+  onToggleStep,
+  checkedCount,
+  allChecked,
+  onAdvance,
+  isAdvancing,
+}: {
+  session: CookingSession;
+  onToggleStep: (id: string, checked: boolean) => void;
+  checkedCount: number;
+  allChecked: boolean;
+  onAdvance: () => void;
+  isAdvancing: boolean;
+}) {
+  const colors = useAppColors();
+
+  return (
+    <>
+      <View className="px-5 pt-4 pb-2">
+        <Text className="text-base font-bold text-textDark">{t.whatToEat.cooking.title}</Text>
+        <View className="flex-row items-center gap-2 mt-1">
+          <View className="bg-primary/10 rounded-full px-2 py-0.5">
+            <Text className="text-[10px] font-semibold text-primary">
+              {checkedCount}/{session.steps.length}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+        {session.recipes.map(sr => {
+          const stepsForRecipe = session.steps.filter(s => s.recipeId === sr.recipeId);
+          if (stepsForRecipe.length === 0) return null;
+          return (
+            <View key={sr.id} className="mb-3">
+              <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2 px-1">
+                {sr.recipe.title}
+              </Text>
+              <View className="bg-white rounded-2xl overflow-hidden">
+                {stepsForRecipe.map((step: CookingSessionStep, idx) => (
+                  <Pressable
+                    key={step.id}
+                    onPress={() => onToggleStep(step.id, !step.checked)}
+                    className={`flex-row gap-3 px-4 py-3 ${
+                      idx < stepsForRecipe.length - 1 ? 'border-b border-border/30' : ''
+                    }`}>
+                    <View
+                      className={`w-6 h-6 rounded-full items-center justify-center flex-shrink-0 mt-0.5 ${
+                        step.checked ? 'bg-green-500' : 'bg-primary/10'
+                      }`}>
+                      {step.checked ? (
+                        <Icon name="check" size={12} color="#fff" />
+                      ) : (
+                        <Text className="text-[10px] font-bold text-primary">{step.stepIndex + 1}</Text>
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text
+                        className={`text-sm leading-relaxed ${
+                          step.checked ? 'line-through text-textLight' : 'text-textDark'
+                        }`}>
+                        {step.content}
+                      </Text>
+                      {step.durationSeconds ? (
+                        <View className="flex-row items-center gap-1 mt-1">
+                          <Icon name="timer-outline" size={11} color={colors.textLight} />
+                          <Text className="text-[11px] text-textLight">
+                            {step.durationSeconds >= 60
+                              ? `${Math.floor(step.durationSeconds / 60)}min`
+                              : `${step.durationSeconds}s`}
+                          </Text>
+                        </View>
+                      ) : null}
+                      {step.checkedBy ? (
+                        <Text className="text-[10px] text-green-600 mt-0.5">✓ {step.checkedBy}</Text>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          );
+        })}
+        <View className="h-[100px]" />
+      </ScrollView>
+
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">
+        <Pressable
+          onPress={onAdvance}
+          disabled={!allChecked || isAdvancing}
+          className="rounded-2xl overflow-hidden">
+          <LinearGradient
+            colors={allChecked ? [colors.primary, colors.secondary] : ['#ccc', '#bbb']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="py-4 flex-row items-center justify-center gap-2">
+            <Icon name="camera-outline" size={18} color="#fff" />
+            <Text className="text-white font-bold text-base">{t.whatToEat.cooking.takePhoto}</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+// ── Photo phase ───────────────────────────────────────────────────────────────
+
+function PhotoPhase({
+  session,
+  onAddPhoto,
+  onAddPhotoFromCamera,
+  onAdvance,
+}: {
+  session: CookingSession;
+  onAddPhoto: () => void;
+  onAddPhotoFromCamera: () => void;
+  onAdvance: () => void;
+}) {
+  const colors = useAppColors();
+
+  return (
+    <>
+      <View className="px-5 pt-4 pb-2">
+        <Text className="text-base font-bold text-textDark">{t.whatToEat.photo.title}</Text>
+        <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.photo.subtitle}</Text>
+      </View>
+
+      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+        {/* Photos grid */}
+        {session.photos.length > 0 ? (
+          <View className="flex-row flex-wrap gap-2 mb-4">
+            {session.photos.map(photo => (
+              <Image
+                key={photo.id}
+                source={{ uri: photo.url }}
+                className="w-[100px] h-[100px] rounded-2xl"
+                resizeMode="cover"
+              />
+            ))}
+          </View>
+        ) : null}
+
+        {/* Add photo buttons */}
+        <View className="flex-row gap-3 mb-4">
+          <Pressable
+            onPress={onAddPhotoFromCamera}
+            className="flex-1 border-2 border-dashed border-primary/40 rounded-2xl py-5 items-center gap-2">
+            <Icon name="camera-outline" size={24} color={colors.primary} />
+            <Text className="text-xs font-semibold text-primary">Camera</Text>
+          </Pressable>
+          <Pressable
+            onPress={onAddPhoto}
+            className="flex-1 border-2 border-dashed border-border rounded-2xl py-5 items-center gap-2">
+            <Icon name="image-plus" size={24} color={colors.textMid} />
+            <Text className="text-xs font-semibold text-textMid">Gallery</Text>
+          </Pressable>
+        </View>
+
+        <View className="h-[100px]" />
+      </ScrollView>
+
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95 gap-2">
+        <Pressable
+          onPress={onAdvance}
+          className="rounded-2xl overflow-hidden">
+          <LinearGradient
+            colors={[colors.primary, colors.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="py-4 flex-row items-center justify-center gap-2">
+            <Icon name="star-outline" size={18} color="#fff" />
+            <Text className="text-white font-bold text-base">{t.whatToEat.photo.finish}</Text>
+          </LinearGradient>
+        </Pressable>
+        <Pressable onPress={onAdvance} className="py-2 items-center">
+          <Text className="text-xs text-textLight">{t.whatToEat.photo.skip}</Text>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+// ── Rating phase (completed) ──────────────────────────────────────────────────
+
+function RatingPhase({
+  session,
+  rating,
+  onSetRating,
+  onFinish,
+  isRating,
+}: {
+  session: CookingSession;
+  rating: number;
+  onSetRating: (r: number) => void;
+  onFinish: () => void;
+  isRating: boolean;
+}) {
+  const colors = useAppColors();
+  const durationMs = session.totalTimeMs;
+  const durationMin = durationMs ? Math.round(durationMs / 60000) : null;
+
+  return (
+    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <View className="items-center pt-10 pb-4 px-5">
+        <LinearGradient
+          colors={[colors.primary + '22', colors.secondary + '22']}
+          className="w-20 h-20 rounded-full items-center justify-center mb-4">
+          <Icon name="chef-hat" size={38} color={colors.primary} />
+        </LinearGradient>
+        <Text className="text-2xl font-bold text-textDark">Meal complete!</Text>
+        {durationMin ? (
+          <Text className="text-sm text-textMid mt-1">Cooked in {durationMin} minutes</Text>
+        ) : null}
+      </View>
+
+      {/* Food photos */}
+      {session.photos.length > 0 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mb-6">
+          <View className="flex-row gap-3">
+            {session.photos.map(photo => (
+              <Image
+                key={photo.id}
+                source={{ uri: photo.url }}
+                className="w-[160px] h-[140px] rounded-2xl"
+                resizeMode="cover"
+              />
+            ))}
+          </View>
+        </ScrollView>
+      ) : null}
+
+      {/* Recipes cooked */}
+      <View className="px-5 mb-6">
+        <Text className="text-sm font-semibold text-textMid mb-2">Recipes cooked:</Text>
+        {session.recipes.map(sr => (
+          <View key={sr.id} className="flex-row items-center gap-2 mb-1">
+            <Icon name="check-circle" size={14} color={colors.success} />
+            <Text className="text-sm text-textDark">{sr.recipe.title}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Star rating */}
+      <View className="px-5 items-center mb-8">
+        <Text className="text-sm font-semibold text-textDark mb-3">{t.whatToEat.rating.title}</Text>
+        <Text className="text-xs text-textLight mb-4">{t.whatToEat.rating.subtitle}</Text>
+        <View className="flex-row gap-3">
+          {[1, 2, 3, 4, 5].map(i => (
+            <Pressable key={i} onPress={() => onSetRating(i)} hitSlop={8}>
+              <Icon
+                name={i <= rating ? 'star' : 'star-outline'}
+                size={36}
+                color={colors.starRating}
+              />
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      <View className="px-5 pb-8">
+        <Pressable
+          onPress={onFinish}
+          disabled={isRating}
+          className="rounded-2xl overflow-hidden">
+          <LinearGradient
+            colors={[colors.primary, colors.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="py-4 flex-row items-center justify-center gap-2">
+            <Icon name="check" size={18} color="#fff" />
+            <Text className="text-white font-bold text-base">{t.whatToEat.rating.confirm}</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+}
+
+// ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function CookingSessionScreen() {
+  const colors = useAppColors();
+  const vm = useCookingSessionViewModel();
+  const { session } = vm;
+
+  if (vm.isLoading || !session) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+        <View className="h-14 bg-white border-b border-border/30 px-4 flex-row items-center gap-3">
+          <Skeleton className="w-9 h-9 rounded-xl" />
+          <Skeleton className="w-40 h-4 rounded-md" />
+        </View>
+        <View className="flex-1 px-4 pt-4 gap-3">
+          <Skeleton className="w-full h-14 rounded-2xl" />
+          <Skeleton className="w-full h-14 rounded-2xl" />
+          <Skeleton className="w-full h-14 rounded-2xl" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const phaseTitles: Record<string, string> = {
+    selecting: t.whatToEat.phases.selecting,
+    shopping: t.whatToEat.phases.shopping,
+    cooking: t.whatToEat.phases.cooking,
+    photo: t.whatToEat.phases.photo,
+    completed: t.whatToEat.phases.completed,
+  };
+
   return (
-    <View className="flex-1 items-center justify-center bg-gray-50">
-      <ActivityIndicator color={AppTheme.colors.primary} />
-    </View>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+
+      {/* ── Header ── */}
+      <View className="px-5 pt-3 pb-3 bg-white flex-row items-center gap-3">
+        <Pressable
+          onPress={vm.handleBack}
+          className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
+          <Icon name="arrow-left" size={18} color={colors.textDark} />
+        </Pressable>
+        <View className="flex-1">
+          <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
+            {session.recipes.map(r => r.recipe.title).join(' + ')}
+          </Text>
+          <Text className="text-xs text-textLight">{phaseTitles[session.status]}</Text>
+        </View>
+      </View>
+
+      {/* ── Phase progress bar ── */}
+      <PhaseBar status={session.status} />
+
+      {/* ── Phase content ── */}
+      <Animated.View entering={FadeInDown.duration(300)} className="flex-1">
+        {session.status === 'shopping' ? (
+          <ShoppingPhase
+            session={session}
+            onToggleItem={vm.handleToggleItem}
+            checkedCount={vm.checkedItemCount}
+            allChecked={vm.allItemsChecked}
+            onAdvance={() => vm.handleAdvance('cooking')}
+            isAdvancing={vm.isAdvancing}
+          />
+        ) : session.status === 'cooking' ? (
+          <CookingPhase
+            session={session}
+            onToggleStep={vm.handleToggleStep}
+            checkedCount={vm.checkedStepCount}
+            allChecked={vm.allStepsChecked}
+            onAdvance={() => vm.handleAdvance('photo')}
+            isAdvancing={vm.isAdvancing}
+          />
+        ) : session.status === 'photo' ? (
+          <PhotoPhase
+            session={session}
+            onAddPhoto={vm.handleAddPhoto}
+            onAddPhotoFromCamera={vm.handleAddPhotoFromCamera}
+            onAdvance={() => vm.handleAdvance('completed')}
+          />
+        ) : session.status === 'completed' ? (
+          <RatingPhase
+            session={session}
+            rating={vm.rating}
+            onSetRating={vm.setRating}
+            onFinish={vm.handleFinish}
+            isRating={vm.isRating}
+          />
+        ) : (
+          /* selecting — shouldn't arrive here, but handle gracefully */
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-textMid">Loading session...</Text>
+          </View>
+        )}
+      </Animated.View>
+
+    </SafeAreaView>
   );
 }
