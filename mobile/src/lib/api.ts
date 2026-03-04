@@ -583,6 +583,214 @@ export const tagsApi = {
 };
 
 // ---------------------------------------------------------------------------
+// Recipes API
+// ---------------------------------------------------------------------------
+
+export const recipesApi = {
+  list: async (): Promise<import('../types').Recipe[]> => {
+    const res = await apiFetch('/api/recipes');
+    if (!res.ok) throw new Error('Failed to fetch recipes');
+    return res.json();
+  },
+
+  get: async (id: string): Promise<import('../types').Recipe> => {
+    const res = await apiFetch(`/api/recipes/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch recipe');
+    return res.json();
+  },
+
+  create: async (data: {
+    title: string;
+    description?: string;
+    ingredients?: string[];
+    ingredientPrices?: number[];
+    steps?: string[];
+    stepDurations?: number[];
+    tags?: string[];
+    notes?: string;
+    tutorialUrl?: string;
+    foodSpotId?: string;
+  }): Promise<import('../types').Recipe> => {
+    const res = await apiFetch('/api/recipes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || 'Failed to create recipe');
+    }
+    return res.json();
+  },
+
+  update: async (
+    id: string,
+    data: {
+      title?: string;
+      description?: string;
+      ingredients?: string[];
+      ingredientPrices?: number[];
+      steps?: string[];
+      stepDurations?: number[];
+      tags?: string[];
+      notes?: string;
+      tutorialUrl?: string;
+      cooked?: boolean;
+      foodSpotId?: string | null;
+    },
+  ): Promise<import('../types').Recipe> => {
+    const res = await apiFetch(`/api/recipes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || 'Failed to update recipe');
+    }
+    return res.json();
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/recipes/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete recipe');
+  },
+
+  uploadPhoto: async (
+    recipeId: string,
+    imageUri: string,
+    mimeType: string,
+  ): Promise<import('../types').RecipePhoto> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+    formData.append('photos', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/recipes/${recipeId}/photos`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload photo');
+    return res.json();
+  },
+
+  deletePhoto: async (recipeId: string, photoId: string): Promise<void> => {
+    const res = await apiFetch(`/api/recipes/${recipeId}/photos/${photoId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete photo');
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Cooking Sessions API
+// ---------------------------------------------------------------------------
+
+export const cookingSessionsApi = {
+  active: async (): Promise<import('../types').CookingSession | null> => {
+    const res = await apiFetch('/api/cooking-sessions/active');
+    if (!res.ok) throw new Error('Failed to fetch active session');
+    return res.json();
+  },
+
+  list: async (): Promise<import('../types').CookingSession[]> => {
+    const res = await apiFetch('/api/cooking-sessions');
+    if (!res.ok) throw new Error('Failed to fetch sessions');
+    return res.json();
+  },
+
+  get: async (id: string): Promise<import('../types').CookingSession> => {
+    const res = await apiFetch(`/api/cooking-sessions/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch session');
+    return res.json();
+  },
+
+  create: async (recipeIds: string[]): Promise<import('../types').CookingSession> => {
+    const res = await apiFetch('/api/cooking-sessions', {
+      method: 'POST',
+      body: JSON.stringify({ recipeIds }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || 'Failed to create session');
+    }
+    return res.json();
+  },
+
+  updateStatus: async (
+    id: string,
+    status: import('../types').CookingSessionStatus,
+    notes?: string,
+  ): Promise<import('../types').CookingSession> => {
+    const res = await apiFetch(`/api/cooking-sessions/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, ...(notes !== undefined ? { notes } : {}) }),
+    });
+    if (!res.ok) throw new Error('Failed to update session status');
+    return res.json();
+  },
+
+  toggleItem: async (
+    sessionId: string,
+    itemId: string,
+    checked: boolean,
+  ): Promise<import('../types').CookingSessionItem> => {
+    const res = await apiFetch(`/api/cooking-sessions/${sessionId}/items/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ checked }),
+    });
+    if (!res.ok) throw new Error('Failed to toggle item');
+    return res.json();
+  },
+
+  toggleStep: async (
+    sessionId: string,
+    stepId: string,
+    checked: boolean,
+    checkedBy?: string,
+  ): Promise<import('../types').CookingSessionStep> => {
+    const res = await apiFetch(`/api/cooking-sessions/${sessionId}/steps/${stepId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ checked, ...(checkedBy ? { checkedBy } : {}) }),
+    });
+    if (!res.ok) throw new Error('Failed to toggle step');
+    return res.json();
+  },
+
+  uploadPhoto: async (
+    sessionId: string,
+    imageUri: string,
+    mimeType: string,
+  ): Promise<import('../types').CookingSessionPhoto> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+    formData.append('photos', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/cooking-sessions/${sessionId}/photos`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload photo');
+    return res.json();
+  },
+
+  rate: async (id: string, rating: number): Promise<import('../types').CookingSession> => {
+    const res = await apiFetch(`/api/cooking-sessions/${id}/rate`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rating }),
+    });
+    if (!res.ok) throw new Error('Failed to rate session');
+    return res.json();
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/cooking-sessions/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete session');
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Settings API
 // ---------------------------------------------------------------------------
 

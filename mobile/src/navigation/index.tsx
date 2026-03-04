@@ -25,6 +25,7 @@ export type MainTabParamList = {
   Dashboard: undefined;
   MomentsTab: undefined;
   FoodSpotsTab: undefined;
+  RecipesTab: undefined;
   MapTab: undefined;
   ProfileTab: undefined;
 };
@@ -45,6 +46,17 @@ export type FoodSpotsStackParamList = {
   Alert: AlertParams;
 };
 
+export type RecipesStackParamList = {
+  RecipesList: undefined;
+  RecipeDetail: { recipeId: string };
+  RecipeGallery: { photos: MomentPhoto[]; initialIndex: number };
+  WhatToEat: undefined;
+  CookingSession: { sessionId: string };
+  CookingHistory: undefined;
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
+};
+
 export type ProfileStackParamList = {
   ProfileMain: undefined;
   BottomSheet: BottomSheetParams;
@@ -55,6 +67,7 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
+const RecipesStack = createNativeStackNavigator<RecipesStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 // ---------------------------------------------------------------------------
@@ -79,6 +92,11 @@ import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
 import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
 import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
 import MapScreen from '../screens/Map/MapScreen';
+import RecipesScreen from '../screens/Recipes/RecipesScreen';
+import RecipeDetailScreen from '../screens/RecipeDetail/RecipeDetailScreen';
+import WhatToEatScreen from '../screens/WhatToEat/WhatToEatScreen';
+import CookingSessionScreen from '../screens/CookingSession/CookingSessionScreen';
+import CookingHistoryScreen from '../screens/CookingHistory/CookingHistoryScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 
@@ -132,6 +150,29 @@ function FoodSpotsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
+// Recipes stack navigator
+// ---------------------------------------------------------------------------
+
+function RecipesNavigator() {
+  return (
+    <RecipesStack.Navigator screenOptions={{ headerShown: false }}>
+      <RecipesStack.Screen name="RecipesList" component={RecipesScreen} />
+      <RecipesStack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+      <RecipesStack.Screen
+        name="RecipeGallery"
+        component={PhotoGalleryScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+      <RecipesStack.Screen name="WhatToEat" component={WhatToEatScreen} />
+      <RecipesStack.Screen name="CookingSession" component={CookingSessionScreen} />
+      <RecipesStack.Screen name="CookingHistory" component={CookingHistoryScreen} />
+      <RecipesStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <RecipesStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+    </RecipesStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Profile stack navigator
 // ---------------------------------------------------------------------------
 
@@ -180,6 +221,14 @@ function MainNavigator() {
         options={{
           tabBarLabel: 'Food',
           tabBarIcon: ({ color, size }) => <Icon name="food-fork-drink" size={size} color={color} />,
+        }}
+      />
+      <MainTab.Screen
+        name="RecipesTab"
+        component={RecipesNavigator}
+        options={{
+          tabBarLabel: 'Recipes',
+          tabBarIcon: ({ color, size }) => <Icon name="chef-hat" size={size} color={color} />,
         }}
       />
       <MainTab.Screen
