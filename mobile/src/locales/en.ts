@@ -262,6 +262,12 @@ const en = {
     setupDescription: 'Install @rnmapbox/maps and rebuild to enable the interactive map.',
     pinsLoaded: 'pins loaded',
     viewDetails: 'View Details',
+    emojiPickerTitle: 'Icon for',
+    emojiPickerCustomPlaceholder: 'Custom emoji...',
+    emojiCategoryFood: 'Food',
+    emojiCategoryPlaces: 'Places',
+    emojiCategoryActivities: 'Activities',
+    emojiCategoryNature: 'Nature',
   },
 
   common: {
