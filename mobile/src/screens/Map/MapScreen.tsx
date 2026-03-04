@@ -176,7 +176,7 @@ export default function MapScreen() {
       <View className="flex-1">
         {/* style exception: Mapbox.MapView is a native view requiring flex layout style */}
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Mapbox.MapView style={{ flex: 1 }}>
+        <Mapbox.MapView style={{ flex: 1 }} styleURL={Mapbox.StyleURL.Street}>
           <Mapbox.Camera
             ref={cameraRef}
             defaultSettings={{ centerCoordinate: [106.66, 10.78], zoomLevel: 11 }}
