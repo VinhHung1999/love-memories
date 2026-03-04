@@ -65,7 +65,7 @@ export default function ProfileScreen() {
   };
 
   const handleOpenEditCouple = () => {
-    navigation.showBottomSheet(EditCoupleSheet, { couple: vm.couple ?? null });
+    navigation.showBottomSheet(EditCoupleSheet, { couple: vm.couple ?? null, slogan: vm.slogan });
   };
 
   return (

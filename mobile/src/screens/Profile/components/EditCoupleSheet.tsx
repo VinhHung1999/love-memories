@@ -4,7 +4,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { coupleApi } from '../../../lib/api';
+import { coupleApi, settingsApi } from '../../../lib/api';
 import { useAppNavigation } from '../../../navigation/useAppNavigation';
 import { useAppColors } from '../../../navigation/theme';
 import type { CoupleProfile } from '../../../types';
@@ -20,15 +20,17 @@ function formatDateDisplay(date: Date | null): string {
 
 interface Props {
   couple: CoupleProfile | null;
+  slogan?: string | null;
   onClose: () => void;
 }
 
-export default function EditCoupleSheet({ couple, onClose }: Props) {
+export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
   const sheetRef = useRef<BottomSheetModal>(null);
   const colors = useAppColors();
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
   const [coupleNameInput, setCoupleNameInput] = useState(couple?.name ?? '');
+  const [sloganInput, setSloganInput] = useState(slogan ?? '');
   const [anniversaryDate, setAnniversaryDate] = useState<Date | null>(
     couple?.anniversaryDate ? new Date(couple.anniversaryDate) : null,
   );
@@ -39,13 +41,16 @@ export default function EditCoupleSheet({ couple, onClose }: Props) {
   }, []);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      coupleApi.update({
+    mutationFn: async () => {
+      await coupleApi.update({
         name: coupleNameInput.trim() || undefined,
         anniversaryDate: anniversaryDate ? anniversaryDate.toISOString() : null,
-      }),
+      });
+      await settingsApi.set('app_slogan', sloganInput.trim());
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['couple'] });
+      queryClient.invalidateQueries({ queryKey: ['settings', 'app_slogan'] });
       onClose();
     },
     onError: (err: Error) =>
@@ -68,6 +73,15 @@ export default function EditCoupleSheet({ couple, onClose }: Props) {
           onChangeText={setCoupleNameInput}
           placeholder="Hung & Nhu"
           autoCapitalize="words"
+        />
+
+        {/* Slogan */}
+        <FieldLabel>{t.profile.labels.slogan}</FieldLabel>
+        <Input
+          value={sloganInput}
+          onChangeText={setSloganInput}
+          placeholder={t.profile.placeholders.slogan}
+          autoCapitalize="sentences"
         />
 
         {/* Anniversary date */}

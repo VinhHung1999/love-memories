@@ -100,6 +100,11 @@ const en = {
       name: 'Your name',
       coupleName: 'Couple name',
       anniversary: 'Anniversary date',
+      slogan: 'Slogan',
+    },
+
+    placeholders: {
+      slogan: "Your couple's motto...",
     },
 
     errors: {

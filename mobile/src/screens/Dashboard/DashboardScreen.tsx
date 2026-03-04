@@ -44,21 +44,12 @@ function useCountUp(target: number, durationMs = 900): number {
 function DashboardSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1">
-      <View className="pt-[124px] pb-[100px] px-4 gap-5">
-        {/* Moments carousel — FIRST, bigger cards */}
-        <View>
-          <Skeleton className="w-36 h-4 rounded-md mb-3" />
-          <View className="flex-row gap-3">
-            <Skeleton className="w-[210px] h-[250px] rounded-3xl" />
-            <Skeleton className="w-[210px] h-[250px] rounded-3xl" />
-          </View>
-        </View>
-        {/* Stats */}
+      {/* pt-[204] = expandedHeight(260) - collapsedHeight(56) */}
+      <View className="pt-[204px] pb-[100px] px-4 gap-5">
         <View className="flex-row gap-3">
           <Skeleton className="flex-1 h-[76px] rounded-3xl" />
           <Skeleton className="flex-1 h-[76px] rounded-3xl" />
         </View>
-        {/* Quick actions */}
         <View>
           <Skeleton className="w-28 h-4 rounded-md mb-3" />
           <View className="flex-row gap-3">
@@ -70,6 +61,52 @@ function DashboardSkeleton() {
         </View>
       </View>
     </ScrollView>
+  );
+}
+
+// ── HeroMomentCard — landscape, lives inside the header ──────────────────────
+
+function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }) {
+  const colors = useAppColors();
+  const coverPhoto = moment.photos[0];
+  const dateLabel = new Date(moment.date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return (
+    <Pressable onPress={onPress} className="w-[200px] h-[118px] rounded-2xl overflow-hidden shadow-md">
+      {coverPhoto ? (
+        <Animated.Image
+          source={{ uri: coverPhoto.url }}
+          className="absolute inset-0 w-full h-full"
+          resizeMode="cover"
+        />
+      ) : (
+        <LinearGradient
+          colors={[colors.primaryLight, colors.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+      )}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.68)']}
+        start={{ x: 0, y: 0.3 }}
+        end={{ x: 0, y: 1 }}
+        className="absolute inset-0"
+      />
+      {/* Date badge */}
+      <View className="absolute top-2 right-2 bg-black/35 rounded-lg px-2 py-0.5">
+        <Text className="text-[9px] font-bold text-white">{dateLabel}</Text>
+      </View>
+      {/* Title */}
+      <View className="absolute bottom-0 left-0 right-0 px-3 pb-2.5">
+        <Text className="text-white font-semibold text-xs leading-snug" numberOfLines={2}>
+          {moment.title}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -123,62 +160,6 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => vo
   );
 }
 
-// ── MomentCarouselCard ────────────────────────────────────────────────────────
-
-function MomentCarouselCard({ moment, onPress }: { moment: Moment; onPress: () => void }) {
-  const colors = useAppColors();
-  const coverPhoto = moment.photos[0];
-  const dateLabel = new Date(moment.date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-
-  return (
-    <Pressable onPress={onPress} className="w-[210px] h-[250px] rounded-3xl overflow-hidden shadow-lg">
-      {/* Background — photo or gradient placeholder */}
-      {coverPhoto ? (
-        <Animated.Image
-          source={{ uri: coverPhoto.url }}
-          className="absolute inset-0 w-full h-full"
-          resizeMode="cover"
-        />
-      ) : (
-        <LinearGradient
-          colors={[colors.primaryLight, colors.primary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="absolute inset-0"
-        />
-      )}
-
-      {/* Dark gradient overlay for text readability */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.72)']}
-        start={{ x: 0, y: 0.35 }}
-        end={{ x: 0, y: 1 }}
-        className="absolute inset-0"
-      />
-
-      {/* Date badge — top right */}
-      <View className="absolute top-3 right-3 bg-black/35 rounded-xl px-2.5 py-1">
-        <Text className="text-[10px] font-bold text-white">{dateLabel}</Text>
-      </View>
-
-      {/* Info at bottom */}
-      <View className="absolute bottom-0 left-0 right-0 px-4 pb-4">
-        <Text className="text-white font-bold text-sm leading-snug" numberOfLines={2}>
-          {moment.title}
-        </Text>
-        {moment.tags.length > 0 ? (
-          <Text className="text-white/70 text-[10px] mt-1" numberOfLines={1}>
-            {moment.tags[0]}
-          </Text>
-        ) : null}
-      </View>
-    </Pressable>
-  );
-}
-
 // ── QuickActionButton ─────────────────────────────────────────────────────────
 
 function QuickActionButton({
@@ -214,19 +195,13 @@ function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => v
 
   return (
     <Pressable onPress={onPress} className="bg-white rounded-3xl overflow-hidden shadow-sm flex-row">
-      {/* Photo */}
       <View className="w-[80px] h-[80px] bg-secondary/10 items-center justify-center flex-shrink-0">
         {coverPhoto ? (
-          <Animated.Image
-            source={{ uri: coverPhoto.url }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+          <Animated.Image source={{ uri: coverPhoto.url }} className="w-full h-full" resizeMode="cover" />
         ) : (
           <Icon name="food-fork-drink" size={24} color={colors.secondary} />
         )}
       </View>
-      {/* Info */}
       <View className="flex-1 px-3 py-3 justify-center">
         <Text className="text-sm font-semibold text-textDark mb-0.5" numberOfLines={1}>
           {spot.name}
@@ -266,16 +241,17 @@ export default function DashboardScreen() {
     scrollY.value = event.contentOffset.y;
   });
 
-  // expandedHeight=180, collapsedHeight=56 → scrollRange=124
-  const EXPANDED_H = 180;
+  // expandedHeight=260, collapsedHeight=56 → scrollRange=204
+  const EXPANDED_H = 260;
   const COLLAPSED_H = 56;
 
   return (
     <View className="flex-1 bg-gray-50">
 
-      {/* ── Collapsible Header — vibrant gradient ── */}
+      {/* ── Collapsible Header — photos at the very top ── */}
       <CollapsibleHeader
         title={vm.headerTitle}
+        subtitle={vm.slogan ?? undefined}
         expandedHeight={EXPANDED_H}
         collapsedHeight={COLLAPSED_H}
         scrollY={scrollY}
@@ -289,36 +265,45 @@ export default function DashboardScreen() {
           />
         )}
         renderExpandedContent={() => (
-          <View className="items-center pb-2">
-            {/* Couple / user names */}
-            <View className="flex-row items-center gap-2 mb-1.5">
-              {vm.couple?.name ? (
-                <Text className="text-xl font-bold text-white tracking-tight">
-                  {vm.couple.name}
+          <View className="pb-1">
+
+            {/* Recent Moments carousel — PHOTOS AT THE VERY TOP */}
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-[11px] font-semibold text-white/80 tracking-wide uppercase">
+                {t.dashboard.sections.recentMoments}
+              </Text>
+              <Pressable onPress={() => vm.navigateTo('MomentsTab')}>
+                <Text className="text-[11px] text-white/60 font-semibold">
+                  {t.dashboard.sections.seeAll} →
                 </Text>
-              ) : (
-                <>
-                  <Text className="text-xl font-bold text-white">{vm.user?.name ?? '—'}</Text>
-                  <Icon name="heart" size={16} color="rgba(255,255,255,0.8)" />
-                  {vm.partner ? (
-                    <Text className="text-xl font-bold text-white">{vm.partner.name}</Text>
-                  ) : null}
-                </>
-              )}
+              </Pressable>
             </View>
 
-            {/* Slogan */}
-            {vm.slogan ? (
-              <Text className="text-[11px] text-white/70 italic mb-2" numberOfLines={1}>
-                {vm.slogan}
-              </Text>
-            ) : null}
+            {vm.recentMoments.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="-mx-5"
+                contentContainerClassName="px-5 gap-2.5">
+                {vm.recentMoments.map(moment => (
+                  <HeroMomentCard
+                    key={moment.id}
+                    moment={moment}
+                    onPress={() => vm.handleMomentPress(moment.id)}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <View className="h-[80px] rounded-2xl bg-white/10 items-center justify-center mb-1">
+                <Text className="text-white/50 text-xs">{t.dashboard.noMomentsYet.split('\n')[0]}</Text>
+              </View>
+            )}
 
-            {/* Live relationship timer pill */}
+            {/* Relationship timer — below carousel */}
             {vm.relationshipDuration ? (
-              <View className="bg-white/20 rounded-2xl px-4 py-1.5 flex-row items-center gap-1.5">
-                <Icon name="heart-pulse" size={11} color="rgba(255,255,255,0.9)" />
-                <Text className="text-xs font-semibold text-white">
+              <View className="mt-2 self-start bg-white/20 rounded-xl px-3 py-1.5 flex-row items-center gap-1.5">
+                <Icon name="heart-pulse" size={10} color="rgba(255,255,255,0.9)" />
+                <Text className="text-[10px] font-semibold text-white">
                   {t.dashboard.couple.togetherFor}{' '}
                   {vm.relationshipDuration.years > 0
                     ? `${vm.relationshipDuration.years}${t.dashboard.couple.years} `
@@ -329,11 +314,8 @@ export default function DashboardScreen() {
                   {vm.relationshipDuration.days}{t.dashboard.couple.days}
                 </Text>
               </View>
-            ) : (
-              <View className="bg-white/20 rounded-2xl px-4 py-1.5">
-                <Text className="text-xs text-white/70">{t.dashboard.couple.noAnniversary}</Text>
-              </View>
-            )}
+            ) : null}
+
           </View>
         )}
       />
@@ -347,43 +329,11 @@ export default function DashboardScreen() {
           showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}>
-          {/* paddingTop = scrollRange (180-56=124) */}
-          <View className="pt-[124px] pb-[120px] px-4 gap-5">
+          {/* pt-[204px] = scrollRange (260-56) */}
+          <View className="pt-[204px] pb-[120px] px-4 gap-5">
 
-            {/* ── 1. Recent Moments Carousel — FIRST, editorial full-bleed ── */}
+            {/* ── 1. Stats Row ── */}
             <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-              <SectionHeader
-                title={t.dashboard.sections.recentMoments}
-                onSeeAll={() => vm.navigateTo('MomentsTab')}
-              />
-              {vm.recentMoments.length > 0 ? (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="-mx-4"
-                  contentContainerClassName="px-4 gap-3">
-                  {vm.recentMoments.map(moment => (
-                    <MomentCarouselCard
-                      key={moment.id}
-                      moment={moment}
-                      onPress={() => vm.handleMomentPress(moment.id)}
-                    />
-                  ))}
-                </ScrollView>
-              ) : (
-                <Card>
-                  <View className="items-center py-6">
-                    <Icon name="image-multiple-outline" size={32} color={colors.primaryLight} />
-                    <Text className="text-sm text-textLight text-center mt-2 leading-relaxed">
-                      {t.dashboard.noMomentsYet}
-                    </Text>
-                  </View>
-                </Card>
-              )}
-            </Animated.View>
-
-            {/* ── 2. Stats Row ── */}
-            <Animated.View entering={FadeInDown.delay(160).duration(500)}>
               <View className="flex-row gap-3">
                 <StatCard
                   icon="heart-multiple-outline"
@@ -404,8 +354,8 @@ export default function DashboardScreen() {
               </View>
             </Animated.View>
 
-            {/* ── 3. Quick Actions ── */}
-            <Animated.View entering={FadeInDown.delay(280).duration(500)}>
+            {/* ── 2. Quick Actions ── */}
+            <Animated.View entering={FadeInDown.delay(160).duration(500)}>
               <SectionHeader title={t.dashboard.sections.quickActions} />
               <View className="flex-row gap-3">
                 <QuickActionButton
@@ -439,9 +389,9 @@ export default function DashboardScreen() {
               </View>
             </Animated.View>
 
-            {/* ── 4. Food Highlights ── */}
+            {/* ── 3. Food Highlights ── */}
             {vm.recentFoodSpots.length > 0 ? (
-              <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+              <Animated.View entering={FadeInDown.delay(280).duration(500)}>
                 <SectionHeader
                   title={t.dashboard.sections.foodHighlights}
                   onSeeAll={() => vm.navigateTo('FoodSpotsTab')}
