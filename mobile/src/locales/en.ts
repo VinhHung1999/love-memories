@@ -279,6 +279,8 @@ const en = {
     edit: 'Edit',
     ok: 'OK',
     loading: 'Loading...',
+    uploading: 'Uploading',
+    uploadComplete: 'Upload complete',
   },
 } as const;
 

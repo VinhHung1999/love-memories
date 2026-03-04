@@ -1,6 +1,5 @@
 import React, { forwardRef, useCallback } from 'react';
 import {
-  ActivityIndicator,
   Text,
   View,
 } from 'react-native';
@@ -52,16 +51,6 @@ const CreateMomentSheet = forwardRef<BottomSheetModal, Props>(
           onDismiss={vm.resetForm}>
 
           <View className="pb-[60px] pt-2">
-
-            {/* Upload progress banner */}
-            {vm.uploadProgress ? (
-              <View className="mx-5 mb-3 px-4 py-2.5 rounded-2xl flex-row items-center gap-3 bg-primary/12">
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text className="text-sm text-primary font-medium flex-1">
-                  Uploading {vm.uploadProgress.done}/{vm.uploadProgress.total} photos...
-                </Text>
-              </View>
-            ) : null}
 
             {/* ── Photos ── */}
             <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">

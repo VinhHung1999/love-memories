@@ -8,6 +8,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
+import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { coupleApi, profileApi } from '../../lib/api';
 import type { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
@@ -15,6 +16,7 @@ import t from '../../locales/en';
 export function useProfileViewModel() {
   const { user, logout, updateUser, linkGoogle } = useAuth();
   const { showLoading, hideLoading } = useLoading();
+  const { startUpload, incrementUpload } = useUploadProgress();
   const queryClient = useQueryClient();
 
   // ── Name edit state ────────────────────────────────────────────────────────
@@ -75,11 +77,13 @@ export function useProfileViewModel() {
     if (result.didCancel || !result.assets?.[0]) return;
     const asset = result.assets[0];
     if (!asset.uri) return;
-    showLoading();
+    startUpload(1);
     try {
       const updated = await profileApi.uploadAvatar(asset.uri, asset.type ?? 'image/jpeg');
       updateUser({ avatar: updated.avatar });
+      incrementUpload();
     } catch (err) {
+      incrementUpload(); // still complete the progress indicator
       showAlert({
         type: 'error',
         title: t.common.error,

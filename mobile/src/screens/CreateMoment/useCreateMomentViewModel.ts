@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useReducer } from 'react';
+import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { PermissionsAndroid, Platform } from 'react-native';
 import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -47,7 +48,6 @@ interface FormState {
   recordedAudioPath: string | null;
   recordingDuration: number;
   isPlayingPreview: boolean;
-  uploadProgress: UploadProgress | null;
 }
 
 type FormAction =
@@ -77,7 +77,6 @@ function makeInitialState(): FormState {
     recordedAudioPath: null,
     recordingDuration: 0,
     isPlayingPreview: false,
-    uploadProgress: null,
   };
 }
 
@@ -112,9 +111,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
         })),
       };
     case 'INCREMENT_UPLOAD':
-      return state.uploadProgress
-        ? { ...state, uploadProgress: { ...state.uploadProgress, done: state.uploadProgress.done + 1 } }
-        : state;
+      return state;
     case 'RESET':
       return makeInitialState();
     default:
@@ -134,6 +131,7 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
   const queryClient = useQueryClient();
 
   const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
+  const { startUpload, incrementUpload } = useUploadProgress();
 
   // ── Alert state (kept separate — AlertConfig has onConfirm callback) ─────────
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
@@ -186,18 +184,17 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
         ? await momentsApi.update(momentId!, payload)
         : await momentsApi.create(payload);
 
-      // Upload photos with progress tracking (non-blocking)
+      // Upload photos with global progress tracking (non-blocking)
       const pendingPhotos = s.photos.filter(p => !p.uploaded);
       if (pendingPhotos.length > 0) {
-        dispatch({ type: 'SET_FIELD', field: 'uploadProgress', value: { done: 0, total: pendingPhotos.length } });
+        startUpload(pendingPhotos.length);
         Promise.all(
           pendingPhotos.map(p =>
             momentsApi.uploadPhoto(savedMoment.id, p.uri, p.mimeType)
-              .then(() => dispatch({ type: 'INCREMENT_UPLOAD' }))
-              .catch(() => dispatch({ type: 'INCREMENT_UPLOAD' })),
+              .then(() => incrementUpload())
+              .catch(() => incrementUpload()),
           ),
         ).then(() => {
-          dispatch({ type: 'SET_FIELD', field: 'uploadProgress', value: null });
           queryClient.invalidateQueries({ queryKey: ['moment', savedMoment.id] });
           queryClient.invalidateQueries({ queryKey: ['moments'] });
         });
@@ -382,7 +379,6 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
     isRecording: s.isRecording, recordedAudioPath: s.recordedAudioPath,
     recordingDuration: s.recordingDuration, isPlayingPreview: s.isPlayingPreview,
     isSaving: saveMutation.isPending,
-    uploadProgress: s.uploadProgress,
 
     // alert
     alert,

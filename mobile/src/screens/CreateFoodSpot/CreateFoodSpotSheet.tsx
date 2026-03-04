@@ -1,13 +1,11 @@
 import React, { forwardRef, useCallback } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   Text,
   View,
 } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useCreateFoodSpotViewModel } from './useCreateFoodSpotViewModel';
 import AlertModal from '../../components/AlertModal';
@@ -40,7 +38,6 @@ function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: nu
 // ── Price Range Picker ────────────────────────────────────────────────────────
 
 function PriceRangePicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const colors = useAppColors();
   return (
     <View className="flex-row gap-2 py-1">
       {[1, 2, 3, 4].map(i => {
@@ -72,8 +69,6 @@ interface Props {
 
 const CreateFoodSpotSheet = forwardRef<BottomSheetModal, Props>(
   ({ foodSpotId, onSuccess }, ref) => {
-    const colors = useAppColors();
-
     const handleClose = useCallback(() => {
       (ref as React.RefObject<BottomSheetModal>)?.current?.dismiss();
     }, [ref]);
@@ -97,16 +92,6 @@ const CreateFoodSpotSheet = forwardRef<BottomSheetModal, Props>(
           onDismiss={vm.resetForm}>
 
           <View className="pb-[60px] pt-2">
-
-            {/* Upload progress banner */}
-            {vm.uploadProgress ? (
-              <View className="mx-5 mb-3 px-4 py-2.5 rounded-2xl flex-row items-center gap-3 bg-secondary/12">
-                <ActivityIndicator size="small" color={colors.secondary} />
-                <Text className="text-sm text-secondary font-medium flex-1">
-                  Uploading {vm.uploadProgress.done}/{vm.uploadProgress.total} photos...
-                </Text>
-              </View>
-            ) : null}
 
             {/* ── Photos ── */}
             <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">

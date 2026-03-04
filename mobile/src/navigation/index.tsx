@@ -9,6 +9,7 @@ import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
 import { AppTheme } from './theme';
 import { LoadingOverlay } from '../components/LoadingOverlay';
+import UploadProgressFloat from '../components/UploadProgressFloat';
 import type { MomentPhoto, FoodSpotPhoto } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -177,8 +178,9 @@ export default function RootNavigator() {
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
         {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
-        {/* Global overlay — inside NavigationContainer for useAppColors() access */}
+        {/* Global overlays — inside NavigationContainer for useAppColors() access */}
         <LoadingOverlay />
+        <UploadProgressFloat />
       </BottomSheetModalProvider>
     </NavigationContainer>
   );

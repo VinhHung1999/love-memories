@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthProvider } from './src/lib/auth';
 import { LoadingProvider } from './src/contexts/LoadingContext';
+import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
 import Mapbox from '@rnmapbox/maps';
 import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
 import { warmupConnection } from './src/lib/api';
@@ -38,11 +39,13 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
             <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-            <LoadingProvider>
-              <AuthProvider>
-                <RootNavigator />
-              </AuthProvider>
-            </LoadingProvider>
+            <UploadProgressProvider>
+              <LoadingProvider>
+                <AuthProvider>
+                  <RootNavigator />
+                </AuthProvider>
+              </LoadingProvider>
+            </UploadProgressProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
