@@ -449,3 +449,135 @@ export const profileApi = {
     return res.json();
   },
 };
+
+// ---------------------------------------------------------------------------
+// Food Spots API
+// ---------------------------------------------------------------------------
+
+export const foodSpotsApi = {
+  list: async (): Promise<import('../types').FoodSpot[]> => {
+    const res = await apiFetch('/api/foodspots');
+    if (!res.ok) throw new Error('Failed to fetch food spots');
+    return res.json();
+  },
+
+  get: async (id: string): Promise<import('../types').FoodSpot> => {
+    const res = await apiFetch(`/api/foodspots/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch food spot');
+    return res.json();
+  },
+
+  create: async (data: {
+    name: string;
+    description?: string;
+    rating?: number;
+    priceRange?: number;
+    location?: string;
+    latitude?: number;
+    longitude?: number;
+    tags?: string[];
+  }): Promise<import('../types').FoodSpot> => {
+    const res = await apiFetch('/api/foodspots', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || 'Failed to create food spot');
+    }
+    return res.json();
+  },
+
+  update: async (
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      rating?: number;
+      priceRange?: number;
+      location?: string;
+      latitude?: number;
+      longitude?: number;
+      tags?: string[];
+    },
+  ): Promise<import('../types').FoodSpot> => {
+    const res = await apiFetch(`/api/foodspots/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || 'Failed to update food spot');
+    }
+    return res.json();
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/foodspots/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete food spot');
+  },
+
+  uploadPhoto: async (
+    foodSpotId: string,
+    imageUri: string,
+    mimeType: string,
+  ): Promise<import('../types').FoodSpotPhoto> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+    formData.append('photos', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/foodspots/${foodSpotId}/photos`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload photo');
+    return res.json();
+  },
+
+  deletePhoto: async (foodSpotId: string, photoId: string): Promise<void> => {
+    const res = await apiFetch(`/api/foodspots/${foodSpotId}/photos/${photoId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete photo');
+  },
+
+  random: async (lat: number, lng: number, radius = 5): Promise<import('../types').FoodSpot & { distance: number }> => {
+    const res = await apiFetch(`/api/foodspots/random?lat=${lat}&lng=${lng}&radius=${radius}`);
+    if (!res.ok) throw new Error('No food spots found nearby');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Map API
+// ---------------------------------------------------------------------------
+
+export const mapApi = {
+  pins: async (): Promise<import('../types').MapPin[]> => {
+    const res = await apiFetch('/api/map/pins');
+    if (!res.ok) throw new Error('Failed to fetch map pins');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Tags API
+// ---------------------------------------------------------------------------
+
+export const tagsApi = {
+  list: async (): Promise<import('../types').TagMetadata[]> => {
+    const res = await apiFetch('/api/tags');
+    if (!res.ok) throw new Error('Failed to fetch tags');
+    return res.json();
+  },
+
+  upsert: async (name: string, icon: string, color?: string): Promise<import('../types').TagMetadata> => {
+    const res = await apiFetch(`/api/tags/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ icon, color }),
+    });
+    if (!res.ok) throw new Error('Failed to upsert tag');
+    return res.json();
+  },
+};
