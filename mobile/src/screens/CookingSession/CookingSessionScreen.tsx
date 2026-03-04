@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   Linking,
@@ -143,6 +143,80 @@ function ShoppingPhase({
   );
 }
 
+// ── Step countdown timer ──────────────────────────────────────────────────────
+
+function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
+  const colors = useAppColors();
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stop = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const handlePress = () => {
+    if (remaining !== null && remaining > 0) {
+      // Running → stop
+      stop();
+      setRemaining(null);
+    } else if (remaining === 0) {
+      // Done → restart
+      setRemaining(durationSeconds);
+      intervalRef.current = setInterval(() => {
+        setRemaining(prev => {
+          if (prev === null || prev <= 1) { stop(); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      // Idle → start
+      setRemaining(durationSeconds);
+      intervalRef.current = setInterval(() => {
+        setRemaining(prev => {
+          if (prev === null || prev <= 1) { stop(); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
+
+  useEffect(() => () => stop(), [stop]);
+
+  const isRunning = remaining !== null && remaining > 0;
+  const isDone = remaining === 0;
+
+  const display = (() => {
+    const sec = remaining ?? durationSeconds;
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    if (m > 0) return `${m}:${s.toString().padStart(2, '0')}`;
+    return `${s}s`;
+  })();
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      className={`flex-row items-center gap-1 mt-1 px-2 py-1 rounded-lg self-start ${
+        isDone ? 'bg-green-100' : isRunning ? 'bg-primary/10' : 'bg-gray-100'
+      }`}>
+      <Icon
+        name={isDone ? 'check-circle' : isRunning ? 'timer' : 'timer-outline'}
+        size={12}
+        color={isDone ? colors.success : isRunning ? colors.primary : colors.textLight}
+      />
+      <Text
+        className={`text-[11px] font-semibold ${
+          isDone ? 'text-green-600' : isRunning ? 'text-primary' : 'text-textLight'
+        }`}>
+        {isDone ? 'Done!' : display}
+      </Text>
+    </Pressable>
+  );
+}
+
 // ── Cooking phase ─────────────────────────────────────────────────────────────
 
 function CookingPhase({
@@ -224,14 +298,7 @@ function CookingPhase({
                         {step.content}
                       </Text>
                       {step.durationSeconds ? (
-                        <View className="flex-row items-center gap-1 mt-1">
-                          <Icon name="timer-outline" size={11} color={colors.textLight} />
-                          <Text className="text-[11px] text-textLight">
-                            {step.durationSeconds >= 60
-                              ? `${Math.floor(step.durationSeconds / 60)}min`
-                              : `${step.durationSeconds}s`}
-                          </Text>
-                        </View>
+                        <StepCountdown durationSeconds={step.durationSeconds} />
                       ) : null}
                       {step.checkedBy ? (
                         <Text className="text-[10px] text-green-600 mt-0.5">✓ {step.checkedBy}</Text>

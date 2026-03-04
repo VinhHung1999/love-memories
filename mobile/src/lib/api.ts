@@ -794,6 +794,31 @@ export const cookingSessionsApi = {
 // Settings API
 // ---------------------------------------------------------------------------
 
+export interface AIRecipeResult {
+  title: string;
+  description: string | null;
+  ingredients: string[];
+  ingredientPrices: (number | null)[];
+  steps: string[];
+  stepDurations: (number | null)[];
+  tags: string[];
+  notes: string | null;
+  tutorialUrl: string | null;
+}
+
+export const aiApi = {
+  generateRecipe: async (mode: 'text' | 'youtube' | 'url', input: string): Promise<AIRecipeResult> => {
+    const res = await apiFetch('/api/ai/generate-recipe', {
+      method: 'POST',
+      body: JSON.stringify({ mode, input }),
+    });
+    if (!res.ok) throw new Error('Failed to generate recipe');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+
 export const settingsApi = {
   get: async (key: string): Promise<{ key: string; value: string | null }> => {
     const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);

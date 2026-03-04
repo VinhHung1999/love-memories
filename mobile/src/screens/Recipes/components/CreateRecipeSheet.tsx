@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -82,19 +82,30 @@ function StepInputRow({
 }: {
   index: number;
   content: string;
-  duration: string;
+  duration: string; // total seconds as string
   onChangeContent: (v: string) => void;
   onChangeDuration: (v: string) => void;
   onRemove: () => void;
 }) {
   const colors = useAppColors();
+
+  // Parse stored seconds into local min/sec display state
+  const totalSec = parseInt(duration || '0', 10) || 0;
+  const [mins, setMins] = useState(String(Math.floor(totalSec / 60)));
+  const [secs, setSecs] = useState(String(totalSec % 60));
+
+  const commit = (m: string, s: string) => {
+    const total = (parseInt(m || '0', 10) || 0) * 60 + (parseInt(s || '0', 10) || 0);
+    onChangeDuration(total > 0 ? String(total) : '');
+  };
+
   return (
-    <View className="flex-row items-start gap-2 mb-2">
-      {/* Step number */}
-      <View className="w-6 h-6 rounded-full bg-primary/10 items-center justify-center mt-[10px] flex-shrink-0">
-        <Text className="text-[10px] font-bold text-primary">{index + 1}</Text>
-      </View>
-      <View className="flex-1">
+    <View className="mb-2">
+      {/* Step content row */}
+      <View className="flex-row items-start gap-2">
+        <View className="w-6 h-6 rounded-full bg-primary/10 items-center justify-center mt-[10px] flex-shrink-0">
+          <Text className="text-[10px] font-bold text-primary">{index + 1}</Text>
+        </View>
         <TextInput
           value={content}
           onChangeText={onChangeContent}
@@ -102,22 +113,36 @@ function StepInputRow({
           placeholderTextColor={colors.textLight}
           multiline
           textAlignVertical="top"
-          className="bg-inputBg border border-border rounded-xl px-3 py-2.5 text-sm text-textDark min-h-[42px]"
+          className="flex-1 bg-inputBg border border-border rounded-xl px-3 py-2.5 text-sm text-textDark min-h-[42px]"
         />
+        <Pressable onPress={onRemove} hitSlop={8} className="mt-[10px]">
+          <Icon name="close-circle-outline" size={20} color={colors.textLight} />
+        </Pressable>
       </View>
-      <View className="w-[70px]">
+      {/* Duration row — below content, indented to align with text */}
+      <View className="flex-row items-center gap-1.5 mt-1.5 ml-8">
+        <Icon name="timer-outline" size={13} color={colors.textLight} />
         <TextInput
-          value={duration}
-          onChangeText={onChangeDuration}
-          placeholder="sec"
+          value={mins}
+          onChangeText={v => { setMins(v); commit(v, secs); }}
+          placeholder="0"
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
-          className="bg-inputBg border border-border rounded-xl px-3 h-[42px] text-sm text-textDark"
+          maxLength={2}
+          className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
         />
+        <Text className="text-xs text-textLight">min</Text>
+        <TextInput
+          value={secs}
+          onChangeText={v => { setSecs(v); commit(mins, v); }}
+          placeholder="0"
+          placeholderTextColor={colors.textLight}
+          keyboardType="numeric"
+          maxLength={2}
+          className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
+        />
+        <Text className="text-xs text-textLight">sec</Text>
       </View>
-      <Pressable onPress={onRemove} hitSlop={8} className="mt-[10px]">
-        <Icon name="close-circle-outline" size={20} color={colors.textLight} />
-      </Pressable>
     </View>
   );
 }

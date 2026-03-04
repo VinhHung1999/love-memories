@@ -417,13 +417,6 @@ export default function DashboardScreen() {
                   bgClass="bg-primary/10"
                   onPress={() => vm.navigateTo('RecipesTab')}
                 />
-                <QuickActionButton
-                  icon="robot-outline"
-                  label={t.dashboard.quickActions.aiRecipe}
-                  iconColor={colors.accent}
-                  bgClass="bg-accent/10"
-                  onPress={vm.handleAIRecipePress}
-                />
               </View>
             </Animated.View>
 

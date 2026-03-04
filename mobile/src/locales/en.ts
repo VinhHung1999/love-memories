@@ -366,6 +366,23 @@ const en = {
       deleteFailed: 'Failed to delete recipe',
       photoUploadFailed: 'Failed to upload photo',
     },
+
+    ai: {
+      title: 'AI Recipe',
+      subtitle: 'Generate from text, YouTube, or a website',
+      modeText: 'Text',
+      modeYoutube: 'YouTube',
+      modeUrl: 'Website',
+      placeholderText: 'Paste recipe text here...',
+      placeholderYoutube: 'YouTube video URL...',
+      placeholderUrl: 'Recipe website URL (e.g. cooky.vn)...',
+      generate: 'Generate Recipe',
+      generating: 'AI is cooking...',
+      previewTitle: 'Review & Save',
+      save: 'Save Recipe',
+      errorEmpty: 'Please enter some input',
+      errorFailed: 'Failed to generate recipe',
+    },
   },
 
   whatToEat: {

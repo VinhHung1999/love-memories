@@ -198,25 +198,27 @@ export default function WhatToEatScreen() {
         )
       )}
 
-      {/* ── Bottom CTA — hidden when active session exists ── */}
+      {/* ── Bottom CTA — compact floating pill, hidden when active session ── */}
       {!vm.activeSession && vm.selectedIds.size > 0 ? (
         <Animated.View
           entering={FadeInDown}
-          className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">
+          className="absolute bottom-8 left-0 right-0 items-center px-5">
           <Pressable
             onPress={vm.handleStart}
             disabled={vm.isCreating}
-            className="rounded-2xl overflow-hidden">
+            className="rounded-full overflow-hidden shadow-md">
             <LinearGradient
               colors={[colors.primary, colors.secondary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 flex-row items-center justify-center gap-2">
-              <Icon name="chef-hat" size={18} color="#fff" />
-              <Text className="text-white font-bold text-base">
-                {t.whatToEat.selecting.startShopping}{' '}
-                ({vm.selectedIds.size} {t.whatToEat.selecting.selected})
+              className="px-6 py-3.5 flex-row items-center gap-2">
+              <Icon name="chef-hat" size={16} color="#fff" />
+              <Text className="text-white font-bold text-sm">
+                {t.whatToEat.selecting.startShopping}
               </Text>
+              <View className="w-5 h-5 rounded-full bg-white/30 items-center justify-center">
+                <Text className="text-white text-[11px] font-bold">{vm.selectedIds.size}</Text>
+              </View>
             </LinearGradient>
           </Pressable>
         </Animated.View>

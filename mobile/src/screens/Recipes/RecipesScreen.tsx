@@ -23,6 +23,7 @@ import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
 import CreateRecipeSheet from './components/CreateRecipeSheet';
+import AIRecipeSheet from './components/AIRecipeSheet';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -280,6 +281,13 @@ export default function RecipesScreen() {
           </View>
         </Animated.ScrollView>
       )}
+
+      {/* FAB — AI recipe */}
+      <Pressable
+        onPress={() => navigation.showBottomSheet(AIRecipeSheet)}
+        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center shadow-sm bg-white border-2 border-primary/30">
+        <Icon name="robot-outline" size={22} color={colors.primary} />
+      </Pressable>
 
       {/* FAB — add recipe */}
       <Pressable

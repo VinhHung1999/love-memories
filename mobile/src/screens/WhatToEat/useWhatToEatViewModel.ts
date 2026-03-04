@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -32,6 +32,15 @@ export function useWhatToEatViewModel() {
     queryFn: cookingSessionsApi.active,
     staleTime: 10_000,
   });
+
+  // ── Auto-redirect when active session exists ──────────────────────────────
+
+  useEffect(() => {
+    if (activeSession) {
+      navigation.navigate('CookingSession', { sessionId: activeSession.id });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
