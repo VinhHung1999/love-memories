@@ -100,6 +100,11 @@ const en = {
       name: 'Your name',
       coupleName: 'Couple name',
       anniversary: 'Anniversary date',
+      slogan: 'Slogan',
+    },
+
+    placeholders: {
+      slogan: "Your couple's motto...",
     },
 
     errors: {
@@ -112,8 +117,34 @@ const en = {
 
   dashboard: {
     title: 'Love Scrum',
-    subtitle: 'Dashboard — Sprint 35',
-    headerSubtitle: 'HOME',
+    subtitle: 'Dashboard',
+    headerSubtitle: 'HOME ♥',
+    couple: {
+      togetherFor: 'Together for',
+      noAnniversary: 'Set your anniversary ♥',
+      years: 'y',
+      months: 'mo',
+      days: 'd',
+    },
+    stats: {
+      moments: 'Moments',
+      foodSpots: 'Food Spots',
+    },
+    sections: {
+      recentMoments: 'Recent Moments',
+      quickActions: 'Quick Access',
+      foodHighlights: 'Food Highlights',
+      seeAll: 'See all',
+    },
+    quickActions: {
+      moments: 'Moments',
+      food: 'Food',
+      map: 'Map',
+      profile: 'Profile',
+    },
+    noMomentsYet: 'No moments yet\nAdd your first memory together',
+    noFoodYet: 'No food spots yet',
+    defaultSlogan: 'Our little world, beautifully organized',
   },
 
   moments: {

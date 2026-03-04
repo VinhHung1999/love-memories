@@ -65,7 +65,7 @@ export default function ProfileScreen() {
   };
 
   const handleOpenEditCouple = () => {
-    navigation.showBottomSheet(EditCoupleSheet, { couple: vm.couple ?? null });
+    navigation.showBottomSheet(EditCoupleSheet, { couple: vm.couple ?? null, slogan: vm.slogan });
   };
 
   return (
@@ -99,6 +99,11 @@ export default function ProfileScreen() {
                 <Icon name="calendar-heart" size={11} color={colors.textLight} />
                 <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
               </View>
+            ) : null}
+            {vm.slogan ? (
+              <Text className="text-[10px] text-textLight italic mt-1.5 text-center" numberOfLines={1}>
+                {vm.slogan}
+              </Text>
             ) : null}
           </View>
         )}

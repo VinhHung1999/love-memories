@@ -174,7 +174,7 @@ export default function FoodSpotDetailScreen() {
                     key={i}
                     name={i <= Math.round(spot.rating) ? 'star' : 'star-outline'}
                     size={14}
-                    color="#F59E0B"
+                    color={colors.starRating}
                   />
                 ))}
                 <Text className="text-xs text-textMid ml-1">{spot.rating}/5</Text>

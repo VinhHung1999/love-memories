@@ -158,7 +158,7 @@ export default function MomentDetailScreen() {
 
           {/* ── Photo thumbnail strip ── */}
           {moment.photos.length > 1 ? (
-            <View className="bg-white mx-4 -mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+            <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3" style={{zIndex: 10000}}>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}>

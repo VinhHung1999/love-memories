@@ -94,7 +94,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
         {/* Rating + Price overlay */}
         <View className="absolute top-2 left-2 flex-row gap-1.5">
           <View className="rounded-xl px-2 py-0.5 bg-black/50 flex-row items-center">
-            <Icon name="star" size={9} color="#F59E0B" />
+            <Icon name="star" size={9} color={colors.starRating} />
             <Text className="text-[10px] font-bold text-white ml-0.5">{spot.rating}</Text>
           </View>
           <View className="rounded-xl px-2 py-0.5 bg-black/50">
@@ -127,7 +127,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
               key={i}
               name={i <= Math.round(spot.rating) ? 'star' : 'star-outline'}
               size={10}
-              color="#F59E0B"
+              color={colors.starRating}
             />
           ))}
         </View>
