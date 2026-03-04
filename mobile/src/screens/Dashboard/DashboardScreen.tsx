@@ -18,7 +18,6 @@ import type { Moment, FoodSpot } from '../../types';
 import { useDashboardViewModel } from './useDashboardViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import Skeleton from '../../components/Skeleton';
-import { Card } from '../../components/Card';
 
 // ── Count-up hook ─────────────────────────────────────────────────────────────
 
@@ -261,6 +260,7 @@ export default function DashboardScreen() {
       {/* ── Collapsible Header — pure photo carousel, no labels ── */}
       <CollapsibleHeader
         title={vm.headerTitle}
+        subtitle={t.dashboard.headerSubtitle}
         expandedHeight={EXPANDED_H}
         collapsedHeight={COLLAPSED_H}
         scrollY={scrollY}
@@ -307,7 +307,7 @@ export default function DashboardScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}>
           {/* pt-[204px] = scrollRange (260-56) */}
-          <View className="pt-[204px] pb-[120px] px-4 gap-4">
+          <View className="pt-[220px] pb-[120px] px-4 gap-4">
 
             {/* ── 0. Timer + slogan — right below header ── */}
             {(vm.relationshipDuration || vm.slogan) ? (
