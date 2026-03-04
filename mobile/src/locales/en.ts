@@ -252,6 +252,17 @@ const en = {
     },
   },
 
+  map: {
+    title: 'Our Map',
+    subtitle: '📍 Places we\'ve been',
+    filterAll: 'All',
+    filterMoments: 'Moments',
+    filterFoodSpots: 'Food Spots',
+    setupRequired: 'Map requires native setup',
+    setupDescription: 'Install @rnmapbox/maps and rebuild to enable the interactive map.',
+    pinsLoaded: 'pins loaded',
+  },
+
   common: {
     error: 'Error',
     success: 'Success',

@@ -43,6 +43,7 @@ export type FoodSpotsStackParamList = {
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
+const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
 
 // ---------------------------------------------------------------------------
 // Auth stack (unauthenticated)
@@ -63,6 +64,9 @@ function AuthNavigator() {
 import MomentsScreen from '../screens/Moments/MomentsScreen';
 import MomentDetailScreen from '../screens/MomentDetail/MomentDetailScreen';
 import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
+import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
+import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
+import MapScreen from '../screens/Map/MapScreen';
 
 function MomentsNavigator() {
   return (
@@ -75,6 +79,24 @@ function MomentsNavigator() {
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
     </MomentsStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Food Spots stack navigator
+// ---------------------------------------------------------------------------
+
+function FoodSpotsNavigator() {
+  return (
+    <FoodSpotsStack.Navigator screenOptions={{ headerShown: false }}>
+      <FoodSpotsStack.Screen name="FoodSpotsList" component={FoodSpotsScreen} />
+      <FoodSpotsStack.Screen name="FoodSpotDetail" component={FoodSpotDetailScreen} />
+      <FoodSpotsStack.Screen
+        name="FoodSpotGallery"
+        component={PhotoGalleryScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+    </FoodSpotsStack.Navigator>
   );
 }
 
@@ -105,6 +127,22 @@ function MainNavigator() {
         options={{
           tabBarLabel: 'Moments',
           tabBarIcon: ({ color, size }) => <Icon name="heart-multiple-outline" size={size} color={color} />,
+        }}
+      />
+      <MainTab.Screen
+        name="FoodSpotsTab"
+        component={FoodSpotsNavigator}
+        options={{
+          tabBarLabel: 'Food',
+          tabBarIcon: ({ color, size }) => <Icon name="food-fork-drink" size={size} color={color} />,
+        }}
+      />
+      <MainTab.Screen
+        name="MapTab"
+        component={MapScreen}
+        options={{
+          tabBarLabel: 'Map',
+          tabBarIcon: ({ color, size }) => <Icon name="map-outline" size={size} color={color} />,
         }}
       />
       <MainTab.Screen
