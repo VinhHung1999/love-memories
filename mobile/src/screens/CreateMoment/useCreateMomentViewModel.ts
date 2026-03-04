@@ -104,6 +104,12 @@ function formReducer(state: FormState, action: FormAction): FormState {
         longitude: action.moment.longitude ?? undefined,
         tags: action.moment.tags,
         spotifyUrl: action.moment.spotifyUrl ?? '',
+        photos: action.moment.photos.map(p => ({
+          uri: p.url,
+          mimeType: 'image/jpeg',
+          uploaded: true,
+          remotePhotoId: p.id,
+        })),
       };
     case 'INCREMENT_UPLOAD':
       return state.uploadProgress
@@ -251,6 +257,10 @@ export function useCreateMomentViewModel({ momentId, onClose }: Props) {
   };
 
   const handleRemovePhoto = (index: number) => {
+    const photo = s.photos[index];
+    if (photo.uploaded && photo.remotePhotoId && momentId) {
+      momentsApi.deletePhoto(momentId, photo.remotePhotoId).catch(() => null);
+    }
     dispatch({ type: 'REMOVE_PHOTO', index });
   };
 

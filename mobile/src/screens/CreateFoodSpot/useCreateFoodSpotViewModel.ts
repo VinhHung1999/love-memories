@@ -72,6 +72,12 @@ function formReducer(state: FormState, action: FormAction): FormState {
         latitude: action.spot.latitude ?? undefined,
         longitude: action.spot.longitude ?? undefined,
         tags: action.spot.tags,
+        photos: action.spot.photos.map(p => ({
+          uri: p.url,
+          mimeType: 'image/jpeg',
+          uploaded: true,
+          remotePhotoId: p.id,
+        })),
       };
     case 'INCREMENT_UPLOAD':
       return state.uploadProgress
@@ -202,7 +208,13 @@ export function useCreateFoodSpotViewModel({ foodSpotId, onClose }: Props) {
     dispatch({ type: 'ADD_PHOTOS', photos: [{ uri: asset.uri!, mimeType: asset.type ?? 'image/jpeg', uploaded: false }] });
   };
 
-  const handleRemovePhoto = (index: number) => dispatch({ type: 'REMOVE_PHOTO', index });
+  const handleRemovePhoto = (index: number) => {
+    const photo = s.photos[index];
+    if (photo.uploaded && photo.remotePhotoId && foodSpotId) {
+      foodSpotsApi.deletePhoto(foodSpotId, photo.remotePhotoId).catch(() => null);
+    }
+    dispatch({ type: 'REMOVE_PHOTO', index });
+  };
 
   const handleAddTag = () => {
     const tag = s.tagInput.trim();
