@@ -5,18 +5,17 @@ import {
   Text,
   View,
 } from 'react-native';
-import { BottomSheetModal, BottomSheetScrollView, BottomSheetTextInput, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import { aiApi, recipesApi, type AIRecipeResult } from '../../../lib/api';
+import AppBottomSheet from '../../../components/AppBottomSheet';
 import FieldLabel from '../../../components/FieldLabel';
 
 type Mode = 'text' | 'youtube' | 'url';
 type Phase = 'input' | 'loading' | 'preview';
-
-const SNAP_POINTS = ['92%'];
 
 // ── Mode tab ─────────────────────────────────────────────────────────────────
 
@@ -102,17 +101,16 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
     sheetRef.current?.present();
   }, []);
 
-  const placeholders: Record<Mode, string> = {
-    text: t.recipes.ai.placeholderText,
-    youtube: t.recipes.ai.placeholderYoutube,
-    url: t.recipes.ai.placeholderUrl,
-  };
-
   const modeIcons: Record<Mode, string> = { text: 'text-long', youtube: 'youtube', url: 'web' };
   const modeLabels: Record<Mode, string> = {
     text: t.recipes.ai.modeText,
     youtube: t.recipes.ai.modeYoutube,
     url: t.recipes.ai.modeUrl,
+  };
+  const placeholders: Record<Mode, string> = {
+    text: t.recipes.ai.placeholderText,
+    youtube: t.recipes.ai.placeholderYoutube,
+    url: t.recipes.ai.placeholderUrl,
   };
 
   const handleGenerate = async () => {
@@ -149,7 +147,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
         foodSpotId: undefined,
       });
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
-      onClose?.();
+      sheetRef.current?.dismiss();
     } catch {
       setError(t.recipes.errors.saveFailed);
     } finally {
@@ -157,39 +155,29 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  const renderBackdrop = (props: any) => (
-    <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
-  );
-
   return (
-    <BottomSheetModal
+    <AppBottomSheet
       ref={sheetRef}
-      snapPoints={SNAP_POINTS}
-      backdropComponent={renderBackdrop}
+      icon="robot-outline"
+      iconBgClass="bg-primary/10"
+      title={t.recipes.ai.title}
+      subtitle={t.recipes.ai.subtitle}
+      scrollable
+      snapPoints={['92%']}
       onDismiss={onClose}
-      enablePanDownToClose>
-
-      {/* ── Header ── */}
-      <View className="px-5 pt-2 pb-4 border-b border-border/30">
-        <View className="flex-row items-center gap-2 mb-1">
-          <View className="w-7 h-7 rounded-lg bg-primary/10 items-center justify-center">
-            <Icon name="robot-outline" size={15} color={colors.primary} />
-          </View>
-          <Text className="text-base font-bold text-textDark">{t.recipes.ai.title}</Text>
-        </View>
-        <Text className="text-xs text-textLight">{t.recipes.ai.subtitle}</Text>
-      </View>
-
-      {/* ── Loading ── */}
+    >
       {phase === 'loading' ? (
-        <View className="flex-1 items-center justify-center gap-4">
+
+        /* ── Loading ── */
+        <View className="h-64 items-center justify-center gap-4">
           <ActivityIndicator size="large" color={colors.primary} />
           <Text className="text-sm text-textMid">{t.recipes.ai.generating}</Text>
         </View>
+
       ) : phase === 'input' ? (
 
         /* ── Input phase ── */
-        <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 20, paddingTop: 20 }}>
+        <View className="px-5 pt-5 pb-10">
           {/* Mode tabs */}
           <View className="flex-row gap-2 mb-5">
             {(['text', 'youtube', 'url'] as Mode[]).map(m => (
@@ -236,115 +224,112 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             <Icon name="auto-fix" size={18} color="#fff" />
             <Text className="text-white font-bold text-base">{t.recipes.ai.generate}</Text>
           </Pressable>
-        </BottomSheetScrollView>
+        </View>
 
       ) : (
 
         /* ── Preview / edit phase ── */
-        <>
-          <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20, paddingTop: 16 }}>
-            {/* Title */}
-            <FieldLabel>{t.recipes.labels.title}</FieldLabel>
-            <BottomSheetTextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder={t.recipes.placeholders.title}
-              placeholderTextColor={colors.textLight}
-              style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16 }}
+        <View className="px-5 pt-4 pb-8">
+          {/* Title */}
+          <FieldLabel>{t.recipes.labels.title}</FieldLabel>
+          <BottomSheetTextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder={t.recipes.placeholders.title}
+            placeholderTextColor={colors.textLight}
+            style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16 }}
+          />
+
+          {/* Description */}
+          <FieldLabel>{t.recipes.labels.description}</FieldLabel>
+          <BottomSheetTextInput
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            placeholder={t.recipes.placeholders.description}
+            placeholderTextColor={colors.textLight}
+            style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 70, textAlignVertical: 'top' }}
+          />
+
+          {/* Ingredients */}
+          <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
+            🛒  {t.recipes.create.ingredientsSection}
+          </Text>
+          {ingredients.map((ing, idx) => (
+            <EditIngredientRow
+              key={idx}
+              value={ing}
+              onChange={v => setIngredients(prev => prev.map((x, i) => i === idx ? v : x))}
+              onRemove={() => setIngredients(prev => prev.filter((_, i) => i !== idx))}
             />
+          ))}
+          <Pressable onPress={() => setIngredients(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
+            <Icon name="plus-circle-outline" size={16} color={colors.primary} />
+            <Text className="text-sm text-primary font-medium">{t.recipes.create.addIngredient}</Text>
+          </Pressable>
 
-            {/* Description */}
-            <FieldLabel>{t.recipes.labels.description}</FieldLabel>
-            <BottomSheetTextInput
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              placeholder={t.recipes.placeholders.description}
-              placeholderTextColor={colors.textLight}
-              style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 70, textAlignVertical: 'top' }}
+          {/* Steps */}
+          <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
+            📋  {t.recipes.create.stepsSection}
+          </Text>
+          {steps.map((step, idx) => (
+            <EditStepRow
+              key={idx}
+              index={idx}
+              value={step}
+              onChange={v => setSteps(prev => prev.map((x, i) => i === idx ? v : x))}
+              onRemove={() => setSteps(prev => prev.filter((_, i) => i !== idx))}
             />
+          ))}
+          <Pressable onPress={() => setSteps(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
+            <Icon name="plus-circle-outline" size={16} color={colors.primary} />
+            <Text className="text-sm text-primary font-medium">{t.recipes.create.addStep}</Text>
+          </Pressable>
 
-            {/* Ingredients */}
-            <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
-              🛒  {t.recipes.create.ingredientsSection}
-            </Text>
-            {ingredients.map((ing, idx) => (
-              <EditIngredientRow
-                key={idx}
-                value={ing}
-                onChange={v => setIngredients(prev => prev.map((x, i) => i === idx ? v : x))}
-                onRemove={() => setIngredients(prev => prev.filter((_, i) => i !== idx))}
+          {/* Notes */}
+          {notes ? (
+            <>
+              <FieldLabel>{t.recipes.labels.notes}</FieldLabel>
+              <BottomSheetTextInput
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                placeholderTextColor={colors.textLight}
+                style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 60, textAlignVertical: 'top' }}
               />
-            ))}
-            <Pressable onPress={() => setIngredients(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
-              <Icon name="plus-circle-outline" size={16} color={colors.primary} />
-              <Text className="text-sm text-primary font-medium">{t.recipes.create.addIngredient}</Text>
-            </Pressable>
+            </>
+          ) : null}
 
-            {/* Steps */}
-            <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
-              📋  {t.recipes.create.stepsSection}
-            </Text>
-            {steps.map((step, idx) => (
-              <EditStepRow
-                key={idx}
-                index={idx}
-                value={step}
-                onChange={v => setSteps(prev => prev.map((x, i) => i === idx ? v : x))}
-                onRemove={() => setSteps(prev => prev.filter((_, i) => i !== idx))}
+          {/* Tutorial URL */}
+          {tutorialUrl ? (
+            <>
+              <FieldLabel>{t.recipes.labels.tutorialUrl}</FieldLabel>
+              <BottomSheetTextInput
+                value={tutorialUrl}
+                onChangeText={setTutorialUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholderTextColor={colors.textLight}
+                style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16 }}
               />
-            ))}
-            <Pressable onPress={() => setSteps(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
-              <Icon name="plus-circle-outline" size={16} color={colors.primary} />
-              <Text className="text-sm text-primary font-medium">{t.recipes.create.addStep}</Text>
-            </Pressable>
+            </>
+          ) : null}
 
-            {/* Notes */}
-            {notes ? (
-              <>
-                <FieldLabel>{t.recipes.labels.notes}</FieldLabel>
-                <BottomSheetTextInput
-                  value={notes}
-                  onChangeText={setNotes}
-                  multiline
-                  placeholderTextColor={colors.textLight}
-                  style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16, minHeight: 60, textAlignVertical: 'top' }}
-                />
-              </>
-            ) : null}
-
-            {/* Tutorial URL */}
-            {tutorialUrl ? (
-              <>
-                <FieldLabel>{t.recipes.labels.tutorialUrl}</FieldLabel>
-                <BottomSheetTextInput
-                  value={tutorialUrl}
-                  onChangeText={setTutorialUrl}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholderTextColor={colors.textLight}
-                  style={{ backgroundColor: colors.inputBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.textDark, borderWidth: 1, borderColor: colors.border, marginBottom: 16 }}
-                />
-              </>
-            ) : null}
-
-            {error ? <Text className="text-xs text-red-500 mb-3">{error}</Text> : null}
-          </BottomSheetScrollView>
+          {error ? <Text className="text-xs text-red-500 mb-3">{error}</Text> : null}
 
           {/* Save CTA */}
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">
-            <Pressable
-              onPress={handleSave}
-              disabled={isSaving || !title.trim()}
-              className={`rounded-2xl py-4 flex-row items-center justify-center gap-2 ${title.trim() ? 'bg-primary' : 'bg-gray-200'}`}>
-              {isSaving
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Icon name="content-save-outline" size={18} color="#fff" />}
-              <Text className="text-white font-bold text-base">{t.recipes.ai.save}</Text>
-            </Pressable>
-          </View>
-        </>
+          <Pressable
+            onPress={handleSave}
+            disabled={isSaving || !title.trim()}
+            className={`mt-2 rounded-2xl py-4 flex-row items-center justify-center gap-2 ${title.trim() ? 'bg-primary' : 'bg-gray-200'}`}>
+            {isSaving
+              ? <ActivityIndicator size="small" color="#fff" />
+              : <Icon name="content-save-outline" size={18} color="#fff" />}
+            <Text className="text-white font-bold text-base">{t.recipes.ai.save}</Text>
+          </Pressable>
+        </View>
+
       )}
-    </BottomSheetModal>
+    </AppBottomSheet>
   );
 }
