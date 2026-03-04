@@ -10,7 +10,8 @@ import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
 import { AppTheme } from './theme';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import UploadProgressFloat from '../components/UploadProgressFloat';
-import type { MomentPhoto, FoodSpotPhoto } from '../types';
+import type { BottomSheetParams, AlertParams } from './useAppNavigation';
+import type { MomentPhoto } from '../types';
 
 // ---------------------------------------------------------------------------
 // Stack param types
@@ -25,35 +26,36 @@ export type MainTabParamList = {
   MomentsTab: undefined;
   FoodSpotsTab: undefined;
   MapTab: undefined;
-  Profile: undefined;
+  ProfileTab: undefined;
 };
-
-// FormScreen route type — single route handles all create/edit forms
-export type FormType =
-  | 'createMoment'
-  | 'editMoment'
-  | 'createFoodSpot'
-  | 'editFoodSpot';
 
 export type MomentsStackParamList = {
   MomentsList: undefined;
   MomentDetail: { momentId: string };
   PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
-  FormScreen: { type: FormType; data?: any };
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
 };
 
 export type FoodSpotsStackParamList = {
   FoodSpotsList: undefined;
   FoodSpotDetail: { foodSpotId: string };
-  // Uses MomentPhoto[] so PhotoGalleryScreen can be reused (structurally compatible)
   FoodSpotGallery: { photos: MomentPhoto[]; initialIndex: number };
-  FormScreen: { type: FormType; data?: any };
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
+};
+
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
+const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 // ---------------------------------------------------------------------------
 // Auth stack (unauthenticated)
@@ -68,7 +70,7 @@ function AuthNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Moments stack navigator
+// Imports (after type declarations to avoid hoisting issues)
 // ---------------------------------------------------------------------------
 
 import MomentsScreen from '../screens/Moments/MomentsScreen';
@@ -77,7 +79,21 @@ import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
 import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
 import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
 import MapScreen from '../screens/Map/MapScreen';
-import FormScreen from '../screens/FormScreen';
+import BottomSheetRoute from '../screens/BottomSheetRoute';
+import AlertRoute from '../screens/AlertRoute';
+
+// ---------------------------------------------------------------------------
+// Shared screen options for modal routes
+// ---------------------------------------------------------------------------
+
+const MODAL_OPTIONS = {
+  animation: 'none',
+  presentation: 'transparentModal',
+} as const;
+
+// ---------------------------------------------------------------------------
+// Moments stack navigator
+// ---------------------------------------------------------------------------
 
 function MomentsNavigator() {
   return (
@@ -89,11 +105,8 @@ function MomentsNavigator() {
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
-      <MomentsStack.Screen
-        name="FormScreen"
-        component={FormScreen}
-        options={{ animation: 'none' }}
-      />
+      <MomentsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <MomentsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </MomentsStack.Navigator>
   );
 }
@@ -112,12 +125,23 @@ function FoodSpotsNavigator() {
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
-      <FoodSpotsStack.Screen
-        name="FormScreen"
-        component={FormScreen}
-        options={{ animation: 'none' }}
-      />
+      <FoodSpotsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <FoodSpotsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </FoodSpotsStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Profile stack navigator
+// ---------------------------------------------------------------------------
+
+function ProfileNavigator() {
+  return (
+    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      <ProfileStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <ProfileStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+    </ProfileStack.Navigator>
   );
 }
 
@@ -167,8 +191,8 @@ function MainNavigator() {
         }}
       />
       <MainTab.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="ProfileTab"
+        component={ProfileNavigator}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }) => <Icon name="account-circle-outline" size={size} color={color} />,

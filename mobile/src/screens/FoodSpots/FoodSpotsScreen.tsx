@@ -12,17 +12,16 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { FoodSpot } from '../../types';
-import type { FoodSpotsStackParamList } from '../../navigation';
 import { useFoodSpotsViewModel } from './useFoodSpotsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
+import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -147,11 +146,9 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
-type Nav = NativeStackNavigationProp<FoodSpotsStackParamList>;
-
 export default function FoodSpotsScreen() {
   const colors = useAppColors();
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
   const vm = useFoodSpotsViewModel();
 
   const scrollY = useSharedValue(0);
@@ -169,7 +166,7 @@ export default function FoodSpotsScreen() {
         scrollY={scrollY}
         renderRight={() => (
           <Pressable
-            onPress={() => navigation.navigate('FormScreen', { type: 'createFoodSpot' })}
+            onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
             className="w-10 h-10 rounded-full items-center justify-center bg-secondary">
             <Icon name="plus" size={22} color="#fff" />
           </Pressable>
@@ -208,7 +205,7 @@ export default function FoodSpotsScreen() {
           title={t.foodSpots.emptyTitle}
           subtitle={t.foodSpots.emptySubtitle}
           actionLabel={t.foodSpots.emptyAction}
-          onAction={() => navigation.navigate('FormScreen', { type: 'createFoodSpot' })}
+          onAction={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
         />
       ) : (
         <Animated.ScrollView

@@ -15,18 +15,16 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
-import type { FoodSpotsStackParamList } from '../../navigation';
 import { useFoodSpotDetailViewModel } from './useFoodSpotDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
-import AlertModal from '../../components/AlertModal';
+import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -57,11 +55,9 @@ function priceLabel(priceRange: number): string {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
-type Nav = NativeStackNavigationProp<FoodSpotsStackParamList>;
-
 export default function FoodSpotDetailScreen() {
   const colors = useAppColors();
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
   const vm = useFoodSpotDetailViewModel();
   const { spot } = vm;
 
@@ -117,7 +113,7 @@ export default function FoodSpotDetailScreen() {
           <View className="flex-row gap-2">
             <HeaderIconButton
               name="pencil-outline"
-              onPress={() => navigation.navigate('FormScreen', { type: 'editFoodSpot', data: spot })}
+              onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
             />
             <HeaderIconButton
               name="trash-can-outline"
@@ -242,9 +238,6 @@ export default function FoodSpotDetailScreen() {
 
         </View>
       </Animated.ScrollView>
-
-      {/* ── Alert ── */}
-      <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
 
     </View>
   );

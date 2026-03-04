@@ -16,21 +16,19 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
-import type { MomentsStackParamList } from '../../navigation';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
-import AlertModal from '../../components/AlertModal';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
+import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -80,11 +78,9 @@ function formatDate(dateStr: string): string {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
-type Nav = NativeStackNavigationProp<MomentsStackParamList>;
-
 export default function MomentDetailScreen() {
   const colors = useAppColors();
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
 
@@ -140,7 +136,7 @@ export default function MomentDetailScreen() {
           <View className="flex-row gap-2">
             <HeaderIconButton
               name="pencil-outline"
-              onPress={() => navigation.navigate('FormScreen', { type: 'editMoment', data: moment })}
+              onPress={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
             />
             <HeaderIconButton
               name="trash-can-outline"
@@ -300,9 +296,6 @@ export default function MomentDetailScreen() {
 
         </View>
       </Animated.ScrollView>
-
-      {/* ── Alert ── */}
-      <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
 
     </KeyboardAvoidingView>
   );

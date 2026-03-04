@@ -13,8 +13,7 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Moment } from '../../types';
@@ -24,6 +23,7 @@ import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
+import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -142,18 +142,16 @@ function MomentCard({
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
-type Nav = NativeStackNavigationProp<MomentsStackParamList>;
-
 export default function MomentsScreen() {
   const colors = useAppColors();
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
   const vm = useMomentsViewModel();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(event => {
     scrollY.value = event.contentOffset.y;
   });
 
-  const openCreateForm = () => navigation.navigate('FormScreen', { type: 'createMoment' });
+  const openCreateForm = () => navigation.showBottomSheet(CreateMomentSheet);
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -178,9 +176,6 @@ export default function MomentsScreen() {
               horizontal
               showsHorizontalScrollIndicator={false}
               className="px-5"
-              onLayout={e => {
-                console.log(e.nativeEvent.layout.height);
-              }}
             >
               <View className="flex-row gap-2 py-2 pr-5">
                 <TagBadge

@@ -1,29 +1,19 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { FoodSpotsStackParamList } from '../../navigation';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { foodSpotsApi } from '../../lib/api';
 import type { FoodSpotPhoto, MomentPhoto } from '../../types';
-import type { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
 
-type Nav = NativeStackNavigationProp<FoodSpotsStackParamList>;
 type Route = RouteProp<FoodSpotsStackParamList, 'FoodSpotDetail'>;
 
 export function useFoodSpotDetailViewModel() {
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { foodSpotId } = route.params;
   const queryClient = useQueryClient();
-
-  // ── Alert ──────────────────────────────────────────────────────────────────
-
-  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
-  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
-    setAlert({ ...config, visible: true });
-  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // ── Data ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +32,7 @@ export function useFoodSpotDetailViewModel() {
       navigation.goBack();
     },
     onError: () =>
-      showAlert({ type: 'error', title: t.common.error, message: t.foodSpots.errors.deleteFailed }),
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.foodSpots.errors.deleteFailed }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -50,7 +40,7 @@ export function useFoodSpotDetailViewModel() {
   const handleBack = () => navigation.goBack();
 
   const handleDeleteSpot = () => {
-    showAlert({
+    navigation.showAlert({
       type: 'destructive',
       title: t.foodSpots.detail.deleteTitle,
       message: t.foodSpots.detail.deleteMessage,
@@ -71,8 +61,6 @@ export function useFoodSpotDetailViewModel() {
     spot,
     isLoading,
     isDeleting: deleteMutation.isPending,
-    alert,
-    dismissAlert,
     handleBack,
     handleDeleteSpot,
     handleOpenGallery,

@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
 import { useUploadProgress } from '../../contexts/UploadProgressContext';
-import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { foodSpotsApi } from '../../lib/api';
 import type { FoodSpot } from '../../types';
@@ -98,14 +98,10 @@ interface Props {
 export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClose }: Props) {
   const isEdit = !!foodSpotId;
   const queryClient = useQueryClient();
+  const navigation = useAppNavigation();
 
   const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
   const { startUpload, incrementUpload } = useUploadProgress();
-
-  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
-  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
-    setAlert({ ...config, visible: true });
-  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // ── Load existing data if editing ───────────────────────────────────────────
   const { data: existingSpot } = useQuery({
@@ -171,20 +167,20 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
       onClose();
     },
     onError: (err: Error) =>
-      showAlert({ type: 'error', title: t.common.error, message: err.message || t.foodSpots.errors.saveFailed }),
+      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.foodSpots.errors.saveFailed }),
   });
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSave = () => {
     const error = validate();
-    if (error) { showAlert({ type: 'error', title: t.common.error, message: error }); return; }
+    if (error) { navigation.showAlert({ type: 'error', title: t.common.error, message: error }); return; }
     if (saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
   const handleAddPhotoFromLibrary = async () => {
     if (s.photos.length >= 10) {
-      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
       return;
     }
     const result = await launchImageLibrary({
@@ -240,9 +236,6 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
     tags: s.tags,
     photos: s.photos,
     isSaving: saveMutation.isPending,
-
-    alert,
-    dismissAlert,
 
     setName: (v: string) => dispatch({ type: 'SET_FIELD', field: 'name', value: v }),
     setDescription: (v: string) => dispatch({ type: 'SET_FIELD', field: 'description', value: v }),

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   Pressable,
   Text,
@@ -8,19 +8,18 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import t from '../../locales/en';
 import { useProfileViewModel } from './useProfileViewModel';
-import EditNameModal from './components/EditNameModal';
-import EditCoupleModal from './components/EditCoupleModal';
+import EditNameSheet from './components/EditNameSheet';
+import EditCoupleSheet from './components/EditCoupleSheet';
 import GoogleGLogo from '../../components/GoogleGLogo';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
-import AlertModal from '../../components/AlertModal';
 import Skeleton from '../../components/Skeleton';
 
 // ── Reusable row inside a card ────────────────────────────────────────────────
@@ -54,23 +53,19 @@ function InfoRow({
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const colors = useAppColors();
+  const navigation = useAppNavigation();
   const vm = useProfileViewModel();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(event => {
     scrollY.value = event.contentOffset.y;
   });
 
-  const editNameRef = useRef<BottomSheetModal>(null);
-  const editCoupleRef = useRef<BottomSheetModal>(null);
-
   const handleOpenEditName = () => {
-    vm.prepareEditName();
-    editNameRef.current?.present();
+    if (vm.user) navigation.showBottomSheet(EditNameSheet, { user: vm.user });
   };
 
   const handleOpenEditCouple = () => {
-    vm.prepareEditCouple();
-    editCoupleRef.current?.present();
+    navigation.showBottomSheet(EditCoupleSheet, { couple: vm.couple ?? null });
   };
 
   return (
@@ -260,25 +255,6 @@ export default function ProfileScreen() {
 
         </View>
       </Animated.ScrollView>
-
-      {/* ── Modals ── */}
-      <EditNameModal
-        ref={editNameRef}
-        nameInput={vm.nameInput}
-        isSaving={vm.isNameSaving}
-        onChangeText={vm.setNameInput}
-        onSave={() => vm.saveName(() => editNameRef.current?.dismiss())}
-      />
-      <EditCoupleModal
-        ref={editCoupleRef}
-        coupleNameInput={vm.coupleNameInput}
-        anniversaryDate={vm.anniversaryDate}
-        isSaving={vm.isCoupleSaving}
-        onChangeName={vm.setCoupleNameInput}
-        onChangeAnniversary={vm.setAnniversaryDate}
-        onSave={() => vm.saveCouple(() => editCoupleRef.current?.dismiss())}
-      />
-      <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
 
     </View>
   );

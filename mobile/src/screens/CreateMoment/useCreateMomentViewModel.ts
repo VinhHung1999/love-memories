@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect, useRef, useReducer } from 'react';
+import { useCallback, useEffect, useRef, useReducer } from 'react';
 import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { PermissionsAndroid, Platform } from 'react-native';
-import type { AlertConfig } from '../../components/AlertModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import audioRecorderPlayer, {
   AVEncoderAudioQualityIOSType,
@@ -130,15 +130,10 @@ interface Props {
 export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: Props) {
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
+  const navigation = useAppNavigation();
 
   const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
   const { startUpload, incrementUpload } = useUploadProgress();
-
-  // ── Alert state (kept separate — AlertConfig has onConfirm callback) ─────────
-  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
-  const showAlert = (config: Omit<AlertConfig, 'visible'>) =>
-    setAlert({ ...config, visible: true });
-  const dismissAlert = () => setAlert(prev => ({ ...prev, visible: false }));
 
   // Ref holds latest handleStopRecording to avoid stale closure in RecordBackListener
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
@@ -217,7 +212,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: P
       onClose();
     },
     onError: (err: Error) =>
-      showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
+      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
   });
 
   // ── Handlers ────────────────────────────────────────────────────────────────
@@ -225,14 +220,14 @@ export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: P
 
   const handleSave = () => {
     const error = validate();
-    if (error) { showAlert({ type: 'error', title: t.common.error, message: error }); return; }
+    if (error) { navigation.showAlert({ type: 'error', title: t.common.error, message: error }); return; }
     if (saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
   const handleAddPhotoFromLibrary = async () => {
     if (s.photos.length >= 10) {
-      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
       return;
     }
     const result = await launchImageLibrary({
@@ -301,7 +296,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: P
           },
         );
         if (result !== PermissionsAndroid.RESULTS.GRANTED) {
-          showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.micPermissionDenied });
+          navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.micPermissionDenied });
           return;
         }
       } catch { return; }
@@ -326,7 +321,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: P
     } catch {
       audioRecorderPlayer.removeRecordBackListener();
       dispatch({ type: 'SET_FIELD', field: 'isRecording', value: false });
-      showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
     }
   };
 
@@ -381,10 +376,6 @@ export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: P
     isRecording: s.isRecording, recordedAudioPath: s.recordedAudioPath,
     recordingDuration: s.recordingDuration, isPlayingPreview: s.isPlayingPreview,
     isSaving: saveMutation.isPending,
-
-    // alert
-    alert,
-    dismissAlert,
 
     setTitle: (v: string) => dispatch({ type: 'SET_FIELD', field: 'title', value: v }),
     setCaption: (v: string) => dispatch({ type: 'SET_FIELD', field: 'caption', value: v }),
