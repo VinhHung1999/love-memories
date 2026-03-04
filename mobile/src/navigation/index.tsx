@@ -36,7 +36,8 @@ export type MomentsStackParamList = {
 export type FoodSpotsStackParamList = {
   FoodSpotsList: undefined;
   FoodSpotDetail: { foodSpotId: string };
-  FoodSpotGallery: { photos: FoodSpotPhoto[]; initialIndex: number };
+  // Uses MomentPhoto[] so PhotoGalleryScreen can be reused (structurally compatible)
+  FoodSpotGallery: { photos: MomentPhoto[]; initialIndex: number };
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
