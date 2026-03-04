@@ -139,9 +139,10 @@ const en = {
     quickActions: {
       moments: 'Moments',
       food: 'Food',
-      map: 'Map',
-      profile: 'Profile',
+      recipes: 'Recipes',
+      aiRecipe: 'AI Recipe',
     },
+    activeCooking: 'Cooking Now',
     noMomentsYet: 'No moments yet\nAdd your first memory together',
     noFoodYet: 'No food spots yet',
     defaultSlogan: 'Our little world, beautifully organized',
@@ -299,6 +300,174 @@ const en = {
     emojiCategoryPlaces: 'Places',
     emojiCategoryActivities: 'Activities',
     emojiCategoryNature: 'Nature',
+  },
+
+  recipes: {
+    title: 'Recipes',
+    subtitle: '🍳 Our Kitchen',
+    allFilter: 'All',
+    cookedFilter: 'Cooked',
+    uncookedFilter: 'To Try',
+    emptyTitle: 'No recipes yet',
+    emptySubtitle: 'Save your favorite recipes to cook together',
+    emptyAction: 'Add First Recipe',
+
+    detail: {
+      ingredients: 'Ingredients',
+      steps: 'Steps',
+      photos: 'Photos',
+      viewGallery: 'View all photos',
+      notes: 'Notes',
+      tutorialLink: 'Watch Tutorial',
+      linkedSpot: 'From Restaurant',
+      cookedBadge: 'Cooked ✓',
+      cookNow: 'Cook This!',
+      deleteTitle: 'Delete Recipe',
+      deleteMessage: 'Are you sure you want to delete this recipe? This cannot be undone.',
+      deleteConfirm: 'Delete',
+    },
+
+    create: {
+      newTitle: 'New Recipe',
+      editTitle: 'Edit Recipe',
+      save: 'Save',
+      saving: 'Saving...',
+      photos: 'Photos',
+      addPhoto: 'Add',
+      details: 'Details',
+      ingredientsSection: 'Ingredients',
+      stepsSection: 'Steps',
+      addIngredient: 'Add ingredient...',
+      addStep: 'Add step...',
+      ingredientPlaceholder: 'e.g. 200g chicken breast',
+      pricePlaceholder: 'Price (opt)',
+      stepPlaceholder: 'e.g. Marinate for 30 minutes',
+      durationPlaceholder: 'Duration (sec)',
+    },
+
+    labels: {
+      title: 'Recipe name',
+      description: 'Description',
+      notes: 'Notes',
+      tutorialUrl: 'Tutorial URL',
+      tags: 'Tags',
+    },
+
+    placeholders: {
+      title: 'e.g. Bún bò Huế',
+      description: 'Short description...',
+      notes: 'Any notes or tips...',
+      tutorialUrl: 'YouTube or recipe URL...',
+    },
+
+    errors: {
+      titleRequired: 'Recipe name is required',
+      saveFailed: 'Failed to save recipe',
+      deleteFailed: 'Failed to delete recipe',
+      photoUploadFailed: 'Failed to upload photo',
+    },
+
+    ai: {
+      title: 'AI Recipe',
+      subtitle: 'Generate from text, YouTube, or a website',
+      modeText: 'Text',
+      modeYoutube: 'YouTube',
+      modeUrl: 'Website',
+      placeholderText: 'Paste recipe text here...',
+      placeholderYoutube: 'YouTube video URL...',
+      placeholderUrl: 'Recipe website URL (e.g. cooky.vn)...',
+      generate: 'Generate Recipe',
+      generating: 'AI is cooking...',
+      previewTitle: 'Review & Save',
+      save: 'Save Recipe',
+      errorEmpty: 'Please enter some input',
+      errorFailed: 'Failed to generate recipe',
+    },
+  },
+
+  whatToEat: {
+    title: 'What to Eat?',
+    subtitle: '👨‍🍳 Cook Together',
+    activeSession: 'Active Session',
+    resumeSession: 'Resume',
+    historyTitle: 'Cooking History',
+    noHistory: 'No cooking sessions yet',
+    noHistorySubtitle: 'Start your first cooking adventure!',
+    startCooking: 'Start Cooking',
+    pickRecipes: 'Pick Recipes',
+    noRecipes: 'No recipes saved yet',
+    addRecipesFirst: 'Add some recipes first',
+
+    phases: {
+      selecting: 'Picking Recipes',
+      shopping: 'Shopping List',
+      cooking: 'Cooking',
+      photo: 'Food Photo',
+      completed: 'Completed',
+    },
+
+    selecting: {
+      title: 'What are we cooking?',
+      subtitle: 'Pick one or more recipes',
+      selected: 'selected',
+      recipesSelected: 'recipes selected',
+      startShopping: 'Let\'s Cook!',
+    },
+
+    shopping: {
+      title: 'Shopping List',
+      subtitle: 'Check off ingredients as you go',
+      allDone: 'All items checked!',
+      startCooking: 'Start Cooking!',
+      totalCost: 'Est. cost',
+    },
+
+    cooking: {
+      title: "Let's Cook!",
+      stepOf: 'Step {current} of {total}',
+      allDone: 'All steps done!',
+      takePhoto: 'Time to eat! Take a photo',
+      viewGuide: 'View guide',
+    },
+
+    photo: {
+      title: 'Show off your dish!',
+      subtitle: 'Take a photo of the finished meal',
+      addPhoto: 'Add Food Photo',
+      skip: 'Skip',
+      finish: 'Finish & Rate',
+    },
+
+    rating: {
+      title: 'How was it?',
+      subtitle: 'Rate your cooking session',
+      confirm: 'Done!',
+    },
+
+    history: {
+      recipes: 'recipes',
+      duration: 'Duration',
+      rating: 'Rating',
+      noRating: 'Not rated',
+    },
+
+    completed: {
+      title: 'Cooked!',
+      subtitle: 'Session summary',
+      cookedIn: 'Cooked in',
+      yourRating: 'Your rating',
+    },
+
+    abandon: 'Abandon session',
+    abandonConfirm: 'This will delete the current cooking session. This cannot be undone.',
+    abandonTitle: 'Abandon Session?',
+
+    errors: {
+      createFailed: 'Failed to start session',
+      updateFailed: 'Failed to update session',
+      toggleFailed: 'Failed to update item',
+      abandonFailed: 'Failed to abandon session',
+    },
   },
 
   common: {

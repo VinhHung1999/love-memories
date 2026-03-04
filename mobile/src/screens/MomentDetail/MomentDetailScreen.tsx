@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Linking,
   Pressable,
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -109,11 +109,10 @@ export default function MomentDetailScreen() {
         renderBackground={() => (
           <>
             {coverPhoto ? (
-              <Animated.Image
-                source={{ uri: coverPhoto.url }}
-                sharedTransitionTag={`moment-photo-${moment.id}`}
-                className="absolute inset-0 w-full h-full"
-                resizeMode="cover"
+              <FastImage
+                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode={FastImage.resizeMode.cover}
               />
             ) : (
               <LinearGradient
@@ -167,13 +166,17 @@ export default function MomentDetailScreen() {
                     <Pressable
                       key={photo.id}
                       onPress={() => vm.handleOpenGallery(moment.photos, idx)}>
-                      <Image
-                        source={{ uri: photo.url }}
-                        className={`w-[52px] h-[52px] rounded-xl ${
-                          idx === 0
-                            ? 'border-2 border-primary opacity-100'
-                            : 'opacity-75'
-                        }`}
+                      <FastImage
+                        source={{ uri: photo.url, priority: FastImage.priority.high }}
+                        style={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: 12,
+                          borderWidth: idx === 0 ? 2 : 0,
+                          borderColor: colors.primary,
+                          opacity: idx === 0 ? 1 : 0.75,
+                        }}
+                        resizeMode={FastImage.resizeMode.cover}
                       />
                     </Pressable>
                   ))}

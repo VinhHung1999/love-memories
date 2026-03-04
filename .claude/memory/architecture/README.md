@@ -240,3 +240,11 @@ Always respect this order when adding new overlay or panel components.
 - LoadingProvider wraps App.tsx; LoadingOverlay rendered inside NavigationContainer in RootNavigator
 - Any viewmodel calls showLoading()/hideLoading() around API calls
 - Replaces per-component loading state for actions that need full-screen blocking
+
+### Sprint 39: Recipes + WhatToEat Navigation (feature_rn_sprint39)
+- RecipesTab added to MainTabParamList between FoodSpotsTab and MapTab (chef-hat icon)
+- RecipesStack: RecipesList → RecipeDetail → WhatToEat → CookingSession → CookingHistory + BottomSheet/Alert
+- recipesApi + cookingSessionsApi added to api.ts (same apiFetch pattern + FormData for photos)
+- CookingSession 5-phase flow handled in single screen with phase-switcher (shopping/cooking/photo/rating/completed)
+- WhatToEat = recipe multi-select launcher → POST /api/cooking-sessions → navigate CookingSession with sessionId
+- CreateRecipeSheet uses useReducer with ADD/UPDATE/REMOVE_INGREDIENT and ADD/UPDATE/REMOVE_STEP actions for dynamic rows

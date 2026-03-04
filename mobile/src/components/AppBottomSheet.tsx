@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -20,6 +21,14 @@ import t from '../locales/en';
 
 interface AppBottomSheetProps {
   title: string;
+  subtitle?: string;      // subtitle below title (triggers icon-style header when set)
+  icon?: string;          // MaterialCommunityIcons name — enables icon+title+subtitle header style
+  iconBgClass?: string;   // className for icon background, default 'bg-primary/10'
+  // icon-header action button (only used when icon is set)
+  actionLabel?: string;
+  onAction?: () => void;
+  actionLoading?: boolean;
+  actionDisabled?: boolean;
   scrollable?: boolean; // false=BottomSheetView+dynamicSizing, true=BottomSheetScrollView+snapPoints
   snapPoints?: string[]; // default ['92%'], only used when scrollable=true
   showHeader?: boolean; // default true
@@ -40,6 +49,13 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
   (
     {
       title,
+      subtitle,
+      icon,
+      iconBgClass = 'bg-primary/10',
+      actionLabel,
+      onAction,
+      actionLoading = false,
+      actionDisabled = false,
       scrollable = false,
       snapPoints = ['92%'],
       showHeader = true,
@@ -112,31 +128,62 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
       >
         {/* Header */}
         {showHeader && (
-          <View className="flex-row items-center px-5 py-3 border-b border-border">
-            <Pressable onPress={handleCancel} className="w-[60px]">
-              <Text className="text-sm text-textMid">{cancel}</Text>
-            </Pressable>
-            <Text className="flex-1 text-center font-semibold text-textDark">
-              {title}
-            </Text>
-            <Pressable
-              onPress={onSave}
-              disabled={saveDisabled || isSaving}
-              className="w-[60px] items-end"
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Text
-                  className={`font-semibold text-sm ${
-                    saveDisabled ? 'text-textLight' : 'text-primary'
-                  }`}
+          icon ? (
+            /* Icon + title + subtitle style — row layout (no Cancel/Save) */
+            <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border">
+              <View className={`w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0 ${iconBgClass}`}>
+                <Icon name={icon} size={24} color={colors.primary} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-bold text-textDark">{title}</Text>
+                {subtitle ? (
+                  <Text className="text-sm text-textMid mt-0.5">{subtitle}</Text>
+                ) : null}
+              </View>
+              {actionLabel ? (
+                <Pressable
+                  onPress={onAction}
+                  disabled={actionDisabled || actionLoading}
+                  className="items-end"
                 >
-                  {save}
-                </Text>
-              )}
-            </Pressable>
-          </View>
+                  {actionLoading ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Text className={`font-semibold text-sm ${actionDisabled ? 'text-textLight' : 'text-primary'}`}>
+                      {actionLabel}
+                    </Text>
+                  )}
+                </Pressable>
+              ) : null}
+            </View>
+          ) : (
+            /* Classic Cancel / Title / Save style */
+            <View className="flex-row items-center px-5 py-3 border-b border-border">
+              <Pressable onPress={handleCancel} className="w-[60px]">
+                <Text className="text-sm text-textMid">{cancel}</Text>
+              </Pressable>
+              <Text className="flex-1 text-center font-semibold text-textDark">
+                {title}
+              </Text>
+              <Pressable
+                onPress={onSave}
+                disabled={saveDisabled || isSaving}
+                className="w-[60px] items-end"
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Text
+                    className={`font-semibold text-sm ${
+                      saveDisabled ? 'text-textLight' : 'text-primary'
+                    }`}
+                  >
+                    {save}
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          )
         )}
 
         {/* Content */}

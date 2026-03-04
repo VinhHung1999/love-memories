@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../navigation/theme';
 
@@ -23,10 +24,10 @@ export default function AvatarCircle({
   return (
     <Pressable onPress={onPress} className="relative">
       {uri ? (
-        <Image
-          source={{ uri }}
-          className="rounded-full border-4 border-white"
-          style={{ width: size, height: size }}
+        <FastImage
+          source={{ uri, priority: FastImage.priority.normal }}
+          style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 4, borderColor: '#fff' }}
+          resizeMode={FastImage.resizeMode.cover}
         />
       ) : (
         <View

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -90,11 +91,10 @@ function MomentCard({
       {/* Photo */}
       <View className="w-full min-h-[110px]">
         {coverPhoto ? (
-          <Animated.Image
-            source={{ uri: coverPhoto.url }}
-            sharedTransitionTag={`moment-photo-${moment.id}`}
-            className="w-full h-[130px]"
-            resizeMode="cover"
+          <FastImage
+            source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }}
+            style={{ width: '100%', height: 130 }}
+            resizeMode={FastImage.resizeMode.cover}
           />
         ) : (
           <View className="w-full h-[110px] items-center justify-center bg-primary/12">

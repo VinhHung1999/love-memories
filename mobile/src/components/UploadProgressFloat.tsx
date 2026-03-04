@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
   runOnJS,
@@ -34,19 +34,20 @@ export default function UploadProgressFloat() {
   const progressPct = useSharedValue(0); // 0–1
   const trackWidthSV = useSharedValue(0); // measured in px
 
-  const dismiss = () => {
+  const onDismissComplete = useCallback(() => {
+    phaseRef.current = 'hidden';
+    setPhase('hidden');
+    clearUpload();
+  }, [clearUpload]);
+
+  const dismiss = useCallback(() => {
     if (completeTimerRef.current) clearTimeout(completeTimerRef.current);
     translateY.value = withTiming(100, { duration: 250 });
     opacity.value = withTiming(0, { duration: 250 }, finished => {
-      if (finished) {
-        runOnJS(() => {
-          phaseRef.current = 'hidden';
-          setPhase('hidden');
-          clearUpload();
-        })();
-      }
+      'worklet';
+      if (finished) runOnJS(onDismissComplete)();
     });
-  };
+  }, [onDismissComplete, opacity, translateY]);
 
   useEffect(() => {
     if (!upload) return;
@@ -141,16 +142,17 @@ export default function UploadProgressFloat() {
             </Pressable>
           </View>
 
-          {/* Progress bar — only shown while uploading */}
-          {!isComplete && (
-            <View
-              className="h-1 bg-primary/15 rounded-full overflow-hidden"
-              onLayout={e => {
-                trackWidthSV.value = e.nativeEvent.layout.width;
-              }}>
-              <Animated.View className="h-full bg-primary rounded-full" style={progressBarStyle} />
-            </View>
-          )}
+          {/* Progress bar — always rendered to prevent Reanimated crash on unmount during animation */}
+          <View
+            className={`h-1 rounded-full overflow-hidden ${isComplete ? 'bg-green-100' : 'bg-primary/15'}`}
+            onLayout={e => {
+              trackWidthSV.value = e.nativeEvent.layout.width;
+            }}>
+            <Animated.View
+              className={`h-full rounded-full ${isComplete ? 'bg-green-500' : 'bg-primary'}`}
+              style={progressBarStyle}
+            />
+          </View>
         </View>
       </Pressable>
     </Animated.View>

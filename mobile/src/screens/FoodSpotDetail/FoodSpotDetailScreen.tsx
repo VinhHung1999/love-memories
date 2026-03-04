@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -8,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -86,11 +86,10 @@ export default function FoodSpotDetailScreen() {
         renderBackground={() => (
           <>
             {coverPhoto ? (
-              <Animated.Image
-                source={{ uri: coverPhoto.url }}
-                sharedTransitionTag={`foodspot-photo-${spot.id}`}
-                className="absolute inset-0 w-full h-full"
-                resizeMode="cover"
+              <FastImage
+                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode={FastImage.resizeMode.cover}
               />
             ) : (
               <LinearGradient
@@ -135,20 +134,24 @@ export default function FoodSpotDetailScreen() {
 
           {/* ── Photo thumbnail strip ── */}
           {spot.photos.length > 1 ? (
-            <View className="bg-white mx-4 -mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+            <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2">
                   {spot.photos.map((photo, idx) => (
                     <Pressable
                       key={photo.id}
                       onPress={() => vm.handleOpenGallery(spot.photos, idx)}>
-                      <Image
-                        source={{ uri: photo.url }}
-                        className={`w-[52px] h-[52px] rounded-xl ${
-                          idx === 0
-                            ? 'border-2 border-secondary opacity-100'
-                            : 'opacity-75'
-                        }`}
+                      <FastImage
+                        source={{ uri: photo.url, priority: FastImage.priority.high }}
+                        style={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: 12,
+                          borderWidth: idx === 0 ? 2 : 0,
+                          borderColor: colors.secondary,
+                          opacity: idx === 0 ? 1 : 0.75,
+                        }}
+                        resizeMode={FastImage.resizeMode.cover}
                       />
                     </Pressable>
                   ))}
