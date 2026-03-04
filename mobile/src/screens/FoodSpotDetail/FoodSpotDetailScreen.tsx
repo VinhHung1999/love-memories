@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Image,
   Linking,
@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useFoodSpotDetailViewModel } from './useFoodSpotDetailViewModel';
@@ -23,6 +24,7 @@ import CollapsibleHeader from '../../components/CollapsibleHeader';
 import { Card } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import AlertModal from '../../components/AlertModal';
+import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -57,6 +59,7 @@ export default function FoodSpotDetailScreen() {
   const colors = useAppColors();
   const vm = useFoodSpotDetailViewModel();
   const { spot } = vm;
+  const editSheetRef = useRef<BottomSheetModal>(null);
 
   // Hooks before early return
   const scrollY = useSharedValue(0);
@@ -113,7 +116,7 @@ export default function FoodSpotDetailScreen() {
         renderRight={() => (
           <View className="flex-row gap-2">
             <TouchableOpacity
-              onPress={() => { /* wired in Task 1d */ }}
+              onPress={() => editSheetRef.current?.present()}
               className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
               <Icon name="pencil-outline" size={18} color="#fff" />
             </TouchableOpacity>
@@ -244,6 +247,13 @@ export default function FoodSpotDetailScreen() {
 
       {/* ── Alert ── */}
       <AlertModal {...vm.alert} onDismiss={vm.dismissAlert} />
+
+      {/* ── Edit sheet ── */}
+      <CreateFoodSpotSheet
+        ref={editSheetRef}
+        foodSpotId={spot.id}
+        onSuccess={() => {}}
+      />
 
     </View>
   );
