@@ -493,6 +493,7 @@ const en = {
     transactions: 'transactions',
     emptyTitle: 'No expenses yet',
     emptySubtitle: 'Add your first shared expense',
+    noExpenses: 'No expenses this period',
     emptyAction: 'Add Expense',
     add: 'Add Expense',
     edit: 'Edit Expense',

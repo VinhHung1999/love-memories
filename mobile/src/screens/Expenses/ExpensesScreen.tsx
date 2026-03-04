@@ -87,10 +87,11 @@ function SummaryCard({
   count: number;
   breakdown: ReturnType<typeof useExpensesViewModel>['categoryBreakdown'];
 }) {
+  const colors = useAppColors();
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden">
       <LinearGradient
-        colors={['#E8788A', '#F4A261']}
+        colors={[colors.primary, colors.secondary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0.8 }}
         className="px-5 pt-5 pb-4">
@@ -225,7 +226,7 @@ export default function ExpensesScreen() {
             {/* Expense groups */}
             {vm.isEmpty ? (
               <View className="items-center py-12">
-                <Text className="text-textLight text-sm">No expenses this period</Text>
+                <Text className="text-textLight text-sm">{t.expenses.noExpenses}</Text>
               </View>
             ) : (
               vm.groupedExpenses.map(group => (

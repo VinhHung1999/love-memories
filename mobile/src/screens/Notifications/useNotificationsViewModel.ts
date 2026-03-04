@@ -15,7 +15,10 @@ export function useNotificationsViewModel() {
 
   const markReadMutation = useMutation({
     mutationFn: notificationsApi.markRead,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread'] });
+    },
   });
 
   const markAllMutation = useMutation({
@@ -28,7 +31,10 @@ export function useNotificationsViewModel() {
 
   const deleteMutation = useMutation({
     mutationFn: notificationsApi.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread'] });
+    },
   });
 
   const handleNotificationPress = useCallback((n: AppNotification) => {

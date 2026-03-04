@@ -76,6 +76,7 @@ function NotificationRow({
   onPress: () => void;
   onDelete: () => void;
 }) {
+  const colors = useAppColors();
   return (
     <Animated.View entering={FadeInDown.duration(300)}>
       <Pressable
@@ -109,7 +110,7 @@ function NotificationRow({
           <View className="items-center gap-2 ml-1">
             {!item.read && <View className="w-2 h-2 rounded-full bg-primary mt-1" />}
             <Pressable onPress={onDelete} hitSlop={8} className="mt-1">
-              <Icon name="close" size={14} color="#C8C0CE" />
+              <Icon name="close" size={14} color={colors.textLight} />
             </Pressable>
           </View>
         </View>
