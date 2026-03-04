@@ -261,7 +261,6 @@ export default function DashboardScreen() {
       {/* ── Collapsible Header — pure photo carousel, no labels ── */}
       <CollapsibleHeader
         title={vm.headerTitle}
-        subtitle={vm.slogan ?? undefined}
         expandedHeight={EXPANDED_H}
         collapsedHeight={COLLAPSED_H}
         scrollY={scrollY}
@@ -310,23 +309,30 @@ export default function DashboardScreen() {
           {/* pt-[204px] = scrollRange (260-56) */}
           <View className="pt-[204px] pb-[120px] px-4 gap-4">
 
-            {/* ── 0. Relationship timer — right below header ── */}
-            {vm.relationshipDuration ? (
-              <Animated.View entering={FadeInDown.delay(0).duration(400)} className="items-center">
-                <View className="bg-white rounded-full px-6 py-2.5 flex-row items-center gap-2 shadow-sm border border-primary/15">
-                  <Icon name="heart-pulse" size={13} color={colors.primary} />
-                  <Text className="text-[13px] font-semibold text-textDark">
-                    {t.dashboard.couple.togetherFor}{' '}
-                    {vm.relationshipDuration.years > 0
-                      ? `${vm.relationshipDuration.years}${t.dashboard.couple.years} `
-                      : ''}
-                    {vm.relationshipDuration.months > 0
-                      ? `${vm.relationshipDuration.months}${t.dashboard.couple.months} `
-                      : ''}
-                    {vm.relationshipDuration.days}{t.dashboard.couple.days}
+            {/* ── 0. Timer + slogan — right below header ── */}
+            {(vm.relationshipDuration || vm.slogan) ? (
+              <Animated.View entering={FadeInDown.delay(0).duration(400)} className="items-center gap-1.5">
+                {vm.relationshipDuration ? (
+                  <View className="bg-white rounded-full px-6 py-2.5 flex-row items-center gap-2 shadow-sm border border-primary/15">
+                    <Icon name="heart-pulse" size={13} color={colors.primary} />
+                    <Text className="text-[13px] font-semibold text-textDark">
+                      {t.dashboard.couple.togetherFor}{' '}
+                      {vm.relationshipDuration.years > 0
+                        ? `${vm.relationshipDuration.years}${t.dashboard.couple.years} `
+                        : ''}
+                      {vm.relationshipDuration.months > 0
+                        ? `${vm.relationshipDuration.months}${t.dashboard.couple.months} `
+                        : ''}
+                      {vm.relationshipDuration.days}{t.dashboard.couple.days}
+                    </Text>
+                    <Icon name="heart" size={10} color={colors.primary} />
+                  </View>
+                ) : null}
+                {vm.slogan ? (
+                  <Text className="text-[11px] text-textLight italic text-center">
+                    {vm.slogan}
                   </Text>
-                  <Icon name="heart" size={10} color={colors.primary} />
-                </View>
+                ) : null}
               </Animated.View>
             ) : null}
 
