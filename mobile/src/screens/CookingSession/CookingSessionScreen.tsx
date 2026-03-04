@@ -217,6 +217,37 @@ function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
   );
 }
 
+// ── Session elapsed timer ─────────────────────────────────────────────────────
+
+function ElapsedTimer({ startedAt }: { startedAt: string | null }) {
+  const colors = useAppColors();
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!startedAt) return;
+    const tick = () => {
+      setElapsed(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  const display = h > 0
+    ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+    : `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+  return (
+    <View className="flex-row items-center gap-1 bg-primary/10 rounded-full px-2.5 py-0.5">
+      <Icon name="clock-outline" size={11} color={colors.primary} />
+      <Text className="text-[11px] font-bold text-primary">{display}</Text>
+    </View>
+  );
+}
+
 // ── Cooking phase ─────────────────────────────────────────────────────────────
 
 function CookingPhase({
@@ -246,6 +277,7 @@ function CookingPhase({
               {checkedCount}/{session.steps.length}
             </Text>
           </View>
+          <ElapsedTimer startedAt={session.startedAt} />
         </View>
       </View>
 
