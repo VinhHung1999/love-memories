@@ -133,7 +133,7 @@ export function useProfileViewModel() {
       })
     : null;
 
-  const slogan = sloganSetting?.value ?? null;
+  const slogan = sloganSetting?.value ?? t.dashboard.defaultSlogan;
 
   return {
     user,
