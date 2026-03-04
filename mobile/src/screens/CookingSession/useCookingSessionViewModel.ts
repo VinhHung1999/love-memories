@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -30,6 +30,19 @@ export function useCookingSessionViewModel() {
     queryFn: () => cookingSessionsApi.get(sessionId),
     staleTime: 5_000,
   });
+
+  // ── Auto-advance selecting → shopping ─────────────────────────────────────
+  // Session is created with status 'selecting' (backend default).
+  // Since recipe selection already happened in WhatToEat, skip straight to shopping.
+
+  useEffect(() => {
+    if (session?.status === 'selecting') {
+      cookingSessionsApi.updateStatus(sessionId, 'shopping').then(() => {
+        queryClient.invalidateQueries({ queryKey: ['cooking-session', sessionId] });
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.status]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
