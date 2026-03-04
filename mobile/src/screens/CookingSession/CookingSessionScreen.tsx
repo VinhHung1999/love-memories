@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Image,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -16,10 +17,10 @@ import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../
 import { useCookingSessionViewModel } from './useCookingSessionViewModel';
 import Skeleton from '../../components/Skeleton';
 
-// ── Progress steps bar ────────────────────────────────────────────────────────
+// ── Progress steps bar — 4 steps (selecting auto-advances, never shown) ────────
 
-const PHASES = ['selecting', 'shopping', 'cooking', 'photo', 'completed'] as const;
-const PHASE_ICONS = ['clipboard-list-outline', 'cart-outline', 'chef-hat', 'camera-outline', 'check-circle-outline'] as const;
+const PHASES = ['shopping', 'cooking', 'photo', 'completed'] as const;
+const PHASE_ICONS = ['cart-outline', 'chef-hat', 'camera-outline', 'check-circle-outline'] as const;
 
 function PhaseBar({ status }: { status: string }) {
   const colors = useAppColors();
@@ -180,9 +181,23 @@ function CookingPhase({
           if (stepsForRecipe.length === 0) return null;
           return (
             <View key={sr.id} className="mb-3">
-              <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2 px-1">
-                {sr.recipe.title}
-              </Text>
+              {/* Recipe section header with optional tutorial link */}
+              <View className="flex-row items-center justify-between mb-2 px-1">
+                <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider">
+                  {sr.recipe.title}
+                </Text>
+                {sr.recipe.tutorialUrl ? (
+                  <Pressable
+                    onPress={() => Linking.openURL(sr.recipe.tutorialUrl!).catch(() => {})}
+                    className="flex-row items-center gap-1">
+                    <Icon name="play-circle-outline" size={13} color={colors.secondary} />
+                    <Text className="text-[11px] font-semibold text-secondary">
+                      {t.whatToEat.cooking.viewGuide}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+
               <View className="bg-white rounded-2xl overflow-hidden">
                 {stepsForRecipe.map((step: CookingSessionStep, idx) => (
                   <Pressable
@@ -327,7 +342,7 @@ function PhotoPhase({
   );
 }
 
-// ── Rating phase (completed) ──────────────────────────────────────────────────
+// ── Rating phase (just finished — no rating yet) ───────────────────────────────
 
 function RatingPhase({
   session,
@@ -423,6 +438,97 @@ function RatingPhase({
   );
 }
 
+// ── Completed summary view (already rated — read-only) ────────────────────────
+
+function CompletedSummaryView({ session }: { session: CookingSession }) {
+  const colors = useAppColors();
+  const durationMs = session.totalTimeMs;
+  const durationMin = durationMs ? Math.round(durationMs / 60000) : null;
+
+  return (
+    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View className="items-center pt-10 pb-4 px-5">
+        <LinearGradient
+          colors={[colors.primary + '22', colors.secondary + '22']}
+          className="w-20 h-20 rounded-full items-center justify-center mb-4">
+          <Icon name="trophy-outline" size={38} color={colors.primary} />
+        </LinearGradient>
+        <Text className="text-2xl font-bold text-textDark">{t.whatToEat.completed.title}</Text>
+        <Text className="text-sm text-textMid mt-1">{t.whatToEat.completed.subtitle}</Text>
+      </View>
+
+      {/* Duration */}
+      {durationMin ? (
+        <View className="mx-5 mb-4 bg-white rounded-2xl px-4 py-3 flex-row items-center gap-3">
+          <View className="w-9 h-9 rounded-xl bg-primary/10 items-center justify-center">
+            <Icon name="clock-outline" size={18} color={colors.primary} />
+          </View>
+          <View>
+            <Text className="text-[11px] text-textLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Text>
+            <Text className="text-base font-bold text-textDark">{durationMin} min</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {/* Rating (read-only) */}
+      {session.rating ? (
+        <View className="mx-5 mb-4 bg-white rounded-2xl px-4 py-3 flex-row items-center gap-3">
+          <View className="w-9 h-9 rounded-xl bg-amber-50 items-center justify-center">
+            <Icon name="star" size={18} color={colors.starRating} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-[11px] text-textLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Text>
+            <View className="flex-row items-center gap-1 mt-0.5">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Icon
+                  key={i}
+                  name={i <= session.rating! ? 'star' : 'star-outline'}
+                  size={18}
+                  color={colors.starRating}
+                />
+              ))}
+              <Text className="text-sm font-bold text-textDark ml-1">{session.rating}/5</Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
+
+      {/* Food photos */}
+      {session.photos.length > 0 ? (
+        <View className="mb-4">
+          <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2 px-5">
+            {t.whatToEat.photo.title}
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5">
+            <View className="flex-row gap-3">
+              {session.photos.map(photo => (
+                <Image
+                  key={photo.id}
+                  source={{ uri: photo.url }}
+                  className="w-[160px] h-[140px] rounded-2xl"
+                  resizeMode="cover"
+                />
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {/* Recipes cooked */}
+      <View className="mx-5 mb-8 bg-white rounded-2xl px-4 py-3">
+        <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2">Recipes</Text>
+        {session.recipes.map(sr => (
+          <View key={sr.id} className="flex-row items-center gap-2 py-1">
+            <Icon name="check-circle" size={15} color={colors.success} />
+            <Text className="text-sm text-textDark flex-1">{sr.recipe.title}</Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
+}
+
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function CookingSessionScreen() {
@@ -454,6 +560,9 @@ export default function CookingSessionScreen() {
     completed: t.whatToEat.phases.completed,
   };
 
+  // When session is completed AND already rated → read-only summary view
+  const isCompletedAndRated = session.status === 'completed' && session.rating != null;
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
 
@@ -470,14 +579,25 @@ export default function CookingSessionScreen() {
           </Text>
           <Text className="text-xs text-textLight">{phaseTitles[session.status]}</Text>
         </View>
+        {/* Abandon button — only show for active sessions */}
+        {!isCompletedAndRated ? (
+          <Pressable
+            onPress={vm.handleAbandon}
+            disabled={vm.isAbandoning}
+            className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
+            <Icon name="trash-can-outline" size={18} color={colors.textLight} />
+          </Pressable>
+        ) : null}
       </View>
 
-      {/* ── Phase progress bar ── */}
-      <PhaseBar status={session.status} />
+      {/* ── Phase progress bar — hidden for completed+rated summary ── */}
+      {!isCompletedAndRated ? <PhaseBar status={session.status} /> : null}
 
       {/* ── Phase content ── */}
       <Animated.View entering={FadeInDown.duration(300)} className="flex-1">
-        {session.status === 'shopping' ? (
+        {isCompletedAndRated ? (
+          <CompletedSummaryView session={session} />
+        ) : session.status === 'shopping' ? (
           <ShoppingPhase
             session={session}
             onToggleItem={vm.handleToggleItem}
@@ -503,6 +623,7 @@ export default function CookingSessionScreen() {
             onAdvance={() => vm.handleAdvance('completed')}
           />
         ) : session.status === 'completed' ? (
+          /* completed but not yet rated */
           <RatingPhase
             session={session}
             rating={vm.rating}

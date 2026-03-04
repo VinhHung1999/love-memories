@@ -139,9 +139,10 @@ const en = {
     quickActions: {
       moments: 'Moments',
       food: 'Food',
-      map: 'Map',
-      profile: 'Profile',
+      recipes: 'Recipes',
+      aiRecipe: 'AI Recipe',
     },
+    activeCooking: 'Cooking Now',
     noMomentsYet: 'No moments yet\nAdd your first memory together',
     noFoodYet: 'No food spots yet',
     defaultSlogan: 'Our little world, beautifully organized',
@@ -408,6 +409,7 @@ const en = {
       stepOf: 'Step {current} of {total}',
       allDone: 'All steps done!',
       takePhoto: 'Time to eat! Take a photo',
+      viewGuide: 'View guide',
     },
 
     photo: {
@@ -431,10 +433,22 @@ const en = {
       noRating: 'Not rated',
     },
 
+    completed: {
+      title: 'Cooked!',
+      subtitle: 'Session summary',
+      cookedIn: 'Cooked in',
+      yourRating: 'Your rating',
+    },
+
+    abandon: 'Abandon session',
+    abandonConfirm: 'This will delete the current cooking session. This cannot be undone.',
+    abandonTitle: 'Abandon Session?',
+
     errors: {
       createFailed: 'Failed to start session',
       updateFailed: 'Failed to update session',
       toggleFailed: 'Failed to update item',
+      abandonFailed: 'Failed to abandon session',
     },
   },
 

@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
-import { coupleApi, momentsApi, foodSpotsApi, settingsApi } from '../../lib/api';
+import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi } from '../../lib/api';
 import t from '../../locales/en';
-import type { Moment, FoodSpot, CoupleProfile } from '../../types';
+import type { Moment, FoodSpot, CoupleProfile, CookingSession } from '../../types';
 
 export interface RelationshipDuration {
   years: number;
@@ -35,6 +35,13 @@ export function useDashboardViewModel() {
     queryKey: ['foodspots'],
     queryFn: foodSpotsApi.list,
     enabled: !!user,
+  });
+
+  const { data: activeSession } = useQuery<CookingSession | null>({
+    queryKey: ['cooking-session-active'],
+    queryFn: cookingSessionsApi.active,
+    enabled: !!user,
+    staleTime: 10_000,
   });
 
   const { data: appNameSetting } = useQuery({
@@ -115,6 +122,20 @@ export function useDashboardViewModel() {
     navigation.navigate(tab);
   };
 
+  const handleActiveCookingPress = () => {
+    if (!activeSession) return;
+    navigation.navigate('RecipesTab', {
+      screen: 'CookingSession',
+      params: { sessionId: activeSession.id },
+    });
+  };
+
+  const handleAIRecipePress = () => {
+    navigation.navigate('RecipesTab', {
+      screen: 'WhatToEat',
+    });
+  };
+
   // ── Derived display values ──────────────────────────────────────────────────
 
   const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
@@ -134,8 +155,11 @@ export function useDashboardViewModel() {
     headerTitle,
     slogan,
     isLoading: coupleLoading || momentsLoading || foodSpotsLoading,
+    activeSession: activeSession ?? null,
     handleMomentPress,
     handleFoodSpotPress,
     navigateTo,
+    handleActiveCookingPress,
+    handleAIRecipePress,
   };
 }

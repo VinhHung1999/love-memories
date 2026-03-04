@@ -13,6 +13,12 @@
 - `expo-linear-gradient` for gradient backgrounds
 - NativeWind for styling (className only, zero style prop)
 
+## Shared Element Transitions (Reanimated v4)
+- Enable: `global.__enableSharedElementTransitions = true` before Reanimated import
+- API: `sharedTransitionTag={`item-${id}`}` on `Animated.Image` — matching tags auto-animate
+- Only works with `@react-navigation/native-stack` (not tab or JS stack)
+- Custom: `SharedTransition.duration(400).springify()`
+
 ## Shared CollapsibleHeader
 
 ### Decision

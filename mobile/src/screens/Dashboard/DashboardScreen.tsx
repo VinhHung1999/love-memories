@@ -196,6 +196,30 @@ function QuickActionButton({
   );
 }
 
+// ── ActiveCookingBanner ───────────────────────────────────────────────────────
+
+function ActiveCookingBanner({ recipeTitles, onPress }: { recipeTitles: string; onPress: () => void }) {
+  const colors = useAppColors();
+  return (
+    <Pressable onPress={onPress} className="rounded-3xl overflow-hidden shadow-sm">
+      <LinearGradient
+        colors={[colors.primary, colors.secondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        className="px-4 py-3.5 flex-row items-center gap-3">
+        <View className="w-9 h-9 rounded-2xl bg-white/20 items-center justify-center">
+          <Icon name="chef-hat" size={18} color="#fff" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-white font-bold text-[13px]">{t.dashboard.activeCooking}</Text>
+          <Text className="text-white/80 text-[11px] mt-0.5" numberOfLines={1}>{recipeTitles}</Text>
+        </View>
+        <Icon name="arrow-right" size={18} color="rgba(255,255,255,0.8)" />
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
 // ── FoodHighlightCard ─────────────────────────────────────────────────────────
 
 function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }) {
@@ -358,6 +382,16 @@ export default function DashboardScreen() {
               </View>
             </Animated.View>
 
+            {/* ── 1b. Active Cooking Banner ── */}
+            {vm.activeSession ? (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <ActiveCookingBanner
+                  recipeTitles={vm.activeSession.recipes.map(r => r.recipe.title).join(' + ')}
+                  onPress={vm.handleActiveCookingPress}
+                />
+              </Animated.View>
+            ) : null}
+
             {/* ── 2. Quick Actions ── */}
             <Animated.View entering={FadeInDown.delay(140).duration(500)}>
               <SectionHeader title={t.dashboard.sections.quickActions} />
@@ -377,18 +411,18 @@ export default function DashboardScreen() {
                   onPress={() => vm.navigateTo('FoodSpotsTab')}
                 />
                 <QuickActionButton
-                  icon="map-outline"
-                  label={t.dashboard.quickActions.map}
-                  iconColor={colors.accent}
-                  bgClass="bg-accent/10"
-                  onPress={() => vm.navigateTo('MapTab')}
+                  icon="chef-hat"
+                  label={t.dashboard.quickActions.recipes}
+                  iconColor={colors.primary}
+                  bgClass="bg-primary/10"
+                  onPress={() => vm.navigateTo('RecipesTab')}
                 />
                 <QuickActionButton
-                  icon="account-circle-outline"
-                  label={t.dashboard.quickActions.profile}
-                  iconColor={colors.textMid}
-                  bgClass="bg-gray-100"
-                  onPress={() => vm.navigateTo('ProfileTab')}
+                  icon="robot-outline"
+                  label={t.dashboard.quickActions.aiRecipe}
+                  iconColor={colors.accent}
+                  bgClass="bg-accent/10"
+                  onPress={vm.handleAIRecipePress}
                 />
               </View>
             </Animated.View>

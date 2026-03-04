@@ -153,51 +153,53 @@ export default function WhatToEatScreen() {
         </Animated.View>
       ) : null}
 
-      {/* ── Recipe list ── */}
-      {vm.isLoading ? (
-        <ScrollView scrollEnabled={false} className="flex-1 px-4 mt-4">
-          {[1, 2, 3].map(i => (
-            <View key={i} className="flex-row items-center gap-3 p-3 bg-white rounded-2xl mb-2">
-              <Skeleton className="w-14 h-14 rounded-xl" />
-              <View className="flex-1 gap-2">
-                <Skeleton className="w-3/4 h-3.5 rounded-md" />
-                <Skeleton className="w-1/2 h-2.5 rounded-md" />
+      {/* ── Recipe list — hidden when there's an active session ── */}
+      {!vm.activeSession && (
+        vm.isLoading ? (
+          <ScrollView scrollEnabled={false} className="flex-1 px-4 mt-4">
+            {[1, 2, 3].map(i => (
+              <View key={i} className="flex-row items-center gap-3 p-3 bg-white rounded-2xl mb-2">
+                <Skeleton className="w-14 h-14 rounded-xl" />
+                <View className="flex-1 gap-2">
+                  <Skeleton className="w-3/4 h-3.5 rounded-md" />
+                  <Skeleton className="w-1/2 h-2.5 rounded-md" />
+                </View>
               </View>
-            </View>
-          ))}
-        </ScrollView>
-      ) : vm.recipes.length === 0 ? (
-        <View className="flex-1 items-center justify-center pb-20">
-          <Icon name="chef-hat" size={48} color={colors.textLight} />
-          <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noRecipes}</Text>
-          <Text className="text-textLight text-sm mt-1">{t.whatToEat.addRecipesFirst}</Text>
-        </View>
-      ) : (
-        <>
-          {/* Section title */}
-          <View className="px-5 pt-4 pb-2">
-            <Text className="text-base font-bold text-textDark">{t.whatToEat.selecting.title}</Text>
-            <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.selecting.subtitle}</Text>
-          </View>
-
-          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-            <View className="pb-[120px]">
-              {vm.recipes.map((recipe, idx) => (
-                <Animated.View key={recipe.id} entering={FadeInDown.delay(idx * 50)}>
-                  <RecipePickCard
-                    recipe={recipe}
-                    selected={vm.selectedIds.has(recipe.id)}
-                    onPress={() => vm.toggleRecipe(recipe.id)}
-                  />
-                </Animated.View>
-              ))}
-            </View>
+            ))}
           </ScrollView>
-        </>
+        ) : vm.recipes.length === 0 ? (
+          <View className="flex-1 items-center justify-center pb-20">
+            <Icon name="chef-hat" size={48} color={colors.textLight} />
+            <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noRecipes}</Text>
+            <Text className="text-textLight text-sm mt-1">{t.whatToEat.addRecipesFirst}</Text>
+          </View>
+        ) : (
+          <>
+            {/* Section title */}
+            <View className="px-5 pt-4 pb-2">
+              <Text className="text-base font-bold text-textDark">{t.whatToEat.selecting.title}</Text>
+              <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.selecting.subtitle}</Text>
+            </View>
+
+            <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+              <View className="pb-[120px]">
+                {vm.recipes.map((recipe, idx) => (
+                  <Animated.View key={recipe.id} entering={FadeInDown.delay(idx * 50)}>
+                    <RecipePickCard
+                      recipe={recipe}
+                      selected={vm.selectedIds.has(recipe.id)}
+                      onPress={() => vm.toggleRecipe(recipe.id)}
+                    />
+                  </Animated.View>
+                ))}
+              </View>
+            </ScrollView>
+          </>
+        )
       )}
 
-      {/* ── Bottom CTA ── */}
-      {vm.selectedIds.size > 0 ? (
+      {/* ── Bottom CTA — hidden when active session exists ── */}
+      {!vm.activeSession && vm.selectedIds.size > 0 ? (
         <Animated.View
           entering={FadeInDown}
           className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">

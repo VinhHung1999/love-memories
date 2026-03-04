@@ -165,6 +165,29 @@ export function useCookingSessionViewModel() {
     }
   };
 
+  // ── Abandon / delete session ───────────────────────────────────────────────
+
+  const abandonMutation = useMutation({
+    mutationFn: () => cookingSessionsApi.delete(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cooking-session-active'] });
+      queryClient.invalidateQueries({ queryKey: ['cooking-sessions'] });
+      navigation.goBack();
+    },
+    onError: () =>
+      navigation.showAlert({ type: 'error', title: t.common.error, message: t.whatToEat.errors.abandonFailed }),
+  });
+
+  const handleAbandon = () => {
+    navigation.showAlert({
+      type: 'destructive',
+      title: t.whatToEat.abandonTitle,
+      message: t.whatToEat.abandonConfirm,
+      confirmLabel: t.common.delete,
+      onConfirm: () => abandonMutation.mutate(),
+    });
+  };
+
   const handleBack = () => navigation.goBack();
 
   return {
@@ -185,5 +208,7 @@ export function useCookingSessionViewModel() {
     handleAddPhotoFromCamera,
     handleFinish,
     handleBack,
+    handleAbandon,
+    isAbandoning: abandonMutation.isPending,
   };
 }
