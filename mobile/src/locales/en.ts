@@ -470,6 +470,63 @@ const en = {
     },
   },
 
+  notifications: {
+    title: 'Notifications',
+    subtitle: 'UPDATES ♥',
+    markAll: 'Mark all read',
+    emptyTitle: 'All caught up',
+    emptySubtitle: 'No new notifications — you two are in sync ♥',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    earlier: 'Earlier',
+    errors: {
+      markFailed: 'Failed to mark as read',
+      deleteFailed: 'Failed to delete',
+    },
+  },
+
+  expenses: {
+    title: 'Expenses',
+    subtitle: '💸 OUR SPENDING',
+    currentBadge: 'CURRENT',
+    totalSpent: 'Total spent',
+    transactions: 'transactions',
+    emptyTitle: 'No expenses yet',
+    emptySubtitle: 'Add your first shared expense',
+    noExpenses: 'No expenses this period',
+    emptyAction: 'Add Expense',
+    add: 'Add Expense',
+    edit: 'Edit Expense',
+    categories: {
+      all: 'All',
+      food: 'Food',
+      dating: 'Dating',
+      shopping: 'Shopping',
+      transport: 'Transport',
+      gifts: 'Gifts',
+      other: 'Other',
+    },
+    labels: {
+      amount: 'Amount',
+      description: 'Description',
+      category: 'Category',
+      date: 'Date',
+      note: 'Note',
+    },
+    placeholders: {
+      amount: '0',
+      description: 'What was this for?',
+      note: 'Optional note...',
+    },
+    errors: {
+      amountRequired: 'Enter an amount',
+      descriptionRequired: 'Enter a description',
+      saveFailed: 'Failed to save expense',
+      deleteFailed: 'Failed to delete expense',
+    },
+    deleteConfirm: 'Delete this expense?',
+  },
+
   common: {
     error: 'Error',
     success: 'Success',

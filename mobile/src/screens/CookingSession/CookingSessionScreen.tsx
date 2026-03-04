@@ -131,9 +131,9 @@ function ShoppingPhase({
             colors={allChecked ? [colors.primary, colors.secondary] : ['#ccc', '#bbb']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 flex-row items-center justify-center gap-2">
-            <Icon name="chef-hat" size={18} color="#fff" />
-            <Text className="text-white font-bold text-base">
+            className="py-2.5 flex-row items-center justify-center gap-1.5">
+            <Icon name="chef-hat" size={14} color="#fff" />
+            <Text className="text-white font-bold text-sm">
               {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
             </Text>
           </LinearGradient>
@@ -354,9 +354,9 @@ function CookingPhase({
             colors={allChecked ? [colors.primary, colors.secondary] : ['#ccc', '#bbb']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 flex-row items-center justify-center gap-2">
-            <Icon name="camera-outline" size={18} color="#fff" />
-            <Text className="text-white font-bold text-base">{t.whatToEat.cooking.takePhoto}</Text>
+            className="py-2.5 flex-row items-center justify-center gap-1.5">
+            <Icon name="camera-outline" size={14} color="#fff" />
+            <Text className="text-white font-bold text-sm">{t.whatToEat.cooking.takePhoto}</Text>
           </LinearGradient>
         </Pressable>
       </View>
@@ -428,9 +428,9 @@ function PhotoPhase({
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 flex-row items-center justify-center gap-2">
-            <Icon name="star-outline" size={18} color="#fff" />
-            <Text className="text-white font-bold text-base">{t.whatToEat.photo.finish}</Text>
+            className="py-2.5 flex-row items-center justify-center gap-1.5">
+            <Icon name="star-outline" size={14} color="#fff" />
+            <Text className="text-white font-bold text-sm">{t.whatToEat.photo.finish}</Text>
           </LinearGradient>
         </Pressable>
         <Pressable onPress={onAdvance} className="py-2 items-center">
@@ -527,9 +527,9 @@ function RatingPhase({
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="py-4 flex-row items-center justify-center gap-2">
-            <Icon name="check" size={18} color="#fff" />
-            <Text className="text-white font-bold text-base">{t.whatToEat.rating.confirm}</Text>
+            className="py-2.5 flex-row items-center justify-center gap-1.5">
+            <Icon name="check" size={14} color="#fff" />
+            <Text className="text-white font-bold text-sm">{t.whatToEat.rating.confirm}</Text>
           </LinearGradient>
         </Pressable>
       </View>

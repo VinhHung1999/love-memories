@@ -2,8 +2,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useUnreadCount } from '../screens/Notifications/useNotificationsViewModel';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
@@ -27,7 +28,21 @@ export type MainTabParamList = {
   FoodSpotsTab: undefined;
   RecipesTab: undefined;
   MapTab: undefined;
+  NotificationsTab: undefined;
+  ExpensesTab: undefined;
   ProfileTab: undefined;
+};
+
+export type NotificationsStackParamList = {
+  NotificationsList: undefined;
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
+};
+
+export type ExpensesStackParamList = {
+  ExpensesList: undefined;
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
 };
 
 export type MomentsStackParamList = {
@@ -68,6 +83,8 @@ const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
 const RecipesStack = createNativeStackNavigator<RecipesStackParamList>();
+const NotificationsStack = createNativeStackNavigator<NotificationsStackParamList>();
+const ExpensesStack = createNativeStackNavigator<ExpensesStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 // ---------------------------------------------------------------------------
@@ -97,6 +114,8 @@ import RecipeDetailScreen from '../screens/RecipeDetail/RecipeDetailScreen';
 import WhatToEatScreen from '../screens/WhatToEat/WhatToEatScreen';
 import CookingSessionScreen from '../screens/CookingSession/CookingSessionScreen';
 import CookingHistoryScreen from '../screens/CookingHistory/CookingHistoryScreen';
+import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
+import ExpensesScreen from '../screens/Expenses/ExpensesScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 
@@ -173,6 +192,34 @@ function RecipesNavigator() {
 }
 
 // ---------------------------------------------------------------------------
+// Notifications stack navigator
+// ---------------------------------------------------------------------------
+
+function NotificationsNavigator() {
+  return (
+    <NotificationsStack.Navigator screenOptions={{ headerShown: false }}>
+      <NotificationsStack.Screen name="NotificationsList" component={NotificationsScreen} />
+      <NotificationsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <NotificationsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+    </NotificationsStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Expenses stack navigator
+// ---------------------------------------------------------------------------
+
+function ExpensesNavigator() {
+  return (
+    <ExpensesStack.Navigator screenOptions={{ headerShown: false }}>
+      <ExpensesStack.Screen name="ExpensesList" component={ExpensesScreen} />
+      <ExpensesStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <ExpensesStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+    </ExpensesStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Profile stack navigator
 // ---------------------------------------------------------------------------
 
@@ -189,6 +236,24 @@ function ProfileNavigator() {
 // ---------------------------------------------------------------------------
 // Main tabs (authenticated)
 // ---------------------------------------------------------------------------
+
+function NotificationTabIcon({ color, size }: { color: string; size: number }) {
+  const count = useUnreadCount();
+  return (
+    <View>
+      <Icon name={count > 0 ? 'bell' : 'bell-outline'} size={size} color={color} />
+      {count > 0 && (
+        <View
+          className="absolute -top-1 -right-1 bg-error rounded-full items-center justify-center"
+          style={{ minWidth: 14, height: 14, paddingHorizontal: 3 }}>
+          <Text className="text-white text-[9px] font-bold leading-none">
+            {count > 99 ? '99+' : count}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
 
 function MainNavigator() {
   return (
@@ -229,6 +294,22 @@ function MainNavigator() {
         options={{
           tabBarLabel: 'Recipes',
           tabBarIcon: ({ color, size }) => <Icon name="chef-hat" size={size} color={color} />,
+        }}
+      />
+      <MainTab.Screen
+        name="ExpensesTab"
+        component={ExpensesNavigator}
+        options={{
+          tabBarLabel: 'Expenses',
+          tabBarIcon: ({ color, size }) => <Icon name="cash-multiple" size={size} color={color} />,
+        }}
+      />
+      <MainTab.Screen
+        name="NotificationsTab"
+        component={NotificationsNavigator}
+        options={{
+          tabBarLabel: 'Alerts',
+          tabBarIcon: ({ color, size }) => <NotificationTabIcon color={color} size={size} />,
         }}
       />
       <MainTab.Screen
