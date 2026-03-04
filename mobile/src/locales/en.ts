@@ -112,8 +112,27 @@ const en = {
 
   dashboard: {
     title: 'Love Scrum',
-    subtitle: 'Dashboard — Sprint 35',
-    headerSubtitle: 'HOME',
+    subtitle: 'Dashboard',
+    headerSubtitle: 'HOME ♥',
+    couple: {
+      togetherFor: 'Together for',
+      noAnniversary: 'Set your anniversary ♥',
+      years: 'y',
+      months: 'mo',
+      days: 'd',
+    },
+    stats: {
+      moments: 'Moments',
+      foodSpots: 'Food Spots',
+    },
+    sections: {
+      recentMoments: 'Recent Moments',
+      quickActions: 'Quick Access',
+      foodHighlights: 'Food Highlights',
+      seeAll: 'See all',
+    },
+    noMomentsYet: 'No moments yet\nAdd your first memory together',
+    noFoodYet: 'No food spots yet',
   },
 
   moments: {
