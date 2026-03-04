@@ -22,6 +22,7 @@ import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import AlertModal from '../../components/AlertModal';
@@ -130,25 +131,19 @@ export default function MomentDetailScreen() {
           </>
         )}
         renderLeft={() => (
-          <TouchableOpacity
-            onPress={vm.handleBack}
-            className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-            <Icon name="arrow-left" size={20} color="#fff" />
-          </TouchableOpacity>
+          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} />
         )}
         renderRight={() => (
           <View className="flex-row gap-2">
-            <TouchableOpacity
+            <HeaderIconButton
+              name="pencil-outline"
               onPress={() => editSheetRef.current?.present()}
-              className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-              <Icon name="pencil-outline" size={18} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
+            />
+            <HeaderIconButton
+              name="trash-can-outline"
               onPress={vm.handleDeleteMoment}
               disabled={vm.isDeleting}
-              className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-              <Icon name="trash-can-outline" size={18} color="#fff" />
-            </TouchableOpacity>
+            />
           </View>
         )}
       />

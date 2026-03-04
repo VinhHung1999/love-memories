@@ -17,6 +17,7 @@ import EditNameModal from './components/EditNameModal';
 import EditCoupleModal from './components/EditCoupleModal';
 import GoogleGLogo from '../../components/GoogleGLogo';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
 import AlertModal from '../../components/AlertModal';
@@ -107,11 +108,7 @@ export default function ProfileScreen() {
           </View>
         )}
         renderRight={() => (
-          <Pressable
-            onPress={handleOpenEditName}
-            className="w-9 h-9 rounded-xl items-center justify-center bg-white/20">
-            <Icon name="pencil-outline" size={16} color={colors.textLight} />
-          </Pressable>
+          <HeaderIconButton name="pencil-outline" size={16} onPress={handleOpenEditName} />
         )}
       />
 

@@ -261,6 +261,7 @@ const en = {
     setupRequired: 'Map requires native setup',
     setupDescription: 'Install @rnmapbox/maps and rebuild to enable the interactive map.',
     pinsLoaded: 'pins loaded',
+    viewDetails: 'View Details',
   },
 
   common: {

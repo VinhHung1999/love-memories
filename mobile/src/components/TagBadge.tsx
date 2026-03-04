@@ -30,8 +30,8 @@ export default function TagBadge({
   return (
     <Pressable
       onPress={onPress}
-      className={`px-4 py-[5px] rounded-full ${
-        active ? 'bg-primary' : 'bg-white/70 border border-[rgba(196,168,168,0.25)]'
+      className={`px-3 py-1.5 rounded-xl ${
+        active ? 'bg-primary' : 'bg-white/70 border border-border'
       }`}>
       <Text className={`text-xs font-semibold ${active ? 'text-white' : 'text-textMid'}`}>
         {label}
