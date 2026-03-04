@@ -111,7 +111,7 @@ export default function CollapsibleHeader({
             </Animated.View>
           ) : null}
 
-          <View className="flex-row items-end justify-between">
+          <View className="flex-row items-center justify-between">
             {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
             <View className="flex-1">
               {subtitle ? (
