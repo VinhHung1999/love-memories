@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
-import { coupleApi, momentsApi, foodSpotsApi } from '../../lib/api';
+import { coupleApi, momentsApi, foodSpotsApi, settingsApi } from '../../lib/api';
+import t from '../../locales/en';
 import type { Moment, FoodSpot, CoupleProfile } from '../../types';
 
 export interface RelationshipDuration {
@@ -33,6 +34,18 @@ export function useDashboardViewModel() {
   const { data: foodSpots, isLoading: foodSpotsLoading } = useQuery<FoodSpot[]>({
     queryKey: ['foodspots'],
     queryFn: foodSpotsApi.list,
+    enabled: !!user,
+  });
+
+  const { data: appNameSetting } = useQuery({
+    queryKey: ['settings', 'app_name'],
+    queryFn: () => settingsApi.get('app_name'),
+    enabled: !!user,
+  });
+
+  const { data: sloganSetting } = useQuery({
+    queryKey: ['settings', 'app_slogan'],
+    queryFn: () => settingsApi.get('app_slogan'),
     enabled: !!user,
   });
 
@@ -102,6 +115,11 @@ export function useDashboardViewModel() {
     navigation.navigate(tab);
   };
 
+  // ── Derived display values ──────────────────────────────────────────────────
+
+  const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
+  const slogan = sloganSetting?.value ?? t.dashboard.defaultSlogan;
+
   // ── Return ─────────────────────────────────────────────────────────────────
 
   return {
@@ -113,6 +131,8 @@ export function useDashboardViewModel() {
     momentsCount: moments?.length ?? 0,
     foodSpotsCount: foodSpots?.length ?? 0,
     relationshipDuration,
+    headerTitle,
+    slogan,
     isLoading: coupleLoading || momentsLoading || foodSpotsLoading,
     handleMomentPress,
     handleFoodSpotPress,

@@ -10,7 +10,7 @@ import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { coupleApi, profileApi } from '../../lib/api';
+import { coupleApi, profileApi, settingsApi } from '../../lib/api';
 import t from '../../locales/en';
 
 export function useProfileViewModel() {
@@ -27,6 +27,12 @@ export function useProfileViewModel() {
   const { data: couple, isLoading: isCoupleLoading } = useQuery({
     queryKey: ['couple'],
     queryFn: coupleApi.get,
+    enabled: !!user,
+  });
+
+  const { data: sloganSetting } = useQuery({
+    queryKey: ['settings', 'app_slogan'],
+    queryFn: () => settingsApi.get('app_slogan'),
     enabled: !!user,
   });
 
@@ -127,6 +133,8 @@ export function useProfileViewModel() {
       })
     : null;
 
+  const slogan = sloganSetting?.value ?? null;
+
   return {
     user,
     couple,
@@ -134,6 +142,7 @@ export function useProfileViewModel() {
     partner,
     initials,
     anniversaryDisplay,
+    slogan,
     codeCopied,
 
     // invite

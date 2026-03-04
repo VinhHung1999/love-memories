@@ -10,6 +10,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -44,19 +45,18 @@ function DashboardSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1">
       <View className="pt-[124px] pb-[100px] px-4 gap-5">
+        {/* Moments carousel — FIRST, bigger cards */}
+        <View>
+          <Skeleton className="w-36 h-4 rounded-md mb-3" />
+          <View className="flex-row gap-3">
+            <Skeleton className="w-[210px] h-[250px] rounded-3xl" />
+            <Skeleton className="w-[210px] h-[250px] rounded-3xl" />
+          </View>
+        </View>
         {/* Stats */}
         <View className="flex-row gap-3">
           <Skeleton className="flex-1 h-[76px] rounded-3xl" />
           <Skeleton className="flex-1 h-[76px] rounded-3xl" />
-        </View>
-        {/* Moments carousel */}
-        <View>
-          <Skeleton className="w-36 h-4 rounded-md mb-3" />
-          <View className="flex-row gap-3">
-            <Skeleton className="w-[150px] h-[190px] rounded-3xl" />
-            <Skeleton className="w-[150px] h-[190px] rounded-3xl" />
-            <Skeleton className="w-[150px] h-[190px] rounded-3xl" />
-          </View>
         </View>
         {/* Quick actions */}
         <View>
@@ -134,32 +134,43 @@ function MomentCarouselCard({ moment, onPress }: { moment: Moment; onPress: () =
   });
 
   return (
-    <Pressable onPress={onPress} className="w-[148px] bg-white rounded-3xl overflow-hidden shadow-sm">
-      {/* Photo */}
-      <View className="w-full h-[116px] bg-primary/10">
-        {coverPhoto ? (
-          <Animated.Image
-            source={{ uri: coverPhoto.url }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="flex-1 items-center justify-center">
-            <Icon name="image-outline" size={28} color={colors.primaryLight} />
-          </View>
-        )}
-        {/* Date badge */}
-        <View className="absolute top-2 right-2 bg-black/40 rounded-xl px-2 py-0.5">
-          <Text className="text-[10px] font-bold text-white">{dateLabel}</Text>
-        </View>
+    <Pressable onPress={onPress} className="w-[210px] h-[250px] rounded-3xl overflow-hidden shadow-lg">
+      {/* Background — photo or gradient placeholder */}
+      {coverPhoto ? (
+        <Animated.Image
+          source={{ uri: coverPhoto.url }}
+          className="absolute inset-0 w-full h-full"
+          resizeMode="cover"
+        />
+      ) : (
+        <LinearGradient
+          colors={[colors.primaryLight, colors.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+      )}
+
+      {/* Dark gradient overlay for text readability */}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.72)']}
+        start={{ x: 0, y: 0.35 }}
+        end={{ x: 0, y: 1 }}
+        className="absolute inset-0"
+      />
+
+      {/* Date badge — top right */}
+      <View className="absolute top-3 right-3 bg-black/35 rounded-xl px-2.5 py-1">
+        <Text className="text-[10px] font-bold text-white">{dateLabel}</Text>
       </View>
-      {/* Info */}
-      <View className="px-3 pt-2 pb-3">
-        <Text className="text-xs font-semibold text-textDark leading-snug" numberOfLines={2}>
+
+      {/* Info at bottom */}
+      <View className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+        <Text className="text-white font-bold text-sm leading-snug" numberOfLines={2}>
           {moment.title}
         </Text>
         {moment.tags.length > 0 ? (
-          <Text className="text-[10px] text-textLight mt-1" numberOfLines={1}>
+          <Text className="text-white/70 text-[10px] mt-1" numberOfLines={1}>
             {moment.tags[0]}
           </Text>
         ) : null}
@@ -260,39 +271,54 @@ export default function DashboardScreen() {
   const COLLAPSED_H = 56;
 
   return (
-    <View className="flex-1 bg-rose-50">
+    <View className="flex-1 bg-gray-50">
 
-      {/* ── Collapsible Header ── */}
+      {/* ── Collapsible Header — vibrant gradient ── */}
       <CollapsibleHeader
-        title={t.dashboard.title}
-        subtitle={t.dashboard.headerSubtitle}
+        title={vm.headerTitle}
         expandedHeight={EXPANDED_H}
         collapsedHeight={COLLAPSED_H}
         scrollY={scrollY}
+        dark
+        renderBackground={() => (
+          <LinearGradient
+            colors={[colors.primary, colors.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1.2 }}
+            className="absolute inset-0"
+          />
+        )}
         renderExpandedContent={() => (
           <View className="items-center pb-2">
             {/* Couple / user names */}
-            <View className="flex-row items-center gap-2 mb-2.5">
+            <View className="flex-row items-center gap-2 mb-1.5">
               {vm.couple?.name ? (
-                <Text className="text-xl font-bold text-textDark tracking-tight">
+                <Text className="text-xl font-bold text-white tracking-tight">
                   {vm.couple.name}
                 </Text>
               ) : (
                 <>
-                  <Text className="text-xl font-bold text-textDark">{vm.user?.name ?? '—'}</Text>
-                  <Icon name="heart" size={16} color={colors.primary} />
+                  <Text className="text-xl font-bold text-white">{vm.user?.name ?? '—'}</Text>
+                  <Icon name="heart" size={16} color="rgba(255,255,255,0.8)" />
                   {vm.partner ? (
-                    <Text className="text-xl font-bold text-textDark">{vm.partner.name}</Text>
+                    <Text className="text-xl font-bold text-white">{vm.partner.name}</Text>
                   ) : null}
                 </>
               )}
             </View>
 
+            {/* Slogan */}
+            {vm.slogan ? (
+              <Text className="text-[11px] text-white/70 italic mb-2" numberOfLines={1}>
+                {vm.slogan}
+              </Text>
+            ) : null}
+
             {/* Live relationship timer pill */}
             {vm.relationshipDuration ? (
-              <View className="bg-white/60 rounded-2xl px-4 py-1.5 flex-row items-center gap-1.5">
-                <Icon name="heart-pulse" size={11} color={colors.primary} />
-                <Text className="text-xs font-semibold text-primary">
+              <View className="bg-white/20 rounded-2xl px-4 py-1.5 flex-row items-center gap-1.5">
+                <Icon name="heart-pulse" size={11} color="rgba(255,255,255,0.9)" />
+                <Text className="text-xs font-semibold text-white">
                   {t.dashboard.couple.togetherFor}{' '}
                   {vm.relationshipDuration.years > 0
                     ? `${vm.relationshipDuration.years}${t.dashboard.couple.years} `
@@ -304,8 +330,8 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             ) : (
-              <View className="bg-white/50 rounded-2xl px-4 py-1.5">
-                <Text className="text-xs text-textLight">{t.dashboard.couple.noAnniversary}</Text>
+              <View className="bg-white/20 rounded-2xl px-4 py-1.5">
+                <Text className="text-xs text-white/70">{t.dashboard.couple.noAnniversary}</Text>
               </View>
             )}
           </View>
@@ -324,30 +350,8 @@ export default function DashboardScreen() {
           {/* paddingTop = scrollRange (180-56=124) */}
           <View className="pt-[124px] pb-[120px] px-4 gap-5">
 
-            {/* ── 1. Stats Row ── */}
+            {/* ── 1. Recent Moments Carousel — FIRST, editorial full-bleed ── */}
             <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-              <View className="flex-row gap-3">
-                <StatCard
-                  icon="heart-multiple-outline"
-                  label={t.dashboard.stats.moments}
-                  count={vm.momentsCount}
-                  iconColor={colors.primary}
-                  bgClass="bg-primary/10"
-                  onPress={() => vm.navigateTo('MomentsTab')}
-                />
-                <StatCard
-                  icon="food-fork-drink"
-                  label={t.dashboard.stats.foodSpots}
-                  count={vm.foodSpotsCount}
-                  iconColor={colors.secondary}
-                  bgClass="bg-secondary/10"
-                  onPress={() => vm.navigateTo('FoodSpotsTab')}
-                />
-              </View>
-            </Animated.View>
-
-            {/* ── 2. Recent Moments Carousel ── */}
-            <Animated.View entering={FadeInDown.delay(160).duration(500)}>
               <SectionHeader
                 title={t.dashboard.sections.recentMoments}
                 onSeeAll={() => vm.navigateTo('MomentsTab')}
@@ -376,6 +380,28 @@ export default function DashboardScreen() {
                   </View>
                 </Card>
               )}
+            </Animated.View>
+
+            {/* ── 2. Stats Row ── */}
+            <Animated.View entering={FadeInDown.delay(160).duration(500)}>
+              <View className="flex-row gap-3">
+                <StatCard
+                  icon="heart-multiple-outline"
+                  label={t.dashboard.stats.moments}
+                  count={vm.momentsCount}
+                  iconColor={colors.primary}
+                  bgClass="bg-primary/10"
+                  onPress={() => vm.navigateTo('MomentsTab')}
+                />
+                <StatCard
+                  icon="food-fork-drink"
+                  label={t.dashboard.stats.foodSpots}
+                  count={vm.foodSpotsCount}
+                  iconColor={colors.secondary}
+                  bgClass="bg-secondary/10"
+                  onPress={() => vm.navigateTo('FoodSpotsTab')}
+                />
+              </View>
             </Animated.View>
 
             {/* ── 3. Quick Actions ── */}

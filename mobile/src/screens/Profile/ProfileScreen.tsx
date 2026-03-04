@@ -100,6 +100,11 @@ export default function ProfileScreen() {
                 <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
               </View>
             ) : null}
+            {vm.slogan ? (
+              <Text className="text-[10px] text-textLight italic mt-1.5 text-center" numberOfLines={1}>
+                {vm.slogan}
+              </Text>
+            ) : null}
           </View>
         )}
         renderRight={() => (

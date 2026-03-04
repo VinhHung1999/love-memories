@@ -581,3 +581,24 @@ export const tagsApi = {
     return res.json();
   },
 };
+
+// ---------------------------------------------------------------------------
+// Settings API
+// ---------------------------------------------------------------------------
+
+export const settingsApi = {
+  get: async (key: string): Promise<{ key: string; value: string | null }> => {
+    const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error('Failed to fetch setting');
+    return res.json();
+  },
+
+  set: async (key: string, value: string): Promise<{ key: string; value: string }> => {
+    const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ value }),
+    });
+    if (!res.ok) throw new Error('Failed to save setting');
+    return res.json();
+  },
+};

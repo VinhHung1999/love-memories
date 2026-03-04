@@ -139,6 +139,7 @@ const en = {
     },
     noMomentsYet: 'No moments yet\nAdd your first memory together',
     noFoodYet: 'No food spots yet',
+    defaultSlogan: 'Our little world, beautifully organized',
   },
 
   moments: {
