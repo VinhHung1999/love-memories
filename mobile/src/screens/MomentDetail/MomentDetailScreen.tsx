@@ -109,8 +109,9 @@ export default function MomentDetailScreen() {
         renderBackground={() => (
           <>
             {coverPhoto ? (
-              <Image
+              <Animated.Image
                 source={{ uri: coverPhoto.url }}
+                sharedTransitionTag={`moment-photo-${moment.id}`}
                 className="absolute inset-0 w-full h-full"
                 resizeMode="cover"
               />

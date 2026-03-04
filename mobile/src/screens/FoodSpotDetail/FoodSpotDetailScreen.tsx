@@ -86,8 +86,9 @@ export default function FoodSpotDetailScreen() {
         renderBackground={() => (
           <>
             {coverPhoto ? (
-              <Image
+              <Animated.Image
                 source={{ uri: coverPhoto.url }}
+                sharedTransitionTag={`foodspot-photo-${spot.id}`}
                 className="absolute inset-0 w-full h-full"
                 resizeMode="cover"
               />
