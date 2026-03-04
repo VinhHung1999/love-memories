@@ -9,7 +9,7 @@ import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
 import { AppTheme } from './theme';
 import { LoadingOverlay } from '../components/LoadingOverlay';
-import type { MomentPhoto } from '../types';
+import type { MomentPhoto, FoodSpotPhoto } from '../types';
 
 // ---------------------------------------------------------------------------
 // Stack param types
@@ -22,6 +22,8 @@ export type AuthStackParamList = {
 export type MainTabParamList = {
   Dashboard: undefined;
   MomentsTab: undefined;
+  FoodSpotsTab: undefined;
+  MapTab: undefined;
   Profile: undefined;
 };
 
@@ -29,6 +31,12 @@ export type MomentsStackParamList = {
   MomentsList: undefined;
   MomentDetail: { momentId: string };
   PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
+};
+
+export type FoodSpotsStackParamList = {
+  FoodSpotsList: undefined;
+  FoodSpotDetail: { foodSpotId: string };
+  FoodSpotGallery: { photos: FoodSpotPhoto[]; initialIndex: number };
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();

@@ -202,6 +202,56 @@ const en = {
     },
   },
 
+  foodSpots: {
+    title: 'Food Spots',
+    subtitle: '🍜 Our Places',
+    allFilter: 'All',
+    emptyTitle: 'No food spots yet',
+    emptySubtitle: 'Save your favorite restaurants and cafes together',
+    emptyAction: 'Add First Spot',
+
+    detail: {
+      photos: 'Photos',
+      viewGallery: 'View all photos',
+      mapsLink: 'Get Directions',
+      deleteTitle: 'Delete Food Spot',
+      deleteMessage: 'Are you sure you want to delete this food spot? This cannot be undone.',
+      deleteConfirm: 'Delete',
+    },
+
+    create: {
+      newTitle: 'New Food Spot',
+      editTitle: 'Edit Food Spot',
+      save: 'Save',
+      saving: 'Saving...',
+      photos: 'Photos',
+      addPhoto: 'Add',
+      details: 'Details',
+      tags: 'Tags',
+    },
+
+    labels: {
+      name: 'Name',
+      description: 'Notes',
+      location: 'Location',
+      rating: 'Rating',
+      priceRange: 'Price Range',
+      tags: 'Tags',
+    },
+
+    placeholders: {
+      name: 'Restaurant or cafe name...',
+      description: 'What did you love about it?',
+    },
+
+    errors: {
+      nameRequired: 'Name is required',
+      saveFailed: 'Failed to save food spot',
+      deleteFailed: 'Failed to delete food spot',
+      photoUploadFailed: 'Failed to upload photo',
+    },
+  },
+
   common: {
     error: 'Error',
     success: 'Success',
