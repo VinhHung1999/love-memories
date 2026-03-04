@@ -173,3 +173,11 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - It returns `{ plugins: [...] }` (a preset), so in `plugins[]` Babel throws "[BABEL] .plugins is not a valid Plugin property"
 - Internally includes `react-native-worklets/plugin` — no separate reanimated Babel plugin needed
 - `nativewind-env.d.ts` belongs at project root; Metro needs `watchFolders` for any alias resolving outside project root
+
+### FastImage required for all image components
+- `react-native-fast-image` is installed (not standard `Image` from react-native)
+- ALL image components must use `FastImage` — including shared components like `AvatarCircle`
+- FastImage does NOT support NativeWind `className` for dimensions → use `style` prop for width/height/position/borderRadius
+- `className` can still be used on wrapping `View` elements
+- Priority: `FastImage.priority.normal` for lists, `FastImage.priority.high` for detail/hero images
+- `resizeMode` uses `FastImage.resizeMode.cover` (not string `"cover"`)

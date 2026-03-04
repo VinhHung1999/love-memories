@@ -819,6 +819,128 @@ export const aiApi = {
 
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Notifications API
+// ---------------------------------------------------------------------------
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  link: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export const notificationsApi = {
+  list: async (): Promise<AppNotification[]> => {
+    const res = await apiFetch('/api/notifications');
+    if (!res.ok) throw new Error('Failed to fetch notifications');
+    return res.json();
+  },
+  unreadCount: async (): Promise<{ count: number }> => {
+    const res = await apiFetch('/api/notifications/unread-count');
+    if (!res.ok) throw new Error('Failed to fetch unread count');
+    return res.json();
+  },
+  markRead: async (id: string): Promise<AppNotification> => {
+    const res = await apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' });
+    if (!res.ok) throw new Error('Failed to mark read');
+    return res.json();
+  },
+  markAllRead: async (): Promise<{ ok: boolean }> => {
+    const res = await apiFetch('/api/notifications/read-all', { method: 'PUT' });
+    if (!res.ok) throw new Error('Failed to mark all read');
+    return res.json();
+  },
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/notifications/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete notification');
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Expenses API
+// ---------------------------------------------------------------------------
+
+export type ExpenseCategory = 'food' | 'dating' | 'shopping' | 'transport' | 'gifts' | 'other';
+
+export interface Expense {
+  id: string;
+  amount: number;
+  description: string;
+  category: ExpenseCategory;
+  date: string;
+  note: string | null;
+  receiptUrl: string | null;
+  foodSpotId: string | null;
+  datePlanId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseStats {
+  total: number;
+  count: number;
+  month: string | null;
+  byCategory: Record<ExpenseCategory, { total: number; count: number }>;
+}
+
+export interface DailyStats {
+  month: string;
+  days: { date: string; total: number; byCategory: Record<string, number> }[];
+}
+
+export const expensesApi = {
+  list: async (month?: string): Promise<Expense[]> => {
+    const res = await apiFetch(`/api/expenses${month ? `?month=${month}` : ''}`);
+    if (!res.ok) throw new Error('Failed to fetch expenses');
+    return res.json();
+  },
+  stats: async (month?: string): Promise<ExpenseStats> => {
+    const res = await apiFetch(`/api/expenses/stats${month ? `?month=${month}` : ''}`);
+    if (!res.ok) throw new Error('Failed to fetch expense stats');
+    return res.json();
+  },
+  getLimits: async (): Promise<Record<string, number | null>> => {
+    const res = await apiFetch('/api/expenses/limits');
+    if (!res.ok) throw new Error('Failed to fetch limits');
+    return res.json();
+  },
+  setLimits: async (limits: Record<string, number | null>): Promise<Record<string, number | null>> => {
+    const res = await apiFetch('/api/expenses/limits', {
+      method: 'PUT',
+      body: JSON.stringify(limits),
+    });
+    if (!res.ok) throw new Error('Failed to set limits');
+    return res.json();
+  },
+  create: async (data: { amount: number; description: string; category: ExpenseCategory; date: string; note?: string }): Promise<Expense> => {
+    const res = await apiFetch('/api/expenses', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create expense');
+    return res.json();
+  },
+  update: async (id: string, data: Partial<{ amount: number; description: string; category: ExpenseCategory; date: string; note: string }>): Promise<Expense> => {
+    const res = await apiFetch(`/api/expenses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update expense');
+    return res.json();
+  },
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/expenses/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete expense');
+  },
+};
+
+// ---------------------------------------------------------------------------
+
 export const settingsApi = {
   get: async (key: string): Promise<{ key: string; value: string | null }> => {
     const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);
