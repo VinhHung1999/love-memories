@@ -12,7 +12,7 @@
 // - Both: Create a Firebase project at https://console.firebase.google.com
 
 import { useEffect, useRef } from 'react';
-import { Platform, Alert } from 'react-native';
+import { Platform, Alert, PermissionsAndroid } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { useNavigation } from '@react-navigation/native';
 import { fetchApi } from './api';
@@ -51,10 +51,25 @@ export async function unregisterPushToken(): Promise<void> {
 }
 
 // Note: Notification — Request notification permission from the user.
-// On iOS, this shows the system permission dialog ("App Would Like to Send You Notifications").
-// On Android 13+, this also shows a system dialog. Older Android versions auto-grant.
-// Returns true if permission was granted.
+// On iOS: messaging().requestPermission() shows the system dialog.
+// On Android 13+ (API 33): Must use PermissionsAndroid.request() because
+// Firebase's requestPermission() only works for iOS — Android needs the
+// native POST_NOTIFICATIONS permission request to show the system dialog.
+// On Android <13: permission is auto-granted, no dialog needed.
 async function requestPermission(): Promise<boolean> {
+  if (Platform.OS === 'android') {
+    // Note: Notification — Android 13+ requires explicit permission request
+    if (Platform.Version >= 33) {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      console.log('[Push] Android permission dialog result:', result);
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    }
+    // Android <13: auto-granted
+    return true;
+  }
+  // iOS: use Firebase messaging permission
   const authStatus = await messaging().requestPermission();
   return (
     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
