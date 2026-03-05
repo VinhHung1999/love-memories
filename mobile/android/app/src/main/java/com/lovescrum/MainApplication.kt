@@ -1,6 +1,9 @@
 package com.lovescrum
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -23,5 +26,19 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     loadReactNative(this)
+    // Note: Notification — Create notification channel for FCM push notifications.
+    // Android 8+ (API 26) requires a channel. Importance HIGH = banner + sound.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        "default",
+        "Notifications",
+        NotificationManager.IMPORTANCE_HIGH
+      ).apply {
+        description = "Love Scrum push notifications"
+        enableVibration(true)
+      }
+      val manager = getSystemService(NotificationManager::class.java)
+      manager.createNotificationChannel(channel)
+    }
   }
 }
