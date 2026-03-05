@@ -129,7 +129,8 @@ function EmojiPickerModal({
             <TouchableOpacity
               onPress={() => customEmoji.trim() && onSelect(customEmoji.trim())}
               disabled={!customEmoji.trim() || isSaving}
-              className={`px-4 py-2.5 rounded-xl ${customEmoji.trim() ? 'bg-primary' : 'bg-border'}`}>
+              className="px-4 py-2.5 rounded-xl"
+              style={{ backgroundColor: customEmoji.trim() ? colors.primary : colors.border }}>
               <Text className="text-white text-sm font-semibold">{t.common.save}</Text>
             </TouchableOpacity>
           </View>

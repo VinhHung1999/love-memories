@@ -242,9 +242,8 @@ export default function LocationPicker({
           <TouchableOpacity
             onPress={handleGetGps}
             disabled={isGettingLocation}
-            className={`w-8 h-8 rounded-full items-center justify-center ml-1 ${
-              isGettingLocation ? 'bg-transparent' : 'bg-primary/12'
-            }`}>
+            className="w-8 h-8 rounded-full items-center justify-center ml-1"
+            style={{ backgroundColor: isGettingLocation ? 'transparent' : 'rgba(232,120,138,0.12)' }}>
             {isGettingLocation ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (

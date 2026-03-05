@@ -101,7 +101,8 @@ export default function CommentsSection({
         <TouchableOpacity
           onPress={() => !isSubmitting && onSubmit()}
           disabled={!commentText.trim() || isSubmitting}
-          className={`w-8 h-8 rounded-full items-center justify-center ${commentText.trim() ? 'bg-primary' : 'bg-primary/12'}`}>
+          className="w-8 h-8 rounded-full items-center justify-center"
+          style={{ backgroundColor: commentText.trim() ? colors.primary : colors.primaryMuted }}>
           <Icon name="send" size={14} color="#fff" />
         </TouchableOpacity>
       </View>

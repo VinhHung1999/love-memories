@@ -66,10 +66,9 @@ export default function Button({
       onPressOut={onPressOut}
       disabled={disabled || loading}>
       <Animated.View
-        className={`h-[50px] rounded-2xl items-center justify-center mb-3 ${
-          (disabled || loading) ? 'opacity-65' : ''
-        }`}
+        className="h-[50px] rounded-2xl items-center justify-center mb-3"
         style={[
+          { opacity: (disabled || loading) ? 0.65 : 1 },
           isPrimary
             ? {
                 backgroundColor: colors.primary,
