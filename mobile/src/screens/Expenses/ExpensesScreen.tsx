@@ -32,6 +32,7 @@ import {
   computeChartTicks,
   toLocalDateString,
 } from './expensesConstants';
+import HeaderIconButton from '@/components/HeaderIconButton';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
@@ -315,6 +316,9 @@ export default function ExpensesScreen() {
               <Icon name="plus" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
+        )}
+        renderLeft={() => (
+          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} />
         )}
       />
 

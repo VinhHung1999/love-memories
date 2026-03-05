@@ -140,6 +140,9 @@ export function useExpensesViewModel() {
     navigation.showBottomSheet(BudgetLimitsSheet);
   }, [navigation]);
 
+  const handleBack = () => navigation.goBack();
+
+
   return {
     // state
     monthLabel: monthLabel(month),
@@ -158,6 +161,7 @@ export function useExpensesViewModel() {
     currentDailyStats: currentDailyStats ?? null,
     limits,
     // actions
+    handleBack,
     prevMonth,
     nextMonth,
     handleExpensePress,
