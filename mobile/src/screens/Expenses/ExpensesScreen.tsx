@@ -280,8 +280,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
 export default function ExpensesScreen() {
   const colors = useAppColors();
   const vm = useExpensesViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
+  const scrollY = useSharedValue(200);
 
   // Build a quick map of limitPct/overLimit per category key for chip display
   const chipLimitMap = React.useMemo(() => {
@@ -345,7 +344,6 @@ export default function ExpensesScreen() {
       <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
         scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={false} onRefresh={vm.refetch} tintColor={colors.primary} />}
       >
