@@ -344,7 +344,7 @@ export default function ExpensesScreen() {
         scrollEventThrottle={16}
         refreshControl={<RefreshControl refreshing={false} onRefresh={vm.refetch} tintColor={colors.primary} />}
       >
-        <View className="pt-4 pb-[140px]">
+        <View key={vm.monthLabel} className="pt-4 pb-[140px]">
           {vm.isLoading ? (
             <>
               <View className="mx-4 mb-4 rounded-3xl overflow-hidden h-[180px] bg-gray-200 animate-pulse" />
