@@ -302,6 +302,7 @@ export default function ExpensesScreen() {
         title={t.expenses.title}
         subtitle={t.expenses.subtitle}
         scrollY={scrollY}
+        collapsedHeight={112}
         renderRight={() => (
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
@@ -322,27 +323,33 @@ export default function ExpensesScreen() {
         renderLeft={() => (
           <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} dark={false} />
         )}
+        renderFooter={() => {
+          return  (
+          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40" onLayout={(e) => {
+            console.log(e.nativeEvent.layout)
+          }}>
+            <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
+              <Icon name="chevron-left" size={18} color={colors.textMid} />
+            </Pressable>
+            <View className="items-center">
+              <Text className="text-base font-bold text-textDark">{vm.monthLabel}</Text>
+              {vm.isCurrentMonth && (
+                <View className="mt-0.5 bg-primary/10 rounded-full px-2 py-[1px]">
+                  <Text className="text-[9px] font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Text>
+                </View>
+              )}
+            </View>
+            <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
+              className="w-9 h-9 items-center justify-center rounded-xl"
+              style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : '#fff' }}>
+              <Icon name="chevron-right" size={18} color={colors.textMid} />
+            </Pressable>
+          </View>
+          )
+        }}
       />
 
-      {/* Month navigation */}
-      <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
-        <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
-          <Icon name="chevron-left" size={18} color={colors.textMid} />
-        </Pressable>
-        <View className="items-center">
-          <Text className="text-base font-bold text-textDark">{vm.monthLabel}</Text>
-          {vm.isCurrentMonth && (
-            <View className="mt-0.5 bg-primary/10 rounded-full px-2 py-[1px]">
-              <Text className="text-[9px] font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Text>
-            </View>
-          )}
-        </View>
-        <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
-          className="w-9 h-9 items-center justify-center rounded-xl"
-          style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : '#fff' }}>
-          <Icon name="chevron-right" size={18} color={colors.textMid} />
-        </Pressable>
-      </View>
+     
 
       {/* Always use Animated.ScrollView to prevent Reanimated v4 unmount crash */}
       <Animated.ScrollView

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -25,6 +25,7 @@ import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
 import CreateRecipeSheet from './components/CreateRecipeSheet';
 import AIRecipeSheet from './components/AIRecipeSheet';
+import HeaderIconButton from '@/components/HeaderIconButton';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -175,6 +176,10 @@ export default function RecipesScreen() {
     scrollY.value = event.contentOffset.y;
   });
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  },[navigation])
+
   const filterOptions: { key: RecipeFilter; label: string }[] = [
     { key: 'all', label: t.recipes.allFilter },
     { key: 'cooked', label: t.recipes.cookedFilter },
@@ -198,6 +203,11 @@ export default function RecipesScreen() {
             className="absolute inset-0"
           />
         )}
+        renderLeft={
+          () => {
+            return <HeaderIconButton name="arrow-left" size={20} onPress={handleBack} />
+          }
+        }
         renderRight={() => (
           <Pressable
             onPress={() => navigation.navigate('WhatToEat')}

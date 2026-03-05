@@ -8,7 +8,6 @@ import Animated, {
 import type { SharedValue } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppColors } from '../navigation/theme';
 
 interface CollapsibleHeaderProps {
   title: string;
@@ -40,7 +39,6 @@ export default function CollapsibleHeader({
   renderFooter,
 }: CollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
-  const colors = useAppColors();
   const scrollRange = expandedHeight - collapsedHeight;
 
   // ── Animated styles ─────────────────────────────────────────────────────────
@@ -90,6 +88,8 @@ export default function CollapsibleHeader({
             height: expandedHeight + insets.top,
             overflow: 'hidden',
             zIndex: 10,
+            borderEndEndRadius: 24,
+            borderBottomLeftRadius: 24,
           },
           innerTranslateStyle,
         ]}>
@@ -112,20 +112,19 @@ export default function CollapsibleHeader({
               {renderExpandedContent()}
             </Animated.View>
           ) : null}
-
-          <View className="flex-row items-center justify-between">
-            {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
-            <View className="flex-1">
-              {subtitle ? (
+            {subtitle ? (
                 <Animated.View style={expandedStyle}>
-                  <Text className="text-[11px] font-semibold tracking-[1.5px] uppercase mb-0.5" style={{ color: dark ? 'rgba(255,255,255,0.8)' : colors.primary }}>
+                  <Text className={`text-[11px] font-semibold tracking-[1.5px] uppercase mb-0.5 ${dark ? 'text-white/80' : 'text-primary'}`}>
                     {subtitle}
                   </Text>
                 </Animated.View>
               ) : null}
+          <View className="flex-row items-center justify-between">
+            {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
+            <View className="flex-1">
               <Animated.Text
-                className="font-bold tracking-tight"
-                style={[titleStyle, { color: dark ? '#fff' : colors.textDark }]}
+                className={`font-bold tracking-tight ${dark ? 'text-white' : 'text-textDark'}`}
+                style={titleStyle}
                 numberOfLines={1}>
                 {title}
               </Animated.Text>
