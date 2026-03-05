@@ -335,8 +335,9 @@ export default function ExpensesScreen() {
             </View>
           )}
         </View>
-        <Pressable onPress={vm.nextMonth}
-          className={`w-9 h-9 items-center justify-center rounded-xl ${vm.isCurrentMonth ? 'opacity-30' : 'bg-white shadow-sm'}`}>
+        <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
+          className="w-9 h-9 items-center justify-center rounded-xl"
+          style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : '#fff' }}>
           <Icon name="chevron-right" size={18} color={colors.textMid} />
         </Pressable>
       </View>
