@@ -116,20 +116,29 @@ export function usePushNotifications(): void {
     initialized.current = true;
 
     async function setup() {
+      console.log('[Push] setup() started');
       // Note: Notification — Step 1: Request permission
-      const hasPermission = await requestPermission();
-      if (!hasPermission) return;
+      try {
+        const hasPermission = await requestPermission();
+        console.log('[Push] permission result:', hasPermission);
+        if (!hasPermission) return;
+      } catch (e) {
+        console.log('[Push] permission ERROR:', e);
+        return;
+      }
 
       // Note: Notification — Step 2: Get FCM token and register with backend.
       // The FCM token is a unique identifier for this device+app combination.
       // It's what the backend uses to target push messages to this specific device.
       try {
         const token = await messaging().getToken();
+        console.log('[Push] FCM token:', token ? token.substring(0, 30) + '...' : 'null');
         if (token) {
           await registerTokenWithBackend(token);
+          console.log('[Push] token registered with backend');
         }
-      } catch {
-        // Token retrieval can fail if Firebase is not configured yet — that's OK
+      } catch (e) {
+        console.log('[Push] token ERROR:', e);
       }
 
       // Note: Notification — Step 3: Listen for token refresh.
