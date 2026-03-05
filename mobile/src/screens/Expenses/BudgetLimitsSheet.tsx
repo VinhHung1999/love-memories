@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useQueryClient } from '@tanstack/react-query';
 import { expensesApi } from '../../lib/api';
+import { useAppColors } from '../../navigation/theme';
 import AppBottomSheet from '../../components/AppBottomSheet';
 import FieldLabel from '../../components/FieldLabel';
 import t from '../../locales/en';
@@ -20,16 +21,19 @@ const CATS = EXPENSE_CATEGORIES.filter(c => c.key !== 'all') as {
 export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
   const sheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
+  const colors = useAppColors();
 
   // Local draft: category → string amount (empty = no limit)
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Pre-fill draft from cached limits
+  // Pre-fill draft from cached limits + snapshot for "current" display
+  const [cachedLimits, setCachedLimits] = useState<Record<string, number | null>>({});
   useEffect(() => {
     sheetRef.current?.present();
     const cached = queryClient.getQueryData<Record<string, number | null>>(['expenses-limits']);
     if (cached) {
+      setCachedLimits(cached);
       const initial: Record<string, string> = {};
       for (const cat of CATS) {
         const v = cached[cat.key];
@@ -58,8 +62,9 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
     }
   }, [draft, queryClient]);
 
-  const isValid = Object.values(draft).some(v => {
-    if (v === '') return true; // removing limit is valid
+  // Every field must be valid: empty (no limit) or a positive number
+  const isValid = Object.values(draft).every(v => {
+    if (v === '') return true;
     const n = parseFloat(v.replace(/[^\d.]/g, ''));
     return !isNaN(n) && n > 0;
   });
@@ -71,7 +76,7 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
       scrollable
       snapPoints={['75%']}
       onSave={handleSave}
-      saveDisabled={isSaving}
+      saveDisabled={isSaving || !isValid}
       isSaving={isSaving}
       onDismiss={onClose}
     >
@@ -79,8 +84,7 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
         <Text className="text-xs text-textMid mb-5">{t.expenses.budget.hint}</Text>
 
         {CATS.map((cat, idx) => {
-          const cached = queryClient.getQueryData<Record<string, number | null>>(['expenses-limits']);
-          const currentLimit = cached?.[cat.key] ?? null;
+          const currentLimit = cachedLimits[cat.key] ?? null;
 
           return (
             <View key={cat.key} className={`pb-4 ${idx < CATS.length - 1 ? 'border-b border-border/40 mb-4' : ''}`}>
@@ -98,7 +102,7 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
                 value={draft[cat.key] ?? ''}
                 onChangeText={v => setDraft(prev => ({ ...prev, [cat.key]: v }))}
                 placeholder={t.expenses.budget.noLimit}
-                placeholderTextColor="#A898AD"
+                placeholderTextColor={colors.textLight}
                 keyboardType="numeric"
               />
             </View>
