@@ -15,14 +15,14 @@ import { useEffect, useRef } from 'react';
 import { Platform, Alert, PermissionsAndroid } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { useNavigation } from '@react-navigation/native';
-import { fetchApi } from './api';
+import { apiFetch } from './api';
 
 // Note: Notification — Register the device's FCM token with our backend.
 // Called on every app launch and whenever the token refreshes.
 // The backend upserts: if token exists, it updates userId; if new, it creates.
 async function registerTokenWithBackend(token: string): Promise<void> {
   try {
-    await fetchApi('/api/push/mobile-subscribe', {
+    await apiFetch('/api/push/mobile-subscribe', {
       method: 'POST',
       body: JSON.stringify({
         token,
@@ -40,7 +40,7 @@ export async function unregisterPushToken(): Promise<void> {
   try {
     const token = await messaging().getToken();
     if (token) {
-      await fetchApi('/api/push/mobile-unsubscribe', {
+      await apiFetch('/api/push/mobile-unsubscribe', {
         method: 'POST',
         body: JSON.stringify({ token }),
       });

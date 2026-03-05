@@ -78,7 +78,8 @@ export function setOnUnauthenticated(cb: OnUnauthenticated): void {
   onUnauthenticatedCallback = cb;
 }
 
-async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
+// Note: Notification — exported so pushNotifications.ts can call mobile-subscribe/unsubscribe
+export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
   const stored = await getStoredTokens();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
