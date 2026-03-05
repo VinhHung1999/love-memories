@@ -202,7 +202,7 @@ export default function PhotoGalleryScreen() {
       {photos.length > 1 ? (
         <SafeAreaView
           edges={['bottom']}
-          className="absolute bottom-0 inset-x-0 z-10 px-4 pb-2 pt-2 bg-[rgba(10,4,4,0.7)]">
+          className="absolute bottom-0 inset-x-0 z-10 px-4 pb-2 pt-2" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
           <FlatList
             data={photos}
             horizontal

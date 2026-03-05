@@ -98,7 +98,7 @@ function ShoppingPhase({
               key={item.id}
               onPress={() => onToggleItem(item.id, !item.checked)}
               className="flex-row items-center gap-3 px-4 py-3"
-              style={{ borderBottomWidth: idx < session.items.length - 1 ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.3)' }}>
+              style={{ borderBottomWidth: idx < session.items.length - 1 ? 1 : 0, borderBottomColor: colors.border + '4D' }}>
               <View
                 className="w-5 h-5 rounded-md border-2 items-center justify-center"
                 style={{ backgroundColor: item.checked ? '#22c55e' : 'transparent', borderColor: item.checked ? '#22c55e' : colors.border }}>
@@ -196,7 +196,7 @@ function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
     <Pressable
       onPress={handlePress}
       className="flex-row items-center gap-1 mt-1 px-2 py-1 rounded-lg self-start"
-      style={{ backgroundColor: isDone ? 'rgba(34,197,94,0.1)' : isRunning ? colors.primaryMuted : '#f3f4f6' }}>
+      style={{ backgroundColor: isDone ? colors.success + '1A' : isRunning ? colors.primaryMuted : colors.gray100 }}>
       <Icon
         name={isDone ? 'check-circle' : isRunning ? 'timer' : 'timer-outline'}
         size={12}
@@ -304,7 +304,7 @@ function CookingPhase({
                     key={step.id}
                     onPress={() => onToggleStep(step.id, !step.checked)}
                     className="flex-row gap-3 px-4 py-3"
-                    style={{ borderBottomWidth: idx < stepsForRecipe.length - 1 ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.3)' }}>
+                    style={{ borderBottomWidth: idx < stepsForRecipe.length - 1 ? 1 : 0, borderBottomColor: colors.border + '4D' }}>
                     <View
                       className="w-6 h-6 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
                       style={{ backgroundColor: step.checked ? '#22c55e' : colors.primaryMuted }}>

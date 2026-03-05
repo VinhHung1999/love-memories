@@ -55,6 +55,9 @@ export const AppTheme = {
     errorBg:     'rgba(255,240,240,0.95)',
     success:     '#34A853',
     successBg:   '#F0FFF4',
+
+    // ── Neutral ───────────────────────────────────────────────────────────
+    gray100:     '#f3f4f6',
   },
 } as const;
 

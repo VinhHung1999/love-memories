@@ -30,7 +30,7 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
                 key={emoji}
                 onPress={() => onToggle(emoji)}
                 className="flex-row items-center gap-1 px-3 py-[6px] rounded-full border"
-              style={{ backgroundColor: reacted ? colors.primaryMuted : 'rgba(26,22,36,0.04)', borderColor: reacted ? 'rgba(232,120,138,0.3)' : 'rgba(196,168,168,0.2)' }}>
+              style={{ backgroundColor: reacted ? colors.primaryMuted : colors.textDark + '0A', borderColor: reacted ? colors.primary + '4D' : colors.textLight + '33' }}>
                 <Text className="text-sm">{emoji}</Text>
                 {count > 0 ? (
                   <Text className="text-[11px] font-semibold text-textMid">{count}</Text>

@@ -28,7 +28,7 @@ export default function PhotoPicker({ photos, onAddFromLibrary, onAddFromCamera,
       {photos.length < 10 ? (
         <Pressable
           onPress={handleAddPress}
-          className="w-[72px] h-[72px] rounded-xl items-center justify-center border-[1.5px] border-dashed border-[rgba(196,168,168,0.4)] bg-transparent">
+          className="w-[72px] h-[72px] rounded-xl items-center justify-center border-[1.5px] border-dashed bg-transparent" style={{ borderColor: colors.textLight + '66' }}>
           <Icon name="plus" size={22} color={colors.textLight} />
           <Text className="text-[9px] font-medium text-textLight mt-0.5">Add</Text>
         </Pressable>

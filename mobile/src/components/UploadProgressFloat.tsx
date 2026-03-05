@@ -145,7 +145,7 @@ export default function UploadProgressFloat() {
           {/* Progress bar — always rendered to prevent Reanimated crash on unmount during animation */}
           <View
             className="h-1 rounded-full overflow-hidden"
-            style={{ backgroundColor: isComplete ? 'rgba(34,197,94,0.1)' : 'rgba(232,120,138,0.15)' }}
+            style={{ backgroundColor: isComplete ? colors.success + '1A' : colors.primary + '26' }}
             onLayout={e => {
               trackWidthSV.value = e.nativeEvent.layout.width;
             }}>

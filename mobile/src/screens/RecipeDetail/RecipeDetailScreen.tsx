@@ -64,7 +64,7 @@ function IngredientRow({
     <Pressable
       onPress={() => setChecked(v => !v)}
       className="flex-row items-center gap-3 py-3"
-      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '66' }}>
       <View
         className="w-5 h-5 rounded-md border-2 items-center justify-center"
         style={{ backgroundColor: checked ? '#22c55e' : 'transparent', borderColor: checked ? '#22c55e' : colors.border }}>
@@ -104,7 +104,7 @@ function StepRow({
     <Pressable
       onPress={() => setDone(v => !v)}
       className="flex-row gap-3 py-3"
-      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '66' }}>
       {/* Step number circle */}
       <View
         className="w-7 h-7 rounded-full items-center justify-center flex-shrink-0 mt-0.5"

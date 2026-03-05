@@ -381,7 +381,7 @@ export default function MapScreen() {
                 <View style={{
                   width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: '#fff',
                   alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: pin.type === 'foodspot' ? 'rgba(244,162,97,0.2)' : 'rgba(232,120,138,0.2)',
+                  backgroundColor: pin.type === 'foodspot' ? colors.secondary + '33' : colors.primary + '33',
                 }}>
                   <Text style={{ fontSize: 16 }}>{pin.tagIcon}</Text>
                 </View>

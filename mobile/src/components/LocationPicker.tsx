@@ -242,7 +242,7 @@ export default function LocationPicker({
             onPress={handleGetGps}
             disabled={isGettingLocation}
             className="w-8 h-8 rounded-full items-center justify-center ml-1"
-            style={{ backgroundColor: isGettingLocation ? 'transparent' : 'rgba(232,120,138,0.12)' }}>
+            style={{ backgroundColor: isGettingLocation ? 'transparent' : colors.primaryMuted }}>
             {isGettingLocation ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (
@@ -269,7 +269,7 @@ export default function LocationPicker({
               key={i}
               onPress={() => selectResult(r)}
               className="flex-row items-start gap-3 px-4 py-3"
-              style={{ borderBottomWidth: i < results.length - 1 ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
+              style={{ borderBottomWidth: i < results.length - 1 ? 1 : 0, borderBottomColor: colors.border + '66' }}>
               <Icon name="map-marker-outline" size={15} color={colors.primary} style={{ marginTop: 2 }} />
               <Text className="flex-1 text-sm text-textDark" numberOfLines={2}>
                 {cleanPlaceName(r.place_name)}

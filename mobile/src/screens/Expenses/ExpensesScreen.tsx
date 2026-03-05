@@ -39,10 +39,11 @@ import HeaderIconButton from '@/components/HeaderIconButton';
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ExpenseSkeleton() {
+  const colors = useAppColors();
   return (
     <View className="bg-white mx-4 rounded-3xl overflow-hidden mb-3">
       {[0, 1, 2].map(i => (
-        <View key={i} className="flex-row items-center gap-3 px-4 py-3.5" style={{ borderTopWidth: i > 0 ? 1 : 0, borderTopColor: 'rgba(226,220,232,0.4)' }}>
+        <View key={i} className="flex-row items-center gap-3 px-4 py-3.5" style={{ borderTopWidth: i > 0 ? 1 : 0, borderTopColor: colors.border + '66' }}>
           <Skeleton className="w-10 h-10 rounded-2xl" />
           <View className="flex-1">
             <Skeleton className="w-2/3 h-3.5 rounded-md mb-1.5" />
@@ -60,11 +61,12 @@ function ExpenseSkeleton() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ExpenseRow({ expense, isLast, onPress }: { expense: Expense; isLast: boolean; onPress: () => void }) {
+  const colors = useAppColors();
   return (
     <Pressable
       onPress={onPress}
       className="flex-row items-center gap-3 px-4 py-3.5"
-      style={{ borderBottomWidth: !isLast ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
+      style={{ borderBottomWidth: !isLast ? 1 : 0, borderBottomColor: colors.border + '66' }}>
       <View
         className="w-10 h-10 rounded-2xl items-center justify-center flex-shrink-0"
         style={{ backgroundColor: getCategoryBg(expense.category) }}>
@@ -308,7 +310,7 @@ export default function ExpensesScreen() {
             <TouchableOpacity
               onPress={vm.handleOpenBudget}
               className="w-9 h-9 rounded-xl items-center justify-center"
-              style={{ backgroundColor: 'rgba(26,22,36,0.08)' }}
+              style={{ backgroundColor: colors.textDark + '14' }}
             >
               <Icon name="tune-variant" size={18} color={colors.textDark} />
             </TouchableOpacity>

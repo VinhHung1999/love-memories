@@ -56,7 +56,7 @@ export default function AudioRecorder({
     <TouchableOpacity
       onPress={isRecording ? onStopRecording : onStartRecording}
       className="flex-row items-center gap-3 p-3 rounded-2xl border"
-      style={{ backgroundColor: isRecording ? 'rgba(232,120,138,0.08)' : 'rgba(126,200,181,0.1)', borderColor: isRecording ? 'rgba(232,120,138,0.3)' : 'rgba(126,200,181,0.2)' }}>
+      style={{ backgroundColor: isRecording ? colors.primary + '14' : colors.accent + '1A', borderColor: isRecording ? colors.primary + '4D' : colors.accent + '33' }}>
       {/* Record button */}
       <View
         className="w-12 h-12 rounded-full items-center justify-center"
