@@ -75,11 +75,10 @@ export default function ProfileScreen() {
       <CollapsibleHeader
         title={vm.user?.name ?? t.profile.title}
         subtitle={t.profile.title.toUpperCase()}
-        expandedHeight={200}
-        collapsedHeight={56}
+        expandedHeight={230}
         scrollY={scrollY}
         renderExpandedContent={() => (
-          <View className="items-center">
+          <View className="items-center mt-3">
             <AvatarCircle
               uri={vm.user?.avatar}
               initials={vm.initials}
@@ -117,8 +116,8 @@ export default function ProfileScreen() {
         className="flex-1"
         onScroll={scrollHandler}
         scrollEventThrottle={16}>
-        {/* paddingTop = scrollRange (200-56=144) — bù phần expanded header overlay */}
-        <View style={{ paddingTop: 144 }} className="mt-0">
+        {/* paddingTop = scrollRange (200-40=160) — bù phần expanded header overlay */}
+        <View style={{ paddingTop: 190 }} className="mt-0">
 
           {/* ── Partner card ── */}
           {vm.isCoupleLoading ? (
