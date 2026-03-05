@@ -1,6 +1,10 @@
 import prisma from './prisma';
-import { sendPushNotification } from '../routes/push';
+import { sendPushNotification, sendMobilePushNotification } from '../routes/push';
 
+// Note: Notification — Central function to create an in-app notification AND
+// dispatch push to ALL channels: Web Push (PWA) + FCM (mobile iOS/Android).
+// This is non-blocking: errors are caught silently so the main operation
+// (creating a moment, recipe, etc.) is never affected by notification failures.
 export async function createNotification(
   userId: string,
   type: string,
@@ -9,11 +13,15 @@ export async function createNotification(
   link?: string,
 ): Promise<void> {
   try {
+    // Note: Notification — Save to database (appears in NotificationsScreen)
     await prisma.notification.create({
       data: { userId, type, title, message, link: link ?? null },
     });
-    // Also send push notification
-    await sendPushNotification(userId, title, message, link);
+    // Note: Notification — Send to Web Push (browser/PWA) + FCM (mobile) in parallel
+    await Promise.allSettled([
+      sendPushNotification(userId, title, message, link),
+      sendMobilePushNotification(userId, title, message, link),
+    ]);
   } catch {
     // Non-blocking — notification failures must not break main operations
   }

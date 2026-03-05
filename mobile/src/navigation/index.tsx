@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useUnreadCount } from '../screens/Notifications/useNotificationsViewModel';
+// Note: Notification — Import push notification hook for FCM setup
+import { usePushNotifications } from '../lib/pushNotifications';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
@@ -256,6 +258,11 @@ function NotificationTabIcon({ color, size }: { color: string; size: number }) {
 }
 
 function MainNavigator() {
+  // Note: Notification — Initialize push notifications when authenticated user enters main app.
+  // This requests permission, registers FCM token with backend, and sets up
+  // foreground/background notification handlers. Runs once per app launch.
+  usePushNotifications();
+
   return (
     <MainTab.Navigator
       screenOptions={{

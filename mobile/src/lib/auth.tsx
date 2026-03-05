@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { authApi, clearStoredTokens, getStoredTokens, setOnUnauthenticated, storeTokens } from './api';
 import { AuthUser, GoogleProfile } from '../types';
+// Note: Notification — Import to unregister FCM token on logout
+import { unregisterPushToken } from './pushNotifications';
 
 // ---------------------------------------------------------------------------
 // Context shape
@@ -35,6 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const logout = useCallback(async () => {
+    // Note: Notification — Unregister FCM token so user stops receiving
+    // push notifications on this device after logging out.
+    await unregisterPushToken();
     const stored = await getStoredTokens();
     if (stored?.refreshToken) {
       authApi.logout(stored.refreshToken);
