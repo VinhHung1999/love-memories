@@ -938,6 +938,11 @@ export const expensesApi = {
     const res = await apiFetch(`/api/expenses/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete expense');
   },
+  dailyStats: async (month: string): Promise<DailyStats> => {
+    const res = await apiFetch(`/api/expenses/daily-stats?month=${month}`);
+    if (!res.ok) throw new Error('Failed to fetch daily stats');
+    return res.json();
+  },
 };
 
 // ---------------------------------------------------------------------------

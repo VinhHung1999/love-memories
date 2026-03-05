@@ -16,9 +16,12 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Moment, FoodSpot } from '../../types';
+import type { ExpenseStats } from '../../lib/api';
 import { useDashboardViewModel } from './useDashboardViewModel';
+import { useUnreadCount } from '../Notifications/useNotificationsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import Skeleton from '../../components/Skeleton';
+import { formatVND } from '../Expenses/expensesConstants';
 
 // ── Count-up hook ─────────────────────────────────────────────────────────────
 
@@ -44,16 +47,12 @@ function useCountUp(target: number, durationMs = 900): number {
 function DashboardSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1">
-      {/* pt-[204] = expandedHeight(260) - collapsedHeight(56) */}
       <View className="pt-[204px] pb-[100px] px-4 gap-5">
-        {/* Timer pill */}
         <Skeleton className="h-10 rounded-full self-center w-56" />
-        {/* Stats */}
         <View className="flex-row gap-3">
           <Skeleton className="flex-1 h-[76px] rounded-3xl" />
           <Skeleton className="flex-1 h-[76px] rounded-3xl" />
         </View>
-        {/* Quick actions */}
         <View>
           <Skeleton className="w-28 h-4 rounded-md mb-3" />
           <View className="flex-row gap-3">
@@ -68,7 +67,7 @@ function DashboardSkeleton() {
   );
 }
 
-// ── HeroMomentCard — large landscape card, lives inside the header ─────────────
+// ── HeroMomentCard ────────────────────────────────────────────────────────────
 
 function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }) {
   const colors = useAppColors();
@@ -94,18 +93,15 @@ function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => vo
           className="absolute inset-0"
         />
       )}
-      {/* Gradient overlay for text */}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.70)']}
         start={{ x: 0, y: 0.4 }}
         end={{ x: 0, y: 1 }}
         className="absolute inset-0"
       />
-      {/* Date badge */}
       <View className="absolute top-2.5 right-2.5 bg-black/30 rounded-lg px-2 py-0.5">
         <Text className="text-[9px] font-bold text-white">{dateLabel}</Text>
       </View>
-      {/* Title */}
       <View className="absolute bottom-0 left-0 right-0 px-3.5 pb-3">
         <Text className="text-white font-semibold text-[13px] leading-snug" numberOfLines={2}>
           {moment.title}
@@ -120,7 +116,7 @@ function HeroMomentCard({ moment, onPress }: { moment: Moment; onPress: () => vo
   );
 }
 
-// ── StatCard ─────────────────────────────────────────────────────────────────
+// ── StatCard ──────────────────────────────────────────────────────────────────
 
 function StatCard({
   icon,
@@ -221,6 +217,85 @@ function ActiveCookingBanner({ recipeTitles, onPress }: { recipeTitles: string; 
   );
 }
 
+// ── ExpenseWidget ─────────────────────────────────────────────────────────────
+
+function ExpenseWidget({ stats, onPress }: { stats: ExpenseStats | null; onPress: () => void }) {
+  const hasData = stats && stats.count > 0;
+
+  const topCategories = hasData
+    ? (Object.entries(stats.byCategory) as [string, { total: number; count: number }][])
+        .filter(([, v]) => v.total > 0)
+        .sort(([, a], [, b]) => b.total - a.total)
+        .slice(0, 2)
+        .map(([cat, v]) => ({
+          cat,
+          pct: Math.round((v.total / stats.total) * 100),
+        }))
+    : [];
+
+  const catEmoji: Record<string, string> = {
+    food: '🍜', dating: '💑', shopping: '🛍️', transport: '🚗', gifts: '🎁', other: '📦',
+  };
+  const catLabel: Record<string, string> = {
+    food: 'Food', dating: 'Dating', shopping: 'Shopping', transport: 'Transport', gifts: 'Gifts', other: 'Other',
+  };
+
+  return (
+    <Animated.View entering={FadeInDown.delay(180).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
+      <Pressable onPress={onPress}>
+        <LinearGradient
+          colors={['#6D28D9', '#4C1D95']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="px-5 pt-4 pb-5">
+          {/* Label row */}
+          <View className="flex-row items-center gap-2 mb-2">
+            <View className="w-7 h-7 rounded-xl bg-white/15 items-center justify-center">
+              <Icon name="cash-multiple" size={14} color="#fff" />
+            </View>
+            <Text className="text-[11px] font-semibold text-white/50 tracking-[0.8px] uppercase">
+              {t.dashboard.expenseWidget.label}
+            </Text>
+          </View>
+
+          {!hasData ? (
+            <Text className="text-sm text-white/40 italic mt-1">
+              {t.dashboard.expenseWidget.noData}
+            </Text>
+          ) : (
+            <>
+              <Text className="text-[28px] font-bold text-white leading-none">
+                {formatVND(stats.total)}
+              </Text>
+              <Text className="text-xs text-white/50 mt-0.5 mb-4">
+                {stats.count} {t.expenses.transactions}
+              </Text>
+              <View className="gap-2.5">
+                {topCategories.map(({ cat, pct }) => (
+                  <View key={cat}>
+                    <View className="flex-row items-center justify-between mb-1">
+                      <Text className="text-[11px] text-white/70 font-medium">
+                        {catEmoji[cat]} {catLabel[cat]}
+                      </Text>
+                      <Text className="text-[10px] text-white/50 font-semibold">{pct}%</Text>
+                    </View>
+                    <View className="h-1 bg-white/15 rounded-full overflow-hidden">
+                      <View
+                        className="h-full bg-white/60 rounded-full"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ── FoodHighlightCard ─────────────────────────────────────────────────────────
 
 function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }) {
@@ -264,6 +339,26 @@ function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => v
   );
 }
 
+// ── NotificationBell — header right icon with unread badge ────────────────────
+
+function NotificationBell({ onPress }: { onPress: () => void }) {
+  const count = useUnreadCount();
+  return (
+    <Pressable onPress={onPress} className="w-9 h-9 items-center justify-center">
+      <Icon name={count > 0 ? 'bell' : 'bell-outline'} size={22} color="#fff" />
+      {count > 0 && (
+        <View
+          className="absolute top-0.5 right-0.5 bg-error rounded-full items-center justify-center"
+          style={{ minWidth: 14, height: 14, paddingHorizontal: 3 }}>
+          <Text className="text-white text-[9px] font-bold leading-none">
+            {count > 99 ? '99+' : count}
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
@@ -275,14 +370,12 @@ export default function DashboardScreen() {
     scrollY.value = event.contentOffset.y;
   });
 
-  // expandedHeight=260, collapsedHeight=56 → scrollRange=204
   const EXPANDED_H = 260;
   const COLLAPSED_H = 56;
 
   return (
     <View className="flex-1 bg-gray-50">
 
-      {/* ── Collapsible Header — pure photo carousel, no labels ── */}
       <CollapsibleHeader
         title={vm.headerTitle}
         subtitle={t.dashboard.headerSubtitle}
@@ -298,8 +391,10 @@ export default function DashboardScreen() {
             className="absolute inset-0"
           />
         )}
+        renderRight={() => (
+          <NotificationBell onPress={vm.navigateToNotifications} />
+        )}
         renderExpandedContent={() => (
-          // Pure photo strip — no title, no see-all, no timer
           vm.recentMoments.length > 0 ? (
             <ScrollView
               horizontal
@@ -322,7 +417,6 @@ export default function DashboardScreen() {
         )}
       />
 
-      {/* ── Body ── */}
       {vm.isLoading ? (
         <DashboardSkeleton />
       ) : (
@@ -331,10 +425,9 @@ export default function DashboardScreen() {
           showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}>
-          {/* pt-[204px] = scrollRange (260-56) */}
           <View className="pt-[220px] pb-[120px] px-4 gap-4">
 
-            {/* ── 0. Timer + slogan — right below header ── */}
+            {/* ── 0. Timer + slogan ── */}
             {(vm.relationshipDuration || vm.slogan) ? (
               <Animated.View entering={FadeInDown.delay(0).duration(400)} className="items-center gap-1.5">
                 {vm.relationshipDuration ? (
@@ -393,7 +486,7 @@ export default function DashboardScreen() {
               </Animated.View>
             ) : null}
 
-            {/* ── 2. Quick Actions ── */}
+            {/* ── 2. Quick Actions (4 items) ── */}
             <Animated.View entering={FadeInDown.delay(140).duration(500)}>
               <SectionHeader title={t.dashboard.sections.quickActions} />
               <View className="flex-row gap-3">
@@ -418,10 +511,20 @@ export default function DashboardScreen() {
                   bgClass="bg-primary/10"
                   onPress={() => vm.navigateTo('RecipesTab')}
                 />
+                <QuickActionButton
+                  icon="cash-multiple"
+                  label={t.dashboard.quickActions.expenses}
+                  iconColor="#6D28D9"
+                  bgClass="bg-violet-100"
+                  onPress={vm.navigateToExpenses}
+                />
               </View>
             </Animated.View>
 
-            {/* ── 3. Food Highlights ── */}
+            {/* ── 3. Expense Summary Widget ── */}
+            <ExpenseWidget stats={vm.expenseStats} onPress={vm.navigateToExpenses} />
+
+            {/* ── 4. Food Highlights ── */}
             {vm.recentFoodSpots.length > 0 ? (
               <Animated.View entering={FadeInDown.delay(220).duration(500)}>
                 <SectionHeader

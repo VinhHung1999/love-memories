@@ -35,3 +35,15 @@ export function getCategoryEmoji(cat: string): string {
 export function getCategoryBg(cat: string): string {
   return CATEGORY_BG[cat] ?? 'rgba(168,152,173,0.12)';
 }
+
+// Data-vis colors for bar chart (semantic category colors, not theme colors)
+export const CATEGORY_CHART_COLORS: Record<string, string> = {
+  food:      '#E8788A',
+  dating:    '#F4A261',
+  shopping:  '#7EC8B5',
+  transport: '#94A3B8',
+  gifts:     '#A78BFA',
+  other:     '#CBD5E1',
+};
+
+export const CHART_CATEGORY_ORDER = ['food', 'dating', 'shopping', 'transport', 'gifts', 'other'] as const;

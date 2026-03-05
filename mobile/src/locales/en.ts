@@ -141,6 +141,12 @@ const en = {
       food: 'Food',
       recipes: 'Recipes',
       aiRecipe: 'AI Recipe',
+      expenses: 'Expenses',
+      notifications: 'Alerts',
+    },
+    expenseWidget: {
+      label: '💰 This month',
+      noData: 'No expenses yet 💸',
     },
     activeCooking: 'Cooking Now',
     noMomentsYet: 'No moments yet\nAdd your first memory together',
@@ -525,6 +531,9 @@ const en = {
       deleteFailed: 'Failed to delete expense',
     },
     deleteConfirm: 'Delete this expense?',
+    chart: {
+      title: 'Daily Spending',
+    },
   },
 
   common: {

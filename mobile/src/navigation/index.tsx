@@ -298,26 +298,17 @@ function MainNavigator() {
       <MainTab.Screen
         name="RecipesTab"
         component={RecipesNavigator}
-        options={{
-          tabBarLabel: 'Recipes',
-          tabBarIcon: ({ color, size }) => <Icon name="chef-hat" size={size} color={color} />,
-        }}
+        options={{ tabBarButton: () => null }}
       />
       <MainTab.Screen
         name="ExpensesTab"
         component={ExpensesNavigator}
-        options={{
-          tabBarLabel: 'Expenses',
-          tabBarIcon: ({ color, size }) => <Icon name="cash-multiple" size={size} color={color} />,
-        }}
+        options={{ tabBarButton: () => null }}
       />
       <MainTab.Screen
         name="NotificationsTab"
         component={NotificationsNavigator}
-        options={{
-          tabBarLabel: 'Alerts',
-          tabBarIcon: ({ color, size }) => <NotificationTabIcon color={color} size={size} />,
-        }}
+        options={{ tabBarButton: () => null }}
       />
       <MainTab.Screen
         name="MapTab"

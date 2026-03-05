@@ -175,6 +175,7 @@ export function usePushNotifications(): void {
       // When user taps a notification banner while the app is backgrounded,
       // this callback fires with the notification data so we can navigate.
       const unsubscribeBackground = messaging().onNotificationOpenedApp((remoteMessage) => {
+        console.log('[Push] onNotificationOpenedApp fired, data:', JSON.stringify(remoteMessage.data));
         handleNotificationNavigation(navigation, remoteMessage.data as Record<string, string>);
       });
 

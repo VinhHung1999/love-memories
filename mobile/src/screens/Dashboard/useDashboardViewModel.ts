@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
-import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi } from '../../lib/api';
+import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi } from '../../lib/api';
+import type { ExpenseStats } from '../../lib/api';
 import t from '../../locales/en';
 import type { Moment, FoodSpot, CoupleProfile, CookingSession } from '../../types';
 
@@ -35,6 +36,14 @@ export function useDashboardViewModel() {
     queryKey: ['foodspots'],
     queryFn: foodSpotsApi.list,
     enabled: !!user,
+  });
+
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { data: expenseStats } = useQuery<ExpenseStats>({
+    queryKey: ['expenses-stats', currentMonth],
+    queryFn: () => expensesApi.stats(currentMonth),
+    enabled: !!user,
+    staleTime: 60_000,
   });
 
   const { data: activeSession } = useQuery<CookingSession | null>({
@@ -136,6 +145,9 @@ export function useDashboardViewModel() {
     });
   };
 
+  const navigateToExpenses = () => navigation.navigate('ExpensesTab');
+  const navigateToNotifications = () => navigation.navigate('NotificationsTab');
+
   // ── Derived display values ──────────────────────────────────────────────────
 
   const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
@@ -156,10 +168,13 @@ export function useDashboardViewModel() {
     slogan,
     isLoading: coupleLoading || momentsLoading || foodSpotsLoading,
     activeSession: activeSession ?? null,
+    expenseStats: expenseStats ?? null,
     handleMomentPress,
     handleFoodSpotPress,
     navigateTo,
     handleActiveCookingPress,
     handleAIRecipePress,
+    navigateToExpenses,
+    navigateToNotifications,
   };
 }

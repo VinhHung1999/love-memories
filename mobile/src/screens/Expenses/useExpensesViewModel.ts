@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { expensesApi, type Expense, type ExpenseCategory } from '../../lib/api';
-import { formatVND, getCategoryEmoji, EXPENSE_CATEGORIES } from './expensesConstants';
+import { expensesApi, type Expense, type ExpenseCategory, type DailyStats } from '../../lib/api';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
+import { formatVND, EXPENSE_CATEGORIES } from './expensesConstants';
+import AddExpenseSheet from './AddExpenseSheet';
 
 export type CategoryFilter = ExpenseCategory | 'all';
 
@@ -15,10 +17,9 @@ function monthLabel(date: Date): string {
 
 export function useExpensesViewModel() {
   const queryClient = useQueryClient();
+  const navigation = useAppNavigation();
   const [month, setMonth] = useState(new Date());
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [showAddSheet, setShowAddSheet] = useState(false);
 
   const currentMonthKey = monthKey(new Date());
   const selectedMonthKey = monthKey(month);
@@ -34,11 +35,17 @@ export function useExpensesViewModel() {
     queryFn: () => expensesApi.stats(selectedMonthKey),
   });
 
+  const { data: dailyStats } = useQuery<DailyStats>({
+    queryKey: ['expenses-daily', selectedMonthKey],
+    queryFn: () => expensesApi.dailyStats(selectedMonthKey),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: expensesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['expenses-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses-daily'] });
     },
   });
 
@@ -106,21 +113,12 @@ export function useExpensesViewModel() {
   }, [isCurrentMonth]);
 
   const handleExpensePress = useCallback((expense: Expense) => {
-    setEditingExpense(expense);
-    setShowAddSheet(true);
-  }, []);
+    navigation.showBottomSheet(AddExpenseSheet, { editingExpense: expense });
+  }, [navigation]);
 
   const handleAdd = useCallback(() => {
-    setEditingExpense(null);
-    setShowAddSheet(true);
-  }, []);
-
-  const handleSheetClose = useCallback(() => {
-    setShowAddSheet(false);
-    setEditingExpense(null);
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    queryClient.invalidateQueries({ queryKey: ['expenses-stats'] });
-  }, [queryClient]);
+    navigation.showBottomSheet(AddExpenseSheet);
+  }, [navigation]);
 
   const handleDelete = useCallback((id: string) => {
     deleteMutation.mutate(id);
@@ -132,8 +130,6 @@ export function useExpensesViewModel() {
     isCurrentMonth,
     activeCategory,
     setActiveCategory,
-    editingExpense,
-    showAddSheet,
     // data
     isLoading,
     refetch,
@@ -143,12 +139,12 @@ export function useExpensesViewModel() {
     totalCount: stats?.count ?? 0,
     categoryBreakdown,
     formattedTotal: formatVND(stats?.total ?? 0),
+    dailyStats: dailyStats ?? null,
     // actions
     prevMonth,
     nextMonth,
     handleExpensePress,
     handleAdd,
-    handleSheetClose,
     handleDelete,
   };
 }
