@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { ActivityIndicator, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useUnreadCount } from '../screens/Notifications/useNotificationsViewModel';
@@ -24,14 +25,20 @@ export type AuthStackParamList = {
   Login: undefined;
 };
 
+/** Root stack for authenticated users — 5-tab MainTabs + 3 full-screen stacks */
+export type AppStackParamList = {
+  MainTabs: undefined;
+  RecipesTab: NavigatorScreenParams<RecipesStackParamList> | undefined;
+  ExpensesTab: NavigatorScreenParams<ExpensesStackParamList> | undefined;
+  NotificationsTab: NavigatorScreenParams<NotificationsStackParamList> | undefined;
+};
+
+/** Only the 5 visible bottom tabs */
 export type MainTabParamList = {
   Dashboard: undefined;
   MomentsTab: undefined;
   FoodSpotsTab: undefined;
-  RecipesTab: undefined;
   MapTab: undefined;
-  NotificationsTab: undefined;
-  ExpensesTab: undefined;
   ProfileTab: undefined;
 };
 
@@ -81,6 +88,7 @@ export type ProfileStackParamList = {
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const AppStack = createNativeStackNavigator<AppStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
@@ -171,7 +179,7 @@ function FoodSpotsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Recipes stack navigator
+// Recipes stack navigator (full-screen, no tab bar)
 // ---------------------------------------------------------------------------
 
 function RecipesNavigator() {
@@ -194,7 +202,7 @@ function RecipesNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Notifications stack navigator
+// Notifications stack navigator (full-screen, no tab bar)
 // ---------------------------------------------------------------------------
 
 function NotificationsNavigator() {
@@ -208,7 +216,7 @@ function NotificationsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Expenses stack navigator
+// Expenses stack navigator (full-screen, no tab bar)
 // ---------------------------------------------------------------------------
 
 function ExpensesNavigator() {
@@ -236,7 +244,7 @@ function ProfileNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Main tabs (authenticated)
+// 5-tab bottom navigator (visible tabs only)
 // ---------------------------------------------------------------------------
 
 function NotificationTabIcon({ color, size }: { color: string; size: number }) {
@@ -257,12 +265,7 @@ function NotificationTabIcon({ color, size }: { color: string; size: number }) {
   );
 }
 
-function MainNavigator() {
-  // Note: Notification — Initialize push notifications when authenticated user enters main app.
-  // This requests permission, registers FCM token with backend, and sets up
-  // foreground/background notification handlers. Runs once per app launch.
-  usePushNotifications();
-
+function MainTabNavigator() {
   return (
     <MainTab.Navigator
       screenOptions={{
@@ -296,21 +299,6 @@ function MainNavigator() {
         }}
       />
       <MainTab.Screen
-        name="RecipesTab"
-        component={RecipesNavigator}
-        options={{ tabBarButton: () => null, tabBarItemStyle: { width: 0, overflow: 'hidden' } }}
-      />
-      <MainTab.Screen
-        name="ExpensesTab"
-        component={ExpensesNavigator}
-        options={{ tabBarButton: () => null, tabBarItemStyle: { width: 0, overflow: 'hidden' } }}
-      />
-      <MainTab.Screen
-        name="NotificationsTab"
-        component={NotificationsNavigator}
-        options={{ tabBarButton: () => null, tabBarItemStyle: { width: 0, overflow: 'hidden' } }}
-      />
-      <MainTab.Screen
         name="MapTab"
         component={MapScreen}
         options={{
@@ -327,6 +315,25 @@ function MainNavigator() {
         }}
       />
     </MainTab.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// App navigator — root stack for authenticated users
+// Recipes / Expenses / Notifications open as full-screen (no tab bar)
+// ---------------------------------------------------------------------------
+
+function AppNavigator() {
+  // Note: Notification — Initialize push notifications when authenticated user enters main app.
+  usePushNotifications();
+
+  return (
+    <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="MainTabs" component={MainTabNavigator} />
+      <AppStack.Screen name="RecipesTab" component={RecipesNavigator} />
+      <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} />
+      <AppStack.Screen name="NotificationsTab" component={NotificationsNavigator} />
+    </AppStack.Navigator>
   );
 }
 
@@ -349,7 +356,7 @@ export default function RootNavigator() {
     <NavigationContainer theme={AppTheme}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
-        {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+        {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
         {/* Global overlays — inside NavigationContainer for useAppColors() access */}
         <LoadingOverlay />
         <UploadProgressFloat />

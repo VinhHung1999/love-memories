@@ -31,6 +31,7 @@ import {
   CHART_CATEGORY_ORDER,
   formatShortVND,
   computeChartTicks,
+  toLocalDateString,
 } from './expensesConstants';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,16 +147,17 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) {
   const { width } = useWindowDimensions();
+  const colors = useAppColors();
 
-  // Compute Mon-Sun of current week
+  // Compute Mon-Sun of current week (use local date to avoid UTC shift)
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = toLocalDateString(today);
   const dow = today.getDay(); // 0=Sun
   const diffToMon = dow === 0 ? -6 : -(dow - 1);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + diffToMon + i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = toLocalDateString(d);
     return { date: dateStr, label: DAY_LABELS[i]!, isToday: dateStr === todayStr };
   });
 
@@ -217,7 +219,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
                 position: 'absolute', left: 0, right: 0,
                 bottom: i === 0 ? 0 : Math.round((tick / tickMax) * BAR_AREA_H) - 1,
                 height: 1,
-                backgroundColor: i === 0 ? '#E8E4EB' : '#F4F3F7',
+                backgroundColor: i === 0 ? colors.border : `${colors.border}40`,
               }}
             />
           ))}
@@ -243,7 +245,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
                     overflow: 'hidden',
                     flexDirection: 'column-reverse',
                     opacity: day.isToday ? 1 : 0.72,
-                    backgroundColor: day.total === 0 ? '#EDE9F2' : undefined,
+                    backgroundColor: day.total === 0 ? `${colors.border}60` : undefined,
                   }}>
                     {segments.map(({ cat, amount }) => {
                       const segH = Math.max(1, Math.round((amount / day.total) * barH));

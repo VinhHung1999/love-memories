@@ -110,7 +110,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
         <FieldLabel>{t.expenses.labels.date}</FieldLabel>
         <DatePickerField
           value={new Date(vm.date + 'T00:00:00')}
-          onChange={(d) => vm.setDate(d.toISOString().slice(0, 10))}
+          onChange={(d) => vm.setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)}
         />
 
         {/* ── Note ── */}

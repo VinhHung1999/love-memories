@@ -48,6 +48,11 @@ export const CATEGORY_CHART_COLORS: Record<string, string> = {
 
 export const CHART_CATEGORY_ORDER = ['food', 'dating', 'shopping', 'transport', 'gifts', 'other'] as const;
 
+/** Local date string YYYY-MM-DD — avoids UTC shift from toISOString() in +7 timezone */
+export function toLocalDateString(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 /** Short VND for Y-axis labels: 0 / 50k / 200k / 1tr / 2.5tr */
 export function formatShortVND(n: number): string {
   if (n === 0) return '0';
