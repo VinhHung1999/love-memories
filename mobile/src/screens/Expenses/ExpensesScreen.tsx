@@ -4,6 +4,7 @@ import {
   RefreshControl,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -190,7 +191,15 @@ export default function ExpensesScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <CollapsibleHeader title={t.expenses.title} subtitle={t.expenses.subtitle}
-        expandedHeight={56} collapsedHeight={56} scrollY={scrollY} />
+        expandedHeight={140} collapsedHeight={96} scrollY={scrollY}
+        renderRight={() => (
+          <TouchableOpacity
+            onPress={vm.handleAdd}
+            className="w-10 h-10 rounded-full items-center justify-center bg-primary"
+          >
+            <Icon name="plus" size={22} color="#fff" />
+          </TouchableOpacity>
+        )} />
 
       {/* Month navigation */}
       <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
@@ -268,12 +277,6 @@ export default function ExpensesScreen() {
         </Animated.ScrollView>
       )}
 
-      {/* FAB */}
-      <Pressable onPress={vm.handleAdd}
-        className="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-primary items-center justify-center"
-        style={{ shadowColor: 'rgba(232,120,138,0.4)', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 1, shadowRadius: 16, elevation: 12 }}>
-        <Icon name="plus" size={26} color="#fff" />
-      </Pressable>
     </View>
   );
 }
