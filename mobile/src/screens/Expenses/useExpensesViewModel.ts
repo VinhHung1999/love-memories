@@ -22,9 +22,9 @@ export function useExpensesViewModel() {
   const [month, setMonth] = useState(new Date());
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
 
-  const currentMonthKey = monthKey(new Date());
-  const selectedMonthKey = monthKey(month);
-  const isCurrentMonth = selectedMonthKey === currentMonthKey;
+  const currentMonthKey = useMemo(() => monthKey(new Date()), []);
+  const selectedMonthKey = useMemo(() => monthKey(month), [month]);
+  const isCurrentMonth = useMemo(() => selectedMonthKey === currentMonthKey, [selectedMonthKey, currentMonthKey]);
 
   const { data: expenses = [], isLoading, refetch } = useQuery({
     queryKey: ['expenses', selectedMonthKey],
