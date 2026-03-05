@@ -10,7 +10,6 @@ import {
 import Animated, {
   FadeInDown,
   useSharedValue,
-  useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -300,8 +299,6 @@ export default function ExpensesScreen() {
       <CollapsibleHeader
         title={t.expenses.title}
         subtitle={t.expenses.subtitle}
-        expandedHeight={140}
-        collapsedHeight={96}
         scrollY={scrollY}
         renderRight={() => (
           <View className="flex-row items-center gap-2">
