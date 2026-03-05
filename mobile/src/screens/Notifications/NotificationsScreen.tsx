@@ -175,7 +175,7 @@ export default function NotificationsScreen() {
               tintColor={colors.primary}
             />
           }>
-          <View className="pt-14 pb-[100px]">
+          <View key={vm.grouped.map(g => g.items.map(i => i.id).join(',')).join('|')} className="pt-14 pb-[100px]">
             {vm.grouped.map(group => (
               <View key={group.label}>
                 <Text className="text-[11px] font-bold text-textLight tracking-[1px] uppercase px-5 pt-4 pb-2">

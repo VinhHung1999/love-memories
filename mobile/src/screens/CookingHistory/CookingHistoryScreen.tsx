@@ -166,7 +166,7 @@ export default function CookingHistoryScreen() {
               tintColor={colors.primary}
             />
           }>
-          <View className="pb-8">
+          <View key={`sessions-${vm.sessions.length}`} className="pb-8">
             {vm.sessions.map((session, idx) => (
               <SessionCard
                 key={session.id}

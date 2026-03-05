@@ -148,7 +148,7 @@ export default function WhatToEatScreen() {
 
       {/* ── Active session banner ── */}
       {vm.activeSession ? (
-        <Animated.View entering={FadeInDown} className="mt-4">
+        <Animated.View key={vm.activeSession.id} entering={FadeInDown} className="mt-4">
           <ActiveSessionBanner onResume={vm.handleResumeSession} />
         </Animated.View>
       ) : null}
@@ -182,7 +182,7 @@ export default function WhatToEatScreen() {
             </View>
 
             <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-              <View className="pb-[120px]">
+              <View key={`recipes-${vm.recipes.length}`} className="pb-[120px]">
                 {vm.recipes.map((recipe, idx) => (
                   <Animated.View key={recipe.id} entering={FadeInDown.delay(idx * 50)}>
                     <RecipePickCard

@@ -258,7 +258,7 @@ export default function RecipesScreen() {
           {/* pt-14 = scrollRange(44) + gap */}
           <View className="px-[14px] pt-14 pb-[100px]">
             <View className="flex-row gap-3">
-              <View className="flex-1">
+              <View key={`left-${vm.filter}`} className="flex-1">
                 {vm.leftColumn.map((recipe, idx) => (
                   <Animated.View key={recipe.id} entering={FadeInDown.delay(idx * 60)}>
                     <RecipeCard
@@ -268,7 +268,7 @@ export default function RecipesScreen() {
                   </Animated.View>
                 ))}
               </View>
-              <View className="flex-1 mt-8">
+              <View key={`right-${vm.filter}`} className="flex-1 mt-8">
                 {vm.rightColumn.map((recipe, idx) => (
                   <Animated.View key={recipe.id} entering={FadeInDown.delay(idx * 60 + 30)}>
                     <RecipeCard

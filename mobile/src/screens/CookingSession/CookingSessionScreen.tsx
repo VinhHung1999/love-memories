@@ -693,7 +693,7 @@ export default function CookingSessionScreen() {
       {!isCompletedAndRated ? <PhaseBar status={session.status} /> : null}
 
       {/* ── Phase content ── */}
-      <Animated.View entering={FadeInDown.duration(300)} className="flex-1">
+      <Animated.View key={session.status} entering={FadeInDown.duration(300)} className="flex-1">
         {isCompletedAndRated ? (
           <CompletedSummaryView session={session} />
         ) : session.status === 'shopping' ? (
