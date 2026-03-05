@@ -63,17 +63,16 @@ function IngredientRow({
   return (
     <Pressable
       onPress={() => setChecked(v => !v)}
-      className={`flex-row items-center gap-3 py-3 ${isLast ? '' : 'border-b border-border/40'}`}>
+      className="flex-row items-center gap-3 py-3"
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
       <View
-        className={`w-5 h-5 rounded-md border-2 items-center justify-center ${
-          checked ? 'bg-green-500 border-green-500' : 'border-border'
-        }`}>
+        className="w-5 h-5 rounded-md border-2 items-center justify-center"
+        style={{ backgroundColor: checked ? '#22c55e' : 'transparent', borderColor: checked ? '#22c55e' : colors.border }}>
         {checked ? <Icon name="check" size={11} color="#fff" /> : null}
       </View>
       <Text
-        className={`flex-1 text-sm ${
-          checked ? 'text-textLight line-through' : 'text-textDark'
-        }`}>
+        className="flex-1 text-sm"
+        style={{ color: checked ? colors.textLight : colors.textDark, textDecorationLine: checked ? 'line-through' : 'none' }}>
         {ingredient}
       </Text>
       {price ? (
@@ -104,12 +103,12 @@ function StepRow({
   return (
     <Pressable
       onPress={() => setDone(v => !v)}
-      className={`flex-row gap-3 py-3 ${isLast ? '' : 'border-b border-border/40'}`}>
+      className="flex-row gap-3 py-3"
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
       {/* Step number circle */}
       <View
-        className={`w-7 h-7 rounded-full items-center justify-center flex-shrink-0 mt-0.5 ${
-          done ? 'bg-green-500' : 'bg-primary/10'
-        }`}>
+        className="w-7 h-7 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
+        style={{ backgroundColor: done ? '#22c55e' : colors.primaryMuted }}>
         {done ? (
           <Icon name="check" size={13} color="#fff" />
         ) : (
@@ -119,9 +118,8 @@ function StepRow({
 
       <View className="flex-1">
         <Text
-          className={`text-sm leading-relaxed ${
-            done ? 'text-textLight line-through' : 'text-textDark'
-          }`}>
+          className="text-sm leading-relaxed"
+          style={{ color: done ? colors.textLight : colors.textDark, textDecorationLine: done ? 'line-through' : 'none' }}>
           {content}
         </Text>
         {duration ? (
@@ -230,9 +228,8 @@ export default function RecipeDetailScreen() {
                       onPress={() => vm.handleOpenGallery(recipe.photos, idx)}>
                       <Image
                         source={{ uri: photo.url }}
-                        className={`w-[52px] h-[52px] rounded-xl ${
-                          idx === 0 ? 'border-2 border-primary' : 'opacity-70'
-                        }`}
+                        className="w-[52px] h-[52px] rounded-xl"
+                        style={{ borderWidth: idx === 0 ? 2 : 0, borderColor: colors.primary, opacity: idx === 0 ? 1 : 0.7 }}
                       />
                     </Pressable>
                   ))}

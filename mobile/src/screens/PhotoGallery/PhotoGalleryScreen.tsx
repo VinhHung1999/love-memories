@@ -191,9 +191,8 @@ export default function PhotoGalleryScreen() {
           {photos.map((_, idx) => (
             <View
               key={idx}
-              className={`h-1 rounded-sm ${
-                idx === currentIndex ? 'bg-white w-6' : 'bg-white/30 w-1'
-              }`}
+              className="h-1 rounded-sm"
+              style={{ backgroundColor: idx === currentIndex ? '#fff' : 'rgba(255,255,255,0.3)', width: idx === currentIndex ? 24 : 4 }}
             />
           ))}
         </View>
@@ -218,11 +217,8 @@ export default function PhotoGalleryScreen() {
                 }}>
                 <Image
                   source={{ uri: item.url }}
-                  className={`w-[52px] h-[52px] rounded-xl ${
-                    index === currentIndex
-                      ? 'opacity-100 border-2 border-white'
-                      : 'opacity-50'
-                  }`}
+                  className="w-[52px] h-[52px] rounded-xl"
+                  style={{ opacity: index === currentIndex ? 1 : 0.5, borderWidth: index === currentIndex ? 2 : 0, borderColor: '#fff' }}
                 />
               </TouchableOpacity>
             )}

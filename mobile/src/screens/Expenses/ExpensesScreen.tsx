@@ -305,9 +305,10 @@ export default function ExpensesScreen() {
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
               onPress={vm.handleOpenBudget}
-              className="w-9 h-9 rounded-xl items-center justify-center bg-white/20"
+              className="w-9 h-9 rounded-xl items-center justify-center"
+              style={{ backgroundColor: 'rgba(26,22,36,0.08)' }}
             >
-              <Icon name="tune-variant" size={18} color="#fff" />
+              <Icon name="tune-variant" size={18} color={colors.textDark} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={vm.handleAdd}
@@ -318,7 +319,7 @@ export default function ExpensesScreen() {
           </View>
         )}
         renderLeft={() => (
-          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} />
+          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} dark={false} />
         )}
       />
 

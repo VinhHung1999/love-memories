@@ -50,11 +50,17 @@ _(Record font choices, sizing scale, readability decisions)_
 - No custom geolocation implementation — `GeolocateControl` handles permission prompts, accuracy circles, and iOS/Android quirks out of the box.
 - Positioned `bottom-right` so it does not overlap the bottom nav on mobile.
 
-## No `style` prop in React Native (Sprint 35 — Boss Rule)
+## No `style` prop in React Native (Sprint 35 — Boss Rule) — UPDATED Sprint 41
 - ALL styling via NativeWind `className` only. Zero `style` prop, zero `StyleSheet.create()`
 - Shadows → `shadow-sm` / `shadow-lg` className. Dynamic positions → `top-[40%]`, etc.
 - contentContainerStyle workaround: inner `<View className="min-h-full px-7 ...">` child
-- **ONLY exception**: `Animated.Value` transforms/opacity — literally impossible as className
+- **Exception 1**: `Animated.Value` transforms/opacity — literally impossible as className
+- **Exception 2**: Dynamic className ternaries (`${cond ? 'a' : 'b'}`) MUST use `style` prop instead — NativeWind CssInterop crashes when `disabled` + dynamic className change simultaneously. Boss rule: ALL dynamic visual styles (bg, text color, opacity, border) → `style` prop. Static layout (rounded, flex, padding) stays in `className`.
+
+## HeaderIconButton dark/light variant (Sprint 41)
+- `HeaderIconButton` has `dark` prop (default `true`): dark=true → white icon on semi-transparent white bg (for dark headers with gradient/photo), dark=false → dark icon on semi-transparent dark bg (for light pink gradient headers)
+- Screens with default light pink gradient header (no `dark` prop on CollapsibleHeader): MUST use `dark={false}` on HeaderIconButton
+- Currently: ProfileScreen, ExpensesScreen use `dark={false}`; DashboardScreen, MomentDetailScreen, RecipeDetailScreen, FoodSpotDetailScreen use default `dark={true}` (correct — they have dark backgrounds)
 
 ## React Navigation Theme over custom theme.ts (Sprint 35)
 - Custom theme.ts deleted; navigation/theme.ts extends DefaultTheme

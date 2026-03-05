@@ -107,7 +107,7 @@ export default function ProfileScreen() {
           </View>
         )}
         renderRight={() => (
-          <HeaderIconButton name="pencil-outline" size={16} onPress={handleOpenEditName} />
+          <HeaderIconButton name="pencil-outline" size={16} onPress={handleOpenEditName} dark={false} />
         )}
       />
 

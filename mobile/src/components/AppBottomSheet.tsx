@@ -23,7 +23,7 @@ interface AppBottomSheetProps {
   title: string;
   subtitle?: string;      // subtitle below title (triggers icon-style header when set)
   icon?: string;          // MaterialCommunityIcons name — enables icon+title+subtitle header style
-  iconBgClass?: string;   // className for icon background, default 'bg-primary/10'
+  iconBgClass?: string;   // unused — kept for backward compat, icon bg is now hardcoded via theme
   // icon-header action button (only used when icon is set)
   actionLabel?: string;
   onAction?: () => void;
@@ -131,7 +131,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
           icon ? (
             /* Icon + title + subtitle style — row layout (no Cancel/Save) */
             <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border">
-              <View className={`w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0 ${iconBgClass}`}>
+              <View className="w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primaryMuted }}>
                 <Icon name={icon} size={24} color={colors.primary} />
               </View>
               <View className="flex-1">
@@ -149,7 +149,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
                   {actionLoading ? (
                     <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
-                    <Text className={`font-semibold text-sm ${actionDisabled ? 'text-textLight' : 'text-primary'}`}>
+                    <Text className="font-semibold text-sm" style={{ color: actionDisabled ? colors.textLight : colors.primary }}>
                       {actionLabel}
                     </Text>
                   )}
@@ -173,11 +173,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
                 {isSaving ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
-                  <Text
-                    className={`font-semibold text-sm ${
-                      saveDisabled ? 'text-textLight' : 'text-primary'
-                    }`}
-                  >
+                  <Text className="font-semibold text-sm" style={{ color: saveDisabled ? colors.textLight : colors.primary }}>
                     {save}
                   </Text>
                 )}

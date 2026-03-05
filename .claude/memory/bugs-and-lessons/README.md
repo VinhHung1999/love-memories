@@ -181,3 +181,13 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - `className` can still be used on wrapping `View` elements
 - Priority: `FastImage.priority.normal` for lists, `FastImage.priority.high` for detail/hero images
 - `resizeMode` uses `FastImage.resizeMode.cover` (not string `"cover"`)
+
+### NativeWind CssInterop crash: disabled + dynamic className on Pressable (Sprint 41)
+- Cause: `disabled={dynamic}` prop changing simultaneously with dynamic className ternary (`${cond ? 'a' : 'b'}`) on NativeWind `Pressable` causes crash
+- Fix: move dynamic styles (opacity, backgroundColor) to `style` prop; keep only static classes in `className`
+- Key takeaway: never mix `disabled` prop changes with dynamic className ternaries on NativeWind Pressable — use `style` for dynamic visual state
+
+### useNavigation()/useTheme() throw during screen transitions in AppStack (Sprint 41)
+- Cause: `useNavigation()` and `useTheme()` throw when NavigationContext is temporarily unavailable during react-native-screens Freeze/Suspense in native stack transitions
+- Fix: use `React.useContext(NavigationContext)` / `React.useContext(ThemeContext)` directly (returns undefined, doesn't throw) + fallback to static values
+- Key takeaway: in `useAppNavigation()` and `useAppColors()`, never use the throwing hooks — use raw `useContext` with safe fallbacks

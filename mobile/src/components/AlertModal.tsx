@@ -65,9 +65,8 @@ export default function AlertModal({
 
           {/* Icon */}
           <View
-            className={`w-16 h-16 rounded-full items-center justify-center self-center mb-4 ${
-              icon.isError ? 'bg-red-50' : 'bg-primary/12'
-            }`}>
+            className="w-16 h-16 rounded-full items-center justify-center self-center mb-4"
+            style={{ backgroundColor: icon.isError ? colors.errorBg : colors.primaryMuted }}>
             <Icon
               name={icon.name}
               size={32}
@@ -86,7 +85,7 @@ export default function AlertModal({
           )}
 
           {/* Buttons */}
-          <View className={`gap-2 ${hasCancel ? 'flex-row' : ''}`}>
+          <View className="gap-2" style={{ flexDirection: hasCancel ? 'row' : 'column' }}>
             {hasCancel && (
               <Pressable
                 onPress={handleCancel}
@@ -98,9 +97,8 @@ export default function AlertModal({
             )}
             <Pressable
               onPress={handleConfirm}
-              className={`${hasCancel ? 'flex-1' : 'w-full'} py-3 rounded-2xl items-center ${
-                isDestructive ? 'bg-red-500' : 'bg-primary'
-              }`}>
+              className="py-3 rounded-2xl items-center"
+              style={{ flex: hasCancel ? 1 : undefined, width: hasCancel ? undefined : '100%', backgroundColor: isDestructive ? colors.errorColor : colors.primary }}>
               <Text className="text-sm font-semibold text-white">
                 {confirmLabel ?? t.common.ok}
               </Text>

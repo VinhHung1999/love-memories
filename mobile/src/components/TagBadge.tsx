@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useAppColors } from '../navigation/theme';
 
 interface TagBadgeProps {
   label: string;
@@ -29,14 +30,14 @@ export default function TagBadge({
     );
   }
 
+  const colors = useAppColors();
   return (
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      className={`px-3 py-1.5 rounded-xl ${
-        active ? 'bg-primary' : 'bg-white/70 border border-border'
-      }`}>
-      <Text className={`text-xs font-semibold ${active ? 'text-white' : 'text-textMid'}`}>
+      className="px-3 py-1.5 rounded-xl border"
+      style={{ backgroundColor: active ? colors.primary : 'rgba(255,255,255,0.7)', borderColor: active ? colors.primary : colors.border }}>
+      <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
         {label}
       </Text>
     </Pressable>

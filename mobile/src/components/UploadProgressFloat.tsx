@@ -125,7 +125,7 @@ export default function UploadProgressFloat() {
           }}>
           {/* Header row */}
           <View className="flex-row items-center gap-3">
-            <View className={`w-8 h-8 rounded-xl items-center justify-center ${isComplete ? 'bg-green-50' : 'bg-primary/10'}`}>
+            <View className="w-8 h-8 rounded-xl items-center justify-center" style={{ backgroundColor: isComplete ? colors.successBg : colors.primaryMuted }}>
               <Icon
                 name={isComplete ? 'check-circle-outline' : 'cloud-upload-outline'}
                 size={16}
@@ -144,13 +144,14 @@ export default function UploadProgressFloat() {
 
           {/* Progress bar — always rendered to prevent Reanimated crash on unmount during animation */}
           <View
-            className={`h-1 rounded-full overflow-hidden ${isComplete ? 'bg-green-100' : 'bg-primary/15'}`}
+            className="h-1 rounded-full overflow-hidden"
+            style={{ backgroundColor: isComplete ? 'rgba(34,197,94,0.1)' : 'rgba(232,120,138,0.15)' }}
             onLayout={e => {
               trackWidthSV.value = e.nativeEvent.layout.width;
             }}>
             <Animated.View
-              className={`h-full rounded-full ${isComplete ? 'bg-green-500' : 'bg-primary'}`}
-              style={progressBarStyle}
+              className="h-full rounded-full"
+              style={[progressBarStyle, { backgroundColor: isComplete ? '#22c55e' : colors.primary }]}
             />
           </View>
         </View>
