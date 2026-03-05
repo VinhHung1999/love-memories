@@ -72,12 +72,10 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
               <Pressable
                 key={cat.key}
                 onPress={() => vm.setCategory(cat.key)}
-                style={{ minWidth: '22%' }}
-                className={`items-center gap-1 rounded-2xl px-3 py-2.5 border ${
-                  isSelected ? 'bg-primary/10 border-primary/30' : 'bg-white border-border/60'
-                }`}>
+                className="items-center gap-1 rounded-2xl px-3 py-2.5 border"
+                style={{ minWidth: '22%', backgroundColor: isSelected ? 'rgba(232,120,138,0.1)' : '#fff', borderColor: isSelected ? 'rgba(232,120,138,0.3)' : 'rgba(226,220,232,0.6)' }}>
                 <Text className="text-2xl">{cat.emoji}</Text>
-                <Text className={`text-[10px] font-semibold ${isSelected ? 'text-primary' : 'text-textMid'}`}>
+                <Text className="text-[10px] font-semibold" style={{ color: isSelected ? colors.primary : colors.textMid }}>
                   {cat.label}
                 </Text>
               </Pressable>

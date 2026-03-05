@@ -36,6 +36,7 @@ function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: nu
 // ── Price Range Picker ────────────────────────────────────────────────────────
 
 function PriceRangePicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const colors = useAppColors();
   return (
     <View className="flex-row gap-2 py-1">
       {[1, 2, 3, 4].map(i => {
@@ -44,10 +45,9 @@ function PriceRangePicker({ value, onChange }: { value: number; onChange: (v: nu
           <Pressable
             key={i}
             onPress={() => onChange(i)}
-            className={`px-3 py-1.5 rounded-xl border ${
-              active ? 'bg-secondary border-secondary' : 'bg-transparent border-border'
-            }`}>
-            <Text className={`text-sm font-semibold ${active ? 'text-white' : 'text-textMid'}`}>
+            className="px-3 py-1.5 rounded-xl border"
+            style={{ backgroundColor: active ? colors.secondary : 'transparent', borderColor: active ? colors.secondary : colors.border }}>
+            <Text className="text-sm font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
               {'$'.repeat(i)}
             </Text>
           </Pressable>

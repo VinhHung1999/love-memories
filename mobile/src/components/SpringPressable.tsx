@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Animated, Pressable, Vibration } from 'react-native';
+import { Animated, Pressable, StyleProp, ViewStyle, Vibration } from 'react-native';
 
 // style prop kept: Animated.Value transform cannot be expressed as a className
 export default function SpringPressable({
@@ -7,11 +7,13 @@ export default function SpringPressable({
   disabled,
   children,
   className: cls,
+  style,
 }: {
   onPress: () => void;
   disabled?: boolean;
   children: React.ReactNode;
   className?: string;
+  style?: StyleProp<ViewStyle>;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -25,7 +27,7 @@ export default function SpringPressable({
 
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} disabled={disabled}>
-      <Animated.View className={cls} style={{ transform: [{ scale }] }}>
+      <Animated.View className={cls} style={[style, { transform: [{ scale }] }]}>
         {children}
       </Animated.View>
     </Pressable>

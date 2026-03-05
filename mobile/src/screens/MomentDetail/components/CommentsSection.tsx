@@ -40,7 +40,8 @@ function CommentItem({
     <View className="flex-row gap-2.5 mb-3">
       {/* Avatar */}
       <View
-        className={`w-8 h-8 rounded-full items-center justify-center flex-shrink-0 ${isOwn ? 'bg-primary' : 'bg-accent'}`}>
+        className="w-8 h-8 rounded-full items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: isOwn ? colors.primary : colors.accent }}>
         <Text className="text-xs font-bold text-white">{initial}</Text>
       </View>
 

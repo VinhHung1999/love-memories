@@ -42,7 +42,7 @@ function ExpenseSkeleton() {
   return (
     <View className="bg-white mx-4 rounded-3xl overflow-hidden mb-3">
       {[0, 1, 2].map(i => (
-        <View key={i} className={`flex-row items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-border/40' : ''}`}>
+        <View key={i} className="flex-row items-center gap-3 px-4 py-3.5" style={{ borderTopWidth: i > 0 ? 1 : 0, borderTopColor: 'rgba(226,220,232,0.4)' }}>
           <Skeleton className="w-10 h-10 rounded-2xl" />
           <View className="flex-1">
             <Skeleton className="w-2/3 h-3.5 rounded-md mb-1.5" />
@@ -63,7 +63,8 @@ function ExpenseRow({ expense, isLast, onPress }: { expense: Expense; isLast: bo
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center gap-3 px-4 py-3.5 ${!isLast ? 'border-b border-border/40' : ''}`}>
+      className="flex-row items-center gap-3 px-4 py-3.5"
+      style={{ borderBottomWidth: !isLast ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
       <View
         className="w-10 h-10 rounded-2xl items-center justify-center flex-shrink-0"
         style={{ backgroundColor: getCategoryBg(expense.category) }}>
@@ -114,7 +115,7 @@ function SummaryCard({ total, count, breakdown }: {
               </View>
               <View className="flex-row items-center gap-1.5">
                 {cat.limitPct !== null && (
-                  <Text className={`text-[10px] font-bold ${cat.overLimit ? 'text-yellow-200' : 'text-white/60'}`}>
+                  <Text className="text-[10px] font-bold" style={{ color: cat.overLimit ? '#fef08a' : 'rgba(255,255,255,0.6)' }}>
                     {cat.limitPct}%
                   </Text>
                 )}
@@ -123,8 +124,8 @@ function SummaryCard({ total, count, breakdown }: {
             </View>
             <View className="h-1.5 bg-white/20 rounded-full overflow-hidden">
               <View
-                className={`h-full rounded-full ${cat.overLimit ? 'bg-yellow-300' : 'bg-white/70'}`}
-                style={{ width: `${Math.min(cat.limitPct ?? cat.percentage, 100)}%` }}
+                className="h-full rounded-full"
+                style={{ width: `${Math.min(cat.limitPct ?? cat.percentage, 100)}%`, backgroundColor: cat.overLimit ? '#fde047' : 'rgba(255,255,255,0.7)' }}
               />
             </View>
             {cat.overLimit && cat.limit !== null && (
@@ -264,7 +265,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
       {/* X-axis labels */}
       <View className="flex-row justify-around mt-1.5" style={{ paddingLeft: Y_AXIS_W }}>
         {weekData.map((day, i) => (
-          <Text key={i} className={`text-[9px] text-center ${day.isToday ? 'text-primary font-bold' : 'text-textLight'}`}>
+          <Text key={i} className="text-[9px] text-center" style={{ color: day.isToday ? colors.primary : colors.textLight, fontWeight: day.isToday ? 'bold' : 'normal' }}>
             {day.label}
           </Text>
         ))}
@@ -386,7 +387,7 @@ export default function ExpensesScreen() {
                             onPress={() => vm.setActiveCategory(cat.key as any)}
                           />
                           {limitInfo && cat.key !== 'all' && (
-                            <Text className={`text-[8px] mt-0.5 font-semibold ${limitInfo.over ? 'text-error' : 'text-textMid'}`}>
+                            <Text className="text-[8px] mt-0.5 font-semibold" style={{ color: limitInfo.over ? colors.errorColor : colors.textMid }}>
                               {limitInfo.pct}%
                             </Text>
                           )}

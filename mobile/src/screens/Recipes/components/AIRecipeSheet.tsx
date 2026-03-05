@@ -24,9 +24,10 @@ function ModeTab({ label, icon, active, onPress }: { label: string; icon: string
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${active ? 'bg-primary' : 'bg-gray-100'}`}>
+      className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl"
+      style={{ backgroundColor: active ? colors.primary : '#f3f4f6' }}>
       <Icon name={icon} size={14} color={active ? '#fff' : colors.textMid} />
-      <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-textMid'}`}>{label}</Text>
+      <Text className="text-[12px] font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>{label}</Text>
     </Pressable>
   );
 }

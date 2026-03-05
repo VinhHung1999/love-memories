@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 
 interface ReactionsBarProps {
@@ -10,6 +11,7 @@ interface ReactionsBarProps {
 }
 
 export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted, onToggle }: ReactionsBarProps) {
+  const colors = useAppColors();
   return (
     <View className="mb-4">
       <View className="flex-row items-center gap-2 mb-2">
@@ -27,11 +29,8 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
               <Pressable
                 key={emoji}
                 onPress={() => onToggle(emoji)}
-                className={`flex-row items-center gap-1 px-3 py-[6px] rounded-full border ${
-                  reacted
-                    ? 'bg-primary/12 border-primary/30'
-                    : 'bg-textDark/4 border-[rgba(196,168,168,0.2)]'
-                }`}>
+                className="flex-row items-center gap-1 px-3 py-[6px] rounded-full border"
+              style={{ backgroundColor: reacted ? colors.primaryMuted : 'rgba(26,22,36,0.04)', borderColor: reacted ? 'rgba(232,120,138,0.3)' : 'rgba(196,168,168,0.2)' }}>
                 <Text className="text-sm">{emoji}</Text>
                 {count > 0 ? (
                   <Text className="text-[11px] font-semibold text-textMid">{count}</Text>

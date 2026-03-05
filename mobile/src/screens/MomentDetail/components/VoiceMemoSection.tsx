@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import type { MomentAudio } from '../../../types';
 
@@ -21,6 +22,7 @@ function formatDuration(sec: number): string {
 const BAR_HEIGHTS = [8, 14, 20, 12, 22, 16, 10, 18, 24, 14, 8, 16, 20, 10, 14];
 
 function WaveformBars({ progress }: { progress: number }) {
+  const colors = useAppColors();
   const filledCount = Math.round(BAR_HEIGHTS.length * progress);
 
   return (
@@ -28,8 +30,8 @@ function WaveformBars({ progress }: { progress: number }) {
       {BAR_HEIGHTS.map((h, i) => (
         <View
           key={i}
-          className={`w-[3px] rounded-sm ${i < filledCount ? 'bg-primary' : 'bg-primaryLight'}`}
-          style={{ height: h }} // dynamic bar height — cannot be expressed as className
+          className="w-[3px] rounded-sm"
+          style={{ height: h, backgroundColor: i < filledCount ? colors.primary : colors.primaryLight }} // dynamic bar height — cannot be expressed as className
         />
       ))}
     </View>

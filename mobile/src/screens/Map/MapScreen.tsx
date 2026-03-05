@@ -89,13 +89,11 @@ function EmojiPickerModal({
                 <Pressable
                   key={cat.label}
                   onPress={() => setActiveCategory(i)}
-                  className={`px-3 py-1.5 rounded-xl border ${
-                    i === activeCategory ? 'bg-primary border-primary' : 'border-border'
-                  }`}>
+                  className="px-3 py-1.5 rounded-xl border"
+                  style={{ backgroundColor: i === activeCategory ? colors.primary : 'transparent', borderColor: i === activeCategory ? colors.primary : colors.border }}>
                   <Text
-                    className={`text-xs font-semibold ${
-                      i === activeCategory ? 'text-white' : 'text-textMid'
-                    }`}>
+                    className="text-xs font-semibold"
+                    style={{ color: i === activeCategory ? '#fff' : colors.textMid }}>
                     {cat.label}
                   </Text>
                 </Pressable>
@@ -167,9 +165,8 @@ function PinCallout({
           />
         ) : (
           <View
-            className={`w-20 h-20 m-3 rounded-xl items-center justify-center ${
-              isFood ? 'bg-secondary/10' : 'bg-primary/10'
-            }`}>
+            className="w-20 h-20 m-3 rounded-xl items-center justify-center"
+            style={{ backgroundColor: isFood ? colors.secondaryMuted : colors.primaryMuted }}>
             {pin.tagIcon ? (
               <Text className="text-3xl">{pin.tagIcon}</Text>
             ) : (
@@ -214,9 +211,8 @@ function PinCallout({
           ) : null}
           <TouchableOpacity
             onPress={onViewDetails}
-            className={`mt-2 px-3 py-1.5 rounded-xl self-start ${
-              isFood ? 'bg-secondary' : 'bg-primary'
-            }`}>
+            className="mt-2 px-3 py-1.5 rounded-xl self-start"
+            style={{ backgroundColor: isFood ? colors.secondary : colors.primary }}>
             <Text className="text-white text-[11px] font-semibold">{t.map.viewDetails}</Text>
           </TouchableOpacity>
         </View>
@@ -317,11 +313,10 @@ export default function MapScreen() {
               <Pressable
                 key={f.key}
                 onPress={() => vm.handleTypeFilter(f.key)}
-                className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border ${
-                  active ? 'bg-primary border-primary' : 'bg-transparent border-border'
-                }`}>
+                className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border"
+                style={{ backgroundColor: active ? colors.primary : 'transparent', borderColor: active ? colors.primary : colors.border }}>
                 <Icon name={f.icon} size={13} color={active ? '#fff' : colors.textMid} />
-                <Text className={`text-xs font-semibold ${active ? 'text-white' : 'text-textMid'}`}>
+                <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
                   {f.label}
                 </Text>
               </Pressable>

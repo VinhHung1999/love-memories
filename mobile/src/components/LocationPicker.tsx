@@ -207,9 +207,8 @@ export default function LocationPicker({
 
       {/* Input row */}
       <View
-        className={`flex-row items-center rounded-2xl border-[1.5px] px-[14px] h-[50px] bg-inputBg ${
-          isResolvingUrl ? 'border-primary/40' : 'border-border'
-        }`}>
+        className="flex-row items-center rounded-2xl border-[1.5px] px-[14px] h-[50px] bg-inputBg"
+        style={{ borderColor: isResolvingUrl ? colors.primaryShadow : colors.border }}>
         {isResolvingUrl ? (
           <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
         ) : (
@@ -269,9 +268,8 @@ export default function LocationPicker({
             <Pressable
               key={i}
               onPress={() => selectResult(r)}
-              className={`flex-row items-start gap-3 px-4 py-3 ${
-                i < results.length - 1 ? 'border-b border-border/40' : ''
-              }`}>
+              className="flex-row items-start gap-3 px-4 py-3"
+              style={{ borderBottomWidth: i < results.length - 1 ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.4)' }}>
               <Icon name="map-marker-outline" size={15} color={colors.primary} style={{ marginTop: 2 }} />
               <Text className="flex-1 text-sm text-textDark" numberOfLines={2}>
                 {cleanPlaceName(r.place_name)}

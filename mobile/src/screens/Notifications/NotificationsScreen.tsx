@@ -81,7 +81,8 @@ function NotificationRow({
     <Animated.View entering={FadeInDown.duration(300)}>
       <Pressable
         onPress={onPress}
-        className={`mb-2 mx-4 rounded-2xl overflow-hidden flex-row ${item.read ? 'opacity-70' : ''}`}>
+        className="mb-2 mx-4 rounded-2xl overflow-hidden flex-row"
+        style={{ opacity: item.read ? 0.7 : 1 }}>
         {/* Left unread accent bar */}
         {!item.read && <View className="w-[3px] bg-primary self-stretch" />}
 
@@ -94,7 +95,8 @@ function NotificationRow({
           {/* Text */}
           <View className="flex-1">
             <Text
-              className={`text-sm leading-snug ${item.read ? 'font-medium text-textMid' : 'font-semibold text-textDark'}`}
+              className="text-sm leading-snug"
+              style={{ fontWeight: item.read ? '500' : '600', color: item.read ? colors.textMid : colors.textDark }}
               numberOfLines={2}>
               {item.title}
             </Text>

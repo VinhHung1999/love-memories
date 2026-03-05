@@ -150,13 +150,13 @@ function FilterChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const colors = useAppColors();
   return (
     <Pressable
       onPress={onPress}
-      className={`px-3 py-1.5 rounded-xl border ${
-        active ? 'bg-primary border-primary' : 'bg-white border-border'
-      }`}>
-      <Text className={`text-xs font-semibold ${active ? 'text-white' : 'text-textMid'}`}>
+      className="px-3 py-1.5 rounded-xl border"
+      style={{ backgroundColor: active ? colors.primary : '#fff', borderColor: active ? colors.primary : colors.border }}>
+      <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
         {label}
       </Text>
     </Pressable>

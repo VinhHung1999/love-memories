@@ -38,7 +38,7 @@ function InfoRow({
 }) {
   const colors = useAppColors();
   const inner = (
-    <View className={`flex-row items-center justify-between py-[14px] ${isLast ? '' : 'border-b border-border/50'}`}>
+    <View className="flex-row items-center justify-between py-[14px]" style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: 'rgba(226,220,232,0.5)' }}>
       <Text className="text-sm text-textMid flex-1">{label}</Text>
       <View className="flex-row items-center gap-2">
         <Text className="text-sm font-medium text-textDark">{value}</Text>
@@ -192,9 +192,8 @@ export default function ProfileScreen() {
                     </View>
                     <Pressable
                       onPress={vm.copyInviteCode}
-                      className={`w-11 h-11 rounded-xl items-center justify-center border ${
-                        vm.codeCopied ? 'bg-green-50 border-green-200' : 'border-primary/30 bg-primary/[6%]'
-                      }`}>
+                      className="w-11 h-11 rounded-xl items-center justify-center border"
+                      style={{ backgroundColor: vm.codeCopied ? colors.successBg : 'rgba(232,120,138,0.06)', borderColor: vm.codeCopied ? 'rgba(34,197,94,0.3)' : 'rgba(232,120,138,0.3)' }}>
                       <Icon
                         name={vm.codeCopied ? 'check' : 'content-copy'}
                         size={17}

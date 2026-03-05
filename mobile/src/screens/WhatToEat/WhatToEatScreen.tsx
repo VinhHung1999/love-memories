@@ -33,11 +33,8 @@ function RecipePickCard({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center gap-3 p-3 rounded-2xl mb-2 border ${
-        selected
-          ? 'bg-primary/[8%] border-primary/40'
-          : 'bg-white border-border/50'
-      }`}>
+      className="flex-row items-center gap-3 p-3 rounded-2xl mb-2 border"
+      style={{ backgroundColor: selected ? 'rgba(232,120,138,0.08)' : '#fff', borderColor: selected ? 'rgba(232,120,138,0.4)' : 'rgba(226,220,232,0.5)' }}>
 
       {/* Thumbnail */}
       <View className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
@@ -84,9 +81,8 @@ function RecipePickCard({
 
       {/* Checkbox */}
       <View
-        className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-          selected ? 'bg-primary border-primary' : 'border-border'
-        }`}>
+        className="w-6 h-6 rounded-full border-2 items-center justify-center"
+        style={{ backgroundColor: selected ? colors.primary : 'transparent', borderColor: selected ? colors.primary : colors.border }}>
         {selected ? <Icon name="check" size={13} color="#fff" /> : null}
       </View>
     </Pressable>

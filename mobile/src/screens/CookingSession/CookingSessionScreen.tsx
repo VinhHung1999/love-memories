@@ -34,9 +34,8 @@ function PhaseBar({ status }: { status: string }) {
         return (
           <React.Fragment key={phase}>
             <View
-              className={`w-7 h-7 rounded-full items-center justify-center ${
-                done ? 'bg-green-500' : active ? 'bg-primary' : 'bg-gray-100'
-              }`}>
+              className="w-7 h-7 rounded-full items-center justify-center"
+              style={{ backgroundColor: done ? '#22c55e' : active ? colors.primary : '#f3f4f6' }}>
               <Icon
                 name={done ? 'check' : PHASE_ICONS[idx]}
                 size={14}
@@ -44,7 +43,7 @@ function PhaseBar({ status }: { status: string }) {
               />
             </View>
             {idx < PHASES.length - 1 ? (
-              <View className={`flex-1 h-0.5 mx-0.5 ${idx < currentIdx ? 'bg-green-500' : 'bg-gray-200'}`} />
+              <View className="flex-1 h-0.5 mx-0.5" style={{ backgroundColor: idx < currentIdx ? '#22c55e' : '#e5e7eb' }} />
             ) : null}
           </React.Fragment>
         );
@@ -98,19 +97,16 @@ function ShoppingPhase({
             <Pressable
               key={item.id}
               onPress={() => onToggleItem(item.id, !item.checked)}
-              className={`flex-row items-center gap-3 px-4 py-3 ${
-                idx < session.items.length - 1 ? 'border-b border-border/30' : ''
-              }`}>
+              className="flex-row items-center gap-3 px-4 py-3"
+              style={{ borderBottomWidth: idx < session.items.length - 1 ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.3)' }}>
               <View
-                className={`w-5 h-5 rounded-md border-2 items-center justify-center ${
-                  item.checked ? 'bg-green-500 border-green-500' : 'border-border'
-                }`}>
+                className="w-5 h-5 rounded-md border-2 items-center justify-center"
+                style={{ backgroundColor: item.checked ? '#22c55e' : 'transparent', borderColor: item.checked ? '#22c55e' : colors.border }}>
                 {item.checked ? <Icon name="check" size={11} color="#fff" /> : null}
               </View>
               <Text
-                className={`flex-1 text-sm ${
-                  item.checked ? 'line-through text-textLight' : 'text-textDark'
-                }`}>
+                className="flex-1 text-sm"
+              style={{ color: item.checked ? colors.textLight : colors.textDark, textDecorationLine: item.checked ? 'line-through' : 'none' }}>
                 {item.ingredient}
               </Text>
               {item.price ? (
@@ -199,18 +195,16 @@ function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
   return (
     <Pressable
       onPress={handlePress}
-      className={`flex-row items-center gap-1 mt-1 px-2 py-1 rounded-lg self-start ${
-        isDone ? 'bg-green-100' : isRunning ? 'bg-primary/10' : 'bg-gray-100'
-      }`}>
+      className="flex-row items-center gap-1 mt-1 px-2 py-1 rounded-lg self-start"
+      style={{ backgroundColor: isDone ? 'rgba(34,197,94,0.1)' : isRunning ? colors.primaryMuted : '#f3f4f6' }}>
       <Icon
         name={isDone ? 'check-circle' : isRunning ? 'timer' : 'timer-outline'}
         size={12}
         color={isDone ? colors.success : isRunning ? colors.primary : colors.textLight}
       />
       <Text
-        className={`text-[11px] font-semibold ${
-          isDone ? 'text-green-600' : isRunning ? 'text-primary' : 'text-textLight'
-        }`}>
+        className="text-[11px] font-semibold"
+        style={{ color: isDone ? '#16a34a' : isRunning ? colors.primary : colors.textLight }}>
         {isDone ? 'Done!' : display}
       </Text>
     </Pressable>
@@ -309,13 +303,11 @@ function CookingPhase({
                   <Pressable
                     key={step.id}
                     onPress={() => onToggleStep(step.id, !step.checked)}
-                    className={`flex-row gap-3 px-4 py-3 ${
-                      idx < stepsForRecipe.length - 1 ? 'border-b border-border/30' : ''
-                    }`}>
+                    className="flex-row gap-3 px-4 py-3"
+                    style={{ borderBottomWidth: idx < stepsForRecipe.length - 1 ? 1 : 0, borderBottomColor: 'rgba(226,220,232,0.3)' }}>
                     <View
-                      className={`w-6 h-6 rounded-full items-center justify-center flex-shrink-0 mt-0.5 ${
-                        step.checked ? 'bg-green-500' : 'bg-primary/10'
-                      }`}>
+                      className="w-6 h-6 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ backgroundColor: step.checked ? '#22c55e' : colors.primaryMuted }}>
                       {step.checked ? (
                         <Icon name="check" size={12} color="#fff" />
                       ) : (
@@ -324,9 +316,8 @@ function CookingPhase({
                     </View>
                     <View className="flex-1">
                       <Text
-                        className={`text-sm leading-relaxed ${
-                          step.checked ? 'line-through text-textLight' : 'text-textDark'
-                        }`}>
+                        className="text-sm leading-relaxed"
+                      style={{ color: step.checked ? colors.textLight : colors.textDark, textDecorationLine: step.checked ? 'line-through' : 'none' }}>
                         {step.content}
                       </Text>
                       {step.durationSeconds ? (
