@@ -78,9 +78,10 @@ function SummaryCard({ total, count, breakdown }: {
   count: number;
   breakdown: ReturnType<typeof useExpensesViewModel>['categoryBreakdown'];
 }) {
+  const themeColors = useAppColors();
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden">
-      <LinearGradient colors={['#E8788A', '#F4A261']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.8 }} className="px-5 pt-5 pb-4">
+      <LinearGradient colors={[themeColors.primary, themeColors.secondary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.8 }} className="px-5 pt-5 pb-4">
         <Text className="text-white/80 text-xs font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Text>
         <Text className="text-white text-3xl font-bold mb-1">{total}</Text>
         <Text className="text-white/60 text-xs mb-4">{count} {t.expenses.transactions}</Text>
@@ -131,7 +132,7 @@ function DailySpendingChart({ dailyStats }: { dailyStats: DailyStats }) {
           {activeCategories.map(cat => (
             <View key={cat} className="flex-row items-center gap-1">
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CATEGORY_CHART_COLORS[cat] }} />
-              <Text className="text-[9px] text-textLight">{cat}</Text>
+              <Text className="text-[9px] text-textLight">{EXPENSE_CATEGORIES.find(c => c.key === cat)?.label ?? cat}</Text>
             </View>
           ))}
         </View>

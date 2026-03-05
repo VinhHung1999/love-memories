@@ -32,6 +32,7 @@ export function useAddExpenseViewModel(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['expenses-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses-daily'] });
       onClose();
     },
     onError: () => setError('Failed to save expense'),
@@ -43,6 +44,7 @@ export function useAddExpenseViewModel(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['expenses-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses-daily'] });
       onClose();
     },
     onError: () => setError('Failed to save expense'),

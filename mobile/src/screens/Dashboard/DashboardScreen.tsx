@@ -21,7 +21,7 @@ import { useDashboardViewModel } from './useDashboardViewModel';
 import { useUnreadCount } from '../Notifications/useNotificationsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import Skeleton from '../../components/Skeleton';
-import { formatVND } from '../Expenses/expensesConstants';
+import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../Expenses/expensesConstants';
 
 // ── Count-up hook ─────────────────────────────────────────────────────────────
 
@@ -233,12 +233,11 @@ function ExpenseWidget({ stats, onPress }: { stats: ExpenseStats | null; onPress
         }))
     : [];
 
-  const catEmoji: Record<string, string> = {
-    food: '🍜', dating: '💑', shopping: '🛍️', transport: '🚗', gifts: '🎁', other: '📦',
-  };
-  const catLabel: Record<string, string> = {
-    food: 'Food', dating: 'Dating', shopping: 'Shopping', transport: 'Transport', gifts: 'Gifts', other: 'Other',
-  };
+  // Use shared constants from expensesConstants (avoids duplicating emoji/label maps)
+  const catEmoji = CATEGORY_EMOJI;
+  const catLabel: Record<string, string> = Object.fromEntries(
+    EXPENSE_CATEGORIES.filter(c => c.key !== 'all').map(c => [c.key, c.label]),
+  );
 
   return (
     <Animated.View entering={FadeInDown.delay(180).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
