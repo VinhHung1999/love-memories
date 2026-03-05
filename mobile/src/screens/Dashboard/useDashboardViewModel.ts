@@ -147,6 +147,9 @@ export function useDashboardViewModel() {
 
   const navigateToExpenses = () => navigation.navigate('ExpensesTab');
   const navigateToNotifications = () => navigation.navigate('NotificationsTab');
+  const navigateToLetters = () => navigation.navigate('LettersTab');
+  const navigateToDatePlanner = () => navigation.navigate('DatePlannerTab');
+  const navigateToAchievements = () => navigation.navigate('Achievements');
 
   // ── Derived display values ──────────────────────────────────────────────────
 
@@ -176,5 +179,8 @@ export function useDashboardViewModel() {
     handleAIRecipePress,
     navigateToExpenses,
     navigateToNotifications,
+    navigateToLetters,
+    navigateToDatePlanner,
+    navigateToAchievements,
   };
 }

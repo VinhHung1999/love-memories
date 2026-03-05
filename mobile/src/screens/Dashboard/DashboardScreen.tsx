@@ -518,6 +518,30 @@ export default function DashboardScreen() {
                   onPress={vm.navigateToExpenses}
                 />
               </View>
+              <View className="flex-row gap-3 mt-3">
+                <QuickActionButton
+                  icon="email-heart-outline"
+                  label={t.dashboard.quickActions.letters}
+                  iconColor={colors.primary}
+                  bgClass="bg-primary/10"
+                  onPress={vm.navigateToLetters}
+                />
+                <QuickActionButton
+                  icon="calendar-heart"
+                  label={t.dashboard.quickActions.datePlanner}
+                  iconColor={colors.secondary}
+                  bgClass="bg-secondary/10"
+                  onPress={vm.navigateToDatePlanner}
+                />
+                <QuickActionButton
+                  icon="trophy-outline"
+                  label={t.dashboard.quickActions.achievements}
+                  iconColor={colors.accent}
+                  bgClass="bg-accent/10"
+                  onPress={vm.navigateToAchievements}
+                />
+                <View className="flex-1" />
+              </View>
             </Animated.View>
 
             {/* ── 3. Expense Summary Widget ── */}

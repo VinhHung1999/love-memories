@@ -947,6 +947,203 @@ export const expensesApi = {
 
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+
+export const achievementsApi = {
+  list: async (): Promise<import('../types').Achievement[]> => {
+    const res = await apiFetch('/api/achievements');
+    if (!res.ok) throw new Error('Failed to fetch achievements');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+
+export const dateWishesApi = {
+  list: async (): Promise<import('../types').DateWish[]> => {
+    const res = await apiFetch('/api/date-wishes');
+    if (!res.ok) throw new Error('Failed to fetch wishes');
+    return res.json();
+  },
+  create: async (data: {
+    title: string;
+    description?: string;
+    category: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    url?: string;
+    tags?: string[];
+  }): Promise<import('../types').DateWish> => {
+    const res = await apiFetch('/api/date-wishes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create wish');
+    return res.json();
+  },
+  update: async (id: string, data: Partial<{
+    title: string;
+    description: string;
+    category: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    url: string;
+    tags: string[];
+  }>): Promise<import('../types').DateWish> => {
+    const res = await apiFetch(`/api/date-wishes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update wish');
+    return res.json();
+  },
+  markDone: async (id: string): Promise<import('../types').DateWish> => {
+    const res = await apiFetch(`/api/date-wishes/${id}/done`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('Failed to mark wish done');
+    return res.json();
+  },
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/date-wishes/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete wish');
+  },
+};
+
+// ---------------------------------------------------------------------------
+
+export const datePlansApi = {
+  list: async (): Promise<import('../types').DatePlan[]> => {
+    const res = await apiFetch('/api/date-plans');
+    if (!res.ok) throw new Error('Failed to fetch plans');
+    return res.json();
+  },
+  get: async (id: string): Promise<import('../types').DatePlan> => {
+    const res = await apiFetch(`/api/date-plans/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch plan');
+    return res.json();
+  },
+  create: async (data: {
+    title: string;
+    date: string;
+    notes?: string;
+    stops?: Array<{ time: string; title: string; description?: string; notes?: string; order?: number }>;
+  }): Promise<import('../types').DatePlan> => {
+    const res = await apiFetch('/api/date-plans', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create plan');
+    return res.json();
+  },
+  update: async (id: string, data: Partial<{
+    title: string;
+    date: string;
+    notes: string;
+    stops: Array<{ time: string; title: string; description?: string; notes?: string; order?: number }>;
+  }>): Promise<import('../types').DatePlan> => {
+    const res = await apiFetch(`/api/date-plans/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update plan');
+    return res.json();
+  },
+  updateStatus: async (id: string, status: string): Promise<import('../types').DatePlan> => {
+    const res = await apiFetch(`/api/date-plans/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) throw new Error('Failed to update plan status');
+    return res.json();
+  },
+  markStopDone: async (id: string, stopId: string): Promise<import('../types').DatePlanStop> => {
+    const res = await apiFetch(`/api/date-plans/${id}/stops/${stopId}/done`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('Failed to mark stop done');
+    return res.json();
+  },
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/date-plans/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete plan');
+  },
+};
+
+// ---------------------------------------------------------------------------
+
+export const loveLettersApi = {
+  received: async (): Promise<import('../types').LoveLetter[]> => {
+    const res = await apiFetch('/api/love-letters/received');
+    if (!res.ok) throw new Error('Failed to fetch received letters');
+    return res.json();
+  },
+  sent: async (): Promise<import('../types').LoveLetter[]> => {
+    const res = await apiFetch('/api/love-letters/sent');
+    if (!res.ok) throw new Error('Failed to fetch sent letters');
+    return res.json();
+  },
+  unreadCount: async (): Promise<{ count: number }> => {
+    const res = await apiFetch('/api/love-letters/unread-count');
+    if (!res.ok) throw new Error('Failed to fetch unread count');
+    return res.json();
+  },
+  get: async (id: string): Promise<import('../types').LoveLetter> => {
+    const res = await apiFetch(`/api/love-letters/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch letter');
+    return res.json();
+  },
+  create: async (data: { title: string; content: string; mood?: string }): Promise<import('../types').LoveLetter> => {
+    const res = await apiFetch('/api/love-letters', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create letter');
+    return res.json();
+  },
+  update: async (id: string, data: Partial<{ title: string; content: string; mood: string }>): Promise<import('../types').LoveLetter> => {
+    const res = await apiFetch(`/api/love-letters/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to update letter');
+    return res.json();
+  },
+  send: async (id: string): Promise<import('../types').LoveLetter> => {
+    const res = await apiFetch(`/api/love-letters/${id}/send`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('Failed to send letter');
+    return res.json();
+  },
+  delete: async (id: string): Promise<void> => {
+    const res = await apiFetch(`/api/love-letters/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete letter');
+  },
+  uploadPhoto: async (id: string, formData: FormData): Promise<import('../types').LetterPhoto> => {
+    const res = await apiFetch(`/api/love-letters/${id}/photos`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload photo');
+    return res.json();
+  },
+  deletePhoto: async (id: string, photoId: string): Promise<void> => {
+    const res = await apiFetch(`/api/love-letters/${id}/photos/${photoId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete photo');
+  },
+  uploadAudio: async (id: string, formData: FormData): Promise<import('../types').LetterAudio> => {
+    const res = await apiFetch(`/api/love-letters/${id}/audio`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload audio');
+    return res.json();
+  },
+  deleteAudio: async (id: string, audioId: string): Promise<void> => {
+    const res = await apiFetch(`/api/love-letters/${id}/audio/${audioId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete audio');
+  },
+};
+
+// ---------------------------------------------------------------------------
+
 export const settingsApi = {
   get: async (key: string): Promise<{ key: string; value: string | null }> => {
     const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);

@@ -25,12 +25,15 @@ export type AuthStackParamList = {
   Login: undefined;
 };
 
-/** Root stack for authenticated users — 5-tab MainTabs + 3 full-screen stacks */
+/** Root stack for authenticated users — 5-tab MainTabs + full-screen stacks */
 export type AppStackParamList = {
   MainTabs: undefined;
   RecipesTab: NavigatorScreenParams<RecipesStackParamList> | undefined;
   ExpensesTab: NavigatorScreenParams<ExpensesStackParamList> | undefined;
   NotificationsTab: NavigatorScreenParams<NotificationsStackParamList> | undefined;
+  DatePlannerTab: NavigatorScreenParams<DatePlannerStackParamList> | undefined;
+  LettersTab: NavigatorScreenParams<LettersStackParamList> | undefined;
+  Achievements: undefined;
 };
 
 /** Only the 5 visible bottom tabs */
@@ -87,6 +90,21 @@ export type ProfileStackParamList = {
   Alert: AlertParams;
 };
 
+export type DatePlannerStackParamList = {
+  WishesList: undefined;
+  PlansList: undefined;
+  PlanDetail: { planId: string };
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
+};
+
+export type LettersStackParamList = {
+  LettersList: undefined;
+  LetterRead: { letterId: string };
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
+};
+
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
@@ -96,6 +114,8 @@ const RecipesStack = createNativeStackNavigator<RecipesStackParamList>();
 const NotificationsStack = createNativeStackNavigator<NotificationsStackParamList>();
 const ExpensesStack = createNativeStackNavigator<ExpensesStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+const DatePlannerStack = createNativeStackNavigator<DatePlannerStackParamList>();
+const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 
 // ---------------------------------------------------------------------------
 // Auth stack (unauthenticated)
@@ -126,6 +146,12 @@ import CookingSessionScreen from '../screens/CookingSession/CookingSessionScreen
 import CookingHistoryScreen from '../screens/CookingHistory/CookingHistoryScreen';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import ExpensesScreen from '../screens/Expenses/ExpensesScreen';
+import AchievementsScreen from '../screens/Achievements/AchievementsScreen';
+import LettersScreen from '../screens/Letters/LettersScreen';
+import LetterReadScreen from '../screens/LetterRead/LetterReadScreen';
+import WishesScreen from '../screens/DateWishes/WishesScreen';
+import PlanListScreen from '../screens/DatePlans/PlanListScreen';
+import PlanDetailScreen from '../screens/PlanDetail/PlanDetailScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 
@@ -319,6 +345,37 @@ function MainTabNavigator() {
 }
 
 // ---------------------------------------------------------------------------
+// Date Planner stack navigator (full-screen, no tab bar)
+// ---------------------------------------------------------------------------
+
+function DatePlannerNavigator() {
+  return (
+    <DatePlannerStack.Navigator screenOptions={{ headerShown: false }}>
+      <DatePlannerStack.Screen name="WishesList" component={WishesScreen} />
+      <DatePlannerStack.Screen name="PlansList" component={PlanListScreen} />
+      <DatePlannerStack.Screen name="PlanDetail" component={PlanDetailScreen} />
+      <DatePlannerStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <DatePlannerStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+    </DatePlannerStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Letters stack navigator (full-screen, no tab bar)
+// ---------------------------------------------------------------------------
+
+function LettersNavigator() {
+  return (
+    <LettersStack.Navigator screenOptions={{ headerShown: false }}>
+      <LettersStack.Screen name="LettersList" component={LettersScreen} />
+      <LettersStack.Screen name="LetterRead" component={LetterReadScreen} />
+      <LettersStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <LettersStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+    </LettersStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // App navigator — root stack for authenticated users
 // Recipes / Expenses / Notifications open as full-screen (no tab bar)
 // ---------------------------------------------------------------------------
@@ -333,6 +390,9 @@ function AppNavigator() {
       <AppStack.Screen name="RecipesTab" component={RecipesNavigator} />
       <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} />
       <AppStack.Screen name="NotificationsTab" component={NotificationsNavigator} />
+      <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} />
+      <AppStack.Screen name="LettersTab" component={LettersNavigator} />
+      <AppStack.Screen name="Achievements" component={AchievementsScreen} />
     </AppStack.Navigator>
   );
 }
