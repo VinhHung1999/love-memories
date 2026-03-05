@@ -4,6 +4,7 @@ import { expensesApi, type Expense, type ExpenseCategory, type DailyStats } from
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { formatVND, EXPENSE_CATEGORIES } from './expensesConstants';
 import AddExpenseSheet from './AddExpenseSheet';
+import BudgetLimitsSheet from './BudgetLimitsSheet';
 
 export type CategoryFilter = ExpenseCategory | 'all';
 
@@ -35,9 +36,17 @@ export function useExpensesViewModel() {
     queryFn: () => expensesApi.stats(selectedMonthKey),
   });
 
-  const { data: dailyStats } = useQuery<DailyStats>({
-    queryKey: ['expenses-daily', selectedMonthKey],
-    queryFn: () => expensesApi.dailyStats(selectedMonthKey),
+  // Always fetch current month daily stats for the weekly chart
+  const { data: currentDailyStats } = useQuery<DailyStats>({
+    queryKey: ['expenses-daily', currentMonthKey],
+    queryFn: () => expensesApi.dailyStats(currentMonthKey),
+    staleTime: 60_000,
+  });
+
+  const { data: limits = {} } = useQuery<Record<string, number | null>>({
+    queryKey: ['expenses-limits'],
+    queryFn: expensesApi.getLimits,
+    staleTime: 60_000,
   });
 
   const deleteMutation = useMutation({
@@ -73,7 +82,7 @@ export function useExpensesViewModel() {
       }));
   }, [filtered]);
 
-  // Category breakdown for summary card
+  // Category breakdown for summary card — includes limit info
   const categoryBreakdown = useMemo(() => {
     if (!stats) return [];
     const total = stats.total || 1;
@@ -82,6 +91,8 @@ export function useExpensesViewModel() {
       .map(c => {
         const cat = stats.byCategory[c.key as ExpenseCategory];
         const amount = cat?.total ?? 0;
+        const limit = limits[c.key] ?? null;
+        const limitPct = limit !== null && limit > 0 ? Math.round((amount / limit) * 100) : null;
         return {
           key: c.key,
           emoji: c.emoji,
@@ -89,16 +100,18 @@ export function useExpensesViewModel() {
           amount,
           percentage: Math.round((amount / total) * 100),
           formattedAmount: formatVND(amount),
+          limit,
+          limitPct,
+          overLimit: limit !== null && amount > limit,
         };
       })
       .filter(c => c.amount > 0)
       .sort((a, b) => b.amount - a.amount);
-  }, [stats]);
+  }, [stats, limits]);
 
   const prevMonth = useCallback(() => {
     setMonth(prev => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() - 1);
+      const d = new Date(prev.getFullYear(), prev.getMonth() - 1, 1);
       return d;
     });
   }, []);
@@ -106,8 +119,7 @@ export function useExpensesViewModel() {
   const nextMonth = useCallback(() => {
     if (isCurrentMonth) return;
     setMonth(prev => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() + 1);
+      const d = new Date(prev.getFullYear(), prev.getMonth() + 1, 1);
       return d;
     });
   }, [isCurrentMonth]);
@@ -124,6 +136,10 @@ export function useExpensesViewModel() {
     deleteMutation.mutate(id);
   }, [deleteMutation]);
 
+  const handleOpenBudget = useCallback(() => {
+    navigation.showBottomSheet(BudgetLimitsSheet);
+  }, [navigation]);
+
   return {
     // state
     monthLabel: monthLabel(month),
@@ -139,12 +155,14 @@ export function useExpensesViewModel() {
     totalCount: stats?.count ?? 0,
     categoryBreakdown,
     formattedTotal: formatVND(stats?.total ?? 0),
-    dailyStats: dailyStats ?? null,
+    currentDailyStats: currentDailyStats ?? null,
+    limits,
     // actions
     prevMonth,
     nextMonth,
     handleExpensePress,
     handleAdd,
     handleDelete,
+    handleOpenBudget,
   };
 }

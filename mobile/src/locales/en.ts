@@ -532,7 +532,17 @@ const en = {
     },
     deleteConfirm: 'Delete this expense?',
     chart: {
-      title: 'Daily Spending',
+      title: 'This Week',
+    },
+    budget: {
+      title: 'Budget Limits',
+      subtitle: 'Monthly spending limits per category',
+      noLimit: 'No limit',
+      saved: 'Budget saved',
+      saveFailed: 'Failed to save budget',
+      hint: 'Leave blank to remove limit',
+      overBudget: 'Over budget',
+      settings: 'Budget',
     },
   },
 

@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Pressable,
   RefreshControl,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -30,9 +29,13 @@ import {
   getCategoryBg,
   CATEGORY_CHART_COLORS,
   CHART_CATEGORY_ORDER,
+  formatShortVND,
+  computeChartTicks,
 } from './expensesConstants';
 
-// -- Skeleton --
+// ─────────────────────────────────────────────────────────────────────────────
+// Skeleton
+// ─────────────────────────────────────────────────────────────────────────────
 
 function ExpenseSkeleton() {
   return (
@@ -51,7 +54,9 @@ function ExpenseSkeleton() {
   );
 }
 
-// -- Expense Row --
+// ─────────────────────────────────────────────────────────────────────────────
+// Expense Row
+// ─────────────────────────────────────────────────────────────────────────────
 
 function ExpenseRow({ expense, isLast, onPress }: { expense: Expense; isLast: boolean; onPress: () => void }) {
   return (
@@ -72,7 +77,9 @@ function ExpenseRow({ expense, isLast, onPress }: { expense: Expense; isLast: bo
   );
 }
 
-// -- Summary Card --
+// ─────────────────────────────────────────────────────────────────────────────
+// Summary Card (with over-limit warnings)
+// ─────────────────────────────────────────────────────────────────────────────
 
 function SummaryCard({ total, count, breakdown }: {
   total: string;
@@ -80,11 +87,21 @@ function SummaryCard({ total, count, breakdown }: {
   breakdown: ReturnType<typeof useExpensesViewModel>['categoryBreakdown'];
 }) {
   const themeColors = useAppColors();
+  const overLimitCount = breakdown.filter(c => c.overLimit).length;
+
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden">
       <LinearGradient colors={[themeColors.primary, themeColors.secondary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.8 }} className="px-5 pt-5 pb-4">
         <Text className="text-white/80 text-xs font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Text>
-        <Text className="text-white text-3xl font-bold mb-1">{total}</Text>
+        <View className="flex-row items-end justify-between mb-1">
+          <Text className="text-white text-3xl font-bold">{total}</Text>
+          {overLimitCount > 0 && (
+            <View className="flex-row items-center gap-1 bg-white/20 rounded-full px-2.5 py-1">
+              <Text className="text-sm">⚠️</Text>
+              <Text className="text-white text-xs font-bold">{overLimitCount} over</Text>
+            </View>
+          )}
+        </View>
         <Text className="text-white/60 text-xs mb-4">{count} {t.expenses.transactions}</Text>
         {breakdown.map(cat => (
           <View key={cat.key} className="mb-2.5">
@@ -92,12 +109,28 @@ function SummaryCard({ total, count, breakdown }: {
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-sm">{cat.emoji}</Text>
                 <Text className="text-white/90 text-xs font-medium">{cat.label}</Text>
+                {cat.overLimit && <Text className="text-xs">⚠️</Text>}
               </View>
-              <Text className="text-white/80 text-xs font-semibold">{cat.percentage}%</Text>
+              <View className="flex-row items-center gap-1.5">
+                {cat.limitPct !== null && (
+                  <Text className={`text-[10px] font-bold ${cat.overLimit ? 'text-yellow-200' : 'text-white/60'}`}>
+                    {cat.limitPct}%
+                  </Text>
+                )}
+                <Text className="text-white/80 text-xs font-semibold">{cat.formattedAmount}</Text>
+              </View>
             </View>
             <View className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-              <View className="h-full bg-white/70 rounded-full" style={{ width: `${cat.percentage}%` }} />
+              <View
+                className={`h-full rounded-full ${cat.overLimit ? 'bg-yellow-300' : 'bg-white/70'}`}
+                style={{ width: `${Math.min(cat.limitPct ?? cat.percentage, 100)}%` }}
+              />
             </View>
+            {cat.overLimit && cat.limit !== null && (
+              <Text className="text-yellow-200 text-[9px] mt-0.5 text-right">
+                +{formatVND(cat.amount - cat.limit)} {t.expenses.budget.overBudget}
+              </Text>
+            )}
           </View>
         ))}
       </LinearGradient>
@@ -105,30 +138,54 @@ function SummaryCard({ total, count, breakdown }: {
   );
 }
 
-// -- Daily Spending Chart (View-based, no SVG needed) --
+// ─────────────────────────────────────────────────────────────────────────────
+// Weekly Spending Chart (View-based, 7-day Mon-Sun, Y-axis labels)
+// ─────────────────────────────────────────────────────────────────────────────
 
-function DailySpendingChart({ dailyStats }: { dailyStats: DailyStats }) {
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) {
   const { width } = useWindowDimensions();
-  const days = dailyStats.days;
 
-  if (!days || days.length === 0 || !days.some(d => d.total > 0)) return null;
+  // Compute Mon-Sun of current week
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const dow = today.getDay(); // 0=Sun
+  const diffToMon = dow === 0 ? -6 : -(dow - 1);
 
-  const CHART_W = width - 32; // mx-4 on both sides
-  const BAR_AREA_H = 100;
-  const BAR_GAP = 2;
-  const BAR_W = Math.max(3, Math.floor((CHART_W - BAR_GAP * days.length) / days.length));
-  const maxAmount = Math.max(...days.map(d => d.total), 1);
-  const labelInterval = days.length > 20 ? 5 : days.length > 10 ? 3 : 2;
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + diffToMon + i);
+    const dateStr = d.toISOString().slice(0, 10);
+    return { date: dateStr, label: DAY_LABELS[i]!, isToday: dateStr === todayStr };
+  });
 
-  const activeCategories = CHART_CATEGORY_ORDER.filter(cat => days.some(d => (d.byCategory[cat] ?? 0) > 0));
+  const dayDataMap = new Map(dailyStats?.days.map(d => [d.date, d]) ?? []);
+  const weekData = weekDays.map(wd => ({
+    ...wd,
+    total: dayDataMap.get(wd.date)?.total ?? 0,
+    byCategory: dayDataMap.get(wd.date)?.byCategory ?? {} as Record<string, number>,
+  }));
+
+  if (weekData.every(d => d.total === 0)) return null;
+
+  const maxAmount = Math.max(...weekData.map(d => d.total));
+  const ticks = computeChartTicks(maxAmount);
+  const tickMax = ticks[ticks.length - 1]!;
+
+  const BAR_AREA_H = 110;
+  const Y_AXIS_W = 38;
+  const BAR_W = Math.floor((width - 32 - Y_AXIS_W - 4) / 7) - 4;
+  const activeCategories = CHART_CATEGORY_ORDER.filter(cat =>
+    weekData.some(d => (d.byCategory[cat] ?? 0) > 0),
+  );
 
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="bg-white rounded-3xl overflow-hidden mx-4 mb-4 px-4 pt-4 pb-3">
+      {/* Header + legend */}
       <View className="flex-row items-center justify-between mb-3">
         <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">
           {t.expenses.chart.title}
         </Text>
-        {/* Legend */}
         <View className="flex-row flex-wrap gap-x-2 gap-y-1 justify-end max-w-[180px]">
           {activeCategories.map(cat => (
             <View key={cat} className="flex-row items-center gap-1">
@@ -139,48 +196,84 @@ function DailySpendingChart({ dailyStats }: { dailyStats: DailyStats }) {
         </View>
       </View>
 
-      {/* Bars */}
-      <View className="flex-row items-end" style={{ height: BAR_AREA_H, gap: BAR_GAP }}>
-        {days.map((day, i) => {
-          if (day.total === 0) {
-            return <View key={i} style={{ width: BAR_W, height: 2, backgroundColor: '#F1F0F3', borderRadius: 1 }} />;
-          }
-          const totalH = Math.max(2, Math.round((day.total / maxAmount) * BAR_AREA_H));
-          const segments = CHART_CATEGORY_ORDER
-            .map(cat => ({ cat, amount: day.byCategory[cat] ?? 0 }))
-            .filter(s => s.amount > 0);
+      {/* Chart: Y-axis + bars */}
+      <View className="flex-row">
+        {/* Y-axis labels: top (max) → bottom (0) */}
+        <View style={{ width: Y_AXIS_W, height: BAR_AREA_H, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 6 }}>
+          {ticks.slice().reverse().map((tick, i) => (
+            <Text key={i} className="text-[8px] text-textLight leading-none">
+              {formatShortVND(tick)}
+            </Text>
+          ))}
+        </View>
 
-          return (
-            <View key={i} style={{ width: BAR_W, height: totalH, borderRadius: 2, overflow: 'hidden', flexDirection: 'column-reverse' }}>
-              {segments.map(({ cat, amount }) => {
-                const segH = Math.max(1, Math.round((amount / day.total) * totalH));
-                return <View key={cat} style={{ width: BAR_W, height: segH, backgroundColor: CATEGORY_CHART_COLORS[cat] }} />;
-              })}
-            </View>
-          );
-        })}
+        {/* Bars area with gridlines */}
+        <View className="flex-1" style={{ height: BAR_AREA_H }}>
+          {/* Horizontal gridlines */}
+          {ticks.map((tick, i) => (
+            <View
+              key={i}
+              style={{
+                position: 'absolute', left: 0, right: 0,
+                bottom: i === 0 ? 0 : Math.round((tick / tickMax) * BAR_AREA_H) - 1,
+                height: 1,
+                backgroundColor: i === 0 ? '#E8E4EB' : '#F4F3F7',
+              }}
+            />
+          ))}
+
+          {/* Bars row */}
+          <View className="flex-row items-end justify-around" style={{ height: BAR_AREA_H }}>
+            {weekData.map((day, i) => {
+              const barH = day.total === 0
+                ? 0
+                : Math.max(3, Math.round((day.total / tickMax) * BAR_AREA_H));
+              const segments = CHART_CATEGORY_ORDER
+                .map(cat => ({ cat, amount: day.byCategory[cat] ?? 0 }))
+                .filter(s => s.amount > 0);
+
+              return (
+                <View key={i} className="items-center">
+                  {/* Today dot above bar */}
+                  {day.isToday && <View className="w-1.5 h-1.5 rounded-full bg-primary mb-0.5" />}
+                  <View style={{
+                    width: BAR_W,
+                    height: Math.max(barH, day.total === 0 ? 2 : 3),
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                    flexDirection: 'column-reverse',
+                    opacity: day.isToday ? 1 : 0.72,
+                    backgroundColor: day.total === 0 ? '#EDE9F2' : undefined,
+                  }}>
+                    {segments.map(({ cat, amount }) => {
+                      const segH = Math.max(1, Math.round((amount / day.total) * barH));
+                      return (
+                        <View key={cat} style={{ width: BAR_W, height: segH, backgroundColor: CATEGORY_CHART_COLORS[cat] }} />
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>
       </View>
 
       {/* X-axis labels */}
-      <View className="flex-row mt-1" style={{ gap: BAR_GAP }}>
-        {days.map((day, i) => {
-          const show = i === 0 || (i + 1) % labelInterval === 0 || i === days.length - 1;
-          return (
-            <View key={i} style={{ width: BAR_W }}>
-              {show ? (
-                <Text className="text-[8px] text-textLight text-center leading-none">
-                  {parseInt(day.date.slice(8), 10)}
-                </Text>
-              ) : null}
-            </View>
-          );
-        })}
+      <View className="flex-row justify-around mt-1.5" style={{ paddingLeft: Y_AXIS_W }}>
+        {weekData.map((day, i) => (
+          <Text key={i} className={`text-[9px] text-center ${day.isToday ? 'text-primary font-bold' : 'text-textLight'}`}>
+            {day.label}
+          </Text>
+        ))}
       </View>
     </Animated.View>
   );
 }
 
-// -- Main Screen --
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Screen
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function ExpensesScreen() {
   const colors = useAppColors();
@@ -188,18 +281,44 @@ export default function ExpensesScreen() {
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
+  // Build a quick map of limitPct/overLimit per category key for chip display
+  const chipLimitMap = React.useMemo(() => {
+    const map: Record<string, { pct: number; over: boolean } | null> = {};
+    for (const cat of EXPENSE_CATEGORIES) {
+      if (cat.key === 'all') { map[cat.key] = null; continue; }
+      const bd = vm.categoryBreakdown.find(b => b.key === cat.key);
+      map[cat.key] = bd?.limitPct !== null && bd?.limitPct !== undefined
+        ? { pct: bd.limitPct, over: bd.overLimit }
+        : null;
+    }
+    return map;
+  }, [vm.categoryBreakdown]);
+
   return (
     <View className="flex-1 bg-gray-50">
-      <CollapsibleHeader title={t.expenses.title} subtitle={t.expenses.subtitle}
-        expandedHeight={140} collapsedHeight={96} scrollY={scrollY}
+      <CollapsibleHeader
+        title={t.expenses.title}
+        subtitle={t.expenses.subtitle}
+        expandedHeight={140}
+        collapsedHeight={96}
+        scrollY={scrollY}
         renderRight={() => (
-          <TouchableOpacity
-            onPress={vm.handleAdd}
-            className="w-10 h-10 rounded-full items-center justify-center bg-primary"
-          >
-            <Icon name="plus" size={22} color="#fff" />
-          </TouchableOpacity>
-        )} />
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={vm.handleOpenBudget}
+              className="w-9 h-9 rounded-xl items-center justify-center bg-white/20"
+            >
+              <Icon name="tune-variant" size={18} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={vm.handleAdd}
+              className="w-10 h-10 rounded-full items-center justify-center bg-primary"
+            >
+              <Icon name="plus" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
 
       {/* Month navigation */}
       <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
@@ -220,63 +339,89 @@ export default function ExpensesScreen() {
         </Pressable>
       </View>
 
-      {vm.isLoading ? (
-        <ScrollView scrollEnabled={false} className="flex-1">
-          <View className="pt-4 pb-[100px]">
-            <View className="mx-4 mb-4 rounded-3xl overflow-hidden h-[180px] bg-gray-200 animate-pulse" />
-            <ExpenseSkeleton />
-          </View>
-        </ScrollView>
-      ) : vm.isEmpty && vm.categoryBreakdown.length === 0 ? (
-        <EmptyState icon="cash-multiple" title={t.expenses.emptyTitle}
-          subtitle={t.expenses.emptySubtitle} actionLabel={t.expenses.emptyAction} onAction={vm.handleAdd} />
-      ) : (
-        <Animated.ScrollView className="flex-1" showsVerticalScrollIndicator={false}
-          onScroll={scrollHandler} scrollEventThrottle={16}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={vm.refetch} tintColor={colors.primary} />}>
-          <View className="pt-4 pb-[140px]">
+      {/* Always use Animated.ScrollView to prevent Reanimated v4 unmount crash */}
+      <Animated.ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={vm.refetch} tintColor={colors.primary} />}
+      >
+        <View className="pt-4 pb-[140px]">
+          {vm.isLoading ? (
+            <>
+              <View className="mx-4 mb-4 rounded-3xl overflow-hidden h-[180px] bg-gray-200 animate-pulse" />
+              <ExpenseSkeleton />
+            </>
+          ) : vm.isEmpty && vm.categoryBreakdown.length === 0 ? (
+            <EmptyState
+              icon="cash-multiple"
+              title={t.expenses.emptyTitle}
+              subtitle={t.expenses.emptySubtitle}
+              actionLabel={t.expenses.emptyAction}
+              onAction={vm.handleAdd}
+            />
+          ) : (
+            <>
+              {vm.categoryBreakdown.length > 0 && (
+                <SummaryCard total={vm.formattedTotal} count={vm.totalCount} breakdown={vm.categoryBreakdown} />
+              )}
 
-            {vm.categoryBreakdown.length > 0 && (
-              <SummaryCard total={vm.formattedTotal} count={vm.totalCount} breakdown={vm.categoryBreakdown} />
-            )}
+              <WeeklySpendingChart dailyStats={vm.currentDailyStats} />
 
-            {vm.dailyStats ? <DailySpendingChart dailyStats={vm.dailyStats} /> : null}
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
-              <View className="flex-row gap-2 px-4 py-1">
-                {EXPENSE_CATEGORIES.map(cat => (
-                  <TagBadge key={cat.key} label={`${cat.emoji} ${cat.label}`}
-                    active={vm.activeCategory === cat.key}
-                    onPress={() => vm.setActiveCategory(cat.key as any)} />
-                ))}
-              </View>
-            </ScrollView>
-
-            {vm.isEmpty ? (
-              <View className="items-center py-12">
-                <Text className="text-textLight text-sm">{t.expenses.noExpenses}</Text>
-              </View>
-            ) : (
-              vm.groupedExpenses.map(group => (
-                <Animated.View key={group.dateLabel} entering={FadeInDown.duration(300)}>
-                  <View className="flex-row items-center justify-between px-5 mb-2">
-                    <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">{group.dateLabel}</Text>
-                    <Text className="text-xs font-semibold text-textMid">{formatVND(group.dayTotal)}</Text>
+              {/* Category filter chips with limit % indicator */}
+              <View className="mb-3">
+                <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row gap-2 px-4 py-1">
+                    {EXPENSE_CATEGORIES.map(cat => {
+                      const limitInfo = chipLimitMap[cat.key] ?? null;
+                      return (
+                        <View key={cat.key} className="items-center">
+                          <TagBadge
+                            label={`${cat.emoji} ${cat.label}`}
+                            active={vm.activeCategory === cat.key}
+                            onPress={() => vm.setActiveCategory(cat.key as any)}
+                          />
+                          {limitInfo && cat.key !== 'all' && (
+                            <Text className={`text-[8px] mt-0.5 font-semibold ${limitInfo.over ? 'text-error' : 'text-textMid'}`}>
+                              {limitInfo.pct}%
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
-                  <View className="bg-white mx-4 rounded-3xl shadow-sm overflow-hidden mb-3">
-                    {group.expenses.map((expense, idx) => (
-                      <ExpenseRow key={expense.id} expense={expense}
-                        isLast={idx === group.expenses.length - 1}
-                        onPress={() => vm.handleExpensePress(expense)} />
-                    ))}
-                  </View>
-                </Animated.View>
-              ))
-            )}
-          </View>
-        </Animated.ScrollView>
-      )}
+                </Animated.ScrollView>
+              </View>
 
+              {vm.isEmpty ? (
+                <View className="items-center py-12">
+                  <Text className="text-textLight text-sm">{t.expenses.noExpenses}</Text>
+                </View>
+              ) : (
+                vm.groupedExpenses.map(group => (
+                  <Animated.View key={group.dateLabel} entering={FadeInDown.duration(300)}>
+                    <View className="flex-row items-center justify-between px-5 mb-2">
+                      <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">{group.dateLabel}</Text>
+                      <Text className="text-xs font-semibold text-textMid">{formatVND(group.dayTotal)}</Text>
+                    </View>
+                    <View className="bg-white mx-4 rounded-3xl shadow-sm overflow-hidden mb-3">
+                      {group.expenses.map((expense, idx) => (
+                        <ExpenseRow
+                          key={expense.id}
+                          expense={expense}
+                          isLast={idx === group.expenses.length - 1}
+                          onPress={() => vm.handleExpensePress(expense)}
+                        />
+                      ))}
+                    </View>
+                  </Animated.View>
+                ))
+              )}
+            </>
+          )}
+        </View>
+      </Animated.ScrollView>
     </View>
   );
 }

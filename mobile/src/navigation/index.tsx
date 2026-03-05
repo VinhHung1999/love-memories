@@ -298,17 +298,17 @@ function MainNavigator() {
       <MainTab.Screen
         name="RecipesTab"
         component={RecipesNavigator}
-        options={{ tabBarButton: () => null }}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { width: 0, overflow: 'hidden' } }}
       />
       <MainTab.Screen
         name="ExpensesTab"
         component={ExpensesNavigator}
-        options={{ tabBarButton: () => null }}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { width: 0, overflow: 'hidden' } }}
       />
       <MainTab.Screen
         name="NotificationsTab"
         component={NotificationsNavigator}
-        options={{ tabBarButton: () => null }}
+        options={{ tabBarButton: () => null, tabBarItemStyle: { width: 0, overflow: 'hidden' } }}
       />
       <MainTab.Screen
         name="MapTab"
