@@ -11,7 +11,9 @@
  *   const colors = useAppColors();
  *   <View style={{ backgroundColor: colors.primary }} />
  */
-import { DefaultTheme, useTheme } from '@react-navigation/native';
+import React from 'react';
+import { DefaultTheme } from '@react-navigation/native';
+import { ThemeContext } from '@react-navigation/core';
 
 export const AppTheme = {
   ...DefaultTheme,
@@ -59,10 +61,12 @@ export const AppTheme = {
 export type AppColors = typeof AppTheme.colors;
 
 /**
- * Typed hook to access app colors from React Navigation theme.
- * Must be called inside a component rendered within NavigationContainer.
+ * Typed hook to access app colors.
+ * Uses React.useContext directly (returns undefined instead of throwing)
+ * with fallback to static AppTheme.colors — safe during screen transitions
+ * where NavigationContainer context may be temporarily unavailable.
  */
 export function useAppColors(): AppColors {
-  const { colors } = useTheme();
-  return colors as unknown as AppColors;
+  const theme = React.useContext(ThemeContext);
+  return ((theme?.colors ?? AppTheme.colors) as unknown) as AppColors;
 }

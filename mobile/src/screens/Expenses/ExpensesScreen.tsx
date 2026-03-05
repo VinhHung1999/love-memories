@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppColors, AppTheme } from '../../navigation/theme';
+import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Expense, DailyStats } from '../../lib/api';
 import { useExpensesViewModel } from './useExpensesViewModel';
@@ -325,7 +325,7 @@ export default function ExpensesScreen() {
       {/* Month navigation */}
       <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
         <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
-          <Icon name="chevron-left" size={18} color={AppTheme.colors.textMid} />
+          <Icon name="chevron-left" size={18} color={colors.textMid} />
         </Pressable>
         <View className="items-center">
           <Text className="text-base font-bold text-textDark">{vm.monthLabel}</Text>
@@ -337,7 +337,7 @@ export default function ExpensesScreen() {
         </View>
         <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
           className={`w-9 h-9 items-center justify-center rounded-xl ${vm.isCurrentMonth ? 'opacity-30' : 'bg-white shadow-sm'}`}>
-          <Icon name="chevron-right" size={18} color={AppTheme.colors.textMid} />
+          <Icon name="chevron-right" size={18} color={colors.textMid} />
         </Pressable>
       </View>
 

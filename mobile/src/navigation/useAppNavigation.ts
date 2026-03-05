@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useRef, useCallback, useMemo } from 'react';
+import { NavigationContext } from '@react-navigation/core';
 
 // ── AlertParams ───────────────────────────────────────────────────────────────
 
@@ -23,22 +23,31 @@ export interface BottomSheetParams {
 // ── useAppNavigation ──────────────────────────────────────────────────────────
 
 /**
- * Wraps useNavigation() and adds showBottomSheet / showAlert convenience methods.
- * All screens and ViewModels should prefer this over raw useNavigation().
+ * Safe navigation hook — uses React.useContext directly instead of useNavigation()
+ * to avoid throwing when NavigationContext is temporarily unavailable during
+ * screen transitions (react-native-screens Freeze/Suspense).
+ *
+ * Uses a ref so callbacks always reference the latest navigation object,
+ * even if the context value changes between renders.
  */
 export function useAppNavigation() {
-  const navigation = useNavigation<any>();
+  const navigation = React.useContext(NavigationContext) as any;
+  const navRef = useRef(navigation);
+  navRef.current = navigation;
 
-  return Object.assign(navigation, {
-    showBottomSheet: (
-      screen: React.ComponentType<any>,
-      props?: Record<string, any>,
-    ) => {
-      navigation.push('BottomSheet', { screen, props });
+  const showBottomSheet = useCallback(
+    (screen: React.ComponentType<any>, props?: Record<string, any>) => {
+      navRef.current?.push('BottomSheet', { screen, props });
     },
+    [],
+  );
 
-    showAlert: (params: AlertParams) => {
-      navigation.push('Alert', params);
-    },
-  });
+  const showAlert = useCallback((params: AlertParams) => {
+    navRef.current?.push('Alert', params);
+  }, []);
+
+  return useMemo(() => {
+    if (!navigation) return { showBottomSheet, showAlert } as any;
+    return Object.assign(navigation, { showBottomSheet, showAlert });
+  }, [navigation, showBottomSheet, showAlert]);
 }
