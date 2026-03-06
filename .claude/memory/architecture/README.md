@@ -248,3 +248,11 @@ Always respect this order when adding new overlay or panel components.
 - CookingSession 5-phase flow handled in single screen with phase-switcher (shopping/cooking/photo/rating/completed)
 - WhatToEat = recipe multi-select launcher → POST /api/cooking-sessions → navigate CookingSession with sessionId
 - CreateRecipeSheet uses useReducer with ADD/UPDATE/REMOVE_INGREDIENT and ADD/UPDATE/REMOVE_STEP actions for dynamic rows
+
+### Sprint 42: Date Planner + Love Letters + Achievements (mobile)
+- DatePlannerTab + LettersTab added to AppStack (full-screen, no tab bar); Achievements as single screen
+- AppBottomSheet sheet pattern: useRef<BottomSheetModal> + useEffect present() + onDismiss={onClose}
+- Sheets with custom action buttons use showHeader={false} + manual title in content (ComposeLetterSheet)
+- Sheets with single Save use onSave/isSaving/saveDisabled in header (WishFormSheet, PlanFormSheet)
+- RouteProp must come from @react-navigation/native, NOT @react-navigation/native-stack
+- draft-first letter flow: create draft → update → PATCH /send

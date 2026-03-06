@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // used in FAB
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useWishesViewModel, WISH_CATEGORIES } from './useWishesViewModel';
@@ -9,6 +9,7 @@ import WishCard from './components/WishCard';
 import WishFormSheet from './components/WishFormSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
+import HeaderIconButton from '../../components/HeaderIconButton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DateWish } from '../../types';
 
@@ -35,16 +36,8 @@ export default function WishesScreen() {
         scrollY={scrollY}
         renderRight={() => (
           <View className="flex-row gap-2">
-            <Pressable
-              onPress={vm.handleNavigatePlans}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-              <Icon name="calendar-heart" size={20} color="#fff" />
-            </Pressable>
-            <Pressable
-              onPress={vm.handleBack}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-              <Icon name="arrow-left" size={20} color="#fff" />
-            </Pressable>
+            <HeaderIconButton name="calendar-heart" onPress={vm.handleNavigatePlans} />
+            <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
           </View>
         )}
         renderFooter={() => (
@@ -135,7 +128,7 @@ export default function WishesScreen() {
                 wish={item}
                 onMarkDone={() => vm.handleMarkDone(item.id)}
                 onEdit={() => navigation.showBottomSheet(WishFormSheet, { initialWish: item })}
-                onDelete={() => vm.handleDelete(item.id)}
+                onDelete={() => vm.handleDeleteWithConfirm(item.id, navigation.showAlert)}
               />
             </Animated.View>
           )}

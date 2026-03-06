@@ -4,6 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LettersStackParamList } from '../../navigation';
 import { loveLettersApi } from '../../lib/api';
+import t from '../../locales/en';
+import type { AlertParams } from '../../navigation/useAppNavigation';
 
 export type LettersTab = 'inbox' | 'sent';
 type Nav = NativeStackNavigationProp<LettersStackParamList>;
@@ -42,6 +44,15 @@ export function useLettersViewModel() {
 
   const handleDelete = (id: string) => deleteMutation.mutate(id);
 
+  const handleDeleteWithConfirm = (id: string, showAlert: (p: AlertParams) => void) => {
+    showAlert({
+      title: t.loveLetters.deleteConfirm,
+      type: 'destructive',
+      confirmLabel: t.common.delete,
+      onConfirm: () => handleDelete(id),
+    });
+  };
+
   const letters = activeTab === 'inbox' ? received : sent;
   const isLoading = activeTab === 'inbox' ? loadingReceived : loadingSent;
   const isRefetching = activeTab === 'inbox' ? refetchingReceived : refetchingSent;
@@ -56,6 +67,7 @@ export function useLettersViewModel() {
     handleLetterPress,
     handleRefresh,
     handleDelete,
+    handleDeleteWithConfirm,
     handleBack: () => navigation.goBack(),
   };
 }

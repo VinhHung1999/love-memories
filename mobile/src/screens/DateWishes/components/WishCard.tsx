@@ -24,7 +24,7 @@ export default function WishCard({
     <View
       className="bg-white rounded-3xl px-4 py-3.5 mb-3 shadow-sm"
       style={{ opacity: wish.done ? 0.6 : 1 }}>
-      <View className="flex-row items-start gap-3">
+      <View className="flex-row items-center gap-3">
         {/* Category emoji */}
         <View
           className="w-11 h-11 rounded-2xl items-center justify-center mt-0.5"
@@ -63,8 +63,8 @@ export default function WishCard({
           ) : null}
         </View>
 
-        {/* Actions */}
-        <View className="gap-2 ml-1">
+        {/* Actions — horizontal row */}
+        <View className="flex-row gap-1.5 ml-1">
           {!wish.done ? (
             <Pressable
               onPress={onMarkDone}

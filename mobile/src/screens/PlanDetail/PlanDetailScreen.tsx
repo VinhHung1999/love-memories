@@ -91,21 +91,19 @@ export default function PlanDetailScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
-        {plan.stops.length === 0 ? (
+        {vm.sortedStops.length === 0 ? (
           <View className="items-center py-12 gap-2">
-            <Text className="text-textLight text-[14px]">No stops yet</Text>
+            <Text className="text-textLight text-[14px]">{t.datePlanner.noStops}</Text>
           </View>
         ) : (
-          plan.stops
-            .sort((a, b) => a.order - b.order)
-            .map((stop, idx) => (
-              <StopCard
-                key={stop.id}
-                stop={stop}
-                isLast={idx === plan.stops.length - 1}
-                onMarkDone={() => vm.handleMarkStopDone(stop.id)}
-              />
-            ))
+          vm.sortedStops.map((stop, idx) => (
+            <StopCard
+              key={stop.id}
+              stop={stop}
+              isLast={idx === vm.sortedStops.length - 1}
+              onMarkDone={() => vm.handleMarkStopDone(stop.id)}
+            />
+          ))
         )}
       </ScrollView>
     </View>

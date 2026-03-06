@@ -6,6 +6,7 @@ import type { DatePlannerStackParamList } from '../../navigation';
 import { dateWishesApi } from '../../lib/api';
 import type { DateWish } from '../../types';
 import t from '../../locales/en';
+import type { AlertParams } from '../../navigation/useAppNavigation';
 
 export type WishStatusFilter = 'all' | 'pending' | 'done';
 
@@ -64,6 +65,15 @@ export function useWishesViewModel() {
     handleRefresh: () => queryClient.invalidateQueries({ queryKey: ['wishes'] }),
     handleMarkDone: (id: string) => markDoneMutation.mutate(id),
     handleDelete: (id: string) => deleteMutation.mutate(id),
+    handleDeleteWithConfirm: (id: string, showAlert: (p: AlertParams) => void) => {
+      showAlert({
+        title: t.datePlanner.deleteWish,
+        message: t.datePlanner.deleteWishConfirm,
+        type: 'destructive',
+        confirmLabel: t.common.delete,
+        onConfirm: () => deleteMutation.mutate(id),
+      });
+    },
     handleNavigatePlans: () => navigation.navigate('PlansList'),
     handleBack: () => navigation.goBack(),
   };

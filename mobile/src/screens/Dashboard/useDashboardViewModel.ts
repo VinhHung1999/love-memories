@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
-import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi } from '../../lib/api';
+import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
 import type { ExpenseStats } from '../../lib/api';
 import t from '../../locales/en';
-import type { Moment, FoodSpot, CoupleProfile, CookingSession } from '../../types';
+import type { Moment, FoodSpot, CoupleProfile, CookingSession, DatePlan } from '../../types';
 
 export interface RelationshipDuration {
   years: number;
@@ -42,6 +42,14 @@ export function useDashboardViewModel() {
   const { data: expenseStats } = useQuery<ExpenseStats>({
     queryKey: ['expenses-stats', currentMonth],
     queryFn: () => expensesApi.stats(currentMonth),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: allPlans } = useQuery<DatePlan[]>({
+    queryKey: ['plans'],
+    queryFn: datePlansApi.list,
     enabled: !!user,
     staleTime: 60_000,
   });
@@ -111,6 +119,15 @@ export function useDashboardViewModel() {
     return { years, months, days, totalDays };
   }, [couple?.anniversaryDate, now]);
 
+  const upcomingPlans = useMemo<DatePlan[]>(
+    () =>
+      [...(allPlans ?? [])]
+        .filter(p => p.date >= today && p.status !== 'completed')
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, 3),
+    [allPlans, today],
+  );
+
   // ── Navigation handlers ─────────────────────────────────────────────────────
 
   const handleMomentPress = (momentId: string) => {
@@ -172,6 +189,7 @@ export function useDashboardViewModel() {
     isLoading: coupleLoading || momentsLoading || foodSpotsLoading,
     activeSession: activeSession ?? null,
     expenseStats: expenseStats ?? null,
+    upcomingPlans,
     handleMomentPress,
     handleFoodSpotPress,
     navigateTo,

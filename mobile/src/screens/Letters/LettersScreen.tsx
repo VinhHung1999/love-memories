@@ -10,6 +10,7 @@ import ComposeLetterSheet from './components/ComposeLetterSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
+import HeaderIconButton from '../../components/HeaderIconButton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 
 function LettersSkeleton() {
@@ -45,11 +46,7 @@ export default function LettersScreen() {
         collapsedHeight={96}
         scrollY={scrollY}
         renderRight={() => (
-          <Pressable
-            onPress={vm.handleBack}
-            className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-            <Icon name="arrow-left" size={20} color="#fff" />
-          </Pressable>
+          <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
         )}
         renderFooter={() => (
           <View className="flex-row gap-2 px-4 py-2 bg-card">
@@ -107,6 +104,7 @@ export default function LettersScreen() {
               <LetterCard
                 letter={item}
                 onPress={() => vm.handleLetterPress(item.id)}
+                onDelete={() => vm.handleDeleteWithConfirm(item.id, navigation.showAlert)}
                 showSender={vm.activeTab === 'inbox'}
               />
             </Animated.View>

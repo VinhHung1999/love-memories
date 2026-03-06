@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DatePlannerStackParamList } from '../../navigation';
 import { datePlansApi } from '../../lib/api';
+import t from '../../locales/en';
 
 type Nav = NativeStackNavigationProp<DatePlannerStackParamList>;
 type Route = RouteProp<DatePlannerStackParamList, 'PlanDetail'>;
@@ -36,18 +38,25 @@ export function usePlanDetailViewModel() {
     },
   });
 
+  // Issue 2: sorted stops in ViewModel (avoids mutating React Query cache with in-place sort)
+  const sortedStops = useMemo(
+    () => (plan ? [...plan.stops].sort((a, b) => a.order - b.order) : []),
+    [plan],
+  );
+
   const handleDeleteWithConfirm = (showAlert: (params: any) => void) => {
     showAlert({
-      title: 'Delete Plan',
-      message: 'Are you sure you want to delete this plan?',
+      title: t.datePlanner.deletePlan,
+      message: t.datePlanner.deletePlanConfirm,
       type: 'destructive',
-      confirmLabel: 'Delete',
+      confirmLabel: t.common.delete,
       onConfirm: () => deleteMutation.mutate(),
     });
   };
 
   return {
     plan,
+    sortedStops,
     isLoading,
     handleMarkStopDone: (stopId: string) => markStopMutation.mutate(stopId),
     handleDeleteWithConfirm,

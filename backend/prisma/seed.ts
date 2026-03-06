@@ -355,18 +355,125 @@ async function main() {
   });
   console.log('W08 FoodSpot: 1 created');
 
-  // 1 date plan in W08
-  await prisma.datePlan.create({
+  // ── Date Wishes ────────────────────────────────────────────────────────────
+  await prisma.dateWish.deleteMany({ where: { coupleId } });
+  await prisma.dateWish.createMany({
+    data: [
+      {
+        coupleId,
+        title: 'Ăn lẩu Haidilao',
+        description: 'Đi ăn lẩu cay đúng vị, thử dịch vụ VIP',
+        category: 'food',
+        address: 'Haidilao, Quận 1',
+        tags: ['lẩu', 'date-night'],
+        done: false,
+        createdBy: user.id,
+      },
+      {
+        coupleId,
+        title: 'Xem phim rạp CGV',
+        description: 'Xem phim mới ra rạp cuối tuần',
+        category: 'entertainment',
+        tags: ['phim', 'cuối tuần'],
+        done: false,
+        createdBy: user.id,
+      },
+      {
+        coupleId,
+        title: 'Picnic Thảo Cầm Viên',
+        description: 'Mang đồ ăn vào công viên ngồi chơi',
+        category: 'outdoor',
+        address: 'Thảo Cầm Viên, Quận 1',
+        latitude: 10.7875,
+        longitude: 106.7053,
+        tags: ['picnic', 'thiên nhiên'],
+        done: true,
+        doneAt: new Date('2026-02-15'),
+        createdBy: user.id,
+      },
+      {
+        coupleId,
+        title: 'Học làm gốm',
+        description: 'Đi workshop làm gốm cùng nhau',
+        category: 'activity',
+        tags: ['workshop', 'handmade'],
+        done: false,
+        createdBy: user.id,
+      },
+      {
+        coupleId,
+        title: 'Đi Đà Lạt cuối tuần',
+        description: 'Road trip 2 ngày 1 đêm lên Đà Lạt',
+        category: 'travel',
+        address: 'Đà Lạt, Lâm Đồng',
+        latitude: 11.9404,
+        longitude: 108.4583,
+        tags: ['trip', 'Đà Lạt', 'cuối tuần'],
+        done: false,
+        createdBy: user.id,
+      },
+    ],
+  });
+  console.log('DateWishes: 5 created (1 done)');
+
+  // ── Date Plans with stops ─────────────────────────────────────────────────
+  await prisma.datePlanStop.deleteMany();
+  await prisma.datePlan.deleteMany({ where: { coupleId } });
+
+  const plan1 = await prisma.datePlan.create({
     data: {
       coupleId,
       title: 'Cafe date cuối tuần',
       date: new Date('2026-02-22'),
       status: 'planned',
+      stops: {
+        create: [
+          { order: 0, time: '09:00', title: 'Ăn sáng bánh mì', address: 'Bánh mì Hòa Mã, Q3', done: false },
+          { order: 1, time: '10:30', title: 'Cafe The Workshop', address: '27 Ngô Đức Kế, Q1', done: false },
+          { order: 2, time: '12:00', title: 'Ăn trưa phở', address: 'Phở Hòa Pasteur, Q3', done: false },
+        ],
+      },
     },
   });
-  console.log('W08 DatePlan: 1 created');
+  console.log('DatePlan 1 (planned): 3 stops');
 
-  // 2 love letters (DELIVERED) in W08
+  await prisma.datePlan.create({
+    data: {
+      coupleId,
+      title: 'Date đêm Valentine muộn',
+      date: new Date('2026-02-20'),
+      status: 'completed',
+      notes: 'Date bù Valentine, rất vui!',
+      stops: {
+        create: [
+          { order: 0, time: '17:00', title: 'Đi dạo bờ sông', address: 'Bến Bạch Đằng, Q1', done: true, doneAt: new Date('2026-02-20T10:00:00Z') },
+          { order: 1, time: '18:30', title: 'Dinner Pizza 4P\'s', address: 'Pizza 4P\'s, Q1', done: true, doneAt: new Date('2026-02-20T11:30:00Z') },
+          { order: 2, time: '20:00', title: 'Uống cocktail', address: 'Chill Skybar, Q1', done: true, doneAt: new Date('2026-02-20T13:00:00Z') },
+          { order: 3, time: '21:30', title: 'Đi bộ về nhà', done: true, doneAt: new Date('2026-02-20T14:30:00Z') },
+        ],
+      },
+    },
+  });
+  console.log('DatePlan 2 (completed): 4 stops');
+
+  await prisma.datePlan.create({
+    data: {
+      coupleId,
+      title: 'Khám phá quận 4',
+      date: new Date('2026-03-08'),
+      status: 'active',
+      stops: {
+        create: [
+          { order: 0, time: '10:00', title: 'Cafe vintage', address: 'Là Việt Coffee, Q4', done: true, doneAt: new Date('2026-03-08T03:00:00Z') },
+          { order: 1, time: '12:00', title: 'Ăn hủ tiếu', address: 'Hủ tiếu Nam Vang, Q4', done: false },
+          { order: 2, time: '14:00', title: 'Mua sắm chợ', address: 'Chợ Xóm Chiếu, Q4', done: false },
+        ],
+      },
+    },
+  });
+  console.log('DatePlan 3 (active): 3 stops (1 done)');
+
+  // ── Love Letters (with moods) ─────────────────────────────────────────────
   if (partner) {
     await prisma.loveLetter.createMany({
       data: [
@@ -375,22 +482,55 @@ async function main() {
           senderId: user.id,
           recipientId: partner.id,
           title: 'Thư yêu thương',
-          content: 'Em yêu anh nhiều lắm! Cảm ơn vì mọi thứ anh đã làm cho em.',
+          content: 'Em yêu anh nhiều lắm! Cảm ơn vì mọi thứ anh đã làm cho em. Mỗi ngày bên anh đều là ngày đẹp nhất.',
+          mood: 'love',
           status: 'DELIVERED',
           deliveredAt: new Date('2026-02-18'),
+          readAt: new Date('2026-02-18'),
         },
         {
           coupleId,
           senderId: partner.id,
           recipientId: user.id,
           title: 'Nhớ em quá',
-          content: 'Anh nhớ em lắm, em ơi! Mỗi ngày được ở bên em là một ngày hạnh phúc.',
+          content: 'Anh nhớ em lắm, em ơi! Mỗi ngày được ở bên em là một ngày hạnh phúc. Không biết em có nhớ anh không?',
+          mood: 'miss',
           status: 'DELIVERED',
           deliveredAt: new Date('2026-02-20'),
         },
+        {
+          coupleId,
+          senderId: user.id,
+          recipientId: partner.id,
+          title: 'Cảm ơn anh',
+          content: 'Cảm ơn anh đã luôn ở bên em, kể cả những lúc em khó tính. Em hứa sẽ cố gắng hơn mỗi ngày!',
+          mood: 'grateful',
+          status: 'DELIVERED',
+          deliveredAt: new Date('2026-03-01'),
+          readAt: new Date('2026-03-01'),
+        },
+        {
+          coupleId,
+          senderId: partner.id,
+          recipientId: user.id,
+          title: 'Hẹn cuối tuần nhé',
+          content: 'Cuối tuần này mình đi đâu chơi đi em! Anh muốn dành cả ngày cho em. Chọn chỗ nào em thích nhé.',
+          mood: 'excited',
+          status: 'DELIVERED',
+          deliveredAt: new Date('2026-03-05'),
+        },
+        {
+          coupleId,
+          senderId: user.id,
+          recipientId: partner.id,
+          title: 'Bức thư chưa gửi',
+          content: 'Em đang viết thư này cho anh nhưng chưa biết nên gửi lúc nào...',
+          mood: 'love',
+          status: 'DRAFT',
+        },
       ],
     });
-    console.log('W08 LoveLetters: 2 DELIVERED created');
+    console.log('LoveLetters: 5 created (4 DELIVERED + 1 DRAFT)');
   }
 
   // Update existing DONE goal's updatedAt to fall in W08

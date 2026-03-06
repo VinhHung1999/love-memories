@@ -34,7 +34,7 @@ export default function WishFormSheet({
       saveDisabled={!vm.isValid || vm.isSaving}
       onDismiss={onClose}>
 
-      <View className="px-5 pb-10">
+      <View className="px-5 pt-4 pb-10">
         {vm.error ? <ErrorBox message={vm.error} /> : null}
 
         {/* Title */}

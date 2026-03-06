@@ -10,6 +10,7 @@ import PlanFormSheet from './components/PlanFormSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
+import HeaderIconButton from '../../components/HeaderIconButton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DatePlan } from '../../types';
 
@@ -47,16 +48,8 @@ export default function PlanListScreen() {
         scrollY={scrollY}
         renderRight={() => (
           <View className="flex-row gap-2">
-            <Pressable
-              onPress={vm.handleNavigateWishes}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-              <Icon name="heart-outline" size={20} color="#fff" />
-            </Pressable>
-            <Pressable
-              onPress={vm.handleBack}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-              <Icon name="arrow-left" size={20} color="#fff" />
-            </Pressable>
+            <HeaderIconButton name="heart-outline" onPress={vm.handleNavigateWishes} />
+            <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
           </View>
         )}
       />

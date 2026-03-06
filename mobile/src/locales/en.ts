@@ -151,6 +151,11 @@ const en = {
       label: '💰 This month',
       noData: 'No expenses yet 💸',
     },
+    datePlannerWidget: {
+      label: '📅 Upcoming Dates',
+      noData: 'No upcoming date plans',
+      stops: '{n} stops',
+    },
     activeCooking: 'Cooking Now',
     noMomentsYet: 'No moments yet\nAdd your first memory together',
     noFoodYet: 'No food spots yet',
@@ -684,6 +689,7 @@ const en = {
     statusActive: 'Active',
     statusCompleted: 'Completed',
     stopsProgress: '{done}/{total} stops',
+    noStops: 'No stops added yet',
     errors: {
       titleRequired: 'Please add a title',
       dateRequired: 'Please pick a date',

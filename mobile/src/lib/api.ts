@@ -82,7 +82,8 @@ export function setOnUnauthenticated(cb: OnUnauthenticated): void {
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
   const stored = await getStoredTokens();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    // Don't set Content-Type for FormData — let RN auto-generate multipart/form-data with boundary
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   };
   if (stored?.accessToken) {
@@ -1000,7 +1001,7 @@ export const dateWishesApi = {
     return res.json();
   },
   markDone: async (id: string): Promise<import('../types').DateWish> => {
-    const res = await apiFetch(`/api/date-wishes/${id}/done`, { method: 'PATCH' });
+    const res = await apiFetch(`/api/date-wishes/${id}/done`, { method: 'PUT' });
     if (!res.ok) throw new Error('Failed to mark wish done');
     return res.json();
   },
@@ -1058,7 +1059,7 @@ export const datePlansApi = {
     return res.json();
   },
   markStopDone: async (id: string, stopId: string): Promise<import('../types').DatePlanStop> => {
-    const res = await apiFetch(`/api/date-plans/${id}/stops/${stopId}/done`, { method: 'PATCH' });
+    const res = await apiFetch(`/api/date-plans/${id}/stops/${stopId}/done`, { method: 'PUT' });
     if (!res.ok) throw new Error('Failed to mark stop done');
     return res.json();
   },

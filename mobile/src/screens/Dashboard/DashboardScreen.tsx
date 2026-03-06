@@ -22,6 +22,7 @@ import { useUnreadCount } from '../Notifications/useNotificationsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import Skeleton from '../../components/Skeleton';
 import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../Expenses/expensesConstants';
+import type { DatePlan } from '../../types';
 
 // ── Count-up hook ─────────────────────────────────────────────────────────────
 
@@ -295,6 +296,69 @@ function ExpenseWidget({ stats, onPress }: { stats: ExpenseStats | null; onPress
   );
 }
 
+// ── DatePlannerWidget ─────────────────────────────────────────────────────────
+
+function DatePlannerWidget({ plans, onPress }: { plans: DatePlan[]; onPress: () => void }) {
+  const colors = useAppColors();
+  const hasPlans = plans.length > 0;
+
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  const statusColor = (status: string) =>
+    status === 'active' ? colors.primary :
+    status === 'completed' ? colors.accent :
+    colors.secondary;
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
+      <Pressable onPress={onPress}>
+        <LinearGradient
+          colors={[colors.secondary, '#E06A32']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="px-5 pt-4 pb-5">
+          <View className="flex-row items-center gap-2 mb-3">
+            <View className="w-7 h-7 rounded-xl bg-white/15 items-center justify-center">
+              <Icon name="calendar-heart" size={14} color="#fff" />
+            </View>
+            <Text className="text-[11px] font-semibold text-white/50 tracking-[0.8px] uppercase">
+              {t.dashboard.datePlannerWidget.label}
+            </Text>
+          </View>
+          {!hasPlans ? (
+            <Text className="text-sm text-white/40 italic">
+              {t.dashboard.datePlannerWidget.noData}
+            </Text>
+          ) : (
+            <View className="gap-2">
+              {plans.map(plan => (
+                <View key={plan.id} className="flex-row items-center gap-3">
+                  <View className="w-1 h-full rounded-full bg-white/30" />
+                  <View className="flex-1">
+                    <Text className="text-[13px] font-semibold text-white" numberOfLines={1}>
+                      {plan.title}
+                    </Text>
+                    <Text className="text-[11px] text-white/60 mt-0.5">{fmtDate(plan.date)}</Text>
+                  </View>
+                  <View
+                    className="rounded-full px-2 py-0.5"
+                    style={{ backgroundColor: statusColor(plan.status) + '40' }}>
+                    <Text className="text-[10px] font-semibold text-white">
+                      {t.dashboard.datePlannerWidget.stops.replace('{n}', String(plan.stops.length))}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ── FoodHighlightCard ─────────────────────────────────────────────────────────
 
 function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }) {
@@ -546,6 +610,9 @@ export default function DashboardScreen() {
 
             {/* ── 3. Expense Summary Widget ── */}
             <ExpenseWidget stats={vm.expenseStats} onPress={vm.navigateToExpenses} />
+
+            {/* ── 3b. Date Planner Widget ── */}
+            <DatePlannerWidget plans={vm.upcomingPlans} onPress={vm.navigateToDatePlanner} />
 
             {/* ── 4. Food Highlights ── */}
             {vm.recentFoodSpots.length > 0 ? (
