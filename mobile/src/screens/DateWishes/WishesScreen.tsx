@@ -13,9 +13,9 @@ import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DateWish } from '../../types';
 
 const STATUS_FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'pending', label: '⏳ Pending' },
-  { key: 'done', label: '✅ Done' },
+  { key: 'all', label: t.datePlanner.allFilter },
+  { key: 'pending', label: `⏳ ${t.datePlanner.pendingFilter}` },
+  { key: 'done', label: `✅ ${t.datePlanner.doneFilter}` },
 ] as const;
 
 export default function WishesScreen() {
@@ -81,7 +81,7 @@ export default function WishesScreen() {
                   <Text
                     className="text-[12px] font-semibold"
                     style={{ color: !vm.categoryFilter ? '#fff' : colors.textMid }}>
-                    All
+                    {t.datePlanner.allFilter}
                   </Text>
                 </Pressable>
                 {WISH_CATEGORIES.map(cat => (

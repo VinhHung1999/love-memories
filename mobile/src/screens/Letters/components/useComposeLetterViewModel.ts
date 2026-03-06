@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { loveLettersApi } from '../../../lib/api';
 import type { LoveLetter } from '../../../types';
+import t from '../../../locales/en';
 
 export const MOODS = ['love', 'happy', 'miss', 'grateful', 'playful', 'romantic'] as const;
 export type Mood = typeof MOODS[number];
@@ -32,7 +33,7 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
       queryClient.invalidateQueries({ queryKey: ['letters'] });
       onClose();
     } catch {
-      setError('Failed to save draft');
+      setError(t.loveLetters.errors.saveFailed);
     }
     setIsSaving(false);
   }, [draftId, title, content, mood, isValid, queryClient, onClose]);
@@ -54,7 +55,7 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
       queryClient.invalidateQueries({ queryKey: ['letters'] });
       onClose();
     } catch {
-      setError('Failed to send letter');
+      setError(t.loveLetters.errors.sendFailed);
     }
     setIsSending(false);
   }, [draftId, title, content, mood, isValid, queryClient, onClose]);

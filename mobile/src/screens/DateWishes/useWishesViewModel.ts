@@ -5,20 +5,21 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { DatePlannerStackParamList } from '../../navigation';
 import { dateWishesApi } from '../../lib/api';
 import type { DateWish } from '../../types';
+import t from '../../locales/en';
 
 export type WishStatusFilter = 'all' | 'pending' | 'done';
 
 type Nav = NativeStackNavigationProp<DatePlannerStackParamList>;
 
 export const WISH_CATEGORIES = [
-  { key: 'food', emoji: '🍽️', label: 'Food' },
-  { key: 'entertainment', emoji: '🎭', label: 'Entertainment' },
-  { key: 'adventure', emoji: '🏕️', label: 'Adventure' },
-  { key: 'romance', emoji: '💕', label: 'Romance' },
-  { key: 'travel', emoji: '✈️', label: 'Travel' },
-  { key: 'culture', emoji: '🎨', label: 'Culture' },
-  { key: 'wellness', emoji: '🧘', label: 'Wellness' },
-  { key: 'other', emoji: '⭐', label: 'Other' },
+  { key: 'food', emoji: '🍽️', label: t.datePlanner.categoryLabels.food },
+  { key: 'entertainment', emoji: '🎭', label: t.datePlanner.categoryLabels.entertainment },
+  { key: 'adventure', emoji: '🏕️', label: t.datePlanner.categoryLabels.adventure },
+  { key: 'romance', emoji: '💕', label: t.datePlanner.categoryLabels.romance },
+  { key: 'travel', emoji: '✈️', label: t.datePlanner.categoryLabels.travel },
+  { key: 'culture', emoji: '🎨', label: t.datePlanner.categoryLabels.culture },
+  { key: 'wellness', emoji: '🧘', label: t.datePlanner.categoryLabels.wellness },
+  { key: 'other', emoji: '⭐', label: t.datePlanner.categoryLabels.other },
 ];
 
 export function useWishesViewModel() {

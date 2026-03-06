@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { datePlansApi } from '../../../lib/api';
 import type { DatePlan } from '../../../types';
+import t from '../../../locales/en';
 
 export interface StopDraft {
   time: string;
@@ -52,7 +53,7 @@ export function usePlanFormViewModel(onClose: () => void, initialPlan?: DatePlan
       queryClient.invalidateQueries({ queryKey: ['plans'] });
       onClose();
     } catch {
-      setError('Failed to save plan');
+      setError(t.datePlanner.errors.saveFailed);
     }
     setIsSaving(false);
   };

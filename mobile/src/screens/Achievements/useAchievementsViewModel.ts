@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { achievementsApi } from '../../lib/api';
 import type { Achievement } from '../../types';
+import t from '../../locales/en';
 
 export type AchievementGroup = {
   category: string;
@@ -10,17 +11,6 @@ export type AchievementGroup = {
   unlocked: number;
   total: number;
   items: Achievement[];
-};
-
-// category emoji map
-const CATEGORY_LABELS: Record<string, string> = {
-  moments: 'Moments',
-  cooking: 'Cooking',
-  recipes: 'Recipes',
-  foodspots: 'Food Spots',
-  goals: 'Goals',
-  time: 'Time Together',
-  general: 'General',
 };
 
 export function useAchievementsViewModel() {
@@ -40,7 +30,7 @@ export function useAchievementsViewModel() {
     });
     const groups: AchievementGroup[] = Array.from(map.entries()).map(([cat, items]) => ({
       category: cat,
-      label: CATEGORY_LABELS[cat] ?? cat,
+      label: (t.achievements.categories as Record<string, string>)[cat] ?? cat,
       unlocked: items.filter(i => i.unlocked).length,
       total: items.length,
       items: [...items].sort((a, b) => (b.unlocked ? 1 : 0) - (a.unlocked ? 1 : 0)),
