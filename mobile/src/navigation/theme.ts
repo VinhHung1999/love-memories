@@ -58,6 +58,11 @@ export const AppTheme = {
 
     // ── Neutral ───────────────────────────────────────────────────────────
     gray100:     '#f3f4f6',
+
+    // ── Widget accents ────────────────────────────────────────────────────
+    expensePurple:     '#6D28D9',
+    expensePurpleDark: '#4C1D95',
+    secondaryDark:     '#E06A32',
   },
 } as const;
 

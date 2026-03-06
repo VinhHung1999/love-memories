@@ -1052,7 +1052,7 @@ export const datePlansApi = {
   },
   updateStatus: async (id: string, status: string): Promise<import('../types').DatePlan> => {
     const res = await apiFetch(`/api/date-plans/${id}/status`, {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify({ status }),
     });
     if (!res.ok) throw new Error('Failed to update plan status');

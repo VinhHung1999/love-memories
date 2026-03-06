@@ -221,6 +221,7 @@ function ActiveCookingBanner({ recipeTitles, onPress }: { recipeTitles: string; 
 // ── ExpenseWidget ─────────────────────────────────────────────────────────────
 
 function ExpenseWidget({ stats, onPress }: { stats: ExpenseStats | null; onPress: () => void }) {
+  const colors = useAppColors();
   const hasData = stats && stats.count > 0;
 
   const topCategories = hasData
@@ -244,7 +245,7 @@ function ExpenseWidget({ stats, onPress }: { stats: ExpenseStats | null; onPress
     <Animated.View entering={FadeInDown.delay(180).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
       <Pressable onPress={onPress}>
         <LinearGradient
-          colors={['#6D28D9', '#4C1D95']}
+          colors={[colors.expensePurple, colors.expensePurpleDark]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="px-5 pt-4 pb-5">
@@ -315,7 +316,7 @@ function DatePlannerWidget({ plans, onPress }: { plans: DatePlan[]; onPress: () 
     <Animated.View entering={FadeInDown.delay(200).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
       <Pressable onPress={onPress}>
         <LinearGradient
-          colors={[colors.secondary, '#E06A32']}
+          colors={[colors.secondary, colors.secondaryDark]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="px-5 pt-4 pb-5">
@@ -577,7 +578,7 @@ export default function DashboardScreen() {
                 <QuickActionButton
                   icon="cash-multiple"
                   label={t.dashboard.quickActions.expenses}
-                  iconColor="#6D28D9"
+                  iconColor={colors.expensePurple}
                   bgClass="bg-violet-100"
                   onPress={vm.navigateToExpenses}
                 />
