@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import OpenAI from 'openai';
 import prisma from '../utils/prisma';
 import type { AuthRequest } from '../middleware/auth';
-import { ACHIEVEMENT_DEFS } from './achievements';
+import { ACHIEVEMENT_DEFS } from '../services/AchievementService';
 
 const router = Router();
 
