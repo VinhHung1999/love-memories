@@ -2,33 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import cron from 'node-cron';
-import { momentRoutes } from './routes/moments';
-import { foodSpotRoutes } from './routes/foodspots';
-import { mapRoutes } from './routes/map';
-import { sprintRoutes } from './routes/sprints';
-import { goalRoutes } from './routes/goals';
-import { settingsRoutes } from './routes/settings';
-import { tagRoutes } from './routes/tags';
-import { authRoutes } from './routes/auth';
-import { recipeRoutes } from './routes/recipes';
-import { cookingSessionRoutes } from './routes/cookingSessions';
-import { aiRoutes } from './routes/ai';
-import { achievementRoutes } from './routes/achievements';
-import { profileRoutes } from './routes/profile';
-import { proxyImageRoute } from './routes/proxy-image';
-import { proxyAudioRoute } from './routes/proxy-audio';
-import { notificationRoutes } from './routes/notifications';
-import { pushRoutes } from './routes/push';
-import { dateWishRoutes } from './routes/dateWishes';
-import { datePlanRoutes } from './routes/datePlans';
-import { resolveLocationRoute } from './routes/resolveLocation';
-import { geocodeRoutes } from './routes/geocode';
-import { loveLetterRoutes } from './routes/loveLetters';
-import { recapRoutes } from './routes/recap';
-import { expenseRoutes } from './routes/expenses';
-import { coupleRoutes } from './routes/couple';
-import { shareRoutes } from './routes/share';
-import { requireAuth } from './middleware/auth';
+import apiRouter from './routes/index';
+import { errorHandler } from './middleware/errorHandler';
 import prisma from './utils/prisma';
 import { createNotification } from './utils/notifications';
 
@@ -43,37 +18,10 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Public routes
-app.use('/api/auth', authRoutes);
-app.use('/api/resolve-location', resolveLocationRoute);
-app.use('/api/geocode', geocodeRoutes);
-// proxy-audio is public: <audio src> can't send Authorization headers.
-// Security: endpoint validates URL must start with CDN_BASE_URL (our own CDN only).
-app.use('/api/proxy-audio', proxyAudioRoute);
+app.use('/api', apiRouter);
 
-// Protected routes
-app.use('/api/proxy-image', requireAuth, proxyImageRoute);
-app.use('/api/moments', requireAuth, momentRoutes);
-app.use('/api/foodspots', requireAuth, foodSpotRoutes);
-app.use('/api/map', requireAuth, mapRoutes);
-app.use('/api/sprints', requireAuth, sprintRoutes);
-app.use('/api/goals', requireAuth, goalRoutes);
-app.use('/api/settings', requireAuth, settingsRoutes);
-app.use('/api/tags', requireAuth, tagRoutes);
-app.use('/api/recipes', requireAuth, recipeRoutes);
-app.use('/api/cooking-sessions', requireAuth, cookingSessionRoutes);
-app.use('/api/ai', requireAuth, aiRoutes);
-app.use('/api/achievements', requireAuth, achievementRoutes);
-app.use('/api/profile', requireAuth, profileRoutes);
-app.use('/api/notifications', requireAuth, notificationRoutes);
-app.use('/api/push', requireAuth, pushRoutes);
-app.use('/api/date-wishes', requireAuth, dateWishRoutes);
-app.use('/api/date-plans', requireAuth, datePlanRoutes);
-app.use('/api/love-letters', requireAuth, loveLetterRoutes);
-app.use('/api/recap', requireAuth, recapRoutes);
-app.use('/api/expenses', requireAuth, expenseRoutes);
-app.use('/api/couple', requireAuth, coupleRoutes);
-app.use('/api/share', shareRoutes);
+// Global error handler — must be registered LAST
+app.use(errorHandler);
 
 if (require.main === module) {
   const server = app.listen(PORT, () => {
