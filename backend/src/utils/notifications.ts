@@ -1,5 +1,5 @@
 import prisma from './prisma';
-import { sendPushNotification, sendMobilePushNotification } from '../routes/push';
+import { sendPushNotification, sendMobilePushNotification } from '../services/PushService';
 
 // Note: Notification — Central function to create an in-app notification AND
 // dispatch push to ALL channels: Web Push (PWA) + FCM (mobile iOS/Android).
