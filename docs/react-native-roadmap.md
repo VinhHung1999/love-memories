@@ -1,82 +1,84 @@
 # Love Scrum — React Native Roadmap
 
 **Decision:** Rewrite frontend as React Native app for iOS + Android store release.
-**Backend:** Giữ nguyên (Express + Prisma + PostgreSQL).
-**Date:** 2026-03-02
+**Backend:** Express + Prisma + PostgreSQL (shared with web PWA).
+**Started:** 2026-03-02
+**Last updated:** 2026-03-07
 
 ---
 
-## Tech Stack (TBD)
+## Tech Stack
 
-- **Framework:** React Native (Expo or bare — TBD)
-- **UI:** NativeWind / Tamagui / RN StyleSheet — TBD
-- **Navigation:** React Navigation
-- **Data:** @tanstack/react-query (giữ nguyên pattern)
-- **Auth:** Google OAuth + email/password (giữ nguyên API)
-
----
-
-## Phase 1 — MVP (Store Release)
-
-Mục tiêu: Ship lên App Store + Play Store với 5 modules core.
-
-| Sprint | Module | Scope |
-|--------|--------|-------|
-| 34 | **Project Setup + Auth** | Init RN project, navigation, login (email + Google), register, couple flow, profile |
-| 35 | **Dashboard** | Relationship timer, moments carousel, bento grid, FAB |
-| 36 | **Moments** | List, create, detail, photos, voice memo, comments, reactions |
-| 37 | **Love Letters** | Inbox/sent, compose, photos, voice memo, read overlay, schedule |
-| 38 | **Food Spots** | List, create, detail, photos, rating, random picker |
-
-**Milestone:** App Store + Play Store submission.
+- **Framework:** React Native (bare workflow, no Expo)
+- **UI:** NativeWind (Tailwind CSS for RN)
+- **Navigation:** React Navigation (native stack + bottom tabs)
+- **Data:** @tanstack/react-query (same pattern as web)
+- **Auth:** Google OAuth + email/password (same backend API)
+- **Push:** Firebase Cloud Messaging (FCM) for iOS + Android
+- **Audio:** react-native-audio-recorder-player v4.5.0 + react-native-nitro-modules
 
 ---
 
-## Phase 2 — High Value
+## Sprint History (Actual)
 
-| Sprint | Module | Scope |
-|--------|--------|-------|
-| 39 | **Map** | Mapbox native, food spots + moments pins, filters |
-| 40 | **Date Planner** | Plans list, detail, stops, wish list, map integration |
-| 41 | **Recipes + Cooking** | Recipe CRUD, cooking session flow, timer, shopping list |
+### Phase 1 — Core Setup (DONE)
 
----
+| Sprint | Module | Status | Notes |
+|--------|--------|--------|-------|
+| 34 | **Project Setup + Auth** | DEPLOYED | RN init, navigation, login, register, couple flow, profile |
+| 35 | **Login/Profile UI + BE auth fix** | DEPLOYED | UI polish, backend auth fixes |
+| 36 | **Moments** | DEPLOYED | List, create, detail, photos, voice memo, comments, reactions, geocode proxy, skeleton loading |
 
-## Phase 3 — Expansion
+### Phase 2 — Feature Modules (DONE)
 
-| Sprint | Module | Scope |
-|--------|--------|-------|
-| 42 | **Expenses / Budget** | Expense tracking, categories, charts |
-| 43 | **Goals & Sprints** | Kanban drag-drop, sprint management |
-| 44 | **What to Eat** | Random picker, cooking session link |
-| 45 | **Photo Booth** | Camera, filters, countdown, gallery |
+| Sprint | Module | Status | Notes |
+|--------|--------|--------|-------|
+| 37 | **FoodSpots + Map** | DEPLOYED | FoodSpots stack, Mapbox native map, generic BottomSheet/Alert routes |
+| 38 | **Dashboard WOW Redesign** | DEPLOYED | Editorial moments, vibrant header, complete visual overhaul |
+| 39 | **Recipes + What to Eat** | DEPLOYED | RecipesScreen, RecipeDetail, CreateRecipe, CookingSession, CookingHistory, WhatToEat |
+| 40 | **Notifications + Expenses** | DEPLOYED | Push notifications (FCM), ExpensesScreen, weekly chart |
+| 41 | **Tab Cleanup + Dashboard Bell + Expense Widget** | DEPLOYED | Tab reorganization, notification bell, expense dashboard widget, icons |
+| 42 | **Date Planner + Love Letters + Achievements** | DEPLOYED | 3 major modules in 1 sprint, CollapsibleHeader pattern |
 
----
+### Phase 3 — Backend Cleanup (IN PROGRESS)
 
-## Phase 4 — Polish
+| Sprint | Module | Status | Notes |
+|--------|--------|--------|-------|
+| 43 | **Backend Refactor** | IN PROGRESS | 3-layer architecture (routes->controllers->services) |
 
-| Sprint | Module | Scope |
-|--------|--------|-------|
-| 46 | **Weekly Recap** | Stat cards, week navigation |
-| 47 | **Monthly Recap** | Stories-style animated slides, auto-advance |
-| 48 | **Achievements** | System + custom achievements, unlock animations |
+### Remaining Backlog
 
----
+| Module | Priority | Notes |
+|--------|----------|-------|
+| **Goals & Sprints** (Kanban) | P1 | Drag-drop, sprint management |
+| **Photo Booth** | P2 | Camera, filters, countdown, gallery |
+| **Weekly Recap** | P2 | Stat cards, week navigation |
+| **Monthly Recap** | P2 | Stories-style animated slides |
 
-## Cross-Cutting Concerns (Address Throughout)
+### Cross-Cutting (Remaining)
 
-- **Push Notifications** — native push (FCM + APNs) thay web push
-- **Background Upload** — native file upload queue
 - **Offline Support** — local cache / optimistic updates
-- **Deep Linking** — share links mở đúng screen trong app
+- **Deep Linking** — share links open correct screen in app
 - **App Store Compliance** — privacy policy, screenshots, metadata
-- **Onboarding Tour** — thay driver.js bằng native tooltip/walkthrough
+- **Onboarding Tour** — native tooltip/walkthrough
+
+---
+
+## Key Decisions Made During Development
+
+- **NativeWind only** — zero `style` prop (Boss rule), all styling via `className`
+- **MVVM pattern** — every screen = View + ViewModel co-located in folder
+- **ProfileScreen = design benchmark** — all screens follow same design language
+- **Mobile UI independent from web** — same API, different UI optimized for native
+- **CollapsibleHeader** — shared animated header component across all list screens
+- **Theme centralized** — `useAppColors()` hook, no hardcoded hex values
+- **i18n ready** — all strings in `src/locales/en.ts`
 
 ---
 
 ## Notes
 
-- Sprint numbers are estimates, actual may vary based on complexity
-- Each sprint includes tests + code review + Boss approval before merge
-- Web PWA vẫn maintain song song (cho desktop users)
-- Backend API không đổi — RN app gọi cùng endpoints
+- Web PWA maintained in parallel (for desktop users)
+- Backend API shared — RN app calls same endpoints
+- Sprint numbers diverged from original plan due to scope changes
+- Each sprint: tests + PO code review + Boss approval before production
