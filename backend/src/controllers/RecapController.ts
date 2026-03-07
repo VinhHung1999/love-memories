@@ -2,8 +2,6 @@ import type { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler';
 import type { AuthRequest } from '../middleware/auth';
 import * as RecapService from '../services/RecapService';
-import { AppError } from '../types/errors';
-
 export const weekly = asyncHandler(async (req: Request, res: Response) => {
   const weekStr = req.query.week as string | undefined;
 

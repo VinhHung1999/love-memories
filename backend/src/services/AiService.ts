@@ -121,7 +121,7 @@ export async function generateRecipe({ mode, input }: GenerateRecipeInput): Prom
 }> {
   let textContent: string;
   let tutorialUrl: string | undefined;
-  let transcriptError = false;
+  const transcriptError = false;
   let urlError: string | undefined;
 
   if (mode === 'youtube') {
