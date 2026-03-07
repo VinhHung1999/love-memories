@@ -8,6 +8,7 @@ import Animated, {
 import type { SharedValue } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import HeaderIconButton from './HeaderIconButton';
 
 interface CollapsibleHeaderProps {
   title: string;
@@ -23,6 +24,10 @@ interface CollapsibleHeaderProps {
   /** White title + subtitle text (for dark photo backgrounds) */
   dark?: boolean;
   scrollY: SharedValue<number>;
+  /** When provided, renders a back arrow on the left. Pass navigation.goBack. */
+  onBack?: () => void;
+  /** Hide the built-in back arrow even when onBack is provided. Default: true when onBack is set. */
+  showBack?: boolean;
 }
 
 export default function CollapsibleHeader({
@@ -37,7 +42,10 @@ export default function CollapsibleHeader({
   dark = false,
   scrollY,
   renderFooter,
+  onBack,
+  showBack,
 }: CollapsibleHeaderProps) {
+  const hasBack = showBack ?? !!onBack;
   const insets = useSafeAreaInsets();
   const scrollRange = expandedHeight - collapsedHeight;
 
@@ -120,6 +128,7 @@ export default function CollapsibleHeader({
                 </Animated.View>
               ) : null}
           <View className="flex-row items-center justify-between">
+            {hasBack && onBack ? <View className="mr-3"><HeaderIconButton name="arrow-left" onPress={onBack} dark={dark} /></View> : null}
             {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
             <View className="flex-1">
               <Animated.Text

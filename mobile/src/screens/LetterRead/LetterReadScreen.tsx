@@ -38,15 +38,9 @@ export default function LetterReadScreen() {
         expandedHeight={130}
         collapsedHeight={96}
         scrollY={scrollY}
+        onBack={vm.handleBack}
         renderRight={() => (
-          <View className="flex-row items-center gap-2">
-            <Text className="text-2xl">{moodEmoji}</Text>
-            <Pressable
-              onPress={vm.handleBack}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-              <Icon name="arrow-left" size={20} color="#fff" />
-            </Pressable>
-          </View>
+          <Text className="text-2xl">{moodEmoji}</Text>
         )}
       />
 

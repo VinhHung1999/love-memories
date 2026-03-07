@@ -34,11 +34,9 @@ export default function WishesScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
+        onBack={vm.handleBack}
         renderRight={() => (
-          <View className="flex-row gap-2">
-            <HeaderIconButton name="calendar-heart" onPress={vm.handleNavigatePlans} />
-            <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
-          </View>
+          <HeaderIconButton name="calendar-heart" onPress={vm.handleNavigatePlans} />
         )}
         renderFooter={() => (
           <View style={{ backgroundColor: colors.background }}>

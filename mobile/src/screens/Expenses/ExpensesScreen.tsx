@@ -322,9 +322,8 @@ export default function ExpensesScreen() {
             </TouchableOpacity>
           </View>
         )}
-        renderLeft={() => (
-          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} dark={false} />
-        )}
+        onBack={vm.handleBack}
+        showBack
         renderFooter={() => {
           return  (
           <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40" onLayout={(e) => {

@@ -10,7 +10,6 @@ import { useAchievementsViewModel } from './useAchievementsViewModel';
 import type { AchievementGroup } from './useAchievementsViewModel';
 import type { Achievement } from '../../types';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
-import HeaderIconButton from '../../components/HeaderIconButton';
 
 const CATEGORY_ICON: Record<string, string> = {
   moments: 'heart-multiple-outline',
@@ -71,7 +70,7 @@ export default function AchievementsScreen() {
         expandedHeight={vm.totalCount > 0 ? 160 : 130}
         collapsedHeight={96}
         scrollY={scrollY}
-        renderRight={() => <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />}
+        onBack={vm.handleBack}
         renderFooter={vm.totalCount > 0 && !vm.isLoading ? () => (
           <View className="px-5 pb-3">
             <Text className="text-[12px] text-white/70 mb-1.5">

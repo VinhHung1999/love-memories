@@ -1,11 +1,11 @@
 import React from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Text, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanDetailViewModel } from './usePlanDetailViewModel';
 import StopCard from './components/StopCard';
+import CollapsibleHeader from '../../components/CollapsibleHeader';
 import HeaderIconButton from '../../components/HeaderIconButton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 
@@ -18,6 +18,8 @@ export default function PlanDetailScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = usePlanDetailViewModel();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !vm.plan) {
     return (
@@ -40,57 +42,57 @@ export default function PlanDetailScreen() {
     plan.status === 'completed' ? colors.accent :
     colors.gray100;
 
-  const statusTextColor = plan.status === 'planned' ? colors.textMid : '#fff';
+  const statusTextColor = plan.status === 'planned' ? colors.textMid : colors.white;
 
   return (
     <View className="flex-1 bg-background">
-      {/* Header */}
-      <LinearGradient
-        colors={[colors.textDark, colors.textMid]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}>
-        <SafeAreaView edges={['top']}>
-          <View className="px-4 pt-2 pb-5">
-            <View className="flex-row items-center gap-2 mb-3">
-              <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
-              <View className="flex-1" />
-              <HeaderIconButton
-                name="pencil-outline"
-                onPress={() => vm.handleEdit(navigation.showBottomSheet)}
-              />
-              <HeaderIconButton
-                name="trash-can-outline"
-                onPress={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
-              />
-            </View>
-            <View className="flex-row items-start gap-3">
-              <View className="flex-1">
-                <Text className="text-xl font-bold text-white">{plan.title}</Text>
-                <Text className="text-[12px] text-white/60 mt-1">{formatDate(plan.date)}</Text>
-              </View>
-              <View className="rounded-full px-3 py-1.5 mt-1" style={{ backgroundColor: statusBg }}>
+      <CollapsibleHeader
+        title={plan.title}
+        subtitle={formatDate(plan.date)}
+        expandedHeight={plan.stops.length > 0 ? 180 : 160}
+        collapsedHeight={96}
+        scrollY={scrollY}
+        dark
+        onBack={vm.handleBack}
+        renderRight={() => (
+          <View className="flex-row gap-2">
+            <HeaderIconButton
+              name="pencil-outline"
+              onPress={() => vm.handleEdit(navigation.showBottomSheet)}
+            />
+            <HeaderIconButton
+              name="trash-can-outline"
+              onPress={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
+            />
+          </View>
+        )}
+        renderExpandedContent={() => (
+          <View className="gap-2">
+            <View className="flex-row items-center gap-2">
+              <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusBg }}>
                 <Text className="text-[11px] font-bold" style={{ color: statusTextColor }}>
                   {statusLabel}
                 </Text>
               </View>
             </View>
-            {/* Progress */}
             {plan.stops.length > 0 ? (
-              <Text className="text-[12px] text-white/50 mt-2">
+              <Text className="text-[12px] text-white/50">
                 {t.datePlanner.stopsProgress
                   .replace('{done}', String(doneCount))
                   .replace('{total}', String(plan.stops.length))}
               </Text>
             ) : null}
           </View>
-        </SafeAreaView>
-      </LinearGradient>
+        )}
+      />
 
       {/* Timeline */}
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ padding: 16, paddingTop: plan.stops.length > 0 ? 180 : 160, paddingBottom: 40 }}>
         {vm.sortedStops.length === 0 ? (
           <View className="items-center py-12 gap-2">
             <Text className="text-textLight text-[14px]">{t.datePlanner.noStops}</Text>
@@ -105,7 +107,7 @@ export default function PlanDetailScreen() {
             />
           ))
         )}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

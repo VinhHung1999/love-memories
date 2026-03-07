@@ -190,9 +190,7 @@ export default function RecipeDetailScreen() {
             />
           </>
         )}
-        renderLeft={() => (
-          <HeaderIconButton name="arrow-left" size={20} onPress={vm.handleBack} />
-        )}
+        onBack={vm.handleBack}
         renderRight={() => (
           <View className="flex-row gap-2">
             <HeaderIconButton

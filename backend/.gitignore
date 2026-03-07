@@ -5,3 +5,5 @@ uploads/*
 .env
 .env.development
 firebase-service-account.json
+backups/*.sql.gz
+backups/cron.log

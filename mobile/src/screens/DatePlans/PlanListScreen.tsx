@@ -46,11 +46,9 @@ export default function PlanListScreen() {
         expandedHeight={130}
         collapsedHeight={96}
         scrollY={scrollY}
+        onBack={vm.handleBack}
         renderRight={() => (
-          <View className="flex-row gap-2">
-            <HeaderIconButton name="heart-outline" onPress={vm.handleNavigateWishes} />
-            <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
-          </View>
+          <HeaderIconButton name="heart-outline" onPress={vm.handleNavigateWishes} />
         )}
       />
 

@@ -4,6 +4,21 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  // SAFETY LAYER 1: abort if running against production DB
+  const dbUrl = process.env.DATABASE_URL ?? '';
+  if (!dbUrl.includes('love_scrum_dev')) {
+    console.error('❌ ABORT: Seed must only run on dev DB (love_scrum_dev). Current DB:', dbUrl);
+    process.exit(1);
+  }
+
+  // SAFETY LAYER 2: double-check by querying actual DB name
+  const result = await prisma.$queryRaw<[{current_database: string}]>`SELECT current_database()`;
+  const actualDb = result[0].current_database;
+  if (actualDb !== 'love_scrum_dev') {
+    console.error(`❌ ABORT: Connected to "${actualDb}" — expected "love_scrum_dev". REFUSING to seed.`);
+    process.exit(1);
+  }
+
   console.log('Seeding love_scrum_dev...');
 
   // Create couple first
@@ -121,8 +136,8 @@ async function main() {
 
   // Vietnamese recipes for "What to Eat Today" feature
   // Always clear and recreate so seed is idempotent on dev
-  await prisma.cookingSession.deleteMany();
-  await prisma.recipe.deleteMany();
+  await prisma.cookingSession.deleteMany({ where: { coupleId } });
+  await prisma.recipe.deleteMany({ where: { coupleId } });
   await prisma.recipe.createMany({
     data: [
         {
@@ -417,7 +432,7 @@ async function main() {
   console.log('DateWishes: 5 created (1 done)');
 
   // ── Date Plans with stops ─────────────────────────────────────────────────
-  await prisma.datePlanStop.deleteMany();
+  // Delete stops via plan relation (cascade), then plans
   await prisma.datePlan.deleteMany({ where: { coupleId } });
 
   const plan1 = await prisma.datePlan.create({

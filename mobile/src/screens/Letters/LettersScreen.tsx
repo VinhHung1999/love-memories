@@ -10,7 +10,6 @@ import ComposeLetterSheet from './components/ComposeLetterSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
-import HeaderIconButton from '../../components/HeaderIconButton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 
 function LettersSkeleton() {
@@ -45,9 +44,7 @@ export default function LettersScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
-        renderRight={() => (
-          <HeaderIconButton name="arrow-left" onPress={vm.handleBack} />
-        )}
+        onBack={vm.handleBack}
         renderFooter={() => (
           <View className="flex-row gap-2 px-4 py-2 bg-card">
             <Pressable
