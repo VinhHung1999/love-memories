@@ -10,9 +10,8 @@ export async function updateName(userId: string, name: string) {
 export async function updateAvatar(userId: string, file: Express.Multer.File) {
   const existing = await prisma.user.findUnique({ where: { id: userId }, select: { avatar: true } });
   if (existing?.avatar) {
-    const oldFilename = existing.avatar.split('/').pop();
-    if (oldFilename) await deleteFromCdn(oldFilename).catch(() => {});
+    await deleteFromCdn(existing.avatar).catch(() => {});
   }
-  const { url } = await uploadToCdn(file.buffer, file.originalname);
+  const { url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
   return prisma.user.update({ where: { id: userId }, data: { avatar: url }, select: userSelect });
 }

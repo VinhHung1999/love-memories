@@ -86,7 +86,7 @@ export async function remove(id: string) {
     include: { photos: true },
   });
   if (!foodSpot) throw new AppError(404, 'Food spot not found');
-  await Promise.all(foodSpot.photos.map((photo) => deleteFromCdn(photo.filename)));
+  await Promise.all(foodSpot.photos.map((photo) => deleteFromCdn(photo.url)));
   await prisma.foodSpot.delete({ where: { id } });
 }
 
@@ -96,7 +96,7 @@ export async function uploadPhotos(foodSpotId: string, files: Express.Multer.Fil
   if (!files || files.length === 0) throw new AppError(400, 'No files uploaded');
   return Promise.all(
     files.map(async (file) => {
-      const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+      const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
       return prisma.foodSpotPhoto.create({ data: { foodSpotId, filename, url } });
     }),
   );
@@ -105,6 +105,6 @@ export async function uploadPhotos(foodSpotId: string, files: Express.Multer.Fil
 export async function deletePhoto(photoId: string) {
   const photo = await prisma.foodSpotPhoto.findUnique({ where: { id: photoId } });
   if (!photo) throw new AppError(404, 'Photo not found');
-  await deleteFromCdn(photo.filename);
+  await deleteFromCdn(photo.url);
   await prisma.foodSpotPhoto.delete({ where: { id: photoId } });
 }

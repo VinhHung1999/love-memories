@@ -38,7 +38,7 @@ export async function update(id: string, data: UpdateData) {
 export async function remove(id: string) {
   const recipe = await prisma.recipe.findUnique({ where: { id }, include: { photos: true } });
   if (!recipe) throw new AppError(404, 'Recipe not found');
-  await Promise.all(recipe.photos.map((p) => deleteFromCdn(p.filename)));
+  await Promise.all(recipe.photos.map((p) => deleteFromCdn(p.url)));
   await prisma.recipe.delete({ where: { id } });
 }
 
@@ -48,7 +48,7 @@ export async function addPhotos(id: string, files: Express.Multer.File[]) {
   if (!recipe) throw new AppError(404, 'Recipe not found');
   return Promise.all(
     files.map(async (file) => {
-      const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+      const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
       return prisma.recipePhoto.create({ data: { recipeId: id, filename, url } });
     })
   );
@@ -57,6 +57,6 @@ export async function addPhotos(id: string, files: Express.Multer.File[]) {
 export async function deletePhoto(photoId: string) {
   const photo = await prisma.recipePhoto.findUnique({ where: { id: photoId } });
   if (!photo) throw new AppError(404, 'Photo not found');
-  await deleteFromCdn(photo.filename);
+  await deleteFromCdn(photo.url);
   await prisma.recipePhoto.delete({ where: { id: photoId } });
 }

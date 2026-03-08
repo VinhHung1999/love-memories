@@ -237,7 +237,7 @@ export async function uploadPhotos(
 
   return Promise.all(
     files.map(async (file) => {
-      const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+      const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
       return prisma.letterPhoto.create({ data: { letterId: letter.id, filename, url } });
     }),
   );
@@ -254,7 +254,7 @@ export async function deletePhoto(id: string, userId: string, photoId: string) {
   const photo = await prisma.letterPhoto.findUnique({ where: { id: photoId } });
   if (!photo || photo.letterId !== id) throw new AppError(404, 'Photo not found');
 
-  await deleteFromCdn(photo.filename);
+  await deleteFromCdn(photo.url);
   await prisma.letterPhoto.delete({ where: { id: photo.id } });
 }
 
@@ -291,6 +291,6 @@ export async function deleteAudio(id: string, userId: string, audioId: string) {
   const audio = await prisma.letterAudio.findUnique({ where: { id: audioId } });
   if (!audio || audio.letterId !== id) throw new AppError(404, 'Audio not found');
 
-  await deleteFromCdn(audio.filename);
+  await deleteFromCdn(audio.url);
   await prisma.letterAudio.delete({ where: { id: audio.id } });
 }

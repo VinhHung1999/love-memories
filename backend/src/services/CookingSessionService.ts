@@ -157,7 +157,7 @@ export async function uploadPhotos(sessionId: string, files: Express.Multer.File
   if (!files || files.length === 0) throw new AppError(400, 'No files uploaded');
   return Promise.all(
     files.map(async (file) => {
-      const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+      const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
       return prisma.cookingSessionPhoto.create({ data: { sessionId, filename, url } });
     }),
   );
@@ -177,6 +177,6 @@ export async function remove(id: string) {
     include: { photos: true },
   });
   if (!session) throw new AppError(404, 'Session not found');
-  await Promise.all(session.photos.map((p) => deleteFromCdn(p.filename)));
+  await Promise.all(session.photos.map((p) => deleteFromCdn(p.url)));
   await prisma.cookingSession.delete({ where: { id } });
 }

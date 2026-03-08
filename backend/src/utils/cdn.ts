@@ -41,15 +41,20 @@ export async function uploadToCdn(
   return { filename, url };
 }
 
-export async function deleteFromCdn(filename: string): Promise<void> {
-  const res = await fetch(`${CDN_BASE_URL}/files/${CDN_PROJECT}/images/${filename}`, {
+export async function deleteFromCdn(fileUrl: string): Promise<void> {
+  // fileUrl = 'https://cdn.../f/love-scrum/images/filename.jpg'
+  // Extract path after /f/ → 'love-scrum/images/filename.jpg'
+  const match = fileUrl.match(/\/f\/(.+)/);
+  if (!match) return;
+  const res = await fetch(`${CDN_BASE_URL}/files/${match[1]}`, {
     method: 'DELETE',
     headers: { 'x-api-key': CDN_API_KEY },
   });
 
-  // 404 = already gone, treat as success
+  // 404/500 "Not Found" = already gone or wrong project, treat as success
   if (!res.ok && res.status !== 404) {
     const text = await res.text();
+    if (res.status === 500 && text.includes('Not Found')) return;
     throw new Error(`CDN delete failed: ${res.status} ${text}`);
   }
 }

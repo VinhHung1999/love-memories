@@ -73,8 +73,8 @@ export async function remove(id: string) {
   });
   if (!moment) throw new AppError(404, 'Moment not found');
   await Promise.all([
-    ...moment.photos.map((photo) => deleteFromCdn(photo.filename)),
-    ...moment.audios.map((audio) => deleteFromCdn(audio.filename)),
+    ...moment.photos.map((photo) => deleteFromCdn(photo.url)),
+    ...moment.audios.map((audio) => deleteFromCdn(audio.url)),
   ]);
   await prisma.moment.delete({ where: { id } });
 }
@@ -85,7 +85,7 @@ export async function uploadPhotos(momentId: string, files: Express.Multer.File[
   if (!files || files.length === 0) throw new AppError(400, 'No files uploaded');
   return Promise.all(
     files.map(async (file) => {
-      const { filename, url } = await uploadToCdn(file.buffer, file.originalname);
+      const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
       return prisma.momentPhoto.create({ data: { momentId, filename, url } });
     }),
   );
@@ -94,7 +94,7 @@ export async function uploadPhotos(momentId: string, files: Express.Multer.File[
 export async function deletePhoto(photoId: string) {
   const photo = await prisma.momentPhoto.findUnique({ where: { id: photoId } });
   if (!photo) throw new AppError(404, 'Photo not found');
-  await deleteFromCdn(photo.filename);
+  await deleteFromCdn(photo.url);
   await prisma.momentPhoto.delete({ where: { id: photoId } });
 }
 
@@ -112,7 +112,7 @@ export async function uploadAudio(
 export async function deleteAudio(audioId: string) {
   const audio = await prisma.momentAudio.findUnique({ where: { id: audioId } });
   if (!audio) throw new AppError(404, 'Audio not found');
-  await deleteFromCdn(audio.filename);
+  await deleteFromCdn(audio.url);
   await prisma.momentAudio.delete({ where: { id: audioId } });
 }
 

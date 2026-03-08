@@ -112,7 +112,7 @@ export async function setLimits(coupleId: string, body: Record<string, number | 
 }
 
 export async function uploadReceipt(file: Express.Multer.File) {
-  const { url } = await uploadToCdn(file.buffer, file.originalname);
+  const { url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
   return { url };
 }
 
