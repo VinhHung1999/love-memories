@@ -24,6 +24,11 @@ export function errorHandler(
     return;
   }
 
-  console.error('[errorHandler]', err);
+  const method = _req.method;
+  const path = _req.originalUrl;
+  const errMsg = err instanceof Error ? err.message : String(err);
+  const stack = err instanceof Error ? err.stack : undefined;
+  console.error(`[ERROR] ${method} ${path} — ${errMsg}`);
+  if (stack) console.error(stack);
   res.status(500).json({ error: 'Internal server error' });
 }
