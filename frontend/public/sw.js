@@ -1,9 +1,9 @@
-// Love Scrum Service Worker — Push Notifications
+// Love Memories Service Worker — Push Notifications
 
 self.addEventListener('push', (event) => {
   if (!event.data) return;
   const data = event.data.json();
-  const title = data.title || 'Love Scrum';
+  const title = data.title || 'Love Memories';
   const options = {
     body: data.body || '',
     icon: data.icon || '/icon-192.png',

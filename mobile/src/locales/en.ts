@@ -6,7 +6,7 @@
  */
 const en = {
   app: {
-    name: 'Love Scrum',
+    name: 'Love Memories',
   },
 
   login: {
@@ -116,7 +116,7 @@ const en = {
   },
 
   dashboard: {
-    title: 'Love Scrum',
+    title: 'Love Memories',
     subtitle: 'Dashboard',
     headerSubtitle: 'HOME ♥',
     couple: {
