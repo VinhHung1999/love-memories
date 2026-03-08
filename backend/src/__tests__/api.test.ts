@@ -1372,3 +1372,431 @@ describe('Share Links', () => {
     expect(res.status).toBe(401);
   });
 });
+
+// ─── Date Plans ───────────────────────────────────────────────────────────────
+describe('Date Plans', () => {
+  let planId: string;
+  let stopId: string;
+  let spotId: string;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/date-plans')
+      .set(auth())
+      .send({
+        title: 'Test Date Plan',
+        date: '2026-06-15',
+        notes: 'A fun day out',
+        stops: [
+          {
+            time: '10:00',
+            title: 'Coffee Stop',
+            description: 'Morning coffee',
+            order: 0,
+          },
+        ],
+      });
+    expect(res.status).toBe(201);
+    planId = res.body.id;
+    stopId = res.body.stops[0].id;
+  });
+
+  it('GET /api/date-plans lists plans', async () => {
+    const res = await request(app).get('/api/date-plans').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.some((p: any) => p.id === planId)).toBe(true);
+  });
+
+  it('GET /api/date-plans/:id returns plan with stops', async () => {
+    const res = await request(app).get(`/api/date-plans/${planId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(planId);
+    expect(res.body.title).toBe('Test Date Plan');
+    expect(Array.isArray(res.body.stops)).toBe(true);
+  });
+
+  it('GET /api/date-plans/:id returns 404 for unknown id', async () => {
+    const res = await request(app).get('/api/date-plans/nonexistent-id').set(auth());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/date-plans/:id updates plan', async () => {
+    const res = await request(app)
+      .put(`/api/date-plans/${planId}`)
+      .set(auth())
+      .send({ title: 'Updated Date Plan', notes: 'Updated notes' });
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('Updated Date Plan');
+  });
+
+  it('PUT /api/date-plans/:id/status updates status', async () => {
+    const res = await request(app)
+      .put(`/api/date-plans/${planId}/status`)
+      .set(auth())
+      .send({ status: 'active' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('active');
+  });
+
+  it('PUT /api/date-plans/:id/stops/:stopId/cost updates stop cost', async () => {
+    const res = await request(app)
+      .put(`/api/date-plans/${planId}/stops/${stopId}/cost`)
+      .set(auth())
+      .send({ cost: 150000 });
+    expect(res.status).toBe(200);
+    expect(res.body.cost).toBe(150000);
+  });
+
+  it('PUT /api/date-plans/:id/stops/:stopId/moment links moment', async () => {
+    const res = await request(app)
+      .put(`/api/date-plans/${planId}/stops/${stopId}/moment`)
+      .set(auth())
+      .send({ momentId: null });
+    expect(res.status).toBe(200);
+    expect(res.body.linkedMomentId).toBeNull();
+  });
+
+  it('PUT /api/date-plans/:id/stops/:stopId/foodspot links foodspot', async () => {
+    const res = await request(app)
+      .put(`/api/date-plans/${planId}/stops/${stopId}/foodspot`)
+      .set(auth())
+      .send({ foodSpotId: null });
+    expect(res.status).toBe(200);
+    expect(res.body.linkedFoodSpotId).toBeNull();
+  });
+
+  it('PUT /api/date-plans/:id/stops/:stopId/done marks stop done', async () => {
+    const res = await request(app)
+      .put(`/api/date-plans/${planId}/stops/${stopId}/done`)
+      .set(auth());
+    expect(res.status).toBe(200);
+  });
+
+  it('POST /api/date-plans/:id/stops/:stopId/spots adds sub-spot', async () => {
+    const res = await request(app)
+      .post(`/api/date-plans/${planId}/stops/${stopId}/spots`)
+      .set(auth())
+      .send({ title: 'Sub Spot A', address: '123 Street', order: 0 });
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('Sub Spot A');
+    spotId = res.body.id;
+  });
+
+  it('DELETE /api/date-plans/:id/stops/:stopId/spots/:spotId deletes sub-spot', async () => {
+    const res = await request(app)
+      .delete(`/api/date-plans/${planId}/stops/${stopId}/spots/${spotId}`)
+      .set(auth());
+    expect(res.status).toBe(204);
+  });
+
+  it('DELETE /api/date-plans/:id deletes plan', async () => {
+    const res = await request(app).delete(`/api/date-plans/${planId}`).set(auth());
+    expect(res.status).toBe(204);
+
+    const getRes = await request(app).get(`/api/date-plans/${planId}`).set(auth());
+    expect(getRes.status).toBe(404);
+  });
+
+  it('GET /api/date-plans returns 401 without auth', async () => {
+    const res = await request(app).get('/api/date-plans');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Date Wishes ──────────────────────────────────────────────────────────────
+describe('Date Wishes', () => {
+  let wishId: string;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/date-wishes')
+      .set(auth())
+      .send({ title: 'Visit Ha Long Bay', category: 'travel', description: 'Overnight cruise' });
+    expect(res.status).toBe(201);
+    wishId = res.body.id;
+  });
+
+  it('GET /api/date-wishes lists wishes', async () => {
+    const res = await request(app).get('/api/date-wishes').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.some((w: any) => w.id === wishId)).toBe(true);
+  });
+
+  it('PUT /api/date-wishes/:id updates wish', async () => {
+    const res = await request(app)
+      .put(`/api/date-wishes/${wishId}`)
+      .set(auth())
+      .send({ title: 'Visit Ha Long Bay (Updated)', category: 'travel' });
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('Visit Ha Long Bay (Updated)');
+  });
+
+  it('PUT /api/date-wishes/:id/done marks wish done', async () => {
+    const res = await request(app)
+      .put(`/api/date-wishes/${wishId}/done`)
+      .set(auth())
+      .send({ linkedMomentId: null, linkedFoodSpotId: null });
+    expect(res.status).toBe(200);
+    expect(res.body.done).toBe(true);
+    expect(res.body.doneAt).toBeTruthy();
+  });
+
+  it('DELETE /api/date-wishes/:id deletes wish', async () => {
+    const res = await request(app).delete(`/api/date-wishes/${wishId}`).set(auth());
+    expect(res.status).toBe(204);
+  });
+
+  it('POST /api/date-wishes returns 400 without required fields', async () => {
+    const res = await request(app)
+      .post('/api/date-wishes')
+      .set(auth())
+      .send({ description: 'Missing title and category' });
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/date-wishes returns 401 without auth', async () => {
+    const res = await request(app).get('/api/date-wishes');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Recipes ──────────────────────────────────────────────────────────────────
+describe('Recipes', () => {
+  let recId: string;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/recipes')
+      .set(auth())
+      .send({
+        title: 'Phở bò',
+        description: 'Noodle soup',
+        ingredients: ['bún', 'thịt bò'],
+        ingredientPrices: [5000, 80000],
+        steps: ['Nấu nước dùng', 'Thêm bún'],
+        stepDurations: [3600, 0],
+        tags: ['canh', 'miền Bắc'],
+        notes: '2 người ăn',
+      });
+    expect(res.status).toBe(201);
+    recId = res.body.id;
+  });
+
+  it('GET /api/recipes lists recipes', async () => {
+    const res = await request(app).get('/api/recipes').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.some((r: any) => r.id === recId)).toBe(true);
+  });
+
+  it('GET /api/recipes/:id returns recipe', async () => {
+    const res = await request(app).get(`/api/recipes/${recId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(recId);
+    expect(res.body.title).toBe('Phở bò');
+  });
+
+  it('PUT /api/recipes/:id updates recipe', async () => {
+    const res = await request(app)
+      .put(`/api/recipes/${recId}`)
+      .set(auth())
+      .send({ title: 'Phở bò đặc biệt', notes: 'Updated notes' });
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('Phở bò đặc biệt');
+  });
+
+  it('POST /api/recipes returns 400 without title', async () => {
+    const res = await request(app)
+      .post('/api/recipes')
+      .set(auth())
+      .send({ description: 'No title' });
+    expect(res.status).toBe(400);
+  });
+
+  it('DELETE /api/recipes/:id deletes recipe', async () => {
+    const toDelete = await request(app)
+      .post('/api/recipes')
+      .set(auth())
+      .send({ title: 'To Delete' });
+    const delRes = await request(app)
+      .delete(`/api/recipes/${toDelete.body.id}`)
+      .set(auth());
+    expect(delRes.status).toBe(200);
+  });
+
+  it('GET /api/recipes returns 401 without auth', async () => {
+    const res = await request(app).get('/api/recipes');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Push ─────────────────────────────────────────────────────────────────────
+describe('Push', () => {
+  it('GET /api/push/vapid-key returns public key', async () => {
+    const res = await request(app).get('/api/push/vapid-key').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.publicKey).toBeTruthy();
+  });
+
+  it('POST /api/push/subscribe creates web push subscription', async () => {
+    const res = await request(app)
+      .post('/api/push/subscribe')
+      .set(auth())
+      .send({
+        endpoint: 'https://fcm.googleapis.com/test-endpoint-subscribe',
+        keys: { p256dh: 'test-p256dh-key', auth: 'test-auth-key' },
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('POST /api/push/unsubscribe removes web push subscription', async () => {
+    const res = await request(app)
+      .post('/api/push/unsubscribe')
+      .set(auth())
+      .send({ endpoint: 'https://fcm.googleapis.com/test-endpoint-subscribe' });
+    expect(res.status).toBe(200);
+  });
+
+  it('POST /api/push/mobile-subscribe registers mobile token', async () => {
+    const res = await request(app)
+      .post('/api/push/mobile-subscribe')
+      .set(auth())
+      .send({ token: 'test-firebase-device-token-123', deviceType: 'ios' });
+    expect(res.status).toBe(201);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('POST /api/push/mobile-unsubscribe removes mobile token', async () => {
+    const res = await request(app)
+      .post('/api/push/mobile-unsubscribe')
+      .set(auth())
+      .send({ token: 'test-firebase-device-token-123' });
+    expect(res.status).toBe(200);
+  });
+
+  it('POST /api/push/subscribe returns 401 without auth', async () => {
+    const res = await request(app)
+      .post('/api/push/subscribe')
+      .send({ endpoint: 'https://example.com', keys: { p256dh: 'k', auth: 'a' } });
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Recap ────────────────────────────────────────────────────────────────────
+describe('Recap', () => {
+  it('GET /api/recap/weekly returns weekly stats', async () => {
+    const res = await request(app).get('/api/recap/weekly').set(auth());
+    expect(res.status).toBe(200);
+    expect(typeof res.body).toBe('object');
+  });
+
+  it('GET /api/recap/weekly?week=YYYY-Www returns stats for specific week', async () => {
+    const res = await request(app).get('/api/recap/weekly?week=2026-W10').set(auth());
+    expect(res.status).toBe(200);
+    expect(typeof res.body).toBe('object');
+  });
+
+  it('GET /api/recap/weekly returns 400 for invalid week format', async () => {
+    const res = await request(app).get('/api/recap/weekly?week=bad-format').set(auth());
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/recap/monthly returns monthly stats', async () => {
+    const res = await request(app).get('/api/recap/monthly').set(auth());
+    expect(res.status).toBe(200);
+    expect(typeof res.body).toBe('object');
+  });
+
+  it('GET /api/recap/monthly?month=YYYY-MM returns stats for specific month', async () => {
+    const res = await request(app).get('/api/recap/monthly?month=2026-01').set(auth());
+    expect(res.status).toBe(200);
+    expect(typeof res.body).toBe('object');
+  });
+
+  it('GET /api/recap/monthly returns 400 for invalid month format', async () => {
+    const res = await request(app).get('/api/recap/monthly?month=invalid').set(auth());
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/recap/monthly/caption returns caption data', async () => {
+    const res = await request(app).get('/api/recap/monthly/caption').set(auth());
+    expect(res.status).toBe(200);
+    expect(typeof res.body).toBe('object');
+  });
+
+  it('GET /api/recap/weekly returns 401 without auth', async () => {
+    const res = await request(app).get('/api/recap/weekly');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+describe('Settings', () => {
+  it('PUT /api/settings/:key upserts a setting', async () => {
+    const res = await request(app)
+      .put('/api/settings/theme')
+      .set(auth())
+      .send({ value: 'dark' });
+    expect(res.status).toBe(200);
+    expect(res.body.key).toBe('theme');
+    expect(res.body.value).toBe('dark');
+  });
+
+  it('GET /api/settings/:key retrieves a setting', async () => {
+    const res = await request(app).get('/api/settings/theme').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.key).toBe('theme');
+    expect(res.body.value).toBe('dark');
+  });
+
+  it('PUT /api/settings/:key updates existing setting', async () => {
+    const res = await request(app)
+      .put('/api/settings/theme')
+      .set(auth())
+      .send({ value: 'light' });
+    expect(res.status).toBe(200);
+    expect(res.body.value).toBe('light');
+  });
+
+  it('GET /api/settings/:key returns object with null value for unknown key', async () => {
+    const res = await request(app).get('/api/settings/nonexistent-key-xyz').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.value).toBeNull();
+  });
+
+  it('GET /api/settings/:key returns 401 without auth', async () => {
+    const res = await request(app).get('/api/settings/theme');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─── Tags ─────────────────────────────────────────────────────────────────────
+describe('Tags', () => {
+  it('PUT /api/tags/:name upserts a tag', async () => {
+    const res = await request(app).put('/api/tags/test-tag-xyz').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('test-tag-xyz');
+  });
+
+  it('GET /api/tags lists all tags', async () => {
+    const res = await request(app).get('/api/tags').set(auth());
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.some((t: any) => t.name === 'test-tag-xyz')).toBe(true);
+  });
+
+  it('PUT /api/tags/:name is idempotent (upsert)', async () => {
+    await request(app).put('/api/tags/test-tag-xyz').set(auth());
+    const res = await request(app).put('/api/tags/test-tag-xyz').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('test-tag-xyz');
+  });
+
+  it('GET /api/tags returns 401 without auth', async () => {
+    const res = await request(app).get('/api/tags');
+    expect(res.status).toBe(401);
+  });
+});
