@@ -1815,6 +1815,11 @@ describe('coupleId Isolation — Couple A cannot access Couple B data', () => {
   let expenseId: string;
 
   beforeAll(async () => {
+    // Clean up any leftover data from previous runs
+    await prisma.user.deleteMany({
+      where: { email: { in: ['userA@isolation.test', 'userB@isolation.test'] } },
+    });
+
     // Create couple A
     const coupleA = await prisma.couple.create({ data: {} });
     const userA = await prisma.user.create({
@@ -1973,5 +1978,11 @@ describe('coupleId Isolation — Couple A cannot access Couple B data', () => {
     const res = await request(app).get(`/api/moments/${momentId}`).set(authA());
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(momentId);
+  });
+
+  afterAll(async () => {
+    await prisma.user.deleteMany({
+      where: { email: { in: ['userA@isolation.test', 'userB@isolation.test'] } },
+    });
   });
 });
