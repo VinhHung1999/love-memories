@@ -95,6 +95,8 @@ export async function register(
   if (inviteCode) {
     couple = await prisma.couple.findUnique({ where: { inviteCode } });
     if (!couple) throw new AppError(400, 'Invalid invite code');
+    const memberCount = await prisma.user.count({ where: { coupleId: couple.id } });
+    if (memberCount >= 2) throw new AppError(400, 'This couple already has 2 members');
   } else {
     couple = await prisma.couple.create({ data: { name: coupleName!.trim() } });
   }
@@ -207,6 +209,8 @@ export async function googleComplete(
   if (inviteCode) {
     couple = await prisma.couple.findUnique({ where: { inviteCode } });
     if (!couple) throw new AppError(400, 'Invalid invite code');
+    const memberCount = await prisma.user.count({ where: { coupleId: couple.id } });
+    if (memberCount >= 2) throw new AppError(400, 'This couple already has 2 members');
   } else {
     couple = await prisma.couple.create({ data: { name: coupleName!.trim() } });
   }

@@ -140,6 +140,30 @@ describe('Auth', () => {
     expect(res.status).toBe(400);
   });
 
+  it('POST /api/auth/register — 3rd user joining same inviteCode gets 400', async () => {
+    // Create a couple with an inviteCode
+    const couple = await prisma.couple.create({ data: { inviteCode: 'TESTFULL' } });
+    // Fill it with 2 users
+    await prisma.user.createMany({
+      data: [
+        { email: 'couple-full-1@test.com', password: 'x', name: 'Full 1', coupleId: couple.id },
+        { email: 'couple-full-2@test.com', password: 'x', name: 'Full 2', coupleId: couple.id },
+      ],
+    });
+    // 3rd user tries to join
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'couple-full-3@test.com',
+      password: 'testpass123',
+      name: 'Full 3',
+      inviteCode: 'TESTFULL',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('2 members');
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: { in: ['couple-full-1@test.com', 'couple-full-2@test.com', 'couple-full-3@test.com'] } } });
+    await prisma.couple.delete({ where: { id: couple.id } });
+  });
+
   it('POST /api/auth/login returns token', async () => {
     const res = await request(app).post('/api/auth/login').send({
       email: 'test@lovescrum.test',
