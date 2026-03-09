@@ -103,6 +103,13 @@ export default function LoginScreen() {
         <FieldLabel>{t.login.labels.password}</FieldLabel>
         <Input placeholder={t.login.placeholders.password} value={vm.password} onChangeText={vm.setPassword} secureTextEntry autoComplete={vm.mode === 'login' ? 'password' : 'new-password'} />
 
+        {vm.mode === 'register' && (
+          <>
+            <FieldLabel>{t.login.labels.confirmPassword}</FieldLabel>
+            <Input placeholder={t.login.placeholders.confirmPassword} value={vm.confirmPassword} onChangeText={vm.setConfirmPassword} secureTextEntry autoComplete="new-password" />
+          </>
+        )}
+
         {!!vm.error && <ErrorBox message={vm.error} />}
 
         <Button

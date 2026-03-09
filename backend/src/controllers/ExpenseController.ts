@@ -46,8 +46,9 @@ export const uploadReceipt = asyncHandler(async (req: Request, res: Response) =>
   res.json(result);
 });
 
-export const getOne = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  const expense = await ExpenseService.getOne(req.params.id);
+export const getOne = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  const { coupleId } = req.user!;
+  const expense = await ExpenseService.getOne(req.params.id, coupleId);
   res.json(expense);
 });
 
@@ -57,12 +58,14 @@ export const create = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.status(201).json(expense);
 });
 
-export const update = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  const expense = await ExpenseService.update(req.params.id, req.body);
+export const update = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  const { coupleId } = req.user!;
+  const expense = await ExpenseService.update(req.params.id, coupleId, req.body);
   res.json(expense);
 });
 
-export const remove = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  await ExpenseService.remove(req.params.id);
+export const remove = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  const { coupleId } = req.user!;
+  await ExpenseService.remove(req.params.id, coupleId);
   res.json({ message: 'Expense deleted' });
 });

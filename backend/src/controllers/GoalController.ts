@@ -21,23 +21,23 @@ export const createInSprint = asyncHandler(async (req: AuthRequest & Request<{ s
   res.status(201).json(goal);
 });
 
-export const reorder = asyncHandler(async (req: Request, res: Response) => {
-  res.json(await GoalService.reorder(req.body));
+export const reorder = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json(await GoalService.reorder(req.user!.coupleId, req.body));
 });
 
-export const update = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  res.json(await GoalService.update(req.params.id, req.body));
+export const update = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  res.json(await GoalService.update(req.params.id, req.user!.coupleId, req.body));
 });
 
-export const updateStatus = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  res.json(await GoalService.updateStatus(req.params.id, req.body));
+export const updateStatus = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  res.json(await GoalService.updateStatus(req.params.id, req.user!.coupleId, req.body));
 });
 
-export const assign = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  res.json(await GoalService.assign(req.params.id, req.body));
+export const assign = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  res.json(await GoalService.assign(req.params.id, req.user!.coupleId, req.body));
 });
 
-export const remove = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  await GoalService.remove(req.params.id);
+export const remove = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  await GoalService.remove(req.params.id, req.user!.coupleId);
   res.json({ message: 'Goal deleted' });
 });

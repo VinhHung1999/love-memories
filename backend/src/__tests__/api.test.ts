@@ -140,6 +140,30 @@ describe('Auth', () => {
     expect(res.status).toBe(400);
   });
 
+  it('POST /api/auth/register — 3rd user joining same inviteCode gets 400', async () => {
+    // Create a couple with an inviteCode
+    const couple = await prisma.couple.create({ data: { inviteCode: 'TESTFULL' } });
+    // Fill it with 2 users
+    await prisma.user.createMany({
+      data: [
+        { email: 'couple-full-1@test.com', password: 'x', name: 'Full 1', coupleId: couple.id },
+        { email: 'couple-full-2@test.com', password: 'x', name: 'Full 2', coupleId: couple.id },
+      ],
+    });
+    // 3rd user tries to join
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'couple-full-3@test.com',
+      password: 'testpass123',
+      name: 'Full 3',
+      inviteCode: 'TESTFULL',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('2 members');
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: { in: ['couple-full-1@test.com', 'couple-full-2@test.com', 'couple-full-3@test.com'] } } });
+    await prisma.couple.delete({ where: { id: couple.id } });
+  });
+
   it('POST /api/auth/login returns token', async () => {
     const res = await request(app).post('/api/auth/login').send({
       email: 'test@lovescrum.test',
@@ -1110,12 +1134,12 @@ describe('Love Letters', () => {
     expect(res.body.audio).toEqual([]);
   });
 
-  it('POST /api/love-letters/:id/photos returns 403 for non-sender', async () => {
+  it('POST /api/love-letters/:id/photos returns 404 for non-sender', async () => {
     const res = await request(app)
       .post(`/api/love-letters/${letterId}/photos`)
       .set(partnerAuth())
       .attach('photos', Buffer.from('fake-image'), { filename: 'test.jpg', contentType: 'image/jpeg' });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   it('POST /api/love-letters/:id/photos returns 401 without auth', async () => {
@@ -1123,12 +1147,12 @@ describe('Love Letters', () => {
     expect(res.status).toBe(401);
   });
 
-  it('POST /api/love-letters/:id/audio returns 403 for non-sender', async () => {
+  it('POST /api/love-letters/:id/audio returns 404 for non-sender', async () => {
     const res = await request(app)
       .post(`/api/love-letters/${letterId}/audio`)
       .set(partnerAuth())
       .attach('audio', Buffer.from('fake-audio'), { filename: 'memo.webm', contentType: 'audio/webm' });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   it('DELETE /api/love-letters/:id/photos/:photoId returns 404 for non-existent photo', async () => {
@@ -1798,5 +1822,191 @@ describe('Tags', () => {
   it('GET /api/tags returns 401 without auth', async () => {
     const res = await request(app).get('/api/tags');
     expect(res.status).toBe(401);
+  });
+});
+
+// ─── coupleId Isolation Security Tests ───────────────────────────────────────
+describe('coupleId Isolation — Couple A cannot access Couple B data', () => {
+  let coupleAToken: string;
+  let coupleBToken: string;
+  let momentId: string;
+  let foodSpotId: string;
+  let sprintId: string;
+  let goalId: string;
+  let recipeId: string;
+  let datePlanId: string;
+  let wishId: string;
+  let expenseId: string;
+
+  beforeAll(async () => {
+    // Clean up any leftover data from previous runs
+    await prisma.user.deleteMany({
+      where: { email: { in: ['userA@isolation.test', 'userB@isolation.test'] } },
+    });
+
+    // Create couple A
+    const coupleA = await prisma.couple.create({ data: {} });
+    const userA = await prisma.user.create({
+      data: { email: 'userA@isolation.test', password: 'x', name: 'User A', coupleId: coupleA.id },
+    });
+    coupleAToken = generateToken(userA.id, coupleA.id);
+
+    // Create couple B
+    const coupleB = await prisma.couple.create({ data: {} });
+    const userB = await prisma.user.create({
+      data: { email: 'userB@isolation.test', password: 'x', name: 'User B', coupleId: coupleB.id },
+    });
+    coupleBToken = generateToken(userB.id, coupleB.id);
+
+    // Create couple A resources
+    const moment = await prisma.moment.create({
+      data: { coupleId: coupleA.id, title: 'A Moment', date: new Date(), tags: [] },
+    });
+    momentId = moment.id;
+
+    const foodSpot = await prisma.foodSpot.create({
+      data: { coupleId: coupleA.id, name: 'A FoodSpot', tags: [] },
+    });
+    foodSpotId = foodSpot.id;
+
+    const sprint = await prisma.sprint.create({
+      data: { coupleId: coupleA.id, name: 'A Sprint', startDate: new Date(), endDate: new Date() },
+    });
+    sprintId = sprint.id;
+
+    const goal = await prisma.goal.create({
+      data: { coupleId: coupleA.id, title: 'A Goal', status: 'TODO', order: 0 },
+    });
+    goalId = goal.id;
+
+    const recipe = await prisma.recipe.create({
+      data: { coupleId: coupleA.id, title: 'A Recipe', ingredients: [], steps: [], ingredientPrices: [], stepDurations: [] },
+    });
+    recipeId = recipe.id;
+
+    const datePlan = await prisma.datePlan.create({
+      data: { coupleId: coupleA.id, title: 'A Plan', date: new Date() },
+    });
+    datePlanId = datePlan.id;
+
+    const wish = await prisma.dateWish.create({
+      data: { coupleId: coupleA.id, title: 'A Wish', category: 'adventure', createdBy: userA.id },
+    });
+    wishId = wish.id;
+
+    const expense = await prisma.expense.create({
+      data: { coupleId: coupleA.id, amount: 100, category: 'food', date: new Date(), description: 'Test' },
+    });
+    expenseId = expense.id;
+  });
+
+  const authB = () => ({ Authorization: `Bearer ${coupleBToken}` });
+  const authA = () => ({ Authorization: `Bearer ${coupleAToken}` });
+
+  it('GET /api/moments/:id — couple B cannot access couple A moment (404)', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/moments/:id — couple B cannot update couple A moment (404)', async () => {
+    const res = await request(app).put(`/api/moments/${momentId}`).set(authB()).send({ title: 'Hacked' });
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/moments/:id — couple B cannot delete couple A moment (404)', async () => {
+    const res = await request(app).delete(`/api/moments/${momentId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /api/foodspots/:id — couple B cannot access couple A food spot (404)', async () => {
+    const res = await request(app).get(`/api/foodspots/${foodSpotId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/foodspots/:id — couple B cannot update couple A food spot (404)', async () => {
+    const res = await request(app).put(`/api/foodspots/${foodSpotId}`).set(authB()).send({ name: 'Hacked' });
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/foodspots/:id — couple B cannot delete couple A food spot (404)', async () => {
+    const res = await request(app).delete(`/api/foodspots/${foodSpotId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /api/sprints/:id — couple B cannot access couple A sprint (404)', async () => {
+    const res = await request(app).get(`/api/sprints/${sprintId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/sprints/:id — couple B cannot update couple A sprint (404)', async () => {
+    const res = await request(app).put(`/api/sprints/${sprintId}`).set(authB()).send({ title: 'Hacked' });
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/sprints/:id — couple B cannot delete couple A sprint (404)', async () => {
+    const res = await request(app).delete(`/api/sprints/${sprintId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/goals/:id — couple B cannot update couple A goal (404)', async () => {
+    const res = await request(app).put(`/api/goals/${goalId}`).set(authB()).send({ title: 'Hacked' });
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/goals/:id — couple B cannot delete couple A goal (404)', async () => {
+    const res = await request(app).delete(`/api/goals/${goalId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /api/recipes/:id — couple B cannot access couple A recipe (404)', async () => {
+    const res = await request(app).get(`/api/recipes/${recipeId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/recipes/:id — couple B cannot update couple A recipe (404)', async () => {
+    const res = await request(app).put(`/api/recipes/${recipeId}`).set(authB()).send({ title: 'Hacked' });
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/recipes/:id — couple B cannot delete couple A recipe (404)', async () => {
+    const res = await request(app).delete(`/api/recipes/${recipeId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /api/date-plans/:id — couple B cannot access couple A date plan (404)', async () => {
+    const res = await request(app).get(`/api/date-plans/${datePlanId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/date-plans/:id — couple B cannot delete couple A date plan (404)', async () => {
+    const res = await request(app).delete(`/api/date-plans/${datePlanId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/date-wishes/:id — couple B cannot delete couple A wish (404)', async () => {
+    const res = await request(app).delete(`/api/date-wishes/${wishId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('GET /api/expenses/:id — couple B cannot access couple A expense (404)', async () => {
+    const res = await request(app).get(`/api/expenses/${expenseId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE /api/expenses/:id — couple B cannot delete couple A expense (404)', async () => {
+    const res = await request(app).delete(`/api/expenses/${expenseId}`).set(authB());
+    expect(res.status).toBe(404);
+  });
+
+  it('Couple A can still access own moment (200)', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}`).set(authA());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(momentId);
+  });
+
+  afterAll(async () => {
+    await prisma.user.deleteMany({
+      where: { email: { in: ['userA@isolation.test', 'userB@isolation.test'] } },
+    });
   });
 });

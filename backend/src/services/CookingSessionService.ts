@@ -29,8 +29,8 @@ export async function list(coupleId: string) {
   });
 }
 
-export async function getOne(id: string) {
-  const session = await prisma.cookingSession.findUnique({ where: { id }, include: sessionInclude });
+export async function getOne(id: string, coupleId: string) {
+  const session = await prisma.cookingSession.findFirst({ where: { id, coupleId }, include: sessionInclude });
   if (!session) throw new AppError(404, 'Session not found');
   return session;
 }
@@ -92,10 +92,12 @@ export async function create(coupleId: string, recipeIds: string[]) {
 
 export async function updateStatus(
   id: string,
+  coupleId: string,
   data: { status: string; notes?: string },
   userId?: string,
-  coupleId?: string,
 ) {
+  const existing = await prisma.cookingSession.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Session not found');
   const updateData: Record<string, unknown> = { status: data.status };
 
   if (data.status === 'cooking') updateData.startedAt = new Date();
@@ -133,14 +135,24 @@ export async function updateStatus(
   return session;
 }
 
-export async function toggleItem(itemId: string, checked: boolean) {
+export async function toggleItem(itemId: string, checked: boolean, coupleId: string) {
+  const item = await prisma.cookingSessionItem.findUnique({
+    where: { id: itemId },
+    include: { session: { select: { coupleId: true } } },
+  });
+  if (!item || item.session.coupleId !== coupleId) throw new AppError(404, 'Item not found');
   return prisma.cookingSessionItem.update({
     where: { id: itemId },
     data: { checked, checkedAt: checked ? new Date() : null },
   });
 }
 
-export async function toggleStep(itemId: string, checked: boolean, checkedBy?: string) {
+export async function toggleStep(itemId: string, checked: boolean, coupleId: string, checkedBy?: string) {
+  const step = await prisma.cookingSessionStep.findUnique({
+    where: { id: itemId },
+    include: { session: { select: { coupleId: true } } },
+  });
+  if (!step || step.session.coupleId !== coupleId) throw new AppError(404, 'Step not found');
   return prisma.cookingSessionStep.update({
     where: { id: itemId },
     data: {
@@ -151,8 +163,8 @@ export async function toggleStep(itemId: string, checked: boolean, checkedBy?: s
   });
 }
 
-export async function uploadPhotos(sessionId: string, files: Express.Multer.File[]) {
-  const session = await prisma.cookingSession.findUnique({ where: { id: sessionId } });
+export async function uploadPhotos(sessionId: string, coupleId: string, files: Express.Multer.File[]) {
+  const session = await prisma.cookingSession.findFirst({ where: { id: sessionId, coupleId } });
   if (!session) throw new AppError(404, 'Session not found');
   if (!files || files.length === 0) throw new AppError(400, 'No files uploaded');
   return Promise.all(
@@ -163,7 +175,9 @@ export async function uploadPhotos(sessionId: string, files: Express.Multer.File
   );
 }
 
-export async function rate(id: string, rating: number) {
+export async function rate(id: string, coupleId: string, rating: number) {
+  const existing = await prisma.cookingSession.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Session not found');
   return prisma.cookingSession.update({
     where: { id },
     data: { rating },
@@ -171,9 +185,9 @@ export async function rate(id: string, rating: number) {
   });
 }
 
-export async function remove(id: string) {
-  const session = await prisma.cookingSession.findUnique({
-    where: { id },
+export async function remove(id: string, coupleId: string) {
+  const session = await prisma.cookingSession.findFirst({
+    where: { id, coupleId },
     include: { photos: true },
   });
   if (!session) throw new AppError(404, 'Session not found');

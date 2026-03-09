@@ -20,6 +20,7 @@ interface LoginState {
   mode:                  Mode;
   email:                 string;
   password:              string;
+  confirmPassword:       string;
   name:                  string;
   coupleMode:            CoupleMode;
   coupleName:            string;
@@ -37,6 +38,7 @@ const initialState: LoginState = {
   mode:                 'login',
   email:                '',
   password:             '',
+  confirmPassword:      '',
   name:                 '',
   coupleMode:           'create',
   coupleName:           '',
@@ -54,6 +56,7 @@ const initialState: LoginState = {
 type LoginAction =
   | { type: 'SET_EMAIL';              value: string }
   | { type: 'SET_PASSWORD';           value: string }
+  | { type: 'SET_CONFIRM_PASSWORD';   value: string }
   | { type: 'SET_NAME';               value: string }
   | { type: 'SET_COUPLE_NAME';        value: string }
   | { type: 'SET_INVITE_CODE';        value: string }
@@ -71,6 +74,7 @@ function reducer(state: LoginState, action: LoginAction): LoginState {
   switch (action.type) {
     case 'SET_EMAIL':              return { ...state, email:               action.value };
     case 'SET_PASSWORD':           return { ...state, password:            action.value };
+    case 'SET_CONFIRM_PASSWORD':   return { ...state, confirmPassword:     action.value };
     case 'SET_NAME':               return { ...state, name:                action.value };
     case 'SET_COUPLE_NAME':        return { ...state, coupleName:          action.value };
     case 'SET_INVITE_CODE':        return { ...state, inviteCode:          action.value };
@@ -79,7 +83,7 @@ function reducer(state: LoginState, action: LoginAction): LoginState {
     case 'SET_GOOGLE_COUPLE_NAME': return { ...state, googleCoupleName:    action.value };
     case 'SET_GOOGLE_INVITE_CODE': return { ...state, googleInviteCode:    action.value };
     case 'SET_ERROR':              return { ...state, error:               action.message };
-    case 'TOGGLE_MODE':            return { ...state, mode: state.mode === 'login' ? 'register' : 'login', coupleMode: null, error: '' };
+    case 'TOGGLE_MODE':            return { ...state, mode: state.mode === 'login' ? 'register' : 'login', coupleMode: null, confirmPassword: '', error: '' };
     case 'GOOGLE_NEEDS_COUPLE':    return { ...state, googleStep: 'couple-setup', pendingGoogleIdToken: action.idToken, pendingGoogleProfile: action.profile, googleCoupleName: action.defaultCoupleName };
     case 'BACK_FROM_GOOGLE':       return { ...state, googleStep: 'idle', error: '' };
   }
@@ -101,6 +105,7 @@ export function useLoginViewModel() {
     if (!s.password)                    { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordRequired }); return; }
     if (s.mode === 'register') {
       if (s.password.length < MIN_PASSWORD_LENGTH) { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordTooShort }); return; }
+      if (s.confirmPassword !== s.password)                  { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordMismatch }); return; }
       if (!s.name.trim())                                    { dispatch({ type: 'SET_ERROR', message: t.login.errors.nameRequired }); return; }
       if (!s.coupleMode)                                     { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleModeRequired }); return; }
       if (s.coupleMode === 'create' && !s.coupleName.trim()) { dispatch({ type: 'SET_ERROR', message: t.login.errors.coupleNameRequired }); return; }
@@ -171,6 +176,7 @@ export function useLoginViewModel() {
     // field setters
     setEmail:             (v: string)     => dispatch({ type: 'SET_EMAIL',              value: v }),
     setPassword:          (v: string)     => dispatch({ type: 'SET_PASSWORD',           value: v }),
+    setConfirmPassword:   (v: string)     => dispatch({ type: 'SET_CONFIRM_PASSWORD',   value: v }),
     setName:              (v: string)     => dispatch({ type: 'SET_NAME',               value: v }),
     setCoupleName:        (v: string)     => dispatch({ type: 'SET_COUPLE_NAME',        value: v }),
     setInviteCode:        (v: string)     => dispatch({ type: 'SET_INVITE_CODE',        value: v }),

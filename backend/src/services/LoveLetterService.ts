@@ -137,6 +137,7 @@ export async function create(
 export async function update(
   id: string,
   userId: string,
+  coupleId: string,
   data: {
     title?: string;
     content?: string;
@@ -144,9 +145,9 @@ export async function update(
     scheduledAt?: string | null;
   },
 ) {
-  const letter = await prisma.loveLetter.findUnique({ where: { id } });
+  const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
     throw new AppError(400, 'Only DRAFT or SCHEDULED letters can be edited');
   }
@@ -177,10 +178,10 @@ export async function update(
   });
 }
 
-export async function send(id: string, userId: string) {
-  const letter = await prisma.loveLetter.findUnique({ where: { id } });
+export async function send(id: string, userId: string, coupleId: string) {
+  const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
     throw new AppError(400, 'Letter already sent');
   }
@@ -206,10 +207,10 @@ export async function send(id: string, userId: string) {
   return updated;
 }
 
-export async function remove(id: string, userId: string) {
-  const letter = await prisma.loveLetter.findUnique({ where: { id } });
+export async function remove(id: string, userId: string, coupleId: string) {
+  const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
     throw new AppError(400, 'Only DRAFT or SCHEDULED letters can be deleted');
   }
@@ -219,14 +220,15 @@ export async function remove(id: string, userId: string) {
 export async function uploadPhotos(
   id: string,
   userId: string,
+  coupleId: string,
   files: Express.Multer.File[],
 ) {
-  const letter = await prisma.loveLetter.findUnique({
-    where: { id },
+  const letter = await prisma.loveLetter.findFirst({
+    where: { id, coupleId },
     include: { photos: true },
   });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (!files || files.length === 0) throw new AppError(400, 'No photos uploaded');
   if (letter.photos.length + files.length > 5) {
     throw new AppError(
@@ -243,10 +245,10 @@ export async function uploadPhotos(
   );
 }
 
-export async function deletePhoto(id: string, userId: string, photoId: string) {
-  const letter = await prisma.loveLetter.findUnique({ where: { id } });
+export async function deletePhoto(id: string, userId: string, coupleId: string, photoId: string) {
+  const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
     throw new AppError(400, 'Only DRAFT or SCHEDULED letters can have photos removed');
   }
@@ -261,15 +263,16 @@ export async function deletePhoto(id: string, userId: string, photoId: string) {
 export async function uploadAudio(
   id: string,
   userId: string,
+  coupleId: string,
   file: Express.Multer.File,
   duration?: number,
 ) {
-  const letter = await prisma.loveLetter.findUnique({
-    where: { id },
+  const letter = await prisma.loveLetter.findFirst({
+    where: { id, coupleId },
     include: { audio: true },
   });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (letter.audio.length > 0) {
     throw new AppError(400, 'Letter already has a voice memo. Delete it first.');
   }
@@ -280,10 +283,10 @@ export async function uploadAudio(
   });
 }
 
-export async function deleteAudio(id: string, userId: string, audioId: string) {
-  const letter = await prisma.loveLetter.findUnique({ where: { id } });
+export async function deleteAudio(id: string, userId: string, coupleId: string, audioId: string) {
+  const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
   if (!letter) throw new AppError(404, 'Letter not found');
-  if (letter.senderId !== userId) throw new AppError(403, 'Forbidden');
+  if (letter.senderId !== userId) throw new AppError(404, 'Letter not found');
   if (letter.status !== 'DRAFT' && letter.status !== 'SCHEDULED') {
     throw new AppError(400, 'Only DRAFT or SCHEDULED letters can have audio removed');
   }

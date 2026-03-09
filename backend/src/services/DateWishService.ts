@@ -2,6 +2,7 @@ import prisma from '../utils/prisma';
 import { createNotification, getPartnerUserId } from '../utils/notifications';
 import type { z } from 'zod';
 import type { createDateWishSchema, updateDateWishSchema, markDoneSchema } from '../validators/dateWishSchemas';
+import { AppError } from '../types/errors';
 
 type CreateData = z.infer<typeof createDateWishSchema>;
 type UpdateData = z.infer<typeof updateDateWishSchema>;
@@ -34,7 +35,9 @@ export async function create(coupleId: string, userId: string, data: CreateData)
   return wish;
 }
 
-export async function update(id: string, data: UpdateData) {
+export async function update(id: string, coupleId: string, data: UpdateData) {
+  const existing = await prisma.dateWish.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Date wish not found');
   return prisma.dateWish.update({
     where: { id },
     data: {
@@ -50,7 +53,9 @@ export async function update(id: string, data: UpdateData) {
   });
 }
 
-export async function markDone(id: string, data: DoneData) {
+export async function markDone(id: string, coupleId: string, data: DoneData) {
+  const existing = await prisma.dateWish.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Date wish not found');
   return prisma.dateWish.update({
     where: { id },
     data: {
@@ -62,6 +67,8 @@ export async function markDone(id: string, data: DoneData) {
   });
 }
 
-export async function remove(id: string) {
+export async function remove(id: string, coupleId: string) {
+  const existing = await prisma.dateWish.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Date wish not found');
   await prisma.dateWish.delete({ where: { id } });
 }

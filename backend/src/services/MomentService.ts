@@ -21,9 +21,9 @@ export async function list(coupleId: string) {
   });
 }
 
-export async function getOne(id: string) {
-  const moment = await prisma.moment.findUnique({
-    where: { id },
+export async function getOne(id: string, coupleId: string) {
+  const moment = await prisma.moment.findFirst({
+    where: { id, coupleId },
     include: momentIncludeFull,
   });
   if (!moment) throw new AppError(404, 'Moment not found');
@@ -58,7 +58,9 @@ export async function create(
   return moment;
 }
 
-export async function update(id: string, data: Record<string, unknown>) {
+export async function update(id: string, coupleId: string, data: Record<string, unknown>) {
+  const existing = await prisma.moment.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Moment not found');
   return prisma.moment.update({
     where: { id },
     data: data as object,
@@ -66,9 +68,9 @@ export async function update(id: string, data: Record<string, unknown>) {
   });
 }
 
-export async function remove(id: string) {
-  const moment = await prisma.moment.findUnique({
-    where: { id },
+export async function remove(id: string, coupleId: string) {
+  const moment = await prisma.moment.findFirst({
+    where: { id, coupleId },
     include: { photos: true, audios: true },
   });
   if (!moment) throw new AppError(404, 'Moment not found');
@@ -79,8 +81,8 @@ export async function remove(id: string) {
   await prisma.moment.delete({ where: { id } });
 }
 
-export async function uploadPhotos(momentId: string, files: Express.Multer.File[]) {
-  const moment = await prisma.moment.findUnique({ where: { id: momentId } });
+export async function uploadPhotos(momentId: string, coupleId: string, files: Express.Multer.File[]) {
+  const moment = await prisma.moment.findFirst({ where: { id: momentId, coupleId } });
   if (!moment) throw new AppError(404, 'Moment not found');
   if (!files || files.length === 0) throw new AppError(400, 'No files uploaded');
   return Promise.all(
@@ -91,32 +93,41 @@ export async function uploadPhotos(momentId: string, files: Express.Multer.File[
   );
 }
 
-export async function deletePhoto(photoId: string) {
-  const photo = await prisma.momentPhoto.findUnique({ where: { id: photoId } });
-  if (!photo) throw new AppError(404, 'Photo not found');
+export async function deletePhoto(photoId: string, coupleId: string) {
+  const photo = await prisma.momentPhoto.findUnique({
+    where: { id: photoId },
+    include: { moment: { select: { coupleId: true } } },
+  });
+  if (!photo || photo.moment.coupleId !== coupleId) throw new AppError(404, 'Photo not found');
   await deleteFromCdn(photo.url);
   await prisma.momentPhoto.delete({ where: { id: photoId } });
 }
 
 export async function uploadAudio(
   momentId: string,
+  coupleId: string,
   file: Express.Multer.File,
   duration: number | null,
 ) {
-  const moment = await prisma.moment.findUnique({ where: { id: momentId } });
+  const moment = await prisma.moment.findFirst({ where: { id: momentId, coupleId } });
   if (!moment) throw new AppError(404, 'Moment not found');
   const { filename, url } = await uploadToCdn(file.buffer, file.originalname, file.mimetype);
   return prisma.momentAudio.create({ data: { momentId, filename, url, duration } });
 }
 
-export async function deleteAudio(audioId: string) {
-  const audio = await prisma.momentAudio.findUnique({ where: { id: audioId } });
-  if (!audio) throw new AppError(404, 'Audio not found');
+export async function deleteAudio(audioId: string, coupleId: string) {
+  const audio = await prisma.momentAudio.findUnique({
+    where: { id: audioId },
+    include: { moment: { select: { coupleId: true } } },
+  });
+  if (!audio || audio.moment.coupleId !== coupleId) throw new AppError(404, 'Audio not found');
   await deleteFromCdn(audio.url);
   await prisma.momentAudio.delete({ where: { id: audioId } });
 }
 
-export async function listComments(momentId: string) {
+export async function listComments(momentId: string, coupleId: string) {
+  const moment = await prisma.moment.findFirst({ where: { id: momentId, coupleId } });
+  if (!moment) throw new AppError(404, 'Moment not found');
   return prisma.momentComment.findMany({
     where: { momentId },
     orderBy: { createdAt: 'asc' },
@@ -131,7 +142,9 @@ export async function addComment(
   author: string,
   content: string,
 ) {
-  const moment = await prisma.moment.findUnique({ where: { id: momentId } });
+  const moment = await prisma.moment.findFirst({
+    where: { id: momentId, ...(coupleId ? { coupleId } : {}) },
+  });
   if (!moment) throw new AppError(404, 'Moment not found');
   const comment = await prisma.momentComment.create({
     data: { momentId, userId, author, content },
@@ -156,7 +169,14 @@ export async function addComment(
   return comment;
 }
 
-export async function deleteComment(commentId: string) {
+export async function deleteComment(commentId: string, coupleId: string) {
+  const comment = await prisma.momentComment.findUnique({
+    where: { id: commentId },
+    include: { moment: { select: { coupleId: true } } },
+  });
+  if (!comment || comment.moment.coupleId !== coupleId) {
+    throw new AppError(404, 'Comment not found');
+  }
   await prisma.momentComment.delete({ where: { id: commentId } });
 }
 
@@ -167,7 +187,9 @@ export async function toggleReaction(
   userId?: string,
   coupleId?: string,
 ) {
-  const moment = await prisma.moment.findUnique({ where: { id: momentId } });
+  const moment = await prisma.moment.findFirst({
+    where: { id: momentId, ...(coupleId ? { coupleId } : {}) },
+  });
   if (!moment) throw new AppError(404, 'Moment not found');
 
   const existing = await prisma.momentReaction.findUnique({

@@ -46,70 +46,58 @@ export const create = [
 export const update = [
   validate(updateLetterSchema),
   asyncHandler<IdParam>(async (req, res) => {
+    const { userId, coupleId } = (req as AuthRequest).user!;
     const letter = await LoveLetterService.update(
       req.params.id,
-      (req as AuthRequest).user!.userId,
-      req.body as Parameters<typeof LoveLetterService.update>[2],
+      userId,
+      coupleId,
+      req.body as Parameters<typeof LoveLetterService.update>[3],
     );
     res.json(letter);
   }),
 ];
 
 export const send = asyncHandler<IdParam>(async (req, res) => {
-  const letter = await LoveLetterService.send(
-    req.params.id,
-    (req as AuthRequest).user!.userId,
-  );
+  const { userId, coupleId } = (req as AuthRequest).user!;
+  const letter = await LoveLetterService.send(req.params.id, userId, coupleId);
   res.json(letter);
 });
 
 export const remove = asyncHandler<IdParam>(async (req, res) => {
-  await LoveLetterService.remove(req.params.id, (req as AuthRequest).user!.userId);
+  const { userId, coupleId } = (req as AuthRequest).user!;
+  await LoveLetterService.remove(req.params.id, userId, coupleId);
   res.status(204).end();
 });
 
 export const uploadPhotos = asyncHandler<IdParam>(async (req, res) => {
+  const { userId, coupleId } = (req as AuthRequest).user!;
   const files = req.files as Express.Multer.File[];
-  const photos = await LoveLetterService.uploadPhotos(
-    req.params.id,
-    (req as AuthRequest).user!.userId,
-    files,
-  );
+  const photos = await LoveLetterService.uploadPhotos(req.params.id, userId, coupleId, files);
   res.status(201).json(photos);
 });
 
 export const deletePhoto = asyncHandler(
   async (req: Request<PhotoParam & ParamsDictionary>, res: Response) => {
-    await LoveLetterService.deletePhoto(
-      req.params.id,
-      (req as AuthRequest).user!.userId,
-      req.params.photoId,
-    );
+    const { userId, coupleId } = (req as AuthRequest).user!;
+    await LoveLetterService.deletePhoto(req.params.id, userId, coupleId, req.params.photoId);
     res.status(204).end();
   },
 );
 
 export const uploadAudio = asyncHandler<IdParam>(async (req, res) => {
+  const { userId, coupleId } = (req as AuthRequest).user!;
   const file = req.file;
   if (!file) { res.status(400).json({ error: 'No audio file uploaded' }); return; }
   const body = req.body as { duration?: string };
   const duration = body.duration ? parseFloat(body.duration) : undefined;
-  const audio = await LoveLetterService.uploadAudio(
-    req.params.id,
-    (req as AuthRequest).user!.userId,
-    file,
-    duration,
-  );
+  const audio = await LoveLetterService.uploadAudio(req.params.id, userId, coupleId, file, duration);
   res.status(201).json(audio);
 });
 
 export const deleteAudio = asyncHandler(
   async (req: Request<AudioParam & ParamsDictionary>, res: Response) => {
-    await LoveLetterService.deleteAudio(
-      req.params.id,
-      (req as AuthRequest).user!.userId,
-      req.params.audioId,
-    );
+    const { userId, coupleId } = (req as AuthRequest).user!;
+    await LoveLetterService.deleteAudio(req.params.id, userId, coupleId, req.params.audioId);
     res.status(204).end();
   },
 );

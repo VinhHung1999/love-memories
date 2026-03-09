@@ -16,7 +16,8 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getOne = asyncHandler<IdParam>(async (req, res) => {
-  const plan = await DatePlanService.getOne(req.params.id);
+  const { coupleId } = (req as AuthRequest).user!;
+  const plan = await DatePlanService.getOne(req.params.id, coupleId);
   res.json(plan);
 });
 
@@ -27,62 +28,71 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const update = asyncHandler<IdParam>(async (req, res) => {
-  const plan = await DatePlanService.update(req.params.id, req.body as Parameters<typeof DatePlanService.update>[1]);
+  const { coupleId } = (req as AuthRequest).user!;
+  const plan = await DatePlanService.update(req.params.id, coupleId, req.body as Parameters<typeof DatePlanService.update>[2]);
   res.json(plan);
 });
 
 export const updateStatus = asyncHandler<IdParam>(async (req, res) => {
+  const { coupleId } = (req as AuthRequest).user!;
   const { status } = req.body as { status: string };
-  const plan = await DatePlanService.updateStatus(req.params.id, status);
+  const plan = await DatePlanService.updateStatus(req.params.id, coupleId, status);
   res.json(plan);
 });
 
 export const linkMoment = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
+    const { coupleId } = (req as AuthRequest).user!;
     const { momentId } = req.body as { momentId: string | null };
-    const stop = await DatePlanService.linkMoment(req.params.stopId, momentId);
+    const stop = await DatePlanService.linkMoment(req.params.stopId, coupleId, momentId);
     res.json(stop);
   },
 );
 
 export const linkFoodSpot = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
+    const { coupleId } = (req as AuthRequest).user!;
     const { foodSpotId } = req.body as { foodSpotId: string | null };
-    const stop = await DatePlanService.linkFoodSpot(req.params.stopId, foodSpotId);
+    const stop = await DatePlanService.linkFoodSpot(req.params.stopId, coupleId, foodSpotId);
     res.json(stop);
   },
 );
 
 export const updateStopCost = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
+    const { coupleId } = (req as AuthRequest).user!;
     const { cost } = req.body as { cost: number | null };
-    const stop = await DatePlanService.updateStopCost(req.params.stopId, cost);
+    const stop = await DatePlanService.updateStopCost(req.params.stopId, coupleId, cost);
     res.json(stop);
   },
 );
 
 export const markStopDone = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const plan = await DatePlanService.markStopDone(req.params.id, req.params.stopId);
+    const { coupleId } = (req as AuthRequest).user!;
+    const plan = await DatePlanService.markStopDone(req.params.id, req.params.stopId, coupleId);
     res.json(plan);
   },
 );
 
 export const addSpot = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const spot = await DatePlanService.addSpot(req.params.stopId, req.body);
+    const { coupleId } = (req as AuthRequest).user!;
+    const spot = await DatePlanService.addSpot(req.params.stopId, coupleId, req.body);
     res.status(201).json(spot);
   },
 );
 
 export const deleteSpot = asyncHandler(
   async (req: Request<PlanSpotParam & ParamsDictionary>, res: Response) => {
-    await DatePlanService.deleteSpot(req.params.spotId);
+    const { coupleId } = (req as AuthRequest).user!;
+    await DatePlanService.deleteSpot(req.params.spotId, coupleId);
     res.status(204).send();
   },
 );
 
 export const remove = asyncHandler<IdParam>(async (req, res) => {
-  await DatePlanService.remove(req.params.id);
+  const { coupleId } = (req as AuthRequest).user!;
+  await DatePlanService.remove(req.params.id, coupleId);
   res.status(204).send();
 });

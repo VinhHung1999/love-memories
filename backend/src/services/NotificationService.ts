@@ -19,18 +19,14 @@ export async function markAllRead(userId: string) {
   return { ok: true };
 }
 
-export async function markRead(id: string) {
-  try {
-    return await prisma.notification.update({ where: { id }, data: { read: true } });
-  } catch {
-    throw new AppError(404, 'Notification not found');
-  }
+export async function markRead(id: string, userId: string) {
+  const notif = await prisma.notification.findFirst({ where: { id, userId } });
+  if (!notif) throw new AppError(404, 'Notification not found');
+  return prisma.notification.update({ where: { id }, data: { read: true } });
 }
 
-export async function remove(id: string) {
-  try {
-    await prisma.notification.delete({ where: { id } });
-  } catch {
-    throw new AppError(404, 'Notification not found');
-  }
+export async function remove(id: string, userId: string) {
+  const notif = await prisma.notification.findFirst({ where: { id, userId } });
+  if (!notif) throw new AppError(404, 'Notification not found');
+  await prisma.notification.delete({ where: { id } });
 }

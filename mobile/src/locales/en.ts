@@ -25,12 +25,14 @@ const en = {
       couple: 'Couple',
       email: 'Email',
       password: 'Password',
+      confirmPassword: 'Xác nhận mật khẩu',
     },
 
     placeholders: {
       name: 'Your name',
       email: 'you@example.com',
       password: '••••••••',
+      confirmPassword: '••••••••',
       coupleName: 'Couple name (e.g. Hung & Nhu)',
       inviteCode: 'Invite code from your partner',
     },
@@ -58,6 +60,7 @@ const en = {
       somethingWrong: 'Something went wrong',
       googleSignInFailed: 'Google Sign-In failed',
       googleSignupFailed: 'Google signup failed',
+      passwordMismatch: 'Mật khẩu xác nhận không khớp',
     },
   },
 

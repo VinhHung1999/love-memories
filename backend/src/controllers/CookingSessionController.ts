@@ -30,7 +30,8 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getOne = asyncHandler<IdParam>(async (req, res) => {
-  const session = await CookingSessionService.getOne(req.params.id);
+  const { coupleId } = (req as AuthRequest).user!;
+  const session = await CookingSessionService.getOne(req.params.id, coupleId);
   res.json(session);
 });
 
@@ -62,7 +63,7 @@ export const updateStatus = [
   validate(updateCookingSessionStatusSchema),
   asyncHandler<IdParam>(async (req, res) => {
     const { userId, coupleId } = (req as AuthRequest).user!;
-    const session = await CookingSessionService.updateStatus(req.params.id, req.body as { status: string; notes?: string }, userId, coupleId);
+    const session = await CookingSessionService.updateStatus(req.params.id, coupleId, req.body as { status: string; notes?: string }, userId);
     res.json(session);
   }),
 ];
@@ -71,8 +72,9 @@ export const toggleItem = [
   validate(toggleCookingItemSchema),
   asyncHandler(
     async (req: Request<ItemParam & ParamsDictionary>, res: Response) => {
+      const { coupleId } = (req as AuthRequest).user!;
       const { checked } = req.body as { checked: boolean };
-      const item = await CookingSessionService.toggleItem(req.params.itemId, checked);
+      const item = await CookingSessionService.toggleItem(req.params.itemId, checked, coupleId);
       res.json(item);
     },
   ),
@@ -82,29 +84,33 @@ export const toggleStep = [
   validate(toggleCookingStepSchema),
   asyncHandler(
     async (req: Request<StepParam & ParamsDictionary>, res: Response) => {
+      const { coupleId } = (req as AuthRequest).user!;
       const { checked, checkedBy } = req.body as { checked: boolean; checkedBy?: string };
-      const step = await CookingSessionService.toggleStep(req.params.stepId, checked, checkedBy);
+      const step = await CookingSessionService.toggleStep(req.params.stepId, checked, coupleId, checkedBy);
       res.json(step);
     },
   ),
 ];
 
 export const uploadPhotos = asyncHandler<IdParam>(async (req, res) => {
+  const { coupleId } = (req as AuthRequest).user!;
   const files = req.files as Express.Multer.File[];
-  const photos = await CookingSessionService.uploadPhotos(req.params.id, files);
+  const photos = await CookingSessionService.uploadPhotos(req.params.id, coupleId, files);
   res.status(201).json(photos);
 });
 
 export const rate = [
   validate(ratingSchema),
   asyncHandler<IdParam>(async (req, res) => {
+    const { coupleId } = (req as AuthRequest).user!;
     const { rating } = req.body as { rating: number };
-    const session = await CookingSessionService.rate(req.params.id, rating);
+    const session = await CookingSessionService.rate(req.params.id, coupleId, rating);
     res.json(session);
   }),
 ];
 
 export const remove = asyncHandler<IdParam>(async (req, res) => {
-  await CookingSessionService.remove(req.params.id);
+  const { coupleId } = (req as AuthRequest).user!;
+  await CookingSessionService.remove(req.params.id, coupleId);
   res.json({ message: 'Session deleted' });
 });

@@ -19,11 +19,11 @@ export const markAllRead = asyncHandler(async (req: AuthRequest, res: Response) 
 });
 
 export const markRead = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  const notification = await NotificationService.markRead(req.params.id);
+  const notification = await NotificationService.markRead(req.params.id, req.user!.userId);
   res.json(notification);
 });
 
 export const remove = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  await NotificationService.remove(req.params.id);
+  await NotificationService.remove(req.params.id, req.user!.userId);
   res.status(204).send();
 });

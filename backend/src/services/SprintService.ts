@@ -26,8 +26,8 @@ export async function getActive(coupleId: string) {
   return sprint;
 }
 
-export async function getOne(id: string) {
-  const sprint = await prisma.sprint.findUnique({ where: { id }, include: sprintInclude });
+export async function getOne(id: string, coupleId: string) {
+  const sprint = await prisma.sprint.findFirst({ where: { id, coupleId }, include: sprintInclude });
   if (!sprint) throw new AppError(404, 'Sprint not found');
   return sprint;
 }
@@ -36,14 +36,20 @@ export async function create(coupleId: string, data: CreateData) {
   return prisma.sprint.create({ data: { ...data, coupleId }, include: { goals: true } });
 }
 
-export async function update(id: string, data: UpdateData) {
+export async function update(id: string, coupleId: string, data: UpdateData) {
+  const existing = await prisma.sprint.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Sprint not found');
   return prisma.sprint.update({ where: { id }, data, include: { goals: true } });
 }
 
-export async function updateStatus(id: string, data: StatusData) {
+export async function updateStatus(id: string, coupleId: string, data: StatusData) {
+  const existing = await prisma.sprint.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Sprint not found');
   return prisma.sprint.update({ where: { id }, data: { status: data.status }, include: sprintInclude });
 }
 
-export async function remove(id: string) {
+export async function remove(id: string, coupleId: string) {
+  const existing = await prisma.sprint.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Sprint not found');
   await prisma.sprint.delete({ where: { id } });
 }
