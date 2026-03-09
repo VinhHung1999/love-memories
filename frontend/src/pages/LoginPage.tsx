@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [coupleName, setCoupleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,6 +41,10 @@ export default function LoginPage() {
     }
     if (mode === 'register' && coupleMode === 'join' && !inviteCode.trim()) {
       setError('Please enter an invite code');
+      return;
+    }
+    if (mode === 'register' && confirmPassword !== password) {
+      setError('Mật khẩu xác nhận không khớp');
       return;
     }
     setLoading(true);
@@ -341,6 +346,21 @@ export default function LoginPage() {
                 />
               </div>
 
+              {mode === 'register' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Xác nhận mật khẩu</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+              )}
+
               {error && (
                 <p className="text-red-500 text-xs bg-red-50 rounded-lg px-3 py-2">{error}</p>
               )}
@@ -357,7 +377,7 @@ export default function LoginPage() {
             <div className="text-center pt-1">
               <button
                 type="button"
-                onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setCoupleMode(null); setError(''); }}
+                onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setCoupleMode(null); setConfirmPassword(''); setError(''); }}
                 className="text-sm text-primary hover:underline"
               >
                 {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Sign in'}
