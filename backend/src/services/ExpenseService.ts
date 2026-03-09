@@ -116,8 +116,8 @@ export async function uploadReceipt(file: Express.Multer.File) {
   return { url };
 }
 
-export async function getOne(id: string) {
-  const expense = await prisma.expense.findUnique({ where: { id } });
+export async function getOne(id: string, coupleId: string) {
+  const expense = await prisma.expense.findFirst({ where: { id, coupleId } });
   if (!expense) throw new AppError(404, 'Expense not found');
   return expense;
 }
@@ -126,10 +126,14 @@ export async function create(coupleId: string, data: CreateData) {
   return prisma.expense.create({ data: { ...data, coupleId } });
 }
 
-export async function update(id: string, data: UpdateData) {
+export async function update(id: string, coupleId: string, data: UpdateData) {
+  const existing = await prisma.expense.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Expense not found');
   return prisma.expense.update({ where: { id }, data });
 }
 
-export async function remove(id: string) {
+export async function remove(id: string, coupleId: string) {
+  const existing = await prisma.expense.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Expense not found');
   await prisma.expense.delete({ where: { id } });
 }

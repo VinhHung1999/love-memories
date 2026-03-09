@@ -1,4 +1,5 @@
 import prisma from '../utils/prisma';
+import { AppError } from '../types/errors';
 import type { z } from 'zod';
 import type { createGoalSchema, updateGoalSchema, updateGoalStatusSchema, assignGoalSchema, reorderGoalsSchema } from '../validators/goalSchemas';
 
@@ -20,7 +21,11 @@ export async function create(coupleId: string, data: CreateData, sprintId?: stri
   return prisma.goal.create({ data: { ...data, coupleId, ...(sprintId ? { sprintId } : {}) } });
 }
 
-export async function reorder(data: ReorderData) {
+export async function reorder(coupleId: string, data: ReorderData) {
+  // Verify all goals belong to the couple before reordering
+  const goalIds = data.goals.map((g) => g.id);
+  const goals = await prisma.goal.findMany({ where: { id: { in: goalIds }, coupleId } });
+  if (goals.length !== goalIds.length) throw new AppError(404, 'One or more goals not found');
   const updates = data.goals.map((g) =>
     prisma.goal.update({
       where: { id: g.id },
@@ -31,18 +36,26 @@ export async function reorder(data: ReorderData) {
   return { message: 'Goals reordered' };
 }
 
-export async function update(id: string, data: UpdateData) {
+export async function update(id: string, coupleId: string, data: UpdateData) {
+  const existing = await prisma.goal.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Goal not found');
   return prisma.goal.update({ where: { id }, data });
 }
 
-export async function updateStatus(id: string, data: StatusData) {
+export async function updateStatus(id: string, coupleId: string, data: StatusData) {
+  const existing = await prisma.goal.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Goal not found');
   return prisma.goal.update({ where: { id }, data: { status: data.status } });
 }
 
-export async function assign(id: string, data: AssignData) {
+export async function assign(id: string, coupleId: string, data: AssignData) {
+  const existing = await prisma.goal.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Goal not found');
   return prisma.goal.update({ where: { id }, data: { sprintId: data.sprintId } });
 }
 
-export async function remove(id: string) {
+export async function remove(id: string, coupleId: string) {
+  const existing = await prisma.goal.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Goal not found');
   await prisma.goal.delete({ where: { id } });
 }

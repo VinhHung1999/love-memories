@@ -13,14 +13,14 @@ export const create = asyncHandler(async (req: AuthRequest, res: Response) => {
 });
 
 export const update = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  res.json(await DateWishService.update(req.params.id, req.body));
+  res.json(await DateWishService.update(req.params.id, req.user!.coupleId, req.body));
 });
 
 export const markDone = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  res.json(await DateWishService.markDone(req.params.id, req.body));
+  res.json(await DateWishService.markDone(req.params.id, req.user!.coupleId, req.body));
 });
 
-export const remove = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  await DateWishService.remove(req.params.id);
+export const remove = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  await DateWishService.remove(req.params.id, req.user!.coupleId);
   res.status(204).send();
 });

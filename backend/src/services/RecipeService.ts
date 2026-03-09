@@ -14,8 +14,8 @@ export async function list(coupleId: string) {
   return prisma.recipe.findMany({ where: { coupleId }, include: recipeInclude, orderBy: { createdAt: 'desc' } });
 }
 
-export async function getOne(id: string) {
-  const recipe = await prisma.recipe.findUnique({ where: { id }, include: recipeInclude });
+export async function getOne(id: string, coupleId: string) {
+  const recipe = await prisma.recipe.findFirst({ where: { id, coupleId }, include: recipeInclude });
   if (!recipe) throw new AppError(404, 'Recipe not found');
   return recipe;
 }
@@ -31,20 +31,22 @@ export async function create(coupleId: string, userId: string, data: CreateData)
   return recipe;
 }
 
-export async function update(id: string, data: UpdateData) {
+export async function update(id: string, coupleId: string, data: UpdateData) {
+  const existing = await prisma.recipe.findFirst({ where: { id, coupleId } });
+  if (!existing) throw new AppError(404, 'Recipe not found');
   return prisma.recipe.update({ where: { id }, data, include: recipeInclude });
 }
 
-export async function remove(id: string) {
-  const recipe = await prisma.recipe.findUnique({ where: { id }, include: { photos: true } });
+export async function remove(id: string, coupleId: string) {
+  const recipe = await prisma.recipe.findFirst({ where: { id, coupleId }, include: { photos: true } });
   if (!recipe) throw new AppError(404, 'Recipe not found');
   await Promise.all(recipe.photos.map((p) => deleteFromCdn(p.url)));
   await prisma.recipe.delete({ where: { id } });
 }
 
-export async function addPhotos(id: string, files: Express.Multer.File[]) {
+export async function addPhotos(id: string, coupleId: string, files: Express.Multer.File[]) {
   if (!files || files.length === 0) throw new AppError(400, 'No files uploaded');
-  const recipe = await prisma.recipe.findUnique({ where: { id } });
+  const recipe = await prisma.recipe.findFirst({ where: { id, coupleId } });
   if (!recipe) throw new AppError(404, 'Recipe not found');
   return Promise.all(
     files.map(async (file) => {
@@ -54,9 +56,12 @@ export async function addPhotos(id: string, files: Express.Multer.File[]) {
   );
 }
 
-export async function deletePhoto(photoId: string) {
-  const photo = await prisma.recipePhoto.findUnique({ where: { id: photoId } });
-  if (!photo) throw new AppError(404, 'Photo not found');
+export async function deletePhoto(photoId: string, coupleId: string) {
+  const photo = await prisma.recipePhoto.findUnique({
+    where: { id: photoId },
+    include: { recipe: { select: { coupleId: true } } },
+  });
+  if (!photo || photo.recipe.coupleId !== coupleId) throw new AppError(404, 'Photo not found');
   await deleteFromCdn(photo.url);
   await prisma.recipePhoto.delete({ where: { id: photoId } });
 }

@@ -11,8 +11,8 @@ export const getActive = asyncHandler(async (req: AuthRequest, res: Response) =>
   res.json(await SprintService.getActive(req.user!.coupleId));
 });
 
-export const getOne = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  res.json(await SprintService.getOne(req.params.id));
+export const getOne = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  res.json(await SprintService.getOne(req.params.id, req.user!.coupleId));
 });
 
 export const create = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -20,15 +20,15 @@ export const create = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.status(201).json(sprint);
 });
 
-export const update = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  res.json(await SprintService.update(req.params.id, req.body));
+export const update = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  res.json(await SprintService.update(req.params.id, req.user!.coupleId, req.body));
 });
 
-export const updateStatus = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  res.json(await SprintService.updateStatus(req.params.id, req.body));
+export const updateStatus = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  res.json(await SprintService.updateStatus(req.params.id, req.user!.coupleId, req.body));
 });
 
-export const remove = asyncHandler(async (req: Request<{ id: string }>, res: Response) => {
-  await SprintService.remove(req.params.id);
+export const remove = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
+  await SprintService.remove(req.params.id, req.user!.coupleId);
   res.json({ message: 'Sprint deleted' });
 });
