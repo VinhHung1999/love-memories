@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { validate } from '../middleware/validate';
-import { registerSchema, loginSchema } from '../validators/authSchemas';
+import { registerSchema, loginSchema, deleteAccountSchema } from '../validators/authSchemas';
 import type { AuthRequest } from '../middleware/auth';
 import * as AuthService from '../services/AuthService';
 
@@ -88,6 +88,16 @@ export const googleComplete = asyncHandler(async (req: Request, res: Response) =
     }
   }
 });
+
+export const deleteAccount = [
+  validate(deleteAccountSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { password } = req.body as { password: string };
+    await AuthService.deleteAccount(userId, coupleId, password);
+    res.status(204).send();
+  }),
+];
 
 export const googleLink = asyncHandler(async (req: Request, res: Response) => {
   const body = req.body as { idToken?: unknown };

@@ -7,6 +7,7 @@ import {
   generateAccessToken,
   generateRefreshTokenValue,
 } from '../utils/auth';
+import { deleteFromCdn } from '../utils/cdn';
 import { AppError } from '../types/errors';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -230,6 +231,90 @@ export async function googleComplete(
   const legacyToken = generateToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
   return buildAuthResponse(user, accessToken, legacyToken, refreshToken);
+}
+
+export async function deleteAccount(userId: string, coupleId: string, password: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError(404, 'User not found');
+
+  // Verify password (skip for Google-only accounts)
+  if (user.password) {
+    const valid = await comparePassword(password, user.password);
+    if (!valid) throw new AppError(401, 'Incorrect password');
+  }
+
+  const memberCount = await prisma.user.count({ where: { coupleId } });
+  const isLastMember = memberCount === 1;
+
+  // Collect CDN URLs to delete
+  const cdnUrls: string[] = [];
+  if (user.avatar) cdnUrls.push(user.avatar);
+
+  if (isLastMember) {
+    const [momentPhotos, momentAudios, letterPhotos, letterAudios, foodSpotPhotos, recipePhotos, cookingPhotos] =
+      await Promise.all([
+        prisma.momentPhoto.findMany({ where: { moment: { coupleId } }, select: { url: true } }),
+        prisma.momentAudio.findMany({ where: { moment: { coupleId } }, select: { url: true } }),
+        prisma.letterPhoto.findMany({ where: { letter: { coupleId } }, select: { url: true } }),
+        prisma.letterAudio.findMany({ where: { letter: { coupleId } }, select: { url: true } }),
+        prisma.foodSpotPhoto.findMany({ where: { foodSpot: { coupleId } }, select: { url: true } }),
+        prisma.recipePhoto.findMany({ where: { recipe: { coupleId } }, select: { url: true } }),
+        prisma.cookingSessionPhoto.findMany({ where: { session: { coupleId } }, select: { url: true } }),
+      ]);
+    cdnUrls.push(
+      ...momentPhotos.map((p) => p.url),
+      ...momentAudios.map((p) => p.url),
+      ...letterPhotos.map((p) => p.url),
+      ...letterAudios.map((p) => p.url),
+      ...foodSpotPhotos.map((p) => p.url),
+      ...recipePhotos.map((p) => p.url),
+      ...cookingPhotos.map((p) => p.url),
+    );
+  } else {
+    const [sentLetterPhotos, sentLetterAudios] = await Promise.all([
+      prisma.letterPhoto.findMany({ where: { letter: { senderId: userId } }, select: { url: true } }),
+      prisma.letterAudio.findMany({ where: { letter: { senderId: userId } }, select: { url: true } }),
+    ]);
+    cdnUrls.push(...sentLetterPhotos.map((p) => p.url), ...sentLetterAudios.map((p) => p.url));
+  }
+
+  // Delete CDN files (best-effort — don't fail on CDN errors)
+  await Promise.allSettled(cdnUrls.map((url) => deleteFromCdn(url)));
+
+  if (isLastMember) {
+    await prisma.$transaction(async (tx) => {
+      await tx.shareLink.deleteMany({ where: { coupleId } });
+      await tx.achievement.deleteMany({ where: { coupleId } });
+      await tx.appSetting.deleteMany({ where: { coupleId } });
+      await tx.customAchievement.deleteMany({ where: { coupleId } });
+      await tx.tag.deleteMany({ where: { coupleId } });
+      await tx.goal.deleteMany({ where: { coupleId } });
+      await tx.sprint.deleteMany({ where: { coupleId } });
+      await tx.datePlan.deleteMany({ where: { coupleId } }); // stops + spots cascade
+      await tx.dateWish.deleteMany({ where: { coupleId } });
+      await tx.expense.deleteMany({ where: { coupleId } });
+      await tx.cookingSession.deleteMany({ where: { coupleId } }); // items/steps/photos/recipes cascade
+      await tx.recipe.deleteMany({ where: { coupleId } }); // photos cascade
+      await tx.loveLetter.deleteMany({ where: { coupleId } }); // photos/audio cascade
+      await tx.foodSpot.deleteMany({ where: { coupleId } }); // photos cascade
+      await tx.moment.deleteMany({ where: { coupleId } }); // photos/audios/comments/reactions cascade
+      await tx.user.delete({ where: { id: userId } }); // push subs/tokens/notifications/refresh tokens cascade
+      await tx.couple.delete({ where: { id: coupleId } });
+    });
+  } else {
+    await prisma.$transaction(async (tx) => {
+      // Delete letters where user is sender or recipient (photos/audio cascade)
+      await tx.loveLetter.deleteMany({
+        where: { OR: [{ senderId: userId }, { recipientId: userId }] },
+      });
+      // Delete user (notifications/push subs/mobile tokens/refresh tokens cascade)
+      await tx.user.delete({ where: { id: userId } });
+    });
+  }
+
+  console.log(
+    `[AccountDeletion] userId=${userId} coupleId=${coupleId} isLastMember=${isLastMember} timestamp=${new Date().toISOString()}`,
+  );
 }
 
 export async function googleLink(userId: string, idToken: string) {

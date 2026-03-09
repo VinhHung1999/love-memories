@@ -13,6 +13,10 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const deleteAccountSchema = z.object({
+  password: z.string(),
+});
+
 export const generateRecipeSchema = z.object({
   mode: z.enum(['text', 'youtube', 'url']),
   input: z.string().min(1),

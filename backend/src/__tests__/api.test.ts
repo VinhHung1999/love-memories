@@ -208,6 +208,87 @@ describe('Auth', () => {
   });
 });
 
+describe('Account Deletion', () => {
+  it('DELETE /api/auth/account returns 401 without auth', async () => {
+    const res = await request(app).delete('/api/auth/account').send({ password: 'testpass123' });
+    expect(res.status).toBe(401);
+  });
+
+  it('DELETE /api/auth/account returns 401 for wrong password', async () => {
+    const res = await request(app)
+      .delete('/api/auth/account')
+      .set(auth())
+      .send({ password: 'wrongpassword' });
+    expect(res.status).toBe(401);
+  });
+
+  it('DELETE /api/auth/account with partner present deletes only requesting user, partner and couple remain', async () => {
+    const hashed = await hashPassword('deletepass');
+    // Create isolated couple with 2 users
+    const couple = await prisma.couple.create({ data: { name: 'Delete Test Couple' } });
+    const userA = await prisma.user.create({
+      data: { email: 'del-a@lovescrum.test', password: hashed, name: 'Del A', coupleId: couple.id },
+    });
+    const userB = await prisma.user.create({
+      data: { email: 'del-b@lovescrum.test', password: hashed, name: 'Del B', coupleId: couple.id },
+    });
+    const { generateToken } = await import('../utils/auth');
+    const tokenA = generateToken(userA.id, couple.id);
+
+    const res = await request(app)
+      .delete('/api/auth/account')
+      .set({ Authorization: `Bearer ${tokenA}` })
+      .send({ password: 'deletepass' });
+    expect(res.status).toBe(204);
+
+    // userA should be gone
+    const deletedUser = await prisma.user.findUnique({ where: { id: userA.id } });
+    expect(deletedUser).toBeNull();
+
+    // userB (partner) should still exist
+    const partnerUser = await prisma.user.findUnique({ where: { id: userB.id } });
+    expect(partnerUser).not.toBeNull();
+
+    // Couple should still exist
+    const coupleRecord = await prisma.couple.findUnique({ where: { id: couple.id } });
+    expect(coupleRecord).not.toBeNull();
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: userB.id } });
+    await prisma.couple.delete({ where: { id: couple.id } });
+  });
+
+  it('DELETE /api/auth/account as last member deletes user and couple', async () => {
+    const hashed = await hashPassword('solopass');
+    const couple = await prisma.couple.create({ data: { name: 'Solo Couple' } });
+    const soloUser = await prisma.user.create({
+      data: { email: 'solo@lovescrum.test', password: hashed, name: 'Solo', coupleId: couple.id },
+    });
+    const { generateToken } = await import('../utils/auth');
+    const soloToken = generateToken(soloUser.id, couple.id);
+
+    // Add a moment so we verify couple data is cleaned up
+    const moment = await prisma.moment.create({
+      data: { coupleId: couple.id, title: 'Solo Moment', date: new Date() },
+    });
+
+    const res = await request(app)
+      .delete('/api/auth/account')
+      .set({ Authorization: `Bearer ${soloToken}` })
+      .send({ password: 'solopass' });
+    expect(res.status).toBe(204);
+
+    const deletedUser = await prisma.user.findUnique({ where: { id: soloUser.id } });
+    expect(deletedUser).toBeNull();
+
+    const deletedCouple = await prisma.couple.findUnique({ where: { id: couple.id } });
+    expect(deletedCouple).toBeNull();
+
+    const deletedMoment = await prisma.moment.findUnique({ where: { id: moment.id } });
+    expect(deletedMoment).toBeNull();
+  });
+});
+
 describe('Google OAuth', () => {
   it('POST /api/auth/google returns 400 without idToken', async () => {
     const res = await request(app).post('/api/auth/google').send({});

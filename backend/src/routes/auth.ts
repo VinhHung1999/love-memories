@@ -9,6 +9,7 @@ router.post('/login', AuthController.login);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', requireAuth, AuthController.logout);
 router.get('/me', requireAuth, AuthController.me);
+router.delete('/account', requireAuth, AuthController.deleteAccount);
 
 router.post('/google', AuthController.googleAuth);
 router.post('/google/complete', AuthController.googleComplete);
