@@ -158,7 +158,7 @@ export async function logout(userId: string, refreshToken?: string) {
 export async function me(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, createdAt: true },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, emailVerified: true, createdAt: true },
   });
   if (!user) throw new AppError(404, 'User not found');
   return user;

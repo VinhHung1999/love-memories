@@ -4,6 +4,13 @@ import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
 
 // Mock google-auth-library so Google token tests don't require real tokens
+// Mock nodemailer so email tests don't require SMTP
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn().mockReturnValue({
+    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-id' }),
+  }),
+}));
+
 jest.mock('google-auth-library', () => {
   return {
     OAuth2Client: jest.fn().mockImplementation(() => ({
@@ -286,6 +293,73 @@ describe('Account Deletion', () => {
 
     const deletedMoment = await prisma.moment.findUnique({ where: { id: moment.id } });
     expect(deletedMoment).toBeNull();
+  });
+});
+
+describe('Email Verification', () => {
+  it('POST /api/auth/send-verification returns 401 without auth', async () => {
+    const res = await request(app).post('/api/auth/send-verification');
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/auth/send-verification returns 200 and creates token', async () => {
+    const res = await request(app).post('/api/auth/send-verification').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    // Verify token was created in DB
+    const verification = await prisma.emailVerification.findFirst({
+      where: { user: { email: 'test@lovescrum.test' } },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(verification).not.toBeNull();
+    expect(verification!.verifiedAt).toBeNull();
+  });
+
+  it('GET /api/auth/verify-email with valid token sets emailVerified = true', async () => {
+    // Get the latest token for test user
+    const verification = await prisma.emailVerification.findFirst({
+      where: { user: { email: 'test@lovescrum.test' }, verifiedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(verification).not.toBeNull();
+
+    const res = await request(app).get(`/api/auth/verify-email?token=${verification!.token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.emailVerified).toBe(true);
+
+    const user = await prisma.user.findUnique({ where: { email: 'test@lovescrum.test' } });
+    expect(user!.emailVerified).toBe(true);
+  });
+
+  it('GET /api/auth/verify-email with invalid token returns 400', async () => {
+    const res = await request(app).get('/api/auth/verify-email?token=invalid-token-xyz');
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/auth/verify-email without token param returns 400', async () => {
+    const res = await request(app).get('/api/auth/verify-email');
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/auth/verify-email with expired token returns 400', async () => {
+    const user = await prisma.user.findUnique({ where: { email: 'test@lovescrum.test' } });
+    const expiredToken = await prisma.emailVerification.create({
+      data: {
+        userId: user!.id,
+        token: 'expired-test-token-abc',
+        expiresAt: new Date(Date.now() - 1000), // already expired
+      },
+    });
+    const res = await request(app).get(`/api/auth/verify-email?token=${expiredToken.token}`);
+    expect(res.status).toBe(400);
+    await prisma.emailVerification.delete({ where: { id: expiredToken.id } });
+  });
+
+  it('GET /api/auth/me includes emailVerified field', async () => {
+    const res = await request(app).get('/api/auth/me').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('emailVerified');
   });
 });
 

@@ -4,6 +4,7 @@ import { validate } from '../middleware/validate';
 import { registerSchema, loginSchema, deleteAccountSchema } from '../validators/authSchemas';
 import type { AuthRequest } from '../middleware/auth';
 import * as AuthService from '../services/AuthService';
+import * as EmailService from '../services/EmailService';
 
 export const register = [
   validate(registerSchema),
@@ -16,6 +17,10 @@ export const register = [
       coupleName?: string;
     };
     const result = await AuthService.register(email, password, name, inviteCode, coupleName);
+    // Auto-send verification email (best-effort — don't fail registration if email fails)
+    EmailService.sendVerificationEmail(result.user.id, result.user.email, result.user.name).catch((err) => {
+      console.error('[Register] Failed to send verification email:', err.message);
+    });
     res.status(201).json(result);
   }),
 ];
@@ -87,6 +92,23 @@ export const googleComplete = asyncHandler(async (req: Request, res: Response) =
       throw err;
     }
   }
+});
+
+export const sendVerification = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = (req as AuthRequest).user!;
+  const user = await AuthService.me(userId);
+  await EmailService.sendVerificationEmail(userId, user.email, user.name);
+  res.json({ ok: true });
+});
+
+export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+  const token = typeof req.query.token === 'string' ? req.query.token : '';
+  if (!token) {
+    res.status(400).json({ error: 'token query param required' });
+    return;
+  }
+  await EmailService.verifyEmail(token);
+  res.json({ ok: true, emailVerified: true });
 });
 
 export const deleteAccount = [
