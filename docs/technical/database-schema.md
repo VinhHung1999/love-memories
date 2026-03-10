@@ -107,6 +107,41 @@ free | active | expired | cancelled | grace_period
 
 ---
 
+### DailyQuestion (`daily_questions`) — Sprint 46
+
+Seed bank of 50 questions across 5 categories. Not couple-specific — shared globally.
+
+| Field | Type | Constraints | Notes |
+|-------|------|-------------|-------|
+| id | String | `@id @default(uuid())` | Primary key |
+| text | String | | Question in English |
+| textVi | String? | nullable | Vietnamese translation |
+| category | String | `@default("general")` | `general`, `deep`, `fun`, `intimacy`, `future` |
+| order | Int | `@default(0)` | Sort order for deterministic daily selection |
+| createdAt | DateTime | `@default(now())` | |
+
+Relations: `responses DailyQuestionResponse[]`
+
+---
+
+### DailyQuestionResponse (`daily_question_responses`) — Sprint 46
+
+One answer per user per question per couple.
+
+| Field | Type | Constraints | Notes |
+|-------|------|-------------|-------|
+| id | String | `@id @default(uuid())` | Primary key |
+| questionId | String | FK → DailyQuestion | |
+| coupleId | String | Indexed | For couple-scoped queries |
+| userId | String | | The answering user |
+| answer | String | max 500 chars (enforced by API) | |
+| createdAt | DateTime | `@default(now())` | |
+
+- **Unique constraint:** `(questionId, coupleId, userId)` — one answer per user per question per couple
+- **Index:** `coupleId` for history queries
+
+---
+
 ### Subscription (`subscriptions`) — Sprint 45
 
 | Field | Type | Constraints | Notes |
@@ -717,7 +752,7 @@ DatePlanStop ──── DatePlanSpot (stopId, onDelete: Cascade)
 
 ---
 
-## Migration History (35 migrations)
+## Migration History (38 migrations)
 
 | # | Date | Migration | Description |
 |---|------|-----------|-------------|
@@ -758,6 +793,7 @@ DatePlanStop ──── DatePlanSpot (stopId, onDelete: Cascade)
 | 35 | 2026-03-01 | `add_share_links` | ShareLink model for public sharing |
 | 36 | 2026-03-10 | `sprint45_email_verification` | User.emailVerified, EmailVerification model |
 | 37 | 2026-03-10 | `sprint45_subscription` | SubscriptionStatus enum, Subscription model |
+| 38 | 2026-03-10 | `sprint46_daily_questions` | DailyQuestion + DailyQuestionResponse models |
 
 ---
 
@@ -772,3 +808,4 @@ Seed script: `backend/prisma/seed.ts` (run via `npm run seed:dev`)
 - 1 Sprint with 3 Goals (TODO, IN_PROGRESS, DONE)
 - 5 Vietnamese Recipes (Pho Bo, Bun Bo Hue, Com Tam, Banh Xeo, Goi Cuon) with full ingredients, steps, durations, YouTube tutorials
 - Weekly recap test data (W08 2026): 3 moments with photos, 1 cooking session, 1 food spot, 1 date plan, 2 love letters
+- 50 DailyQuestions across 5 categories (general, deep, fun, intimacy, future) — seeded with stable UUIDs (`dq-1` … `dq-50`)

@@ -424,6 +424,58 @@ Track spending by category with budget limits and receipt scanning.
 
 ---
 
+### 2.15 Daily Questions — Sprint 46
+
+A daily couple ritual: one shared question per day, both partners answer independently, then reveal each other's responses.
+
+**Features:**
+- **Today's Question** — deterministic selection (`hash(coupleId + dayNumber) % totalQuestions`), same question for both partners each day
+- **Answer input** — free-text, max 500 characters
+- **Partner answer reveal** — hidden until the user submits their own answer (prevents copying)
+- **History** — paginated list of past Q&As with both partners' answers, expandable cards
+- **Dashboard card** — always-visible widget showing today's question preview with answered/both-answered status badges
+
+**Categories:** general, deep, fun, intimacy, future (10 questions each, 50 total seed questions)
+
+**Business Rules:**
+- One answer per user per question per couple (`UNIQUE(questionId, coupleId, userId)`)
+- 409 returned on duplicate answer attempt
+- Seed bank of 50 questions in EN + VI loaded via `npm run seed:dev`
+
+**Availability:** All tiers (no free tier restriction)
+
+**Platforms:** Backend (REST API) + React Native mobile app
+
+---
+
+### 2.16 RN Monthly Recap Stories — Sprint 46
+
+Instagram Stories-style full-screen viewer porting the web Monthly Recap to React Native.
+
+**Features:**
+- Full-screen modal covering the tab bar
+- Per-slide progress bars (CSS-style timing via Animated.Value)
+- Auto-advance every 6 seconds
+- **Tap left 35%** = previous slide, **tap right 65%** = next slide
+- **Hold to pause** (200ms threshold)
+- Up to 8 slides: Intro → Moments → Cooking → Food Spots → Love Letters → Date Plans → Goals → Outro
+- Slides with zero data are skipped
+- **AnimatedNumber** count-up (30 steps × 50ms)
+- **PhotoStrip** — two rows of moment photos scrolling in opposite directions (infinite Reanimated loop)
+- **Month navigation** — `< prev / next >` arrows in top bar
+- Empty state when no data for the month
+- **Dashboard banner** — shown days 1–3 of each month (rose→amber gradient CTA)
+
+**Entry Points:**
+- Dashboard MonthlyRecap banner (days 1–3)
+- Navigates to `MonthlyRecapTab` (full-screen modal, fade animation)
+
+**API:** Uses existing `GET /api/recap/monthly?month=YYYY-MM`
+
+**Platforms:** React Native mobile only (web version was already built in Sprint 43)
+
+---
+
 ## 3. Navigation Structure
 
 ### Mobile (< 768px)

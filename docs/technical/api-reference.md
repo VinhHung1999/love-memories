@@ -1654,6 +1654,90 @@ AI-generated Vietnamese intro/outro for monthly recap.
 
 ---
 
+## Daily Questions — Sprint 46
+
+All endpoints require authentication (`Authorization: Bearer <token>`).
+
+### `GET /api/daily-questions/today`
+
+Returns today's deterministic question for the couple. Both partners always receive the same question on the same day (`hash(coupleId + dayNumber) % totalQuestions`). Partner's answer is hidden until the requesting user has submitted their own answer.
+
+**Response (200):**
+```json
+{
+  "question": {
+    "id": "uuid",
+    "text": "What's one thing I do that always makes you smile?",
+    "textVi": "Một điều tôi làm luôn khiến bạn mỉm cười là gì?",
+    "category": "general"
+  },
+  "myAnswer": "You always make coffee just the way I like it.",
+  "partnerAnswer": null,
+  "partnerName": "Linh"
+}
+```
+
+- `myAnswer` — null if user hasn't answered yet
+- `partnerAnswer` — null until user submits their own answer (prevents copying)
+- `partnerName` — null if user has no partner
+
+---
+
+### `POST /api/daily-questions/:id/answer`
+
+Submit an answer to a question. One answer per user per question per couple.
+
+**Request:**
+```json
+{ "answer": "You always make coffee just the way I like it." }
+```
+- `answer`: required, max 500 characters
+
+**Response (201):**
+```json
+{
+  "id": "uuid",
+  "questionId": "uuid",
+  "coupleId": "string",
+  "userId": "string",
+  "answer": "You always make coffee just the way I like it.",
+  "createdAt": "2026-03-10T...",
+  "question": { "id": "uuid", "text": "...", "textVi": "...", "category": "general" }
+}
+```
+
+**Error responses:**
+- `409 Conflict` — user already answered this question
+
+---
+
+### `GET /api/daily-questions/history?page=1&limit=20`
+
+Paginated history of questions the couple has answered, with both partners' responses.
+
+**Query params:** `page` (default 1), `limit` (default 20, max 100)
+
+**Response (200):**
+```json
+{
+  "items": [
+    {
+      "question": { "id": "uuid", "text": "...", "textVi": "...", "category": "deep" },
+      "myAnswer": "My answer here",
+      "myAnsweredAt": "2026-03-09T...",
+      "partnerAnswer": "Partner's answer here",
+      "partnerName": "Linh"
+    }
+  ],
+  "total": 14,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 1
+}
+```
+
+---
+
 ## Utility Endpoints
 
 ### `POST /api/resolve-location`
