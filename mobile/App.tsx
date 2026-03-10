@@ -11,6 +11,7 @@ import Mapbox from '@rnmapbox/maps';
 import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
 import { warmupConnection } from './src/lib/api';
 import RootNavigator from './src/navigation';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import './src/global.css';
 
 // Pre-warm DNS + TLS to Cloudflare Tunnel so first API call isn't slow
@@ -42,7 +43,9 @@ export default function App() {
             <UploadProgressProvider>
               <LoadingProvider>
                 <AuthProvider>
-                  <RootNavigator />
+                  <ErrorBoundary>
+                    <RootNavigator />
+                  </ErrorBoundary>
                 </AuthProvider>
               </LoadingProvider>
             </UploadProgressProvider>
