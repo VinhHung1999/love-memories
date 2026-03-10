@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { upload, uploadAudio } from '../middleware/upload';
 import * as MomentController from '../controllers/MomentController';
+import { checkFreeLimit } from '../middleware/freeLimit';
 
 const router = Router();
 
 router.get('/', MomentController.list);
 router.get('/:id', MomentController.getOne);
-router.post('/', MomentController.create);
+router.post('/', checkFreeLimit('moments'), MomentController.create);
 router.put('/:id', MomentController.update);
 router.delete('/:id', MomentController.remove);
 

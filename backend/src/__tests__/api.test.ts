@@ -49,7 +49,6 @@ let testCoupleId: string;
 beforeAll(async () => {
   // Clean up previous test data referencing this couple
   await prisma.shareLink.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.subscription.deleteMany({ where: { coupleId: 'test-couple' } });
   await prisma.emailVerification.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.achievement.deleteMany({ where: { coupleId: 'test-couple' } });
@@ -98,6 +97,13 @@ beforeAll(async () => {
   });
   token = generateToken(user.id, testCoupleId);
   partnerToken = generateToken(partner.id, testCoupleId);
+
+  // Give test couple an active subscription so existing tests aren't blocked by free tier limits
+  await prisma.subscription.upsert({
+    where: { coupleId: testCoupleId },
+    create: { coupleId: testCoupleId, status: 'active' },
+    update: { status: 'active' },
+  });
 });
 
 // Clean up after all tests
@@ -1983,13 +1989,34 @@ describe('Tags', () => {
 });
 
 describe('Subscription', () => {
+  let subCoupleId: string;
+  let subUserToken: string;
+
+  beforeAll(async () => {
+    // Use a fresh couple with no subscription to test free → active → expired flow
+    const couple = await prisma.couple.create({ data: { name: 'Sub Test Couple' } });
+    subCoupleId = couple.id;
+    const hashed = await hashPassword('subpass');
+    const user = await prisma.user.create({
+      data: { email: 'sub@lovescrum.test', password: hashed, name: 'Sub User', coupleId: subCoupleId },
+    });
+    const { generateToken } = await import('../utils/auth');
+    subUserToken = generateToken(user.id, subCoupleId);
+  });
+
+  afterAll(async () => {
+    await prisma.subscription.deleteMany({ where: { coupleId: subCoupleId } });
+    await prisma.user.deleteMany({ where: { coupleId: subCoupleId } });
+    await prisma.couple.delete({ where: { id: subCoupleId } });
+  });
+
   it('GET /api/subscription/status returns 401 without auth', async () => {
     const res = await request(app).get('/api/subscription/status');
     expect(res.status).toBe(401);
   });
 
   it('GET /api/subscription/status returns free status with limits for new couple', async () => {
-    const res = await request(app).get('/api/subscription/status').set(auth());
+    const res = await request(app).get('/api/subscription/status').set({ Authorization: `Bearer ${subUserToken}` });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('free');
     expect(res.body.plan).toBe('free');
@@ -1999,12 +2026,11 @@ describe('Subscription', () => {
   });
 
   it('POST /api/subscription/webhook returns 401 with wrong secret', async () => {
-    // Set a secret via env for this test
     process.env.REVENUECAT_WEBHOOK_SECRET = 'test-webhook-secret-123';
     const res = await request(app)
       .post('/api/subscription/webhook')
       .set('Authorization', 'wrong-secret')
-      .send({ event: { type: 'INITIAL_PURCHASE', app_user_id: testCoupleId } });
+      .send({ event: { type: 'INITIAL_PURCHASE', app_user_id: subCoupleId } });
     expect(res.status).toBe(401);
     delete process.env.REVENUECAT_WEBHOOK_SECRET;
   });
@@ -2015,19 +2041,19 @@ describe('Subscription', () => {
       .send({
         event: {
           type: 'INITIAL_PURCHASE',
-          app_user_id: testCoupleId,
+          app_user_id: subCoupleId,
           store: 'APP_STORE',
           product_id: 'love_memories_plus_monthly',
         },
       });
     expect(res.status).toBe(200);
 
-    const sub = await prisma.subscription.findUnique({ where: { coupleId: testCoupleId } });
+    const sub = await prisma.subscription.findUnique({ where: { coupleId: subCoupleId } });
     expect(sub?.status).toBe('active');
   });
 
   it('GET /api/subscription/status returns active after INITIAL_PURCHASE', async () => {
-    const res = await request(app).get('/api/subscription/status').set(auth());
+    const res = await request(app).get('/api/subscription/status').set({ Authorization: `Bearer ${subUserToken}` });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('active');
     expect(res.body.plan).toBe('plus');
@@ -2037,16 +2063,92 @@ describe('Subscription', () => {
   it('POST /api/subscription/webhook EXPIRATION sets status to expired', async () => {
     const res = await request(app)
       .post('/api/subscription/webhook')
-      .send({
-        event: {
-          type: 'EXPIRATION',
-          app_user_id: testCoupleId,
-        },
-      });
+      .send({ event: { type: 'EXPIRATION', app_user_id: subCoupleId } });
     expect(res.status).toBe(200);
 
-    const sub = await prisma.subscription.findUnique({ where: { coupleId: testCoupleId } });
+    const sub = await prisma.subscription.findUnique({ where: { coupleId: subCoupleId } });
     expect(sub?.status).toBe('expired');
+  });
+});
+
+describe('Free Tier Limits', () => {
+  let freeCoupleId: string;
+  let freeUserToken: string;
+
+  beforeAll(async () => {
+    // Create an isolated couple with no subscription (free tier)
+    const couple = await prisma.couple.create({ data: { name: 'Free Tier Test Couple' } });
+    freeCoupleId = couple.id;
+    const hashed = await hashPassword('freepass');
+    const user = await prisma.user.create({
+      data: { email: 'free@lovescrum.test', password: hashed, name: 'Free User', coupleId: freeCoupleId },
+    });
+    freeUserToken = generateToken(user.id, freeCoupleId);
+  });
+
+  afterAll(async () => {
+    await prisma.moment.deleteMany({ where: { coupleId: freeCoupleId } });
+    await prisma.loveLetter.deleteMany({ where: { coupleId: freeCoupleId } });
+    await prisma.recipe.deleteMany({ where: { coupleId: freeCoupleId } });
+    await prisma.user.deleteMany({ where: { coupleId: freeCoupleId } });
+    await prisma.couple.deleteMany({ where: { id: freeCoupleId } });
+  });
+
+  it('GET /api/moments works for free user (reads always allowed)', async () => {
+    const res = await request(app).get('/api/moments').set({ Authorization: `Bearer ${freeUserToken}` });
+    expect(res.status).toBe(200);
+  });
+
+  it('POST /api/moments succeeds when under limit (free user, 0 moments)', async () => {
+    const res = await request(app)
+      .post('/api/moments')
+      .set({ Authorization: `Bearer ${freeUserToken}` })
+      .send({ title: 'Free Moment 1', date: new Date().toISOString() });
+    expect(res.status).toBe(201);
+  });
+
+  it('POST /api/moments returns 403 FREE_LIMIT_REACHED when at limit (10)', async () => {
+    // Create 9 more moments to hit limit of 10
+    await prisma.moment.createMany({
+      data: Array.from({ length: 9 }, (_, i) => ({
+        coupleId: freeCoupleId,
+        title: `Bulk Moment ${i + 2}`,
+        date: new Date(),
+      })),
+    });
+
+    const res = await request(app)
+      .post('/api/moments')
+      .set({ Authorization: `Bearer ${freeUserToken}` })
+      .send({ title: 'Over Limit', date: new Date().toISOString() });
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('FREE_LIMIT_REACHED');
+    expect(res.body.limit).toBe(10);
+    expect(res.body.used).toBe(10);
+  });
+
+  it('POST /api/recipes returns 403 PREMIUM_REQUIRED for free user', async () => {
+    const res = await request(app)
+      .post('/api/recipes')
+      .set({ Authorization: `Bearer ${freeUserToken}` })
+      .send({ title: 'Free Recipe' });
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('PREMIUM_REQUIRED');
+    expect(res.body.module).toBe('recipes');
+  });
+
+  it('POST /api/love-letters returns 403 PREMIUM_REQUIRED for free user', async () => {
+    const res = await request(app)
+      .post('/api/love-letters')
+      .set({ Authorization: `Bearer ${freeUserToken}` })
+      .send({ title: 'Free Letter', content: 'Hello', recipientId: 'fake' });
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('PREMIUM_REQUIRED');
+  });
+
+  it('GET /api/recipes works for free user (reads always allowed)', async () => {
+    const res = await request(app).get('/api/recipes').set({ Authorization: `Bearer ${freeUserToken}` });
+    expect(res.status).toBe(200);
   });
 });
 

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import * as DatePlanController from '../controllers/DatePlanController';
+import { checkPremiumAccess } from '../middleware/freeLimit';
 
 const router = Router();
 
 router.get('/', DatePlanController.list);
 router.get('/:id', DatePlanController.getOne);
-router.post('/', DatePlanController.create);
+router.post('/', checkPremiumAccess('date-planner'), DatePlanController.create);
 router.put('/:id', DatePlanController.update);
 router.put('/:id/status', DatePlanController.updateStatus);
 router.put('/:id/stops/:stopId/moment', DatePlanController.linkMoment);

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { upload, uploadAudio } from '../middleware/upload';
 import * as LoveLetterController from '../controllers/LoveLetterController';
+import { checkPremiumAccess } from '../middleware/freeLimit';
 
 const router = Router();
 
@@ -8,7 +9,7 @@ router.get('/received', LoveLetterController.listReceived);
 router.get('/sent', LoveLetterController.listSent);
 router.get('/unread-count', LoveLetterController.getUnreadCount);
 router.get('/:id', LoveLetterController.getOne);
-router.post('/', LoveLetterController.create);
+router.post('/', checkPremiumAccess('love-letters'), LoveLetterController.create);
 router.put('/:id', LoveLetterController.update);
 router.put('/:id/send', LoveLetterController.send);
 router.delete('/:id', LoveLetterController.remove);

@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { upload } from '../middleware/upload';
 import * as FoodSpotController from '../controllers/FoodSpotController';
+import { checkFreeLimit } from '../middleware/freeLimit';
 
 const router = Router();
 
 router.get('/random', FoodSpotController.getRandom);
 router.get('/', FoodSpotController.list);
 router.get('/:id', FoodSpotController.getOne);
-router.post('/', FoodSpotController.create);
+router.post('/', checkFreeLimit('foodspots'), FoodSpotController.create);
 router.put('/:id', FoodSpotController.update);
 router.delete('/:id', FoodSpotController.remove);
 
