@@ -1146,6 +1146,23 @@ export const loveLettersApi = {
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
+// Recap API
+// ---------------------------------------------------------------------------
+
+export const recapApi = {
+  monthly: async (month: string): Promise<import('../types').MonthlyRecap> => {
+    const res = await apiFetch(`/api/recap/monthly?month=${encodeURIComponent(month)}`);
+    if (!res.ok) throw new Error('Failed to fetch monthly recap');
+    return res.json();
+  },
+  monthlyCaption: async (month: string): Promise<{ intro?: string | null; outro?: string | null }> => {
+    const res = await apiFetch(`/api/recap/monthly-caption?month=${encodeURIComponent(month)}`);
+    if (!res.ok) return {};
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Daily Questions API
 // ---------------------------------------------------------------------------
 

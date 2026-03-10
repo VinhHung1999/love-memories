@@ -168,6 +168,10 @@ export function useDashboardViewModel() {
   const navigateToDatePlanner = () => navigation.navigate('DatePlannerTab');
   const navigateToAchievements = () => navigation.navigate('Achievements');
   const navigateToDailyQuestions = () => navigation.navigate('DailyQuestionsTab');
+  const navigateToMonthlyRecap = () => navigation.navigate('MonthlyRecapTab');
+
+  // Show monthly recap banner on days 1-3 of each month
+  const showMonthlyRecapBanner = now.getDate() <= 3;
 
   // ── Derived display values ──────────────────────────────────────────────────
 
@@ -202,5 +206,7 @@ export function useDashboardViewModel() {
     navigateToDatePlanner,
     navigateToAchievements,
     navigateToDailyQuestions,
+    navigateToMonthlyRecap,
+    showMonthlyRecapBanner,
   };
 }

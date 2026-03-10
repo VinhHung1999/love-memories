@@ -35,6 +35,7 @@ export type AppStackParamList = {
   LettersTab: NavigatorScreenParams<LettersStackParamList> | undefined;
   Achievements: undefined;
   DailyQuestionsTab: undefined;
+  MonthlyRecapTab: { month?: string } | undefined;
 };
 
 /** Only the 5 visible bottom tabs */
@@ -156,6 +157,7 @@ import PlanDetailScreen from '../screens/PlanDetail/PlanDetailScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen';
+import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -396,6 +398,11 @@ function AppNavigator() {
       <AppStack.Screen name="LettersTab" component={LettersNavigator} />
       <AppStack.Screen name="Achievements" component={AchievementsScreen} />
       <AppStack.Screen name="DailyQuestionsTab" component={DailyQuestionsScreen} />
+      <AppStack.Screen
+        name="MonthlyRecapTab"
+        component={MonthlyRecapScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
     </AppStack.Navigator>
   );
 }

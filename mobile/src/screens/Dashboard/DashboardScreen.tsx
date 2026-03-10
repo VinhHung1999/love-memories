@@ -21,6 +21,7 @@ import { useDashboardViewModel } from './useDashboardViewModel';
 import { useUnreadCount } from '../Notifications/useNotificationsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import DailyQuestionCard from '../DailyQuestions/DailyQuestionCard';
+import { formatMonthDisplay } from '../MonthlyRecap/useMonthlyRecapViewModel';
 import Skeleton from '../../components/Skeleton';
 import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../Expenses/expensesConstants';
 import type { DatePlan } from '../../types';
@@ -361,6 +362,52 @@ function DatePlannerWidget({ plans, onPress }: { plans: DatePlan[]; onPress: () 
   );
 }
 
+// ── MonthlyRecapBanner ────────────────────────────────────────────────────────
+
+function MonthlyRecapBanner({ onPress }: { onPress: () => void }) {
+  const prevMonth = (() => {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  })();
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
+      <Pressable onPress={onPress}>
+        <LinearGradient
+          colors={['#C3517A', '#E8788A', '#F4A261']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="px-5 pt-4 pb-5">
+          <View className="flex-row items-center gap-2 mb-3">
+            <View className="w-7 h-7 rounded-xl bg-white/20 items-center justify-center">
+              <Icon name="chart-bar" size={14} color="#fff" />
+            </View>
+            <Text className="text-[11px] font-semibold text-white/60 tracking-widest uppercase">
+              {t.monthlyRecap.title}
+            </Text>
+            <View className="flex-1" />
+            <View className="flex-row items-center gap-1 bg-white/20 rounded-full px-2.5 py-0.5">
+              <Icon name="new-box" size={11} color="#fff" />
+              <Text className="text-[10px] font-bold text-white">New</Text>
+            </View>
+          </View>
+          <Text className="text-white font-bold text-[17px] leading-snug">
+            {formatMonthDisplay(prevMonth)}
+          </Text>
+          <Text className="text-white/70 text-[13px] mt-1 mb-3">
+            {t.monthlyRecap.dashboardCardSub}
+          </Text>
+          <View className="flex-row items-center gap-1.5">
+            <Text className="text-white/80 text-[13px] font-semibold">{t.monthlyRecap.viewRecap}</Text>
+            <Icon name="arrow-right" size={14} color="rgba(255,255,255,0.80)" />
+          </View>
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ── FoodHighlightCard ─────────────────────────────────────────────────────────
 
 function FoodHighlightCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }) {
@@ -618,6 +665,11 @@ export default function DashboardScreen() {
 
             {/* ── 3c. Daily Question Card ── */}
             <DailyQuestionCard />
+
+            {/* ── 3d. Monthly Recap Banner (days 1-3) ── */}
+            {vm.showMonthlyRecapBanner ? (
+              <MonthlyRecapBanner onPress={vm.navigateToMonthlyRecap} />
+            ) : null}
 
             {/* ── 4. Food Highlights ── */}
             {vm.recentFoodSpots.length > 0 ? (
