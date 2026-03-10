@@ -13,7 +13,8 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 }
 
-/** Legacy 30-day token — kept for backward compat (old clients still work) */
+/** Legacy 30-day token — no longer issued by API, kept for test utilities and
+ *  backward compat (old clients' already-issued tokens still accepted by middleware) */
 export function generateToken(userId: string, coupleId: string): string {
   return jwt.sign({ userId, coupleId }, JWT_SECRET, { expiresIn: '30d' });
 }

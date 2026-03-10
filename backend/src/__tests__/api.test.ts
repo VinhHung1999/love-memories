@@ -185,7 +185,7 @@ describe('Auth', () => {
       password: 'testpass123',
     });
     expect(res.status).toBe(200);
-    expect(res.body.token).toBeTruthy();
+    expect(res.body.accessToken).toBeTruthy();
   });
 
   it('POST /api/auth/login returns 401 for wrong password', async () => {
@@ -1367,7 +1367,7 @@ describe('JWT Auth Upgrade', () => {
     expect(res.status).toBe(200);
     expect(res.body.accessToken).toBeTruthy();
     expect(res.body.refreshToken).toBeTruthy();
-    expect(res.body.token).toBeTruthy(); // backward compat
+    // Legacy token field removed in Sprint 45 — accessToken + refreshToken only
     expect(res.body.user.email).toBe('test@lovescrum.test');
     refreshToken = res.body.refreshToken;
     accessToken = res.body.accessToken;

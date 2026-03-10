@@ -3,7 +3,6 @@ import prisma from '../utils/prisma';
 import {
   hashPassword,
   comparePassword,
-  generateToken,
   generateAccessToken,
   generateRefreshTokenValue,
 } from '../utils/auth';
@@ -12,7 +11,7 @@ import { AppError } from '../types/errors';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const REFRESH_TOKEN_EXPIRY_DAYS = 30;
+const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
 export interface GoogleProfile {
   googleId: string;
@@ -40,11 +39,9 @@ export async function createRefreshToken(userId: string): Promise<string> {
 export function buildAuthResponse(
   user: UserAuthShape,
   accessToken: string,
-  legacyToken: string,
   refreshToken: string,
 ) {
   return {
-    token: legacyToken,
     accessToken,
     refreshToken,
     user: {
@@ -107,9 +104,8 @@ export async function register(
   });
 
   const accessToken = generateAccessToken(user.id, user.coupleId);
-  const legacyToken = generateToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  return buildAuthResponse(user, accessToken, legacyToken, refreshToken);
+  return buildAuthResponse(user, accessToken, refreshToken);
 }
 
 export async function login(email: string, password: string) {
@@ -122,9 +118,8 @@ export async function login(email: string, password: string) {
   if (!valid) throw new AppError(401, 'Invalid email or password');
 
   const accessToken = generateAccessToken(user.id, user.coupleId);
-  const legacyToken = generateToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  return buildAuthResponse(user, accessToken, legacyToken, refreshToken);
+  return buildAuthResponse(user, accessToken, refreshToken);
 }
 
 export async function refresh(token: string) {
@@ -141,9 +136,8 @@ export async function refresh(token: string) {
   await prisma.refreshToken.update({ where: { id: stored.id }, data: { revokedAt: new Date() } });
 
   const newAccessToken = generateAccessToken(stored.user.id, stored.user.coupleId);
-  const newLegacyToken = generateToken(stored.user.id, stored.user.coupleId);
   const newRefreshToken = await createRefreshToken(stored.user.id);
-  return buildAuthResponse(stored.user, newAccessToken, newLegacyToken, newRefreshToken);
+  return buildAuthResponse(stored.user, newAccessToken, newRefreshToken);
 }
 
 export async function logout(userId: string, refreshToken?: string) {
@@ -183,9 +177,8 @@ export async function googleAuth(idToken: string) {
   }
 
   const accessToken = generateAccessToken(user.id, user.coupleId);
-  const legacyToken = generateToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  return buildAuthResponse(user, accessToken, legacyToken, refreshToken);
+  return buildAuthResponse(user, accessToken, refreshToken);
 }
 
 export async function googleComplete(
@@ -228,9 +221,8 @@ export async function googleComplete(
   });
 
   const accessToken = generateAccessToken(user.id, user.coupleId);
-  const legacyToken = generateToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  return buildAuthResponse(user, accessToken, legacyToken, refreshToken);
+  return buildAuthResponse(user, accessToken, refreshToken);
 }
 
 export async function deleteAccount(userId: string, coupleId: string, password: string): Promise<void> {
