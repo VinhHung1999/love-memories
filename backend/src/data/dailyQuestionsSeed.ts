@@ -1,0 +1,61 @@
+export const DAILY_QUESTIONS = [
+  // General (10)
+  { text: "What's your favorite memory of us this month?", textVi: "Kỷ niệm yêu thích của bạn về chúng ta trong tháng này là gì?", category: "general", order: 1 },
+  { text: "What's one thing I do that always makes you smile?", textVi: "Một điều tôi làm luôn khiến bạn mỉm cười là gì?", category: "general", order: 2 },
+  { text: "What's your favorite way to spend a lazy Sunday with me?", textVi: "Cách yêu thích của bạn để dành một buổi sáng Chủ nhật lười biếng với tôi là gì?", category: "general", order: 3 },
+  { text: "What's something new you'd like us to try together?", textVi: "Điều gì mới mà bạn muốn chúng ta cùng thử?", category: "general", order: 4 },
+  { text: "Describe our relationship in three words.", textVi: "Mô tả mối quan hệ của chúng ta bằng ba từ.", category: "general", order: 5 },
+  { text: "What's the best gift I've ever given you?", textVi: "Món quà tốt nhất tôi từng tặng bạn là gì?", category: "general", order: 6 },
+  { text: "What's one thing we haven't done yet that you really want to do?", textVi: "Một điều chúng ta chưa làm mà bạn thực sự muốn làm là gì?", category: "general", order: 7 },
+  { text: "What's your love language, and how can I speak it better?", textVi: "Ngôn ngữ tình yêu của bạn là gì, và tôi có thể nói nó tốt hơn như thế nào?", category: "general", order: 8 },
+  { text: "What's one habit of mine you find endearing?", textVi: "Một thói quen của tôi mà bạn thấy đáng yêu là gì?", category: "general", order: 9 },
+  { text: "If we could live anywhere in the world, where would you choose?", textVi: "Nếu chúng ta có thể sống ở bất cứ đâu trên thế giới, bạn sẽ chọn đâu?", category: "general", order: 10 },
+
+  // Deep (10)
+  { text: "What's something you've never told me but wish I knew?", textVi: "Điều gì bạn chưa bao giờ nói với tôi nhưng ước tôi biết?", category: "deep", order: 11 },
+  { text: "What's your biggest fear about our relationship?", textVi: "Nỗi sợ lớn nhất của bạn về mối quan hệ của chúng ta là gì?", category: "deep", order: 12 },
+  { text: "What moment in your life changed you the most?", textVi: "Khoảnh khắc nào trong cuộc sống của bạn thay đổi bạn nhiều nhất?", category: "deep", order: 13 },
+  { text: "What does home mean to you?", textVi: "Nhà có ý nghĩa gì với bạn?", category: "deep", order: 14 },
+  { text: "What's one thing you wish you could change about yourself?", textVi: "Một điều bạn ước có thể thay đổi về bản thân là gì?", category: "deep", order: 15 },
+  { text: "What do you think is the secret to a lasting relationship?", textVi: "Theo bạn, bí quyết của một mối quan hệ lâu bền là gì?", category: "deep", order: 16 },
+  { text: "What's the most important lesson life has taught you?", textVi: "Bài học quan trọng nhất mà cuộc sống đã dạy bạn là gì?", category: "deep", order: 17 },
+  { text: "When do you feel most loved by me?", textVi: "Khi nào bạn cảm thấy được tôi yêu thương nhất?", category: "deep", order: 18 },
+  { text: "What's something I do that makes you feel seen and understood?", textVi: "Điều gì tôi làm khiến bạn cảm thấy được nhìn nhận và hiểu?", category: "deep", order: 19 },
+  { text: "What's your definition of happiness?", textVi: "Định nghĩa hạnh phúc của bạn là gì?", category: "deep", order: 20 },
+
+  // Fun (10)
+  { text: "If we were characters in a movie, which movie would it be?", textVi: "Nếu chúng ta là nhân vật trong một bộ phim, đó sẽ là bộ phim nào?", category: "fun", order: 21 },
+  { text: "What's the silliest thing we've ever done together?", textVi: "Điều ngớ ngẩn nhất chúng ta từng làm cùng nhau là gì?", category: "fun", order: 22 },
+  { text: "If you could have any superpower, what would it be and why?", textVi: "Nếu bạn có thể có bất kỳ siêu năng lực nào, đó sẽ là gì và tại sao?", category: "fun", order: 23 },
+  { text: "What's a song that always reminds you of me?", textVi: "Bài hát nào luôn gợi nhớ đến tôi trong bạn?", category: "fun", order: 24 },
+  { text: "If we switched jobs for a day, what would happen?", textVi: "Nếu chúng ta đổi công việc cho nhau một ngày, điều gì sẽ xảy ra?", category: "fun", order: 25 },
+  { text: "What's the funniest thing that's ever happened on one of our dates?", textVi: "Điều buồn cười nhất xảy ra trong một trong những buổi hẹn của chúng ta là gì?", category: "fun", order: 26 },
+  { text: "If you could only eat one food for the rest of your life, what would it be?", textVi: "Nếu bạn chỉ có thể ăn một món ăn trong suốt cuộc đời, đó sẽ là gì?", category: "fun", order: 27 },
+  { text: "What animal best represents my personality?", textVi: "Con vật nào đại diện tốt nhất cho tính cách của tôi?", category: "fun", order: 28 },
+  { text: "If we could time travel, what era would you want to visit together?", textVi: "Nếu chúng ta có thể du hành thời gian, bạn muốn ghé thăm kỷ nguyên nào cùng nhau?", category: "fun", order: 29 },
+  { text: "What's one thing you'd do if you knew you couldn't fail?", textVi: "Một điều bạn sẽ làm nếu biết mình không thể thất bại là gì?", category: "fun", order: 30 },
+
+  // Intimacy (10)
+  { text: "What first attracted you to me?", textVi: "Điều gì đầu tiên thu hút bạn đến với tôi?", category: "intimacy", order: 31 },
+  { text: "What's your favorite thing about our physical connection?", textVi: "Điều yêu thích của bạn về kết nối thể chất của chúng ta là gì?", category: "intimacy", order: 32 },
+  { text: "When do you feel closest to me?", textVi: "Khi nào bạn cảm thấy gần gũi nhất với tôi?", category: "intimacy", order: 33 },
+  { text: "What's a small gesture I do that means the world to you?", textVi: "Một cử chỉ nhỏ nào tôi làm có ý nghĩa rất lớn với bạn?", category: "intimacy", order: 34 },
+  { text: "How do you feel after we spend quality time together?", textVi: "Bạn cảm thấy thế nào sau khi chúng ta dành thời gian chất lượng bên nhau?", category: "intimacy", order: 35 },
+  { text: "What's one way I could make you feel more loved each day?", textVi: "Một cách tôi có thể khiến bạn cảm thấy được yêu hơn mỗi ngày là gì?", category: "intimacy", order: 36 },
+  { text: "What's your favorite moment of our typical day together?", textVi: "Khoảnh khắc yêu thích của bạn trong một ngày bình thường của chúng ta là gì?", category: "intimacy", order: 37 },
+  { text: "What do you think makes us work so well as a couple?", textVi: "Điều gì theo bạn khiến chúng ta là một cặp đôi ăn ý?", category: "intimacy", order: 38 },
+  { text: "How has our relationship changed you for the better?", textVi: "Mối quan hệ của chúng ta đã thay đổi bạn tốt hơn như thế nào?", category: "intimacy", order: 39 },
+  { text: "What's something you want us to improve in our relationship?", textVi: "Điều gì bạn muốn chúng ta cải thiện trong mối quan hệ của mình?", category: "intimacy", order: 40 },
+
+  // Future (10)
+  { text: "Where do you see us in 5 years?", textVi: "Bạn thấy chúng ta ở đâu trong 5 năm nữa?", category: "future", order: 41 },
+  { text: "What's one thing you want us to accomplish together this year?", textVi: "Một điều bạn muốn chúng ta cùng hoàn thành trong năm nay là gì?", category: "future", order: 42 },
+  { text: "What kind of home do you dream of us having?", textVi: "Bạn mơ về ngôi nhà như thế nào cho chúng ta?", category: "future", order: 43 },
+  { text: "What's the most important thing you want us to build together?", textVi: "Điều quan trọng nhất bạn muốn chúng ta xây dựng cùng nhau là gì?", category: "future", order: 44 },
+  { text: "What traditions do you want us to start?", textVi: "Những truyền thống nào bạn muốn chúng ta bắt đầu?", category: "future", order: 45 },
+  { text: "How do you want us to grow together over the next decade?", textVi: "Bạn muốn chúng ta phát triển cùng nhau như thế nào trong thập kỷ tới?", category: "future", order: 46 },
+  { text: "What's one experience you want us to have before we're 60?", textVi: "Một trải nghiệm bạn muốn chúng ta có trước khi 60 tuổi là gì?", category: "future", order: 47 },
+  { text: "How do you picture us celebrating our anniversary 10 years from now?", textVi: "Bạn hình dung chúng ta kỷ niệm ngày cưới như thế nào 10 năm nữa?", category: "future", order: 48 },
+  { text: "What values do you most want our relationship to embody?", textVi: "Những giá trị nào bạn muốn mối quan hệ của chúng ta thể hiện nhất?", category: "future", order: 49 },
+  { text: "What's your dream trip that we should plan together?", textVi: "Chuyến đi mơ ước của bạn mà chúng ta nên lên kế hoạch cùng nhau là gì?", category: "future", order: 50 },
+];

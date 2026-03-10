@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { DAILY_QUESTIONS } from '../src/data/dailyQuestionsSeed';
 
 const prisma = new PrismaClient();
 
@@ -554,6 +555,16 @@ async function main() {
     WHERE id = (SELECT id FROM "goals" WHERE status = 'DONE' ORDER BY "createdAt" DESC LIMIT 1)
   `;
   console.log('W08 Goal DONE: updatedAt set to 2026-02-19');
+
+  // Seed daily questions (upsert by order to be idempotent)
+  for (const q of DAILY_QUESTIONS) {
+    await prisma.dailyQuestion.upsert({
+      where: { id: `dq-${q.order}` },
+      update: { text: q.text, textVi: q.textVi, category: q.category, order: q.order },
+      create: { id: `dq-${q.order}`, text: q.text, textVi: q.textVi, category: q.category, order: q.order },
+    });
+  }
+  console.log(`Daily Questions: ${DAILY_QUESTIONS.length} seeded`);
 
   console.log('Seed complete.');
 }

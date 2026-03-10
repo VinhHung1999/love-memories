@@ -25,6 +25,7 @@ import { expenseRoutes } from './expenses';
 import { coupleRoutes } from './couple';
 import { shareRoutes } from './share';
 import { subscriptionRoutes } from './subscription';
+import { dailyQuestionRoutes } from './dailyQuestions';
 
 const router = Router();
 
@@ -60,5 +61,6 @@ router.use('/expenses', requireAuth, expenseRoutes);
 router.use('/couple', requireAuth, coupleRoutes);
 router.use('/share', shareRoutes);
 router.use('/subscription', subscriptionRoutes);
+router.use('/daily-questions', requireAuth, dailyQuestionRoutes);
 
 export default router;

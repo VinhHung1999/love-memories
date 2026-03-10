@@ -2337,3 +2337,115 @@ describe('coupleId Isolation — Couple A cannot access Couple B data', () => {
     });
   });
 });
+
+describe('Daily Questions', () => {
+  const dqCoupleId = 'test-dq-couple';
+  let dqToken: string;
+  let dqPartnerToken: string;
+  let seedQuestionId: string;
+
+  beforeAll(async () => {
+    // Seed one question
+    const q = await prisma.dailyQuestion.upsert({
+      where: { id: 'test-q-1' },
+      update: {},
+      create: { id: 'test-q-1', text: 'Test question?', category: 'general', order: 999 },
+    });
+    seedQuestionId = q.id;
+
+    // Couple + 2 users for DQ tests
+    await prisma.couple.upsert({
+      where: { id: dqCoupleId },
+      update: {},
+      create: { id: dqCoupleId, name: 'DQ Couple' },
+    });
+    const hashed = await hashPassword('testpass123');
+    const u1 = await prisma.user.upsert({
+      where: { email: 'dq-user@test.local' },
+      update: { coupleId: dqCoupleId },
+      create: { email: 'dq-user@test.local', password: hashed, name: 'DQ User', coupleId: dqCoupleId },
+    });
+    const u2 = await prisma.user.upsert({
+      where: { email: 'dq-partner@test.local' },
+      update: { coupleId: dqCoupleId },
+      create: { email: 'dq-partner@test.local', password: hashed, name: 'DQ Partner', coupleId: dqCoupleId },
+    });
+    dqToken = generateToken(u1.id, dqCoupleId);
+    dqPartnerToken = generateToken(u2.id, dqCoupleId);
+  });
+
+  it('GET /api/daily-questions/today returns a question', async () => {
+    const res = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.question).toBeDefined();
+    expect(res.body.question.id).toBeDefined();
+    expect(res.body.myAnswer).toBeNull();
+    expect(res.body.partnerAnswer).toBeNull();
+    expect(res.body.partnerName).toBe('DQ Partner');
+  });
+
+  it('GET /api/daily-questions/today returns same question for both partners', async () => {
+    const r1 = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqToken}`);
+    const r2 = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqPartnerToken}`);
+    expect(r1.status).toBe(200);
+    expect(r2.status).toBe(200);
+    expect(r1.body.question.id).toBe(r2.body.question.id);
+  });
+
+  it('POST /api/daily-questions/:id/answer submits answer successfully', async () => {
+    const todayRes = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqToken}`);
+    const questionId = todayRes.body.question.id;
+    const res = await request(app)
+      .post(`/api/daily-questions/${questionId}/answer`)
+      .set('Authorization', `Bearer ${dqToken}`)
+      .send({ answer: 'My answer' });
+    expect(res.status).toBe(201);
+    expect(res.body.answer).toBe('My answer');
+  });
+
+  it('POST /api/daily-questions/:id/answer — duplicate answer returns 409', async () => {
+    const todayRes = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqToken}`);
+    const questionId = todayRes.body.question.id;
+    const res = await request(app)
+      .post(`/api/daily-questions/${questionId}/answer`)
+      .set('Authorization', `Bearer ${dqToken}`)
+      .send({ answer: 'Duplicate answer' });
+    expect(res.status).toBe(409);
+  });
+
+  it('GET /api/daily-questions/today — after user answers, shows myAnswer but hides partner answer until partner answers', async () => {
+    const res = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.myAnswer).toBe('My answer');
+    // Partner hasn't answered yet → null even though user answered
+    expect(res.body.partnerAnswer).toBeNull();
+  });
+
+  it('GET /api/daily-questions/today — after partner answers, both answers visible to user', async () => {
+    const todayRes = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqPartnerToken}`);
+    const questionId = todayRes.body.question.id;
+    await request(app)
+      .post(`/api/daily-questions/${questionId}/answer`)
+      .set('Authorization', `Bearer ${dqPartnerToken}`)
+      .send({ answer: 'Partner answer' });
+
+    const res = await request(app).get('/api/daily-questions/today').set('Authorization', `Bearer ${dqToken}`);
+    expect(res.body.myAnswer).toBe('My answer');
+    expect(res.body.partnerAnswer).toBe('Partner answer');
+  });
+
+  it('GET /api/daily-questions/history returns paginated results', async () => {
+    const res = await request(app)
+      .get('/api/daily-questions/history?page=1&limit=10')
+      .set('Authorization', `Bearer ${dqToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.items).toBeInstanceOf(Array);
+    expect(res.body.total).toBeGreaterThanOrEqual(1);
+  });
+
+  afterAll(async () => {
+    await prisma.dailyQuestionResponse.deleteMany({ where: { coupleId: dqCoupleId } });
+    await prisma.user.deleteMany({ where: { email: { in: ['dq-user@test.local', 'dq-partner@test.local'] } } });
+    await prisma.couple.deleteMany({ where: { id: dqCoupleId } });
+  });
+});
