@@ -20,6 +20,7 @@ import type { ExpenseStats } from '../../lib/api';
 import { useDashboardViewModel } from './useDashboardViewModel';
 import { useUnreadCount } from '../Notifications/useNotificationsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import DailyQuestionCard from '../DailyQuestions/DailyQuestionCard';
 import Skeleton from '../../components/Skeleton';
 import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../Expenses/expensesConstants';
 import type { DatePlan } from '../../types';
@@ -614,6 +615,9 @@ export default function DashboardScreen() {
 
             {/* ── 3b. Date Planner Widget ── */}
             <DatePlannerWidget plans={vm.upcomingPlans} onPress={vm.navigateToDatePlanner} />
+
+            {/* ── 3c. Daily Question Card ── */}
+            <DailyQuestionCard />
 
             {/* ── 4. Food Highlights ── */}
             {vm.recentFoodSpots.length > 0 ? (

@@ -167,6 +167,7 @@ export function useDashboardViewModel() {
   const navigateToLetters = () => navigation.navigate('LettersTab');
   const navigateToDatePlanner = () => navigation.navigate('DatePlannerTab');
   const navigateToAchievements = () => navigation.navigate('Achievements');
+  const navigateToDailyQuestions = () => navigation.navigate('DailyQuestionsTab');
 
   // ── Derived display values ──────────────────────────────────────────────────
 
@@ -200,5 +201,6 @@ export function useDashboardViewModel() {
     navigateToLetters,
     navigateToDatePlanner,
     navigateToAchievements,
+    navigateToDailyQuestions,
   };
 }

@@ -702,6 +702,37 @@ const en = {
     },
   },
 
+  dailyQuestions: {
+    cardTitle: "Today's Question",
+    cardSubtitle: 'Reflect together',
+    todayTab: 'Today',
+    historyTab: 'History',
+    questionLabel: 'Daily Question',
+    answerPlaceholder: 'Share your thoughts...',
+    submitAnswer: 'Share My Answer',
+    submitting: 'Sharing...',
+    myAnswer: 'My Answer',
+    partnerAnswer: "{name}'s Answer",
+    waitingForPartner: 'Waiting for {name}...',
+    waitingHint: 'Answer first to see your partner\'s response',
+    noHistory: 'No answered questions yet',
+    noHistorySubtitle: 'Answer today\'s question to get started',
+    answered: 'Answered',
+    bothAnswered: 'Both answered',
+    categories: {
+      general: 'General',
+      deep: 'Deep',
+      fun: 'Fun',
+      intimacy: 'Intimacy',
+      future: 'Future',
+    },
+    errors: {
+      fetchFailed: 'Failed to load question',
+      submitFailed: 'Failed to submit answer',
+      alreadyAnswered: 'You already answered this question',
+    },
+  },
+
   common: {
     error: 'Error',
     success: 'Success',

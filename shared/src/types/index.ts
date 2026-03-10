@@ -485,3 +485,37 @@ export interface ShareLinkItem {
   viewCount: number;
   createdAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Daily Questions
+// ---------------------------------------------------------------------------
+
+export interface DailyQuestion {
+  id: string;
+  text: string;
+  textVi: string | null;
+  category: string;
+}
+
+export interface DailyQuestionToday {
+  question: DailyQuestion;
+  myAnswer: string | null;
+  partnerAnswer: string | null;
+  partnerName: string | null;
+}
+
+export interface DailyQuestionHistoryItem {
+  question: DailyQuestion;
+  myAnswer: string | null;
+  myAnsweredAt: string | null;
+  partnerAnswer: string | null;
+  partnerName: string | null;
+}
+
+export interface DailyQuestionHistory {
+  items: DailyQuestionHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

@@ -1145,6 +1145,35 @@ export const loveLettersApi = {
 
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Daily Questions API
+// ---------------------------------------------------------------------------
+
+export const dailyQuestionsApi = {
+  today: async (): Promise<import('../types').DailyQuestionToday> => {
+    const res = await apiFetch('/api/daily-questions/today');
+    if (!res.ok) throw new Error('Failed to fetch daily question');
+    return res.json();
+  },
+  answer: async (questionId: string, answer: string): Promise<void> => {
+    const res = await apiFetch(`/api/daily-questions/${questionId}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ answer }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(data.error ?? 'Failed to submit answer');
+    }
+  },
+  history: async (page = 1, limit = 20): Promise<import('../types').DailyQuestionHistory> => {
+    const res = await apiFetch(`/api/daily-questions/history?page=${page}&limit=${limit}`);
+    if (!res.ok) throw new Error('Failed to fetch history');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+
 export const settingsApi = {
   get: async (key: string): Promise<{ key: string; value: string | null }> => {
     const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);

@@ -34,6 +34,7 @@ export type AppStackParamList = {
   DatePlannerTab: NavigatorScreenParams<DatePlannerStackParamList> | undefined;
   LettersTab: NavigatorScreenParams<LettersStackParamList> | undefined;
   Achievements: undefined;
+  DailyQuestionsTab: undefined;
 };
 
 /** Only the 5 visible bottom tabs */
@@ -154,6 +155,7 @@ import PlanListScreen from '../screens/DatePlans/PlanListScreen';
 import PlanDetailScreen from '../screens/PlanDetail/PlanDetailScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
+import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -393,6 +395,7 @@ function AppNavigator() {
       <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} />
       <AppStack.Screen name="LettersTab" component={LettersNavigator} />
       <AppStack.Screen name="Achievements" component={AchievementsScreen} />
+      <AppStack.Screen name="DailyQuestionsTab" component={DailyQuestionsScreen} />
     </AppStack.Navigator>
   );
 }

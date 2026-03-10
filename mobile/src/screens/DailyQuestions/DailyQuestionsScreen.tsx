@@ -1,0 +1,522 @@
+import React, { useRef } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+  FlatList,
+} from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+} from 'react-native-reanimated';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppColors } from '../../navigation/theme';
+import t from '../../locales/en';
+import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
+import type { DailyQuestionHistoryItem } from '../../types';
+
+// ── Category meta ──────────────────────────────────────────────────────────────
+
+const CATEGORY_META: Record<string, { icon: string; color: string; bg: string }> = {
+  general:  { icon: 'chat-outline',        color: '#6366F1', bg: 'rgba(99,102,241,0.12)' },
+  deep:     { icon: 'star-four-points',    color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
+  fun:      { icon: 'emoticon-happy-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+  intimacy: { icon: 'heart-outline',       color: '#E8788A', bg: 'rgba(232,120,138,0.12)' },
+  future:   { icon: 'telescope',           color: '#7EC8B5', bg: 'rgba(126,200,181,0.12)' },
+};
+
+function getCategoryMeta(cat: string) {
+  return CATEGORY_META[cat] ?? CATEGORY_META.general!;
+}
+
+// ── CategoryBadge ─────────────────────────────────────────────────────────────
+
+function CategoryBadge({ category }: { category: string }) {
+  const meta = getCategoryMeta(category);
+  const label = t.dailyQuestions.categories[category as keyof typeof t.dailyQuestions.categories]
+    ?? category;
+  return (
+    <View
+      className="flex-row items-center gap-1.5 rounded-full px-3 py-1 self-start"
+      style={{ backgroundColor: meta.bg }}>
+      <Icon name={meta.icon} size={11} color={meta.color} />
+      <Text className="text-[11px] font-semibold" style={{ color: meta.color }}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+// ── AnswerCard ────────────────────────────────────────────────────────────────
+
+function AnswerCard({
+  label,
+  answer,
+  isPartner,
+  delay = 0,
+}: {
+  label: string;
+  answer: string;
+  isPartner?: boolean;
+  delay?: number;
+}) {
+  const colors = useAppColors();
+  return (
+    <Animated.View entering={FadeInDown.delay(delay).duration(500)} className="flex-1">
+      <View
+        className="rounded-2xl px-4 py-4 flex-1"
+        style={{
+          backgroundColor: isPartner
+            ? 'rgba(126,200,181,0.10)'
+            : 'rgba(232,120,138,0.08)',
+          borderWidth: 1,
+          borderColor: isPartner
+            ? 'rgba(126,200,181,0.25)'
+            : 'rgba(232,120,138,0.20)',
+        }}>
+        <View className="flex-row items-center gap-1.5 mb-2">
+          <Icon
+            name={isPartner ? 'account-heart-outline' : 'account-outline'}
+            size={13}
+            color={isPartner ? colors.accent : colors.primary}
+          />
+          <Text
+            className="text-[11px] font-bold tracking-wide uppercase"
+            style={{ color: isPartner ? colors.accent : colors.primary }}>
+            {label}
+          </Text>
+        </View>
+        <Text className="text-sm text-textDark leading-relaxed">{answer}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ── WaitingCard ───────────────────────────────────────────────────────────────
+
+function WaitingCard({ partnerName }: { partnerName: string | null }) {
+  const colors = useAppColors();
+  const name = partnerName ?? 'your partner';
+  return (
+    <Animated.View entering={FadeIn.delay(200).duration(500)} className="flex-1">
+      <View
+        className="rounded-2xl px-4 py-4 flex-1 items-center justify-center"
+        style={{
+          backgroundColor: 'rgba(126,200,181,0.06)',
+          borderWidth: 1,
+          borderColor: 'rgba(126,200,181,0.15)',
+          borderStyle: 'dashed',
+        }}>
+        <Icon name="clock-outline" size={20} color={colors.textLight} />
+        <Text className="text-xs text-textLight text-center mt-2 leading-relaxed">
+          {t.dailyQuestions.waitingForPartner.replace('{name}', name)}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ── TodayView ─────────────────────────────────────────────────────────────────
+
+function TodayView({
+  todayData,
+  hasAnswered,
+  answerText,
+  setAnswerText,
+  submitAnswer,
+  isSubmitting,
+  submitError,
+}: ReturnType<typeof import('./useDailyQuestionsViewModel').useDailyQuestionsViewModel> & { dummy?: never }) {
+  const colors = useAppColors();
+  const inputRef = useRef<TextInput>(null);
+
+  if (!todayData) return null;
+
+  const { question, myAnswer, partnerAnswer, partnerName } = todayData;
+  const meta = getCategoryMeta(question.category);
+  const canSubmit = answerText.trim().length > 0 && !isSubmitting;
+
+  return (
+    <ScrollView
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      contentContainerClassName="px-4 pb-12 gap-5">
+
+      {/* ── Question card ── */}
+      <Animated.View entering={FadeInDown.delay(50).duration(500)}>
+        <View
+          className="rounded-3xl overflow-hidden"
+          style={{
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
+            elevation: 8,
+          }}>
+          <LinearGradient
+            colors={['#F4A8B4', '#E8788A', '#D85B6E']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="px-5 pt-5 pb-6">
+            {/* Category */}
+            <View className="flex-row items-center gap-2 mb-4">
+              <View
+                className="w-7 h-7 rounded-xl items-center justify-center"
+                style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
+                <Icon name={meta.icon} size={14} color="#fff" />
+              </View>
+              <Text className="text-[11px] font-bold text-white/70 tracking-widest uppercase">
+                {t.dailyQuestions.questionLabel}
+              </Text>
+            </View>
+
+            {/* Question text */}
+            <Text className="text-xl font-bold text-white leading-snug">
+              {question.text}
+            </Text>
+
+            {/* Vietnamese translation */}
+            {question.textVi ? (
+              <Text className="text-[13px] text-white/65 mt-2 italic leading-relaxed">
+                {question.textVi}
+              </Text>
+            ) : null}
+          </LinearGradient>
+        </View>
+      </Animated.View>
+
+      {/* ── Answer input or answers revealed ── */}
+      {!hasAnswered ? (
+        <Animated.View entering={FadeInDown.delay(120).duration(450)} className="gap-3">
+          <TextInput
+            ref={inputRef}
+            className="bg-white rounded-2xl px-4 py-3.5 text-sm text-textDark"
+            style={{
+              borderWidth: 1,
+              borderColor: 'rgba(232,120,138,0.20)',
+              minHeight: 100,
+              textAlignVertical: 'top',
+              fontSize: 14,
+            }}
+            multiline
+            placeholder={t.dailyQuestions.answerPlaceholder}
+            placeholderTextColor={colors.textLight}
+            value={answerText}
+            onChangeText={setAnswerText}
+            maxLength={500}
+          />
+
+          {/* Character count */}
+          <Text className="text-[10px] text-textLight text-right">
+            {answerText.length}/500
+          </Text>
+
+          {/* Error */}
+          {submitError ? (
+            <Text className="text-[12px] text-error text-center">{submitError}</Text>
+          ) : null}
+
+          {/* Submit */}
+          <Pressable
+            onPress={submitAnswer}
+            disabled={!canSubmit}
+            className="rounded-2xl py-4 items-center justify-center flex-row gap-2"
+            style={{
+              backgroundColor: canSubmit ? colors.primary : 'rgba(232,120,138,0.30)',
+            }}>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Icon name="send" size={16} color="#fff" />
+            )}
+            <Text className="text-white font-bold text-[15px]">
+              {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
+            </Text>
+          </Pressable>
+        </Animated.View>
+      ) : (
+        /* ── Both answers revealed ── */
+        <Animated.View entering={FadeIn.duration(400)} className="gap-3">
+          <Text className="text-xs text-textLight font-semibold uppercase tracking-wider px-1">
+            {partnerAnswer ? t.dailyQuestions.bothAnswered : t.dailyQuestions.answered}
+          </Text>
+          <View className="flex-row gap-3">
+            <AnswerCard
+              label={t.dailyQuestions.myAnswer}
+              answer={myAnswer!}
+              delay={0}
+            />
+            {partnerAnswer ? (
+              <AnswerCard
+                label={t.dailyQuestions.partnerAnswer.replace('{name}', partnerName ?? '♥')}
+                answer={partnerAnswer}
+                isPartner
+                delay={120}
+              />
+            ) : (
+              <WaitingCard partnerName={partnerName} />
+            )}
+          </View>
+
+          {/* Hint if waiting */}
+          {!partnerAnswer ? (
+            <Text className="text-[11px] text-textLight text-center italic">
+              {t.dailyQuestions.waitingHint}
+            </Text>
+          ) : null}
+        </Animated.View>
+      )}
+
+    </ScrollView>
+  );
+}
+
+// ── HistoryItem ───────────────────────────────────────────────────────────────
+
+function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
+  const colors = useAppColors();
+  const [expanded, setExpanded] = React.useState(false);
+
+  const date = item.myAnsweredAt
+    ? new Date(item.myAnsweredAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      })
+    : null;
+
+  return (
+    <Pressable
+      onPress={() => setExpanded(e => !e)}
+      className="bg-white rounded-2xl overflow-hidden"
+      style={{
+        borderWidth: 1,
+        borderColor: 'rgba(226,220,232,0.6)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 2,
+      }}>
+
+      {/* Header */}
+      <View className="px-4 pt-4 pb-3">
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1 gap-2">
+            <CategoryBadge category={item.question.category} />
+            <Text className="text-[14px] font-semibold text-textDark leading-snug">
+              {item.question.text}
+            </Text>
+          </View>
+          <View className="items-end gap-1.5">
+            {date ? (
+              <Text className="text-[10px] text-textLight font-medium">{date}</Text>
+            ) : null}
+            <Icon
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color={colors.textLight}
+            />
+          </View>
+        </View>
+
+        {/* Status pill */}
+        <View className="flex-row gap-1.5 mt-2.5">
+          {item.myAnswer ? (
+            <View className="rounded-full px-2.5 py-0.5 bg-primary/10">
+              <Text className="text-[10px] font-semibold text-primary">My answer</Text>
+            </View>
+          ) : null}
+          {item.partnerAnswer ? (
+            <View className="rounded-full px-2.5 py-0.5 bg-accent/10">
+              <Text className="text-[10px] font-semibold text-accent">
+                {item.partnerName ?? 'Partner'}&apos;s answer
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Expanded answers */}
+      {expanded ? (
+        <Animated.View
+          entering={FadeInDown.duration(250)}
+          className="px-4 pb-4 gap-3">
+          <View className="h-px bg-border" />
+          {item.myAnswer ? (
+            <View>
+              <Text className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
+                {t.dailyQuestions.myAnswer}
+              </Text>
+              <Text className="text-[13px] text-textMid leading-relaxed">{item.myAnswer}</Text>
+            </View>
+          ) : null}
+          {item.partnerAnswer ? (
+            <View>
+              <Text className="text-[10px] font-bold text-accent uppercase tracking-wider mb-1.5">
+                {t.dailyQuestions.partnerAnswer.replace('{name}', item.partnerName ?? '♥')}
+              </Text>
+              <Text className="text-[13px] text-textMid leading-relaxed">{item.partnerAnswer}</Text>
+            </View>
+          ) : null}
+        </Animated.View>
+      ) : null}
+    </Pressable>
+  );
+}
+
+// ── HistoryView ───────────────────────────────────────────────────────────────
+
+function HistoryView({
+  historyItems,
+  historyLoading,
+  historyPage,
+  loadNextPage,
+}: Pick<
+  ReturnType<typeof import('./useDailyQuestionsViewModel').useDailyQuestionsViewModel>,
+  'historyItems' | 'historyLoading' | 'historyPage' | 'loadNextPage'
+>) {
+  const colors = useAppColors();
+
+  if (historyLoading && historyPage === 1) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (!historyLoading && historyItems.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center gap-3 px-8">
+        <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
+          <Icon name="chat-question-outline" size={28} color={colors.primary} />
+        </View>
+        <Text className="text-base font-semibold text-textDark text-center">
+          {t.dailyQuestions.noHistory}
+        </Text>
+        <Text className="text-sm text-textLight text-center leading-relaxed">
+          {t.dailyQuestions.noHistorySubtitle}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      data={historyItems}
+      keyExtractor={item => item.question.id}
+      renderItem={({ item }) => <HistoryItemCard item={item} />}
+      contentContainerClassName="px-4 pb-12 gap-3"
+      showsVerticalScrollIndicator={false}
+      onEndReached={loadNextPage}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        historyLoading && historyPage > 1 ? (
+          <ActivityIndicator className="mt-4" color={colors.primary} />
+        ) : null
+      }
+    />
+  );
+}
+
+// ── Main Screen ───────────────────────────────────────────────────────────────
+
+export default function DailyQuestionsScreen() {
+  const colors = useAppColors();
+  const insets = useSafeAreaInsets();
+  const vm = useDailyQuestionsViewModel();
+
+  const tabs = [
+    { key: 'today' as const, label: t.dailyQuestions.todayTab },
+    { key: 'history' as const, label: t.dailyQuestions.historyTab },
+  ];
+
+  return (
+    <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
+
+      {/* ── Header ── */}
+      <View className="px-4 pt-2 pb-4">
+        <View className="flex-row items-center gap-3">
+          <Pressable
+            onPress={vm.goBack}
+            className="w-9 h-9 rounded-full bg-white items-center justify-center"
+            style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.8)' }}>
+            <Icon name="arrow-left" size={18} color={colors.textDark} />
+          </Pressable>
+          <View className="flex-1">
+            <Text className="text-[18px] font-bold text-textDark leading-tight">
+              {t.dailyQuestions.cardTitle}
+            </Text>
+            <Text className="text-[12px] text-textLight">{t.dailyQuestions.cardSubtitle}</Text>
+          </View>
+          {/* Heart decoration */}
+          <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
+            <Icon name="heart-pulse" size={18} color={colors.primary} />
+          </View>
+        </View>
+
+        {/* ── Tab bar ── */}
+        <View
+          className="flex-row mt-4 rounded-2xl p-1"
+          style={{ backgroundColor: 'rgba(226,220,232,0.35)' }}>
+          {tabs.map(tab => (
+            <Pressable
+              key={tab.key}
+              onPress={() => vm.setActiveTab(tab.key)}
+              className="flex-1 rounded-xl py-2.5 items-center"
+              style={{
+                backgroundColor: vm.activeTab === tab.key ? '#fff' : 'transparent',
+                shadowColor: vm.activeTab === tab.key ? '#000' : 'transparent',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.06,
+                shadowRadius: 4,
+                elevation: vm.activeTab === tab.key ? 2 : 0,
+              }}>
+              <Text
+                className="text-[13px] font-semibold"
+                style={{
+                  color: vm.activeTab === tab.key ? colors.primary : colors.textLight,
+                }}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* ── Content ── */}
+      {vm.activeTab === 'today' ? (
+        vm.todayLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : vm.todayError ? (
+          <View className="flex-1 items-center justify-center gap-3 px-8">
+            <Icon name="wifi-off" size={28} color={colors.textLight} />
+            <Text className="text-sm text-textLight text-center">
+              {t.dailyQuestions.errors.fetchFailed}
+            </Text>
+            <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
+              <Text className="text-sm font-semibold text-primary">Try again</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <TodayView {...vm} />
+        )
+      ) : (
+        <HistoryView
+          historyItems={vm.historyItems}
+          historyLoading={vm.historyLoading}
+          historyPage={vm.historyPage}
+          loadNextPage={vm.loadNextPage}
+        />
+      )}
+    </View>
+  );
+}
