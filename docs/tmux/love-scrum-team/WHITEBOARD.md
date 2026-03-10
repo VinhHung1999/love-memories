@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 43 ACTIVE
-**Goal:** Backend Refactor — 3-layer clean architecture (Routes -> Controllers -> Services)
+**Sprint:** 46
+**Goal:** RN Monthly Recap (Stories) + Daily Questions (NEW) + Error Boundary
 
 ---
 
@@ -9,28 +9,21 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | Sprint 43 spec written, assigning to DEV | 2026-03-07 |
-| DEV  | IDLE   | Awaiting Sprint 43 assignment | 2026-03-07 |
+| PO   | ACTIVE | Spec written, assigning DEV | 2026-03-10 |
+| DEV  | IDLE   | Awaiting Sprint 46 assignment | 2026-03-10 |
 
 ---
 
-## Sprint 43 Spec
+## Sprint 46 Tasks
 
-**Spec:** `docs/specs/sprint-43-backend-refactor.md`
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 1 | Daily Questions — Backend (models, API, 50 seed Qs) | L | DONE ✓ | DEV |
+| 2 | Daily Questions — RN Screen (Dashboard card, answer, history) | M | DONE ✓ | DEV |
+| 3 | RN Monthly Recap (Stories-style full-screen viewer) | L | DONE ✓ | DEV |
+| 4 | Error Boundary (global crash handler) | S | DONE ✓ | DEV |
 
-**Summary:** Refactor backend from monolithic routes (27 files, 4500+ LOC) to 3-layer architecture:
-- **Routes** — thin wiring only (path + method + middleware)
-- **Controllers** — HTTP layer (parse req, call service, send res)
-- **Services** — business logic (no req/res, pure functions, calls Prisma)
-
-**Key deliverables:**
-- Infrastructure: asyncHandler, errorHandler, validate middleware, AppError class
-- 24 controller files + 23 service files + 17 validator files
-- Cron jobs extracted to CronService
-- Merge proxy-image+proxy-audio, geocode+resolveLocation
-- Zero behavior change — all 160+ endpoints preserved
-
-**Phases:** 0-Infrastructure -> 1-Template -> 2-Simple -> 3-Medium -> 4-Complex -> 5-Heavy -> 6-Cleanup -> 7-Verify
+**Spec:** `docs/specs/sprint-46-rn-features.md`
 
 ---
 
@@ -62,6 +55,9 @@ _Sprint 39 — RN Recipes + What to Eat: DEPLOYED_
 _Sprint 40 — RN Notifications + Expenses: DEPLOYED_
 _Sprint 41 — RN Tab Cleanup + Dashboard Bell + Expense Widget: DEPLOYED_
 _Sprint 42 — RN Date Planner + Love Letters + Achievements: DEPLOYED_
+_Sprint 43 — Backend 3-layer Refactor + CDN Fix + Rename Love Memories + Request Logging + DB Port Separation: DEPLOYED_
+_Sprint 44 — Backend Security (coupleId enforcement, rate limiting, CORS, Helmet, env validation) + Couple max 2 members + Confirm password: DEPLOYED_
+_Sprint 45 — Backend Commercial (Account Deletion, Email Verification, Subscription/RevenueCat, Free Tier Limits, Token Cleanup) + PWA Auth Refresh Fix: DEPLOYED_
 
 ---
 

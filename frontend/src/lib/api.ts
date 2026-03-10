@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats, CoupleProfile, ShareLinkItem, DailyQuestionToday, DailyQuestionHistory } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, MonthlyRecap, Expense, ExpenseStats, DailyStats, CoupleProfile, ShareLinkItem, DailyQuestionToday, DailyQuestionHistory } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -395,8 +395,6 @@ export const expensesApi = {
 };
 
 export const recapApi = {
-  weekly: (week?: string) =>
-    request<WeeklyRecap>(`/recap/weekly${week ? `?week=${week}` : ''}`),
   monthly: (month?: string) =>
     request<MonthlyRecap>(`/recap/monthly${month ? `?month=${month}` : ''}`),
   monthlyCaption: (month?: string) =>
