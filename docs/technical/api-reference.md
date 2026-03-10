@@ -81,10 +81,20 @@ Get current authenticated user profile.
 
 **Response (200):**
 ```json
-{ "id": "uuid", "email": "...", "name": "...", "avatar": "url|null", "googleId": "string|null" }
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "name": "User Name",
+  "avatar": "https://cdn.../avatar.jpg",
+  "coupleId": "uuid",
+  "googleId": "string|null",
+  "emailVerified": false,
+  "createdAt": "2026-03-10T00:00:00.000Z"
+}
 ```
 
 **Sprint 33:** Now returns `googleId` field.
+**Sprint 45:** Now returns `emailVerified` field.
 
 ---
 
@@ -150,6 +160,149 @@ Link Google account to an already-logged-in user.
 ```
 
 **Errors:** `400` missing idToken, `401` invalid token, `409` Google account already linked to another user
+
+---
+
+## Account Deletion (Sprint 45)
+
+### `DELETE /api/auth/account`
+
+Permanently delete the authenticated user's account. Apple App Store required endpoint.
+
+**Behavior:**
+- If user is the **last member** of the couple: deletes all couple data (moments, foodspots, recipes, letters, sprints, date plans, etc.), all CDN files, then deletes the couple record.
+- If user has a **partner**: deletes only user-specific data (love letters sent/received by this user, notifications, push subscriptions, refresh tokens). Couple and shared data remain for the partner.
+- Refresh tokens invalidated automatically (cascade delete).
+- CDN cleanup is best-effort (won't fail if CDN is unavailable).
+
+**Request:**
+```json
+{ "password": "current-password" }
+```
+> Note: For Google-only accounts (no password), send empty string `""`.
+
+**Response (204):** No content — account deleted.
+
+**Errors:**
+- `400` missing password field
+- `401` wrong password
+- `401` unauthenticated
+
+---
+
+## Email Verification (Sprint 45)
+
+### `POST /api/auth/send-verification`
+
+Send or resend email verification. Automatically called on registration.
+
+**Request:** (no body required)
+
+**Response (200):**
+```json
+{ "ok": true }
+```
+
+**Errors:**
+- `401` unauthenticated
+- `429` rate limit exceeded (max 3 emails/hour per user)
+
+---
+
+### `GET /api/auth/verify-email?token=xxx` — Public
+
+Verify email address via token from the verification email link.
+
+**Query param:** `token` — the verification token from the email.
+
+**Response (200):**
+```json
+{ "ok": true, "emailVerified": true }
+```
+
+**Errors:**
+- `400` missing token param
+- `400` invalid or already-used token
+- `400` token expired (tokens expire after 24 hours)
+
+---
+
+## Subscription (Sprint 45)
+
+### `GET /api/subscription/status`
+
+Get the couple's current subscription status and usage limits.
+
+**Response (200) — free tier:**
+```json
+{
+  "status": "free",
+  "plan": "free",
+  "expiresAt": null,
+  "limits": {
+    "moments":   { "used": 3,  "max": 10 },
+    "foodspots": { "used": 1,  "max": 10 },
+    "expenses":  { "used": 0,  "max": 10 },
+    "sprints":   { "used": 1,  "max": 1  }
+  }
+}
+```
+
+**Response (200) — active/plus tier:**
+```json
+{
+  "status": "active",
+  "plan": "plus",
+  "expiresAt": "2027-03-10T00:00:00.000Z",
+  "limits": null
+}
+```
+
+**Status values:** `free` | `active` | `expired` | `cancelled` | `grace_period`
+
+**Errors:** `401` unauthenticated
+
+---
+
+### `POST /api/subscription/webhook` — Public (webhook secret auth)
+
+RevenueCat webhook handler. Called by RevenueCat on subscription events.
+
+**Auth:** `Authorization` header must equal `REVENUECAT_WEBHOOK_SECRET` env var (if configured).
+
+**Request — RevenueCat event payload:**
+```json
+{
+  "event": {
+    "type": "INITIAL_PURCHASE",
+    "app_user_id": "<coupleId>",
+    "store": "APP_STORE",
+    "product_id": "love_memories_plus_monthly",
+    "expiration_at_ms": 1772496000000,
+    "original_transaction_id": "2000000123456789"
+  }
+}
+```
+
+**Handled event types:**
+
+| Event | Resulting Status |
+|-------|-----------------|
+| `INITIAL_PURCHASE` | `active` |
+| `RENEWAL` | `active` |
+| `CANCELLATION` | `cancelled` |
+| `EXPIRATION` | `expired` |
+| `BILLING_ISSUE_DETECTED` | `grace_period` |
+
+**Response (200):**
+```json
+{ "ok": true }
+```
+
+**Errors:**
+- `400` missing `event.type`
+- `401` invalid webhook secret
+- `404` couple not found for given `app_user_id`
 
 ---
 
@@ -1549,6 +1702,35 @@ All errors return:
 | 204 | Deleted (no content) |
 | 400 | Validation error (Zod) |
 | 401 | Unauthorized (missing/invalid token) |
+| 403 | Forbidden — free tier limit or premium required (see below) |
 | 404 | Resource not found |
 | 409 | Conflict (duplicate) |
+| 429 | Rate limited |
 | 500 | Internal server error |
+
+### 403 Free Tier Responses (Sprint 45)
+
+Applied to **POST (create) endpoints only**. GET/read endpoints always allowed.
+
+**FREE_LIMIT_REACHED** — returned when free couple hits the resource cap:
+```json
+{ "error": "FREE_LIMIT_REACHED", "limit": 10, "used": 10, "resource": "moments" }
+```
+
+Affected endpoints and limits:
+| Endpoint | Free Limit |
+|----------|-----------|
+| `POST /api/moments` | 10 moments |
+| `POST /api/foodspots` | 10 food spots |
+| `POST /api/expenses` | 10 expenses |
+| `POST /api/sprints` | 1 active sprint |
+
+**PREMIUM_REQUIRED** — returned when free couple tries to access a locked module:
+```json
+{ "error": "PREMIUM_REQUIRED", "module": "recipes" }
+```
+
+Locked modules (POST blocked for free tier):
+- `recipes` → `POST /api/recipes`
+- `love-letters` → `POST /api/love-letters`
+- `date-planner` → `POST /api/date-plans`

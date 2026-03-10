@@ -324,7 +324,71 @@ All AI endpoints are **non-critical** — return `null` on failure, never 500. T
 | `dev-love-scrum.hungphu.work` | `localhost:3338` |
 | `dev-love-scrum-api.hungphu.work` | `localhost:5006` |
 
-## 11. Dev vs Production
+## 11. Subscription & Free Tier System (Sprint 45)
+
+### Overview
+
+Love Memories uses a **freemium model** with RevenueCat managing in-app purchases on iOS/Android.
+
+```
+┌──────────────┐   Purchase   ┌────────────────┐  Webhook POST   ┌──────────────┐
+│  App Store   │ ──────────►  │  RevenueCat    │ ─────────────►  │   Backend    │
+│  / Play Store│              │  (subscription │  /api/sub/      │  (Prisma)    │
+└──────────────┘              │   management)  │  webhook        └──────┬───────┘
+                              └────────────────┘                        │
+                                                                        ▼
+                                                                 subscriptions table
+                                                                 (coupleId → status)
+```
+
+### Subscription Model
+
+- **Scope:** Per-couple (both partners share one subscription).
+- **Default:** All couples start as `free` (no subscription record needed — `getOrCreateSubscription` auto-creates).
+- **Webhook:** `POST /api/subscription/webhook` — validates `Authorization` header against `REVENUECAT_WEBHOOK_SECRET`.
+- **Status flow:** `free` → `active` (purchase) → `cancelled`/`expired` (lapse) → `grace_period` (billing issue).
+
+### Free Tier Limits
+
+| Resource | Free Cap | Plus |
+|----------|----------|------|
+| Moments | 10 | Unlimited |
+| Food Spots | 10 | Unlimited |
+| Expenses | 10 | Unlimited |
+| Active Sprints | 1 | Unlimited |
+| Recipes | Blocked | Full access |
+| Love Letters | Blocked | Full access |
+| Date Planner | Blocked | Full access |
+
+### freeLimit Middleware
+
+Two middlewares in `src/middleware/freeLimit.ts`:
+
+**`checkFreeLimit(resource)`** — applied to POST (create) endpoints for countable resources:
+- Queries subscription status → if `active` or `grace_period`, passes through.
+- Otherwise counts existing records → if at cap, returns `403 FREE_LIMIT_REACHED`.
+
+**`checkPremiumAccess(module)`** — applied to POST endpoints for locked modules:
+- If module is in the locked set + subscription is not active → returns `403 PREMIUM_REQUIRED`.
+- GET/read endpoints are always allowed (users keep read access after subscription lapses).
+
+### Environment Variables (Sprint 45)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `REVENUECAT_WEBHOOK_SECRET` | Optional | Webhook auth secret; skipped if not set |
+| `SMTP_HOST` | Optional | SMTP server hostname |
+| `SMTP_PORT` | Optional | SMTP port (default: 587) |
+| `SMTP_USER` | Optional | SMTP username |
+| `SMTP_PASS` | Optional | SMTP password |
+| `SMTP_FROM` | Optional | From address (defaults to SMTP_USER) |
+| `APP_URL` | Optional | Base URL for verify-email link (default: production URL) |
+
+> All SMTP vars are optional — if not set, verification emails are logged to console instead of sent.
+
+---
+
+## 12. Dev vs Production
 
 | Aspect | Production | Development |
 |--------|-----------|-------------|

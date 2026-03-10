@@ -49,31 +49,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser((prev) => (prev ? { ...prev, ...updates } : prev));
   }, []);
 
-  // On mount, verify stored token (5s timeout to avoid infinite spinner if backend is down)
+  // On mount: verify stored access token. If expired (401), try refresh before clearing.
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY);
     if (!storedToken) {
       setIsLoading(false);
       return;
     }
+
+    const clearSession = () => {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      setToken(null);
+    };
+
+    const tryRefreshAndRetry = async (): Promise<void> => {
+      const storedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+      if (!storedRefresh) { clearSession(); return; }
+
+      const refreshRes = await fetch(`${API}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: storedRefresh }),
+      });
+      if (!refreshRes.ok) { clearSession(); return; }
+
+      const { accessToken, refreshToken } = await refreshRes.json() as { accessToken: string; refreshToken: string };
+      localStorage.setItem(TOKEN_KEY, accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      setToken(accessToken);
+
+      // Retry /auth/me with fresh access token
+      const meRes = await fetch(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!meRes.ok) { clearSession(); return; }
+      const userData = await meRes.json() as AuthUser;
+      setUser(userData);
+    };
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     fetch(`${API}/auth/me`, {
       headers: { Authorization: `Bearer ${storedToken}` },
       signal: controller.signal,
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Invalid token');
-        return res.json();
-      })
-      .then((data: AuthUser) => {
+      .then(async (res) => {
+        if (res.status === 401) {
+          // Access token expired — attempt silent refresh
+          await tryRefreshAndRetry();
+          return;
+        }
+        if (!res.ok) throw new Error('Auth error');
+        const data = await res.json() as AuthUser;
         setUser(data);
         setToken(storedToken);
       })
       .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-        setToken(null);
+        // Network error or abort — keep tokens, don't redirect (may be offline)
       })
       .finally(() => {
         clearTimeout(timeoutId);
@@ -89,9 +123,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
-    localStorage.setItem(TOKEN_KEY, data.accessToken || data.token);
+    localStorage.setItem(TOKEN_KEY, data.accessToken);
     if (data.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-    setToken(data.accessToken || data.token);
+    setToken(data.accessToken);
     setUser(data.user);
   }, []);
 
@@ -103,9 +137,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
-    localStorage.setItem(TOKEN_KEY, data.accessToken || data.token);
+    localStorage.setItem(TOKEN_KEY, data.accessToken);
     if (data.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-    setToken(data.accessToken || data.token);
+    setToken(data.accessToken);
     setUser(data.user);
   }, []);
 
@@ -120,9 +154,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.needsCouple) {
       return { needsCouple: true as const, googleProfile: data.googleProfile as GoogleProfile };
     }
-    localStorage.setItem(TOKEN_KEY, data.accessToken || data.token);
+    localStorage.setItem(TOKEN_KEY, data.accessToken);
     if (data.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-    setToken(data.accessToken || data.token);
+    setToken(data.accessToken);
     setUser(data.user);
   }, []);
 
@@ -134,9 +168,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Google signup failed');
-    localStorage.setItem(TOKEN_KEY, data.accessToken || data.token);
+    localStorage.setItem(TOKEN_KEY, data.accessToken);
     if (data.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-    setToken(data.accessToken || data.token);
+    setToken(data.accessToken);
     setUser(data.user);
   }, []);
 

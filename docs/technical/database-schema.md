@@ -29,9 +29,14 @@ LOW | MEDIUM | HIGH
 DRAFT | SCHEDULED | DELIVERED | READ
 ```
 
+### SubscriptionStatus — Sprint 45
+```
+free | active | expired | cancelled | grace_period
+```
+
 ---
 
-## Models (34 tables)
+## Models (36 tables)
 
 ### User (`users`)
 
@@ -44,10 +49,11 @@ DRAFT | SCHEDULED | DELIVERED | READ
 | name | String | | Display name |
 | avatar | String? | | Avatar CDN URL |
 | coupleId | String? | FK → Couple | Sprint 32: Couple association |
+| emailVerified | Boolean | `@default(false)` | Sprint 45: Email verification status |
 | createdAt | DateTime | `@default(now())` | |
 | updatedAt | DateTime | `@updatedAt` | |
 
-**Relations:** comments[], notifications[], pushSubscriptions[], sentLetters[], receivedLetters[], refreshTokens[], couple
+**Relations:** comments[], notifications[], pushSubscriptions[], sentLetters[], receivedLetters[], refreshTokens[], emailVerifications[], couple
 
 ---
 
@@ -78,6 +84,49 @@ DRAFT | SCHEDULED | DELIVERED | READ
 | createdAt | DateTime | `@default(now())` | |
 
 **Relations:** user
+
+---
+
+### EmailVerification (`email_verifications`) — Sprint 45
+
+| Field | Type | Constraints | Notes |
+|-------|------|-------------|-------|
+| id | String | `@id @default(uuid())` | Primary key |
+| userId | String | FK → User `onDelete: Cascade` | Token owner |
+| token | String | `@unique` | 64-char hex random token |
+| expiresAt | DateTime | | 24 hours from creation |
+| verifiedAt | DateTime? | | Set when token is consumed; null = unverified |
+| createdAt | DateTime | `@default(now())` | |
+
+**Relations:** user
+
+**Notes:**
+- On resend: previous unverified tokens for the user are deleted before creating a new one.
+- Rate limited: max 3 tokens created per user per hour.
+- `user.emailVerified` is set to `true` when `verifiedAt` is populated.
+
+---
+
+### Subscription (`subscriptions`) — Sprint 45
+
+| Field | Type | Constraints | Notes |
+|-------|------|-------------|-------|
+| id | String | `@id @default(uuid())` | Primary key |
+| coupleId | String | `@unique` FK → Couple `onDelete: Cascade` | One subscription per couple |
+| platform | String? | | `APP_STORE` / `PLAY_STORE` / null |
+| productId | String? | | RevenueCat product ID |
+| status | SubscriptionStatus | `@default(free)` | Current subscription state |
+| expiresAt | DateTime? | | Subscription expiry from RevenueCat |
+| originalTransactionId | String? | | RevenueCat original transaction ID |
+| createdAt | DateTime | `@default(now())` | |
+| updatedAt | DateTime | `@updatedAt` | |
+
+**Relations:** couple
+
+**Notes:**
+- Created on first webhook event or first `GET /api/subscription/status` call (defaults to `free`).
+- Upserted by RevenueCat webhooks — idempotent by `coupleId`.
+- Both partners in a couple share one subscription.
 
 ---
 
@@ -707,6 +756,8 @@ DatePlanStop ──── DatePlanSpot (stopId, onDelete: Cascade)
 | 33 | 2026-02-28 | `add_couple_profile` | Couple model, User.coupleId relation |
 | 34 | 2026-02-28 | `add_refresh_tokens` | RefreshToken model for JWT auth |
 | 35 | 2026-03-01 | `add_share_links` | ShareLink model for public sharing |
+| 36 | 2026-03-10 | `sprint45_email_verification` | User.emailVerified, EmailVerification model |
+| 37 | 2026-03-10 | `sprint45_subscription` | SubscriptionStatus enum, Subscription model |
 
 ---
 
