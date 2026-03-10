@@ -24,6 +24,7 @@ import { recapRoutes } from './recap';
 import { expenseRoutes } from './expenses';
 import { coupleRoutes } from './couple';
 import { shareRoutes } from './share';
+import { subscriptionRoutes } from './subscription';
 
 const router = Router();
 
@@ -58,5 +59,6 @@ router.use('/recap', requireAuth, recapRoutes);
 router.use('/expenses', requireAuth, expenseRoutes);
 router.use('/couple', requireAuth, coupleRoutes);
 router.use('/share', shareRoutes);
+router.use('/subscription', subscriptionRoutes);
 
 export default router;

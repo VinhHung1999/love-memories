@@ -49,6 +49,8 @@ let testCoupleId: string;
 beforeAll(async () => {
   // Clean up previous test data referencing this couple
   await prisma.shareLink.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.subscription.deleteMany({ where: { coupleId: 'test-couple' } });
+  await prisma.emailVerification.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.achievement.deleteMany({ where: { coupleId: 'test-couple' } });
   await prisma.appSetting.deleteMany({ where: { coupleId: 'test-couple' } });
@@ -1977,6 +1979,74 @@ describe('Tags', () => {
   it('GET /api/tags returns 401 without auth', async () => {
     const res = await request(app).get('/api/tags');
     expect(res.status).toBe(401);
+  });
+});
+
+describe('Subscription', () => {
+  it('GET /api/subscription/status returns 401 without auth', async () => {
+    const res = await request(app).get('/api/subscription/status');
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /api/subscription/status returns free status with limits for new couple', async () => {
+    const res = await request(app).get('/api/subscription/status').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('free');
+    expect(res.body.plan).toBe('free');
+    expect(res.body.limits).toBeDefined();
+    expect(res.body.limits.moments).toBeDefined();
+    expect(res.body.limits.moments.max).toBe(10);
+  });
+
+  it('POST /api/subscription/webhook returns 401 with wrong secret', async () => {
+    // Set a secret via env for this test
+    process.env.REVENUECAT_WEBHOOK_SECRET = 'test-webhook-secret-123';
+    const res = await request(app)
+      .post('/api/subscription/webhook')
+      .set('Authorization', 'wrong-secret')
+      .send({ event: { type: 'INITIAL_PURCHASE', app_user_id: testCoupleId } });
+    expect(res.status).toBe(401);
+    delete process.env.REVENUECAT_WEBHOOK_SECRET;
+  });
+
+  it('POST /api/subscription/webhook INITIAL_PURCHASE sets status to active', async () => {
+    const res = await request(app)
+      .post('/api/subscription/webhook')
+      .send({
+        event: {
+          type: 'INITIAL_PURCHASE',
+          app_user_id: testCoupleId,
+          store: 'APP_STORE',
+          product_id: 'love_memories_plus_monthly',
+        },
+      });
+    expect(res.status).toBe(200);
+
+    const sub = await prisma.subscription.findUnique({ where: { coupleId: testCoupleId } });
+    expect(sub?.status).toBe('active');
+  });
+
+  it('GET /api/subscription/status returns active after INITIAL_PURCHASE', async () => {
+    const res = await request(app).get('/api/subscription/status').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('active');
+    expect(res.body.plan).toBe('plus');
+    expect(res.body.limits).toBeNull();
+  });
+
+  it('POST /api/subscription/webhook EXPIRATION sets status to expired', async () => {
+    const res = await request(app)
+      .post('/api/subscription/webhook')
+      .send({
+        event: {
+          type: 'EXPIRATION',
+          app_user_id: testCoupleId,
+        },
+      });
+    expect(res.status).toBe(200);
+
+    const sub = await prisma.subscription.findUnique({ where: { coupleId: testCoupleId } });
+    expect(sub?.status).toBe('expired');
   });
 });
 

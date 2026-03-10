@@ -30,6 +30,7 @@ model Couple {
   appSettings        AppSetting[]
   achievements       Achievement[]
   shareLinks         ShareLink[]
+  subscription       Subscription?
 
   @@map("couples")
 }
@@ -602,6 +603,29 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+enum SubscriptionStatus {
+  free
+  active
+  expired
+  cancelled
+  grace_period
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  coupleId               String             @unique
+  platform               String?
+  productId              String?
+  status                 SubscriptionStatus @default(free)
+  expiresAt              DateTime?
+  originalTransactionId  String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  couple                 Couple             @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }
 
 model ShareLink {
