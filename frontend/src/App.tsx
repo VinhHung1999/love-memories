@@ -28,6 +28,7 @@ import WeeklyRecapPage from './pages/WeeklyRecapPage';
 import MonthlyRecapPage from './pages/MonthlyRecapPage';
 import ExpensesPage from './pages/ExpensesPage';
 import ShareViewerPage from './pages/ShareViewerPage';
+import DailyQuestionsPage from './pages/DailyQuestionsPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
 async function registerPush() {
@@ -125,6 +126,7 @@ export default function App() {
         <Route path="/weekly-recap" element={<WeeklyRecapPage />} />
         <Route path="/monthly-recap" element={<MonthlyRecapPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/daily-questions" element={<DailyQuestionsPage />} />
       </Routes>
     </Layout>
   );

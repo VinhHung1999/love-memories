@@ -1,4 +1,4 @@
-import { UtensilsCrossed, Utensils, ChefHat, Sparkles, Trophy, CalendarHeart, Mail, CalendarDays, Wallet } from 'lucide-react';
+import { UtensilsCrossed, Utensils, ChefHat, Sparkles, Trophy, CalendarHeart, Mail, CalendarDays, Wallet, MessageCircleHeart } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface AppModule {
@@ -72,5 +72,12 @@ export const modules: AppModule[] = [
     label: 'Budget',
     description: 'Theo dõi chi tiêu',
     color: 'bg-emerald-500/10 text-emerald-600',
+  },
+  {
+    to: '/daily-questions',
+    icon: MessageCircleHeart,
+    label: 'Daily Q&A',
+    description: 'Câu hỏi mỗi ngày',
+    color: 'bg-pink-500/10 text-pink-500',
   },
 ];

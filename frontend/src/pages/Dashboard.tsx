@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Camera, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, ChevronRight, Clock, ArrowRight } from 'lucide-react';
+import { Heart, Camera, UtensilsCrossed, ShoppingCart, ChefHat, Bell, CalendarHeart, ChevronRight, Clock, ArrowRight, MessageCircleHeart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { momentsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi, loveLettersApi, expensesApi } from '../lib/api';
+import { momentsApi, sprintsApi, cookingSessionsApi, settingsApi, achievementsApi, datePlansApi, loveLettersApi, expensesApi, dailyQuestionsApi } from '../lib/api';
 import { useUnreadCount } from '../lib/useUnreadCount';
 import type { CookingSession, DatePlan } from '../types';
 import { useModuleTour } from '../lib/useModuleTour';
@@ -73,6 +73,12 @@ export default function Dashboard() {
   const { data: expenseStats } = useQuery({
     queryKey: ['expenses-stats', currentMonth],
     queryFn: () => expensesApi.stats(currentMonth),
+    staleTime: 60_000,
+  });
+
+  const { data: dailyQuestion } = useQuery({
+    queryKey: ['daily-question-today'],
+    queryFn: dailyQuestionsApi.getToday,
     staleTime: 60_000,
   });
 
@@ -252,6 +258,37 @@ export default function Dashboard() {
         </Link>
       )}
       {/* ── END MONTHLY RECAP PIN ─────────────────────────────────────── */}
+
+      {/* ── DAILY QUESTION PIN ──────────────────────────────────────── */}
+      {dailyQuestion && (
+        <Link
+          to="/daily-questions"
+          className="block bg-gradient-to-r from-pink-50 to-primary/5 rounded-2xl p-4 mb-4 ring-1 ring-primary/10 active:scale-[0.98] transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <MessageCircleHeart className="w-4.5 h-4.5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-text-light mb-0.5">💬 Câu hỏi hôm nay</p>
+              <p className="text-sm font-medium text-text truncate">
+                {dailyQuestion.question.textVi || dailyQuestion.question.text}
+              </p>
+              {!dailyQuestion.myAnswer && (
+                <p className="text-xs text-primary mt-0.5 font-medium">Trả lời ngay →</p>
+              )}
+              {dailyQuestion.myAnswer && !dailyQuestion.partnerAnswer && (
+                <p className="text-xs text-text-light mt-0.5">Đang chờ người ấy trả lời...</p>
+              )}
+              {dailyQuestion.myAnswer && dailyQuestion.partnerAnswer && (
+                <p className="text-xs text-accent mt-0.5 font-medium">Cả hai đã trả lời ✓</p>
+              )}
+            </div>
+            <ChevronRight className="w-4 h-4 text-text-light flex-shrink-0" />
+          </div>
+        </Link>
+      )}
+      {/* ── END DAILY QUESTION PIN ──────────────────────────────────── */}
 
       {/* ── ROW 1: RECENT MOMENTS ────────────────────────────────────── */}
       <div className="mb-4" data-tour="recent-moments">

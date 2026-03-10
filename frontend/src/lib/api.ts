@@ -1,4 +1,4 @@
-import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats, CoupleProfile, ShareLinkItem } from '../types';
+import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, Goal, TagMetadata, Recipe, CookingSession, Achievement, AppNotification, DateWish, DatePlan, LoveLetter, LetterPhoto, LetterAudio, WeeklyRecap, MonthlyRecap, Expense, ExpenseStats, DailyStats, CoupleProfile, ShareLinkItem, DailyQuestionToday, DailyQuestionHistory } from '../types';
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
@@ -426,4 +426,16 @@ export const shareApi = {
     }
     return res.json();
   },
+};
+
+// Daily Questions
+export const dailyQuestionsApi = {
+  getToday: () => request<DailyQuestionToday>('/daily-questions/today'),
+  submitAnswer: (questionId: string, answer: string) =>
+    request('/daily-questions/' + questionId + '/answer', {
+      method: 'POST',
+      body: JSON.stringify({ answer }),
+    }),
+  getHistory: (page = 1, limit = 20) =>
+    request<DailyQuestionHistory>(`/daily-questions/history?page=${page}&limit=${limit}`),
 };
