@@ -1,5 +1,8 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { BaseCard } from './BaseCard';
+
+export { BaseCard };
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
@@ -10,9 +13,9 @@ interface CardProps {
 
 export function Card({ children, className: cls }: CardProps) {
   return (
-    <View className={`bg-white rounded-3xl shadow-sm mx-4 mb-4 px-5 pt-2 pb-3 ${cls ?? ''}`}>
+    <BaseCard className={`mx-4 mb-4 px-5 pt-2 pb-3 ${cls ?? ''}`}>
       {children}
-    </View>
+    </BaseCard>
   );
 }
 

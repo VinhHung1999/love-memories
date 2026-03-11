@@ -1,0 +1,46 @@
+import React from 'react';
+import { Pressable, Text, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { BaseCard } from '../../../components/Card';
+import { useCountUp } from './useCountUp';
+
+interface StatCardProps {
+  icon: string;
+  label: string;
+  count: number;
+  iconColor: string;
+  bgClass: string;
+  onPress: () => void;
+}
+
+export function StatCard({
+  icon,
+  label,
+  count,
+  iconColor,
+  bgClass,
+  onPress,
+}: StatCardProps) {
+  const displayCount = useCountUp(count);
+  return (
+    <Pressable onPress={onPress} className="flex-1">
+      <BaseCard className="px-3 py-2.5 items-center relative">
+        {/* Icon */}
+        <Icon name={icon} size={15} color={iconColor} />
+
+        {/* Count */}
+        <Text className="text-[22px] font-bold text-textDark leading-none mt-1">
+          {displayCount}
+        </Text>
+
+        {/* Label */}
+        <Text className="text-[9px] font-semibold text-textMid tracking-[1px] uppercase mt-0.5">
+          {label}
+        </Text>
+
+        {/* Subtle bottom accent */}
+        <View className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full ${bgClass}`} />
+      </BaseCard>
+    </Pressable>
+  );
+}

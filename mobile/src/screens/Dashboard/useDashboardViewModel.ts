@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
+import { useAppColors } from '../../navigation/theme';
 import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
 import type { ExpenseStats } from '../../lib/api';
 import t from '../../locales/en';
@@ -17,6 +18,7 @@ export interface RelationshipDuration {
 export function useDashboardViewModel() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const colors = useAppColors();
 
   // ── Data queries ────────────────────────────────────────────────────────────
 
@@ -184,6 +186,65 @@ export function useDashboardViewModel() {
   const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
   const slogan = sloganSetting?.value ?? t.dashboard.defaultSlogan;
 
+  const quickActions = useMemo(() => [
+    {
+      icon: 'heart-multiple-outline',
+      label: t.dashboard.quickActions.moments,
+      iconColor: colors.primary,
+      bgClass: 'bg-primary/10',
+      onPress: () => navigateTo('MomentsTab'),
+    },
+    {
+      icon: 'food-fork-drink',
+      label: t.dashboard.quickActions.food,
+      iconColor: colors.secondary,
+      bgClass: 'bg-secondary/10',
+      onPress: navigateToFoodSpots,
+    },
+    {
+      icon: 'chef-hat',
+      label: t.dashboard.quickActions.recipes,
+      iconColor: colors.primary,
+      bgClass: 'bg-primary/10',
+      onPress: () => navigateTo('RecipesTab'),
+    },
+    {
+      icon: 'cash-multiple',
+      label: t.dashboard.quickActions.expenses,
+      iconColor: colors.expensePurple,
+      bgClass: 'bg-violet-100',
+      onPress: navigateToExpenses,
+    },
+    {
+      icon: 'email-heart-outline',
+      label: t.dashboard.quickActions.letters,
+      iconColor: colors.primary,
+      bgClass: 'bg-primary/10',
+      onPress: navigateToLetters,
+    },
+    {
+      icon: 'calendar-heart',
+      label: t.dashboard.quickActions.datePlanner,
+      iconColor: colors.secondary,
+      bgClass: 'bg-secondary/10',
+      onPress: navigateToDatePlanner,
+    },
+    {
+      icon: 'trophy-outline',
+      label: t.dashboard.quickActions.achievements,
+      iconColor: colors.accent,
+      bgClass: 'bg-accent/10',
+      onPress: navigateToAchievements,
+    },
+    {
+      icon: 'map-outline',
+      label: t.dashboard.quickActions.map,
+      iconColor: colors.accent,
+      bgClass: 'bg-accent/10',
+      onPress: navigateToMap,
+    },
+  ], [colors, navigateTo, navigateToFoodSpots, navigateToExpenses, navigateToLetters, navigateToDatePlanner, navigateToAchievements, navigateToMap]);
+
   // ── Return ─────────────────────────────────────────────────────────────────
 
   return {
@@ -201,6 +262,7 @@ export function useDashboardViewModel() {
     activeSession: activeSession ?? null,
     expenseStats: expenseStats ?? null,
     upcomingPlans,
+    quickActions,
     handleMomentPress,
     handleFoodSpotPress,
     navigateTo,

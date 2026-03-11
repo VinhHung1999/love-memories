@@ -163,13 +163,21 @@ const en = {
       achievements: 'Badges',
     },
     expenseWidget: {
-      label: '💰 This month',
+      label: 'This month',
       noData: 'No expenses yet 💸',
     },
     datePlannerWidget: {
       label: '📅 Upcoming Dates',
       noData: 'No upcoming date plans',
       stops: '{n} stops',
+    },
+    compactRecapCard: {
+      label: 'Last Month',
+      action: 'View Recap',
+    },
+    compactDateCard: {
+      label: 'Upcoming',
+      noPlans: 'No plans yet',
     },
     activeCooking: 'Cooking Now',
     noMomentsYet: 'No moments yet\nAdd your first memory together',
