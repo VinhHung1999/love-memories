@@ -229,6 +229,11 @@ export const profileApi = {
     formData.append('avatar', file);
     return uploadWithProgress(`${API}/profile/avatar`, formData, getToken(), onProgress) as Promise<{ id: string; email: string; name: string; avatar: string | null }>;
   },
+  deleteAccount: (password: string) =>
+    request<void>('/auth/account', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    }),
 };
 
 // AI

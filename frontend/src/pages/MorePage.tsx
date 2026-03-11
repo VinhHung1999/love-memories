@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Pencil, Check, X, LogOut, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users } from 'lucide-react';
+import { Pencil, Check, X, LogOut, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users, Trash2, AlertTriangle } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -53,6 +53,20 @@ export default function MorePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name ?? '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Delete account
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: () => profileApi.deleteAccount(deletePassword),
+    onSuccess: () => {
+      toast.success('Tài khoản đã được xóa');
+      logout();
+    },
+    onError: (err: Error) => toast.error(err.message || 'Không thể xóa tài khoản'),
+  });
 
   // Couple profile
   const [coupleOpen, setCoupleOpen] = useState(false);
@@ -350,14 +364,22 @@ export default function MorePage() {
         </div>
       </div>
 
-      {/* Log Out */}
-      <div className="mt-6 pt-4 border-t border-border">
+      {/* Log Out & Delete Account */}
+      <div className="mt-6 pt-4 border-t border-border space-y-4">
         <button
           onClick={logout}
           className="flex items-center gap-2 text-sm text-red-400 hover:text-red-500 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           Log Out
+        </button>
+
+        <button
+          onClick={() => { setDeleteOpen(true); setDeletePassword(''); setDeleteConfirmText(''); }}
+          className="flex items-center gap-2 text-sm text-red-400/60 hover:text-red-500 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Xóa tài khoản
         </button>
       </div>
 
@@ -447,6 +469,58 @@ export default function MorePage() {
           >
             {coupleUpdateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
           </button>
+        </div>
+      </Modal>
+
+      {/* Delete account modal */}
+      <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Xóa tài khoản">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 bg-red-50 rounded-xl p-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-red-700">
+              <p className="font-medium mb-1">Hành động này không thể hoàn tác!</p>
+              <p>Tất cả dữ liệu của bạn (moments, letters, recipes...) sẽ bị xóa vĩnh viễn.</p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Mật khẩu</label>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+              placeholder="Nhập mật khẩu để xác nhận"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">
+              Gõ <span className="font-mono text-red-500">XOA TAI KHOAN</span> để xác nhận
+            </label>
+            <input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+              placeholder="XOA TAI KHOAN"
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDeleteOpen(false)}
+              className="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={() => deleteAccountMutation.mutate()}
+              disabled={deleteAccountMutation.isPending || !deletePassword || deleteConfirmText !== 'XOA TAI KHOAN'}
+              className="flex-1 bg-red-500 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {deleteAccountMutation.isPending ? 'Đang xóa...' : 'Xóa vĩnh viễn'}
+            </button>
+          </div>
         </div>
       </Modal>
 

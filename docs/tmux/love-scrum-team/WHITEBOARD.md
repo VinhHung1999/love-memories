@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 46
-**Goal:** RN Monthly Recap (Stories) + Daily Questions (NEW) + Error Boundary
+**Sprint:** 47
+**Goal:** BottomTab Refactor (PWA + RN) + Notification Strategy (Daily Q&A)
 
 ---
 
@@ -9,21 +9,20 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | Spec written, assigning DEV | 2026-03-10 |
-| DEV  | IDLE   | Awaiting Sprint 46 assignment | 2026-03-10 |
+| PO   | ACTIVE | All tasks DONE — ready for Boss review | 2026-03-11 |
+| DEV  | IDLE   | All tasks completed | 2026-03-11 |
 
 ---
 
-## Sprint 46 Tasks
+## Sprint 47 Tasks
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 1 | Daily Questions — Backend (models, API, 50 seed Qs) | L | DONE ✓ | DEV |
-| 2 | Daily Questions — RN Screen (Dashboard card, answer, history) | M | DONE ✓ | DEV |
-| 3 | RN Monthly Recap (Stories-style full-screen viewer) | L | DONE ✓ | DEV |
-| 4 | Error Boundary (global crash handler) | S | DONE ✓ | DEV |
-
-**Spec:** `docs/specs/sprint-46-rn-features.md`
+| 1 | PWA BottomTab: Home / Moments / Daily Q&A / Letters / Profile | S | DONE | PO |
+| 2 | RN BottomTab: Home / Moments / Daily Q&A / Letters / Profile | M | DONE | DEV |
+| 3 | Push notification: Daily Q&A reminder (morning) | M | DONE | DEV |
+| 4 | Push notification: "Partner answered" trigger | M | DONE | DEV |
+| 5 | PWA: Delete Account UI (MorePage/Profile — confirm flow, calls DELETE /auth/account) | S | DONE | PO |
 
 ---
 
@@ -31,9 +30,7 @@
 
 | # | Feature | Priority |
 |---|---------|----------|
-| B13 | RN: Goals & Sprints (Kanban) | P1 |
 | B14 | RN: Photo Booth | P2 |
-| B15 | RN: Weekly Recap | P2 |
 | B16 | RN: Monthly Recap | P2 |
 
 ---
@@ -58,6 +55,7 @@ _Sprint 42 — RN Date Planner + Love Letters + Achievements: DEPLOYED_
 _Sprint 43 — Backend 3-layer Refactor + CDN Fix + Rename Love Memories + Request Logging + DB Port Separation: DEPLOYED_
 _Sprint 44 — Backend Security (coupleId enforcement, rate limiting, CORS, Helmet, env validation) + Couple max 2 members + Confirm password: DEPLOYED_
 _Sprint 45 — Backend Commercial (Account Deletion, Email Verification, Subscription/RevenueCat, Free Tier Limits, Token Cleanup) + PWA Auth Refresh Fix: DEPLOYED_
+_Sprint 46 — RN Monthly Recap Stories + Daily Questions (BE+RN+PWA) + Error Boundary + Remove Weekly Recap: DEPLOYED_
 
 ---
 

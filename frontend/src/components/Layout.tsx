@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Heart, Camera, Map, Target, Home, LogOut, User, Bell } from 'lucide-react';
+import { Heart, Camera, MessageCircleHeart, Mail, Home, LogOut, User, Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../lib/auth';
 import { useAppName } from '../lib/useAppName';
@@ -9,8 +9,8 @@ import UploadToast from './UploadToast';
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/moments', icon: Camera, label: 'Moments' },
-  { to: '/map', icon: Map, label: 'Map' },
-  { to: '/goals', icon: Target, label: 'Goals' },
+  { to: '/daily-questions', icon: MessageCircleHeart, label: 'Daily Q&A' },
+  { to: '/love-letters', icon: Mail, label: 'Letters' },
   { to: '/more', icon: User, label: 'Profile' },
 ];
 
