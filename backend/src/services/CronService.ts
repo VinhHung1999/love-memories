@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import prisma from '../utils/prisma';
 import { createNotification } from '../utils/notifications';
+import { getTodayQuestionId } from './DailyQuestionService';
 
 export function registerCrons(): void {
   // Every minute: deliver SCHEDULED love letters where scheduledAt <= now
@@ -79,6 +80,40 @@ export function registerCrons(): void {
       console.log(`[cron] monthly_recap sent to ${users.length} users`);
     } catch (err) {
       console.error('[cron] monthly_recap error:', err);
+    }
+  }, { timezone: 'Asia/Ho_Chi_Minh' });
+
+  // 8 AM daily — remind users who haven't answered today's daily question
+  cron.schedule('0 8 * * *', async () => {
+    try {
+      const couples = await prisma.couple.findMany({ include: { users: { select: { id: true } } } });
+      let totalSent = 0;
+      for (const couple of couples) {
+        const questionId = await getTodayQuestionId(couple.id);
+        if (!questionId) continue;
+        // Find users in this couple who haven't answered today's question
+        const answered = await prisma.dailyQuestionResponse.findMany({
+          where: { questionId, coupleId: couple.id },
+          select: { userId: true },
+        });
+        const answeredIds = new Set(answered.map((r) => r.userId));
+        const unanswered = couple.users.filter((u) => !answeredIds.has(u.id));
+        await Promise.all(
+          unanswered.map((u) =>
+            createNotification(
+              u.id,
+              'daily_question_reminder',
+              'Câu hỏi hôm nay 💬',
+              'Câu hỏi hôm nay đang chờ bạn trả lời!',
+              '/daily-questions',
+            ),
+          ),
+        );
+        totalSent += unanswered.length;
+      }
+      if (totalSent > 0) console.log(`[cron] daily_question_reminder sent to ${totalSent} user(s)`);
+    } catch (err) {
+      console.error('[cron] daily_question_reminder error:', err);
     }
   }, { timezone: 'Asia/Ho_Chi_Minh' });
 

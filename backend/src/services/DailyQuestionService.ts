@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma';
 import { AppError } from '../types/errors';
+import { createNotification, getPartnerUserId } from '../utils/notifications';
 
 /**
  * Deterministic daily question selection:
@@ -83,7 +84,38 @@ export async function submitAnswer(questionId: string, coupleId: string, userId:
     data: { questionId, coupleId, userId, answer },
     include: { question: { select: { id: true, text: true, textVi: true, category: true } } },
   });
+
+  // Task 4 — Notify partner that user has answered, encouraging them to answer too
+  const partnerId = await getPartnerUserId(userId, coupleId);
+  if (partnerId) {
+    createNotification(
+      partnerId,
+      'daily_question_partner_answered',
+      'Người ấy đã trả lời! 💕',
+      'Người ấy đã trả lời câu hỏi hôm nay! Xem ngay nào 💕',
+      '/daily-questions',
+    ).catch(() => {});
+  }
+
   return response;
+}
+
+/**
+ * Returns today's question ID for a given couple.
+ * Used by CronService to check who hasn't answered yet.
+ */
+export async function getTodayQuestionId(coupleId: string): Promise<string | null> {
+  const total = await prisma.dailyQuestion.count();
+  if (total === 0) return null;
+  const key = `${coupleId}-${getDayNumber()}`;
+  const index = hashString(key) % total;
+  const questions = await prisma.dailyQuestion.findMany({
+    orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+    skip: index,
+    take: 1,
+    select: { id: true },
+  });
+  return questions[0]?.id ?? null;
 }
 
 export async function getHistory(coupleId: string, userId: string, page: number, limit: number) {
