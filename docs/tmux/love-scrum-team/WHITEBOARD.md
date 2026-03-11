@@ -28,13 +28,13 @@
 | 5b | RN Daily Q&A: Card style inconsistent — match ProfileScreen benchmark | M | DONE | DEV |
 | 5c | RN Daily Q&A: Use CollapsibleHeader instead of custom header | S | DONE | DEV |
 | 6a | RN Love Letters: Add photo upload + voice memo to compose | L | TODO | DEV |
-| 6b | RN Love Letters: Buttons horizontal instead of vertical | S | TODO | DEV |
-| 6c | RN Love Letters: Mood selector — add text labels | S | TODO | DEV |
+| 6b | RN Love Letters: Buttons horizontal instead of vertical | S | DONE | DEV |
+| 6c | RN Love Letters: Mood selector — add text labels | S | DONE | DEV |
 | 6d | RN Love Letters: Add scheduled delivery / timer | M | TODO | DEV |
 | 6e | RN Love Letters: Review PWA reference + match quality | M | TODO | DEV |
 | 7 | RN Love Letters: Debug — can't send/create letter | S | DONE | DEV |
 | 8 | RN Love Letters: Use common BottomSheet component | S | TODO | DEV |
-| 9 | RN Profile: Add Delete Account UI (password + confirmation) | S | TODO | DEV |
+| 9 | RN Profile: Add Delete Account UI (password + confirmation) | S | DONE | DEV |
 
 ---
 

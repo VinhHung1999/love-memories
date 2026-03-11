@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import FastImage from 'react-native-fast-image';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import AppBottomSheet from '../../../components/AppBottomSheet';
@@ -14,6 +17,18 @@ import type { LoveLetter } from '../../../types';
 const MOOD_EMOJI: Record<string, string> = {
   love: '❤️', happy: '😊', miss: '🥺', grateful: '🙏', playful: '😄', romantic: '🌹',
 };
+
+function formatSecs(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatScheduledAt(date: Date): string {
+  return date.toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+  });
+}
 
 export default function ComposeLetterSheet({
   onClose,
@@ -68,8 +83,96 @@ export default function ComposeLetterSheet({
           />
         </View>
 
+        {/* ── Photos section ── */}
+        <View className="mb-4">
+          <FieldLabel>{t.loveLetters.photosLabel}</FieldLabel>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row gap-2 mt-1">
+              {vm.pendingPhotos.map(photo => (
+                <View key={photo.localId} className="relative">
+                  <FastImage
+                    source={{ uri: photo.uri }}
+                    style={{ width: 72, height: 72, borderRadius: 12 }}
+                    resizeMode={FastImage.resizeMode.cover}
+                  />
+                  <Pressable
+                    onPress={() => vm.handleRemovePhoto(photo.localId)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error items-center justify-center">
+                    <Icon name="close" size={11} color="#fff" />
+                  </Pressable>
+                </View>
+              ))}
+              {vm.pendingPhotos.length < vm.maxPhotos ? (
+                <Pressable
+                  onPress={vm.handleAddPhoto}
+                  className="w-[72px] h-[72px] rounded-xl border border-dashed border-primary/30 items-center justify-center mt-0"
+                  style={{ backgroundColor: colors.primaryMuted + '33' }}>
+                  <Icon name="camera-plus-outline" size={22} color={colors.primary} />
+                  <Text className="text-[10px] text-primary mt-0.5">
+                    {vm.pendingPhotos.length}/{vm.maxPhotos}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* ── Voice memo section ── */}
+        <View className="mb-4">
+          <FieldLabel>{t.loveLetters.voiceMemoLabel}</FieldLabel>
+          {vm.recordedAudioPath ? (
+            /* Recorded — show playback controls */
+            <View className="flex-row items-center gap-3 p-3 rounded-2xl bg-accent/10 border border-accent/20 mt-1">
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-accent">
+                <Icon name="check" size={18} color="#fff" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-semibold text-textDark">Voice memo recorded</Text>
+                <Text className="text-xs text-textLight mt-0.5">
+                  {formatSecs(vm.recordingDuration)} · m4a
+                </Text>
+              </View>
+              <Pressable onPress={vm.handleDeleteAudio} hitSlop={8}>
+                <Icon name="trash-can-outline" size={18} color={colors.textLight} />
+              </Pressable>
+            </View>
+          ) : (
+            /* Record button */
+            <TouchableOpacity
+              onPress={vm.isRecording ? vm.handleStopRecording : vm.handleStartRecording}
+              className="flex-row items-center gap-3 p-3 rounded-2xl border mt-1"
+              style={{
+                backgroundColor: vm.isRecording ? colors.primary + '14' : colors.accent + '1A',
+                borderColor: vm.isRecording ? colors.primary + '4D' : colors.accent + '33',
+              }}>
+              <View
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: vm.isRecording ? colors.primary : colors.accent }}>
+                {vm.isRecording ? (
+                  <View className="w-3.5 h-3.5 rounded bg-white" />
+                ) : (
+                  <Icon name="microphone" size={18} color="#fff" />
+                )}
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-semibold text-textDark">
+                  {vm.isRecording ? t.loveLetters.recording : t.loveLetters.recordMemo}
+                </Text>
+                <Text className="text-xs text-textLight mt-0.5">
+                  {vm.isRecording
+                    ? `${formatSecs(vm.recordingDuration)} · ${t.loveLetters.stopRecording}`
+                    : t.loveLetters.recordHint}
+                </Text>
+              </View>
+              {vm.isRecording ? (
+                <View className="w-2 h-2 rounded-full bg-primary" />
+              ) : null}
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Mood picker */}
-        <View className="mb-6">
+        <View className="mb-4">
           <FieldLabel>{t.loveLetters.moodLabel}</FieldLabel>
           <View className="flex-row gap-2 flex-wrap mt-1">
             {MOODS.map(m => (
@@ -92,6 +195,59 @@ export default function ComposeLetterSheet({
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        {/* ── Schedule delivery ── */}
+        <View className="mb-6">
+          <Pressable
+            onPress={vm.toggleScheduleMode}
+            className="flex-row items-center gap-3 p-4 rounded-2xl border border-border/50 bg-gray-50">
+            <Icon name="clock-outline" size={20} color={vm.scheduleMode ? colors.primary : colors.textLight} />
+            <View className="flex-1">
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: vm.scheduleMode ? colors.primary : colors.textDark }}>
+                {t.loveLetters.scheduleLabel}
+              </Text>
+              {vm.scheduleMode && vm.scheduledAt ? (
+                <Text className="text-xs text-textMid mt-0.5">
+                  {formatScheduledAt(vm.scheduledAt)}
+                </Text>
+              ) : (
+                <Text className="text-xs text-textLight mt-0.5">Tap to set delivery time</Text>
+              )}
+            </View>
+            <View
+              className="w-10 h-6 rounded-full"
+              style={{ backgroundColor: vm.scheduleMode ? colors.primary : colors.gray100 }}>
+              <View
+                className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                style={{ left: vm.scheduleMode ? 22 : 2 }}
+              />
+            </View>
+          </Pressable>
+
+          {vm.scheduleMode && (vm.showDatePicker || Platform.OS === 'ios') ? (
+            <DateTimePicker
+              value={vm.scheduledAt ?? new Date(Date.now() + 3_600_000)}
+              mode="datetime"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              minimumDate={new Date()}
+              onChange={vm.handleDateChange}
+            />
+          ) : null}
+
+          {vm.scheduleMode && Platform.OS === 'android' && !vm.showDatePicker ? (
+            <Pressable
+              onPress={() => vm.setShowDatePicker(true)}
+              className="mt-2 py-2.5 rounded-xl border border-primary/30 items-center">
+              <Text className="text-sm font-semibold text-primary">
+                {vm.scheduledAt
+                  ? formatScheduledAt(vm.scheduledAt)
+                  : 'Pick date & time'}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
 
         {/* Actions */}

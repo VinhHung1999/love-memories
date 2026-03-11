@@ -1,5 +1,6 @@
-import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, Pressable, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutDown } from 'react-native-reanimated';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 
@@ -12,34 +13,134 @@ interface ReactionsBarProps {
 
 export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted, onToggle }: ReactionsBarProps) {
   const colors = useAppColors();
+  const [pickerVisible, setPickerVisible] = useState(false);
+
+  const handlePickerSelect = (emoji: string) => {
+    onToggle(emoji);
+    setPickerVisible(false);
+  };
+
+  // Emojis that have at least one reaction (for compact display)
+  const activeEmojis = presetEmojis.filter(e => reactionCounts(e) > 0);
+  const myReactions = presetEmojis.filter(e => hasReacted(e));
+
   return (
-    <View className="mb-4">
-      <View className="flex-row items-center gap-2 mb-2">
-        <View className="w-1.5 h-1.5 rounded-full bg-secondary" />
-        <Text className="text-[10px] font-bold text-textLight tracking-[1px] uppercase">
-          {t.moments.detail.reactions}
-        </Text>
+    <View className="mb-3">
+      {/* Active reactions row + add button */}
+      <View className="flex-row items-center flex-wrap gap-2">
+        {/* Show active emojis with counts */}
+        {activeEmojis.map(emoji => {
+          const count = reactionCounts(emoji);
+          const reacted = hasReacted(emoji);
+          return (
+            <Pressable
+              key={emoji}
+              onPress={() => onToggle(emoji)}
+              className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border"
+              style={{
+                backgroundColor: reacted ? colors.primaryMuted : colors.textDark + '0A',
+                borderColor: reacted ? colors.primary + '4D' : colors.textLight + '33',
+              }}>
+              <Text className="text-base">{emoji}</Text>
+              <Text
+                className="text-[12px] font-semibold"
+                style={{ color: reacted ? colors.primary : colors.textMid }}>
+                {count}
+              </Text>
+            </Pressable>
+          );
+        })}
+
+        {/* Add reaction button — long press OR short press opens picker */}
+        <Pressable
+          onPress={() => setPickerVisible(true)}
+          onLongPress={() => setPickerVisible(true)}
+          delayLongPress={200}
+          className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border"
+          style={{ borderColor: colors.textLight + '33', backgroundColor: colors.textDark + '0A' }}>
+          <Text className="text-base">😊</Text>
+          <Text className="text-[11px] font-semibold" style={{ color: colors.textLight }}>
+            {myReactions.length > 0 ? myReactions[0] : '+'}
+          </Text>
+        </Pressable>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View className="flex-row gap-2 pr-1">
-          {presetEmojis.map(emoji => {
-            const count = reactionCounts(emoji);
-            const reacted = hasReacted(emoji);
-            return (
-              <Pressable
-                key={emoji}
-                onPress={() => onToggle(emoji)}
-                className="flex-row items-center gap-1 px-3 py-[6px] rounded-full border"
-              style={{ backgroundColor: reacted ? colors.primaryMuted : colors.textDark + '0A', borderColor: reacted ? colors.primary + '4D' : colors.textLight + '33' }}>
-                <Text className="text-sm">{emoji}</Text>
-                {count > 0 ? (
-                  <Text className="text-[11px] font-semibold text-textMid">{count}</Text>
-                ) : null}
-              </Pressable>
-            );
-          })}
-        </View>
-      </ScrollView>
+
+      {/* Hint */}
+      {activeEmojis.length === 0 ? (
+        <Text className="text-[11px] text-textLight mt-1 italic">
+          {t.moments.detail.reactHint ?? 'Tap + to react'}
+        </Text>
+      ) : null}
+
+      {/* ── Emoji picker modal ── */}
+      <Modal
+        transparent
+        visible={pickerVisible}
+        animationType="none"
+        onRequestClose={() => setPickerVisible(false)}>
+        <Pressable
+          className="flex-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
+          onPress={() => setPickerVisible(false)}>
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            exiting={FadeOut.duration(150)}
+            className="flex-1"
+          />
+        </Pressable>
+
+        {/* Picker bubble */}
+        <Animated.View
+          entering={FadeInDown.springify().damping(20).stiffness(200)}
+          exiting={FadeOutDown.duration(200)}
+          className="absolute bottom-8 left-4 right-4">
+          <View
+            className="bg-white rounded-3xl px-4 py-4 shadow-lg"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.15,
+              shadowRadius: 20,
+              elevation: 12,
+            }}>
+            <Text className="text-xs font-bold text-textLight uppercase tracking-wider mb-3 text-center">
+              React to this moment
+            </Text>
+            <View className="flex-row flex-wrap justify-center gap-2">
+              {presetEmojis.map((emoji, idx) => {
+                const reacted = hasReacted(emoji);
+                const count = reactionCounts(emoji);
+                return (
+                  <Animated.View
+                    key={emoji}
+                    entering={FadeInDown.delay(idx * 30).duration(300)}>
+                    <Pressable
+                      onPress={() => handlePickerSelect(emoji)}
+                      className="items-center gap-0.5 px-2 py-2 rounded-2xl"
+                      style={{
+                        backgroundColor: reacted
+                          ? colors.primaryMuted
+                          : 'transparent',
+                        minWidth: 52,
+                      }}>
+                      <Text style={{ fontSize: 32 }}>{emoji}</Text>
+                      {count > 0 ? (
+                        <Text
+                          className="text-[10px] font-bold"
+                          style={{ color: reacted ? colors.primary : colors.textLight }}>
+                          {count}
+                        </Text>
+                      ) : (
+                        <Text className="text-[10px]" style={{ color: 'transparent' }}>0</Text>
+                      )}
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
+            </View>
+          </View>
+        </Animated.View>
+      </Modal>
     </View>
   );
 }

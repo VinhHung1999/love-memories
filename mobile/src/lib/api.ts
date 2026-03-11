@@ -1100,7 +1100,7 @@ export const loveLettersApi = {
     if (!res.ok) throw new Error('Failed to fetch letter');
     return res.json();
   },
-  create: async (data: { title: string; content: string; mood?: string }): Promise<import('../types').LoveLetter> => {
+  create: async (data: { title: string; content: string; mood?: string; scheduledAt?: string }): Promise<import('../types').LoveLetter> => {
     const res = await apiFetch('/api/love-letters', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1109,7 +1109,7 @@ export const loveLettersApi = {
     if (!res.ok) throw new Error('Failed to create letter');
     return res.json();
   },
-  update: async (id: string, data: Partial<{ title: string; content: string; mood: string }>): Promise<import('../types').LoveLetter> => {
+  update: async (id: string, data: Partial<{ title: string; content: string; mood: string; scheduledAt: string | null }>): Promise<import('../types').LoveLetter> => {
     const res = await apiFetch(`/api/love-letters/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -1126,11 +1126,14 @@ export const loveLettersApi = {
     const res = await apiFetch(`/api/love-letters/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete letter');
   },
-  uploadPhoto: async (id: string, formData: FormData): Promise<import('../types').LetterPhoto> => {
-    const res = await apiFetch(`/api/love-letters/${id}/photos`, {
-      method: 'POST',
-      body: formData,
-    });
+  uploadPhoto: async (id: string, imageUri: string, mimeType: string): Promise<import('../types').LetterPhoto> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+    formData.append('photo', { uri: imageUri, type: mimeType, name: `photo.${ext}` } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/love-letters/${id}/photos`, { method: 'POST', headers, body: formData });
     if (!res.ok) throw new Error('Failed to upload photo');
     return res.json();
   },
@@ -1138,11 +1141,13 @@ export const loveLettersApi = {
     const res = await apiFetch(`/api/love-letters/${id}/photos/${photoId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete photo');
   },
-  uploadAudio: async (id: string, formData: FormData): Promise<import('../types').LetterAudio> => {
-    const res = await apiFetch(`/api/love-letters/${id}/audio`, {
-      method: 'POST',
-      body: formData,
-    });
+  uploadAudio: async (id: string, audioUri: string): Promise<import('../types').LetterAudio> => {
+    const stored = await getStoredTokens();
+    const formData = new FormData();
+    formData.append('audio', { uri: audioUri, type: 'audio/mp4', name: 'memo.m4a' } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (stored?.accessToken) headers.Authorization = `Bearer ${stored.accessToken}`;
+    const res = await fetch(`${API_BASE}/api/love-letters/${id}/audio`, { method: 'POST', headers, body: formData });
     if (!res.ok) throw new Error('Failed to upload audio');
     return res.json();
   },

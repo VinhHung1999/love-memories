@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Linking,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -29,6 +30,80 @@ import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
+
+// ── Spotify rich card ──────────────────────────────────────────────────────────
+
+interface SpotifyOEmbed {
+  title: string;
+  author_name?: string;
+  thumbnail_url?: string;
+}
+
+function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
+  const colors = useAppColors();
+
+  const { data: meta, isLoading } = useQuery<SpotifyOEmbed>({
+    queryKey: ['spotify-oembed', spotifyUrl],
+    queryFn: async () => {
+      const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('oEmbed failed');
+      return res.json();
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  // Auto-open Spotify when detail screen loads
+  useEffect(() => {
+    Linking.openURL(spotifyUrl).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <Pressable
+      onPress={() => Linking.openURL(spotifyUrl).catch(() => {})}
+      className="flex-row items-center gap-3 rounded-2xl overflow-hidden"
+      style={{ backgroundColor: 'rgba(29,185,84,0.08)', borderWidth: 1, borderColor: 'rgba(29,185,84,0.2)' }}>
+      {/* Album art */}
+      {meta?.thumbnail_url ? (
+        <FastImage
+          source={{ uri: meta.thumbnail_url }}
+          style={{ width: 56, height: 56, borderRadius: 10 }}
+          resizeMode={FastImage.resizeMode.cover}
+        />
+      ) : (
+        <View
+          className="w-14 h-14 rounded-xl items-center justify-center"
+          style={{ backgroundColor: 'rgba(29,185,84,0.15)' }}>
+          <Icon name="spotify" size={24} color="#1DB954" />
+        </View>
+      )}
+
+      {/* Track info */}
+      <View className="flex-1">
+        {isLoading ? (
+          <Text className="text-xs text-textLight">Loading track info...</Text>
+        ) : meta ? (
+          <>
+            <Text className="text-sm font-bold text-textDark" numberOfLines={1}>{meta.title}</Text>
+            {meta.author_name ? (
+              <Text className="text-xs text-textMid mt-0.5" numberOfLines={1}>{meta.author_name}</Text>
+            ) : null}
+          </>
+        ) : (
+          <Text className="text-sm font-semibold text-textDark">{t.moments.detail.spotifyLink}</Text>
+        )}
+        <View className="flex-row items-center gap-1 mt-1">
+          <Icon name="spotify" size={10} color="#1DB954" />
+          <Text className="text-[10px] font-semibold" style={{ color: '#1DB954' }}>Open in Spotify</Text>
+        </View>
+      </View>
+
+      <Icon name="open-in-new" size={14} color={colors.textLight} style={{ marginRight: 12 }} />
+    </Pressable>
+  );
+}
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -187,19 +262,9 @@ export default function MomentDetailScreen() {
 
           {/* ── Title card ── */}
           <Card>
-            {/* Date + Spotify row */}
-            <View className="flex-row items-center justify-between mb-2">
+            {/* Date row */}
+            <View className="flex-row items-center mb-2">
               <Text className="text-xs text-textMid">📅 {formatDate(moment.date)}</Text>
-              {moment.spotifyUrl ? (
-                <TouchableOpacity
-                  onPress={() => Linking.openURL(moment.spotifyUrl!).catch(() => {})}
-                  className="flex-row items-center gap-1 px-3 py-1.5 rounded-xl bg-[rgba(29,185,84,0.1)]">
-                  <Icon name="spotify" size={14} color="#1DB954" />
-                  <Text className="text-[11px] font-semibold text-[#1DB954]">
-                    {t.moments.detail.spotifyLink}
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
             </View>
 
             <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
@@ -241,6 +306,16 @@ export default function MomentDetailScreen() {
               </View>
             ) : null}
           </Card>
+
+          {/* ── Spotify track card ── */}
+          {moment.spotifyUrl ? (
+            <Card>
+              <CardTitle>{t.moments.detail.spotifyLink}</CardTitle>
+              <View className="py-2">
+                <SpotifyTrackCard spotifyUrl={moment.spotifyUrl} />
+              </View>
+            </Card>
+          ) : null}
 
           {/* ── Photos gallery link ── */}
           {moment.photos.length > 0 ? (
