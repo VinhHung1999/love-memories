@@ -9,6 +9,7 @@ import { useLettersViewModel } from './useLettersViewModel';
 import LetterCard from './components/LetterCard';
 import ComposeLetterSheet from './components/ComposeLetterSheet';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import GlassTabBar from '../../components/GlassTabBar';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
@@ -39,6 +40,11 @@ export default function LettersScreen() {
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
+  const tabs = [
+    { key: 'inbox' as const, label: t.loveLetters.inboxTab },
+    { key: 'sent' as const, label: t.loveLetters.sentTab },
+  ];
+
   return (
     <View className="flex-1 bg-background">
       <CollapsibleHeader
@@ -47,30 +53,15 @@ export default function LettersScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
+        dark
         onBack={canGoBack ? vm.handleBack : undefined}
+        gradientColors={['#C7CEEA', '#B4B8D5', '#FFB4B4']}
         renderFooter={() => (
-          <View className="flex-row gap-2 px-4 py-2 bg-card">
-            <Pressable
-              onPress={() => vm.setActiveTab('inbox')}
-              className="flex-1 rounded-xl py-2 items-center"
-              style={{ backgroundColor: vm.activeTab === 'inbox' ? colors.primary : colors.gray100 }}>
-              <Text
-                className="text-[13px] font-semibold"
-                style={{ color: vm.activeTab === 'inbox' ? '#fff' : colors.textMid }}>
-                {t.loveLetters.inboxTab}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => vm.setActiveTab('sent')}
-              className="flex-1 rounded-xl py-2 items-center"
-              style={{ backgroundColor: vm.activeTab === 'sent' ? colors.primary : colors.gray100 }}>
-              <Text
-                className="text-[13px] font-semibold"
-                style={{ color: vm.activeTab === 'sent' ? '#fff' : colors.textMid }}>
-                {t.loveLetters.sentTab}
-              </Text>
-            </Pressable>
-          </View>
+          <GlassTabBar
+            tabs={tabs}
+            activeTab={vm.activeTab}
+            onTabPress={vm.setActiveTab}
+          />
         )}
       />
 

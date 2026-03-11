@@ -47,11 +47,11 @@ export default function DailyQuestionCard() {
   return (
     <Animated.View entering={FadeInDown.delay(160).duration(500)}>
       <GradientCard
-        colors={['#C3517A', '#E8788A', '#F4A261']}
+        colors={['#FF6B6B', '#FF8E8E', '#FFB4B4']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-4 py-2.5"
-        pressableClassName="shadow-md shadow-primary/30"
+        pressableClassName="shadow-lg shadow-primary/30"
         onPress={() => navigation.navigate('DailyQuestionsTab')}>
 
         {/* Compact header */}

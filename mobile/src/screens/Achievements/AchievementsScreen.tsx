@@ -67,8 +67,8 @@ export default function AchievementsScreen() {
       <CollapsibleHeader
         title={t.achievements.title}
         subtitle={t.achievements.subtitle}
-        expandedHeight={vm.totalCount > 0 ? 160 : 130}
-        collapsedHeight={96}
+        expandedHeight={vm.totalCount > 0 ? 140 : 120}
+        collapsedHeight={vm.totalCount > 0 ? 96 : 56}
         scrollY={scrollY}
         onBack={vm.handleBack}
         renderFooter={vm.totalCount > 0 && !vm.isLoading ? () => (

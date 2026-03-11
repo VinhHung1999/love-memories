@@ -140,8 +140,6 @@ export default function NotificationsScreen() {
       <CollapsibleHeader
         title={t.notifications.title}
         subtitle={t.notifications.subtitle}
-        expandedHeight={120}
-        collapsedHeight={96}
         scrollY={scrollY}
         renderRight={() =>
           vm.hasUnread ? (

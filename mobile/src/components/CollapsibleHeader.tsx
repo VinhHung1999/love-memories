@@ -9,6 +9,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeaderIconButton from './HeaderIconButton';
+import { FloatingHearts } from './FloatingHearts';
 
 interface CollapsibleHeaderProps {
   title: string;
@@ -16,34 +17,37 @@ interface CollapsibleHeaderProps {
   expandedHeight?: number;
   collapsedHeight?: number;
   renderExpandedContent?: () => React.ReactNode;
-  /** Replaces the default pink gradient — renders absolutely, fills entire header */
+  /** Replaces the default gradient + floating hearts background */
   renderBackground?: () => React.ReactNode;
   renderLeft?: () => React.ReactNode;
   renderRight?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
-  /** White title + subtitle text (for dark photo backgrounds) */
+  /** White title + subtitle text (for dark gradient backgrounds). Default: false. */
   dark?: boolean;
   scrollY: SharedValue<number>;
   /** When provided, renders a back arrow on the left. Pass navigation.goBack. */
   onBack?: () => void;
   /** Hide the built-in back arrow even when onBack is provided. Default: true when onBack is set. */
   showBack?: boolean;
+  /** Custom gradient colors. Default: Rose → Lavender gradient. */
+  gradientColors?: string[];
 }
 
 export default function CollapsibleHeader({
   title,
   subtitle,
-  expandedHeight = 120,
-  collapsedHeight = 56,
+  expandedHeight = 120, // Default for headers with subtitle
+  collapsedHeight = 56,  // Standard mobile header height
   renderExpandedContent,
   renderBackground,
   renderLeft,
   renderRight,
-  dark = false,
+  dark = true,
   scrollY,
   renderFooter,
   onBack,
   showBack,
+  gradientColors = ['#FFB4B4', '#C7CEEA', '#B4B8D5'], // Rose → Lavender default
 }: CollapsibleHeaderProps) {
   const hasBack = showBack ?? !!onBack;
   const insets = useSafeAreaInsets();
@@ -105,16 +109,19 @@ export default function CollapsibleHeader({
         {renderBackground ? (
           <View className="absolute inset-0">{renderBackground()}</View>
         ) : (
-          <LinearGradient
-            colors={['#FFE4EA', '#FFF0F6', '#FFF5EE']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-          />
+          <>
+            <LinearGradient
+              colors={gradientColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            />
+            <FloatingHearts count={6} color="#fff" size={10} opacity={0.10} />
+          </>
         )}
 
         {/* Exception: paddingTop from useSafeAreaInsets() — device-specific runtime value */}
-        <View style={{ paddingTop: insets.top }} className="flex-1 px-5 pb-3 justify-end">
+        <View style={{ paddingTop: insets.top }} className="flex-1 px-5 pb-1 justify-end">
           {renderExpandedContent ? (
             <Animated.View style={expandedStyle} className="mb-1">
               {renderExpandedContent()}

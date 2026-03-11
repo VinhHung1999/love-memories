@@ -19,6 +19,7 @@ import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import GlassTabBar from '../../components/GlassTabBar';
 import type { DailyQuestionHistoryItem } from '../../types';
 
 // ── Category meta ──────────────────────────────────────────────────────────────
@@ -433,59 +434,50 @@ export default function DailyQuestionsScreen() {
       <CollapsibleHeader
         title={t.dailyQuestions.cardTitle}
         subtitle="DAILY Q&A"
-        expandedHeight={160}
+        expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
+        dark
         onBack={canGoBack ? vm.goBack : undefined}
         renderFooter={() => (
-          <View className="flex-row px-4 py-2 bg-card gap-2">
-            {tabs.map(tab => (
-              <Pressable
-                key={tab.key}
-                onPress={() => vm.setActiveTab(tab.key)}
-                className="flex-1 rounded-xl py-2 items-center"
-                style={{
-                  backgroundColor: vm.activeTab === tab.key ? colors.primary : colors.gray100,
-                }}>
-                <Text
-                  className="text-[13px] font-semibold"
-                  style={{ color: vm.activeTab === tab.key ? '#fff' : colors.textMid }}>
-                  {tab.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+          <GlassTabBar
+            tabs={tabs}
+            activeTab={vm.activeTab}
+            onTabPress={vm.setActiveTab}
+          />
         )}
       />
 
       {/* ── Content ── */}
-      {vm.activeTab === 'today' ? (
-        vm.todayLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : vm.todayError ? (
-          <View className="flex-1 items-center justify-center gap-3 px-8">
-            <Icon name="wifi-off" size={28} color={colors.textLight} />
-            <Text className="text-sm text-textLight text-center">
-              {t.dailyQuestions.errors.fetchFailed}
-            </Text>
-            <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
-              <Text className="text-sm font-semibold text-primary">Try again</Text>
-            </Pressable>
-          </View>
+      <View style={{paddingTop: 60, flex: 1}}>
+        {vm.activeTab === 'today' ? (
+          vm.todayLoading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : vm.todayError ? (
+            <View className="flex-1 items-center justify-center gap-3 px-8">
+              <Icon name="wifi-off" size={28} color={colors.textLight} />
+              <Text className="text-sm text-textLight text-center">
+                {t.dailyQuestions.errors.fetchFailed}
+              </Text>
+              <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
+                <Text className="text-sm font-semibold text-primary">Try again</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <TodayView {...vm} onScroll={scrollHandler} />
+          )
         ) : (
-          <TodayView {...vm} onScroll={scrollHandler} />
-        )
-      ) : (
-        <HistoryView
-          historyItems={vm.historyItems}
-          historyLoading={vm.historyLoading}
-          historyPage={vm.historyPage}
-          loadNextPage={vm.loadNextPage}
-          onScroll={scrollHandler}
-        />
-      )}
+          <HistoryView
+            historyItems={vm.historyItems}
+            historyLoading={vm.historyLoading}
+            historyPage={vm.historyPage}
+            loadNextPage={vm.loadNextPage}
+            onScroll={scrollHandler}
+          />
+        )}
+      </View>
     </View>
   );
 }

@@ -42,14 +42,14 @@ export function HeroMomentCard({ moment, onPress }: HeroMomentCardProps) {
         className="absolute inset-0"
       />
       <View className="absolute top-2.5 right-2.5 bg-black/30 rounded-lg px-2 py-0.5">
-        <Text className="text-[9px] font-bold text-white">{dateLabel}</Text>
+        <Text className="text-[9px] font-heading text-white">{dateLabel}</Text>
       </View>
       <View className="absolute bottom-0 left-0 right-0 px-3.5 pb-3">
-        <Text className="text-white font-semibold text-[13px] leading-snug" numberOfLines={2}>
+        <Text className="text-white font-headingSemi text-[13px] leading-snug" numberOfLines={2}>
           {moment.title}
         </Text>
         {moment.tags.length > 0 ? (
-          <Text className="text-white/60 text-[10px] mt-0.5" numberOfLines={1}>
+          <Text className="text-white/60 font-bodyLight text-[10px] mt-0.5" numberOfLines={1}>
             {moment.tags[0]}
           </Text>
         ) : null}

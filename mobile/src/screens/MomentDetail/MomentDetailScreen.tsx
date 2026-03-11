@@ -56,7 +56,7 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
 
   // Auto-open Spotify when detail screen loads
   useEffect(() => {
-    Linking.openURL(spotifyUrl).catch(() => {});
+    // Linking.openURL(spotifyUrl).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,12 +1,10 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Pressable } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import type { ExpenseStats } from '../../../lib/api';
 import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../../Expenses/expensesConstants';
-import { GradientCard } from '../../../components/GradientCard';
 
 interface ExpenseWidgetProps {
   stats: ExpenseStats | null;
@@ -14,7 +12,6 @@ interface ExpenseWidgetProps {
 }
 
 export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
-  const colors = useAppColors();
   const hasData = stats && stats.count > 0;
 
   const topCategories = hasData
@@ -35,47 +32,42 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
   );
 
   return (
-    <Animated.View entering={FadeInDown.delay(180).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
-      <GradientCard
-        colors={[colors.expensePurple, colors.expensePurpleDark]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="px-5 pt-4 pb-5"
-        onPress={onPress}>
+    <Pressable onPress={onPress}>
+      <Animated.View entering={FadeInDown.delay(180).duration(500)} className="bg-white rounded-3xl shadow-lg shadow-expensePurple/20 px-5 pt-4 pb-5 border-2 border-expensePurple/10">
         {/* Label row */}
         <View className="flex-row items-center gap-2 mb-2">
-          <View className="w-7 h-7 rounded-xl bg-white/15 items-center justify-center">
-            <Icon name="cash-multiple" size={14} color="#fff" />
+          <View className="w-7 h-7 rounded-xl bg-expensePurple/10 items-center justify-center">
+            <Icon name="cash-multiple" size={14} color="#B983FF" />
           </View>
-          <Text className="text-[11px] font-semibold text-white/50 tracking-[0.8px] uppercase">
+          <Text className="text-[11px] font-headingSemi text-expensePurple tracking-[0.8px] uppercase">
             {t.dashboard.expenseWidget.label}
           </Text>
         </View>
 
         {!hasData ? (
-          <Text className="text-sm text-white/40 italic mt-1">
+          <Text className="text-sm font-bodyLight text-textMid italic mt-1">
             {t.dashboard.expenseWidget.noData}
           </Text>
         ) : (
           <>
-            <Text className="text-[28px] font-bold text-white leading-none">
+            <Text className="text-[20px] font-heading text-textDark leading-none">
               {formatVND(stats.total)}
             </Text>
-            <Text className="text-xs text-white/50 mt-0.5 mb-4">
+            <Text className="text-xs font-body text-textMid mt-0.5 mb-4">
               {stats.count} {t.expenses.transactions}
             </Text>
             <View className="gap-2.5">
               {topCategories.map(({ cat, pct }) => (
                 <View key={cat}>
                   <View className="flex-row items-center justify-between mb-1">
-                    <Text className="text-[11px] text-white/70 font-medium">
+                    <Text className="text-[11px] text-textMid font-bodyMedium">
                       {catEmoji[cat]} {catLabel[cat]}
                     </Text>
-                    <Text className="text-[10px] text-white/50 font-semibold">{pct}%</Text>
+                    <Text className="text-[10px] text-textLight font-headingSemi">{pct}%</Text>
                   </View>
-                  <View className="h-1 bg-white/15 rounded-full overflow-hidden">
+                  <View className="h-1 bg-expensePurple/10 rounded-full overflow-hidden">
                     <View
-                      className="h-full bg-white/60 rounded-full"
+                      className="h-full bg-expensePurple rounded-full"
                       style={{ width: `${pct}%` }}
                     />
                   </View>
@@ -84,7 +76,7 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
             </View>
           </>
         )}
-      </GradientCard>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 }

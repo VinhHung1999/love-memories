@@ -43,7 +43,7 @@ export default function PlanListScreen() {
       <CollapsibleHeader
         title={t.datePlanner.plansTitle}
         subtitle={t.datePlanner.plansSubtitle}
-        expandedHeight={130}
+        expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
         onBack={vm.handleBack}

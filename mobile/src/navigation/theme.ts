@@ -20,49 +20,80 @@ export const AppTheme = {
   dark: false,
   colors: {
     // ── React Navigation base (auto-applied to navigator UI) ──────────────
-    primary:      '#E8788A',   // active tab, header tint, links
-    background:   '#FAFAFA',   // screen background
+    primary:      '#FF6B6B',   // active tab, header tint, links (Coral)
+    background:   '#FFF9F5',   // screen background (Warm off-white)
     card:         '#FFFFFF',   // tab bar / header background
-    text:         '#1A1624',   // default text
-    border:       '#E2DCE8',   // tab bar border, header border
-    notification: '#E8788A',   // badge color
+    text:         '#2D1B3D',   // default text (Warm dark purple-brown)
+    border:       '#E8DFE8',   // tab bar border, header border
+    notification: '#FF6B6B',   // badge color
 
-    // ── Brand palette ─────────────────────────────────────────────────────
-    primaryLight:   '#F4A8B4',
-    primaryShadow:  'rgba(232,120,138,0.40)',
-    primaryMuted:   'rgba(232,120,138,0.12)',
-    secondary:      '#F4A261',
-    secondaryMuted: 'rgba(244,162,97,0.10)',
-    accent:         '#7EC8B5',
-    accentMuted:    'rgba(126,200,181,0.10)',
+    // ── Brand palette (gradient-first design) ─────────────────────────────
+    // Coral Blush (Primary)
+    primaryLight:   '#FF8E8E',
+    primaryLighter: '#FFB4B4',
+    primaryShadow:  'rgba(255,107,107,0.40)',
+    primaryMuted:   'rgba(255,107,107,0.12)',
 
-    // ── Text ──────────────────────────────────────────────────────────────
-    textDark:  '#1A1624',
-    textMid:   '#5C4E60',
-    textLight: '#A898AD',
+    // Peachy Gold (Secondary)
+    secondary:      '#FFD93D',
+    secondaryMid:   '#FFC857',
+    secondaryDark:  '#FFB84D',
+    secondaryMuted: 'rgba(255,217,61,0.12)',
+
+    // Lavender Dream (Accent)
+    accent:         '#C7CEEA',
+    accentMid:      '#B4B8D5',
+    accentDark:     '#A5A9C9',
+    accentMuted:    'rgba(199,206,234,0.12)',
+
+    // Mint Fresh (Success/Food)
+    success:        '#95E1D3',
+    successMid:     '#A8E6CF',
+    successLight:   '#BCE9D6',
+    successBg:      'rgba(149,225,211,0.10)',
+
+    // Violet Expense (Accent 2)
+    expensePurple:     '#B983FF',
+    expensePurpleMid:  '#A068F5',
+    expensePurpleDark: '#8B5CF6',
+
+    // ── Text (warm purple-gray tones) ────────────────────────────────────
+    textDark:  '#2D1B3D',  // Warm deep purple-brown
+    textMid:   '#6B5570',  // Muted purple-gray
+    textLight: '#9D8EA1',  // Lighter purple-gray
 
     // ── Input states ──────────────────────────────────────────────────────
     white:            '#FFFFFF',
-    inputBg:          'rgba(255,255,255,0.88)',
+    inputBg:          'rgba(255,255,255,0.90)',
     inputFocusBg:     '#FFFFFF',
-    inputBorderFocus: 'rgba(232,120,138,0.60)',
+    inputBorderFocus: 'rgba(255,107,107,0.50)',
 
     // ── Misc ─────────────────────────────────────────────────────────────
-    starRating:  '#F59E0B',
+    starRating:  '#FFB84D',  // Peachy gold for stars
 
     // ── Status ────────────────────────────────────────────────────────────
     errorColor:  '#D94F58',
     errorBg:     'rgba(255,240,240,0.95)',
-    success:     '#34A853',
-    successBg:   '#F0FFF4',
 
     // ── Neutral ───────────────────────────────────────────────────────────
-    gray100:     '#f3f4f6',
+    gray100:     '#F5F3F4',
 
-    // ── Widget accents ────────────────────────────────────────────────────
-    expensePurple:     '#6D28D9',
-    expensePurpleDark: '#4C1D95',
-    secondaryDark:     '#E06A32',
+    // ── Gradient Collections (for reference in components) ───────────────
+    // Use these in LinearGradient components
+    // Dashboard: ['#FF6B6B', '#FF8E8E', '#FFD93D']
+    // Moments: ['#FFB4B4', '#C7CEEA', '#B4B8D5']
+    // Food: ['#FFD93D', '#FFC857', '#A8E6CF']
+    // Letters: ['#C7CEEA', '#B4B8D5', '#FFB4B4']
+    // Expenses: ['#B983FF', '#A068F5', '#8B5CF6']
+    // Stats: ['#FFE4EA', '#FFD4DE', '#FFC4D0']
+  },
+  fonts: {
+    // Be Vietnam Pro - designed for Vietnamese with excellent diacritics support
+    heading: 'BeVietnamPro-Bold',        // 700 - Large titles, headers
+    headingSemi: 'BeVietnamPro-SemiBold', // 600 - Subtitles, section headers
+    body: 'BeVietnamPro-Regular',        // 400 - Body text, descriptions
+    bodyMedium: 'BeVietnamPro-Medium',   // 500 - Emphasized text, labels
+    bodyLight: 'BeVietnamPro-Light',     // 300 - Secondary text
   },
 } as const;
 

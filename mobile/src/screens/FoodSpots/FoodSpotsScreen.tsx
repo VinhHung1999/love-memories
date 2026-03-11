@@ -75,7 +75,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3">
+      className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-success/15 mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
@@ -164,15 +164,17 @@ export default function FoodSpotsScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
+        dark
+        gradientColors={['#FFD93D', '#FFC857', '#A8E6CF']}
         renderRight={() => (
           <Pressable
             onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
-            className="w-10 h-10 rounded-full items-center justify-center bg-secondary">
+            className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
             <Icon name="plus" size={22} color="#fff" />
           </Pressable>
         )}
         renderFooter={() => (
-          <View className="bg-[#FFF8F3]">
+          <View className="bg-white/10">
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

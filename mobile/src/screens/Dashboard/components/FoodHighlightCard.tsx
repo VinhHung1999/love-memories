@@ -15,7 +15,7 @@ export function FoodHighlightCard({ spot, onPress }: FoodHighlightCardProps) {
   const coverPhoto = spot.photos[0];
 
   return (
-    <Pressable onPress={onPress} className="bg-white rounded-3xl overflow-hidden shadow-sm flex-row">
+    <Pressable onPress={onPress} className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-secondary/15 flex-row">
       <View className="w-[80px] h-[80px] bg-secondary/10 items-center justify-center flex-shrink-0">
         {coverPhoto ? (
           <FastImage source={{ uri: coverPhoto.url, priority: FastImage.priority.normal }} style={{ width: '100%', height: '100%' }} resizeMode={FastImage.resizeMode.cover} />
@@ -24,7 +24,7 @@ export function FoodHighlightCard({ spot, onPress }: FoodHighlightCardProps) {
         )}
       </View>
       <View className="flex-1 px-3 py-3 justify-center">
-        <Text className="text-sm font-semibold text-textDark mb-0.5" numberOfLines={1}>
+        <Text className="text-sm font-headingSemi text-textDark mb-0.5" numberOfLines={1}>
           {spot.name}
         </Text>
         <View className="flex-row items-center gap-1">
@@ -36,10 +36,10 @@ export function FoodHighlightCard({ spot, onPress }: FoodHighlightCardProps) {
               color={colors.starRating}
             />
           ))}
-          <Text className="text-[10px] text-textLight ml-0.5">{spot.rating}/5</Text>
+          <Text className="text-[10px] font-bodyLight text-textLight ml-0.5">{spot.rating}/5</Text>
         </View>
         {spot.location ? (
-          <Text className="text-[10px] text-textLight mt-0.5" numberOfLines={1}>
+          <Text className="text-[10px] font-bodyLight text-textLight mt-0.5" numberOfLines={1}>
             📍 {spot.location}
           </Text>
         ) : null}

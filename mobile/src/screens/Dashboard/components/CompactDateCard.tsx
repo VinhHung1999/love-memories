@@ -1,9 +1,7 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppColors } from '../../../navigation/theme';
 import type { DatePlan } from '../../../types';
-import { GradientCard } from '../../../components/GradientCard';
 import t from '../../../locales/en';
 
 interface CompactDateCardProps {
@@ -12,7 +10,6 @@ interface CompactDateCardProps {
 }
 
 export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
-  const colors = useAppColors();
   const firstPlan = plans[0];
 
   function fmtDateShort(iso: string) {
@@ -20,35 +17,31 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
   }
 
   return (
-    <GradientCard
-      colors={[colors.secondary, colors.secondaryDark]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      className="flex-1 p-4 justify-between"
-      pressableClassName="flex-1"
-      onPress={onPress}>
-      <View className="flex-row items-center gap-1.5">
-        <View className="w-6 h-6 rounded-xl bg-white/20 items-center justify-center">
-          <Icon name="calendar-heart" size={12} color="#fff" />
+    <Pressable onPress={onPress} className="flex-1">
+      <View className="bg-white rounded-3xl shadow-lg shadow-secondary/15 p-4 justify-between flex-1 border-2 border-secondary/10">
+        <View className="flex-row items-center gap-1.5">
+          <View className="w-6 h-6 rounded-xl bg-secondary/10 items-center justify-center">
+            <Icon name="calendar-heart" size={12} color="#FFD93D" />
+          </View>
+          <Text className="text-[10px] font-headingSemi text-secondary tracking-widest uppercase">
+            {t.dashboard.compactDateCard.label}
+          </Text>
         </View>
-        <Text className="text-[10px] font-semibold text-white/60 tracking-widest uppercase">
-          {t.dashboard.compactDateCard.label}
-        </Text>
+        {firstPlan ? (
+          <View className="mt-2">
+            <Text className="text-[12px] font-heading text-textDark" numberOfLines={1}>
+              {firstPlan.title}
+            </Text>
+            <Text className="text-[10px] font-bodyLight text-textMid mt-0.5">
+              {fmtDateShort(firstPlan.date)}
+            </Text>
+          </View>
+        ) : (
+          <Text className="text-[11px] font-bodyLight text-textMid italic mt-2">
+            {t.dashboard.compactDateCard.noPlans}
+          </Text>
+        )}
       </View>
-      {firstPlan ? (
-        <View className="mt-2">
-          <Text className="text-[12px] font-bold text-white" numberOfLines={1}>
-            {firstPlan.title}
-          </Text>
-          <Text className="text-[10px] text-white/60 mt-0.5">
-            {fmtDateShort(firstPlan.date)}
-          </Text>
-        </View>
-      ) : (
-        <Text className="text-[11px] text-white/50 italic mt-2">
-          {t.dashboard.compactDateCard.noPlans}
-        </Text>
-      )}
-    </GradientCard>
+    </Pressable>
   );
 }

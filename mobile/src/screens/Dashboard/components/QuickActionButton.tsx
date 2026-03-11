@@ -24,7 +24,7 @@ export function QuickActionButton({
         <View className={`w-10 h-10 rounded-2xl items-center justify-center ${bgClass}`}>
           <Icon name={icon} size={20} color={iconColor} />
         </View>
-        <Text className="text-[11px] font-semibold text-textMid">{label}</Text>
+        <Text className="text-[11px] font-headingSemi text-textMid">{label}</Text>
       </BaseCard>
     </Pressable>
   );

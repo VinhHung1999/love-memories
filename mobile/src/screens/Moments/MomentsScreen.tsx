@@ -17,7 +17,6 @@ import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Moment } from '../../types';
-import type { MomentsStackParamList } from '../../navigation';
 import { useMomentsViewModel } from './useMomentsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import EmptyState from '../../components/EmptyState';
@@ -86,7 +85,7 @@ function MomentCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3"
+      className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-accent/15 mb-3"
     >
       {/* Photo */}
       <View className="w-full min-h-[110px]">
@@ -162,16 +161,17 @@ export default function MomentsScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
+        gradientColors={['#FFB4B4', '#C7CEEA', '#B4B8D5']}
         renderRight={() => (
           <TouchableOpacity
             onPress={openCreateForm}
-            className="w-10 h-10 rounded-full items-center justify-center bg-primary"
+            className="w-10 h-10 rounded-full items-center justify-center bg-white/20"
           >
             <Icon name="plus" size={22} color="#fff" />
           </TouchableOpacity>
         )}
         renderFooter={() => (
-          <View className="bg-[#FFF5EE]">
+          <View className="bg-white/10">
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

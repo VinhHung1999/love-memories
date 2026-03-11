@@ -303,8 +303,9 @@ export default function ExpensesScreen() {
       <CollapsibleHeader
         title={t.expenses.title}
         subtitle={t.expenses.subtitle}
-        scrollY={scrollY}
+        expandedHeight={140}
         collapsedHeight={112}
+        scrollY={scrollY}
         renderRight={() => (
           <View className="flex-row items-center gap-2">
             <TouchableOpacity

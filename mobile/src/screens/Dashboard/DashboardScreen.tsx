@@ -5,9 +5,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useDashboardViewModel } from './useDashboardViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
@@ -27,7 +25,6 @@ import { DashboardStatsCard } from './components/DashboardStatsCard';
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
-  const colors = useAppColors();
   const vm = useDashboardViewModel();
 
   const scrollY = useSharedValue(0);
@@ -47,15 +44,6 @@ export default function DashboardScreen() {
         expandedHeight={EXPANDED_H}
         collapsedHeight={COLLAPSED_H}
         scrollY={scrollY}
-        dark
-        renderBackground={() => (
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1.2 }}
-            className="absolute inset-0"
-          />
-        )}
         renderRight={() => (
           <NotificationBell onPress={vm.navigateToNotifications} />
         )}
@@ -82,7 +70,7 @@ export default function DashboardScreen() {
         )}
         renderFooter={() => (
           <View className="px-5 pb-2">
-            <Text className="text-[11px] font-medium text-white/60 italic">
+            <Text className="text-[11px] font-bodyLight text-white/60 italic">
               {vm.slogan}
             </Text>
           </View>

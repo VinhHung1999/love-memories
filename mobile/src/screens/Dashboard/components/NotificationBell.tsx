@@ -16,7 +16,7 @@ export function NotificationBell({ onPress }: NotificationBellProps) {
         <View
           className="absolute top-0.5 right-0.5 bg-error rounded-full items-center justify-center"
           style={{ minWidth: 14, height: 14, paddingHorizontal: 3 }}>
-          <Text className="text-white text-[9px] font-bold leading-none">
+          <Text className="text-white text-[9px] font-heading leading-none">
             {count > 99 ? '99+' : count}
           </Text>
         </View>
