@@ -144,6 +144,10 @@ export function useDashboardViewModel() {
     });
   };
 
+  const handleFoodSpotListPress = () => {
+    navigation.navigate('FoodSpotsTab', { screen: 'FoodSpotsList' });
+  };
+
   const navigateTo = (tab: string) => {
     navigation.navigate(tab);
   };
@@ -163,6 +167,8 @@ export function useDashboardViewModel() {
   };
 
   const navigateToExpenses = () => navigation.navigate('ExpensesTab');
+  const navigateToMap = () => navigation.navigate('MapTab');
+  const navigateToFoodSpots = () => navigation.navigate('FoodSpotsTab');
   const navigateToNotifications = () => navigation.navigate('NotificationsTab');
   const navigateToLetters = () => navigation.navigate('LettersTab');
   const navigateToDatePlanner = () => navigation.navigate('DatePlannerTab');
@@ -201,6 +207,9 @@ export function useDashboardViewModel() {
     handleActiveCookingPress,
     handleAIRecipePress,
     navigateToExpenses,
+    navigateToMap,
+    navigateToFoodSpots,
+    handleFoodSpotListPress,
     navigateToNotifications,
     navigateToLetters,
     navigateToDatePlanner,

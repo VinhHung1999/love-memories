@@ -1097,6 +1097,7 @@ export const loveLettersApi = {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    if (res.status === 403) throw new Error('PREMIUM_REQUIRED');
     if (!res.ok) throw new Error('Failed to create letter');
     return res.json();
   },
@@ -1109,7 +1110,7 @@ export const loveLettersApi = {
     return res.json();
   },
   send: async (id: string): Promise<import('../types').LoveLetter> => {
-    const res = await apiFetch(`/api/love-letters/${id}/send`, { method: 'PATCH' });
+    const res = await apiFetch(`/api/love-letters/${id}/send`, { method: 'PUT' });
     if (!res.ok) throw new Error('Failed to send letter');
     return res.json();
   },

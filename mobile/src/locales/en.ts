@@ -142,6 +142,7 @@ const en = {
     quickActions: {
       moments: 'Moments',
       food: 'Food',
+      map: 'Map',
       recipes: 'Recipes',
       aiRecipe: 'AI Recipe',
       expenses: 'Expenses',
@@ -517,6 +518,7 @@ const en = {
     categories: {
       all: 'All',
       food: 'Food',
+      map: 'Map',
       dating: 'Dating',
       shopping: 'Shopping',
       transport: 'Transport',
@@ -620,6 +622,7 @@ const en = {
       contentRequired: 'Please write something',
       saveFailed: 'Failed to save letter',
       sendFailed: 'Failed to send letter',
+      premiumRequired: 'Love Letters requires a premium subscription 💌',
       deleteFailed: 'Failed to delete letter',
       uploadFailed: 'Failed to upload photo',
     },
@@ -645,6 +648,7 @@ const en = {
     },
     categoryLabels: {
       food: 'Food',
+      map: 'Map',
       entertainment: 'Entertainment',
       adventure: 'Adventure',
       romance: 'Romance',

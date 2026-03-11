@@ -21,7 +21,6 @@ import { useDashboardViewModel } from './useDashboardViewModel';
 import { useUnreadCount } from '../Notifications/useNotificationsViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import DailyQuestionCard from '../DailyQuestions/DailyQuestionCard';
-import { formatMonthDisplay } from '../MonthlyRecap/useMonthlyRecapViewModel';
 import Skeleton from '../../components/Skeleton';
 import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../Expenses/expensesConstants';
 import type { DatePlan } from '../../types';
@@ -299,112 +298,76 @@ function ExpenseWidget({ stats, onPress }: { stats: ExpenseStats | null; onPress
   );
 }
 
-// ── DatePlannerWidget ─────────────────────────────────────────────────────────
+// ── CompactRecapCard ──────────────────────────────────────────────────────────
 
-function DatePlannerWidget({ plans, onPress }: { plans: DatePlan[]; onPress: () => void }) {
-  const colors = useAppColors();
-  const hasPlans = plans.length > 0;
-
-  function fmtDate(iso: string) {
-    return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-  }
-
-  const statusColor = (status: string) =>
-    status === 'active' ? colors.primary :
-    status === 'completed' ? colors.accent :
-    colors.secondary;
-
+function CompactRecapCard({ onPress }: { onPress: () => void }) {
   return (
-    <Animated.View entering={FadeInDown.delay(200).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
-      <Pressable onPress={onPress}>
-        <LinearGradient
-          colors={[colors.secondary, colors.secondaryDark]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-5 pt-4 pb-5">
-          <View className="flex-row items-center gap-2 mb-3">
-            <View className="w-7 h-7 rounded-xl bg-white/15 items-center justify-center">
-              <Icon name="calendar-heart" size={14} color="#fff" />
-            </View>
-            <Text className="text-[11px] font-semibold text-white/50 tracking-[0.8px] uppercase">
-              {t.dashboard.datePlannerWidget.label}
-            </Text>
+    <Pressable onPress={onPress} className="flex-1" style={{ minHeight: 80 }}>
+      <LinearGradient
+        colors={['#C3517A', '#E8788A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="flex-1 rounded-3xl p-4 justify-between"
+        style={{ minHeight: 80 }}>
+        <View className="flex-row items-center gap-1.5">
+          <View className="w-6 h-6 rounded-xl bg-white/20 items-center justify-center">
+            <Icon name="chart-bar" size={12} color="#fff" />
           </View>
-          {!hasPlans ? (
-            <Text className="text-sm text-white/40 italic">
-              {t.dashboard.datePlannerWidget.noData}
-            </Text>
-          ) : (
-            <View className="gap-2">
-              {plans.map(plan => (
-                <View key={plan.id} className="flex-row items-center gap-3">
-                  <View className="w-1 h-full rounded-full bg-white/30" />
-                  <View className="flex-1">
-                    <Text className="text-[13px] font-semibold text-white" numberOfLines={1}>
-                      {plan.title}
-                    </Text>
-                    <Text className="text-[11px] text-white/60 mt-0.5">{fmtDate(plan.date)}</Text>
-                  </View>
-                  <View
-                    className="rounded-full px-2 py-0.5"
-                    style={{ backgroundColor: statusColor(plan.status) + '40' }}>
-                    <Text className="text-[10px] font-semibold text-white">
-                      {t.dashboard.datePlannerWidget.stops.replace('{n}', String(plan.stops.length))}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-        </LinearGradient>
-      </Pressable>
-    </Animated.View>
+          <Text className="text-[10px] font-semibold text-white/60 tracking-widest uppercase">
+            Tháng trước
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1 mt-2">
+          <Text className="text-[12px] font-bold text-white">Xem recap</Text>
+          <Icon name="arrow-right" size={12} color="rgba(255,255,255,0.80)" />
+        </View>
+      </LinearGradient>
+    </Pressable>
   );
 }
 
-// ── MonthlyRecapBanner ────────────────────────────────────────────────────────
+// ── CompactDateCard ────────────────────────────────────────────────────────────
 
-function MonthlyRecapBanner({ onPress }: { onPress: () => void }) {
-  const prevMonth = (() => {
-    const now = new Date();
-    const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  })();
+function CompactDateCard({ plans, onPress }: { plans: DatePlan[]; onPress: () => void }) {
+  const colors = useAppColors();
+  const firstPlan = plans[0];
+
+  function fmtDateShort(iso: string) {
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
 
   return (
-    <Animated.View entering={FadeInDown.delay(200).duration(500)} className="rounded-3xl overflow-hidden shadow-sm">
-      <Pressable onPress={onPress}>
-        <LinearGradient
-          colors={['#C3517A', '#E8788A', '#F4A261']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-5 pt-4 pb-5">
-          <View className="flex-row items-center gap-2 mb-3">
-            <View className="w-7 h-7 rounded-xl bg-white/20 items-center justify-center">
-              <Icon name="chart-bar" size={14} color="#fff" />
-            </View>
-            <Text className="text-[11px] font-semibold text-white/60 tracking-widest uppercase">
-              {t.monthlyRecap.title}
+    <Pressable onPress={onPress} className="flex-1" style={{ minHeight: 80 }}>
+      <LinearGradient
+        colors={[colors.secondary, colors.secondaryDark]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="flex-1 rounded-3xl p-4 justify-between"
+        style={{ minHeight: 80 }}>
+        <View className="flex-row items-center gap-1.5">
+          <View className="w-6 h-6 rounded-xl bg-white/20 items-center justify-center">
+            <Icon name="calendar-heart" size={12} color="#fff" />
+          </View>
+          <Text className="text-[10px] font-semibold text-white/60 tracking-widest uppercase">
+            Sắp tới
+          </Text>
+        </View>
+        {firstPlan ? (
+          <View className="mt-2">
+            <Text className="text-[12px] font-bold text-white" numberOfLines={1}>
+              {firstPlan.title}
             </Text>
-            <View className="flex-1" />
-            <View className="flex-row items-center gap-1 bg-white/20 rounded-full px-2.5 py-0.5">
-              <Icon name="new-box" size={11} color="#fff" />
-              <Text className="text-[10px] font-bold text-white">New</Text>
-            </View>
+            <Text className="text-[10px] text-white/60 mt-0.5">
+              {fmtDateShort(firstPlan.date)}
+            </Text>
           </View>
-          <Text className="text-white font-bold text-[17px] leading-snug">
-            {formatMonthDisplay(prevMonth)}
+        ) : (
+          <Text className="text-[11px] text-white/50 italic mt-2">
+            Chưa có kế hoạch
           </Text>
-          <Text className="text-white/70 text-[13px] mt-1 mb-3">
-            {t.monthlyRecap.dashboardCardSub}
-          </Text>
-          <View className="flex-row items-center gap-1.5">
-            <Text className="text-white/80 text-[13px] font-semibold">{t.monthlyRecap.viewRecap}</Text>
-            <Icon name="arrow-right" size={14} color="rgba(255,255,255,0.80)" />
-          </View>
-        </LinearGradient>
-      </Pressable>
-    </Animated.View>
+        )}
+      </LinearGradient>
+    </Pressable>
   );
 }
 
@@ -583,7 +546,7 @@ export default function DashboardScreen() {
                   count={vm.foodSpotsCount}
                   iconColor={colors.secondary}
                   bgClass="bg-secondary/10"
-                  onPress={() => vm.navigateTo('FoodSpotsTab')}
+                  onPress={vm.navigateToFoodSpots}
                 />
               </View>
             </Animated.View>
@@ -598,7 +561,22 @@ export default function DashboardScreen() {
               </Animated.View>
             ) : null}
 
-            {/* ── 2. Quick Actions (4 items) ── */}
+            {/* ── 2. Daily Question Card ── */}
+            <Animated.View entering={FadeInDown.delay(110).duration(500)}>
+              <DailyQuestionCard />
+            </Animated.View>
+
+            {/* ── 2b. 2-col compact: Monthly Recap + Upcoming Dates ── */}
+            <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+              <View className="flex-row gap-3">
+                {vm.showMonthlyRecapBanner ? (
+                  <CompactRecapCard onPress={vm.navigateToMonthlyRecap} />
+                ) : null}
+                <CompactDateCard plans={vm.upcomingPlans} onPress={vm.navigateToDatePlanner} />
+              </View>
+            </Animated.View>
+
+            {/* ── 3. Quick Actions ── */}
             <Animated.View entering={FadeInDown.delay(140).duration(500)}>
               <SectionHeader title={t.dashboard.sections.quickActions} />
               <View className="flex-row gap-3">
@@ -614,7 +592,7 @@ export default function DashboardScreen() {
                   label={t.dashboard.quickActions.food}
                   iconColor={colors.secondary}
                   bgClass="bg-secondary/10"
-                  onPress={() => vm.navigateTo('FoodSpotsTab')}
+                  onPress={vm.navigateToFoodSpots}
                 />
                 <QuickActionButton
                   icon="chef-hat"
@@ -653,30 +631,25 @@ export default function DashboardScreen() {
                   bgClass="bg-accent/10"
                   onPress={vm.navigateToAchievements}
                 />
-                <View className="flex-1" />
+                <QuickActionButton
+                  icon="map-outline"
+                  label={t.dashboard.quickActions.map}
+                  iconColor={colors.accent}
+                  bgClass="bg-accent/10"
+                  onPress={vm.navigateToMap}
+                />
               </View>
             </Animated.View>
 
-            {/* ── 3. Expense Summary Widget ── */}
+            {/* ── 4. Expense Summary Widget ── */}
             <ExpenseWidget stats={vm.expenseStats} onPress={vm.navigateToExpenses} />
 
-            {/* ── 3b. Date Planner Widget ── */}
-            <DatePlannerWidget plans={vm.upcomingPlans} onPress={vm.navigateToDatePlanner} />
-
-            {/* ── 3c. Daily Question Card ── */}
-            <DailyQuestionCard />
-
-            {/* ── 3d. Monthly Recap Banner (days 1-3) ── */}
-            {vm.showMonthlyRecapBanner ? (
-              <MonthlyRecapBanner onPress={vm.navigateToMonthlyRecap} />
-            ) : null}
-
-            {/* ── 4. Food Highlights ── */}
+            {/* ── 5. Food Highlights ── */}
             {vm.recentFoodSpots.length > 0 ? (
               <Animated.View entering={FadeInDown.delay(220).duration(500)}>
                 <SectionHeader
                   title={t.dashboard.sections.foodHighlights}
-                  onSeeAll={() => vm.navigateTo('FoodSpotsTab')}
+                  onSeeAll={vm.handleFoodSpotListPress}
                 />
                 <View className="gap-3">
                   {vm.recentFoodSpots.map(spot => (

@@ -32,8 +32,8 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
       }
       queryClient.invalidateQueries({ queryKey: ['letters'] });
       onClose();
-    } catch {
-      setError(t.loveLetters.errors.saveFailed);
+    } catch (err: any) {
+      setError(err?.message?.includes('PREMIUM') ? t.loveLetters.errors.premiumRequired : t.loveLetters.errors.saveFailed);
     }
     setIsSaving(false);
   }, [draftId, title, content, mood, isValid, queryClient, onClose]);
@@ -54,8 +54,8 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
       await loveLettersApi.send(id);
       queryClient.invalidateQueries({ queryKey: ['letters'] });
       onClose();
-    } catch {
-      setError(t.loveLetters.errors.sendFailed);
+    } catch (err: any) {
+      setError(err?.message?.includes('PREMIUM') ? t.loveLetters.errors.premiumRequired : t.loveLetters.errors.sendFailed);
     }
     setIsSending(false);
   }, [draftId, title, content, mood, isValid, queryClient, onClose]);
