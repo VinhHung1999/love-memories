@@ -450,6 +450,14 @@ export const profileApi = {
     if (!res.ok) throw new Error('Failed to upload avatar');
     return res.json();
   },
+
+  deleteAccount: async (password: string): Promise<void> => {
+    const res = await apiFetch('/api/auth/account', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) throw new Error('Failed to delete account');
+  },
 };
 
 // ---------------------------------------------------------------------------

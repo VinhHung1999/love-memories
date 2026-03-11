@@ -110,6 +110,17 @@ const en = {
       slogan: "Your couple's motto...",
     },
 
+    deleteAccount: {
+      title: 'Delete Account',
+      subtitle: 'This action cannot be undone',
+      warning: 'All your data — moments, letters, food spots, and recipes — will be permanently deleted. Your partner will also lose access to all shared content.',
+      passwordLabel: 'Enter your password to confirm',
+      passwordPlaceholder: 'Your password',
+      confirmButton: 'Delete My Account',
+      deleting: 'Deleting...',
+      failed: 'Failed to delete account. Check your password and try again.',
+    },
+
     errors: {
       noGoogleToken: 'No ID token from Google',
       googleLinkFailed: 'Google linking failed',

@@ -71,34 +71,40 @@ export default function ComposeLetterSheet({
         {/* Mood picker */}
         <View className="mb-6">
           <FieldLabel>{t.loveLetters.moodLabel}</FieldLabel>
-          <View className="flex-row gap-3 flex-wrap mt-1">
+          <View className="flex-row gap-2 flex-wrap mt-1">
             {MOODS.map(m => (
               <TouchableOpacity
                 key={m}
                 onPress={() => vm.setMood(m)}
-                className="w-12 h-12 rounded-2xl items-center justify-center"
+                className="items-center justify-center rounded-2xl px-2 py-2 gap-0.5"
                 style={{
+                  minWidth: 52,
                   backgroundColor: vm.mood === m ? colors.primaryMuted : colors.gray100,
                   borderWidth: 2,
                   borderColor: vm.mood === m ? colors.primary : 'transparent',
                 }}>
                 <Text className="text-2xl">{MOOD_EMOJI[m]}</Text>
+                <Text
+                  className="text-[10px] font-semibold capitalize"
+                  style={{ color: vm.mood === m ? colors.primary : colors.textLight }}>
+                  {m}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         {/* Actions */}
-        <View className="gap-3">
-          <Button
-            label={vm.isSending ? t.loveLetters.sending : t.loveLetters.sendNow}
-            onPress={vm.sendNow}
-            disabled={!vm.isValid || vm.isSaving || vm.isSending}
-          />
+        <View className="flex-row gap-3">
           <Button
             label={vm.isSaving ? t.loveLetters.saving : t.loveLetters.saveDraft}
             onPress={vm.saveDraft}
             variant="outline"
+            disabled={!vm.isValid || vm.isSaving || vm.isSending}
+          />
+          <Button
+            label={vm.isSending ? t.loveLetters.sending : t.loveLetters.sendNow}
+            onPress={vm.sendNow}
             disabled={!vm.isValid || vm.isSaving || vm.isSending}
           />
         </View>

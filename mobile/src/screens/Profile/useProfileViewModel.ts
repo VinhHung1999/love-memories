@@ -109,6 +109,7 @@ export function useProfileViewModel() {
     });
   };
 
+
   const copyInviteCode = () => {
     if (!couple?.inviteCode) return;
     Clipboard.setString(couple.inviteCode);

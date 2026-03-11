@@ -11,10 +11,12 @@ import Animated, {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
+import { useAuth } from '../../lib/auth';
 import t from '../../locales/en';
 import { useProfileViewModel } from './useProfileViewModel';
 import EditNameSheet from './components/EditNameSheet';
 import EditCoupleSheet from './components/EditCoupleSheet';
+import DeleteAccountSheet from './components/DeleteAccountSheet';
 import GoogleGLogo from '../../components/GoogleGLogo';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 import HeaderIconButton from '../../components/HeaderIconButton';
@@ -54,6 +56,7 @@ function InfoRow({
 export default function ProfileScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
+  const { logout } = useAuth();
   const vm = useProfileViewModel();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(event => {
@@ -66,6 +69,14 @@ export default function ProfileScreen() {
 
   const handleOpenEditCouple = () => {
     navigation.showBottomSheet(EditCoupleSheet, { couple: vm.couple ?? null, slogan: vm.slogan });
+  };
+
+  const handleOpenDeleteAccount = () => {
+    navigation.showBottomSheet(DeleteAccountSheet, {
+      onDeleted: async () => {
+        await logout();
+      },
+    });
   };
 
   return (
@@ -252,8 +263,13 @@ export default function ProfileScreen() {
           </Card>
 
           {/* ── Log Out ── */}
-          <Pressable onPress={vm.handleLogout} className="mt-2 mb-8 items-center py-4 mx-4">
+          <Pressable onPress={vm.handleLogout} className="mt-2 items-center py-4 mx-4">
             <Text className="text-red-400 text-sm font-semibold">{t.profile.logout}</Text>
+          </Pressable>
+
+          {/* ── Delete Account ── */}
+          <Pressable onPress={handleOpenDeleteAccount} className="mb-10 items-center py-2 mx-4">
+            <Text className="text-textLight text-xs">{t.profile.deleteAccount.title}</Text>
           </Pressable>
 
         </View>

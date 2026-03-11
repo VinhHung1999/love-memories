@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 47
-**Goal:** BottomTab Refactor (PWA + RN) + Notification Strategy (Daily Q&A)
+**Sprint:** 48
+**Goal:** App Bug Fixes — Dashboard, Moments, Daily Q&A, Love Letters, Delete Account
 
 ---
 
@@ -9,20 +9,32 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | All tasks DONE — ready for Boss review | 2026-03-11 |
-| DEV  | IDLE   | All tasks completed | 2026-03-11 |
+| PO   | ACTIVE | Reviewing + assigning batches | 2026-03-11 |
+| DEV  | ACTIVE | Batch 3 — Love Letters UX + Delete Account | 2026-03-11 |
 
 ---
 
-## Sprint 47 Tasks
+## Sprint 48 Tasks
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 1 | PWA BottomTab: Home / Moments / Daily Q&A / Letters / Profile | S | DONE | PO |
-| 2 | RN BottomTab: Home / Moments / Daily Q&A / Letters / Profile | M | DONE | DEV |
-| 3 | Push notification: Daily Q&A reminder (morning) | M | DONE | DEV |
-| 4 | Push notification: "Partner answered" trigger | M | DONE | DEV |
-| 5 | PWA: Delete Account UI (MorePage/Profile — confirm flow, calls DELETE /auth/account) | S | DONE | PO |
+| 1 | RN Dashboard: Reorder sections — dismiss+upcoming date (2-col) + daily Q above quick actions | S | DONE | DEV |
+| 2a | RN MomentDetail: Spotify full track embed + auto-play | M | TODO | DEV |
+| 2b | RN MomentDetail: Facebook-like reactions/comments UX | M | TODO | DEV |
+| 2c | RN MomentDetail: Comment timestamp bug — "1m ago" immediately after send | S | DONE | DEV |
+| 3 | RN Dashboard: Fix FoodSpotsTab navigation crash (removed in S47) | S | DONE | DEV |
+| 4 | RN Dashboard: Add Map to quick actions | S | DONE | DEV |
+| 5a | RN Daily Q&A: UI not updating after submit answer | S | DONE | DEV |
+| 5b | RN Daily Q&A: Card style inconsistent — match ProfileScreen benchmark | M | DONE | DEV |
+| 5c | RN Daily Q&A: Use CollapsibleHeader instead of custom header | S | DONE | DEV |
+| 6a | RN Love Letters: Add photo upload + voice memo to compose | L | TODO | DEV |
+| 6b | RN Love Letters: Buttons horizontal instead of vertical | S | TODO | DEV |
+| 6c | RN Love Letters: Mood selector — add text labels | S | TODO | DEV |
+| 6d | RN Love Letters: Add scheduled delivery / timer | M | TODO | DEV |
+| 6e | RN Love Letters: Review PWA reference + match quality | M | TODO | DEV |
+| 7 | RN Love Letters: Debug — can't send/create letter | S | DONE | DEV |
+| 8 | RN Love Letters: Use common BottomSheet component | S | TODO | DEV |
+| 9 | RN Profile: Add Delete Account UI (password + confirmation) | S | TODO | DEV |
 
 ---
 
@@ -56,6 +68,7 @@ _Sprint 43 — Backend 3-layer Refactor + CDN Fix + Rename Love Memories + Reque
 _Sprint 44 — Backend Security (coupleId enforcement, rate limiting, CORS, Helmet, env validation) + Couple max 2 members + Confirm password: DEPLOYED_
 _Sprint 45 — Backend Commercial (Account Deletion, Email Verification, Subscription/RevenueCat, Free Tier Limits, Token Cleanup) + PWA Auth Refresh Fix: DEPLOYED_
 _Sprint 46 — RN Monthly Recap Stories + Daily Questions (BE+RN+PWA) + Error Boundary + Remove Weekly Recap: DEPLOYED_
+_Sprint 47 — BottomTab Refactor (PWA + RN) + Push Notifications (Daily Q&A) + Delete Account UI: DEPLOYED_
 
 ---
 
