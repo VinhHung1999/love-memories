@@ -49,7 +49,7 @@ export default function ComposeLetterSheet({
       scrollable
       title={initialLetter ? t.loveLetters.editTitle : t.loveLetters.composeTitle}
       icon="email-edit-outline"
-      subtitle={initialLetter ? 'Edit your letter' : 'Write something from the heart'}
+      subtitle={initialLetter ? t.loveLetters.editSubtitle : t.loveLetters.composeSubtitle}
       actionLabel={t.loveLetters.sendNow}
       onAction={vm.sendNow}
       actionLoading={vm.isSending}
