@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -430,7 +431,9 @@ function HistoryView({
 export default function DailyQuestionsScreen() {
   const colors = useAppColors();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const vm = useDailyQuestionsViewModel();
+  const canGoBack = navigation.canGoBack();
 
   const tabs = [
     { key: 'today' as const, label: t.dailyQuestions.todayTab },
@@ -443,12 +446,14 @@ export default function DailyQuestionsScreen() {
       {/* ── Header ── */}
       <View className="px-4 pt-2 pb-4">
         <View className="flex-row items-center gap-3">
-          <Pressable
-            onPress={vm.goBack}
-            className="w-9 h-9 rounded-full bg-white items-center justify-center"
-            style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.8)' }}>
-            <Icon name="arrow-left" size={18} color={colors.textDark} />
-          </Pressable>
+          {canGoBack ? (
+            <Pressable
+              onPress={vm.goBack}
+              className="w-9 h-9 rounded-full bg-white items-center justify-center"
+              style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.8)' }}>
+              <Icon name="arrow-left" size={18} color={colors.textDark} />
+            </Pressable>
+          ) : null}
           <View className="flex-1">
             <Text className="text-[18px] font-bold text-textDark leading-tight">
               {t.dailyQuestions.cardTitle}

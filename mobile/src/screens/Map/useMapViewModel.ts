@@ -1,25 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import type { CompositeNavigationProp } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { MainTabParamList, MomentsStackParamList, FoodSpotsStackParamList } from '../../navigation';
 import { mapApi, tagsApi } from '../../lib/api';
 import type { MapPin, TagMetadata } from '../../types';
-
-type Nav = CompositeNavigationProp<
-  BottomTabNavigationProp<MainTabParamList, 'MapTab'>,
-  CompositeNavigationProp<
-    NativeStackNavigationProp<MomentsStackParamList>,
-    NativeStackNavigationProp<FoodSpotsStackParamList>
-  >
->;
 
 export type PinTypeFilter = 'all' | 'moment' | 'foodspot';
 
 export function useMapViewModel() {
-  const navigation = useNavigation<Nav>();
+  const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
 
   const [typeFilter, setTypeFilter] = useState<PinTypeFilter>('all');

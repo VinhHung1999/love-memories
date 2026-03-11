@@ -2,6 +2,7 @@ import React from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useLettersViewModel } from './useLettersViewModel';
@@ -32,7 +33,9 @@ function LettersSkeleton() {
 export default function LettersScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
+  const rootNavigation = useNavigation();
   const vm = useLettersViewModel();
+  const canGoBack = rootNavigation.canGoBack();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
@@ -44,7 +47,7 @@ export default function LettersScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
-        onBack={vm.handleBack}
+        onBack={canGoBack ? vm.handleBack : undefined}
         renderFooter={() => (
           <View className="flex-row gap-2 px-4 py-2 bg-card">
             <Pressable

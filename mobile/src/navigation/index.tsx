@@ -32,9 +32,7 @@ export type AppStackParamList = {
   ExpensesTab: NavigatorScreenParams<ExpensesStackParamList> | undefined;
   NotificationsTab: NavigatorScreenParams<NotificationsStackParamList> | undefined;
   DatePlannerTab: NavigatorScreenParams<DatePlannerStackParamList> | undefined;
-  LettersTab: NavigatorScreenParams<LettersStackParamList> | undefined;
   Achievements: undefined;
-  DailyQuestionsTab: undefined;
   MonthlyRecapTab: { month?: string } | undefined;
 };
 
@@ -42,8 +40,8 @@ export type AppStackParamList = {
 export type MainTabParamList = {
   Dashboard: undefined;
   MomentsTab: undefined;
-  FoodSpotsTab: undefined;
-  MapTab: undefined;
+  DailyQuestionsTab: undefined;
+  LettersTab: undefined;
   ProfileTab: undefined;
 };
 
@@ -111,7 +109,6 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
-const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
 const RecipesStack = createNativeStackNavigator<RecipesStackParamList>();
 const NotificationsStack = createNativeStackNavigator<NotificationsStackParamList>();
 const ExpensesStack = createNativeStackNavigator<ExpensesStackParamList>();
@@ -138,9 +135,6 @@ function AuthNavigator() {
 import MomentsScreen from '../screens/Moments/MomentsScreen';
 import MomentDetailScreen from '../screens/MomentDetail/MomentDetailScreen';
 import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
-import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
-import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
-import MapScreen from '../screens/Map/MapScreen';
 import RecipesScreen from '../screens/Recipes/RecipesScreen';
 import RecipeDetailScreen from '../screens/RecipeDetail/RecipeDetailScreen';
 import WhatToEatScreen from '../screens/WhatToEat/WhatToEatScreen';
@@ -185,26 +179,6 @@ function MomentsNavigator() {
       <MomentsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
       <MomentsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </MomentsStack.Navigator>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Food Spots stack navigator
-// ---------------------------------------------------------------------------
-
-function FoodSpotsNavigator() {
-  return (
-    <FoodSpotsStack.Navigator screenOptions={{ headerShown: false }}>
-      <FoodSpotsStack.Screen name="FoodSpotsList" component={FoodSpotsScreen} />
-      <FoodSpotsStack.Screen name="FoodSpotDetail" component={FoodSpotDetailScreen} />
-      <FoodSpotsStack.Screen
-        name="FoodSpotGallery"
-        component={PhotoGalleryScreen}
-        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
-      />
-      <FoodSpotsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <FoodSpotsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
-    </FoodSpotsStack.Navigator>
   );
 }
 
@@ -321,19 +295,19 @@ function MainTabNavigator() {
         }}
       />
       <MainTab.Screen
-        name="FoodSpotsTab"
-        component={FoodSpotsNavigator}
+        name="DailyQuestionsTab"
+        component={DailyQuestionsScreen}
         options={{
-          tabBarLabel: 'Food',
-          tabBarIcon: ({ color, size }) => <Icon name="food-fork-drink" size={size} color={color} />,
+          tabBarLabel: 'Daily Q&A',
+          tabBarIcon: ({ color, size }) => <Icon name="message-heart-outline" size={size} color={color} />,
         }}
       />
       <MainTab.Screen
-        name="MapTab"
-        component={MapScreen}
+        name="LettersTab"
+        component={LettersNavigator}
         options={{
-          tabBarLabel: 'Map',
-          tabBarIcon: ({ color, size }) => <Icon name="map-outline" size={size} color={color} />,
+          tabBarLabel: 'Letters',
+          tabBarIcon: ({ color, size }) => <Icon name="email-outline" size={size} color={color} />,
         }}
       />
       <MainTab.Screen
@@ -395,9 +369,7 @@ function AppNavigator() {
       <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} />
       <AppStack.Screen name="NotificationsTab" component={NotificationsNavigator} />
       <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} />
-      <AppStack.Screen name="LettersTab" component={LettersNavigator} />
       <AppStack.Screen name="Achievements" component={AchievementsScreen} />
-      <AppStack.Screen name="DailyQuestionsTab" component={DailyQuestionsScreen} />
       <AppStack.Screen
         name="MonthlyRecapTab"
         component={MonthlyRecapScreen}
