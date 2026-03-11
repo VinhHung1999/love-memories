@@ -1,12 +1,13 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import FastImage from 'react-native-fast-image';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../navigation/theme';
 import { useLetterReadViewModel } from './useLetterReadViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
+import VoiceMemoSection from '../MomentDetail/components/VoiceMemoSection';
 import t from '../../locales/en';
+import type { MomentAudio } from '../../types';
 
 const MOOD_EMOJI: Record<string, string> = {
   love: '❤️', happy: '😊', miss: '🥺', grateful: '🙏', playful: '😄', romantic: '🌹',
@@ -29,6 +30,8 @@ export default function LetterReadScreen() {
   const { letter } = vm;
   const moodEmoji = letter.mood ? (MOOD_EMOJI[letter.mood] ?? '💌') : '💌';
   const senderName = letter.sender?.name ?? '';
+  // LetterAudio and MomentAudio share the same shape — safe cast
+  const audios = (letter.audio ?? []) as unknown as MomentAudio[];
 
   return (
     <View className="flex-1 bg-background">
@@ -78,6 +81,15 @@ export default function LetterReadScreen() {
             </ScrollView>
           </View>
         ) : null}
+
+        {/* Voice memo */}
+        <VoiceMemoSection
+          audios={audios}
+          playingAudioId={vm.playingAudioId}
+          audioProgress={vm.audioProgress}
+          onPlay={vm.handlePlayAudio}
+          onStop={vm.handleStopAudio}
+        />
       </Animated.ScrollView>
     </View>
   );
