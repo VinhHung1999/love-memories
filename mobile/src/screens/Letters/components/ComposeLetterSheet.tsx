@@ -48,15 +48,15 @@ export default function ComposeLetterSheet({
       ref={sheetRef}
       scrollable
       title={initialLetter ? t.loveLetters.editTitle : t.loveLetters.composeTitle}
-      showHeader={false}
+      icon="email-edit-outline"
+      subtitle={initialLetter ? 'Edit your letter' : 'Write something from the heart'}
+      actionLabel={t.loveLetters.sendNow}
+      onAction={vm.sendNow}
+      actionLoading={vm.isSending}
+      actionDisabled={!vm.isValid || vm.isSaving || vm.isSending}
       onDismiss={onClose}>
 
       <View className="px-5 pb-10 pt-4">
-        {/* Manual title */}
-        <Text className="text-base font-bold text-textDark mb-4">
-          {initialLetter ? t.loveLetters.editTitle : t.loveLetters.composeTitle}
-        </Text>
-
         {vm.error ? <ErrorBox message={vm.error} /> : null}
 
         {/* Title */}
@@ -251,19 +251,13 @@ export default function ComposeLetterSheet({
         </View>
 
         {/* Actions */}
-        <View className="flex-row gap-3">
-          <Button
-            label={vm.isSaving ? t.loveLetters.saving : t.loveLetters.saveDraft}
-            onPress={vm.saveDraft}
-            variant="outline"
-            disabled={!vm.isValid || vm.isSaving || vm.isSending}
-          />
-          <Button
-            label={vm.isSending ? t.loveLetters.sending : t.loveLetters.sendNow}
-            onPress={vm.sendNow}
-            disabled={!vm.isValid || vm.isSaving || vm.isSending}
-          />
-        </View>
+        <Button
+          label={t.loveLetters.saveDraft}
+          loading={vm.isSaving}
+          onPress={vm.saveDraft}
+          variant="outline"
+          disabled={!vm.isValid || vm.isSaving || vm.isSending}
+        />
       </View>
     </AppBottomSheet>
   );
