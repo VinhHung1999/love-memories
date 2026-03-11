@@ -97,7 +97,10 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
               .then(() => incrementUpload())
               .catch(() => incrementUpload()),
           ),
-        ).then(() => queryClient.invalidateQueries({ queryKey: ['letters'] }));
+        ).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['letters'] });
+          queryClient.invalidateQueries({ queryKey: ['letter', id] });
+        });
       }
 
       // Upload audio in background
@@ -105,7 +108,10 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
         const audioPath = recordedAudioPath;
         setRecordedAudioPath(null);
         loveLettersApi.uploadAudio(id!, audioPath)
-          .then(() => queryClient.invalidateQueries({ queryKey: ['letters'] }))
+          .then(() => {
+            queryClient.invalidateQueries({ queryKey: ['letters'] });
+            queryClient.invalidateQueries({ queryKey: ['letter', id] });
+          })
           .catch(() => null);
       }
 
