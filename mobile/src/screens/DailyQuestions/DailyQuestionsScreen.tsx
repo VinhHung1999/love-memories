@@ -3,32 +3,32 @@ import {
   View,
   Text,
   Pressable,
-  ScrollView,
   TextInput,
   ActivityIndicator,
-  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
   FadeIn,
   FadeInDown,
+  useAnimatedScrollHandler,
+  useSharedValue,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
+import CollapsibleHeader from '../../components/CollapsibleHeader';
 import type { DailyQuestionHistoryItem } from '../../types';
 
 // ── Category meta ──────────────────────────────────────────────────────────────
 
 const CATEGORY_META: Record<string, { icon: string; color: string; bg: string }> = {
-  general:  { icon: 'chat-outline',        color: '#6366F1', bg: 'rgba(99,102,241,0.12)' },
-  deep:     { icon: 'star-four-points',    color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
+  general:  { icon: 'chat-outline',           color: '#6366F1', bg: 'rgba(99,102,241,0.12)' },
+  deep:     { icon: 'star-four-points',       color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
   fun:      { icon: 'emoticon-happy-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
-  intimacy: { icon: 'heart-outline',       color: '#E8788A', bg: 'rgba(232,120,138,0.12)' },
-  future:   { icon: 'telescope',           color: '#7EC8B5', bg: 'rgba(126,200,181,0.12)' },
+  intimacy: { icon: 'heart-outline',          color: '#E8788A', bg: 'rgba(232,120,138,0.12)' },
+  future:   { icon: 'telescope',              color: '#7EC8B5', bg: 'rgba(126,200,181,0.12)' },
 };
 
 function getCategoryMeta(cat: string) {
@@ -70,15 +70,10 @@ function AnswerCard({
   return (
     <Animated.View entering={FadeInDown.delay(delay).duration(500)} className="flex-1">
       <View
-        className="rounded-2xl px-4 py-4 flex-1"
+        className="rounded-2xl bg-white px-4 py-4 flex-1"
         style={{
-          backgroundColor: isPartner
-            ? 'rgba(126,200,181,0.10)'
-            : 'rgba(232,120,138,0.08)',
-          borderWidth: 1,
-          borderColor: isPartner
-            ? 'rgba(126,200,181,0.25)'
-            : 'rgba(232,120,138,0.20)',
+          borderLeftWidth: 3,
+          borderLeftColor: isPartner ? colors.accent : colors.primary,
         }}>
         <View className="flex-row items-center gap-1.5 mb-2">
           <Icon
@@ -132,7 +127,10 @@ function TodayView({
   submitAnswer,
   isSubmitting,
   submitError,
-}: ReturnType<typeof import('./useDailyQuestionsViewModel').useDailyQuestionsViewModel> & { dummy?: never }) {
+  onScroll,
+}: ReturnType<typeof import('./useDailyQuestionsViewModel').useDailyQuestionsViewModel> & {
+  onScroll: ReturnType<typeof useAnimatedScrollHandler>;
+}) {
   const colors = useAppColors();
   const inputRef = useRef<TextInput>(null);
 
@@ -143,23 +141,17 @@ function TodayView({
   const canSubmit = answerText.trim().length > 0 && !isSubmitting;
 
   return (
-    <ScrollView
+    <Animated.ScrollView
       className="flex-1"
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
-      contentContainerClassName="px-4 pb-12 gap-5">
+      contentContainerClassName="px-4 pb-12 gap-5"
+      onScroll={onScroll}
+      scrollEventThrottle={16}>
 
       {/* ── Question card ── */}
       <Animated.View entering={FadeInDown.delay(50).duration(500)}>
-        <View
-          className="rounded-3xl overflow-hidden"
-          style={{
-            shadowColor: colors.primary,
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.15,
-            shadowRadius: 20,
-            elevation: 8,
-          }}>
+        <View className="rounded-3xl overflow-hidden shadow-sm">
           <LinearGradient
             colors={['#F4A8B4', '#E8788A', '#D85B6E']}
             start={{ x: 0, y: 0 }}
@@ -273,8 +265,7 @@ function TodayView({
           ) : null}
         </Animated.View>
       )}
-
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 
@@ -294,16 +285,8 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
   return (
     <Pressable
       onPress={() => setExpanded(e => !e)}
-      className="bg-white rounded-2xl overflow-hidden"
-      style={{
-        borderWidth: 1,
-        borderColor: 'rgba(226,220,232,0.6)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
-        elevation: 2,
-      }}>
+      className="bg-white rounded-2xl overflow-hidden shadow-sm"
+      style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.6)' }}>
 
       {/* Header */}
       <View className="px-4 pt-4 pb-3">
@@ -378,10 +361,11 @@ function HistoryView({
   historyLoading,
   historyPage,
   loadNextPage,
+  onScroll,
 }: Pick<
   ReturnType<typeof import('./useDailyQuestionsViewModel').useDailyQuestionsViewModel>,
   'historyItems' | 'historyLoading' | 'historyPage' | 'loadNextPage'
->) {
+> & { onScroll: ReturnType<typeof useAnimatedScrollHandler> }) {
   const colors = useAppColors();
 
   if (historyLoading && historyPage === 1) {
@@ -409,12 +393,14 @@ function HistoryView({
   }
 
   return (
-    <FlatList
+    <Animated.FlatList
       data={historyItems}
       keyExtractor={item => item.question.id}
       renderItem={({ item }) => <HistoryItemCard item={item} />}
       contentContainerClassName="px-4 pb-12 gap-3"
       showsVerticalScrollIndicator={false}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
       onEndReached={loadNextPage}
       onEndReachedThreshold={0.5}
       ListFooterComponent={
@@ -430,10 +416,12 @@ function HistoryView({
 
 export default function DailyQuestionsScreen() {
   const colors = useAppColors();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const vm = useDailyQuestionsViewModel();
   const canGoBack = navigation.canGoBack();
+
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   const tabs = [
     { key: 'today' as const, label: t.dailyQuestions.todayTab },
@@ -441,59 +429,34 @@ export default function DailyQuestionsScreen() {
   ];
 
   return (
-    <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
-
-      {/* ── Header ── */}
-      <View className="px-4 pt-2 pb-4">
-        <View className="flex-row items-center gap-3">
-          {canGoBack ? (
-            <Pressable
-              onPress={vm.goBack}
-              className="w-9 h-9 rounded-full bg-white items-center justify-center"
-              style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.8)' }}>
-              <Icon name="arrow-left" size={18} color={colors.textDark} />
-            </Pressable>
-          ) : null}
-          <View className="flex-1">
-            <Text className="text-[18px] font-bold text-textDark leading-tight">
-              {t.dailyQuestions.cardTitle}
-            </Text>
-            <Text className="text-[12px] text-textLight">{t.dailyQuestions.cardSubtitle}</Text>
-          </View>
-          {/* Heart decoration */}
-          <View className="w-9 h-9 rounded-full bg-primary/10 items-center justify-center">
-            <Icon name="heart-pulse" size={18} color={colors.primary} />
-          </View>
-        </View>
-
-        {/* ── Tab bar ── */}
-        <View
-          className="flex-row mt-4 rounded-2xl p-1"
-          style={{ backgroundColor: 'rgba(226,220,232,0.35)' }}>
-          {tabs.map(tab => (
-            <Pressable
-              key={tab.key}
-              onPress={() => vm.setActiveTab(tab.key)}
-              className="flex-1 rounded-xl py-2.5 items-center"
-              style={{
-                backgroundColor: vm.activeTab === tab.key ? '#fff' : 'transparent',
-                shadowColor: vm.activeTab === tab.key ? '#000' : 'transparent',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.06,
-                shadowRadius: 4,
-                elevation: vm.activeTab === tab.key ? 2 : 0,
-              }}>
-              <Text
-                className="text-[13px] font-semibold"
+    <View className="flex-1 bg-background">
+      <CollapsibleHeader
+        title={t.dailyQuestions.cardTitle}
+        subtitle="DAILY Q&A"
+        expandedHeight={160}
+        collapsedHeight={96}
+        scrollY={scrollY}
+        onBack={canGoBack ? vm.goBack : undefined}
+        renderFooter={() => (
+          <View className="flex-row px-4 py-2 bg-card gap-2">
+            {tabs.map(tab => (
+              <Pressable
+                key={tab.key}
+                onPress={() => vm.setActiveTab(tab.key)}
+                className="flex-1 rounded-xl py-2 items-center"
                 style={{
-                  color: vm.activeTab === tab.key ? colors.primary : colors.textLight,
+                  backgroundColor: vm.activeTab === tab.key ? colors.primary : colors.gray100,
                 }}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+                <Text
+                  className="text-[13px] font-semibold"
+                  style={{ color: vm.activeTab === tab.key ? '#fff' : colors.textMid }}>
+                  {tab.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      />
 
       {/* ── Content ── */}
       {vm.activeTab === 'today' ? (
@@ -512,7 +475,7 @@ export default function DailyQuestionsScreen() {
             </Pressable>
           </View>
         ) : (
-          <TodayView {...vm} />
+          <TodayView {...vm} onScroll={scrollHandler} />
         )
       ) : (
         <HistoryView
@@ -520,6 +483,7 @@ export default function DailyQuestionsScreen() {
           historyLoading={vm.historyLoading}
           historyPage={vm.historyPage}
           loadNextPage={vm.loadNextPage}
+          onScroll={scrollHandler}
         />
       )}
     </View>
