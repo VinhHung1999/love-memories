@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 49
-**Goal:** Mobile UI Revamp — Match Web's Gentle & Soothing Design
+**Sprint:** 50
+**Goal:** TBD
 
 ---
 
@@ -9,11 +9,11 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | Assigned Phase 3 priority tasks | 2026-03-12 |
-| TL   | ACTIVE | Phase 3 brief sent to MOBILE | 2026-03-12 |
-| WEB  | IDLE   | — | 2026-03-12 |
-| BE   | IDLE   | — | 2026-03-12 |
-| MOBILE | IN PROGRESS | Phase 3: Header Refactor (Tasks 12-13) | 2026-03-12 |
+| PO   | IDLE   | — | 2026-03-13 |
+| TL   | IDLE   | — | 2026-03-13 |
+| WEB  | IDLE   | — | 2026-03-13 |
+| BE   | IDLE   | — | 2026-03-13 |
+| MOBILE | IDLE | Sprint 49 CLOSED — merged to main | 2026-03-13 |
 
 ---
 
@@ -44,8 +44,12 @@
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 12 | Refactor CollapsibleHeader into 3 simple components: **ScreenHeader** (simple title + back + right action), **ListHeader** (title + subtitle + add button + filter tabs + back), **HeroHeader** (cover image + title + back + actions). NO scrollY prop — keep it simple. Each component max 4-5 props, no render props | L | IN PROGRESS | MOBILE |
-| 13 | Migrate all 17 screens to use new headers: Simple screens (Notifications, PlanList, LetterRead) → ScreenHeader. List screens (Moments, FoodSpots, Recipes, Expenses, Letters, DailyQ, Wishes, Achievements) → ListHeader. Detail screens (MomentDetail, RecipeDetail, FoodSpotDetail, PlanDetail) → HeroHeader. Dashboard + Profile keep custom. Delete old CollapsibleHeader | L | IN PROGRESS | MOBILE |
+| 12 | Refactor CollapsibleHeader into 3 simple components: **ScreenHeader** (simple title + back + right action), **ListHeader** (title + subtitle + add button + filter tabs + back), **HeroHeader** (cover image + title + back + actions). NO scrollY prop — keep it simple. Each component max 4-5 props, no render props | L | DONE | MOBILE |
+| 13 | Migrate all 17 screens to use new headers: Simple screens (Notifications, PlanList, LetterRead) → ScreenHeader. List screens (Moments, FoodSpots, Recipes, Expenses, Letters, DailyQ, Wishes, Achievements) → ListHeader. Detail screens (MomentDetail, RecipeDetail, FoodSpotDetail, PlanDetail) → HeroHeader. Dashboard + Profile keep custom. Delete old CollapsibleHeader | L | DONE | MOBILE |
+| 14 | Dashboard RelationshipTimer redesign: 2 avatars (user + partner) each side, animated pulsing heart in center, days count below. Use frontend-design skill. Gentle soothing style | M | DONE | MOBILE |
+| 15 | Moments screen redesign: Calendar (monthly, dot indicators on days with moments, tap day → scroll) + Timeline (vertical progress line, grouped by day newest first, horizontal moment cards per day). Use frontend-design skill | L | DONE | MOBILE |
+| 16 | GlassTabBar invisible tabs fix (white-on-white after Phase 3 header change) + ListHeader scroll-driven bg tint (#FFF→#FFF0F2 over 0-40px). Apply to DailyQ + Letters screens | S | DONE | MOBILE |
+| 17 | RelationshipTimer avatar shimmer: dual opacity+scale pulse (1.0→0.55, 1.0→1.06), 2400ms cycle, half-phase 1200ms stagger between left/right avatars | S | DONE | MOBILE |
 
 ### Acceptance Criteria
 
@@ -108,6 +112,7 @@ _Sprint 45 — Backend Commercial (Account Deletion, Email Verification, Subscri
 _Sprint 46 — RN Monthly Recap Stories + Daily Questions (BE+RN+PWA) + Error Boundary + Remove Weekly Recap: DEPLOYED_
 _Sprint 47 — BottomTab Refactor (PWA + RN) + Push Notifications (Daily Q&A) + Delete Account UI: DEPLOYED_
 _Sprint 48 — App Bug Fixes (Dashboard, Moments, Daily Q&A, Love Letters, Delete Account RN) + Design System + Be Vietnam Pro font: DEPLOYED_
+_Sprint 49 — RN Mobile UI Revamp (Design System, Header Refactor, DetailScreenLayout, Moments Calendar+Timeline, RelationshipTimer): MERGED TO MAIN_
 
 ---
 

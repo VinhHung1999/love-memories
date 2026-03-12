@@ -2,7 +2,13 @@
 
 ## Resolved Bugs
 
-_(Add bugs as they are fixed)_
+### React Hooks after early return (Sprint 49 — OverlayHeader migration)
+- **Cause:** `useSharedValue`/`useAnimatedScrollHandler` declared after `if (isLoading) return` guard in 4 detail screens
+- **Fix:** Always declare ALL hooks before any early returns, even if the value is only used after the guard
+
+### Extra closing `</View>` tag (Sprint 49 — MomentDetailScreen)
+- **Cause:** Manual JSX restructuring left one stray `</View>` inside `Animated.ScrollView`, causing TS parse errors
+- **Fix:** Count open/close tags carefully when restructuring large JSX blocks; lint catches it as TS17002
 
 ```markdown
 ### Bug title (Sprint/Context)
@@ -206,3 +212,8 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - Cause: `useNavigation()` and `useTheme()` throw when NavigationContext is temporarily unavailable during react-native-screens Freeze/Suspense in native stack transitions
 - Fix: use `React.useContext(NavigationContext)` / `React.useContext(ThemeContext)` directly (returns undefined, doesn't throw) + fallback to static values
 - Key takeaway: in `useAppNavigation()` and `useAppColors()`, never use the throwing hooks — use raw `useContext` with safe fallbacks
+
+### frontend-design skill: invoke via Agent tool, not Skill tool
+- `Skill: frontend-design` only loads guidelines — it does NOT produce a design artifact
+- Correct usage: `Agent(subagent_type=ui-ux-designer, prompt="design spec for X")` → waits for full spec document → implement from that output
+- Lesson: "invoking the skill" means getting a concrete design output, not just reading its instructions
