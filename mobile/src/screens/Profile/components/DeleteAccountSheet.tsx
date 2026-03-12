@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AlertCircle } from 'lucide-react-native';
 import AppBottomSheet from '../../../components/AppBottomSheet';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
@@ -43,6 +43,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
     <AppBottomSheet
       ref={sheetRef}
       scrollable
+      title=""
       showHeader={false}
       onDismiss={onClose}>
 
@@ -52,7 +53,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
           <View
             className="w-14 h-14 rounded-full items-center justify-center mb-3"
             style={{ backgroundColor: 'rgba(239,68,68,0.10)' }}>
-            <Icon name="alert-circle-outline" size={28} color={colors.error} />
+            <AlertCircle size={28} color={colors.errorColor} strokeWidth={1.5} />
           </View>
           <Text className="text-lg font-bold text-textDark text-center">
             {t.profile.deleteAccount.title}

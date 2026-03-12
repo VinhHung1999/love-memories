@@ -1,22 +1,27 @@
 import React from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { Calendar, Heart, Plus } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanListViewModel } from './usePlanListViewModel';
 import PlanCard from './components/PlanCard';
 import PlanFormSheet from './components/PlanFormSheet';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ScreenHeader from '../../components/ScreenHeader';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import HeaderIcon from '../../components/HeaderIcon';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DatePlan } from '../../types';
+import { FAB } from '@/components/FAB';
 
 function PlansSkeleton() {
   return (
-    <ScrollView scrollEnabled={false} className="flex-1 px-4 pt-14">
+    <ScrollView scrollEnabled={false} className="flex-1 px-4 pt-4">
       {[0, 1, 2].map(i => (
         <View key={i} className="bg-white rounded-3xl p-4 mb-3">
           <View className="flex-row justify-between mb-2">
@@ -40,23 +45,19 @@ export default function PlanListScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsibleHeader
+      <ScreenHeader
         title={t.datePlanner.plansTitle}
         subtitle={t.datePlanner.plansSubtitle}
-        expandedHeight={140}
-        collapsedHeight={96}
-        scrollY={scrollY}
         onBack={vm.handleBack}
-        renderRight={() => (
-          <HeaderIconButton name="heart-outline" onPress={vm.handleNavigateWishes} />
-        )}
+        right={<HeaderIcon icon={Heart} onPress={vm.handleNavigateWishes} />}
+        scrollY={scrollY}
       />
 
       {vm.isLoading ? (
         <PlansSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="calendar-heart"
+          icon={Calendar}
           title={t.datePlanner.planEmptyTitle}
           subtitle={t.datePlanner.planEmptySubtitle}
           actionLabel={t.datePlanner.planEmptyAction}
@@ -66,9 +67,9 @@ export default function PlanListScreen() {
         <Animated.FlatList
           data={vm.plans}
           keyExtractor={item => item.id}
+          showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={vm.isRefetching}
@@ -76,7 +77,7 @@ export default function PlanListScreen() {
               tintColor={colors.primary}
             />
           }
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 56, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 100 }}
           renderItem={({ item, index }: { item: DatePlan; index: number }) => (
             <Animated.View entering={FadeInDown.delay(index * 40).duration(350)}>
               <PlanCard
@@ -89,12 +90,7 @@ export default function PlanListScreen() {
       )}
 
       {/* FAB */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(PlanFormSheet)}
-        className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        style={{ backgroundColor: colors.primary }}>
-        <Icon name="plus" size={24} color="#fff" />
-      </Pressable>
+      <FAB onPress={() => navigation.showBottomSheet(PlanFormSheet)} icon={Plus}/>
     </View>
   );
 }

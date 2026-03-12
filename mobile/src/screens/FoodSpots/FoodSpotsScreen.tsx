@@ -7,17 +7,14 @@ import {
   View,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Plus, Star, Utensils } from 'lucide-react-native';
+
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { FoodSpot } from '../../types';
 import { useFoodSpotsViewModel } from './useFoodSpotsViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
@@ -44,7 +41,7 @@ function FoodSpotCardSkeleton() {
 function FoodSpotsLoadingSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1">
-      <View className="px-[14px] pb-[100px] pt-14">
+      <View className="px-[14px] pb-[100px] pt-3">
         <View className="flex-row gap-3">
           <View className="flex-1">
             <FoodSpotCardSkeleton />
@@ -75,7 +72,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-success/15 mb-3">
+      className="bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSoft mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
@@ -87,14 +84,14 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
           />
         ) : (
           <View className="w-full h-[110px] items-center justify-center bg-secondary/10">
-            <Icon name="food-fork-drink" size={28} color={colors.secondary} />
+            <Utensils size={28} color={colors.secondary} strokeWidth={1.5} />
           </View>
         )}
 
         {/* Rating + Price overlay */}
         <View className="absolute top-2 left-2 flex-row gap-1.5">
           <View className="rounded-xl px-2 py-0.5 bg-black/50 flex-row items-center">
-            <Icon name="star" size={9} color={colors.starRating} />
+            <Star size={9} color={colors.starRating} strokeWidth={1.5} />
             <Text className="text-[10px] font-bold text-white ml-0.5">{spot.rating}</Text>
           </View>
           <View className="rounded-xl px-2 py-0.5 bg-black/50">
@@ -123,11 +120,12 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
         {/* Stars row */}
         <View className="flex-row items-center gap-1 mb-1.5">
           {[1, 2, 3, 4, 5].map(i => (
-            <Icon
+            <Star
               key={i}
-              name={i <= Math.round(spot.rating) ? 'star' : 'star-outline'}
               size={10}
               color={colors.starRating}
+              strokeWidth={1.5}
+              fill={i <= Math.round(spot.rating) ? colors.starRating : 'none'}
             />
           ))}
         </View>
@@ -151,70 +149,58 @@ export default function FoodSpotsScreen() {
   const navigation = useAppNavigation();
   const vm = useFoodSpotsViewModel();
 
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(event => {
-    scrollY.value = event.contentOffset.y;
-  });
-
   return (
-    <View className="flex-1 bg-gray-50">
-      <CollapsibleHeader
+    <View className="flex-1 bg-baseBg">
+      <ListHeader
         title={t.foodSpots.title}
         subtitle={t.foodSpots.subtitle}
-        expandedHeight={140}
-        collapsedHeight={96}
-        scrollY={scrollY}
-        dark
-        gradientColors={['#FFD93D', '#FFC857', '#A8E6CF']}
-        renderRight={() => (
+        onBack={navigation.goBack}
+        right={
           <Pressable
             onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
-            className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-            <Icon name="plus" size={22} color="#fff" />
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: colors.primary }}>
+            <Plus size={22} color="#fff" strokeWidth={1.5} />
           </Pressable>
-        )}
-        renderFooter={() => (
-          <View className="bg-white/10">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="px-5">
-              <View className="flex-row gap-2 py-2 pr-5">
+        }
+        filterBar={
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="px-5">
+            <View className="flex-row gap-2 py-2 pr-5">
+              <TagBadge
+                label={t.foodSpots.allFilter}
+                active={!vm.activeTag}
+                onPress={() => vm.handleTagPress(null)}
+              />
+              {vm.allTags.map(tag => (
                 <TagBadge
-                  label={t.foodSpots.allFilter}
-                  active={!vm.activeTag}
-                  onPress={() => vm.handleTagPress(null)}
+                  key={tag}
+                  label={tag}
+                  active={vm.activeTag === tag}
+                  onPress={() => vm.handleTagPress(tag)}
                 />
-                {vm.allTags.map(tag => (
-                  <TagBadge
-                    key={tag}
-                    label={tag}
-                    active={vm.activeTag === tag}
-                    onPress={() => vm.handleTagPress(tag)}
-                  />
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        )}
+              ))}
+            </View>
+          </ScrollView>
+        }
       />
 
       {vm.isLoading ? (
         <FoodSpotsLoadingSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="food-fork-drink"
+          icon={Utensils}
           title={t.foodSpots.emptyTitle}
           subtitle={t.foodSpots.emptySubtitle}
           actionLabel={t.foodSpots.emptyAction}
           onAction={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
         />
       ) : (
-        <Animated.ScrollView
+        <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={vm.isRefetching}
@@ -222,8 +208,7 @@ export default function FoodSpotsScreen() {
               tintColor={colors.secondary}
             />
           }>
-          {/* pt-14 = 56px = scrollRange(44) + gap(12) */}
-          <View className="px-[14px] pt-14 pb-[100px]">
+          <View className="px-[14px] pt-3 pb-[100px]">
             <View className="flex-row gap-3">
               <View className="flex-1">
                 {vm.leftColumn.map(spot => (
@@ -245,7 +230,7 @@ export default function FoodSpotsScreen() {
               </View>
             </View>
           </View>
-        </Animated.ScrollView>
+        </ScrollView>
       )}
 
     </View>

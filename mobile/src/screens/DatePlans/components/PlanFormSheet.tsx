@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Plus, X } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import AppBottomSheet from '../../../components/AppBottomSheet';
@@ -79,7 +79,7 @@ export default function PlanFormSheet({
               onPress={vm.addStop}
               className="flex-row items-center gap-1 px-2 py-1 rounded-lg"
               style={{ backgroundColor: colors.primaryMuted }}>
-              <Icon name="plus" size={14} color={colors.primary} />
+              <Plus size={14} color={colors.primary} strokeWidth={1.5} />
               <Text className="text-[12px] font-semibold" style={{ color: colors.primary }}>
                 {t.datePlanner.addStop}
               </Text>
@@ -103,7 +103,7 @@ export default function PlanFormSheet({
                   <Pressable
                     onPress={() => vm.removeStop(idx)}
                     className="w-10 h-10 rounded-xl items-center justify-center bg-white">
-                    <Icon name="close" size={16} color={colors.textLight} />
+                    <X size={16} color={colors.textLight} strokeWidth={1.5} />
                   </Pressable>
                 </View>
                 <Input

@@ -9,15 +9,13 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInDown,
-  useSharedValue,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Banknote, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Expense, DailyStats } from '../../lib/api';
 import { useExpensesViewModel } from './useExpensesViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
@@ -32,7 +30,7 @@ import {
   computeChartTicks,
   toLocalDateString,
 } from './expensesConstants';
-import HeaderIconButton from '@/components/HeaderIconButton';
+import HeaderIcon from '@/components/HeaderIcon';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
@@ -94,50 +92,50 @@ function SummaryCard({ total, count, breakdown }: {
   const overLimitCount = breakdown.filter(c => c.overLimit).length;
 
   return (
-    <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden">
-      <LinearGradient colors={[themeColors.primary, themeColors.secondary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.8 }} className="px-5 pt-5 pb-4">
-        <Text className="text-white/80 text-xs font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Text>
+    <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white border border-borderSoft shadow-sm">
+      <View className="px-5 pt-5 pb-4">
+        <Text className="text-textMid text-xs font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Text>
         <View className="flex-row items-end justify-between mb-1">
-          <Text className="text-white text-3xl font-bold">{total}</Text>
+          <Text className="text-textDark text-3xl font-bold">{total}</Text>
           {overLimitCount > 0 && (
-            <View className="flex-row items-center gap-1 bg-white/20 rounded-full px-2.5 py-1">
+            <View className="flex-row items-center gap-1 bg-error/10 rounded-full px-2.5 py-1">
               <Text className="text-sm">⚠️</Text>
-              <Text className="text-white text-xs font-bold">{overLimitCount} over</Text>
+              <Text className="text-error text-xs font-bold">{overLimitCount} over</Text>
             </View>
           )}
         </View>
-        <Text className="text-white/60 text-xs mb-4">{count} {t.expenses.transactions}</Text>
+        <Text className="text-textLight text-xs mb-4">{count} {t.expenses.transactions}</Text>
         {breakdown.map(cat => (
           <View key={cat.key} className="mb-2.5">
             <View className="flex-row items-center justify-between mb-1">
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-sm">{cat.emoji}</Text>
-                <Text className="text-white/90 text-xs font-medium">{cat.label}</Text>
+                <Text className="text-textMid text-xs font-medium">{cat.label}</Text>
                 {cat.overLimit && <Text className="text-xs">⚠️</Text>}
               </View>
               <View className="flex-row items-center gap-1.5">
                 {cat.limitPct !== null && (
-                  <Text className="text-[10px] font-bold" style={{ color: cat.overLimit ? '#fef08a' : 'rgba(255,255,255,0.6)' }}>
+                  <Text className="text-[10px] font-bold" style={{ color: cat.overLimit ? themeColors.errorColor : themeColors.textLight }}>
                     {cat.limitPct}%
                   </Text>
                 )}
-                <Text className="text-white/80 text-xs font-semibold">{cat.formattedAmount}</Text>
+                <Text className="text-textDark text-xs font-semibold">{cat.formattedAmount}</Text>
               </View>
             </View>
-            <View className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+            <View className="h-1.5 bg-borderSoft rounded-full overflow-hidden">
               <View
                 className="h-full rounded-full"
-                style={{ width: `${Math.min(cat.limitPct ?? cat.percentage, 100)}%`, backgroundColor: cat.overLimit ? '#fde047' : 'rgba(255,255,255,0.7)' }}
+                style={{ width: `${Math.min(cat.limitPct ?? cat.percentage, 100)}%`, backgroundColor: cat.overLimit ? themeColors.errorColor : themeColors.primary }}
               />
             </View>
             {cat.overLimit && cat.limit !== null && (
-              <Text className="text-yellow-200 text-[9px] mt-0.5 text-right">
+              <Text className="text-error text-[9px] mt-0.5 text-right">
                 +{formatVND(cat.amount - cat.limit)} {t.expenses.budget.overBudget}
               </Text>
             )}
           </View>
         ))}
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 }
@@ -283,7 +281,6 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
 export default function ExpensesScreen() {
   const colors = useAppColors();
   const vm = useExpensesViewModel();
-  const scrollY = useSharedValue(200);
 
   // Build a quick map of limitPct/overLimit per category key for chip display
   const chipLimitMap = React.useMemo(() => {
@@ -299,39 +296,26 @@ export default function ExpensesScreen() {
   }, [vm.categoryBreakdown]);
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <CollapsibleHeader
+    <View className="flex-1 bg-baseBg">
+      <ListHeader
         title={t.expenses.title}
         subtitle={t.expenses.subtitle}
-        expandedHeight={140}
-        collapsedHeight={112}
-        scrollY={scrollY}
-        renderRight={() => (
+        onBack={vm.handleBack}
+        right={
           <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={vm.handleOpenBudget}
-              className="w-9 h-9 rounded-xl items-center justify-center"
-              style={{ backgroundColor: colors.textDark + '14' }}
-            >
-              <Icon name="tune-variant" size={18} color={colors.textDark} />
-            </TouchableOpacity>
+            <HeaderIcon icon={SlidersHorizontal} onPress={vm.handleOpenBudget}/>
             <TouchableOpacity
               onPress={vm.handleAdd}
               className="w-10 h-10 rounded-full items-center justify-center bg-primary"
             >
-              <Icon name="plus" size={22} color="#fff" />
+              <Plus size={22} strokeWidth={1.5} color='white'/>
             </TouchableOpacity>
           </View>
-        )}
-        onBack={vm.handleBack}
-        showBack
-        renderFooter={() => {
-          return  (
-          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40" onLayout={(e) => {
-            console.log(e.nativeEvent.layout)
-          }}>
+        }
+        filterBar={
+          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
             <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
-              <Icon name="chevron-left" size={18} color={colors.textMid} />
+              <ChevronLeft size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
             <View className="items-center">
               <Text className="text-base font-bold text-textDark">{vm.monthLabel}</Text>
@@ -344,11 +328,10 @@ export default function ExpensesScreen() {
             <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
               className="w-9 h-9 items-center justify-center rounded-xl"
               style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : '#fff' }}>
-              <Icon name="chevron-right" size={18} color={colors.textMid} />
+              <ChevronRight size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
           </View>
-          )
-        }}
+        }
       />
 
      
@@ -368,7 +351,7 @@ export default function ExpensesScreen() {
             </>
           ) : vm.isEmpty && vm.categoryBreakdown.length === 0 ? (
             <EmptyState
-              icon="cash-multiple"
+              icon={Banknote}
               title={t.expenses.emptyTitle}
               subtitle={t.expenses.emptySubtitle}
               actionLabel={t.expenses.emptyAction}

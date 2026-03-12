@@ -1,8 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../../../navigation/theme';
 import type { Moment } from '../../../types';
 
@@ -28,19 +26,18 @@ export function HeroMomentCard({ moment, onPress }: HeroMomentCardProps) {
           resizeMode={FastImage.resizeMode.cover}
         />
       ) : (
-        <LinearGradient
-          colors={[colors.primaryLight, colors.primary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
           className="absolute inset-0"
+          style={{ backgroundColor: colors.primaryLighter }}
         />
       )}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.70)']}
-        start={{ x: 0, y: 0.4 }}
-        end={{ x: 0, y: 1 }}
-        className="absolute inset-0"
-      />
+      {/* Dark scrim for text legibility — only when there's a photo */}
+      {coverPhoto ? (
+        <View
+          className="absolute inset-0"
+          style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
+        />
+      ) : null}
       <View className="absolute top-2.5 right-2.5 bg-black/30 rounded-lg px-2 py-0.5">
         <Text className="text-[9px] font-heading text-white">{dateLabel}</Text>
       </View>

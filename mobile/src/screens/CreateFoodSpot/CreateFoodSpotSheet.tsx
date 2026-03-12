@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Star } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { FoodSpot } from '../../types';
@@ -21,10 +21,11 @@ function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: nu
     <View className="flex-row gap-2 py-1">
       {[1, 2, 3, 4, 5].map(i => (
         <Pressable key={i} onPress={() => onChange(i)} hitSlop={4}>
-          <Icon
-            name={i <= value ? 'star' : 'star-outline'}
+          <Star
             size={28}
             color={colors.starRating}
+            strokeWidth={1.5}
+            fill={i <= value ? colors.starRating : 'none'}
           />
         </Pressable>
       ))}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Image, Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Plus, X } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { LocalPhoto } from '../useCreateMomentViewModel';
 
@@ -29,7 +29,7 @@ export default function PhotoPicker({ photos, onAddFromLibrary, onAddFromCamera,
         <Pressable
           onPress={handleAddPress}
           className="w-[72px] h-[72px] rounded-xl items-center justify-center border-[1.5px] border-dashed bg-transparent" style={{ borderColor: colors.textLight + '66' }}>
-          <Icon name="plus" size={22} color={colors.textLight} />
+          <Plus size={22} color={colors.textLight} strokeWidth={1.5} />
           <Text className="text-[9px] font-medium text-textLight mt-0.5">Add</Text>
         </Pressable>
       ) : null}
@@ -47,7 +47,7 @@ export default function PhotoPicker({ photos, onAddFromLibrary, onAddFromCamera,
             onPress={() => onRemove(idx)}
             className="absolute top-1 right-1 w-5 h-5 rounded-full items-center justify-center bg-textDark/65"
             hitSlop={4}>
-            <Icon name="close" size={11} color="#fff" />
+            <X size={11} strokeWidth={1.5} />
           </Pressable>
         </View>
       ))}

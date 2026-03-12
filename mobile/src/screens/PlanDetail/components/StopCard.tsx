@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Check, CheckCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DatePlanStop } from '../../../types';
 
@@ -26,7 +26,7 @@ export default function StopCard({
             backgroundColor: stop.done ? colors.accent : colors.white,
             borderColor: stop.done ? colors.accent : colors.border,
           }}>
-          {stop.done ? <Icon name="check" size={11} color="#fff" /> : null}
+          {stop.done ? <Check size={11} strokeWidth={1.5} /> : null}
         </View>
         {/* Line */}
         {!isLast ? (
@@ -64,10 +64,10 @@ export default function StopCard({
                 onPress={onMarkDone}
                 className="w-8 h-8 rounded-xl items-center justify-center"
                 style={{ backgroundColor: colors.accentMuted }}>
-                <Icon name="check" size={15} color={colors.accent} />
+                <Check size={15} color={colors.accent} strokeWidth={1.5} />
               </Pressable>
             ) : (
-              <Icon name="check-circle" size={18} color={colors.accent} />
+              <CheckCircle size={18} color={colors.accent} strokeWidth={1.5} />
             )}
           </View>
         </View>

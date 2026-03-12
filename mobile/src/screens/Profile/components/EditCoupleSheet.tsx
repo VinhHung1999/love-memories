@@ -3,7 +3,7 @@ import { Platform, Pressable, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { CalendarHeart, ChevronUp } from 'lucide-react-native';
 import { coupleApi, settingsApi } from '../../../lib/api';
 import { useAppNavigation } from '../../../navigation/useAppNavigation';
 import { useAppColors } from '../../../navigation/theme';
@@ -92,11 +92,9 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
           <Text className={anniversaryDate ? 'text-textDark text-sm' : 'text-textLight text-sm'}>
             {anniversaryDate ? formatDateDisplay(anniversaryDate) : t.profile.couple.noAnniversary}
           </Text>
-          <Icon
-            name={showDatePicker ? 'chevron-up' : 'calendar-heart'}
-            size={18}
-            color={colors.primary}
-          />
+          {showDatePicker
+            ? <ChevronUp size={18} color={colors.primary} strokeWidth={1.5} />
+            : <CalendarHeart size={18} color={colors.primary} strokeWidth={1.5} />}
         </Pressable>
 
         {/* Android DatePicker (native dialog) */}

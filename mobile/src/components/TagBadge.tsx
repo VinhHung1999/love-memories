@@ -22,6 +22,8 @@ export default function TagBadge({
   onLongPress,
   variant = 'filter',
 }: TagBadgeProps) {
+  const colors = useAppColors();
+
   if (variant === 'display') {
     return (
       <View className="px-2 py-[2px] rounded-full bg-primary/12">
@@ -29,8 +31,6 @@ export default function TagBadge({
       </View>
     );
   }
-
-  const colors = useAppColors();
   return (
     <Pressable
       onPress={onPress}

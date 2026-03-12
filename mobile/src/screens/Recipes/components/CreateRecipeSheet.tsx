@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { PlusCircle, Timer, XCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import type { Recipe } from '../../../types';
@@ -64,7 +64,7 @@ function IngredientInputRow({
         />
       </View>
       <Pressable onPress={onRemove} hitSlop={8}>
-        <Icon name="close-circle-outline" size={20} color={colors.textLight} />
+        <XCircle size={20} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
     </View>
   );
@@ -116,12 +116,12 @@ function StepInputRow({
           className="flex-1 bg-inputBg border border-border rounded-xl px-3 py-2.5 text-sm text-textDark min-h-[42px]"
         />
         <Pressable onPress={onRemove} hitSlop={8} className="mt-[10px]">
-          <Icon name="close-circle-outline" size={20} color={colors.textLight} />
+          <XCircle size={20} color={colors.textLight} strokeWidth={1.5} />
         </Pressable>
       </View>
       {/* Duration row — below content, indented to align with text */}
       <View className="flex-row items-center gap-1.5 mt-1.5 ml-8">
-        <Icon name="timer-outline" size={13} color={colors.textLight} />
+        <Timer size={13} color={colors.textLight} strokeWidth={1.5} />
         <TextInput
           value={mins}
           onChangeText={v => { setMins(v); commit(v, secs); }}
@@ -228,7 +228,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
           <Pressable
             onPress={vm.addIngredient}
             className="flex-row items-center gap-2 py-2 mt-1">
-            <Icon name="plus-circle-outline" size={18} color={colors.primary} />
+            <PlusCircle size={18} color={colors.primary} strokeWidth={1.5} />
             <Text className="text-sm text-primary font-semibold">{t.recipes.create.addIngredient}</Text>
           </Pressable>
         </View>
@@ -252,7 +252,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
           <Pressable
             onPress={vm.addStep}
             className="flex-row items-center gap-2 py-2 mt-1">
-            <Icon name="plus-circle-outline" size={18} color={colors.primary} />
+            <PlusCircle size={18} color={colors.primary} strokeWidth={1.5} />
             <Text className="text-sm text-primary font-semibold">{t.recipes.create.addStep}</Text>
           </Pressable>
         </View>

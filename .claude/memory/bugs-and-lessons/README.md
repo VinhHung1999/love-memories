@@ -197,6 +197,11 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - Fix: apply schema changes directly via `psql -c "ALTER TABLE ..."` then `npx prisma generate`.
 - Key takeaway: for dev DB schema sync when migrations are drifted, use raw SQL + `prisma generate` instead of migrate reset.
 
+### Love Letters send: HTTP method mismatch PATCH vs PUT (Sprint 48)
+- Mobile `loveLettersApi.send()` called `PATCH /api/love-letters/:id/send` but backend route is `PUT /:id/send` → always 404/405, letter never sent.
+- Fix: change method to `PUT` in api.ts. Also throw named error `'PREMIUM_REQUIRED'` on 403 so UI can show specific message.
+- Key takeaway: when a send/submit action silently fails, always check HTTP method match between client and server route definition first.
+
 ### useNavigation()/useTheme() throw during screen transitions in AppStack (Sprint 41)
 - Cause: `useNavigation()` and `useTheme()` throw when NavigationContext is temporarily unavailable during react-native-screens Freeze/Suspense in native stack transitions
 - Fix: use `React.useContext(NavigationContext)` / `React.useContext(ThemeContext)` directly (returns undefined, doesn't throw) + fallback to static values

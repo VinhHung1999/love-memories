@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Pause, Play } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import type { MomentAudio } from '../../../types';
@@ -67,7 +67,7 @@ export default function VoiceMemoSection({
             className="flex-row items-center gap-3 p-3 rounded-2xl mb-2 bg-accent/8 border border-accent/20">
             {/* Play/Pause button */}
             <View className="w-10 h-10 rounded-full items-center justify-center bg-accent">
-              <Icon name={isPlaying ? 'pause' : 'play'} size={18} color="#fff" />
+              {isPlaying ? <Pause size={18} color="#fff" strokeWidth={1.5} /> : <Play size={18} color="#fff" strokeWidth={1.5} />}
             </View>
 
             {/* Waveform */}

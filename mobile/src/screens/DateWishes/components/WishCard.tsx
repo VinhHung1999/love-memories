@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Check, CheckCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DateWish } from '../../../types';
 import { WISH_CATEGORIES } from '../useWishesViewModel';
@@ -44,7 +44,7 @@ export default function WishCard({
               {wish.title}
             </Text>
             {wish.done ? (
-              <Icon name="check-circle" size={16} color={colors.accent} />
+              <CheckCircle size={16} color={colors.accent} strokeWidth={1.5} />
             ) : null}
           </View>
           {wish.description ? (
@@ -70,18 +70,18 @@ export default function WishCard({
               onPress={onMarkDone}
               className="w-8 h-8 rounded-xl items-center justify-center"
               style={{ backgroundColor: colors.accentMuted }}>
-              <Icon name="check" size={15} color={colors.accent} />
+              <Check size={15} color={colors.accent} strokeWidth={1.5} />
             </Pressable>
           ) : null}
           <Pressable
             onPress={onEdit}
             className="w-8 h-8 rounded-xl items-center justify-center bg-gray-100">
-            <Icon name="pencil-outline" size={15} color={colors.textMid} />
+            <Pencil size={15} color={colors.textMid} strokeWidth={1.5} />
           </Pressable>
           <Pressable
             onPress={onDelete}
             className="w-8 h-8 rounded-xl items-center justify-center bg-gray-100">
-            <Icon name="trash-can-outline" size={15} color={colors.textLight} />
+            <Trash2 size={15} color={colors.textLight} strokeWidth={1.5} />
           </Pressable>
         </View>
       </View>

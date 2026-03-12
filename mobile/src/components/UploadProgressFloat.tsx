@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { CheckCircle, CloudUpload, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUploadProgress } from '../contexts/UploadProgressContext';
 import { useAppColors } from '../navigation/theme';
@@ -28,7 +28,6 @@ export default function UploadProgressFloat() {
   const completeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Animation shared values
-  // eslint-disable-next-line react-native/no-inline-styles — Reanimated exception
   const translateY = useSharedValue(100);
   const opacity = useSharedValue(0);
   const progressPct = useSharedValue(0); // 0–1
@@ -126,11 +125,9 @@ export default function UploadProgressFloat() {
           {/* Header row */}
           <View className="flex-row items-center gap-3">
             <View className="w-8 h-8 rounded-xl items-center justify-center" style={{ backgroundColor: isComplete ? colors.successBg : colors.primaryMuted }}>
-              <Icon
-                name={isComplete ? 'check-circle-outline' : 'cloud-upload-outline'}
-                size={16}
-                color={isComplete ? '#22c55e' : colors.primary}
-              />
+              {isComplete
+                ? <CheckCircle size={16} color="#22c55e" strokeWidth={1.5} />
+                : <CloudUpload size={16} color={colors.primary} strokeWidth={1.5} />}
             </View>
             <Text className="flex-1 text-sm font-semibold text-textDark">
               {isComplete
@@ -138,7 +135,7 @@ export default function UploadProgressFloat() {
                 : `${t.common.uploading} ${done}/${total} ${noun}...`}
             </Text>
             <Pressable onPress={dismiss} className="p-1">
-              <Icon name="close" size={14} color={colors.textLight} />
+              <X size={14} color={colors.textLight} strokeWidth={1.5} />
             </Pressable>
           </View>
 

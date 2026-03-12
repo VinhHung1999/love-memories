@@ -1,17 +1,19 @@
 import React from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // used in FAB
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { CalendarHeart, Heart, Plus } from 'lucide-react-native';
+ // used in FAB
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useWishesViewModel, WISH_CATEGORIES } from './useWishesViewModel';
 import WishCard from './components/WishCard';
 import WishFormSheet from './components/WishFormSheet';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import EmptyState from '../../components/EmptyState';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import HeaderIcon from '../../components/HeaderIcon';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DateWish } from '../../types';
+import { FAB } from '@/components/FAB';
 
 const STATUS_FILTERS = [
   { key: 'all', label: t.datePlanner.allFilter },
@@ -23,22 +25,15 @@ export default function WishesScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useWishesViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsibleHeader
+      <ListHeader
         title={t.datePlanner.wishesTitle}
         subtitle={t.datePlanner.wishesSubtitle}
-        expandedHeight={140}
-        collapsedHeight={96}
-        scrollY={scrollY}
         onBack={vm.handleBack}
-        renderRight={() => (
-          <HeaderIconButton name="calendar-heart" onPress={vm.handleNavigatePlans} />
-        )}
-        renderFooter={() => (
+        right={<HeaderIcon icon={CalendarHeart} onPress={vm.handleNavigatePlans} />}
+        filterBar={
           <View style={{ backgroundColor: colors.background }}>
             {/* Status filter */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 pt-2">
@@ -94,12 +89,12 @@ export default function WishesScreen() {
               </View>
             </ScrollView>
           </View>
-        )}
+        }
       />
 
       {vm.isEmpty && !vm.isLoading ? (
         <EmptyState
-          icon="heart-outline"
+          icon={Heart}
           title={t.datePlanner.wishEmptyTitle}
           subtitle={t.datePlanner.wishEmptySubtitle}
           actionLabel={t.datePlanner.wishEmptyAction}
@@ -109,8 +104,6 @@ export default function WishesScreen() {
         <Animated.FlatList
           data={vm.wishes}
           keyExtractor={item => item.id}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -119,7 +112,7 @@ export default function WishesScreen() {
               tintColor={colors.primary}
             />
           }
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 56, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 100 }}
           renderItem={({ item, index }: { item: DateWish; index: number }) => (
             <Animated.View entering={FadeInDown.delay(index * 40).duration(350)}>
               <WishCard
@@ -134,12 +127,7 @@ export default function WishesScreen() {
       )}
 
       {/* FAB */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(WishFormSheet)}
-        className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        style={{ backgroundColor: colors.secondary }}>
-        <Icon name="plus" size={24} color="#fff" />
-      </Pressable>
+      <FAB onPress={() => navigation.showBottomSheet(WishFormSheet)} icon={Plus}/>
     </View>
   );
 }

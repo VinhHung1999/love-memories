@@ -19,7 +19,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { X } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { MomentsStackParamList } from '../../navigation';
@@ -170,7 +170,7 @@ export default function PhotoGalleryScreen() {
           <TouchableOpacity
             onPress={handleClose}
             className="w-10 h-10 rounded-full items-center justify-center bg-white/12">
-            <Icon name="close" size={22} color="#fff" />
+            <X size={22} strokeWidth={1.5} />
           </TouchableOpacity>
 
           {/* Counter */}

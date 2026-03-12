@@ -1,10 +1,9 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../navigation/theme';
 
 interface EmptyStateProps {
-  icon?: string;            // MaterialCommunityIcons name
+  icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   title: string;
   subtitle?: string;
   actionLabel?: string;
@@ -12,7 +11,7 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({
-  icon,
+  icon: IconComponent,
   title,
   subtitle,
   actionLabel,
@@ -22,9 +21,9 @@ export default function EmptyState({
 
   return (
     <View className="flex-1 items-center justify-center px-8 py-16">
-      {icon && (
+      {IconComponent && (
         <View className="w-20 h-20 rounded-full items-center justify-center mb-5 bg-primary/12">
-          <Icon name={icon} size={36} color={colors.primary} />
+          <IconComponent size={36} color={colors.primary} strokeWidth={1.5} />
         </View>
       )}
       <Text className="text-xl font-bold text-textDark text-center mb-2">{title}</Text>

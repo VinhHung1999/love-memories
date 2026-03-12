@@ -20,7 +20,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import FastImage from 'react-native-fast-image';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import t from '../../locales/en';
 import {
@@ -84,6 +84,7 @@ function PhotoStrip({ photos }: { photos: string[] }) {
       -1,
       false,
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photos.length]);
 
   const style1 = useAnimatedStyle(() => ({ transform: [{ translateX: tx1.value }] }));
@@ -355,7 +356,7 @@ export default function MonthlyRecapScreen({ route }: { route?: { params?: { mon
             onPress={vm.close}
             className="absolute top-0 right-4 w-10 h-10 items-center justify-center"
             style={{ top: insets.top + 8 }}>
-            <Icon name="close" size={22} color="rgba(255,255,255,0.80)" />
+            <X size={22} strokeWidth={1.5} />
           </Pressable>
           <Text style={{ fontSize: 72, marginBottom: 16 }}>💤</Text>
           <Text style={{ fontSize: 24, fontWeight: '800', color: '#fff', marginBottom: 8, textAlign: 'center' }}>
@@ -406,14 +407,14 @@ export default function MonthlyRecapScreen({ route }: { route?: { params?: { mon
             {/* Month navigation */}
             <View className="flex-row items-center gap-2">
               <Pressable onPress={vm.goToPrevMonth} hitSlop={12}>
-                <Icon name="chevron-left" size={18} color="rgba(255,255,255,0.80)" />
+                <ChevronLeft size={18} strokeWidth={1.5} />
               </Pressable>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
                 {formatMonthDisplay(vm.month)}
               </Text>
               {vm.canGoNext ? (
                 <Pressable onPress={vm.goToNextMonth} hitSlop={12}>
-                  <Icon name="chevron-right" size={18} color="rgba(255,255,255,0.80)" />
+                  <ChevronRight size={18} strokeWidth={1.5} />
                 </Pressable>
               ) : (
                 <View style={{ width: 18 }} />
@@ -422,7 +423,7 @@ export default function MonthlyRecapScreen({ route }: { route?: { params?: { mon
 
             {/* Close */}
             <Pressable onPress={vm.close} hitSlop={12} className="w-8 h-8 items-center justify-center">
-              <Icon name="close" size={20} color="rgba(255,255,255,0.85)" />
+              <X size={20} strokeWidth={1.5} />
             </Pressable>
           </View>
 

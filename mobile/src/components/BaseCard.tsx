@@ -13,7 +13,7 @@ interface BaseCardProps {
 
 export function BaseCard({ children, className: cls }: BaseCardProps) {
   return (
-    <View className={`bg-white rounded-3xl shadow-sm ${cls ?? ''}`}>
+    <View className={`bg-white rounded-xl border border-borderSoft shadow-sm ${cls ?? ''}`}>
       {children}
     </View>
   );

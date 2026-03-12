@@ -1,22 +1,26 @@
 import React from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { Mail, PenLine } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useLettersViewModel } from './useLettersViewModel';
 import LetterCard from './components/LetterCard';
 import ComposeLetterSheet from './components/ComposeLetterSheet';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import GlassTabBar from '../../components/GlassTabBar';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
+import { FAB } from '@/components/FAB';
 
 function LettersSkeleton() {
   return (
-    <ScrollView scrollEnabled={false} className="flex-1 px-4 pt-14">
+    <ScrollView scrollEnabled={false} className="flex-1 px-4 pt-4">
       {[0, 1, 2].map(i => (
         <View key={i} className="flex-row items-center gap-3 mb-3 p-4 bg-white rounded-3xl">
           <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -34,9 +38,8 @@ function LettersSkeleton() {
 export default function LettersScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
-  const rootNavigation = useNavigation();
   const vm = useLettersViewModel();
-  const canGoBack = rootNavigation.canGoBack();
+
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
@@ -47,29 +50,23 @@ export default function LettersScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsibleHeader
+      <ListHeader
         title={t.loveLetters.title}
         subtitle={t.loveLetters.subtitle}
-        expandedHeight={140}
-        collapsedHeight={96}
-        scrollY={scrollY}
-        dark
-        onBack={canGoBack ? vm.handleBack : undefined}
-        gradientColors={['#C7CEEA', '#B4B8D5', '#FFB4B4']}
-        renderFooter={() => (
+        filterBar={
           <GlassTabBar
             tabs={tabs}
             activeTab={vm.activeTab}
             onTabPress={vm.setActiveTab}
           />
-        )}
+        }
       />
 
       {vm.isLoading ? (
         <LettersSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="email-heart-outline"
+          icon={Mail}
           title={vm.activeTab === 'inbox' ? t.loveLetters.emptyInboxTitle : t.loveLetters.emptySentTitle}
           subtitle={vm.activeTab === 'inbox' ? t.loveLetters.emptyInboxSubtitle : t.loveLetters.emptySentSubtitle}
           actionLabel={t.loveLetters.compose}
@@ -79,9 +76,9 @@ export default function LettersScreen() {
         <Animated.FlatList
           data={vm.letters}
           keyExtractor={item => item.id}
+          showsVerticalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={vm.isRefetching}
@@ -89,7 +86,7 @@ export default function LettersScreen() {
               tintColor={colors.primary}
             />
           }
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 56, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 100 }}
           renderItem={({ item, index }) => (
             <Animated.View entering={FadeInDown.delay(index * 40).duration(350)}>
               <LetterCard
@@ -104,12 +101,7 @@ export default function LettersScreen() {
       )}
 
       {/* FAB */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(ComposeLetterSheet)}
-        className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        style={{ backgroundColor: colors.primary }}>
-        <Icon name="pencil-plus-outline" size={22} color="#fff" />
-      </Pressable>
+      <FAB onPress={() => navigation.showBottomSheet(ComposeLetterSheet)} icon={PenLine}/>
     </View>
   );
 }

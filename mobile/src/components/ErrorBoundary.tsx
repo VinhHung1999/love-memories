@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { HeartCrack } from 'lucide-react-native';
 
 interface Props {
   children: React.ReactNode;
@@ -42,7 +42,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
       <View className="flex-1 bg-white items-center justify-center px-8">
         {/* Icon */}
         <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6">
-          <Icon name="heart-broken" size={36} color="#E8788A" />
+          <HeartCrack size={36} strokeWidth={1.5} />
         </View>
 
         {/* Heading */}

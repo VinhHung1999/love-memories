@@ -4,11 +4,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { CalendarHeart, Check, CheckCircle, Copy, Heart, Pencil, Plus, QrCode, RefreshCw } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAuth } from '../../lib/auth';
@@ -18,8 +15,8 @@ import EditNameSheet from './components/EditNameSheet';
 import EditCoupleSheet from './components/EditCoupleSheet';
 import DeleteAccountSheet from './components/DeleteAccountSheet';
 import GoogleGLogo from '../../components/GoogleGLogo';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import ScreenHeader from '../../components/ScreenHeader';
+import HeaderIcon from '../../components/HeaderIcon';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
 import Skeleton from '../../components/Skeleton';
@@ -34,7 +31,7 @@ function InfoRow({
 }: {
   label: string;
   value: string;
-  icon?: string;
+  icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   isLast?: boolean;
   onPress?: () => void;
 }) {
@@ -44,7 +41,7 @@ function InfoRow({
       <Text className="text-sm text-textMid flex-1">{label}</Text>
       <View className="flex-row items-center gap-2">
         <Text className="text-sm font-medium text-textDark">{value}</Text>
-        {icon && <Icon name={icon} size={14} color={colors.textLight} />}
+        {icon && React.createElement(icon, { size: 14, color: colors.textLight, strokeWidth: 1.5 })}
       </View>
     </View>
   );
@@ -59,9 +56,7 @@ export default function ProfileScreen() {
   const { logout } = useAuth();
   const vm = useProfileViewModel();
   const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(event => {
-    scrollY.value = event.contentOffset.y;
-  });
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   const handleOpenEditName = () => {
     if (vm.user) navigation.showBottomSheet(EditNameSheet, { user: vm.user });
@@ -80,55 +75,48 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-baseBg">
 
-      {/* ── Collapsible Header ── */}
-      <CollapsibleHeader
+      <ScreenHeader
+        scrollY={scrollY}
         title={vm.user?.name ?? t.profile.title}
         subtitle={t.profile.title.toUpperCase()}
-        expandedHeight={230}
-        scrollY={scrollY}
-        renderExpandedContent={() => (
-          <View className="items-center mt-3">
-            <AvatarCircle
-              uri={vm.user?.avatar}
-              initials={vm.initials}
-              size={72}
-              onPress={vm.handleUploadAvatar}
-              showCameraBadge
-            />
-            <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
-            {vm.couple?.name ? (
-              <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
-                <Icon name="heart" size={10} color={colors.primary} />
-                <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
-              </View>
-            ) : null}
-            {vm.anniversaryDisplay ? (
-              <View className="mt-1.5 flex-row items-center gap-1">
-                <Icon name="calendar-heart" size={11} color={colors.textLight} />
-                <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
-              </View>
-            ) : null}
-            {vm.slogan ? (
-              <Text className="text-[10px] text-textLight italic mt-1.5 text-center" numberOfLines={1}>
-                {vm.slogan}
-              </Text>
-            ) : null}
-          </View>
-        )}
-        renderRight={() => (
-          <HeaderIconButton name="pencil-outline" size={16} onPress={handleOpenEditName} dark={false} />
-        )}
+        right={<HeaderIcon icon={Pencil} onPress={handleOpenEditName} />}
       />
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        className="flex-1"
         onScroll={scrollHandler}
-        scrollEventThrottle={16}>
-        {/* paddingTop = scrollRange (200-40=160) — bù phần expanded header overlay */}
-        <View style={{ paddingTop: 190 }} className="mt-0">
+        className="flex-1">
+
+        {/* ── Avatar + couple info section ── */}
+        <View className="items-center pt-2 pb-4">
+          <AvatarCircle
+            uri={vm.user?.avatar}
+            initials={vm.initials}
+            size={72}
+            onPress={vm.handleUploadAvatar}
+            showCameraBadge
+          />
+          <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
+          {vm.couple?.name ? (
+            <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
+              <Heart size={10} color={colors.primary} strokeWidth={1.5} />
+              <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
+            </View>
+          ) : null}
+          {vm.anniversaryDisplay ? (
+            <View className="mt-1.5 flex-row items-center gap-1">
+              <CalendarHeart size={11} color={colors.textLight} strokeWidth={1.5} />
+              <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
+            </View>
+          ) : null}
+          {vm.slogan ? (
+            <Text className="text-[10px] text-textLight italic mt-1.5 text-center" numberOfLines={1}>
+              {vm.slogan}
+            </Text>
+          ) : null}
+        </View>
 
           {/* ── Partner card ── */}
           {vm.isCoupleLoading ? (
@@ -176,13 +164,13 @@ export default function ProfileScreen() {
               <InfoRow
                 label={t.profile.couple.name}
                 value={vm.couple?.name ?? '—'}
-                icon={vm.couple?.name ? undefined : 'plus'}
+                icon={vm.couple?.name ? undefined : Plus}
                 onPress={handleOpenEditCouple}
               />
               <InfoRow
                 label={t.profile.couple.anniversary}
                 value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
-                icon="calendar-heart"
+                icon={CalendarHeart}
                 isLast
                 onPress={handleOpenEditCouple}
               />
@@ -205,11 +193,9 @@ export default function ProfileScreen() {
                       onPress={vm.copyInviteCode}
                       className="w-11 h-11 rounded-xl items-center justify-center border"
                       style={{ backgroundColor: vm.codeCopied ? colors.successBg : colors.primary + '0F', borderColor: vm.codeCopied ? colors.success + '4D' : colors.primary + '4D' }}>
-                      <Icon
-                        name={vm.codeCopied ? 'check' : 'content-copy'}
-                        size={17}
-                        color={vm.codeCopied ? colors.success : colors.primary}
-                      />
+                      {vm.codeCopied
+                        ? <Check size={17} color={colors.success} strokeWidth={1.5} />
+                        : <Copy size={17} color={colors.primary} strokeWidth={1.5} />}
                     </Pressable>
                   </View>
                   <Text className="text-[11px] text-textLight mt-2">{t.profile.couple.shareHint}</Text>
@@ -220,7 +206,7 @@ export default function ProfileScreen() {
                     {vm.isInviteGenerating
                       ? <Skeleton className="w-24 h-3.5 rounded-full" />
                       : <>
-                          <Icon name="refresh" size={13} color={colors.textLight} />
+                          <RefreshCw size={13} color={colors.textLight} strokeWidth={1.5} />
                           <Text className="text-xs text-textLight">{t.profile.couple.generateInvite}</Text>
                         </>}
                   </Pressable>
@@ -233,7 +219,7 @@ export default function ProfileScreen() {
                   {vm.isInviteGenerating
                     ? <Skeleton className="w-32 h-4 rounded-full" />
                     : <>
-                        <Icon name="qrcode-plus" size={16} color={colors.primary} />
+                        <QrCode size={16} color={colors.primary} strokeWidth={1.5} />
                         <Text className="text-sm font-medium text-primary">{t.profile.couple.generateInvite}</Text>
                       </>}
                 </Pressable>
@@ -246,7 +232,7 @@ export default function ProfileScreen() {
             <CardTitle>{t.profile.google.title}</CardTitle>
             {vm.user?.googleId ? (
               <View className="flex-row items-center gap-2 py-3">
-                <Icon name="check-circle" size={16} color={colors.success} />
+                <CheckCircle size={16} color={colors.success} strokeWidth={1.5} />
                 <Text className="text-sm text-success font-medium">{t.profile.google.linked}</Text>
               </View>
             ) : (
@@ -272,7 +258,6 @@ export default function ProfileScreen() {
             <Text className="text-textLight text-xs">{t.profile.deleteAccount.title}</Text>
           </Pressable>
 
-        </View>
       </Animated.ScrollView>
 
     </View>

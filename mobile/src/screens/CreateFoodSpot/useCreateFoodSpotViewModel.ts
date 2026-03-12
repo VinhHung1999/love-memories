@@ -6,7 +6,7 @@ import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { foodSpotsApi } from '../../lib/api';
 import type { FoodSpot } from '../../types';
 import t from '../../locales/en';
-import type { LocalPhoto, UploadProgress } from '../CreateMoment/useCreateMomentViewModel';
+import type { LocalPhoto } from '../CreateMoment/useCreateMomentViewModel';
 
 // ── Reducer ──────────────────────────────────────────────────────────────────
 

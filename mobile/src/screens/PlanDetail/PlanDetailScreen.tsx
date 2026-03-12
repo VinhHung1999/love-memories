@@ -1,13 +1,12 @@
 import React from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanDetailViewModel } from './usePlanDetailViewModel';
 import StopCard from './components/StopCard';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
-import HeaderIconButton from '../../components/HeaderIconButton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
+import DetailScreenLayout from '../../components/DetailScreenLayout';
+import { PlaneIcon } from 'lucide-react-native';
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -18,8 +17,6 @@ export default function PlanDetailScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = usePlanDetailViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !vm.plan) {
     return (
@@ -45,54 +42,36 @@ export default function PlanDetailScreen() {
   const statusTextColor = plan.status === 'planned' ? colors.textMid : colors.white;
 
   return (
-    <View className="flex-1 bg-background">
-      <CollapsibleHeader
-        title={plan.title}
-        subtitle={formatDate(plan.date)}
-        expandedHeight={plan.stops.length > 0 ? 180 : 160}
-        collapsedHeight={96}
-        scrollY={scrollY}
-        dark
-        onBack={vm.handleBack}
-        renderRight={() => (
-          <View className="flex-row gap-2">
-            <HeaderIconButton
-              name="pencil-outline"
-              onPress={() => vm.handleEdit(navigation.showBottomSheet)}
-            />
-            <HeaderIconButton
-              name="trash-can-outline"
-              onPress={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
-            />
-          </View>
-        )}
-        renderExpandedContent={() => (
-          <View className="gap-2">
-            <View className="flex-row items-center gap-2">
-              <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusBg }}>
-                <Text className="text-[11px] font-bold" style={{ color: statusTextColor }}>
-                  {statusLabel}
-                </Text>
-              </View>
-            </View>
-            {plan.stops.length > 0 ? (
-              <Text className="text-[12px] text-white/50">
-                {t.datePlanner.stopsProgress
-                  .replace('{done}', String(doneCount))
-                  .replace('{total}', String(plan.stops.length))}
-              </Text>
-            ) : null}
-          </View>
-        )}
-      />
+    <DetailScreenLayout
+      title={plan.title}
+      coverSubtitle={formatDate(plan.date)}
+      fallbackGradient={[colors.primary + '22', colors.primary + '08']}
+      onBack={vm.handleBack}
+      onEdit={() => vm.handleEdit(navigation.showBottomSheet)}
+      onDelete={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
+      icon={PlaneIcon}
 
-      {/* Timeline */}
-      <Animated.ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        contentContainerStyle={{ padding: 16, paddingTop: plan.stops.length > 0 ? 180 : 160, paddingBottom: 40 }}>
+    >
+      <View className="px-4 pt-5 pb-[60px]">
+        {/* Status + progress */}
+        <View className="gap-2 mb-4">
+          <View className="flex-row items-center gap-2">
+            <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusBg }}>
+              <Text className="text-[11px] font-bold" style={{ color: statusTextColor }}>
+                {statusLabel}
+              </Text>
+            </View>
+          </View>
+          {plan.stops.length > 0 ? (
+            <Text className="text-[12px] text-textMid">
+              {t.datePlanner.stopsProgress
+                .replace('{done}', String(doneCount))
+                .replace('{total}', String(plan.stops.length))}
+            </Text>
+          ) : null}
+        </View>
+
+        {/* Stops timeline */}
         {vm.sortedStops.length === 0 ? (
           <View className="items-center py-12 gap-2">
             <Text className="text-textLight text-[14px]">{t.datePlanner.noStops}</Text>
@@ -107,7 +86,7 @@ export default function PlanDetailScreen() {
             />
           ))
         )}
-      </Animated.ScrollView>
-    </View>
+      </View>
+    </DetailScreenLayout>
   );
 }

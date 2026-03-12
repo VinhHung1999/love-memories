@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { LocateFixed, MapPin, XCircle } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import FieldLabel from './FieldLabel';
 import { geocodeApi, resolveLocation as resolveLocationApi } from '../lib/api';
@@ -212,7 +212,7 @@ export default function LocationPicker({
         {isResolvingUrl ? (
           <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
         ) : (
-          <Icon name="map-marker-outline" size={18} color={colors.textLight} style={{ marginRight: 8 }} />
+          <MapPin size={18} color={colors.textLight} strokeWidth={1.5} style={{ marginRight: 8 }} />
         )}
 
         <TextInput
@@ -246,7 +246,7 @@ export default function LocationPicker({
             {isGettingLocation ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (
-              <Icon name="crosshairs-gps" size={16} color={colors.primary} />
+              <LocateFixed size={16} color={colors.primary} strokeWidth={1.5} />
             )}
           </TouchableOpacity>
         ) : null}
@@ -256,7 +256,7 @@ export default function LocationPicker({
           <TouchableOpacity
             onPress={handleClear}
             className="w-8 h-8 rounded-full items-center justify-center ml-1">
-            <Icon name="close-circle" size={18} color={colors.textLight} />
+            <XCircle size={18} color={colors.textLight} strokeWidth={1.5} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -270,7 +270,7 @@ export default function LocationPicker({
               onPress={() => selectResult(r)}
               className="flex-row items-start gap-3 px-4 py-3"
               style={{ borderBottomWidth: i < results.length - 1 ? 1 : 0, borderBottomColor: colors.border + '66' }}>
-              <Icon name="map-marker-outline" size={15} color={colors.primary} style={{ marginTop: 2 }} />
+              <MapPin size={15} color={colors.primary} strokeWidth={1.5} style={{ marginTop: 2 }} />
               <Text className="flex-1 text-sm text-textDark" numberOfLines={2}>
                 {cleanPlaceName(r.place_name)}
               </Text>
