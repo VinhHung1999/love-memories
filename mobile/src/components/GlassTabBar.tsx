@@ -13,7 +13,7 @@ interface GlassTabBarProps<T extends string = string> {
 }
 
 /**
- * Glass morphism tab bar for CollapsibleHeader footer.
+ * Filter tab bar for ListHeader.
  * Used in: LettersScreen, DailyQuestionsScreen
  */
 export default function GlassTabBar<T extends string = string>({ tabs, activeTab, onTabPress }: GlassTabBarProps<T>) {
