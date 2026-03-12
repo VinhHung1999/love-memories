@@ -56,7 +56,6 @@ export default function LettersScreen() {
         title={t.loveLetters.title}
         subtitle={t.loveLetters.subtitle}
         onBack={canGoBack ? vm.handleBack : undefined}
-        scrollY={scrollY}
         filterBar={
           <GlassTabBar
             tabs={tabs}
