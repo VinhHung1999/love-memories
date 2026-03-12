@@ -14,7 +14,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
-import { ChevronRight, Images, MapPin, Star } from 'lucide-react-native';
+import { ChevronRight, Images, MapPin, Star, Utensils } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -92,7 +92,18 @@ export default function FoodSpotDetailScreen() {
               />
             </>
           ) : (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#F4A2610D' }} />
+            <View
+            className="w-full items-center justify-center bg-primary/10"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            <Utensils size={32} color={colors.primary} strokeWidth={1.5} />
+          </View>
           )}
           {/* Title at bottom of cover */}
           <View style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}>
@@ -222,6 +233,7 @@ export default function FoodSpotDetailScreen() {
         onEdit={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
         onDelete={vm.handleDeleteSpot}
         scrollY={scrollY}
+        title={spot.name}
       />
 
     </View>

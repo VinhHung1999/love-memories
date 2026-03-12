@@ -22,6 +22,8 @@ import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
 import CreateRecipeSheet from './components/CreateRecipeSheet';
 import AIRecipeSheet from './components/AIRecipeSheet';
+import HeaderIcon from '@/components/HeaderIcon';
+import { FAB } from '@/components/FAB';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -176,12 +178,10 @@ export default function RecipesScreen() {
         subtitle={t.recipes.subtitle}
         onBack={() => navigation.goBack()}
         right={
-          <Pressable
+          <HeaderIcon
             onPress={() => navigation.navigate('WhatToEat')}
-            className="w-9 h-9 rounded-xl items-center justify-center"
-            style={{ backgroundColor: colors.primary + '1A' }}>
-            <ChefHat size={18} color={colors.primary} strokeWidth={1.5} />
-          </Pressable>
+            icon={ChefHat}
+          />
         }
         filterBar={
           <ScrollView
@@ -264,13 +264,7 @@ export default function RecipesScreen() {
       </Pressable>
 
       {/* FAB — add recipe */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(CreateRecipeSheet)}
-        className="absolute bottom-8 right-5 w-14 h-14 rounded-full items-center justify-center shadow-md"
-        style={{ backgroundColor: colors.primary }}>
-        <Plus size={26} strokeWidth={1.5} />
-      </Pressable>
-
+      <FAB onPress={() => navigation.showBottomSheet(CreateRecipeSheet)} icon={Plus}/>
     </View>
   );
 }

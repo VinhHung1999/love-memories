@@ -1,5 +1,5 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { JSX } from 'react';
+import { Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   type SharedValue,
@@ -8,18 +8,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
 
-const OVERLAY_BG = 'rgba(0,0,0,0.40)';
-const OVERLAY_ICON = '#FFFFFF';
-
 interface OverlayHeaderProps {
   onBack?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   scrollY: SharedValue<number>;
+  title: string;
+  subtitle?: string;
   /** Scroll position where fade begins (default 80) */
   fadeStart?: number;
   /** Scroll position where header is fully opaque (default 200) */
   fadeEnd?: number;
+  right?: () => JSX.Element
 }
 
 export default function OverlayHeader({
@@ -27,18 +27,34 @@ export default function OverlayHeader({
   onEdit,
   onDelete,
   scrollY,
+  title,
+  subtitle,
   fadeStart = 80,
   fadeEnd = 200,
+  right,
 }: OverlayHeaderProps) {
   const insets = useSafeAreaInsets();
 
   // Header bg fades from transparent → white over fadeStart→fadeEnd (linear, scroll-coupled)
   const bgStyle = useAnimatedStyle(() => {
-    const progress = Math.min(Math.max((scrollY.value - fadeStart) / (fadeEnd - fadeStart), 0), 1);
+    const progress = Math.min(
+      Math.max((scrollY.value - fadeStart) / (fadeEnd - fadeStart), 0),
+      1,
+    );
     return {
       backgroundColor: `rgba(255,255,255,${progress})`,
       borderBottomWidth: progress > 0.1 ? 1 : 0,
       borderBottomColor: '#F0E6E3',
+    };
+  });
+
+  const titleStyle = useAnimatedStyle(() => {
+    const progress = Math.min(
+      Math.max((scrollY.value - fadeStart) / (fadeEnd - fadeStart), 0),
+      1,
+    );
+    return {
+      opacity: progress,
     };
   });
 
@@ -54,17 +70,38 @@ export default function OverlayHeader({
           zIndex: 10,
           paddingTop: insets.top,
         },
-      ]}>
+      ]}
+    >
       <View
         className="flex-row items-center justify-between px-4"
-        style={{ height: 44 }}>
+        style={{ height: 44 }}
+      >
         {/* Back */}
-        <HeaderIcon icon={ArrowLeft} onPress={onBack} iconColor={OVERLAY_ICON} bg={OVERLAY_BG} />
+        <HeaderIcon icon={ArrowLeft} onPress={onBack} />
+        <Animated.View className="flex-1" style={[{ paddingLeft: 12 },titleStyle]}>
+          <Text
+            className="font-bold text-textDark"
+            style={{ fontSize: 18 }}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text
+              className="text-textMid font-medium"
+              style={{ fontSize: 12 }}
+              numberOfLines={1}
+            >
+              {subtitle}
+            </Text>
+          ) : null}
+        </Animated.View>
 
         {/* Right actions */}
         <View className="flex-row gap-2">
-          <HeaderIcon icon={Pencil} onPress={onEdit} iconColor={OVERLAY_ICON} bg={OVERLAY_BG} />
-          <HeaderIcon icon={Trash2} onPress={onDelete} iconColor={OVERLAY_ICON} bg={OVERLAY_BG} />
+          <HeaderIcon icon={Pencil} onPress={onEdit} />
+          <HeaderIcon icon={Trash2} onPress={onDelete} />
+          {right?.()}
         </View>
       </View>
     </Animated.View>

@@ -66,7 +66,7 @@ export default function DailyQuestionCard() {
             </View>
           ) : hasAnswered ? (
             <View className="flex-row items-center gap-0.5 bg-white/20 rounded-full px-2 py-0.5">
-              <Check size={9} strokeWidth={1.5} />
+              <Check size={9} strokeWidth={1.5} color='#fff'/>
               <Text className="text-[8px] font-bold text-white">{t.dailyQuestions.answered}</Text>
             </View>
           ) : null}

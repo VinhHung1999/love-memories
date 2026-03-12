@@ -4,7 +4,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { CalendarHeart, Check, CheckCircle, Copy, Heart, Pencil, Plus, QrCode, RefreshCw } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
@@ -55,6 +55,8 @@ export default function ProfileScreen() {
   const navigation = useAppNavigation();
   const { logout } = useAuth();
   const vm = useProfileViewModel();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   const handleOpenEditName = () => {
     if (vm.user) navigation.showBottomSheet(EditNameSheet, { user: vm.user });
@@ -76,6 +78,7 @@ export default function ProfileScreen() {
     <View className="flex-1 bg-baseBg">
 
       <ScreenHeader
+        scrollY={scrollY}
         title={vm.user?.name ?? t.profile.title}
         subtitle={t.profile.title.toUpperCase()}
         right={<HeaderIcon icon={Pencil} onPress={handleOpenEditName} />}
@@ -83,10 +86,11 @@ export default function ProfileScreen() {
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
         className="flex-1">
 
         {/* ── Avatar + couple info section ── */}
-        <View className="items-center pt-6 pb-4">
+        <View className="items-center pt-2 pb-4">
           <AvatarCircle
             uri={vm.user?.avatar}
             initials={vm.initials}

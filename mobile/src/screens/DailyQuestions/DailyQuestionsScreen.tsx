@@ -425,7 +425,6 @@ export default function DailyQuestionsScreen() {
       <ListHeader
         title={t.dailyQuestions.cardTitle}
         subtitle="DAILY Q&A"
-        onBack={canGoBack ? vm.goBack : undefined}
         filterBar={
           <GlassTabBar
             tabs={tabs}
@@ -436,7 +435,7 @@ export default function DailyQuestionsScreen() {
       />
 
       {/* ── Content ── */}
-      <View className="flex-1">
+      <View className="flex-1" style={{paddingTop: 12}}>
         {vm.activeTab === 'today' ? (
           vm.todayLoading ? (
             <View className="flex-1 items-center justify-center">

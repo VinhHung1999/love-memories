@@ -116,6 +116,7 @@ export default function PlanDetailScreen() {
         onEdit={() => vm.handleEdit(navigation.showBottomSheet)}
         onDelete={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
         scrollY={scrollY}
+        title={plan.title}
       />
 
     </View>

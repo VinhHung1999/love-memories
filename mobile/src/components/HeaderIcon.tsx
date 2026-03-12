@@ -7,19 +7,17 @@ type LucideIcon = React.ComponentType<{ size?: number; color?: string; strokeWid
 interface HeaderIconProps {
   icon: LucideIcon;
   onPress?: () => void;
-  iconColor?: string;
-  bg?: string;
 }
 
-export default function HeaderIcon({ icon: Icon, onPress, iconColor, bg }: HeaderIconProps) {
+export default function HeaderIcon({ icon: Icon, onPress }: HeaderIconProps) {
   const colors = useAppColors();
   if (!onPress) return null;
   return (
     <Pressable
       onPress={onPress}
       className="items-center justify-center rounded-xl"
-      style={{ width: 36, height: 36, backgroundColor: bg ?? '#F0E8EC' }}>
-      <Icon size={18} color={iconColor ?? colors.textDark} strokeWidth={1.75} />
+      style={{ width: 36, height: 36, backgroundColor: colors.primary + '1A' }}>
+      <Icon size={18} color={colors.primary} strokeWidth={1.75} />
     </Pressable>
   );
 }

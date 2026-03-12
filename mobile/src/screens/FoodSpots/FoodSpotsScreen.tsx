@@ -154,6 +154,7 @@ export default function FoodSpotsScreen() {
       <ListHeader
         title={t.foodSpots.title}
         subtitle={t.foodSpots.subtitle}
+        onBack={navigation.goBack}
         right={
           <Pressable
             onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet)}

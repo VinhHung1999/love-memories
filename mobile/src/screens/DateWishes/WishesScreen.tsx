@@ -13,6 +13,7 @@ import EmptyState from '../../components/EmptyState';
 import HeaderIcon from '../../components/HeaderIcon';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DateWish } from '../../types';
+import { FAB } from '@/components/FAB';
 
 const STATUS_FILTERS = [
   { key: 'all', label: t.datePlanner.allFilter },
@@ -126,12 +127,7 @@ export default function WishesScreen() {
       )}
 
       {/* FAB */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(WishFormSheet)}
-        className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        style={{ backgroundColor: colors.secondary }}>
-        <Plus size={24} strokeWidth={1.5} />
-      </Pressable>
+      <FAB onPress={() => navigation.showBottomSheet(WishFormSheet)} icon={Plus}/>
     </View>
   );
 }

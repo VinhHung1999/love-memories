@@ -1,12 +1,11 @@
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   FadeInDown,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
 import { Mail, PenLine } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useLettersViewModel } from './useLettersViewModel';
@@ -17,6 +16,7 @@ import GlassTabBar from '../../components/GlassTabBar';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
+import { FAB } from '@/components/FAB';
 
 function LettersSkeleton() {
   return (
@@ -38,9 +38,7 @@ function LettersSkeleton() {
 export default function LettersScreen() {
   const colors = useAppColors();
   const navigation = useAppNavigation();
-  const rootNavigation = useNavigation();
   const vm = useLettersViewModel();
-  const canGoBack = rootNavigation.canGoBack();
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
@@ -55,7 +53,6 @@ export default function LettersScreen() {
       <ListHeader
         title={t.loveLetters.title}
         subtitle={t.loveLetters.subtitle}
-        onBack={canGoBack ? vm.handleBack : undefined}
         filterBar={
           <GlassTabBar
             tabs={tabs}
@@ -104,12 +101,7 @@ export default function LettersScreen() {
       )}
 
       {/* FAB */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(ComposeLetterSheet)}
-        className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        style={{ backgroundColor: colors.primary }}>
-        <PenLine size={22} strokeWidth={1.5} />
-      </Pressable>
+      <FAB onPress={() => navigation.showBottomSheet(ComposeLetterSheet)} icon={PenLine}/>
     </View>
   );
 }

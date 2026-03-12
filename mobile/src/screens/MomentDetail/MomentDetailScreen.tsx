@@ -16,7 +16,14 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
-import { ChevronRight, ExternalLink, Images, MapPin, Music2 } from 'lucide-react-native';
+import {
+  ChevronRight,
+  ExternalLink,
+  Heart,
+  Images,
+  MapPin,
+  Music2,
+} from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -44,7 +51,9 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
   const { data: meta, isLoading } = useQuery<SpotifyOEmbed>({
     queryKey: ['spotify-oembed', spotifyUrl],
     queryFn: async () => {
-      const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`;
+      const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(
+        spotifyUrl,
+      )}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('oEmbed failed');
       return res.json();
@@ -56,14 +65,19 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
   // Auto-open Spotify when detail screen loads
   useEffect(() => {
     // Linking.openURL(spotifyUrl).catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Pressable
       onPress={() => Linking.openURL(spotifyUrl).catch(() => {})}
       className="flex-row items-center gap-3 rounded-2xl overflow-hidden"
-      style={{ backgroundColor: 'rgba(29,185,84,0.08)', borderWidth: 1, borderColor: 'rgba(29,185,84,0.2)' }}>
+      style={{
+        backgroundColor: 'rgba(29,185,84,0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(29,185,84,0.2)',
+      }}
+    >
       {/* Album art */}
       {meta?.thumbnail_url ? (
         <FastImage
@@ -74,7 +88,8 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
       ) : (
         <View
           className="w-14 h-14 rounded-xl items-center justify-center"
-          style={{ backgroundColor: 'rgba(29,185,84,0.15)' }}>
+          style={{ backgroundColor: 'rgba(29,185,84,0.15)' }}
+        >
           <Music2 size={24} strokeWidth={1.5} />
         </View>
       )}
@@ -85,21 +100,37 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
           <Text className="text-xs text-textLight">Loading track info...</Text>
         ) : meta ? (
           <>
-            <Text className="text-sm font-bold text-textDark" numberOfLines={1}>{meta.title}</Text>
+            <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
+              {meta.title}
+            </Text>
             {meta.author_name ? (
-              <Text className="text-xs text-textMid mt-0.5" numberOfLines={1}>{meta.author_name}</Text>
+              <Text className="text-xs text-textMid mt-0.5" numberOfLines={1}>
+                {meta.author_name}
+              </Text>
             ) : null}
           </>
         ) : (
-          <Text className="text-sm font-semibold text-textDark">{t.moments.detail.spotifyLink}</Text>
+          <Text className="text-sm font-semibold text-textDark">
+            {t.moments.detail.spotifyLink}
+          </Text>
         )}
         <View className="flex-row items-center gap-1 mt-1">
           <Music2 size={10} strokeWidth={1.5} />
-          <Text className="text-[10px] font-semibold" style={{ color: '#1DB954' }}>Open in Spotify</Text>
+          <Text
+            className="text-[10px] font-semibold"
+            style={{ color: '#1DB954' }}
+          >
+            Open in Spotify
+          </Text>
         </View>
       </View>
 
-      <ExternalLink size={14} color={colors.textLight} strokeWidth={1.5} style={{ marginRight: 12 }} />
+      <ExternalLink
+        size={14}
+        color={colors.textLight}
+        strokeWidth={1.5}
+        style={{ marginRight: 12 }}
+      />
     </Pressable>
   );
 }
@@ -146,7 +177,9 @@ function MomentDetailLoadingSkeleton() {
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 }
 
@@ -158,7 +191,9 @@ export default function MomentDetailScreen() {
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
   const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
+  const scrollHandler = useAnimatedScrollHandler(e => {
+    scrollY.value = e.contentOffset.y;
+  });
 
   if (vm.isLoading || !moment) {
     return <MomentDetailLoadingSkeleton />;
@@ -168,33 +203,68 @@ export default function MomentDetailScreen() {
 
   return (
     <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
-
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+      >
         {/* ── Full-bleed cover (280px) ── */}
         <View style={{ height: 280 }}>
           {coverPhoto ? (
             <>
               <FastImage
-                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                source={{
+                  uri: coverPhoto.url,
+                  priority: FastImage.priority.high,
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
                 resizeMode={FastImage.resizeMode.cover}
               />
               <LinearGradient
                 colors={['rgba(0,0,0,0.28)', 'transparent', 'rgba(0,0,0,0.50)']}
                 locations={[0, 0.4, 1]}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
               />
             </>
           ) : (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E8788A0D' }} />
+            <View
+              className="w-full items-center justify-center bg-primary/10"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            >
+              <Heart size={32} color={colors.primary} strokeWidth={1.5} />
+            </View>
           )}
           {/* Title at bottom of cover */}
-          <View style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}>
-            <Text style={{ fontSize: 26, fontWeight: 'bold', color: coverPhoto ? '#fff' : '#2D2D2D', lineHeight: 32 }} numberOfLines={2}>
+          <View
+            style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}
+          >
+            <Text
+              style={{
+                fontSize: 26,
+                fontWeight: 'bold',
+                color: coverPhoto ? '#fff' : '#2D2D2D',
+                lineHeight: 32,
+              }}
+              numberOfLines={2}
+            >
               {moment.title}
             </Text>
           </View>
@@ -202,20 +272,21 @@ export default function MomentDetailScreen() {
 
         {/* ── Content (overlaps cover by 24px, rounded top) ── */}
         <View className="bg-white rounded-t-3xl -mt-6 pb-[80px]">
-
           {/* ── Photo thumbnail strip ── */}
           {moment.photos.length > 1 ? (
             <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2">
                   {moment.photos.map((photo, idx) => (
                     <Pressable
                       key={photo.id}
-                      onPress={() => vm.handleOpenGallery(moment.photos, idx)}>
+                      onPress={() => vm.handleOpenGallery(moment.photos, idx)}
+                    >
                       <FastImage
-                        source={{ uri: photo.url, priority: FastImage.priority.high }}
+                        source={{
+                          uri: photo.url,
+                          priority: FastImage.priority.high,
+                        }}
                         style={{
                           width: 52,
                           height: 52,
@@ -239,7 +310,9 @@ export default function MomentDetailScreen() {
           <Card>
             {/* Date row */}
             <View className="flex-row items-center mb-2">
-              <Text className="text-xs text-textMid">📅 {formatDate(moment.date)}</Text>
+              <Text className="text-xs text-textMid">
+                📅 {formatDate(moment.date)}
+              </Text>
             </View>
 
             <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
@@ -256,14 +329,17 @@ export default function MomentDetailScreen() {
             {moment.location ? (
               <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
                 <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-                <Text className="text-xs text-textMid flex-1">{moment.location}</Text>
+                <Text className="text-xs text-textMid flex-1">
+                  {moment.location}
+                </Text>
                 {moment.latitude && moment.longitude ? (
                   <Pressable
                     onPress={() =>
                       Linking.openURL(
                         `https://maps.google.com/?q=${moment.latitude},${moment.longitude}`,
                       ).catch(() => {})
-                    }>
+                    }
+                  >
                     <Text className="text-xs font-semibold text-accent">
                       {t.moments.detail.mapsLink}
                     </Text>
@@ -297,12 +373,17 @@ export default function MomentDetailScreen() {
             <Card>
               <TouchableOpacity
                 onPress={() => vm.handleOpenGallery(moment.photos, 0)}
-                className="flex-row items-center gap-2 py-1">
+                className="flex-row items-center gap-2 py-1"
+              >
                 <Images size={16} color={colors.primary} strokeWidth={1.5} />
                 <Text className="text-sm font-semibold text-primary flex-1">
                   {t.moments.detail.viewGallery} ({moment.photos.length})
                 </Text>
-                <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
+                <ChevronRight
+                  size={16}
+                  color={colors.textLight}
+                  strokeWidth={1.5}
+                />
               </TouchableOpacity>
             </Card>
           ) : null}
@@ -345,7 +426,6 @@ export default function MomentDetailScreen() {
               onDelete={vm.handleDeleteComment}
             />
           </Card>
-
         </View>
       </Animated.ScrollView>
 
@@ -355,8 +435,8 @@ export default function MomentDetailScreen() {
         onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
         onDelete={vm.handleDeleteMoment}
         scrollY={scrollY}
+        title={moment.title}
       />
-
     </KeyboardAvoidingView>
   );
 }

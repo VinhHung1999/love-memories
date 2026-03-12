@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import Animated, {
   FadeInDown,
   useAnimatedScrollHandler,
@@ -17,6 +17,7 @@ import Skeleton from '../../components/Skeleton';
 import HeaderIcon from '../../components/HeaderIcon';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DatePlan } from '../../types';
+import { FAB } from '@/components/FAB';
 
 function PlansSkeleton() {
   return (
@@ -89,12 +90,7 @@ export default function PlanListScreen() {
       )}
 
       {/* FAB */}
-      <Pressable
-        onPress={() => navigation.showBottomSheet(PlanFormSheet)}
-        className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        style={{ backgroundColor: colors.primary }}>
-        <Plus size={24} strokeWidth={1.5} />
-      </Pressable>
+      <FAB onPress={() => navigation.showBottomSheet(PlanFormSheet)} icon={Plus}/>
     </View>
   );
 }
