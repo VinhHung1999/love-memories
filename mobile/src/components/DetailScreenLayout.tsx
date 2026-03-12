@@ -31,6 +31,10 @@ interface DetailScreenLayoutProps {
 // Absolute-fill shorthand (reused for FastImage + LinearGradient)
 const FILL = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
+// OverlayHeader fade range: header fades in AFTER cover title scrolls away
+const FADE_START = 160;
+const FADE_END = 240;
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function DetailScreenLayout({
@@ -54,12 +58,16 @@ export default function DetailScreenLayout({
     colors.primary + '08',
   ];
 
+  // ScrollView background: dark behind cover (upward over-scroll), white below content
+  const scrollBg = coverImageUri ? '#1A1624' : gradient[0];
+
   return (
     <View className="flex-1 bg-white">
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
+        style={{ backgroundColor: scrollBg }}
       >
         {/* ── Full-bleed cover (280px) ── */}
         <View style={{ height: 280 }}>
@@ -71,10 +79,15 @@ export default function DetailScreenLayout({
                 style={FILL}
                 resizeMode={FastImage.resizeMode.cover}
               />
-              {/* Scrim: subtle top darkening + stronger bottom for title readability */}
+              {/* Cinematic scrim: dark top (status bar) → clear middle → dark bottom (title) */}
               <LinearGradient
-                colors={['rgba(0,0,0,0.28)', 'transparent', 'rgba(0,0,0,0.52)']}
-                locations={[0, 0.38, 1]}
+                colors={[
+                  'rgba(0,0,0,0.12)',
+                  'rgba(0,0,0,0.00)',
+                  'rgba(0,0,0,0.00)',
+                  'rgba(0,0,0,0.58)',
+                ]}
+                locations={[0, 0.30, 0.55, 1]}
                 style={FILL}
               />
             </>
@@ -104,7 +117,8 @@ export default function DetailScreenLayout({
                 fontSize: 26,
                 fontWeight: 'bold',
                 color: coverImageUri ? '#FFFFFF' : '#2D2D2D',
-                lineHeight: 32,
+                lineHeight: 33,
+                letterSpacing: -0.3,
               }}
               numberOfLines={2}
             >
@@ -115,17 +129,30 @@ export default function DetailScreenLayout({
 
         {/* ── Content card (slides up 24px over cover, rounded top corners) ── */}
         <View className="bg-white rounded-t-3xl -mt-6">
+          {/* Drag pill — bottom-sheet affordance */}
+          <View className="items-center pt-3 pb-1">
+            <View
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: '#F0E6E3',
+              }}
+            />
+          </View>
           {children}
         </View>
       </Animated.ScrollView>
 
-      {/* Floating overlay header — transparent → white, fade driven by scrollY */}
+      {/* Floating overlay header — transparent → white, fades after title scrolls away */}
       <OverlayHeader
         scrollY={scrollY}
         title={title}
         onBack={onBack}
         onEdit={onEdit}
         onDelete={onDelete}
+        fadeStart={FADE_START}
+        fadeEnd={FADE_END}
       />
     </View>
   );
