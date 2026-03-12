@@ -1,6 +1,10 @@
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useAppColors } from '../../navigation/theme';
 import { useLetterReadViewModel } from './useLetterReadViewModel';
 import ScreenHeader from '../../components/ScreenHeader';
@@ -15,6 +19,8 @@ const MOOD_EMOJI: Record<string, string> = {
 export default function LetterReadScreen() {
   const colors = useAppColors();
   const vm = useLetterReadViewModel();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !vm.letter) {
     return (
@@ -37,9 +43,12 @@ export default function LetterReadScreen() {
         subtitle={senderName}
         onBack={vm.handleBack}
         right={<Text className="text-2xl">{moodEmoji}</Text>}
+        scrollY={scrollY}
       />
 
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 }}>
@@ -80,7 +89,7 @@ export default function LetterReadScreen() {
           onPlay={vm.handlePlayAudio}
           onStop={vm.handleStopAudio}
         />
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

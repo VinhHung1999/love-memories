@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, Camera, Check, CheckCircle, ChefHat, Clock, ImagePlus, PlayCircle, ShoppingCart, Star, Timer, Trash2, Trophy } from 'lucide-react-native';
+import HeaderIcon from '../../components/HeaderIcon';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../../types';
@@ -631,11 +632,7 @@ export default function CookingSessionScreen() {
 
       {/* ── Header ── */}
       <View className="px-5 pt-3 pb-3 bg-white flex-row items-center gap-3">
-        <Pressable
-          onPress={vm.handleBack}
-          className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
-          <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.5} />
-        </Pressable>
+        <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
         <View className="flex-1">
           <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
             {session.recipes.map(r => r.recipe.title).join(' + ')}

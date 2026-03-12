@@ -10,7 +10,7 @@ import WishCard from './components/WishCard';
 import WishFormSheet from './components/WishFormSheet';
 import ListHeader from '../../components/ListHeader';
 import EmptyState from '../../components/EmptyState';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import HeaderIcon from '../../components/HeaderIcon';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DateWish } from '../../types';
 
@@ -31,7 +31,7 @@ export default function WishesScreen() {
         title={t.datePlanner.wishesTitle}
         subtitle={t.datePlanner.wishesSubtitle}
         onBack={vm.handleBack}
-        right={<HeaderIconButton icon={CalendarHeart} onPress={vm.handleNavigatePlans} />}
+        right={<HeaderIcon icon={CalendarHeart} onPress={vm.handleNavigatePlans} />}
         filterBar={
           <View style={{ backgroundColor: colors.background }}>
             {/* Status filter */}

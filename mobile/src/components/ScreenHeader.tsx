@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import { useAppColors } from '../navigation/theme';
+import HeaderIcon from './HeaderIcon';
 
 interface ScreenHeaderProps {
   title: string;
@@ -19,7 +19,6 @@ interface ScreenHeaderProps {
 
 export default function ScreenHeader({ title, subtitle, onBack, right, scrollY }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
-  const colors = useAppColors();
 
   // Opacity: 0→1 over first 50px of scroll. When no scrollY → always opaque.
   const bgStyle = useAnimatedStyle(() => {
@@ -48,14 +47,7 @@ export default function ScreenHeader({ title, subtitle, onBack, right, scrollY }
       ]}>
       <View style={{ paddingTop: insets.top }}>
         <View className="flex-row items-center px-4 gap-3" style={{ height: 56 }}>
-          {onBack && (
-            <Pressable
-              onPress={onBack}
-              className="items-center justify-center rounded-xl"
-              style={{ width: 36, height: 36, backgroundColor: '#F0E8EC' }}>
-              <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.75} />
-            </Pressable>
-          )}
+          <HeaderIcon icon={ArrowLeft} onPress={onBack} />
           <View className="flex-1">
             <Text className="font-bold text-textDark" style={{ fontSize: 18 }} numberOfLines={1}>
               {title}

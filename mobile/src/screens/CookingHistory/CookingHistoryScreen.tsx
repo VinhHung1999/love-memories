@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { ArrowLeft, BookOpen, ChefHat, ChevronRight, Star, Timer } from 'lucide-react-native';
+import { BookOpen, ChefHat, ChevronRight, Star, Timer } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
+import HeaderIcon from '../../components/HeaderIcon';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { CookingSession } from '../../types';
@@ -121,11 +123,7 @@ export default function CookingHistoryScreen() {
       {/* ── Header ── */}
       <View className="px-5 pt-4 pb-3 bg-white border-b border-border/30">
         <View className="flex-row items-center gap-3">
-          <Pressable
-            onPress={vm.handleBack}
-            className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
-            <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.5} />
-          </Pressable>
+          <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
             <Text className="text-lg font-bold text-textDark">{t.whatToEat.historyTitle}</Text>
             <Text className="text-xs text-textLight">

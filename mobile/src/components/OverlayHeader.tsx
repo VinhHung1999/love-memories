@@ -1,14 +1,15 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
+import HeaderIcon from './HeaderIcon';
 
-// Button bg — dark semi-transparent rounded-xl works on both image and white header
-const BTN_BG = 'rgba(0,0,0,0.40)';
+const OVERLAY_BG = 'rgba(0,0,0,0.40)';
+const OVERLAY_ICON = '#FFFFFF';
 
 interface OverlayHeaderProps {
   onBack?: () => void;
@@ -19,18 +20,6 @@ interface OverlayHeaderProps {
   fadeStart?: number;
   /** Scroll position where header is fully opaque (default 200) */
   fadeEnd?: number;
-}
-
-function IconBtn({ onPress, icon: Icon }: { onPress?: () => void; icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }> }) {
-  if (!onPress) return null;
-  return (
-    <Pressable
-      onPress={onPress}
-      className="items-center justify-center rounded-xl"
-      style={{ width: 36, height: 36, backgroundColor: BTN_BG }}>
-      <Icon size={18} color="#FFFFFF" strokeWidth={1.75} />
-    </Pressable>
-  );
 }
 
 export default function OverlayHeader({
@@ -70,12 +59,12 @@ export default function OverlayHeader({
         className="flex-row items-center justify-between px-4"
         style={{ height: 44 }}>
         {/* Back */}
-        <IconBtn onPress={onBack} icon={ArrowLeft} />
+        <HeaderIcon icon={ArrowLeft} onPress={onBack} iconColor={OVERLAY_ICON} bg={OVERLAY_BG} />
 
         {/* Right actions */}
         <View className="flex-row gap-2">
-          <IconBtn onPress={onEdit} icon={Pencil} />
-          <IconBtn onPress={onDelete} icon={Trash2} />
+          <HeaderIcon icon={Pencil} onPress={onEdit} iconColor={OVERLAY_ICON} bg={OVERLAY_BG} />
+          <HeaderIcon icon={Trash2} onPress={onDelete} iconColor={OVERLAY_ICON} bg={OVERLAY_BG} />
         </View>
       </View>
     </Animated.View>

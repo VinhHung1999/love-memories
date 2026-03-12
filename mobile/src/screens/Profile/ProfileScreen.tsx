@@ -16,7 +16,7 @@ import EditCoupleSheet from './components/EditCoupleSheet';
 import DeleteAccountSheet from './components/DeleteAccountSheet';
 import GoogleGLogo from '../../components/GoogleGLogo';
 import ScreenHeader from '../../components/ScreenHeader';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import HeaderIcon from '../../components/HeaderIcon';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
 import Skeleton from '../../components/Skeleton';
@@ -78,7 +78,7 @@ export default function ProfileScreen() {
       <ScreenHeader
         title={vm.user?.name ?? t.profile.title}
         subtitle={t.profile.title.toUpperCase()}
-        right={<HeaderIconButton icon={Pencil} size={16} onPress={handleOpenEditName} dark={false} />}
+        right={<HeaderIcon icon={Pencil} onPress={handleOpenEditName} />}
       />
 
       <Animated.ScrollView
