@@ -139,6 +139,9 @@ const en = {
       years: 'y',
       months: 'mo',
       days: 'd',
+      daysUnit: 'days',
+      yearUnit: 'year',
+      together: 'together',
     },
     stats: {
       moments: 'Moments',

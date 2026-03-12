@@ -15,7 +15,6 @@ interface DashboardStatsCardProps {
 }
 
 export function DashboardStatsCard({
-  duration,
   momentsCount,
   foodSpotsCount,
   onMomentsPress,
@@ -26,29 +25,8 @@ export function DashboardStatsCard({
   const displayFoodSpots = useCountUp(foodSpotsCount);
 
   return (
-    <Animated.View entering={FadeIn.duration(500)} className="bg-white rounded-3xl shadow-sm border border-borderSoft">
+    <Animated.View entering={FadeIn.duration(500)} className="bg-white rounded-3xl border border-borderSoft">
       <View className="px-4 py-3">
-
-        {/* Duration Section */}
-        {duration ? (
-          <View className="items-center mb-3 bg-primary/5 rounded-2xl py-2">
-            <View className="flex-row items-center gap-1.5">
-              <Heart size={8} strokeWidth={1.5} />
-              <Text className="text-[9px] font-heading text-primary tracking-[1.5px] uppercase">
-                {t.dashboard.couple.togetherFor}
-              </Text>
-              <Text className="text-[15px] font-heading text-textDark mx-1">
-                {duration.years > 0 && `${duration.years}${t.dashboard.couple.years} `}
-                {duration.months > 0 && `${duration.months}${t.dashboard.couple.months} `}
-                {duration.days}{t.dashboard.couple.days}
-              </Text>
-              <Heart size={8} strokeWidth={1.5} />
-            </View>
-          </View>
-        ) : null}
-
-        {/* Divider */}
-        <View className="h-[1px] bg-primary/15 mb-3" />
 
         {/* Stats Grid */}
         <View className="flex-row gap-3">

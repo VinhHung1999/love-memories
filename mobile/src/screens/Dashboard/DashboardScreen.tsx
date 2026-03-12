@@ -19,6 +19,7 @@ import { CompactDateCard } from './components/CompactDateCard';
 import { FoodHighlightCard } from './components/FoodHighlightCard';
 import { NotificationBell } from './components/NotificationBell';
 import { DashboardStatsCard } from './components/DashboardStatsCard';
+import { RelationshipTimer } from './components/RelationshipTimer';
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -70,7 +71,16 @@ export default function DashboardScreen() {
               </Text>
             ) : null}
 
-            {/* ── 0. Stats Overview ── */}
+            {/* ── 0. Relationship Timer ── */}
+            <RelationshipTimer
+              duration={vm.relationshipDuration}
+              userAvatar={vm.user?.avatar}
+              userInitials={vm.user?.name?.charAt(0).toUpperCase() ?? '?'}
+              partnerAvatar={vm.partner?.avatar}
+              partnerInitials={vm.partner?.name?.charAt(0).toUpperCase() ?? '?'}
+            />
+
+            {/* ── 0b. Stats Overview ── */}
             <DashboardStatsCard
               duration={vm.relationshipDuration}
               momentsCount={vm.momentsCount}
