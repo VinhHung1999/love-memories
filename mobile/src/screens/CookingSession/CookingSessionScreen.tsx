@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ArrowLeft, Camera, Check, CheckCircle, ChefHat, Clock, ImagePlus, PlayCircle, ShoppingCart, Star, Timer, Trash2, Trophy } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../../types';
@@ -20,7 +20,7 @@ import Skeleton from '../../components/Skeleton';
 // ── Progress steps bar — 4 steps (selecting auto-advances, never shown) ────────
 
 const PHASES = ['shopping', 'cooking', 'photo', 'completed'] as const;
-const PHASE_ICONS = ['cart-outline', 'chef-hat', 'camera-outline', 'check-circle-outline'] as const;
+const PHASE_ICONS: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>[] = [ShoppingCart, ChefHat, Camera, CheckCircle];
 
 function PhaseBar({ status }: { status: string }) {
   const colors = useAppColors();
@@ -36,11 +36,9 @@ function PhaseBar({ status }: { status: string }) {
             <View
               className="w-7 h-7 rounded-full items-center justify-center"
               style={{ backgroundColor: done ? '#22c55e' : active ? colors.primary : '#f3f4f6' }}>
-              <Icon
-                name={done ? 'check' : PHASE_ICONS[idx]}
-                size={14}
-                color={done || active ? '#fff' : colors.textLight}
-              />
+              {done
+                ? <Check size={14} color="#fff" strokeWidth={1.5} />
+                : (() => { const PhaseIcon = PHASE_ICONS[idx]; return PhaseIcon ? <PhaseIcon size={14} color={done || active ? '#fff' : colors.textLight} strokeWidth={1.5} /> : null; })()}
             </View>
             {idx < PHASES.length - 1 ? (
               <View className="flex-1 h-0.5 mx-0.5" style={{ backgroundColor: idx < currentIdx ? '#22c55e' : '#e5e7eb' }} />
@@ -102,7 +100,7 @@ function ShoppingPhase({
               <View
                 className="w-5 h-5 rounded-md border-2 items-center justify-center"
                 style={{ backgroundColor: item.checked ? '#22c55e' : 'transparent', borderColor: item.checked ? '#22c55e' : colors.border }}>
-                {item.checked ? <Icon name="check" size={11} color="#fff" /> : null}
+                {item.checked ? <Check size={11} strokeWidth={1.5} /> : null}
               </View>
               <Text
                 className="flex-1 text-sm"
@@ -128,7 +126,7 @@ function ShoppingPhase({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Icon name="chef-hat" size={14} color="#fff" />
+            <ChefHat size={14} strokeWidth={1.5} />
             <Text className="text-white font-bold text-sm">
               {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
             </Text>
@@ -197,11 +195,9 @@ function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
       onPress={handlePress}
       className="flex-row items-center gap-1 mt-1 px-2 py-1 rounded-lg self-start"
       style={{ backgroundColor: isDone ? colors.success + '1A' : isRunning ? colors.primaryMuted : colors.gray100 }}>
-      <Icon
-        name={isDone ? 'check-circle' : isRunning ? 'timer' : 'timer-outline'}
-        size={12}
-        color={isDone ? colors.success : isRunning ? colors.primary : colors.textLight}
-      />
+      {isDone
+        ? <CheckCircle size={12} color={colors.success} strokeWidth={1.5} />
+        : <Timer size={12} color={isRunning ? colors.primary : colors.textLight} strokeWidth={1.5} />}
       <Text
         className="text-[11px] font-semibold"
         style={{ color: isDone ? '#16a34a' : isRunning ? colors.primary : colors.textLight }}>
@@ -236,7 +232,7 @@ function ElapsedTimer({ startedAt }: { startedAt: string | null }) {
 
   return (
     <View className="flex-row items-center gap-1 bg-primary/10 rounded-full px-2.5 py-0.5">
-      <Icon name="clock-outline" size={11} color={colors.primary} />
+      <Clock size={11} color={colors.primary} strokeWidth={1.5} />
       <Text className="text-[11px] font-bold text-primary">{display}</Text>
     </View>
   );
@@ -290,7 +286,7 @@ function CookingPhase({
                   <Pressable
                     onPress={() => Linking.openURL(sr.recipe.tutorialUrl!).catch(() => {})}
                     className="flex-row items-center gap-1">
-                    <Icon name="play-circle-outline" size={13} color={colors.secondary} />
+                    <PlayCircle size={13} color={colors.secondary} strokeWidth={1.5} />
                     <Text className="text-[11px] font-semibold text-secondary">
                       {t.whatToEat.cooking.viewGuide}
                     </Text>
@@ -309,7 +305,7 @@ function CookingPhase({
                       className="w-6 h-6 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
                       style={{ backgroundColor: step.checked ? '#22c55e' : colors.primaryMuted }}>
                       {step.checked ? (
-                        <Icon name="check" size={12} color="#fff" />
+                        <Check size={12} strokeWidth={1.5} />
                       ) : (
                         <Text className="text-[10px] font-bold text-primary">{step.stepIndex + 1}</Text>
                       )}
@@ -346,7 +342,7 @@ function CookingPhase({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Icon name="camera-outline" size={14} color="#fff" />
+            <Camera size={14} strokeWidth={1.5} />
             <Text className="text-white font-bold text-sm">{t.whatToEat.cooking.takePhoto}</Text>
           </LinearGradient>
         </Pressable>
@@ -397,13 +393,13 @@ function PhotoPhase({
           <Pressable
             onPress={onAddPhotoFromCamera}
             className="flex-1 border-2 border-dashed border-primary/40 rounded-2xl py-5 items-center gap-2">
-            <Icon name="camera-outline" size={24} color={colors.primary} />
+            <Camera size={24} color={colors.primary} strokeWidth={1.5} />
             <Text className="text-xs font-semibold text-primary">Camera</Text>
           </Pressable>
           <Pressable
             onPress={onAddPhoto}
             className="flex-1 border-2 border-dashed border-border rounded-2xl py-5 items-center gap-2">
-            <Icon name="image-plus" size={24} color={colors.textMid} />
+            <ImagePlus size={24} color={colors.textMid} strokeWidth={1.5} />
             <Text className="text-xs font-semibold text-textMid">Gallery</Text>
           </Pressable>
         </View>
@@ -420,7 +416,7 @@ function PhotoPhase({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Icon name="star-outline" size={14} color="#fff" />
+            <Star size={14} strokeWidth={1.5} />
             <Text className="text-white font-bold text-sm">{t.whatToEat.photo.finish}</Text>
           </LinearGradient>
         </Pressable>
@@ -457,7 +453,7 @@ function RatingPhase({
         <LinearGradient
           colors={[colors.primary + '22', colors.secondary + '22']}
           className="w-20 h-20 rounded-full items-center justify-center mb-4">
-          <Icon name="chef-hat" size={38} color={colors.primary} />
+          <ChefHat size={38} color={colors.primary} strokeWidth={1.5} />
         </LinearGradient>
         <Text className="text-2xl font-bold text-textDark">Meal complete!</Text>
         {durationMin ? (
@@ -486,7 +482,7 @@ function RatingPhase({
         <Text className="text-sm font-semibold text-textMid mb-2">Recipes cooked:</Text>
         {session.recipes.map(sr => (
           <View key={sr.id} className="flex-row items-center gap-2 mb-1">
-            <Icon name="check-circle" size={14} color={colors.success} />
+            <CheckCircle size={14} color={colors.success} strokeWidth={1.5} />
             <Text className="text-sm text-textDark">{sr.recipe.title}</Text>
           </View>
         ))}
@@ -499,10 +495,11 @@ function RatingPhase({
         <View className="flex-row gap-3">
           {[1, 2, 3, 4, 5].map(i => (
             <Pressable key={i} onPress={() => onSetRating(i)} hitSlop={8}>
-              <Icon
-                name={i <= rating ? 'star' : 'star-outline'}
+              <Star
                 size={36}
                 color={colors.starRating}
+                strokeWidth={1.5}
+                fill={i <= rating ? colors.starRating : 'none'}
               />
             </Pressable>
           ))}
@@ -519,7 +516,7 @@ function RatingPhase({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Icon name="check" size={14} color="#fff" />
+            <Check size={14} strokeWidth={1.5} />
             <Text className="text-white font-bold text-sm">{t.whatToEat.rating.confirm}</Text>
           </LinearGradient>
         </Pressable>
@@ -542,7 +539,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
         <LinearGradient
           colors={[colors.primary + '22', colors.secondary + '22']}
           className="w-20 h-20 rounded-full items-center justify-center mb-4">
-          <Icon name="trophy-outline" size={38} color={colors.primary} />
+          <Trophy size={38} color={colors.primary} strokeWidth={1.5} />
         </LinearGradient>
         <Text className="text-2xl font-bold text-textDark">{t.whatToEat.completed.title}</Text>
         <Text className="text-sm text-textMid mt-1">{t.whatToEat.completed.subtitle}</Text>
@@ -552,7 +549,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
       {durationMin ? (
         <View className="mx-5 mb-4 bg-white rounded-2xl px-4 py-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-xl bg-primary/10 items-center justify-center">
-            <Icon name="clock-outline" size={18} color={colors.primary} />
+            <Clock size={18} color={colors.primary} strokeWidth={1.5} />
           </View>
           <View>
             <Text className="text-[11px] text-textLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Text>
@@ -565,17 +562,18 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
       {session.rating ? (
         <View className="mx-5 mb-4 bg-white rounded-2xl px-4 py-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-xl bg-amber-50 items-center justify-center">
-            <Icon name="star" size={18} color={colors.starRating} />
+            <Star size={18} color={colors.starRating} strokeWidth={1.5} />
           </View>
           <View className="flex-1">
             <Text className="text-[11px] text-textLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Text>
             <View className="flex-row items-center gap-1 mt-0.5">
               {[1, 2, 3, 4, 5].map(i => (
-                <Icon
+                <Star
                   key={i}
-                  name={i <= session.rating! ? 'star' : 'star-outline'}
                   size={18}
                   color={colors.starRating}
+                  strokeWidth={1.5}
+                  fill={i <= session.rating! ? colors.starRating : 'none'}
                 />
               ))}
               <Text className="text-sm font-bold text-textDark ml-1">{session.rating}/5</Text>
@@ -610,7 +608,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
         <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2">Recipes</Text>
         {session.recipes.map(sr => (
           <View key={sr.id} className="flex-row items-center gap-2 py-1">
-            <Icon name="check-circle" size={15} color={colors.success} />
+            <CheckCircle size={15} color={colors.success} strokeWidth={1.5} />
             <Text className="text-sm text-textDark flex-1">{sr.recipe.title}</Text>
           </View>
         ))}
@@ -661,7 +659,7 @@ export default function CookingSessionScreen() {
         <Pressable
           onPress={vm.handleBack}
           className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
-          <Icon name="arrow-left" size={18} color={colors.textDark} />
+          <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.5} />
         </Pressable>
         <View className="flex-1">
           <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
@@ -675,7 +673,7 @@ export default function CookingSessionScreen() {
             onPress={vm.handleAbandon}
             disabled={vm.isAbandoning}
             className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
-            <Icon name="trash-can-outline" size={18} color={colors.textLight} />
+            <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
           </Pressable>
         ) : null}
       </View>

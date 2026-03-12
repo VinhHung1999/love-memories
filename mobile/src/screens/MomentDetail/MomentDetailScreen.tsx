@@ -16,7 +16,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ChevronRight, ExternalLink, Images, MapPin, Music2, Pencil, Trash2 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -76,7 +76,7 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
         <View
           className="w-14 h-14 rounded-xl items-center justify-center"
           style={{ backgroundColor: 'rgba(29,185,84,0.15)' }}>
-          <Icon name="spotify" size={24} color="#1DB954" />
+          <Music2 size={24} strokeWidth={1.5} />
         </View>
       )}
 
@@ -95,12 +95,12 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
           <Text className="text-sm font-semibold text-textDark">{t.moments.detail.spotifyLink}</Text>
         )}
         <View className="flex-row items-center gap-1 mt-1">
-          <Icon name="spotify" size={10} color="#1DB954" />
+          <Music2 size={10} strokeWidth={1.5} />
           <Text className="text-[10px] font-semibold" style={{ color: '#1DB954' }}>Open in Spotify</Text>
         </View>
       </View>
 
-      <Icon name="open-in-new" size={14} color={colors.textLight} style={{ marginRight: 12 }} />
+      <ExternalLink size={14} color={colors.textLight} strokeWidth={1.5} style={{ marginRight: 12 }} />
     </Pressable>
   );
 }
@@ -208,11 +208,11 @@ export default function MomentDetailScreen() {
         renderRight={() => (
           <View className="flex-row gap-2">
             <HeaderIconButton
-              name="pencil-outline"
+              icon={Pencil}
               onPress={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
             />
             <HeaderIconButton
-              name="trash-can-outline"
+              icon={Trash2}
               onPress={vm.handleDeleteMoment}
               disabled={vm.isDeleting}
             />
@@ -280,7 +280,7 @@ export default function MomentDetailScreen() {
             {/* Location */}
             {moment.location ? (
               <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
-                <Icon name="map-marker-outline" size={13} color={colors.textLight} />
+                <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
                 <Text className="text-xs text-textMid flex-1">{moment.location}</Text>
                 {moment.latitude && moment.longitude ? (
                   <Pressable
@@ -323,11 +323,11 @@ export default function MomentDetailScreen() {
               <TouchableOpacity
                 onPress={() => vm.handleOpenGallery(moment.photos, 0)}
                 className="flex-row items-center gap-2 py-1">
-                <Icon name="image-multiple-outline" size={16} color={colors.primary} />
+                <Images size={16} color={colors.primary} strokeWidth={1.5} />
                 <Text className="text-sm font-semibold text-primary flex-1">
                   {t.moments.detail.viewGallery} ({moment.photos.length})
                 </Text>
-                <Icon name="chevron-right" size={16} color={colors.textLight} />
+                <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
               </TouchableOpacity>
             </Card>
           ) : null}

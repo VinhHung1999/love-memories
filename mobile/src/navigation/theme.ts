@@ -20,56 +20,50 @@ export const AppTheme = {
   dark: false,
   colors: {
     // ── React Navigation base (auto-applied to navigator UI) ──────────────
-    primary:      '#FF6B6B',   // active tab, header tint, links (Coral)
-    background:   '#FFF9F5',   // screen background (Warm off-white)
+    primary:      '#E8788A',   // active tab, header tint, links (Rose)
+    background:   '#FFF8F6',   // screen background (Soft blush white)
     card:         '#FFFFFF',   // tab bar / header background
-    text:         '#2D1B3D',   // default text (Warm dark purple-brown)
-    border:       '#E8DFE8',   // tab bar border, header border
-    notification: '#FF6B6B',   // badge color
+    text:         '#2D2D2D',   // default text
+    border:       '#F0E6E3',   // tab bar border, header border
+    notification: '#E8788A',   // badge color
 
-    // ── Brand palette (gradient-first design) ─────────────────────────────
-    // Coral Blush (Primary)
-    primaryLight:   '#FF8E8E',
-    primaryLighter: '#FFB4B4',
-    primaryShadow:  'rgba(255,107,107,0.40)',
-    primaryMuted:   'rgba(255,107,107,0.12)',
+    // ── Brand palette (gentle & soothing — web-aligned) ───────────────────
+    // Rose Primary
+    primaryLight:   '#F2A5B0',
+    primaryLighter: '#FADADD',
+    primaryShadow:  'rgba(232,120,138,0.20)',
+    primaryMuted:   'rgba(232,120,138,0.10)',
 
-    // Peachy Gold (Secondary)
-    secondary:      '#FFD93D',
-    secondaryMid:   '#FFC857',
-    secondaryDark:  '#FFB84D',
-    secondaryMuted: 'rgba(255,217,61,0.12)',
+    // Warm Secondary
+    secondary:      '#F4A261',
+    secondaryMuted: 'rgba(244,162,97,0.12)',
 
-    // Lavender Dream (Accent)
-    accent:         '#C7CEEA',
-    accentMid:      '#B4B8D5',
-    accentDark:     '#A5A9C9',
-    accentMuted:    'rgba(199,206,234,0.12)',
+    // Teal Accent
+    accent:         '#7EC8B5',
+    accentMuted:    'rgba(126,200,181,0.12)',
 
-    // Mint Fresh (Success/Food)
-    success:        '#95E1D3',
-    successMid:     '#A8E6CF',
-    successLight:   '#BCE9D6',
-    successBg:      'rgba(149,225,211,0.10)',
+    // Success
+    success:        '#7EC8B5',
+    successBg:      'rgba(126,200,181,0.10)',
 
-    // Violet Expense (Accent 2)
-    expensePurple:     '#B983FF',
-    expensePurpleMid:  '#A068F5',
-    expensePurpleDark: '#8B5CF6',
+    // ── Backgrounds ────────────────────────────────────────────────────────
+    baseBg:         '#FFF8F6',
+    bgCard:         '#FFFFFF',
+    borderSoft:     '#F0E6E3',
 
-    // ── Text (warm purple-gray tones) ────────────────────────────────────
-    textDark:  '#2D1B3D',  // Warm deep purple-brown
-    textMid:   '#6B5570',  // Muted purple-gray
-    textLight: '#9D8EA1',  // Lighter purple-gray
+    // ── Text ──────────────────────────────────────────────────────────────
+    textDark:  '#2D2D2D',
+    textMid:   '#6B7280',
+    textLight: '#9CA3AF',
 
     // ── Input states ──────────────────────────────────────────────────────
     white:            '#FFFFFF',
     inputBg:          'rgba(255,255,255,0.90)',
     inputFocusBg:     '#FFFFFF',
-    inputBorderFocus: 'rgba(255,107,107,0.50)',
+    inputBorderFocus: 'rgba(232,120,138,0.40)',
 
     // ── Misc ─────────────────────────────────────────────────────────────
-    starRating:  '#FFB84D',  // Peachy gold for stars
+    starRating:  '#F4A261',
 
     // ── Status ────────────────────────────────────────────────────────────
     errorColor:  '#D94F58',
@@ -77,15 +71,6 @@ export const AppTheme = {
 
     // ── Neutral ───────────────────────────────────────────────────────────
     gray100:     '#F5F3F4',
-
-    // ── Gradient Collections (for reference in components) ───────────────
-    // Use these in LinearGradient components
-    // Dashboard: ['#FF6B6B', '#FF8E8E', '#FFD93D']
-    // Moments: ['#FFB4B4', '#C7CEEA', '#B4B8D5']
-    // Food: ['#FFD93D', '#FFC857', '#A8E6CF']
-    // Letters: ['#C7CEEA', '#B4B8D5', '#FFB4B4']
-    // Expenses: ['#B983FF', '#A068F5', '#8B5CF6']
-    // Stats: ['#FFE4EA', '#FFD4DE', '#FFC4D0']
   },
   fonts: {
     // Be Vietnam Pro - designed for Vietnamese with excellent diacritics support

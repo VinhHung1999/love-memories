@@ -1,7 +1,8 @@
 import React from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // used in FAB
+import { CalendarHeart, Heart, Plus } from 'lucide-react-native';
+ // used in FAB
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useWishesViewModel, WISH_CATEGORIES } from './useWishesViewModel';
@@ -36,7 +37,7 @@ export default function WishesScreen() {
         scrollY={scrollY}
         onBack={vm.handleBack}
         renderRight={() => (
-          <HeaderIconButton name="calendar-heart" onPress={vm.handleNavigatePlans} />
+          <HeaderIconButton icon={CalendarHeart} onPress={vm.handleNavigatePlans} />
         )}
         renderFooter={() => (
           <View style={{ backgroundColor: colors.background }}>
@@ -99,7 +100,7 @@ export default function WishesScreen() {
 
       {vm.isEmpty && !vm.isLoading ? (
         <EmptyState
-          icon="heart-outline"
+          icon={Heart}
           title={t.datePlanner.wishEmptyTitle}
           subtitle={t.datePlanner.wishEmptySubtitle}
           actionLabel={t.datePlanner.wishEmptyAction}
@@ -138,7 +139,7 @@ export default function WishesScreen() {
         onPress={() => navigation.showBottomSheet(WishFormSheet)}
         className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
         style={{ backgroundColor: colors.secondary }}>
-        <Icon name="plus" size={24} color="#fff" />
+        <Plus size={24} strokeWidth={1.5} />
       </Pressable>
     </View>
   );

@@ -627,7 +627,6 @@ const en = {
     sendNow: 'Send Now',
     saving: 'Saving...',
     sending: 'Sending...',
-    photosLabel: 'Photos',
     addPhoto: 'Add photo',
     voiceMemoLabel: 'Voice memo',
     recordMemo: 'Record voice memo',

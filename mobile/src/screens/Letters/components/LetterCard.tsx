@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Music2, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { LoveLetter } from '../../../types';
 import t from '../../../locales/en';
@@ -100,7 +100,7 @@ export default function LetterCard({
             ) : null}
             {hasAudio ? (
               <View className="flex-row items-center gap-0.5">
-                <Icon name="music-note" size={12} color={colors.textLight} />
+                <Music2 size={12} color={colors.textLight} strokeWidth={1.5} />
                 <Text className="text-[10px] text-textLight">{letter.audio?.length}</Text>
               </View>
             ) : null}
@@ -119,7 +119,7 @@ export default function LetterCard({
         <Pressable
           onPress={onDelete}
           className="w-8 h-8 rounded-xl items-center justify-center bg-gray-100">
-          <Icon name="trash-can-outline" size={15} color={colors.textLight} />
+          <Trash2 size={15} color={colors.textLight} strokeWidth={1.5} />
         </Pressable>
       ) : null}
     </Pressable>

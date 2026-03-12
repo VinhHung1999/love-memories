@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { Pencil, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanDetailViewModel } from './usePlanDetailViewModel';
@@ -57,11 +58,11 @@ export default function PlanDetailScreen() {
         renderRight={() => (
           <View className="flex-row gap-2">
             <HeaderIconButton
-              name="pencil-outline"
+              icon={Pencil}
               onPress={() => vm.handleEdit(navigation.showBottomSheet)}
             />
             <HeaderIconButton
-              name="trash-can-outline"
+              icon={Trash2}
               onPress={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
             />
           </View>

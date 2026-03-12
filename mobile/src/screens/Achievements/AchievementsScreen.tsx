@@ -3,7 +3,7 @@ import { ActivityIndicator, SectionList, SectionListData, Text, View } from 'rea
 import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList<Achievement, SectionListData<Achievement>>);
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { CheckCircle, ChefHat, Clock, Flag, Heart, Lock, Star, Utensils } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useAchievementsViewModel } from './useAchievementsViewModel';
@@ -11,14 +11,14 @@ import type { AchievementGroup } from './useAchievementsViewModel';
 import type { Achievement } from '../../types';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
 
-const CATEGORY_ICON: Record<string, string> = {
-  moments: 'heart-multiple-outline',
-  cooking: 'chef-hat',
-  recipes: 'book-open-variant',
-  foodspots: 'food-fork-drink',
-  goals: 'flag-checkered',
-  time: 'clock-heart-outline',
-  general: 'star-outline',
+const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  moments: Heart,
+  cooking: ChefHat,
+  recipes: Star,
+  foodspots: Utensils,
+  goals: Flag,
+  time: Clock,
+  general: Star,
 };
 
 function AchievementRow({ item }: { item: Achievement }) {
@@ -42,9 +42,9 @@ function AchievementRow({ item }: { item: Achievement }) {
         ) : null}
       </View>
       {item.unlocked ? (
-        <Icon name="check-circle" size={18} color={colors.accent} />
+        <CheckCircle size={18} color={colors.accent} strokeWidth={1.5} />
       ) : (
-        <Icon name="lock-outline" size={16} color={colors.textLight} />
+        <Lock size={16} color={colors.textLight} strokeWidth={1.5} />
       )}
     </View>
   );
@@ -105,11 +105,7 @@ export default function AchievementsScreen() {
               <View
                 className="flex-row items-center gap-2 px-4 py-2.5"
                 style={{ backgroundColor: colors.background }}>
-                <Icon
-                  name={CATEGORY_ICON[group.category] ?? 'star-outline'}
-                  size={14}
-                  color={colors.primary}
-                />
+                {(() => { const CatIcon = CATEGORY_ICON[group.category] ?? Star; return <CatIcon size={14} color={colors.primary} strokeWidth={1.5} />; })()}
                 <Text className="text-[12px] font-bold text-textMid uppercase tracking-wider">
                   {group.label}
                 </Text>

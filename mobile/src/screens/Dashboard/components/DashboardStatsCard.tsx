@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Heart, Utensils } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import { useCountUp } from './useCountUp';
@@ -33,7 +33,7 @@ export function DashboardStatsCard({
         {duration ? (
           <View className="items-center mb-3 bg-primary/5 rounded-2xl py-2">
             <View className="flex-row items-center gap-1.5">
-              <Icon name="heart" size={8} color="#FF6B6B" />
+              <Heart size={8} strokeWidth={1.5} />
               <Text className="text-[9px] font-heading text-primary tracking-[1.5px] uppercase">
                 {t.dashboard.couple.togetherFor}
               </Text>
@@ -42,7 +42,7 @@ export function DashboardStatsCard({
                 {duration.months > 0 && `${duration.months}${t.dashboard.couple.months} `}
                 {duration.days}{t.dashboard.couple.days}
               </Text>
-              <Icon name="heart" size={8} color="#FF6B6B" />
+              <Heart size={8} strokeWidth={1.5} />
             </View>
           </View>
         ) : null}
@@ -55,7 +55,7 @@ export function DashboardStatsCard({
           {/* Moments Stat */}
           <Pressable onPress={onMomentsPress} className="flex-1 items-center py-2">
             <View className="flex-row items-center gap-1.5 mb-1">
-              <Icon name="heart-multiple-outline" size={14} color={colors.primary} />
+              <Heart size={14} color={colors.primary} strokeWidth={1.5} />
               <Text className="text-[20px] font-heading text-textDark leading-none">
                 {displayMoments}
               </Text>
@@ -71,7 +71,7 @@ export function DashboardStatsCard({
           {/* Food Spots Stat */}
           <Pressable onPress={onFoodSpotsPress} className="flex-1 items-center py-2">
             <View className="flex-row items-center gap-1.5 mb-1">
-              <Icon name="food-fork-drink" size={14} color={colors.secondary} />
+              <Utensils size={14} color={colors.secondary} strokeWidth={1.5} />
               <Text className="text-[20px] font-heading text-textDark leading-none">
                 {displayFoodSpots}
               </Text>

@@ -14,7 +14,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Check, CheckCircle, ChefHat, ChevronRight, ExternalLink, Images, MapPin, Pencil, PlayCircle, Timer, Trash2 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -68,7 +68,7 @@ function IngredientRow({
       <View
         className="w-5 h-5 rounded-md border-2 items-center justify-center"
         style={{ backgroundColor: checked ? '#22c55e' : 'transparent', borderColor: checked ? '#22c55e' : colors.border }}>
-        {checked ? <Icon name="check" size={11} color="#fff" /> : null}
+        {checked ? <Check size={11} strokeWidth={1.5} /> : null}
       </View>
       <Text
         className="flex-1 text-sm"
@@ -110,7 +110,7 @@ function StepRow({
         className="w-7 h-7 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
         style={{ backgroundColor: done ? '#22c55e' : colors.primaryMuted }}>
         {done ? (
-          <Icon name="check" size={13} color="#fff" />
+          <Check size={13} strokeWidth={1.5} />
         ) : (
           <Text className="text-xs font-bold text-primary">{index + 1}</Text>
         )}
@@ -124,7 +124,7 @@ function StepRow({
         </Text>
         {duration ? (
           <View className="flex-row items-center gap-1 mt-1">
-            <Icon name="timer-outline" size={11} color={colors.textLight} />
+            <Timer size={11} color={colors.textLight} strokeWidth={1.5} />
             <Text className="text-[11px] text-textLight">
               {duration >= 60
                 ? `${Math.floor(duration / 60)}m ${duration % 60 > 0 ? `${duration % 60}s` : ''}`
@@ -155,8 +155,6 @@ export default function RecipeDetailScreen() {
   }
 
   const coverPhoto = recipe.photos[0];
-  const totalEstCost = recipe.ingredientPrices.reduce((sum, p) => sum + (p ?? 0), 0);
-
   return (
     <View className="flex-1 bg-gray-50">
 
@@ -194,11 +192,11 @@ export default function RecipeDetailScreen() {
         renderRight={() => (
           <View className="flex-row gap-2">
             <HeaderIconButton
-              name="pencil-outline"
+              icon={Pencil}
               onPress={() => navigation.showBottomSheet(CreateRecipeSheet, { recipe })}
             />
             <HeaderIconButton
-              name="trash-can-outline"
+              icon={Trash2}
               onPress={vm.handleDelete}
               disabled={vm.isDeleting}
             />
@@ -247,7 +245,7 @@ export default function RecipeDetailScreen() {
               </Text>
               {recipe.cooked ? (
                 <View className="bg-green-100 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
-                  <Icon name="check-circle" size={12} color={colors.success} />
+                  <CheckCircle size={12} color={colors.success} strokeWidth={1.5} />
                   <Text className="text-[10px] font-semibold text-green-700">Cooked</Text>
                 </View>
               ) : null}
@@ -271,7 +269,7 @@ export default function RecipeDetailScreen() {
             {/* Linked food spot */}
             {recipe.foodSpot ? (
               <View className="flex-row items-center gap-1.5 pt-2 border-t border-border/30">
-                <Icon name="map-marker-outline" size={13} color={colors.textLight} />
+                <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
                 <Text className="text-xs text-textMid flex-1">
                   {t.recipes.detail.linkedSpot}: <Text className="font-semibold text-secondary">{recipe.foodSpot.name}</Text>
                 </Text>
@@ -285,11 +283,11 @@ export default function RecipeDetailScreen() {
               <TouchableOpacity
                 onPress={() => vm.handleOpenGallery(recipe.photos, 0)}
                 className="flex-row items-center gap-2 py-1">
-                <Icon name="image-multiple-outline" size={16} color={colors.primary} />
+                <Images size={16} color={colors.primary} strokeWidth={1.5} />
                 <Text className="text-sm font-semibold text-primary flex-1">
                   {t.recipes.detail.photos} ({recipe.photos.length})
                 </Text>
-                <Icon name="chevron-right" size={16} color={colors.textLight} />
+                <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
               </TouchableOpacity>
             </Card>
           ) : null}
@@ -344,13 +342,13 @@ export default function RecipeDetailScreen() {
                 onPress={() => Linking.openURL(recipe.tutorialUrl!).catch(() => {})}
                 className="flex-row items-center gap-3 py-1">
                 <View className="w-9 h-9 rounded-xl bg-red-50 items-center justify-center">
-                  <Icon name="play-circle-outline" size={20} color="#ef4444" />
+                  <PlayCircle size={20} strokeWidth={1.5} />
                 </View>
                 <View className="flex-1">
                   <Text className="text-sm font-semibold text-textDark">{t.recipes.detail.tutorialLink}</Text>
                   <Text className="text-xs text-textLight" numberOfLines={1}>{recipe.tutorialUrl}</Text>
                 </View>
-                <Icon name="open-in-new" size={15} color={colors.textLight} />
+                <ExternalLink size={15} color={colors.textLight} strokeWidth={1.5} />
               </Pressable>
             </Card>
           ) : null}
@@ -368,7 +366,7 @@ export default function RecipeDetailScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="py-4 flex-row items-center justify-center gap-2">
-            <Icon name="chef-hat" size={18} color="#fff" />
+            <ChefHat size={18} strokeWidth={1.5} />
             <Text className="text-white font-bold text-base">{t.recipes.detail.cookNow}</Text>
           </LinearGradient>
         </Pressable>

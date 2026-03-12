@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Bot, Dot, FileText, Globe, Music2, PlusCircle, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -19,14 +19,14 @@ type Phase = 'input' | 'loading' | 'preview';
 
 // ── Mode tab ─────────────────────────────────────────────────────────────────
 
-function ModeTab({ label, icon, active, onPress }: { label: string; icon: string; active: boolean; onPress: () => void }) {
+function ModeTab({ label, icon: IconComponent, active, onPress }: { label: string; icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>; active: boolean; onPress: () => void }) {
   const colors = useAppColors();
   return (
     <Pressable
       onPress={onPress}
       className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl"
       style={{ backgroundColor: active ? colors.primary : '#f3f4f6' }}>
-      <Icon name={icon} size={14} color={active ? '#fff' : colors.textMid} />
+      <IconComponent size={14} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
       <Text className="text-[12px] font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>{label}</Text>
     </Pressable>
   );
@@ -38,7 +38,7 @@ function EditIngredientRow({ value, onChange, onRemove }: { value: string; onCha
   const colors = useAppColors();
   return (
     <View className="flex-row items-center gap-2 mb-1.5">
-      <Icon name="circle-small" size={16} color={colors.textLight} />
+      <Dot size={16} color={colors.textLight} strokeWidth={1.5} />
       <BottomSheetTextInput
         value={value}
         onChangeText={onChange}
@@ -47,7 +47,7 @@ function EditIngredientRow({ value, onChange, onRemove }: { value: string; onCha
         placeholder={t.recipes.create.ingredientPlaceholder}
       />
       <Pressable onPress={onRemove} hitSlop={8}>
-        <Icon name="close" size={16} color={colors.textLight} />
+        <X size={16} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
     </View>
   );
@@ -71,7 +71,7 @@ function EditStepRow({ index, value, onChange, onRemove }: { index: number; valu
         placeholder={t.recipes.create.stepPlaceholder}
       />
       <Pressable onPress={onRemove} hitSlop={8}>
-        <Icon name="close" size={16} color={colors.textLight} />
+        <X size={16} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
     </View>
   );
@@ -102,7 +102,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
     sheetRef.current?.present();
   }, []);
 
-  const modeIcons: Record<Mode, string> = { text: 'text-long', youtube: 'youtube', url: 'web' };
+  const modeIcons: Record<Mode, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = { text: FileText, youtube: Music2, url: Globe };
   const modeLabels: Record<Mode, string> = {
     text: t.recipes.ai.modeText,
     youtube: t.recipes.ai.modeYoutube,
@@ -164,7 +164,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
   return (
     <AppBottomSheet
       ref={sheetRef}
-      icon="robot-outline"
+      icon={Bot}
       iconBgClass="bg-primary/10"
       title={t.recipes.ai.title}
       subtitle={t.recipes.ai.subtitle}
@@ -267,7 +267,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             />
           ))}
           <Pressable onPress={() => setIngredients(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
-            <Icon name="plus-circle-outline" size={16} color={colors.primary} />
+            <PlusCircle size={16} color={colors.primary} strokeWidth={1.5} />
             <Text className="text-sm text-primary font-medium">{t.recipes.create.addIngredient}</Text>
           </Pressable>
 
@@ -285,7 +285,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             />
           ))}
           <Pressable onPress={() => setSteps(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
-            <Icon name="plus-circle-outline" size={16} color={colors.primary} />
+            <PlusCircle size={16} color={colors.primary} strokeWidth={1.5} />
             <Text className="text-sm text-primary font-medium">{t.recipes.create.addStep}</Text>
           </Pressable>
 

@@ -11,7 +11,8 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Plus, Star, Utensils } from 'lucide-react-native';
+
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -87,14 +88,14 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
           />
         ) : (
           <View className="w-full h-[110px] items-center justify-center bg-secondary/10">
-            <Icon name="food-fork-drink" size={28} color={colors.secondary} />
+            <Utensils size={28} color={colors.secondary} strokeWidth={1.5} />
           </View>
         )}
 
         {/* Rating + Price overlay */}
         <View className="absolute top-2 left-2 flex-row gap-1.5">
           <View className="rounded-xl px-2 py-0.5 bg-black/50 flex-row items-center">
-            <Icon name="star" size={9} color={colors.starRating} />
+            <Star size={9} color={colors.starRating} strokeWidth={1.5} />
             <Text className="text-[10px] font-bold text-white ml-0.5">{spot.rating}</Text>
           </View>
           <View className="rounded-xl px-2 py-0.5 bg-black/50">
@@ -123,11 +124,12 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
         {/* Stars row */}
         <View className="flex-row items-center gap-1 mb-1.5">
           {[1, 2, 3, 4, 5].map(i => (
-            <Icon
+            <Star
               key={i}
-              name={i <= Math.round(spot.rating) ? 'star' : 'star-outline'}
               size={10}
               color={colors.starRating}
+              strokeWidth={1.5}
+              fill={i <= Math.round(spot.rating) ? colors.starRating : 'none'}
             />
           ))}
         </View>
@@ -170,7 +172,7 @@ export default function FoodSpotsScreen() {
           <Pressable
             onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
             className="w-10 h-10 rounded-full items-center justify-center bg-white/20">
-            <Icon name="plus" size={22} color="#fff" />
+            <Plus size={22} strokeWidth={1.5} />
           </Pressable>
         )}
         renderFooter={() => (
@@ -203,7 +205,7 @@ export default function FoodSpotsScreen() {
         <FoodSpotsLoadingSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="food-fork-drink"
+          icon={Utensils}
           title={t.foodSpots.emptyTitle}
           subtitle={t.foodSpots.emptySubtitle}
           actionLabel={t.foodSpots.emptyAction}

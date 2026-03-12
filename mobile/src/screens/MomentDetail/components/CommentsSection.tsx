@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Send, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import type { MomentComment } from '../../../types';
@@ -52,7 +52,7 @@ function CommentItem({
           <Text className="text-[11px] font-semibold text-textDark">{comment.author}</Text>
           {isOwn ? (
             <Pressable onPress={onDelete} hitSlop={8}>
-              <Icon name="trash-can-outline" size={12} color={colors.textLight} />
+              <Trash2 size={12} color={colors.textLight} strokeWidth={1.5} />
             </Pressable>
           ) : null}
         </View>
@@ -105,7 +105,7 @@ export default function CommentsSection({
           disabled={!commentText.trim() || isSubmitting}
           className="w-8 h-8 rounded-full items-center justify-center"
           style={{ backgroundColor: commentText.trim() ? colors.primary : colors.primaryMuted }}>
-          <Icon name="send" size={14} color="#fff" />
+          <Send size={14} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
     </View>

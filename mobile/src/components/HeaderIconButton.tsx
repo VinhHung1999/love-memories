@@ -1,10 +1,9 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppColors } from '../navigation/theme';
 
 interface HeaderIconButtonProps {
-  name: string;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   onPress: () => void;
   disabled?: boolean;
   size?: number;
@@ -14,7 +13,7 @@ interface HeaderIconButtonProps {
 }
 
 export default function HeaderIconButton({
-  name,
+  icon: IconComponent,
   onPress,
   disabled,
   size = 18,
@@ -27,7 +26,7 @@ export default function HeaderIconButton({
       disabled={disabled}
       className="w-9 h-9 rounded-xl items-center justify-center"
       style={{ backgroundColor: dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,22,36,0.08)' }}>
-      <Icon name={name} size={size} color={dark ? '#fff' : colors.textDark} />
+      <IconComponent size={size} color={dark ? '#fff' : colors.textDark} strokeWidth={1.5} />
     </TouchableOpacity>
   );
 }

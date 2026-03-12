@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -43,10 +43,10 @@ const EMOJI_CATEGORIES = [
 
 // ── Type filter chips data ─────────────────────────────────────────────────────
 
-const TYPE_FILTERS: { key: PinTypeFilter; label: string; icon: string }[] = [
-  { key: 'all', label: t.map.filterAll, icon: 'map-marker-multiple-outline' },
-  { key: 'moment', label: t.map.filterMoments, icon: 'heart-multiple-outline' },
-  { key: 'foodspot', label: t.map.filterFoodSpots, icon: 'food-fork-drink' },
+const TYPE_FILTERS: { key: PinTypeFilter; label: string; icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }> }[] = [
+  { key: 'all', label: t.map.filterAll, icon: MapPinIcon },
+  { key: 'moment', label: t.map.filterMoments, icon: Heart },
+  { key: 'foodspot', label: t.map.filterFoodSpots, icon: Utensils },
 ];
 
 // ── Emoji picker modal ────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ function EmojiPickerModal({
               {t.map.emojiPickerTitle} "{tagName}"
             </Text>
             <TouchableOpacity onPress={onClose} className="w-7 h-7 items-center justify-center">
-              <Icon name="close" size={20} color={colors.textLight} />
+              <X size={20} color={colors.textLight} strokeWidth={1.5} />
             </TouchableOpacity>
           </View>
 
@@ -169,12 +169,10 @@ function PinCallout({
             style={{ backgroundColor: isFood ? colors.secondaryMuted : colors.primaryMuted }}>
             {pin.tagIcon ? (
               <Text className="text-3xl">{pin.tagIcon}</Text>
+            ) : isFood ? (
+              <Utensils size={28} color={colors.secondary} strokeWidth={1.5} />
             ) : (
-              <Icon
-                name={isFood ? 'food-fork-drink' : 'heart-multiple-outline'}
-                size={28}
-                color={isFood ? colors.secondary : colors.primary}
-              />
+              <Heart size={28} color={colors.primary} strokeWidth={1.5} />
             )}
           </View>
         )}
@@ -184,12 +182,12 @@ function PinCallout({
               {pin.title}
             </Text>
             <TouchableOpacity onPress={onDismiss} className="w-6 h-6 items-center justify-center">
-              <Icon name="close" size={16} color={colors.textLight} />
+              <X size={16} color={colors.textLight} strokeWidth={1.5} />
             </TouchableOpacity>
           </View>
           {pin.location ? (
             <View className="flex-row items-center gap-1 mt-0.5">
-              <Icon name="map-marker-outline" size={11} color={colors.textLight} />
+              <MapPinIcon size={11} color={colors.textLight} strokeWidth={1.5} />
               <Text className="text-[11px] text-textLight flex-1" numberOfLines={1}>
                 {pin.location}
               </Text>
@@ -315,7 +313,7 @@ export default function MapScreen() {
                 onPress={() => vm.handleTypeFilter(f.key)}
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border"
                 style={{ backgroundColor: active ? colors.primary : 'transparent', borderColor: active ? colors.primary : colors.border }}>
-                <Icon name={f.icon} size={13} color={active ? '#fff' : colors.textMid} />
+                <f.icon size={13} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
                 <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
                   {f.label}
                 </Text>
@@ -411,7 +409,7 @@ export default function MapScreen() {
         <TouchableOpacity
           onPress={handleMyLocation}
           className="absolute bottom-20 right-4 w-10 h-10 rounded-full bg-white shadow-md items-center justify-center">
-          <Icon name="crosshairs-gps" size={20} color={colors.primary} />
+          <LocateFixed size={20} color={colors.primary} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
 

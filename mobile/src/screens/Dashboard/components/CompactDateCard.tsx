@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View, Pressable } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { CalendarHeart } from 'lucide-react-native';
 import type { DatePlan } from '../../../types';
 import t from '../../../locales/en';
 
@@ -21,7 +21,7 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
       <View className="bg-white rounded-3xl shadow-lg shadow-secondary/15 p-4 justify-between flex-1 border-2 border-secondary/10">
         <View className="flex-row items-center gap-1.5">
           <View className="w-6 h-6 rounded-xl bg-secondary/10 items-center justify-center">
-            <Icon name="calendar-heart" size={12} color="#FFD93D" />
+            <CalendarHeart size={12} strokeWidth={1.5} />
           </View>
           <Text className="text-[10px] font-headingSemi text-secondary tracking-widest uppercase">
             {t.dashboard.compactDateCard.label}

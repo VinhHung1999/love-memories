@@ -14,7 +14,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ChevronRight, Images, MapPin, Pencil, Star, Trash2 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -110,11 +110,11 @@ export default function FoodSpotDetailScreen() {
         renderRight={() => (
           <View className="flex-row gap-2">
             <HeaderIconButton
-              name="pencil-outline"
+              icon={Pencil}
               onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
             />
             <HeaderIconButton
-              name="trash-can-outline"
+              icon={Trash2}
               onPress={vm.handleDeleteSpot}
               disabled={vm.isDeleting}
             />
@@ -171,11 +171,12 @@ export default function FoodSpotDetailScreen() {
             <View className="flex-row items-center gap-3 mb-3">
               <View className="flex-row items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <Icon
+                  <Star
                     key={i}
-                    name={i <= Math.round(spot.rating) ? 'star' : 'star-outline'}
                     size={14}
                     color={colors.starRating}
+                    strokeWidth={1.5}
+                    fill={i <= Math.round(spot.rating) ? colors.starRating : 'none'}
                   />
                 ))}
                 <Text className="text-xs text-textMid ml-1">{spot.rating}/5</Text>
@@ -196,7 +197,7 @@ export default function FoodSpotDetailScreen() {
             {/* Location */}
             {spot.location ? (
               <View className="flex-row items-center gap-1.5 pt-2 border-t border-border/30">
-                <Icon name="map-marker-outline" size={13} color={colors.textLight} />
+                <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
                 <Text className="text-xs text-textMid flex-1">{spot.location}</Text>
                 {spot.latitude && spot.longitude ? (
                   <Pressable
@@ -229,11 +230,11 @@ export default function FoodSpotDetailScreen() {
               <TouchableOpacity
                 onPress={() => vm.handleOpenGallery(spot.photos, 0)}
                 className="flex-row items-center gap-2 py-1">
-                <Icon name="image-multiple-outline" size={16} color={colors.secondary} />
+                <Images size={16} color={colors.secondary} strokeWidth={1.5} />
                 <Text className="text-sm font-semibold text-secondary flex-1">
                   {t.foodSpots.detail.viewGallery} ({spot.photos.length})
                 </Text>
-                <Icon name="chevron-right" size={16} color={colors.textLight} />
+                <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
               </TouchableOpacity>
             </Card>
           ) : null}

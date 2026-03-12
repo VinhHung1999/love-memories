@@ -6,7 +6,6 @@ import React, {
   useRef,
 } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -22,7 +21,7 @@ import t from '../locales/en';
 interface AppBottomSheetProps {
   title: string;
   subtitle?: string;      // subtitle below title (triggers icon-style header when set)
-  icon?: string;          // MaterialCommunityIcons name — enables icon+title+subtitle header style
+  icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   iconBgClass?: string;   // unused — kept for backward compat, icon bg is now hardcoded via theme
   // icon-header action button (only used when icon is set)
   actionLabel?: string;
@@ -51,7 +50,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
       title,
       subtitle,
       icon,
-      iconBgClass = 'bg-primary/10',
+      iconBgClass: _iconBgClass = 'bg-primary/10',
       actionLabel,
       onAction,
       actionLoading = false,
@@ -132,7 +131,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
             /* Icon + title + subtitle style — row layout (no Cancel/Save) */
             <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border">
               <View className="w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primaryMuted }}>
-                <Icon name={icon} size={24} color={colors.primary} />
+                {icon && React.createElement(icon, { size: 24, color: colors.primary, strokeWidth: 1.5 })}
               </View>
               <View className="flex-1">
                 <Text className="text-base font-bold text-textDark">{title}</Text>

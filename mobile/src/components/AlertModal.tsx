@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AlertCircle, HelpCircle, Info, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import t from '../locales/en';
 
@@ -25,12 +25,12 @@ interface AlertModalProps extends AlertConfig {
 
 // ── Icon config per type ──────────────────────────────────────────────────────
 
-const ICON_CONFIG = {
-  info:        { name: 'information',  isError: false },
-  error:       { name: 'alert-circle', isError: true  },
-  confirm:     { name: 'help-circle',  isError: false },
-  destructive: { name: 'trash-can',    isError: true  },
-} as const;
+const ICON_CONFIG: Record<string, { icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>; isError: boolean }> = {
+  info:        { icon: Info,         isError: false },
+  error:       { icon: AlertCircle,  isError: true  },
+  confirm:     { icon: HelpCircle,   isError: false },
+  destructive: { icon: Trash2,       isError: true  },
+};
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -66,12 +66,8 @@ export default function AlertModal({
           {/* Icon */}
           <View
             className="w-16 h-16 rounded-full items-center justify-center self-center mb-4"
-            style={{ backgroundColor: icon.isError ? colors.errorBg : colors.primaryMuted }}>
-            <Icon
-              name={icon.name}
-              size={32}
-              color={icon.isError ? colors.errorColor : colors.primary}
-            />
+            style={{ backgroundColor: icon?.isError ? colors.errorBg : colors.primaryMuted }}>
+            {icon ? <icon.icon size={32} color={icon.isError ? colors.errorColor : colors.primary} strokeWidth={1.5} /> : null}
           </View>
 
           {/* Title */}

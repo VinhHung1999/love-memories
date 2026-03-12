@@ -1,7 +1,7 @@
 import React from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Mail, PenLine } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -69,7 +69,7 @@ export default function LettersScreen() {
         <LettersSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="email-heart-outline"
+          icon={Mail}
           title={vm.activeTab === 'inbox' ? t.loveLetters.emptyInboxTitle : t.loveLetters.emptySentTitle}
           subtitle={vm.activeTab === 'inbox' ? t.loveLetters.emptyInboxSubtitle : t.loveLetters.emptySentSubtitle}
           actionLabel={t.loveLetters.compose}
@@ -108,7 +108,7 @@ export default function LettersScreen() {
         onPress={() => navigation.showBottomSheet(ComposeLetterSheet)}
         className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
         style={{ backgroundColor: colors.primary }}>
-        <Icon name="pencil-plus-outline" size={22} color="#fff" />
+        <PenLine size={22} strokeWidth={1.5} />
       </Pressable>
     </View>
   );

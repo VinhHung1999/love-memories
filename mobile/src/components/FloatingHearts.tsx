@@ -13,7 +13,7 @@ import Animated, {
   withDelay,
   Easing,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Heart } from 'lucide-react-native';
 
 interface FloatingHeartsProps {
   count?: number;
@@ -64,6 +64,7 @@ function FloatingHeart({
         true
       )
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [delay, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -81,7 +82,7 @@ function FloatingHeart({
         },
         animatedStyle,
       ]}>
-      <Icon name="heart" size={size} color={color} />
+      <Heart size={size} color={color} strokeWidth={1.5} />
     </Animated.View>
   );
 }

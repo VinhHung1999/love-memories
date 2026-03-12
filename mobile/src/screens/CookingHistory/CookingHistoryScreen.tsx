@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ArrowLeft, BookOpen, ChefHat, ChevronRight, Star, Timer } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { CookingSession } from '../../types';
@@ -63,7 +63,7 @@ function SessionCard({
             />
           ) : (
             <View className="w-full h-full items-center justify-center">
-              <Icon name="chef-hat" size={28} color={colors.textLight} />
+              <ChefHat size={28} color={colors.textLight} strokeWidth={1.5} />
             </View>
           )}
         </View>
@@ -78,13 +78,13 @@ function SessionCard({
           <View className="flex-row items-center gap-3 mt-2">
             {/* Duration */}
             <View className="flex-row items-center gap-1">
-              <Icon name="timer-outline" size={12} color={colors.textLight} />
+              <Timer size={12} color={colors.textLight} strokeWidth={1.5} />
               <Text className="text-[11px] text-textMid">{formatDuration(session.totalTimeMs)}</Text>
             </View>
 
             {/* Recipes count */}
             <View className="flex-row items-center gap-1">
-              <Icon name="book-open-outline" size={12} color={colors.textLight} />
+              <BookOpen size={12} color={colors.textLight} strokeWidth={1.5} />
               <Text className="text-[11px] text-textMid">
                 {session.recipes.length} {t.whatToEat.history.recipes}
               </Text>
@@ -93,7 +93,7 @@ function SessionCard({
             {/* Rating */}
             {session.rating ? (
               <View className="flex-row items-center gap-0.5">
-                <Icon name="star" size={12} color={colors.starRating} />
+                <Star size={12} color={colors.starRating} strokeWidth={1.5} />
                 <Text className="text-[11px] text-textMid">{session.rating}/5</Text>
               </View>
             ) : null}
@@ -101,7 +101,7 @@ function SessionCard({
         </View>
 
         <View className="pr-3 items-center justify-center">
-          <Icon name="chevron-right" size={16} color={colors.textLight} />
+          <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
         </View>
 
       </Pressable>
@@ -124,7 +124,7 @@ export default function CookingHistoryScreen() {
           <Pressable
             onPress={vm.handleBack}
             className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
-            <Icon name="arrow-left" size={18} color={colors.textDark} />
+            <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.5} />
           </Pressable>
           <View className="flex-1">
             <Text className="text-lg font-bold text-textDark">{t.whatToEat.historyTitle}</Text>
@@ -151,7 +151,7 @@ export default function CookingHistoryScreen() {
         </View>
       ) : vm.sessions.length === 0 ? (
         <View className="flex-1 items-center justify-center pb-20">
-          <Icon name="chef-hat" size={48} color={colors.textLight} />
+          <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
           <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noHistory}</Text>
           <Text className="text-textLight text-sm mt-1 text-center px-8">{t.whatToEat.noHistorySubtitle}</Text>
         </View>

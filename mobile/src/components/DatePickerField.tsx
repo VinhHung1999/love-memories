@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Calendar, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import FieldLabel from './FieldLabel';
 
@@ -34,11 +34,11 @@ export default function DatePickerField({
       <Pressable
         onPress={() => setShow(true)}
         className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] h-[50px] bg-inputBg">
-        <Icon name="calendar-outline" size={18} color={colors.textLight} />
+        <Calendar size={18} color={colors.textLight} strokeWidth={1.5} />
         <Text className="text-base text-textDark flex-1">
           {value.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </Text>
-        <Icon name="chevron-right" size={16} color={colors.textLight} />
+        <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
       {show && (
         <DateTimePicker

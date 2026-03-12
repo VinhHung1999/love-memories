@@ -11,7 +11,6 @@ import Animated, {
   withTiming,
   withDelay,
   Easing,
-  runOnJS,
 } from 'react-native-reanimated';
 
 interface ConfettiProps {
@@ -80,6 +79,7 @@ function ConfettiParticle({
       delay,
       withTiming(0.5, { duration: 500, easing: Easing.out(Easing.ease) })
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [delay, angle, distance]);
 
   const animatedStyle = useAnimatedStyle(() => ({

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {  } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { Moment } from '../../../types';
 

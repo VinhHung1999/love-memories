@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Images } from 'lucide-react-native';
 import t from '../../locales/en';
 import { useDashboardViewModel } from './useDashboardViewModel';
 import CollapsibleHeader from '../../components/CollapsibleHeader';
@@ -64,7 +64,7 @@ export default function DashboardScreen() {
             </ScrollView>
           ) : (
             <View className="h-[160px] rounded-2xl bg-white/10 items-center justify-center">
-              <Icon name="image-multiple-outline" size={28} color="rgba(255,255,255,0.35)" />
+              <Images size={28} strokeWidth={1.5} />
             </View>
           )
         )}

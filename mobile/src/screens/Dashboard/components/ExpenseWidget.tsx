@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, Pressable } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Banknote } from 'lucide-react-native';
 import t from '../../../locales/en';
 import type { ExpenseStats } from '../../../lib/api';
 import { formatVND, CATEGORY_EMOJI, EXPENSE_CATEGORIES } from '../../Expenses/expensesConstants';
@@ -37,7 +37,7 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
         {/* Label row */}
         <View className="flex-row items-center gap-2 mb-2">
           <View className="w-7 h-7 rounded-xl bg-expensePurple/10 items-center justify-center">
-            <Icon name="cash-multiple" size={14} color="#B983FF" />
+            <Banknote size={14} strokeWidth={1.5} />
           </View>
           <Text className="text-[11px] font-headingSemi text-expensePurple tracking-[0.8px] uppercase">
             {t.dashboard.expenseWidget.label}

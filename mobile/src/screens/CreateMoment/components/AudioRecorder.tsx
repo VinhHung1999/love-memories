@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Mic, Pause, Play, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 
@@ -39,14 +39,14 @@ export default function AudioRecorder({
         <TouchableOpacity
           onPress={onPlayPreview}
           className="w-12 h-12 rounded-full items-center justify-center bg-accent">
-          <Icon name={isPlayingPreview ? 'pause' : 'play'} size={22} color="#fff" />
+          {isPlayingPreview ? <Pause size={22} color="#fff" strokeWidth={1.5} /> : <Play size={22} color="#fff" strokeWidth={1.5} />}
         </TouchableOpacity>
         <View className="flex-1">
           <Text className="text-sm font-semibold text-textDark">Voice memo recorded</Text>
           <Text className="text-xs text-textLight mt-0.5">{formatSecs(recordingDuration)} • m4a</Text>
         </View>
         <Pressable onPress={onDelete} hitSlop={8}>
-          <Icon name="trash-can-outline" size={18} color={colors.textLight} />
+          <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
         </Pressable>
       </View>
     );
@@ -64,7 +64,7 @@ export default function AudioRecorder({
         {isRecording ? (
           <View className="w-4 h-4 rounded bg-white" />
         ) : (
-          <Icon name="microphone" size={22} color="#fff" />
+          <Mic size={22} strokeWidth={1.5} />
         )}
       </View>
 

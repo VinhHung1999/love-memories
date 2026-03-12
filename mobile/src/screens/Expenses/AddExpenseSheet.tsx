@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { BottomSheetModal, BottomSheetTextInput, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import {  } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Expense, ExpenseCategory } from '../../lib/api';

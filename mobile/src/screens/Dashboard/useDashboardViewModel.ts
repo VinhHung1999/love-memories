@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
@@ -7,6 +7,7 @@ import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, e
 import type { ExpenseStats } from '../../lib/api';
 import t from '../../locales/en';
 import type { Moment, FoodSpot, CoupleProfile, CookingSession, DatePlan } from '../../types';
+import { Heart, Utensils, ChefHat, Banknote, Mail, CalendarHeart, Trophy, Map } from 'lucide-react-native';
 
 export interface RelationshipDuration {
   years: number;
@@ -150,33 +151,33 @@ export function useDashboardViewModel() {
     navigation.navigate('FoodSpotsTab', { screen: 'FoodSpotsList' });
   };
 
-  const navigateTo = (tab: string) => {
+  const navigateTo = useCallback((tab: string) => {
     navigation.navigate(tab);
-  };
+  }, [navigation]);
 
-  const handleActiveCookingPress = () => {
+  const handleActiveCookingPress = useCallback(() => {
     if (!activeSession) return;
     navigation.navigate('RecipesTab', {
       screen: 'CookingSession',
       params: { sessionId: activeSession.id },
     });
-  };
+  }, [activeSession, navigation]);
 
-  const handleAIRecipePress = () => {
+  const handleAIRecipePress = useCallback(() => {
     navigation.navigate('RecipesTab', {
       screen: 'WhatToEat',
     });
-  };
+  }, [navigation]);
 
-  const navigateToExpenses = () => navigation.navigate('ExpensesTab');
-  const navigateToMap = () => navigation.navigate('MapTab');
-  const navigateToFoodSpots = () => navigation.navigate('FoodSpotsTab');
-  const navigateToNotifications = () => navigation.navigate('NotificationsTab');
-  const navigateToLetters = () => navigation.navigate('LettersTab');
-  const navigateToDatePlanner = () => navigation.navigate('DatePlannerTab');
-  const navigateToAchievements = () => navigation.navigate('Achievements');
-  const navigateToDailyQuestions = () => navigation.navigate('DailyQuestionsTab');
-  const navigateToMonthlyRecap = () => navigation.navigate('MonthlyRecapTab');
+  const navigateToExpenses = useCallback(() => navigation.navigate('ExpensesTab'), [navigation]);
+  const navigateToMap = useCallback(() => navigation.navigate('MapTab'), [navigation]);
+  const navigateToFoodSpots = useCallback(() => navigation.navigate('FoodSpotsTab'), [navigation]);
+  const navigateToNotifications = useCallback(() => navigation.navigate('NotificationsTab'), [navigation]);
+  const navigateToLetters = useCallback(() => navigation.navigate('LettersTab'), [navigation]);
+  const navigateToDatePlanner = useCallback(() => navigation.navigate('DatePlannerTab'), [navigation]);
+  const navigateToAchievements = useCallback(() => navigation.navigate('Achievements'), [navigation]);
+  const navigateToDailyQuestions = useCallback(() => navigation.navigate('DailyQuestionsTab'), [navigation]);
+  const navigateToMonthlyRecap = useCallback(() => navigation.navigate('MonthlyRecapTab'), [navigation]);
 
   // Show monthly recap banner on days 1-3 of each month
   const showMonthlyRecapBanner = now.getDate() <= 3;
@@ -188,56 +189,56 @@ export function useDashboardViewModel() {
 
   const quickActions = useMemo(() => [
     {
-      icon: 'heart-multiple-outline',
+      icon: Heart,
       label: t.dashboard.quickActions.moments,
       iconColor: colors.primary,
       bgClass: 'bg-primary/10',
       onPress: () => navigateTo('MomentsTab'),
     },
     {
-      icon: 'food-fork-drink',
+      icon: Utensils,
       label: t.dashboard.quickActions.food,
       iconColor: colors.secondary,
       bgClass: 'bg-secondary/10',
       onPress: navigateToFoodSpots,
     },
     {
-      icon: 'chef-hat',
+      icon: ChefHat,
       label: t.dashboard.quickActions.recipes,
       iconColor: colors.primary,
       bgClass: 'bg-primary/10',
       onPress: () => navigateTo('RecipesTab'),
     },
     {
-      icon: 'cash-multiple',
+      icon: Banknote,
       label: t.dashboard.quickActions.expenses,
-      iconColor: colors.expensePurple,
+      iconColor: '#8B5CF6',
       bgClass: 'bg-violet-100',
       onPress: navigateToExpenses,
     },
     {
-      icon: 'email-heart-outline',
+      icon: Mail,
       label: t.dashboard.quickActions.letters,
       iconColor: colors.primary,
       bgClass: 'bg-primary/10',
       onPress: navigateToLetters,
     },
     {
-      icon: 'calendar-heart',
+      icon: CalendarHeart,
       label: t.dashboard.quickActions.datePlanner,
       iconColor: colors.secondary,
       bgClass: 'bg-secondary/10',
       onPress: navigateToDatePlanner,
     },
     {
-      icon: 'trophy-outline',
+      icon: Trophy,
       label: t.dashboard.quickActions.achievements,
       iconColor: colors.accent,
       bgClass: 'bg-accent/10',
       onPress: navigateToAchievements,
     },
     {
-      icon: 'map-outline',
+      icon: Map,
       label: t.dashboard.quickActions.map,
       iconColor: colors.accent,
       bgClass: 'bg-accent/10',

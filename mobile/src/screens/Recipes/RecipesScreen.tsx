@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Bot, Check, ChefHat, FilterX, List, Plus } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -25,7 +25,6 @@ import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
 import CreateRecipeSheet from './components/CreateRecipeSheet';
 import AIRecipeSheet from './components/AIRecipeSheet';
-import HeaderIconButton from '@/components/HeaderIconButton';
 
 // ── Loading skeleton ───────────────────────────────────────────────────────────
 
@@ -89,14 +88,14 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             className="w-full h-[120px] items-center justify-center">
-            <Icon name="chef-hat" size={32} color={colors.primary} />
+            <ChefHat size={32} color={colors.primary} strokeWidth={1.5} />
           </LinearGradient>
         )}
 
         {/* Cooked badge */}
         {recipe.cooked ? (
           <View className="absolute top-2 right-2 bg-green-500 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
-            <Icon name="check" size={9} color="#fff" />
+            <Check size={9} strokeWidth={1.5} />
             <Text className="text-[9px] font-bold text-white">{t.recipes.detail.cookedBadge}</Text>
           </View>
         ) : (
@@ -108,7 +107,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {/* Ingredient count badge */}
         {recipe.ingredients.length > 0 ? (
           <View className="absolute bottom-2 left-2 bg-black/40 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
-            <Icon name="format-list-bulleted" size={9} color="#fff" />
+            <List size={9} strokeWidth={1.5} />
             <Text className="text-[9px] text-white">{recipe.ingredients.length} ingredients</Text>
           </View>
         ) : null}
@@ -204,7 +203,7 @@ export default function RecipesScreen() {
           <Pressable
             onPress={() => navigation.navigate('WhatToEat')}
             className="w-10 h-10 rounded-xl items-center justify-center bg-white/20">
-            <Icon name="chef-hat" size={20} color="#fff" />
+            <ChefHat size={20} strokeWidth={1.5} />
           </Pressable>
         )}
         renderFooter={() => (
@@ -232,7 +231,7 @@ export default function RecipesScreen() {
         <RecipesLoadingSkeleton />
       ) : vm.isEmpty && vm.totalCount === 0 ? (
         <EmptyState
-          icon="chef-hat"
+          icon={ChefHat}
           title={t.recipes.emptyTitle}
           subtitle={t.recipes.emptySubtitle}
           actionLabel={t.recipes.emptyAction}
@@ -241,7 +240,7 @@ export default function RecipesScreen() {
       ) : vm.isEmpty ? (
         // Filtered empty
         <View className="flex-1 items-center justify-center pb-20">
-          <Icon name="filter-remove-outline" size={36} color={colors.textLight} />
+          <FilterX size={36} color={colors.textLight} strokeWidth={1.5} />
           <Text className="text-textMid text-sm mt-3">No recipes match this filter</Text>
         </View>
       ) : (
@@ -289,7 +288,7 @@ export default function RecipesScreen() {
       <Pressable
         onPress={() => navigation.showBottomSheet(AIRecipeSheet)}
         className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center shadow-sm bg-white border-2 border-primary/30">
-        <Icon name="robot-outline" size={22} color={colors.primary} />
+        <Bot size={22} color={colors.primary} strokeWidth={1.5} />
       </Pressable>
 
       {/* FAB — add recipe */}
@@ -297,7 +296,7 @@ export default function RecipesScreen() {
         onPress={() => navigation.showBottomSheet(CreateRecipeSheet)}
         className="absolute bottom-8 right-5 w-14 h-14 rounded-full items-center justify-center shadow-md"
         style={{ backgroundColor: colors.primary }}>
-        <Icon name="plus" size={26} color="#fff" />
+        <Plus size={26} strokeWidth={1.5} />
       </Pressable>
 
     </View>

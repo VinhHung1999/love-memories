@@ -1,10 +1,9 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BaseCard } from '../../../components/Card';
 
 interface QuickActionButtonProps {
-  icon: string;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   iconColor: string;
   bgClass: string;
@@ -12,7 +11,7 @@ interface QuickActionButtonProps {
 }
 
 export function QuickActionButton({
-  icon,
+  icon: IconComponent,
   label,
   iconColor,
   bgClass,
@@ -22,7 +21,7 @@ export function QuickActionButton({
     <Pressable onPress={onPress} className="flex-1">
       <BaseCard className="py-4 items-center justify-center gap-1.5 shadow-sm">
         <View className={`w-10 h-10 rounded-2xl items-center justify-center ${bgClass}`}>
-          <Icon name={icon} size={20} color={iconColor} />
+          <IconComponent size={20} color={iconColor} strokeWidth={1.5} />
         </View>
         <Text className="text-[11px] font-headingSemi text-textMid">{label}</Text>
       </BaseCard>

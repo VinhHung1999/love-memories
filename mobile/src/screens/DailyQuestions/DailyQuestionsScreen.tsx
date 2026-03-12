@@ -14,7 +14,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ChevronDown, ChevronUp, Clock, Heart, HelpCircle, MessageCircle, Send, Smile, Star, Telescope, User, Users, WifiOff } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
@@ -24,12 +24,12 @@ import type { DailyQuestionHistoryItem } from '../../types';
 
 // ── Category meta ──────────────────────────────────────────────────────────────
 
-const CATEGORY_META: Record<string, { icon: string; color: string; bg: string }> = {
-  general:  { icon: 'chat-outline',           color: '#6366F1', bg: 'rgba(99,102,241,0.12)' },
-  deep:     { icon: 'star-four-points',       color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
-  fun:      { icon: 'emoticon-happy-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
-  intimacy: { icon: 'heart-outline',          color: '#E8788A', bg: 'rgba(232,120,138,0.12)' },
-  future:   { icon: 'telescope',              color: '#7EC8B5', bg: 'rgba(126,200,181,0.12)' },
+const CATEGORY_META: Record<string, { icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>; color: string; bg: string }> = {
+  general:  { icon: MessageCircle, color: '#6366F1', bg: 'rgba(99,102,241,0.12)' },
+  deep:     { icon: Star,          color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
+  fun:      { icon: Smile,         color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+  intimacy: { icon: Heart,         color: '#E8788A', bg: 'rgba(232,120,138,0.12)' },
+  future:   { icon: Telescope,     color: '#7EC8B5', bg: 'rgba(126,200,181,0.12)' },
 };
 
 function getCategoryMeta(cat: string) {
@@ -46,7 +46,7 @@ function CategoryBadge({ category }: { category: string }) {
     <View
       className="flex-row items-center gap-1.5 rounded-full px-3 py-1 self-start"
       style={{ backgroundColor: meta.bg }}>
-      <Icon name={meta.icon} size={11} color={meta.color} />
+      <meta.icon size={11} color={meta.color} strokeWidth={1.5} />
       <Text className="text-[11px] font-semibold" style={{ color: meta.color }}>
         {label}
       </Text>
@@ -77,11 +77,9 @@ function AnswerCard({
           borderLeftColor: isPartner ? colors.accent : colors.primary,
         }}>
         <View className="flex-row items-center gap-1.5 mb-2">
-          <Icon
-            name={isPartner ? 'account-heart-outline' : 'account-outline'}
-            size={13}
-            color={isPartner ? colors.accent : colors.primary}
-          />
+          {isPartner
+            ? <Users size={13} color={colors.accent} strokeWidth={1.5} />
+            : <User size={13} color={colors.primary} strokeWidth={1.5} />}
           <Text
             className="text-[11px] font-bold tracking-wide uppercase"
             style={{ color: isPartner ? colors.accent : colors.primary }}>
@@ -109,7 +107,7 @@ function WaitingCard({ partnerName }: { partnerName: string | null }) {
           borderColor: 'rgba(126,200,181,0.15)',
           borderStyle: 'dashed',
         }}>
-        <Icon name="clock-outline" size={20} color={colors.textLight} />
+        <Clock size={20} color={colors.textLight} strokeWidth={1.5} />
         <Text className="text-xs text-textLight text-center mt-2 leading-relaxed">
           {t.dailyQuestions.waitingForPartner.replace('{name}', name)}
         </Text>
@@ -163,7 +161,7 @@ function TodayView({
               <View
                 className="w-7 h-7 rounded-xl items-center justify-center"
                 style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
-                <Icon name={meta.icon} size={14} color="#fff" />
+                <meta.icon size={14} color="#fff" strokeWidth={1.5} />
               </View>
               <Text className="text-[11px] font-bold text-white/70 tracking-widest uppercase">
                 {t.dailyQuestions.questionLabel}
@@ -227,7 +225,7 @@ function TodayView({
             {isSubmitting ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Icon name="send" size={16} color="#fff" />
+              <Send size={16} strokeWidth={1.5} />
             )}
             <Text className="text-white font-bold text-[15px]">
               {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
@@ -302,11 +300,9 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
             {date ? (
               <Text className="text-[10px] text-textLight font-medium">{date}</Text>
             ) : null}
-            <Icon
-              name={expanded ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color={colors.textLight}
-            />
+            {expanded
+              ? <ChevronUp size={16} color={colors.textLight} strokeWidth={1.5} />
+              : <ChevronDown size={16} color={colors.textLight} strokeWidth={1.5} />}
           </View>
         </View>
 
@@ -381,7 +377,7 @@ function HistoryView({
     return (
       <View className="flex-1 items-center justify-center gap-3 px-8">
         <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
-          <Icon name="chat-question-outline" size={28} color={colors.primary} />
+          <HelpCircle size={28} color={colors.primary} strokeWidth={1.5} />
         </View>
         <Text className="text-base font-semibold text-textDark text-center">
           {t.dailyQuestions.noHistory}
@@ -457,7 +453,7 @@ export default function DailyQuestionsScreen() {
             </View>
           ) : vm.todayError ? (
             <View className="flex-1 items-center justify-center gap-3 px-8">
-              <Icon name="wifi-off" size={28} color={colors.textLight} />
+              <WifiOff size={28} color={colors.textLight} strokeWidth={1.5} />
               <Text className="text-sm text-textLight text-center">
                 {t.dailyQuestions.errors.fetchFailed}
               </Text>

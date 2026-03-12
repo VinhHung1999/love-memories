@@ -11,7 +11,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Bell, X } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { AppNotification } from '../../lib/api';
@@ -112,7 +112,7 @@ function NotificationRow({
           <View className="items-center gap-2 ml-1">
             {!item.read && <View className="w-2 h-2 rounded-full bg-primary mt-1" />}
             <Pressable onPress={onDelete} hitSlop={8} className="mt-1">
-              <Icon name="close" size={14} color={colors.textLight} />
+              <X size={14} color={colors.textLight} strokeWidth={1.5} />
             </Pressable>
           </View>
         </View>
@@ -158,7 +158,7 @@ export default function NotificationsScreen() {
         </ScrollView>
       ) : vm.grouped.length === 0 ? (
         <EmptyState
-          icon="bell-outline"
+          icon={Bell}
           title={t.notifications.emptyTitle}
           subtitle={t.notifications.emptySubtitle}
         />

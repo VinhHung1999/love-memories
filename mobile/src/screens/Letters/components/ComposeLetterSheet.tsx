@@ -3,7 +3,7 @@ import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'r
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import FastImage from 'react-native-fast-image';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Check, Clock, ImagePlus, Mail, Mic, Trash2, X } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import AppBottomSheet from '../../../components/AppBottomSheet';
@@ -48,7 +48,7 @@ export default function ComposeLetterSheet({
       ref={sheetRef}
       scrollable
       title={initialLetter ? t.loveLetters.editTitle : t.loveLetters.composeTitle}
-      icon="email-edit-outline"
+      icon={Mail}
       subtitle={initialLetter ? t.loveLetters.editSubtitle : t.loveLetters.composeSubtitle}
       actionLabel={t.loveLetters.sendNow}
       onAction={vm.sendNow}
@@ -98,7 +98,7 @@ export default function ComposeLetterSheet({
                   <Pressable
                     onPress={() => vm.handleRemovePhoto(photo.localId)}
                     className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error items-center justify-center">
-                    <Icon name="close" size={11} color="#fff" />
+                    <X size={11} strokeWidth={1.5} />
                   </Pressable>
                 </View>
               ))}
@@ -107,7 +107,7 @@ export default function ComposeLetterSheet({
                   onPress={vm.handleAddPhoto}
                   className="w-[72px] h-[72px] rounded-xl border border-dashed border-primary/30 items-center justify-center mt-0"
                   style={{ backgroundColor: colors.primaryMuted + '33' }}>
-                  <Icon name="camera-plus-outline" size={22} color={colors.primary} />
+                  <ImagePlus size={22} color={colors.primary} strokeWidth={1.5} />
                   <Text className="text-[10px] text-primary mt-0.5">
                     {vm.pendingPhotos.length}/{vm.maxPhotos}
                   </Text>
@@ -124,7 +124,7 @@ export default function ComposeLetterSheet({
             /* Recorded — show playback controls */
             <View className="flex-row items-center gap-3 p-3 rounded-2xl bg-accent/10 border border-accent/20 mt-1">
               <View className="w-10 h-10 rounded-full items-center justify-center bg-accent">
-                <Icon name="check" size={18} color="#fff" />
+                <Check size={18} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
                 <Text className="text-sm font-semibold text-textDark">Voice memo recorded</Text>
@@ -133,7 +133,7 @@ export default function ComposeLetterSheet({
                 </Text>
               </View>
               <Pressable onPress={vm.handleDeleteAudio} hitSlop={8}>
-                <Icon name="trash-can-outline" size={18} color={colors.textLight} />
+                <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
               </Pressable>
             </View>
           ) : (
@@ -151,7 +151,7 @@ export default function ComposeLetterSheet({
                 {vm.isRecording ? (
                   <View className="w-3.5 h-3.5 rounded bg-white" />
                 ) : (
-                  <Icon name="microphone" size={18} color="#fff" />
+                  <Mic size={18} strokeWidth={1.5} />
                 )}
               </View>
               <View className="flex-1">
@@ -202,7 +202,7 @@ export default function ComposeLetterSheet({
           <Pressable
             onPress={vm.toggleScheduleMode}
             className="flex-row items-center gap-3 p-4 rounded-2xl border border-border/50 bg-gray-50">
-            <Icon name="clock-outline" size={20} color={vm.scheduleMode ? colors.primary : colors.textLight} />
+            <Clock size={20} color={vm.scheduleMode ? colors.primary : colors.textLight} strokeWidth={1.5} />
             <View className="flex-1">
               <Text
                 className="text-sm font-semibold"

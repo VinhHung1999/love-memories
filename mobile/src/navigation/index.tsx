@@ -3,9 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import { ActivityIndicator, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useUnreadCount } from '../screens/Notifications/useNotificationsViewModel';
+import { ActivityIndicator, View } from 'react-native';
+import { CircleUser, Heart, Home, Mail, MessageCircleHeart } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -277,23 +276,6 @@ function ProfileNavigator() {
 // 5-tab bottom navigator (visible tabs only)
 // ---------------------------------------------------------------------------
 
-function NotificationTabIcon({ color, size }: { color: string; size: number }) {
-  const count = useUnreadCount();
-  return (
-    <View>
-      <Icon name={count > 0 ? 'bell' : 'bell-outline'} size={size} color={color} />
-      {count > 0 && (
-        <View
-          className="absolute -top-1 -right-1 bg-error rounded-full items-center justify-center"
-          style={{ minWidth: 14, height: 14, paddingHorizontal: 3 }}>
-          <Text className="text-white text-[9px] font-bold leading-none">
-            {count > 99 ? '99+' : count}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
 
 function MainTabNavigator() {
   return (
@@ -309,7 +291,7 @@ function MainTabNavigator() {
         component={DashboardScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => <Icon name="home-heart" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.5} />,
         }}
       />
       <MainTab.Screen
@@ -317,7 +299,7 @@ function MainTabNavigator() {
         component={MomentsNavigator}
         options={{
           tabBarLabel: 'Moments',
-          tabBarIcon: ({ color, size }) => <Icon name="heart-multiple-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} strokeWidth={1.5} />,
         }}
       />
       <MainTab.Screen
@@ -325,7 +307,7 @@ function MainTabNavigator() {
         component={DailyQuestionsScreen}
         options={{
           tabBarLabel: 'Daily Q&A',
-          tabBarIcon: ({ color, size }) => <Icon name="message-heart-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <MessageCircleHeart size={size} color={color} strokeWidth={1.5} />,
         }}
       />
       <MainTab.Screen
@@ -333,7 +315,7 @@ function MainTabNavigator() {
         component={LettersNavigator}
         options={{
           tabBarLabel: 'Letters',
-          tabBarIcon: ({ color, size }) => <Icon name="email-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Mail size={size} color={color} strokeWidth={1.5} />,
         }}
       />
       <MainTab.Screen
@@ -341,7 +323,7 @@ function MainTabNavigator() {
         component={ProfileNavigator}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => <Icon name="account-circle-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <CircleUser size={size} color={color} strokeWidth={1.5} />,
         }}
       />
     </MainTab.Navigator>
@@ -423,7 +405,7 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer theme={AppTheme}>
+    <NavigationContainer theme={AppTheme as any}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
         {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}

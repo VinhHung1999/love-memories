@@ -12,7 +12,7 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Heart, ImageIcon, Plus } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -97,7 +97,7 @@ function MomentCard({
           />
         ) : (
           <View className="w-full h-[110px] items-center justify-center bg-primary/12">
-            <Icon name="image-outline" size={28} color={colors.textLight} />
+            <ImageIcon size={28} color={colors.textLight} strokeWidth={1.5} />
           </View>
         )}
         {/* Date badge */}
@@ -167,7 +167,7 @@ export default function MomentsScreen() {
             onPress={openCreateForm}
             className="w-10 h-10 rounded-full items-center justify-center bg-white/20"
           >
-            <Icon name="plus" size={22} color="#fff" />
+            <Plus size={22} strokeWidth={1.5} />
           </TouchableOpacity>
         )}
         renderFooter={() => (
@@ -204,7 +204,7 @@ export default function MomentsScreen() {
         <MomentsLoadingSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="heart-multiple-outline"
+          icon={Heart}
           title={t.moments.emptyTitle}
           subtitle={t.moments.emptySubtitle}
           actionLabel={t.moments.emptyAction}

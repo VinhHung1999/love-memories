@@ -9,6 +9,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeaderIconButton from './HeaderIconButton';
+import { ArrowLeft } from 'lucide-react-native';
 import { FloatingHearts } from './FloatingHearts';
 
 interface CollapsibleHeaderProps {
@@ -135,7 +136,7 @@ export default function CollapsibleHeader({
                 </Animated.View>
               ) : null}
           <View className="flex-row items-center justify-between">
-            {hasBack && onBack ? <View className="mr-3"><HeaderIconButton name="arrow-left" onPress={onBack} dark={dark} /></View> : null}
+            {hasBack && onBack ? <View className="mr-3"><HeaderIconButton icon={ArrowLeft} onPress={onBack} dark={dark} /></View> : null}
             {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
             <View className="flex-1">
               <Animated.Text

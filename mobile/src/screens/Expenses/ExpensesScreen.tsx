@@ -12,7 +12,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Banknote, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Expense, DailyStats } from '../../lib/api';
@@ -32,7 +32,6 @@ import {
   computeChartTicks,
   toLocalDateString,
 } from './expensesConstants';
-import HeaderIconButton from '@/components/HeaderIconButton';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
@@ -313,13 +312,13 @@ export default function ExpensesScreen() {
               className="w-9 h-9 rounded-xl items-center justify-center"
               style={{ backgroundColor: colors.textDark + '14' }}
             >
-              <Icon name="tune-variant" size={18} color={colors.textDark} />
+              <SlidersHorizontal size={18} color={colors.textDark} strokeWidth={1.5} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={vm.handleAdd}
               className="w-10 h-10 rounded-full items-center justify-center bg-primary"
             >
-              <Icon name="plus" size={22} color="#fff" />
+              <Plus size={22} strokeWidth={1.5} />
             </TouchableOpacity>
           </View>
         )}
@@ -331,7 +330,7 @@ export default function ExpensesScreen() {
             console.log(e.nativeEvent.layout)
           }}>
             <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
-              <Icon name="chevron-left" size={18} color={colors.textMid} />
+              <ChevronLeft size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
             <View className="items-center">
               <Text className="text-base font-bold text-textDark">{vm.monthLabel}</Text>
@@ -344,7 +343,7 @@ export default function ExpensesScreen() {
             <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
               className="w-9 h-9 items-center justify-center rounded-xl"
               style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : '#fff' }}>
-              <Icon name="chevron-right" size={18} color={colors.textMid} />
+              <ChevronRight size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
           </View>
           )
@@ -368,7 +367,7 @@ export default function ExpensesScreen() {
             </>
           ) : vm.isEmpty && vm.categoryBreakdown.length === 0 ? (
             <EmptyState
-              icon="cash-multiple"
+              icon={Banknote}
               title={t.expenses.emptyTitle}
               subtitle={t.expenses.emptySubtitle}
               actionLabel={t.expenses.emptyAction}

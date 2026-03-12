@@ -51,9 +51,15 @@ export function useDailyQuestionsViewModel() {
       if (!todayData?.question.id) throw new Error('No question');
       await dailyQuestionsApi.answer(todayData.question.id, answerText.trim());
     },
-    onSuccess: () => {
+    onSuccess: (_, __, ___) => {
+      // Optimistic update: immediately reflect answered state in UI
+      const submittedAnswer = answerText.trim();
+      queryClient.setQueryData<DailyQuestionToday>(['daily-question-today'], old =>
+        old ? { ...old, myAnswer: submittedAnswer } : old,
+      );
       setAnswerText('');
       setSubmitError(null);
+      // Background refetch to get partner answer + full server state
       queryClient.invalidateQueries({ queryKey: ['daily-question-today'] });
       queryClient.invalidateQueries({ queryKey: ['daily-question-history'] });
     },

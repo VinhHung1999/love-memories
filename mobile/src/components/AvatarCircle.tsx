@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Camera } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 
 interface AvatarCircleProps {
@@ -40,7 +40,7 @@ export default function AvatarCircle({
       )}
       {showCameraBadge && (
         <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary items-center justify-center border-2 border-white">
-          <Icon name="camera" size={13} color={colors.white} />
+          <Camera size={13} color={colors.white} strokeWidth={1.5} />
         </View>
       )}
     </Pressable>

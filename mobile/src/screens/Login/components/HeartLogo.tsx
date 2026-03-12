@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Heart } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 
 export default function HeartLogo() {
@@ -24,7 +24,7 @@ export default function HeartLogo() {
         style={{ transform: [{ scale: pulse }] }}
       />
       <View className="w-12 h-12 rounded-full bg-primary items-center justify-center shadow-lg">
-        <Icon name="heart" size={22} color={colors.white} />
+        <Heart size={22} color={colors.white} strokeWidth={1.5} />
       </View>
     </View>
   );

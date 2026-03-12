@@ -1,7 +1,7 @@
 import React from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Calendar, Heart, Plus } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanListViewModel } from './usePlanListViewModel';
@@ -48,7 +48,7 @@ export default function PlanListScreen() {
         scrollY={scrollY}
         onBack={vm.handleBack}
         renderRight={() => (
-          <HeaderIconButton name="heart-outline" onPress={vm.handleNavigateWishes} />
+          <HeaderIconButton icon={Heart} onPress={vm.handleNavigateWishes} />
         )}
       />
 
@@ -56,7 +56,7 @@ export default function PlanListScreen() {
         <PlansSkeleton />
       ) : vm.isEmpty ? (
         <EmptyState
-          icon="calendar-heart"
+          icon={Calendar}
           title={t.datePlanner.planEmptyTitle}
           subtitle={t.datePlanner.planEmptySubtitle}
           actionLabel={t.datePlanner.planEmptyAction}
@@ -93,7 +93,7 @@ export default function PlanListScreen() {
         onPress={() => navigation.showBottomSheet(PlanFormSheet)}
         className="absolute bottom-6 right-5 w-14 h-14 rounded-full items-center justify-center shadow-lg"
         style={{ backgroundColor: colors.primary }}>
-        <Icon name="plus" size={24} color="#fff" />
+        <Plus size={24} strokeWidth={1.5} />
       </Pressable>
     </View>
   );

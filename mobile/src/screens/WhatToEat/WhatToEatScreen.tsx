@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ArrowLeft, ArrowRight, Check, CheckCircle, ChefHat, Hash, List } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Recipe } from '../../types';
@@ -42,7 +42,7 @@ function RecipePickCard({
           <Image source={{ uri: coverPhoto.url }} className="w-full h-full" resizeMode="cover" />
         ) : (
           <View className="w-full h-full items-center justify-center">
-            <Icon name="chef-hat" size={22} color={colors.primary} />
+            <ChefHat size={22} color={colors.primary} strokeWidth={1.5} />
           </View>
         )}
       </View>
@@ -60,19 +60,19 @@ function RecipePickCard({
         <View className="flex-row items-center gap-2 mt-1">
           {recipe.ingredients.length > 0 ? (
             <View className="flex-row items-center gap-0.5">
-              <Icon name="format-list-bulleted" size={10} color={colors.textLight} />
+              <List size={10} color={colors.textLight} strokeWidth={1.5} />
               <Text className="text-[10px] text-textLight">{recipe.ingredients.length} ingr.</Text>
             </View>
           ) : null}
           {recipe.steps.length > 0 ? (
             <View className="flex-row items-center gap-0.5">
-              <Icon name="numeric" size={10} color={colors.textLight} />
+              <Hash size={10} color={colors.textLight} strokeWidth={1.5} />
               <Text className="text-[10px] text-textLight">{recipe.steps.length} steps</Text>
             </View>
           ) : null}
           {recipe.cooked ? (
             <View className="flex-row items-center gap-0.5">
-              <Icon name="check-circle" size={10} color={colors.success} />
+              <CheckCircle size={10} color={colors.success} strokeWidth={1.5} />
               <Text className="text-[10px] text-green-600">Cooked</Text>
             </View>
           ) : null}
@@ -83,7 +83,7 @@ function RecipePickCard({
       <View
         className="w-6 h-6 rounded-full border-2 items-center justify-center"
         style={{ backgroundColor: selected ? colors.primary : 'transparent', borderColor: selected ? colors.primary : colors.border }}>
-        {selected ? <Icon name="check" size={13} color="#fff" /> : null}
+        {selected ? <Check size={13} strokeWidth={1.5} /> : null}
       </View>
     </Pressable>
   );
@@ -103,13 +103,13 @@ function ActiveSessionBanner({ onResume }: { onResume: () => void }) {
         end={{ x: 1, y: 0 }}
         className="px-4 py-4 flex-row items-center gap-3">
         <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
-          <Icon name="chef-hat" size={20} color="#fff" />
+          <ChefHat size={20} strokeWidth={1.5} />
         </View>
         <View className="flex-1">
           <Text className="text-white font-bold text-sm">{t.whatToEat.activeSession}</Text>
           <Text className="text-white/80 text-xs mt-0.5">Tap to resume where you left off</Text>
         </View>
-        <Icon name="arrow-right" size={20} color="#fff" />
+        <ArrowRight size={20} strokeWidth={1.5} />
       </LinearGradient>
     </Pressable>
   );
@@ -128,7 +128,7 @@ export default function WhatToEatScreen() {
       <View className="px-5 pt-4 pb-3 bg-white border-b border-border/30">
         <View className="flex-row items-center gap-3">
           <Pressable onPress={vm.handleBack} className="w-9 h-9 rounded-xl bg-gray-100 items-center justify-center">
-            <Icon name="arrow-left" size={18} color={colors.textDark} />
+            <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.5} />
           </Pressable>
           <View className="flex-1">
             <Text className="text-lg font-bold text-textDark">{t.whatToEat.title}</Text>
@@ -165,7 +165,7 @@ export default function WhatToEatScreen() {
           </ScrollView>
         ) : vm.recipes.length === 0 ? (
           <View className="flex-1 items-center justify-center pb-20">
-            <Icon name="chef-hat" size={48} color={colors.textLight} />
+            <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
             <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noRecipes}</Text>
             <Text className="text-textLight text-sm mt-1">{t.whatToEat.addRecipesFirst}</Text>
           </View>
@@ -212,7 +212,7 @@ export default function WhatToEatScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="flex-row items-center gap-1.5 px-4 py-2.5">
-              <Icon name="chef-hat" size={14} color="#fff" />
+              <ChefHat size={14} strokeWidth={1.5} />
               <Text className="text-white font-bold text-sm">{t.whatToEat.selecting.startShopping}</Text>
             </LinearGradient>
           </Pressable>
