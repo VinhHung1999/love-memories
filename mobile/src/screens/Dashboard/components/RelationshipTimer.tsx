@@ -9,10 +9,16 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import LinearGradient from 'react-native-linear-gradient';
 import { Heart } from 'lucide-react-native';
 import AvatarCircle from '../../../components/AvatarCircle';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
+
+// Pale rose ring color around avatars
+const AVATAR_RING = '#F9D0D8';
+// Gradient midpoint for connector line
+const CONNECTOR_MID = '#F4C5CC';
 
 interface RelationshipTimerProps {
   duration?: { years: number; months: number; days: number; totalDays: number } | null;
@@ -21,6 +27,17 @@ interface RelationshipTimerProps {
   userInitials?: string;
   partnerAvatar?: string | null;
   partnerInitials?: string;
+}
+
+function AvatarWithRing({ uri, initials }: { uri?: string | null; initials: string }) {
+  return (
+    // 2px pale-rose ring: outer 60px container, inner 56px AvatarCircle
+    <View
+      className="rounded-full items-center justify-center"
+      style={{ width: 60, height: 60, backgroundColor: AVATAR_RING }}>
+      <AvatarCircle uri={uri} initials={initials} size={56} />
+    </View>
+  );
 }
 
 export function RelationshipTimer({
@@ -59,29 +76,40 @@ export function RelationshipTimer({
     <Animated.View entering={FadeIn.duration(600)}>
       <View className="bg-white rounded-3xl border border-borderSoft px-5 py-4">
 
-        {/* Avatar row with animated heart connector */}
-        <View className="flex-row items-center">
-          <AvatarCircle uri={userAvatar} initials={userInitials} size={56} />
+        {/* Avatar row */}
+        <View className="flex-row items-center justify-between">
+          <AvatarWithRing uri={userAvatar} initials={userInitials} />
 
-          {/* Connector: line — heart — line */}
-          <View className="flex-1 flex-row items-center px-3">
-            <View className="flex-1 h-[1px]" style={{ backgroundColor: colors.primary + '33' }} />
-            <Animated.View style={heartStyle} className="mx-2">
-              <Heart
-                size={22}
-                color={colors.primary}
-                fill={colors.primary}
-                strokeWidth={0}
-              />
+          {/* Connector: gradient line with floating heart centered on top */}
+          <View className="flex-1 mx-3 items-center justify-center" style={{ height: 60 }}>
+            {/* Gradient fade line */}
+            <LinearGradient
+              colors={['transparent', CONNECTOR_MID, 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ position: 'absolute', left: 0, right: 0, height: 1 }}
+            />
+            {/* Heart with white cutout behind it */}
+            <Animated.View style={heartStyle} className="items-center justify-center">
+              {/* White cutout circle lifts heart off the line */}
+              <View
+                className="rounded-full bg-white items-center justify-center"
+                style={{ width: 28, height: 28 }}>
+                <Heart
+                  size={20}
+                  color={colors.primary}
+                  fill={colors.primary}
+                  strokeWidth={0}
+                />
+              </View>
             </Animated.View>
-            <View className="flex-1 h-[1px]" style={{ backgroundColor: colors.primary + '33' }} />
           </View>
 
-          <AvatarCircle uri={partnerAvatar} initials={partnerInitials} size={56} />
+          <AvatarWithRing uri={partnerAvatar} initials={partnerInitials} />
         </View>
 
         {/* Days count */}
-        <Text className="text-center text-[12px] text-textMid font-body mt-3">
+        <Text className="text-center text-[13px] text-textMid font-body mt-3">
           {daysLabel}
         </Text>
 
