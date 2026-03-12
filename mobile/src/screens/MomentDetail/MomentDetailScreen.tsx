@@ -11,15 +11,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
-import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
 import {
   ChevronRight,
   ExternalLink,
-  Heart,
   Images,
   MapPin,
   Music2,
@@ -29,13 +23,13 @@ import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import OverlayHeader from '../../components/OverlayHeader';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
 import CommentsSection from './components/CommentsSection';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
+import DetailScreenLayout from '../../components/DetailScreenLayout';
 
 // ── Spotify rich card ──────────────────────────────────────────────────────────
 
@@ -190,10 +184,6 @@ export default function MomentDetailScreen() {
   const navigation = useAppNavigation();
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => {
-    scrollY.value = e.contentOffset.y;
-  });
 
   if (vm.isLoading || !moment) {
     return <MomentDetailLoadingSkeleton />;
@@ -202,241 +192,172 @@ export default function MomentDetailScreen() {
   const coverPhoto = moment.photos[0];
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
-      <Animated.ScrollView
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Full-bleed cover (280px) ── */}
-        <View style={{ height: 280 }}>
-          {coverPhoto ? (
-            <>
-              <FastImage
-                source={{
-                  uri: coverPhoto.url,
-                  priority: FastImage.priority.high,
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                }}
-                resizeMode={FastImage.resizeMode.cover}
-              />
-              <LinearGradient
-                colors={['rgba(0,0,0,0.28)', 'transparent', 'rgba(0,0,0,0.50)']}
-                locations={[0, 0.4, 1]}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                }}
-              />
-            </>
-          ) : (
-            <View
-              className="w-full items-center justify-center bg-primary/10"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            >
-              <Heart size={32} color={colors.primary} strokeWidth={1.5} />
-            </View>
-          )}
-          {/* Title at bottom of cover */}
-          <View
-            style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}
-          >
-            <Text
-              style={{
-                fontSize: 26,
-                fontWeight: 'bold',
-                color: coverPhoto ? '#fff' : '#2D2D2D',
-                lineHeight: 32,
-              }}
-              numberOfLines={2}
-            >
-              {moment.title}
-            </Text>
-          </View>
-        </View>
-
-        {/* ── Content (overlaps cover by 24px, rounded top) ── */}
-        <View className="bg-white rounded-t-3xl -mt-6 pb-[80px]">
-          {/* ── Photo thumbnail strip ── */}
-          {moment.photos.length > 1 ? (
-            <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-2">
-                  {moment.photos.map((photo, idx) => (
-                    <Pressable
-                      key={photo.id}
-                      onPress={() => vm.handleOpenGallery(moment.photos, idx)}
-                    >
-                      <FastImage
-                        source={{
-                          uri: photo.url,
-                          priority: FastImage.priority.high,
-                        }}
-                        style={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 12,
-                          borderWidth: idx === 0 ? 2 : 0,
-                          borderColor: colors.primary,
-                          opacity: idx === 0 ? 1 : 0.75,
-                        }}
-                        resizeMode={FastImage.resizeMode.cover}
-                      />
-                    </Pressable>
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
-          ) : (
-            <View className="h-4" />
-          )}
-
-          {/* ── Title card ── */}
-          <Card>
-            {/* Date row */}
-            <View className="flex-row items-center mb-2">
-              <Text className="text-xs text-textMid">
-                📅 {formatDate(moment.date)}
-              </Text>
-            </View>
-
-            <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
-              {moment.title}
-            </Text>
-
-            {moment.caption ? (
-              <Text className="text-sm text-textMid italic leading-relaxed mb-2">
-                "{moment.caption}"
-              </Text>
-            ) : null}
-
-            {/* Location */}
-            {moment.location ? (
-              <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
-                <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-                <Text className="text-xs text-textMid flex-1">
-                  {moment.location}
-                </Text>
-                {moment.latitude && moment.longitude ? (
-                  <Pressable
-                    onPress={() =>
-                      Linking.openURL(
-                        `https://maps.google.com/?q=${moment.latitude},${moment.longitude}`,
-                      ).catch(() => {})
-                    }
-                  >
-                    <Text className="text-xs font-semibold text-accent">
-                      {t.moments.detail.mapsLink}
-                    </Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null}
-
-            {/* Tags */}
-            {moment.tags.length > 0 ? (
-              <View className="flex-row flex-wrap gap-1.5 pt-2">
-                {moment.tags.map(tag => (
-                  <TagBadge key={tag} label={tag} variant="display" />
-                ))}
-              </View>
-            ) : null}
-          </Card>
-
-          {/* ── Spotify track card ── */}
-          {moment.spotifyUrl ? (
-            <Card>
-              <CardTitle>{t.moments.detail.spotifyLink}</CardTitle>
-              <View className="py-2">
-                <SpotifyTrackCard spotifyUrl={moment.spotifyUrl} />
-              </View>
-            </Card>
-          ) : null}
-
-          {/* ── Photos gallery link ── */}
-          {moment.photos.length > 0 ? (
-            <Card>
-              <TouchableOpacity
-                onPress={() => vm.handleOpenGallery(moment.photos, 0)}
-                className="flex-row items-center gap-2 py-1"
-              >
-                <Images size={16} color={colors.primary} strokeWidth={1.5} />
-                <Text className="text-sm font-semibold text-primary flex-1">
-                  {t.moments.detail.viewGallery} ({moment.photos.length})
-                </Text>
-                <ChevronRight
-                  size={16}
-                  color={colors.textLight}
-                  strokeWidth={1.5}
-                />
-              </TouchableOpacity>
-            </Card>
-          ) : null}
-
-          {/* ── Voice memos ── */}
-          {moment.audios.length > 0 ? (
-            <Card>
-              <CardTitle>{t.moments.detail.voiceMemo}</CardTitle>
-              <VoiceMemoSection
-                audios={moment.audios}
-                playingAudioId={vm.playingAudioId}
-                audioProgress={vm.audioProgress}
-                onPlay={vm.handlePlayAudio}
-                onStop={vm.handleStopAudio}
-              />
-            </Card>
-          ) : null}
-
-          {/* ── Reactions ── */}
-          <Card>
-            <CardTitle>{t.moments.detail.reactions}</CardTitle>
-            <ReactionsBar
-              presetEmojis={vm.presetEmojis}
-              reactionCounts={vm.reactionCounts}
-              hasReacted={vm.hasReacted}
-              onToggle={vm.handleToggleReaction}
-            />
-          </Card>
-
-          {/* ── Comments ── */}
-          <Card>
-            <CardTitle>{t.moments.detail.comments}</CardTitle>
-            <CommentsSection
-              comments={moment.comments}
-              commentText={vm.commentText}
-              currentUserName={vm.user?.name}
-              isSubmitting={vm.isCommentSubmitting}
-              onChangeText={vm.setCommentText}
-              onSubmit={vm.handleAddComment}
-              onDelete={vm.handleDeleteComment}
-            />
-          </Card>
-        </View>
-      </Animated.ScrollView>
-
-      {/* Floating overlay header */}
-      <OverlayHeader
+    <KeyboardAvoidingView className="flex-1" behavior="padding">
+      <DetailScreenLayout
+        title={moment.title}
+        coverImageUri={coverPhoto?.url}
         onBack={vm.handleBack}
         onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
         onDelete={vm.handleDeleteMoment}
-        scrollY={scrollY}
-        title={moment.title}
-      />
+      >
+        {/* ── Photo thumbnail strip ── */}
+        {moment.photos.length > 1 ? (
+          <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-2">
+                {moment.photos.map((photo, idx) => (
+                  <Pressable
+                    key={photo.id}
+                    onPress={() => vm.handleOpenGallery(moment.photos, idx)}
+                  >
+                    <FastImage
+                      source={{
+                        uri: photo.url,
+                        priority: FastImage.priority.high,
+                      }}
+                      style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 12,
+                        borderWidth: idx === 0 ? 2 : 0,
+                        borderColor: colors.primary,
+                        opacity: idx === 0 ? 1 : 0.75,
+                      }}
+                      resizeMode={FastImage.resizeMode.cover}
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        ) : (
+          <View className="h-4" />
+        )}
+
+        {/* ── Title card ── */}
+        <Card>
+          {/* Date row */}
+          <View className="flex-row items-center mb-2">
+            <Text className="text-xs text-textMid">
+              📅 {formatDate(moment.date)}
+            </Text>
+          </View>
+
+          <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
+            {moment.title}
+          </Text>
+
+          {moment.caption ? (
+            <Text className="text-sm text-textMid italic leading-relaxed mb-2">
+              "{moment.caption}"
+            </Text>
+          ) : null}
+
+          {/* Location */}
+          {moment.location ? (
+            <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
+              <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
+              <Text className="text-xs text-textMid flex-1">
+                {moment.location}
+              </Text>
+              {moment.latitude && moment.longitude ? (
+                <Pressable
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://maps.google.com/?q=${moment.latitude},${moment.longitude}`,
+                    ).catch(() => {})
+                  }
+                >
+                  <Text className="text-xs font-semibold text-accent">
+                    {t.moments.detail.mapsLink}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
+
+          {/* Tags */}
+          {moment.tags.length > 0 ? (
+            <View className="flex-row flex-wrap gap-1.5 pt-2">
+              {moment.tags.map(tag => (
+                <TagBadge key={tag} label={tag} variant="display" />
+              ))}
+            </View>
+          ) : null}
+        </Card>
+
+        {/* ── Spotify track card ── */}
+        {moment.spotifyUrl ? (
+          <Card>
+            <CardTitle>{t.moments.detail.spotifyLink}</CardTitle>
+            <View className="py-2">
+              <SpotifyTrackCard spotifyUrl={moment.spotifyUrl} />
+            </View>
+          </Card>
+        ) : null}
+
+        {/* ── Photos gallery link ── */}
+        {moment.photos.length > 0 ? (
+          <Card>
+            <TouchableOpacity
+              onPress={() => vm.handleOpenGallery(moment.photos, 0)}
+              className="flex-row items-center gap-2 py-1"
+            >
+              <Images size={16} color={colors.primary} strokeWidth={1.5} />
+              <Text className="text-sm font-semibold text-primary flex-1">
+                {t.moments.detail.viewGallery} ({moment.photos.length})
+              </Text>
+              <ChevronRight
+                size={16}
+                color={colors.textLight}
+                strokeWidth={1.5}
+              />
+            </TouchableOpacity>
+          </Card>
+        ) : null}
+
+        {/* ── Voice memos ── */}
+        {moment.audios.length > 0 ? (
+          <Card>
+            <CardTitle>{t.moments.detail.voiceMemo}</CardTitle>
+            <VoiceMemoSection
+              audios={moment.audios}
+              playingAudioId={vm.playingAudioId}
+              audioProgress={vm.audioProgress}
+              onPlay={vm.handlePlayAudio}
+              onStop={vm.handleStopAudio}
+            />
+          </Card>
+        ) : null}
+
+        {/* ── Reactions ── */}
+        <Card>
+          <CardTitle>{t.moments.detail.reactions}</CardTitle>
+          <ReactionsBar
+            presetEmojis={vm.presetEmojis}
+            reactionCounts={vm.reactionCounts}
+            hasReacted={vm.hasReacted}
+            onToggle={vm.handleToggleReaction}
+          />
+        </Card>
+
+        {/* ── Comments ── */}
+        <Card>
+          <CardTitle>{t.moments.detail.comments}</CardTitle>
+          <CommentsSection
+            comments={moment.comments}
+            commentText={vm.commentText}
+            currentUserName={vm.user?.name}
+            isSubmitting={vm.isCommentSubmitting}
+            onChangeText={vm.setCommentText}
+            onSubmit={vm.handleAddComment}
+            onDelete={vm.handleDeleteComment}
+          />
+        </Card>
+
+        {/* Bottom spacer */}
+        <View className="h-20" />
+      </DetailScreenLayout>
     </KeyboardAvoidingView>
   );
 }
