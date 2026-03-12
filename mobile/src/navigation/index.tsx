@@ -283,7 +283,11 @@ function MainTabNavigator() {
       screenOptions={{
         tabBarActiveTintColor: AppTheme.colors.primary,
         tabBarInactiveTintColor: AppTheme.colors.textMid,
-        tabBarStyle: { borderTopColor: AppTheme.colors.border },
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#F0E6E3',
+          borderTopWidth: 1,
+        },
         headerShown: false,
       }}>
       <MainTab.Screen

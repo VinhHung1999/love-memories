@@ -85,7 +85,7 @@ function MomentCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-accent/15 mb-3"
+      className="bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSoft mb-3"
     >
       {/* Photo */}
       <View className="w-full min-h-[110px]">
@@ -153,7 +153,7 @@ export default function MomentsScreen() {
   const openCreateForm = () => navigation.showBottomSheet(CreateMomentSheet);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-baseBg">
       {/* ── Collapsible Header ── */}
       <CollapsibleHeader
         title={t.moments.title}
@@ -161,7 +161,6 @@ export default function MomentsScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
-        gradientColors={['#FFB4B4', '#C7CEEA', '#B4B8D5']}
         renderRight={() => (
           <TouchableOpacity
             onPress={openCreateForm}

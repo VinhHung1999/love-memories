@@ -4,16 +4,16 @@
  * Tap to open DailyQuestionsTab full-screen.
  */
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Check, CheckCheck, MessageCircle, Star, Smile, Heart, Telescope } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
+import { useAppColors } from '../../navigation/theme';
 import { dailyQuestionsApi } from '../../lib/api';
 import t from '../../locales/en';
 import type { DailyQuestionToday } from '../../types';
-import { GradientCard } from '../../components/GradientCard';
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
   general:  MessageCircle,
@@ -25,6 +25,7 @@ const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?:
 
 export default function DailyQuestionCard() {
   const { user } = useAuth();
+  const colors = useAppColors();
   const navigation = useNavigation<any>();
 
   const { data, isLoading } = useQuery<DailyQuestionToday>({
@@ -46,13 +47,10 @@ export default function DailyQuestionCard() {
 
   return (
     <Animated.View entering={FadeInDown.delay(160).duration(500)}>
-      <GradientCard
-        colors={['#FF6B6B', '#FF8E8E', '#FFB4B4']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="px-4 py-2.5"
-        pressableClassName="shadow-lg shadow-primary/30"
-        onPress={() => navigation.navigate('DailyQuestionsTab')}>
+      <Pressable
+        onPress={() => navigation.navigate('DailyQuestionsTab')}
+        className="rounded-3xl overflow-hidden shadow-sm border border-borderSoft px-4 py-3"
+        style={{ backgroundColor: colors.primary }}>
 
         {/* Compact header */}
         <View className="flex-row items-center gap-1.5 mb-2">
@@ -78,7 +76,7 @@ export default function DailyQuestionCard() {
         <Text className="text-[14px] font-bold text-white leading-tight" numberOfLines={2}>
           {question.text}
         </Text>
-      </GradientCard>
+      </Pressable>
     </Animated.View>
   );
 }

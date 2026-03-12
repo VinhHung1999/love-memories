@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
 import { Heart } from 'lucide-react-native';
 import t from '../../../locales/en';
 
@@ -16,12 +15,7 @@ export function RelationshipTimer({ duration }: RelationshipTimerProps) {
   return (
     <Animated.View entering={FadeIn.duration(600)}>
       {/* Duration Card */}
-      <View className="rounded-3xl overflow-hidden shadow-lg shadow-primary/15 self-stretch">
-        <LinearGradient
-          colors={['#FFE4EA', '#FFD4DE', '#FFC4D0']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-5 py-3">
+      <View className="rounded-3xl shadow-sm self-stretch bg-white border border-borderSoft px-5 py-3">
 
           {/* Header with hearts */}
           <View className="flex-row items-center justify-center gap-1.5 mb-2.5">
@@ -81,7 +75,6 @@ export function RelationshipTimer({ duration }: RelationshipTimerProps) {
             <Heart size={6} strokeWidth={1.5} />
             <Heart size={5} strokeWidth={1.5} />
           </View>
-        </LinearGradient>
       </View>
     </Animated.View>
   );

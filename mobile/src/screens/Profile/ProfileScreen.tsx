@@ -80,7 +80,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-baseBg">
 
       {/* ── Collapsible Header ── */}
       <CollapsibleHeader

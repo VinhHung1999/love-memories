@@ -7,7 +7,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, ArrowRight, Check, CheckCircle, ChefHat, Hash, List } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
@@ -96,21 +95,15 @@ function ActiveSessionBanner({ onResume }: { onResume: () => void }) {
   return (
     <Pressable
       onPress={onResume}
-      className="mx-4 mb-4 rounded-2xl overflow-hidden">
-      <LinearGradient
-        colors={[colors.primary + 'DD', colors.secondary + 'DD']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        className="px-4 py-4 flex-row items-center gap-3">
-        <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
-          <ChefHat size={20} strokeWidth={1.5} />
-        </View>
-        <View className="flex-1">
-          <Text className="text-white font-bold text-sm">{t.whatToEat.activeSession}</Text>
-          <Text className="text-white/80 text-xs mt-0.5">Tap to resume where you left off</Text>
-        </View>
-        <ArrowRight size={20} strokeWidth={1.5} />
-      </LinearGradient>
+      className="mx-4 mb-4 rounded-2xl overflow-hidden bg-white border border-borderSoft shadow-sm px-4 py-4 flex-row items-center gap-3">
+      <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
+        <ChefHat size={20} color={colors.primary} strokeWidth={1.5} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-textDark font-bold text-sm">{t.whatToEat.activeSession}</Text>
+        <Text className="text-textMid text-xs mt-0.5">Tap to resume where you left off</Text>
+      </View>
+      <ArrowRight size={20} color={colors.textMid} strokeWidth={1.5} />
     </Pressable>
   );
 }
@@ -122,7 +115,7 @@ export default function WhatToEatScreen() {
   const vm = useWhatToEatViewModel();
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-baseBg" edges={['top']}>
 
       {/* ── Header ── */}
       <View className="px-5 pt-4 pb-3 bg-white border-b border-border/30">
@@ -206,15 +199,10 @@ export default function WhatToEatScreen() {
           <Pressable
             onPress={vm.handleStart}
             disabled={vm.isCreating}
-            className="overflow-hidden rounded-2xl">
-            <LinearGradient
-              colors={[colors.primary, colors.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="flex-row items-center gap-1.5 px-4 py-2.5">
-              <ChefHat size={14} strokeWidth={1.5} />
-              <Text className="text-white font-bold text-sm">{t.whatToEat.selecting.startShopping}</Text>
-            </LinearGradient>
+            className="rounded-2xl px-4 py-2.5 flex-row items-center gap-1.5"
+            style={{ backgroundColor: colors.primary }}>
+            <ChefHat size={14} strokeWidth={1.5} />
+            <Text className="text-white font-bold text-sm">{t.whatToEat.selecting.startShopping}</Text>
           </Pressable>
         </Animated.View>
       ) : null}

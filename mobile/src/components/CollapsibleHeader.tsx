@@ -6,11 +6,9 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import type { SharedValue } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HeaderIconButton from './HeaderIconButton';
 import { ArrowLeft } from 'lucide-react-native';
-import { FloatingHearts } from './FloatingHearts';
 
 interface CollapsibleHeaderProps {
   title: string;
@@ -18,37 +16,34 @@ interface CollapsibleHeaderProps {
   expandedHeight?: number;
   collapsedHeight?: number;
   renderExpandedContent?: () => React.ReactNode;
-  /** Replaces the default gradient + floating hearts background */
+  /** Replaces the default flat background */
   renderBackground?: () => React.ReactNode;
   renderLeft?: () => React.ReactNode;
   renderRight?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
-  /** White title + subtitle text (for dark gradient backgrounds). Default: false. */
+  /** Dark mode: white title text (for custom dark backgrounds). Default: false. */
   dark?: boolean;
   scrollY: SharedValue<number>;
   /** When provided, renders a back arrow on the left. Pass navigation.goBack. */
   onBack?: () => void;
   /** Hide the built-in back arrow even when onBack is provided. Default: true when onBack is set. */
   showBack?: boolean;
-  /** Custom gradient colors. Default: Rose → Lavender gradient. */
-  gradientColors?: string[];
 }
 
 export default function CollapsibleHeader({
   title,
   subtitle,
-  expandedHeight = 120, // Default for headers with subtitle
-  collapsedHeight = 56,  // Standard mobile header height
+  expandedHeight = 120,
+  collapsedHeight = 56,
   renderExpandedContent,
   renderBackground,
   renderLeft,
   renderRight,
-  dark = true,
+  dark = false,
   scrollY,
   renderFooter,
   onBack,
   showBack,
-  gradientColors = ['#FFB4B4', '#C7CEEA', '#B4B8D5'], // Rose → Lavender default
 }: CollapsibleHeaderProps) {
   const hasBack = showBack ?? !!onBack;
   const insets = useSafeAreaInsets();
@@ -57,7 +52,6 @@ export default function CollapsibleHeader({
   // ── Animated styles ─────────────────────────────────────────────────────────
 
   // Visual header slides up via translateY — pure GPU, zero layout cost.
-  // Outer spacer is STATIC so ScrollView frame never moves → no contentOffset conflict.
   // Exception: Animated transform — cannot be expressed as className.
   const innerTranslateStyle = useAnimatedStyle(() => ({
     transform: [{
@@ -75,7 +69,7 @@ export default function CollapsibleHeader({
     fontSize: interpolate(scrollY.value, [0, scrollRange], [28, 18], Extrapolation.CLAMP),
   }));
 
-  // Exception: animated opacity + maxHeight — both are Animated.Value outputs
+  // Exception: animated opacity + maxHeight
   const expandedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, scrollRange * 0.7], [1, 0], Extrapolation.CLAMP),
     maxHeight: interpolate(scrollY.value, [0, scrollRange], [200, 0], Extrapolation.CLAMP),
@@ -84,13 +78,11 @@ export default function CollapsibleHeader({
 
   return (
     <>
-      {/* Static spacer — NEVER changes height, so siblings (filter bar, ScrollView)
-          never shift position. Eliminates the contentOffset.y conflict entirely. */}
+      {/* Static spacer — NEVER changes height */}
       {/* Exception: height from insets — device-specific runtime value */}
       <View style={{ height: collapsedHeight + insets.top }} />
 
-      {/* Visual header — position:absolute, translateY only (no layout impact).
-          LinearGradient is absolute inset-0: fixed size, never re-draws. */}
+      {/* Visual header — position:absolute, translateY only (no layout impact) */}
       <Animated.View
         style={[
           {
@@ -103,6 +95,11 @@ export default function CollapsibleHeader({
             zIndex: 10,
             borderEndEndRadius: 24,
             borderBottomLeftRadius: 24,
+            // Soft shadow
+            shadowColor: '#E8788A',
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+            elevation: 2,
           },
           innerTranslateStyle,
         ]}>
@@ -110,15 +107,11 @@ export default function CollapsibleHeader({
         {renderBackground ? (
           <View className="absolute inset-0">{renderBackground()}</View>
         ) : (
-          <>
-            <LinearGradient
-              colors={gradientColors}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            />
-            <FloatingHearts count={6} color="#fff" size={10} opacity={0.10} />
-          </>
+          /* Flat soft background — #FFF8F6 with subtle bottom border */
+          <View
+            className="absolute inset-0"
+            style={{ backgroundColor: '#FFF8F6', borderBottomWidth: 1, borderBottomColor: '#F0E6E3' }}
+          />
         )}
 
         {/* Exception: paddingTop from useSafeAreaInsets() — device-specific runtime value */}
@@ -128,13 +121,13 @@ export default function CollapsibleHeader({
               {renderExpandedContent()}
             </Animated.View>
           ) : null}
-            {subtitle ? (
-                <Animated.View style={expandedStyle}>
-                  <Text className={`text-[11px] font-semibold tracking-[1.5px] uppercase mb-0.5 ${dark ? 'text-white/80' : 'text-primary'}`}>
-                    {subtitle}
-                  </Text>
-                </Animated.View>
-              ) : null}
+          {subtitle ? (
+            <Animated.View style={expandedStyle}>
+              <Text className={`text-[11px] font-semibold tracking-[1.5px] uppercase mb-0.5 ${dark ? 'text-white/80' : 'text-primary'}`}>
+                {subtitle}
+              </Text>
+            </Animated.View>
+          ) : null}
           <View className="flex-row items-center justify-between">
             {hasBack && onBack ? <View className="mr-3"><HeaderIconButton icon={ArrowLeft} onPress={onBack} dark={dark} /></View> : null}
             {renderLeft ? <View className="mr-3">{renderLeft()}</View> : null}
@@ -151,7 +144,6 @@ export default function CollapsibleHeader({
         </View>
         {renderFooter?.()}
       </Animated.View>
-      
     </>
   );
 }

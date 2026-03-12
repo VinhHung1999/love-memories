@@ -18,7 +18,7 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
 
   return (
     <Pressable onPress={onPress} className="flex-1">
-      <View className="bg-white rounded-3xl shadow-lg shadow-secondary/15 p-4 justify-between flex-1 border-2 border-secondary/10">
+      <View className="bg-white rounded-3xl shadow-sm p-4 justify-between flex-1 border border-borderSoft">
         <View className="flex-row items-center gap-1.5">
           <View className="w-6 h-6 rounded-xl bg-secondary/10 items-center justify-center">
             <CalendarHeart size={12} strokeWidth={1.5} />

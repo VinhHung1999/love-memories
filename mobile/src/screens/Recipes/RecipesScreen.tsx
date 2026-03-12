@@ -12,7 +12,6 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import FastImage from 'react-native-fast-image';
-import LinearGradient from 'react-native-linear-gradient';
 import { Bot, Check, ChefHat, FilterX, List, Plus } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
@@ -83,13 +82,9 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
             resizeMode={FastImage.resizeMode.cover}
           />
         ) : (
-          <LinearGradient
-            colors={[colors.primary + '22', colors.secondary + '33']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="w-full h-[120px] items-center justify-center">
+          <View className="w-full h-[120px] items-center justify-center bg-primary/10">
             <ChefHat size={32} color={colors.primary} strokeWidth={1.5} />
-          </LinearGradient>
+          </View>
         )}
 
         {/* Cooked badge */}
@@ -182,7 +177,7 @@ export default function RecipesScreen() {
   ];
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-baseBg">
       <CollapsibleHeader
         title={t.recipes.title}
         subtitle={t.recipes.subtitle}
@@ -190,14 +185,6 @@ export default function RecipesScreen() {
         collapsedHeight={96}
         scrollY={scrollY}
         dark
-        renderBackground={() => (
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="absolute inset-0"
-          />
-        )}
         onBack={() => navigation.goBack()}
         renderRight={() => (
           <Pressable

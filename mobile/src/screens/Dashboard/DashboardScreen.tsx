@@ -36,7 +36,7 @@ export default function DashboardScreen() {
   const COLLAPSED_H = 56;
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-baseBg">
 
       <CollapsibleHeader
         title={vm.headerTitle}

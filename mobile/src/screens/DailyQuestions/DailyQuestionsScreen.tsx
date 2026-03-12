@@ -13,7 +13,6 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
 import { ChevronDown, ChevronUp, Clock, Heart, HelpCircle, MessageCircle, Send, Smile, Star, Telescope, User, Users, WifiOff } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -150,36 +149,32 @@ function TodayView({
 
       {/* ── Question card ── */}
       <Animated.View entering={FadeInDown.delay(50).duration(500)}>
-        <View className="rounded-3xl overflow-hidden shadow-sm">
-          <LinearGradient
-            colors={['#F4A8B4', '#E8788A', '#D85B6E']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="px-5 pt-5 pb-6">
-            {/* Category */}
-            <View className="flex-row items-center gap-2 mb-4">
-              <View
-                className="w-7 h-7 rounded-xl items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
-                <meta.icon size={14} color="#fff" strokeWidth={1.5} />
-              </View>
-              <Text className="text-[11px] font-bold text-white/70 tracking-widest uppercase">
-                {t.dailyQuestions.questionLabel}
-              </Text>
+        <View
+          className="rounded-3xl overflow-hidden shadow-sm px-5 pt-5 pb-6"
+          style={{ backgroundColor: colors.primary }}>
+          {/* Category */}
+          <View className="flex-row items-center gap-2 mb-4">
+            <View
+              className="w-7 h-7 rounded-xl items-center justify-center"
+              style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
+              <meta.icon size={14} color="#fff" strokeWidth={1.5} />
             </View>
-
-            {/* Question text */}
-            <Text className="text-xl font-bold text-white leading-snug">
-              {question.text}
+            <Text className="text-[11px] font-bold text-white/70 tracking-widest uppercase">
+              {t.dailyQuestions.questionLabel}
             </Text>
+          </View>
 
-            {/* Vietnamese translation */}
-            {question.textVi ? (
-              <Text className="text-[13px] text-white/65 mt-2 italic leading-relaxed">
-                {question.textVi}
-              </Text>
-            ) : null}
-          </LinearGradient>
+          {/* Question text */}
+          <Text className="text-xl font-bold text-white leading-snug">
+            {question.text}
+          </Text>
+
+          {/* Vietnamese translation */}
+          {question.textVi ? (
+            <Text className="text-[13px] text-white/65 mt-2 italic leading-relaxed">
+              {question.textVi}
+            </Text>
+          ) : null}
         </View>
       </Animated.View>
 

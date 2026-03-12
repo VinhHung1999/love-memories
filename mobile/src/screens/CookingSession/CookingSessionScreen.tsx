@@ -8,7 +8,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, Camera, Check, CheckCircle, ChefHat, Clock, ImagePlus, PlayCircle, ShoppingCart, Star, Timer, Trash2, Trophy } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
@@ -120,17 +119,12 @@ function ShoppingPhase({
         <Pressable
           onPress={onAdvance}
           disabled={!allChecked || isAdvancing}
-          className="rounded-2xl overflow-hidden">
-          <LinearGradient
-            colors={allChecked ? [colors.primary, colors.secondary] : ['#ccc', '#bbb']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <ChefHat size={14} strokeWidth={1.5} />
-            <Text className="text-white font-bold text-sm">
-              {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
-            </Text>
-          </LinearGradient>
+          className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
+          style={{ backgroundColor: allChecked ? colors.primary : '#ccc' }}>
+          <ChefHat size={14} strokeWidth={1.5} />
+          <Text className="text-white font-bold text-sm">
+            {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
+          </Text>
         </Pressable>
       </View>
     </>
@@ -336,15 +330,10 @@ function CookingPhase({
         <Pressable
           onPress={onAdvance}
           disabled={!allChecked || isAdvancing}
-          className="rounded-2xl overflow-hidden">
-          <LinearGradient
-            colors={allChecked ? [colors.primary, colors.secondary] : ['#ccc', '#bbb']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Camera size={14} strokeWidth={1.5} />
-            <Text className="text-white font-bold text-sm">{t.whatToEat.cooking.takePhoto}</Text>
-          </LinearGradient>
+          className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
+          style={{ backgroundColor: allChecked ? colors.primary : '#ccc' }}>
+          <Camera size={14} strokeWidth={1.5} />
+          <Text className="text-white font-bold text-sm">{t.whatToEat.cooking.takePhoto}</Text>
         </Pressable>
       </View>
     </>
@@ -410,15 +399,10 @@ function PhotoPhase({
       <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95 gap-2">
         <Pressable
           onPress={onAdvance}
-          className="rounded-2xl overflow-hidden">
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Star size={14} strokeWidth={1.5} />
-            <Text className="text-white font-bold text-sm">{t.whatToEat.photo.finish}</Text>
-          </LinearGradient>
+          className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
+          style={{ backgroundColor: colors.primary }}>
+          <Star size={14} strokeWidth={1.5} />
+          <Text className="text-white font-bold text-sm">{t.whatToEat.photo.finish}</Text>
         </Pressable>
         <Pressable onPress={onAdvance} className="py-2 items-center">
           <Text className="text-xs text-textLight">{t.whatToEat.photo.skip}</Text>
@@ -450,11 +434,9 @@ function RatingPhase({
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       <View className="items-center pt-10 pb-4 px-5">
-        <LinearGradient
-          colors={[colors.primary + '22', colors.secondary + '22']}
-          className="w-20 h-20 rounded-full items-center justify-center mb-4">
+        <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <ChefHat size={38} color={colors.primary} strokeWidth={1.5} />
-        </LinearGradient>
+        </View>
         <Text className="text-2xl font-bold text-textDark">Meal complete!</Text>
         {durationMin ? (
           <Text className="text-sm text-textMid mt-1">Cooked in {durationMin} minutes</Text>
@@ -510,15 +492,10 @@ function RatingPhase({
         <Pressable
           onPress={onFinish}
           disabled={isRating}
-          className="rounded-2xl overflow-hidden">
-          <LinearGradient
-            colors={[colors.primary, colors.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="py-2.5 flex-row items-center justify-center gap-1.5">
-            <Check size={14} strokeWidth={1.5} />
-            <Text className="text-white font-bold text-sm">{t.whatToEat.rating.confirm}</Text>
-          </LinearGradient>
+          className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
+          style={{ backgroundColor: colors.primary }}>
+          <Check size={14} strokeWidth={1.5} />
+          <Text className="text-white font-bold text-sm">{t.whatToEat.rating.confirm}</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -536,11 +513,9 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View className="items-center pt-10 pb-4 px-5">
-        <LinearGradient
-          colors={[colors.primary + '22', colors.secondary + '22']}
-          className="w-20 h-20 rounded-full items-center justify-center mb-4">
+        <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <Trophy size={38} color={colors.primary} strokeWidth={1.5} />
-        </LinearGradient>
+        </View>
         <Text className="text-2xl font-bold text-textDark">{t.whatToEat.completed.title}</Text>
         <Text className="text-sm text-textMid mt-1">{t.whatToEat.completed.subtitle}</Text>
       </View>
@@ -626,7 +601,7 @@ export default function CookingSessionScreen() {
 
   if (vm.isLoading || !session) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-baseBg" edges={['top']}>
         <View className="h-14 bg-white border-b border-border/30 px-4 flex-row items-center gap-3">
           <Skeleton className="w-9 h-9 rounded-xl" />
           <Skeleton className="w-40 h-4 rounded-md" />
@@ -652,7 +627,7 @@ export default function CookingSessionScreen() {
   const isCompletedAndRated = session.status === 'completed' && session.rating != null;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-baseBg" edges={['top']}>
 
       {/* ── Header ── */}
       <View className="px-5 pt-3 pb-3 bg-white flex-row items-center gap-3">

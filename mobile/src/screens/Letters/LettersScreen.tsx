@@ -53,9 +53,7 @@ export default function LettersScreen() {
         expandedHeight={140}
         collapsedHeight={96}
         scrollY={scrollY}
-        dark
         onBack={canGoBack ? vm.handleBack : undefined}
-        gradientColors={['#C7CEEA', '#B4B8D5', '#FFB4B4']}
         renderFooter={() => (
           <GlassTabBar
             tabs={tabs}

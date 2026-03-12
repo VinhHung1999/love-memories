@@ -33,7 +33,7 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
 
   return (
     <Pressable onPress={onPress}>
-      <Animated.View entering={FadeInDown.delay(180).duration(500)} className="bg-white rounded-3xl shadow-lg shadow-expensePurple/20 px-5 pt-4 pb-5 border-2 border-expensePurple/10">
+      <Animated.View entering={FadeInDown.delay(180).duration(500)} className="bg-white rounded-3xl shadow-sm px-5 pt-4 pb-5 border border-borderSoft">
         {/* Label row */}
         <View className="flex-row items-center gap-2 mb-2">
           <View className="w-7 h-7 rounded-xl bg-expensePurple/10 items-center justify-center">

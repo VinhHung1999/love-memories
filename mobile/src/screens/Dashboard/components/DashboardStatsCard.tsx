@@ -26,7 +26,7 @@ export function DashboardStatsCard({
   const displayFoodSpots = useCountUp(foodSpotsCount);
 
   return (
-    <Animated.View entering={FadeIn.duration(500)} className="bg-white rounded-3xl shadow-lg shadow-primary/15">
+    <Animated.View entering={FadeIn.duration(500)} className="bg-white rounded-3xl shadow-sm border border-borderSoft">
       <View className="px-4 py-3">
 
         {/* Duration Section */}
