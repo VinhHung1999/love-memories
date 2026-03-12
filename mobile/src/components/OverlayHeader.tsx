@@ -7,8 +7,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
 
-// Button bg — dark semi-transparent circle works on both image and white header
-const BTN_BG = 'rgba(0,0,0,0.30)';
+// Button bg — dark semi-transparent rounded-xl works on both image and white header
+const BTN_BG = 'rgba(0,0,0,0.40)';
 
 interface OverlayHeaderProps {
   onBack?: () => void;
@@ -26,9 +26,9 @@ function IconBtn({ onPress, icon: Icon }: { onPress?: () => void; icon: React.Co
   return (
     <Pressable
       onPress={onPress}
-      className="items-center justify-center rounded-full"
+      className="items-center justify-center rounded-xl"
       style={{ width: 36, height: 36, backgroundColor: BTN_BG }}>
-      <Icon size={20} color="#FFFFFF" strokeWidth={1.5} />
+      <Icon size={18} color="#FFFFFF" strokeWidth={1.75} />
     </Pressable>
   );
 }

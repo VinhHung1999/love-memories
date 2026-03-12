@@ -52,8 +52,8 @@ export default function ScreenHeader({ title, subtitle, onBack, right, scrollY }
             <Pressable
               onPress={onBack}
               className="items-center justify-center rounded-xl"
-              style={{ width: 36, height: 36, backgroundColor: colors.textDark + '10' }}>
-              <ArrowLeft size={20} color={colors.textDark} strokeWidth={1.5} />
+              style={{ width: 36, height: 36, backgroundColor: '#F0E8EC' }}>
+              <ArrowLeft size={18} color={colors.textDark} strokeWidth={1.75} />
             </Pressable>
           )}
           <View className="flex-1">
