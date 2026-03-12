@@ -25,7 +25,7 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar, 
 
   // Scroll-driven bg tint: white → #FFF0F2 over first 40px (linear, scroll-coupled per design spec)
   const bgStyle = useAnimatedStyle(() => {
-    if (!scrollY) return { backgroundColor: '#FFFFFF', shadowOpacity: 0 };
+    if (!scrollY) return { backgroundColor: '#FFFFFF', shadowOpacity: 0.06 };
     const progress = Math.min(Math.max(scrollY.value / 40, 0), 1);
     return {
       backgroundColor: interpolateColor(
