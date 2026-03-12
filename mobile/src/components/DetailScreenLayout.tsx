@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAppColors } from '../navigation/theme';
 import OverlayHeader from './OverlayHeader';
+import { Heart, LucideIcon } from 'lucide-react-native';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,7 @@ interface DetailScreenLayoutProps {
   coverSubtitle?: string;
   /** Cover photo URL. If absent, renders fallbackGradient instead */
   coverImageUri?: string;
+  icon: LucideIcon;
   /** Two-stop gradient for when there's no cover photo.
    *  Default: [primary+'22', primary+'08'] */
   fallbackGradient?: [string, string];
@@ -29,7 +31,13 @@ interface DetailScreenLayoutProps {
 }
 
 // Absolute-fill shorthand (reused for FastImage + LinearGradient)
-const FILL = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
+const FILL = {
+  position: 'absolute' as const,
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+};
 
 // OverlayHeader fade range: header fades in AFTER cover title scrolls away
 const FADE_START = 160;
@@ -43,6 +51,7 @@ export default function DetailScreenLayout({
   coverImageUri,
   fallbackGradient,
   onBack,
+  icon: Icon = Heart, 
   onEdit,
   onDelete,
   children,
@@ -67,7 +76,7 @@ export default function DetailScreenLayout({
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        style={{ backgroundColor: scrollBg }}
+        style={{ backgroundColor: scrollBg, flexGrow: 1 }}
       >
         {/* ── Full-bleed cover (280px) ── */}
         <View style={{ height: 280 }}>
@@ -75,7 +84,10 @@ export default function DetailScreenLayout({
             <>
               {/* Photo */}
               <FastImage
-                source={{ uri: coverImageUri, priority: FastImage.priority.high }}
+                source={{
+                  uri: coverImageUri,
+                  priority: FastImage.priority.high,
+                }}
                 style={FILL}
                 resizeMode={FastImage.resizeMode.cover}
               />
@@ -87,13 +99,27 @@ export default function DetailScreenLayout({
                   'rgba(0,0,0,0.00)',
                   'rgba(0,0,0,0.58)',
                 ]}
-                locations={[0, 0.30, 0.55, 1]}
+                locations={[0, 0.3, 0.55, 1]}
                 style={FILL}
               />
             </>
           ) : (
             /* Gradient fallback when no photo */
-            <LinearGradient colors={gradient} style={FILL} />
+            <>
+              <LinearGradient colors={gradient} style={FILL} />
+              <View
+                className="w-full items-center justify-center bg-primary/10"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              >
+                <Icon size={32} color={colors.primary} strokeWidth={1.5} />
+              </View>
+            </>
           )}
 
           {/* Title block: optional subtitle above, title below — pinned to cover bottom */}
@@ -105,7 +131,9 @@ export default function DetailScreenLayout({
                 className="font-semibold mb-1.5"
                 style={{
                   fontSize: 13,
-                  color: coverImageUri ? 'rgba(255,255,255,0.85)' : colors.primary,
+                  color: coverImageUri
+                    ? 'rgba(255,255,255,0.85)'
+                    : colors.primary,
                 }}
                 numberOfLines={1}
               >
@@ -128,7 +156,7 @@ export default function DetailScreenLayout({
         </View>
 
         {/* ── Content card (slides up 24px over cover, rounded top corners) ── */}
-        <View className="bg-white rounded-t-3xl -mt-6">
+        <View className="bg-white rounded-t-3xl -mt-6" style={{height: "100%"}}>
           {/* Drag pill — bottom-sheet affordance */}
           <View className="items-center pt-3 pb-1">
             <View

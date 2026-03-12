@@ -19,6 +19,7 @@ import { useNotificationsViewModel } from './useNotificationsViewModel';
 import ScreenHeader from '../../components/ScreenHeader';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
+import { useNavigation } from '@react-navigation/native';
 
 // ── Type emoji map ─────────────────────────────────────────────────────────
 
@@ -132,6 +133,7 @@ const GROUP_LABELS: Record<string, string> = {
 export default function NotificationsScreen() {
   const colors = useAppColors();
   const vm = useNotificationsViewModel();
+  const navigation = useNavigation();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
@@ -141,6 +143,7 @@ export default function NotificationsScreen() {
         title={t.notifications.title}
         subtitle={t.notifications.subtitle}
         scrollY={scrollY}
+        onBack={navigation.goBack}
         right={vm.hasUnread ? (
           <Pressable onPress={vm.handleMarkAll} className="py-1">
             <Text className="text-sm font-semibold text-primary">{t.notifications.markAll}</Text>

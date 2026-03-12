@@ -14,6 +14,7 @@ import FastImage from 'react-native-fast-image';
 import {
   ChevronRight,
   ExternalLink,
+  Heart,
   Images,
   MapPin,
   Music2,
@@ -199,6 +200,7 @@ export default function MomentDetailScreen() {
         onBack={vm.handleBack}
         onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
         onDelete={vm.handleDeleteMoment}
+        icon={Heart}
       >
         {/* ── Photo thumbnail strip ── */}
         {moment.photos.length > 1 ? (

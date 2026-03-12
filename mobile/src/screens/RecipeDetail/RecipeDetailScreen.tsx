@@ -187,6 +187,8 @@ export default function RecipeDetailScreen() {
         onBack={vm.handleBack}
         onEdit={() => navigation.showBottomSheet(CreateRecipeSheet, { recipe })}
         onDelete={vm.handleDelete}
+        icon={ChefHat}
+
       >
         {/* ── Photo thumbnail strip ── */}
         {recipe.photos.length > 1 ? (
@@ -372,7 +374,7 @@ export default function RecipeDetailScreen() {
             end={{ x: 1, y: 0 }}
             className="py-4 flex-row items-center justify-center gap-2"
           >
-            <ChefHat size={18} strokeWidth={1.5} />
+            <ChefHat size={18} strokeWidth={1.5} color='#fff'/>
             <Text className="text-white font-bold text-base">
               {t.recipes.detail.cookNow}
             </Text>

@@ -30,6 +30,7 @@ import {
   computeChartTicks,
   toLocalDateString,
 } from './expensesConstants';
+import HeaderIcon from '@/components/HeaderIcon';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
@@ -302,18 +303,12 @@ export default function ExpensesScreen() {
         onBack={vm.handleBack}
         right={
           <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={vm.handleOpenBudget}
-              className="w-9 h-9 rounded-xl items-center justify-center"
-              style={{ backgroundColor: colors.textDark + '1A' }}
-            >
-              <SlidersHorizontal size={18} color={colors.textDark} strokeWidth={1.5} />
-            </TouchableOpacity>
+            <HeaderIcon icon={SlidersHorizontal} onPress={vm.handleOpenBudget}/>
             <TouchableOpacity
               onPress={vm.handleAdd}
               className="w-10 h-10 rounded-full items-center justify-center bg-primary"
             >
-              <Plus size={22} strokeWidth={1.5} />
+              <Plus size={22} strokeWidth={1.5} color='white'/>
             </TouchableOpacity>
           </View>
         }

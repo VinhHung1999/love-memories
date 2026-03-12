@@ -6,6 +6,7 @@ import { usePlanDetailViewModel } from './usePlanDetailViewModel';
 import StopCard from './components/StopCard';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import DetailScreenLayout from '../../components/DetailScreenLayout';
+import { PlaneIcon } from 'lucide-react-native';
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -48,6 +49,8 @@ export default function PlanDetailScreen() {
       onBack={vm.handleBack}
       onEdit={() => vm.handleEdit(navigation.showBottomSheet)}
       onDelete={() => vm.handleDeleteWithConfirm(navigation.showAlert)}
+      icon={PlaneIcon}
+
     >
       <View className="px-4 pt-5 pb-[60px]">
         {/* Status + progress */}

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, Images, MapPin, Star } from 'lucide-react-native';
+import { ChevronRight, Images, MapPin, Star, Utensils } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -69,11 +69,12 @@ export default function FoodSpotDetailScreen() {
       onBack={vm.handleBack}
       onEdit={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
       onDelete={vm.handleDeleteSpot}
+      icon={Utensils}
     >
       {/* ── Photo thumbnail strip ── */}
       {spot.photos.length > 1 ? (
         <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} >
             <View className="flex-row gap-2">
               {spot.photos.map((photo, idx) => (
                 <Pressable
