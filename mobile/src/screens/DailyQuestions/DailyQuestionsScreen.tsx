@@ -426,6 +426,7 @@ export default function DailyQuestionsScreen() {
         title={t.dailyQuestions.cardTitle}
         subtitle="DAILY Q&A"
         onBack={canGoBack ? vm.goBack : undefined}
+        scrollY={scrollY}
         filterBar={
           <GlassTabBar
             tabs={tabs}

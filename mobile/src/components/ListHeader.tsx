@@ -1,5 +1,10 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  type SharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
@@ -10,23 +15,42 @@ interface ListHeaderProps {
   onBack?: () => void;
   right?: React.ReactNode;
   filterBar?: React.ReactNode;
+  /** Optional scrollY SharedValue — animates bg from white → pale rose (#FFF0F2) over first 40px */
+  scrollY?: SharedValue<number>;
 }
 
-export default function ListHeader({ title, subtitle, onBack, right, filterBar }: ListHeaderProps) {
+export default function ListHeader({ title, subtitle, onBack, right, filterBar, scrollY }: ListHeaderProps) {
   const insets = useSafeAreaInsets();
   const colors = useAppColors();
 
+  // Scroll-driven bg tint: white → #FFF0F2 over first 40px (linear, scroll-coupled per design spec)
+  const bgStyle = useAnimatedStyle(() => {
+    if (!scrollY) return { backgroundColor: '#FFFFFF', shadowOpacity: 0 };
+    const progress = Math.min(Math.max(scrollY.value / 40, 0), 1);
+    return {
+      backgroundColor: interpolateColor(
+        scrollY.value,
+        [0, 40],
+        ['#FFFFFF', '#FFF0F2'],
+      ),
+      // Faint shadow emerges with scroll (subconscious depth, max opacity 0.04)
+      shadowOpacity: progress * 0.04,
+    };
+  });
+
   return (
-    <View
-      style={{
-        backgroundColor: '#FFFFFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0E6E3',
-        shadowColor: '#E8788A',
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        elevation: 2,
-      }}>
+    <Animated.View
+      style={[
+        bgStyle,
+        {
+          borderBottomWidth: 1,
+          borderBottomColor: '#F0E6E3',
+          shadowColor: '#1A1624',
+          shadowOffset: { width: 0, height: 1 },
+          shadowRadius: 3,
+          elevation: 2,
+        },
+      ]}>
       {/* Title row */}
       <View style={{ paddingTop: insets.top }}>
         <View className="flex-row items-center px-4 gap-3" style={{ height: 56 }}>
@@ -52,8 +76,8 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar }
         </View>
       </View>
 
-      {/* Filter bar — renders its own padding/styling */}
+      {/* Filter bar */}
       {filterBar ?? null}
-    </View>
+    </Animated.View>
   );
 }

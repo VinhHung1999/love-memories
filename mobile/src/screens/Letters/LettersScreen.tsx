@@ -1,6 +1,10 @@
 import React from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { Mail, PenLine } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
@@ -38,6 +42,9 @@ export default function LettersScreen() {
   const vm = useLettersViewModel();
   const canGoBack = rootNavigation.canGoBack();
 
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
+
   const tabs = [
     { key: 'inbox' as const, label: t.loveLetters.inboxTab },
     { key: 'sent' as const, label: t.loveLetters.sentTab },
@@ -49,6 +56,7 @@ export default function LettersScreen() {
         title={t.loveLetters.title}
         subtitle={t.loveLetters.subtitle}
         onBack={canGoBack ? vm.handleBack : undefined}
+        scrollY={scrollY}
         filterBar={
           <GlassTabBar
             tabs={tabs}
@@ -73,6 +81,8 @@ export default function LettersScreen() {
           data={vm.letters}
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={vm.isRefetching}

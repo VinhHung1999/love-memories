@@ -4,6 +4,7 @@ import Animated, {
   FadeIn,
   useSharedValue,
   useAnimatedStyle,
+  withDelay,
   withRepeat,
   withSequence,
   withTiming,
@@ -29,16 +30,67 @@ interface RelationshipTimerProps {
   partnerInitials?: string;
 }
 
-function AvatarWithRing({ uri, initials }: { uri?: string | null; initials: string }) {
+// ── Avatar with animated shimmer ring ────────────────────────────────────────
+// Per design spec: opacity 1.0→0.55 AND scale 1.0→1.06, 2400ms cycle, ease-in-out
+// Stagger at exactly half-phase (1200ms) for natural out-of-phase breathing
+
+function AvatarWithRing({
+  uri,
+  initials,
+  animDelay = 0,
+}: {
+  uri?: string | null;
+  initials: string;
+  animDelay?: number;
+}) {
+  const ringOpacity = useSharedValue(1);
+  const ringScale = useSharedValue(1);
+
+  useEffect(() => {
+    const pulseConfig = { duration: 1200, easing: Easing.inOut(Easing.ease) };
+    ringOpacity.value = withDelay(
+      animDelay,
+      withRepeat(
+        withSequence(
+          withTiming(0.55, pulseConfig),
+          withTiming(1.0, pulseConfig),
+        ),
+        -1,
+        false,
+      ),
+    );
+    ringScale.value = withDelay(
+      animDelay,
+      withRepeat(
+        withSequence(
+          withTiming(1.06, pulseConfig),
+          withTiming(1.0, pulseConfig),
+        ),
+        -1,
+        false,
+      ),
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const ringStyle = useAnimatedStyle(() => ({
+    opacity: ringOpacity.value,
+    transform: [{ scale: ringScale.value }],
+  }));
+
   return (
-    // 2px pale-rose ring: outer 60px container, inner 56px AvatarCircle
-    <View
-      className="rounded-full items-center justify-center"
-      style={{ width: 60, height: 60, backgroundColor: AVATAR_RING }}>
+    <Animated.View
+      style={[
+        ringStyle,
+        { width: 60, height: 60, backgroundColor: AVATAR_RING, borderRadius: 30 },
+      ]}
+      className="items-center justify-center">
       <AvatarCircle uri={uri} initials={initials} size={56} />
-    </View>
+    </Animated.View>
   );
 }
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export function RelationshipTimer({
   duration,
@@ -78,7 +130,8 @@ export function RelationshipTimer({
 
         {/* Avatar row */}
         <View className="flex-row items-center justify-between">
-          <AvatarWithRing uri={userAvatar} initials={userInitials} />
+          {/* Left avatar — starts pulsing immediately */}
+          <AvatarWithRing uri={userAvatar} initials={userInitials} animDelay={0} />
 
           {/* Connector: gradient line with floating heart centered on top */}
           <View className="flex-1 mx-3 items-center justify-center" style={{ height: 60 }}>
@@ -91,7 +144,6 @@ export function RelationshipTimer({
             />
             {/* Heart with white cutout behind it */}
             <Animated.View style={heartStyle} className="items-center justify-center">
-              {/* White cutout circle lifts heart off the line */}
               <View
                 className="rounded-full bg-white items-center justify-center"
                 style={{ width: 28, height: 28 }}>
@@ -105,7 +157,8 @@ export function RelationshipTimer({
             </Animated.View>
           </View>
 
-          <AvatarWithRing uri={partnerAvatar} initials={partnerInitials} />
+          {/* Right avatar — half-phase offset (1200ms = 2400ms ÷ 2) */}
+          <AvatarWithRing uri={partnerAvatar} initials={partnerInitials} animDelay={1200} />
         </View>
 
         {/* Days count */}
