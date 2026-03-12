@@ -6,7 +6,6 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -408,10 +407,7 @@ function HistoryView({
 
 export default function DailyQuestionsScreen() {
   const colors = useAppColors();
-  const navigation = useNavigation();
   const vm = useDailyQuestionsViewModel();
-  const canGoBack = navigation.canGoBack();
-
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
