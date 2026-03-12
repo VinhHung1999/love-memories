@@ -9,14 +9,19 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { Check, CheckCircle, ChefHat, ChevronRight, ExternalLink, Images, MapPin, PlayCircle, Timer } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useRecipeDetailViewModel } from './useRecipeDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import HeroHeader from '../../components/HeroHeader';
+import OverlayHeader from '../../components/OverlayHeader';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import CreateRecipeSheet from '../Recipes/components/CreateRecipeSheet';
@@ -139,28 +144,52 @@ export default function RecipeDetailScreen() {
   const navigation = useAppNavigation();
   const vm = useRecipeDetailViewModel();
   const { recipe } = vm;
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !recipe) {
     return <RecipeDetailSkeleton />;
   }
 
   const coverPhoto = recipe.photos[0];
+
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
 
-      {/* ── Hero header (sits in normal layout flow) ── */}
-      <HeroHeader
-        title={recipe.title}
-        imageUri={coverPhoto?.url}
-        onBack={vm.handleBack}
-        onEdit={() => navigation.showBottomSheet(CreateRecipeSheet, { recipe })}
-        onDelete={vm.handleDelete}
-      />
-
-      <ScrollView
-        className="flex-1"
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}>
+
+        {/* ── Full-bleed cover (280px) ── */}
+        <View style={{ height: 280 }}>
+          {coverPhoto ? (
+            <>
+              <FastImage
+                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.28)', 'transparent', 'rgba(0,0,0,0.50)']}
+                locations={[0, 0.4, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+            </>
+          ) : (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E8788A0D' }} />
+          )}
+          {/* Title at bottom of cover */}
+          <View style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}>
+            <Text style={{ fontSize: 26, fontWeight: 'bold', color: coverPhoto ? '#fff' : '#2D2D2D', lineHeight: 32 }} numberOfLines={2}>
+              {recipe.title}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Content card (overlaps cover, rounded top) ── */}
+        <View className="bg-white rounded-t-3xl -mt-6 pb-6">
 
         {/* ── Photo thumbnail strip ── */}
         {recipe.photos.length > 1 ? (
@@ -302,7 +331,8 @@ export default function RecipeDetailScreen() {
           </Card>
         ) : null}
 
-      </ScrollView>
+        </View>{/* end content card */}
+      </Animated.ScrollView>
 
       {/* ── "Cook This!" fixed bottom CTA ── */}
       <View className="absolute bottom-0 left-0 right-0 pb-6 px-5 pt-3 bg-white/95">
@@ -319,6 +349,13 @@ export default function RecipeDetailScreen() {
           </LinearGradient>
         </Pressable>
       </View>
+
+      <OverlayHeader
+        onBack={vm.handleBack}
+        onEdit={() => navigation.showBottomSheet(CreateRecipeSheet, { recipe })}
+        onDelete={vm.handleDelete}
+        scrollY={scrollY}
+      />
 
     </View>
   );

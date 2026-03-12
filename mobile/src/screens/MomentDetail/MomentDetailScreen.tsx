@@ -8,16 +8,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { ChevronRight, ExternalLink, Images, MapPin, Music2 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import HeroHeader from '../../components/HeroHeader';
+import OverlayHeader from '../../components/OverlayHeader';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import ReactionsBar from './components/ReactionsBar';
@@ -152,6 +157,8 @@ export default function MomentDetailScreen() {
   const navigation = useAppNavigation();
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !moment) {
     return <MomentDetailLoadingSkeleton />;
@@ -160,25 +167,45 @@ export default function MomentDetailScreen() {
   const coverPhoto = moment.photos[0];
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-gray-50" behavior="padding">
+    <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
 
-      {/* ── Hero header (sits in normal layout flow) ── */}
-      <HeroHeader
-        title={moment.title}
-        imageUri={coverPhoto?.url}
-        onBack={vm.handleBack}
-        onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
-        onDelete={vm.handleDeleteMoment}
-      />
-
-      <ScrollView
-        className="flex-1"
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}>
-        <View className="pb-[60px]">
+
+        {/* ── Full-bleed cover (280px) ── */}
+        <View style={{ height: 280 }}>
+          {coverPhoto ? (
+            <>
+              <FastImage
+                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.28)', 'transparent', 'rgba(0,0,0,0.50)']}
+                locations={[0, 0.4, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+            </>
+          ) : (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E8788A0D' }} />
+          )}
+          {/* Title at bottom of cover */}
+          <View style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}>
+            <Text style={{ fontSize: 26, fontWeight: 'bold', color: coverPhoto ? '#fff' : '#2D2D2D', lineHeight: 32 }} numberOfLines={2}>
+              {moment.title}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Content (overlaps cover by 24px, rounded top) ── */}
+        <View className="bg-white rounded-t-3xl -mt-6 pb-[80px]">
 
           {/* ── Photo thumbnail strip ── */}
           {moment.photos.length > 1 ? (
-            <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3" style={{zIndex: 10000}}>
+            <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}>
@@ -320,7 +347,15 @@ export default function MomentDetailScreen() {
           </Card>
 
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      {/* Floating overlay header */}
+      <OverlayHeader
+        onBack={vm.handleBack}
+        onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
+        onDelete={vm.handleDeleteMoment}
+        scrollY={scrollY}
+      />
 
     </KeyboardAvoidingView>
   );

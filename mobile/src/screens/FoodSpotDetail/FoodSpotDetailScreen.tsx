@@ -8,14 +8,19 @@ import {
   View,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { ChevronRight, Images, MapPin, Star } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useFoodSpotDetailViewModel } from './useFoodSpotDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import HeroHeader from '../../components/HeroHeader';
+import OverlayHeader from '../../components/OverlayHeader';
 import { Card } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
@@ -54,6 +59,8 @@ export default function FoodSpotDetailScreen() {
   const navigation = useAppNavigation();
   const vm = useFoodSpotDetailViewModel();
   const { spot } = vm;
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !spot) {
     return <FoodSpotDetailLoadingSkeleton />;
@@ -62,21 +69,41 @@ export default function FoodSpotDetailScreen() {
   const coverPhoto = spot.photos[0];
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
 
-      {/* ── Hero header (sits in normal layout flow) ── */}
-      <HeroHeader
-        title={spot.name}
-        imageUri={coverPhoto?.url}
-        onBack={vm.handleBack}
-        onEdit={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
-        onDelete={vm.handleDeleteSpot}
-      />
-
-      <ScrollView
-        className="flex-1"
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}>
-        <View className="pb-[60px]">
+
+        {/* ── Full-bleed cover (280px) ── */}
+        <View style={{ height: 280 }}>
+          {coverPhoto ? (
+            <>
+              <FastImage
+                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.28)', 'transparent', 'rgba(0,0,0,0.50)']}
+                locations={[0, 0.4, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+            </>
+          ) : (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#F4A2610D' }} />
+          )}
+          {/* Title at bottom of cover */}
+          <View style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}>
+            <Text style={{ fontSize: 26, fontWeight: 'bold', color: coverPhoto ? '#fff' : '#2D2D2D', lineHeight: 32 }} numberOfLines={2}>
+              {spot.name}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Content card (overlaps cover, rounded top) ── */}
+        <View className="bg-white rounded-t-3xl -mt-6 pb-[60px]">
 
           {/* ── Photo thumbnail strip ── */}
           {spot.photos.length > 1 ? (
@@ -187,8 +214,15 @@ export default function FoodSpotDetailScreen() {
             </Card>
           ) : null}
 
-        </View>
-      </ScrollView>
+        </View>{/* end content card */}
+      </Animated.ScrollView>
+
+      <OverlayHeader
+        onBack={vm.handleBack}
+        onEdit={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
+        onDelete={vm.handleDeleteSpot}
+        scrollY={scrollY}
+      />
 
     </View>
   );

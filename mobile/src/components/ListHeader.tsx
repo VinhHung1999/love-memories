@@ -1,7 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
-  interpolateColor,
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -15,7 +14,7 @@ interface ListHeaderProps {
   onBack?: () => void;
   right?: React.ReactNode;
   filterBar?: React.ReactNode;
-  /** Optional scrollY SharedValue — animates bg from white → pale rose (#FFF0F2) over first 40px */
+  /** Optional scrollY SharedValue — fades header from transparent (0) to opaque (1) over first 50px */
   scrollY?: SharedValue<number>;
 }
 
@@ -23,18 +22,15 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar, 
   const insets = useSafeAreaInsets();
   const colors = useAppColors();
 
-  // Scroll-driven bg tint: white → #FFF0F2 over first 40px (linear, scroll-coupled per design spec)
+  // Opacity: 0→1 over first 50px of scroll (linear, scroll-coupled per design spec)
+  // When no scrollY passed: always fully opaque (opacity: 1)
   const bgStyle = useAnimatedStyle(() => {
-    if (!scrollY) return { backgroundColor: '#FFFFFF', shadowOpacity: 0.06 };
-    const progress = Math.min(Math.max(scrollY.value / 40, 0), 1);
+    const opacity = scrollY
+      ? Math.min(Math.max(scrollY.value / 50, 0), 1)
+      : 1;
     return {
-      backgroundColor: interpolateColor(
-        scrollY.value,
-        [0, 40],
-        ['#FFFFFF', '#FFF0F2'],
-      ),
-      // Faint shadow emerges with scroll (subconscious depth, max opacity 0.04)
-      shadowOpacity: progress * 0.04,
+      opacity,
+      backgroundColor: '#FFFFFF',
     };
   });
 
@@ -45,9 +41,10 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar, 
         {
           borderBottomWidth: 1,
           borderBottomColor: '#F0E6E3',
-          shadowColor: '#1A1624',
+          shadowColor: '#E8788A',
+          shadowOpacity: 0.06,
           shadowOffset: { width: 0, height: 1 },
-          shadowRadius: 3,
+          shadowRadius: 4,
           elevation: 2,
         },
       ]}>

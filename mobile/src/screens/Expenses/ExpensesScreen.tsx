@@ -305,7 +305,7 @@ export default function ExpensesScreen() {
             <TouchableOpacity
               onPress={vm.handleOpenBudget}
               className="w-9 h-9 rounded-xl items-center justify-center"
-              style={{ backgroundColor: colors.textDark + '14' }}
+              style={{ backgroundColor: colors.textDark + '1A' }}
             >
               <SlidersHorizontal size={18} color={colors.textDark} strokeWidth={1.5} />
             </TouchableOpacity>

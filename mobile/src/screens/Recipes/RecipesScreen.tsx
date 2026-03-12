@@ -178,9 +178,9 @@ export default function RecipesScreen() {
         right={
           <Pressable
             onPress={() => navigation.navigate('WhatToEat')}
-            className="w-10 h-10 rounded-xl items-center justify-center"
-            style={{ backgroundColor: colors.primary + '14' }}>
-            <ChefHat size={20} color={colors.primary} strokeWidth={1.5} />
+            className="w-9 h-9 rounded-xl items-center justify-center"
+            style={{ backgroundColor: colors.primary + '1A' }}>
+            <ChefHat size={18} color={colors.primary} strokeWidth={1.5} />
           </Pressable>
         }
         filterBar={
