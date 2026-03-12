@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 48
-**Goal:** App Bug Fixes — Dashboard, Moments, Daily Q&A, Love Letters, Delete Account
+**Sprint:** 49
+**Goal:** Mobile UI Revamp — Match Web's Gentle & Soothing Design
 
 ---
 
@@ -9,32 +9,54 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | Reviewing + assigning batches | 2026-03-11 |
-| DEV  | ACTIVE | Batch 3 — Love Letters UX + Delete Account | 2026-03-11 |
+| PO   | ACTIVE | Assigned Phase 3 priority tasks | 2026-03-12 |
+| TL   | ACTIVE | Phase 3 brief sent to MOBILE | 2026-03-12 |
+| WEB  | IDLE   | — | 2026-03-12 |
+| BE   | IDLE   | — | 2026-03-12 |
+| MOBILE | IN PROGRESS | Phase 3: Header Refactor (Tasks 12-13) | 2026-03-12 |
 
 ---
 
-## Sprint 48 Tasks
+## Sprint 49 Tasks
+
+### Phase 1: Design System Foundation
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 1 | RN Dashboard: Reorder sections — dismiss+upcoming date (2-col) + daily Q above quick actions | S | DONE | DEV |
-| 2a | RN MomentDetail: Spotify full track embed + auto-play | M | TODO | DEV |
-| 2b | RN MomentDetail: Facebook-like reactions/comments UX | M | TODO | DEV |
-| 2c | RN MomentDetail: Comment timestamp bug — "1m ago" immediately after send | S | DONE | DEV |
-| 3 | RN Dashboard: Fix FoodSpotsTab navigation crash (removed in S47) | S | DONE | DEV |
-| 4 | RN Dashboard: Add Map to quick actions | S | DONE | DEV |
-| 5a | RN Daily Q&A: UI not updating after submit answer | S | DONE | DEV |
-| 5b | RN Daily Q&A: Card style inconsistent — match ProfileScreen benchmark | M | DONE | DEV |
-| 5c | RN Daily Q&A: Use CollapsibleHeader instead of custom header | S | DONE | DEV |
-| 6a | RN Love Letters: Add photo upload + voice memo to compose | L | TODO | DEV |
-| 6b | RN Love Letters: Buttons horizontal instead of vertical | S | DONE | DEV |
-| 6c | RN Love Letters: Mood selector — add text labels | S | DONE | DEV |
-| 6d | RN Love Letters: Add scheduled delivery / timer | M | TODO | DEV |
-| 6e | RN Love Letters: Review PWA reference + match quality | M | TODO | DEV |
-| 7 | RN Love Letters: Debug — can't send/create letter | S | DONE | DEV |
-| 8 | RN Love Letters: Use common BottomSheet component | S | TODO | DEV |
-| 9 | RN Profile: Add Delete Account UI (password + confirmation) | S | DONE | DEV |
+| 1 | Align color palette to web: primary `#E8788A`, secondary `#F4A261`, accent `#7EC8B5`, bg `#FFF8F6`, text `#2D2D2D`, textLight `#6B7280`, border `#F0E6E3`. Update `tailwind.config.js` + `theme.ts` | S | TODO | MOBILE |
+| 2 | Switch icon library: `react-native-vector-icons/MaterialCommunityIcons` → `lucide-react-native`. Update ALL icons across every screen + bottom tab bar. Use exact same icons as web (Lucide) | M | TODO | MOBILE |
+| 3 | Tone down CollapsibleHeader: remove FloatingHearts, replace heavy gradients with flat or single soft tint (`#FFF0ED` → `#FFF8F6`), clean minimal style like web | M | TODO | MOBILE |
+| 4 | Standardize card system: clean white bg + shadow-sm + subtle border. Remove gradient cards. Match web's `rounded-2xl` + `ring-1 ring-black/5` pattern | S | TODO | MOBILE |
+
+### Phase 2: Screen-by-Screen Revamp
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 5 | Dashboard: clean bento layout, remove heavy gradients, web-style quick actions with Lucide icons | L | TODO | MOBILE |
+| 6 | Moments: card style — rounded-3xl, subtle shadow, no gradient overlays, match web MomentCard | M | TODO | MOBILE |
+| 7 | Love Letters: soft rose tones, clean list, match web letter card style | M | TODO | MOBILE |
+| 8 | Daily Questions: clean card style, softened header | S | TODO | MOBILE |
+| 9 | Profile: update colors + icons to new palette (already benchmark — minimal changes) | S | TODO | MOBILE |
+| 10 | All other screens (Recipes, FoodSpots, Expenses, DatePlanner, Achievements): apply new design system | L | TODO | MOBILE |
+| 11 | Bottom Tab Bar: Lucide icons, match web nav icon set, soft active tint | S | TODO | MOBILE |
+
+### Phase 3: Header Refactor (Priority — do first)
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 12 | Refactor CollapsibleHeader into 3 simple components: **ScreenHeader** (simple title + back + right action), **ListHeader** (title + subtitle + add button + filter tabs + back), **HeroHeader** (cover image + title + back + actions). NO scrollY prop — keep it simple. Each component max 4-5 props, no render props | L | IN PROGRESS | MOBILE |
+| 13 | Migrate all 17 screens to use new headers: Simple screens (Notifications, PlanList, LetterRead) → ScreenHeader. List screens (Moments, FoodSpots, Recipes, Expenses, Letters, DailyQ, Wishes, Achievements) → ListHeader. Detail screens (MomentDetail, RecipeDetail, FoodSpotDetail, PlanDetail) → HeroHeader. Dashboard + Profile keep custom. Delete old CollapsibleHeader | L | IN PROGRESS | MOBILE |
+
+### Acceptance Criteria
+
+- [ ] All colors match web palette exactly (no more `#FF6B6B`, `#2D1B3D`)
+- [ ] All icons are Lucide (no MaterialCommunityIcons remaining)
+- [ ] No FloatingHearts animation on headers
+- [ ] No heavy multi-color gradients on cards/headers
+- [ ] Cards use clean white + subtle shadow consistently
+- [ ] Overall feel: gentle, soothing, elegant — matches web PWA
+- [ ] Lint + build pass
+- [ ] No regressions in functionality
 
 ---
 
@@ -42,8 +64,24 @@
 
 | # | Feature | Priority |
 |---|---------|----------|
+| B8 | RN Love Letters: Use common BottomSheet component (S48 leftover) | P3 |
 | B14 | RN: Photo Booth | P2 |
 | B16 | RN: Monthly Recap | P2 |
+| B17 | App Store: iOS signing (bundle ID, certs, provisioning profiles) | P0 |
+| B18 | App Store: iOS GoogleService-Info.plist + APNS push cert | P0 |
+| B19 | App Store: iOS Privacy manifest (PrivacyInfo.xcprivacy) | P0 |
+| B20 | Play Store: Android release keystore + signing config | P0 |
+| B21 | Both: Privacy Policy + Terms of Service pages | P0 |
+| B22 | Both: App Store icons (1024x1024 iOS) + splash screen design | P1 |
+| B23 | Both: App Store metadata (screenshots, descriptions, categories) | P1 |
+| B24 | Both: EAS Build or Fastlane setup for build automation | P1 |
+| B25 | Play Store: Data safety form | P1 |
+| B26 | RN Subscription: Install RevenueCat SDK + configure | P0 |
+| B27 | RN Subscription: SubscriptionContext + useSubscription() hook | P0 |
+| B28 | RN Subscription: Paywall screen (triggered at free limit / locked module) | P0 |
+| B29 | RN Subscription: Client-side free tier checks across all screens | P1 |
+| B30 | RN Subscription: Lock premium module navigation | P1 |
+| B31 | RN Subscription: Restore purchases + Plus badge in Profile | P1 |
 
 ---
 
@@ -69,6 +107,7 @@ _Sprint 44 — Backend Security (coupleId enforcement, rate limiting, CORS, Helm
 _Sprint 45 — Backend Commercial (Account Deletion, Email Verification, Subscription/RevenueCat, Free Tier Limits, Token Cleanup) + PWA Auth Refresh Fix: DEPLOYED_
 _Sprint 46 — RN Monthly Recap Stories + Daily Questions (BE+RN+PWA) + Error Boundary + Remove Weekly Recap: DEPLOYED_
 _Sprint 47 — BottomTab Refactor (PWA + RN) + Push Notifications (Daily Q&A) + Delete Account UI: DEPLOYED_
+_Sprint 48 — App Bug Fixes (Dashboard, Moments, Daily Q&A, Love Letters, Delete Account RN) + Design System + Be Vietnam Pro font: DEPLOYED_
 
 ---
 

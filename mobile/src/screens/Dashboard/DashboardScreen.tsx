@@ -2,13 +2,11 @@ import React from 'react';
 import { ScrollView, View, Text } from 'react-native';
 import Animated, {
   FadeInDown,
-  useSharedValue,
-  useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import { Images } from 'lucide-react-native';
 import t from '../../locales/en';
 import { useDashboardViewModel } from './useDashboardViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ScreenHeader from '../../components/ScreenHeader';
 import DailyQuestionCard from '../DailyQuestions/DailyQuestionCard';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import { HeroMomentCard } from './components/HeroMomentCard';
@@ -27,54 +25,13 @@ import { DashboardStatsCard } from './components/DashboardStatsCard';
 export default function DashboardScreen() {
   const vm = useDashboardViewModel();
 
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(event => {
-    scrollY.value = event.contentOffset.y;
-  });
-
-  const EXPANDED_H = 260;
-  const COLLAPSED_H = 56;
-
   return (
     <View className="flex-1 bg-baseBg">
 
-      <CollapsibleHeader
+      <ScreenHeader
         title={vm.headerTitle}
         subtitle={t.dashboard.headerSubtitle}
-        expandedHeight={EXPANDED_H}
-        collapsedHeight={COLLAPSED_H}
-        scrollY={scrollY}
-        renderRight={() => (
-          <NotificationBell onPress={vm.navigateToNotifications} />
-        )}
-        renderExpandedContent={() => (
-          vm.recentMoments.length > 0 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="-mx-5"
-              contentContainerClassName="px-5 gap-2.5">
-              {vm.recentMoments.map(moment => (
-                <HeroMomentCard
-                  key={moment.id}
-                  moment={moment}
-                  onPress={() => vm.handleMomentPress(moment.id)}
-                />
-              ))}
-            </ScrollView>
-          ) : (
-            <View className="h-[160px] rounded-2xl bg-white/10 items-center justify-center">
-              <Images size={28} strokeWidth={1.5} />
-            </View>
-          )
-        )}
-        renderFooter={() => (
-          <View className="px-5 pb-2">
-            <Text className="text-[11px] font-bodyLight text-white/60 italic">
-              {vm.slogan}
-            </Text>
-          </View>
-        )}
+        right={<NotificationBell onPress={vm.navigateToNotifications} />}
       />
 
       {vm.isLoading ? (
@@ -82,10 +39,36 @@ export default function DashboardScreen() {
       ) : (
         <Animated.ScrollView
           className="flex-1"
-          showsVerticalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}>
-          <View className="pt-[220px] pb-[120px] px-4 gap-4">
+          showsVerticalScrollIndicator={false}>
+          <View className="pb-[120px] px-4 gap-4 pt-4">
+
+            {/* ── Recent moments horizontal strip ── */}
+            {vm.recentMoments.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="-mx-4"
+                contentContainerClassName="px-4 gap-2.5">
+                {vm.recentMoments.map(moment => (
+                  <HeroMomentCard
+                    key={moment.id}
+                    moment={moment}
+                    onPress={() => vm.handleMomentPress(moment.id)}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <View className="h-[160px] rounded-2xl bg-white/60 items-center justify-center">
+                <Images size={28} strokeWidth={1.5} />
+              </View>
+            )}
+
+            {/* ── Slogan ── */}
+            {vm.slogan ? (
+              <Text className="text-[11px] font-bodyLight text-textLight italic px-1">
+                {vm.slogan}
+              </Text>
+            ) : null}
 
             {/* ── 0. Stats Overview ── */}
             <DashboardStatsCard

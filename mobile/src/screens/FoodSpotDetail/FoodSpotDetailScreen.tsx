@@ -9,19 +9,13 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
-import { ChevronRight, Images, MapPin, Pencil, Star, Trash2 } from 'lucide-react-native';
+import { ChevronRight, Images, MapPin, Star } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useFoodSpotDetailViewModel } from './useFoodSpotDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import HeroHeader from '../../components/HeroHeader';
 import { Card } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
@@ -61,12 +55,6 @@ export default function FoodSpotDetailScreen() {
   const vm = useFoodSpotDetailViewModel();
   const { spot } = vm;
 
-  // Hooks before early return
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => {
-    scrollY.value = e.contentOffset.y;
-  });
-
   if (vm.isLoading || !spot) {
     return <FoodSpotDetailLoadingSkeleton />;
   }
@@ -76,59 +64,19 @@ export default function FoodSpotDetailScreen() {
   return (
     <View className="flex-1 bg-gray-50">
 
-      {/* ── Collapsible header (hero photo + back/edit/delete) ── */}
-      <CollapsibleHeader
+      {/* ── Hero header (sits in normal layout flow) ── */}
+      <HeroHeader
         title={spot.name}
-        expandedHeight={280}
-        collapsedHeight={56}
-        dark
-        scrollY={scrollY}
-        renderBackground={() => (
-          <>
-            {coverPhoto ? (
-              <FastImage
-                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                resizeMode={FastImage.resizeMode.cover}
-              />
-            ) : (
-              <LinearGradient
-                colors={['#FFF8F3', colors.secondary, '#E8903A']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="absolute inset-0"
-              />
-            )}
-            <LinearGradient
-              colors={['rgba(0,0,0,0.22)', 'transparent', 'rgba(0,0,0,0.3)']}
-              locations={[0, 0.4, 1]}
-              className="absolute inset-0"
-            />
-          </>
-        )}
+        imageUri={coverPhoto?.url}
         onBack={vm.handleBack}
-        renderRight={() => (
-          <View className="flex-row gap-2">
-            <HeaderIconButton
-              icon={Pencil}
-              onPress={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
-            />
-            <HeaderIconButton
-              icon={Trash2}
-              onPress={vm.handleDeleteSpot}
-              disabled={vm.isDeleting}
-            />
-          </View>
-        )}
+        onEdit={() => navigation.showBottomSheet(CreateFoodSpotSheet, { foodSpot: spot })}
+        onDelete={vm.handleDeleteSpot}
       />
 
-      <Animated.ScrollView
+      <ScrollView
         className="flex-1"
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}>
-        {/* pt-[224px] = expandedHeight(280) - collapsedHeight(56) */}
-        <View className="pt-[224px] pb-[60px]">
+        showsVerticalScrollIndicator={false}>
+        <View className="pb-[60px]">
 
           {/* ── Photo thumbnail strip ── */}
           {spot.photos.length > 1 ? (
@@ -240,7 +188,7 @@ export default function FoodSpotDetailScreen() {
           ) : null}
 
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
 
     </View>
   );

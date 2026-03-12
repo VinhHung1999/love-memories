@@ -8,15 +8,13 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInDown,
-  useSharedValue,
-  useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import { Bell, X } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { AppNotification } from '../../lib/api';
 import { useNotificationsViewModel } from './useNotificationsViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ScreenHeader from '../../components/ScreenHeader';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 
@@ -132,22 +130,17 @@ const GROUP_LABELS: Record<string, string> = {
 export default function NotificationsScreen() {
   const colors = useAppColors();
   const vm = useNotificationsViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   return (
     <View className="flex-1 bg-gray-50">
-      <CollapsibleHeader
+      <ScreenHeader
         title={t.notifications.title}
         subtitle={t.notifications.subtitle}
-        scrollY={scrollY}
-        renderRight={() =>
-          vm.hasUnread ? (
-            <Pressable onPress={vm.handleMarkAll} className="py-1">
-              <Text className="text-sm font-semibold text-primary">{t.notifications.markAll}</Text>
-            </Pressable>
-          ) : null
-        }
+        right={vm.hasUnread ? (
+          <Pressable onPress={vm.handleMarkAll} className="py-1">
+            <Text className="text-sm font-semibold text-primary">{t.notifications.markAll}</Text>
+          </Pressable>
+        ) : null}
       />
 
       {vm.isLoading ? (
@@ -163,11 +156,9 @@ export default function NotificationsScreen() {
           subtitle={t.notifications.emptySubtitle}
         />
       ) : (
-        <Animated.ScrollView
+        <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={false}
@@ -175,7 +166,7 @@ export default function NotificationsScreen() {
               tintColor={colors.primary}
             />
           }>
-          <View key={vm.grouped.map(g => g.items.map(i => i.id).join(',')).join('|')} className="pt-14 pb-[100px]">
+          <View key={vm.grouped.map(g => g.items.map(i => i.id).join(',')).join('|')} className="pt-4 pb-[100px]">
             {vm.grouped.map(group => (
               <View key={group.label}>
                 <Text className="text-[11px] font-bold text-textLight tracking-[1px] uppercase px-5 pt-4 pb-2">
@@ -192,7 +183,7 @@ export default function NotificationsScreen() {
               </View>
             ))}
           </View>
-        </Animated.ScrollView>
+        </ScrollView>
       )}
     </View>
   );

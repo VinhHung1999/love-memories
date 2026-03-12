@@ -4,10 +4,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { CalendarHeart, Check, CheckCircle, Copy, Heart, Pencil, Plus, QrCode, RefreshCw } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
@@ -18,7 +15,7 @@ import EditNameSheet from './components/EditNameSheet';
 import EditCoupleSheet from './components/EditCoupleSheet';
 import DeleteAccountSheet from './components/DeleteAccountSheet';
 import GoogleGLogo from '../../components/GoogleGLogo';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ScreenHeader from '../../components/ScreenHeader';
 import HeaderIconButton from '../../components/HeaderIconButton';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
@@ -58,10 +55,6 @@ export default function ProfileScreen() {
   const navigation = useAppNavigation();
   const { logout } = useAuth();
   const vm = useProfileViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(event => {
-    scrollY.value = event.contentOffset.y;
-  });
 
   const handleOpenEditName = () => {
     if (vm.user) navigation.showBottomSheet(EditNameSheet, { user: vm.user });
@@ -82,53 +75,44 @@ export default function ProfileScreen() {
   return (
     <View className="flex-1 bg-baseBg">
 
-      {/* ── Collapsible Header ── */}
-      <CollapsibleHeader
+      <ScreenHeader
         title={vm.user?.name ?? t.profile.title}
         subtitle={t.profile.title.toUpperCase()}
-        expandedHeight={230}
-        scrollY={scrollY}
-        renderExpandedContent={() => (
-          <View className="items-center mt-3">
-            <AvatarCircle
-              uri={vm.user?.avatar}
-              initials={vm.initials}
-              size={72}
-              onPress={vm.handleUploadAvatar}
-              showCameraBadge
-            />
-            <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
-            {vm.couple?.name ? (
-              <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
-                <Heart size={10} color={colors.primary} strokeWidth={1.5} />
-                <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
-              </View>
-            ) : null}
-            {vm.anniversaryDisplay ? (
-              <View className="mt-1.5 flex-row items-center gap-1">
-                <CalendarHeart size={11} color={colors.textLight} strokeWidth={1.5} />
-                <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
-              </View>
-            ) : null}
-            {vm.slogan ? (
-              <Text className="text-[10px] text-textLight italic mt-1.5 text-center" numberOfLines={1}>
-                {vm.slogan}
-              </Text>
-            ) : null}
-          </View>
-        )}
-        renderRight={() => (
-          <HeaderIconButton icon={Pencil} size={16} onPress={handleOpenEditName} dark={false} />
-        )}
+        right={<HeaderIconButton icon={Pencil} size={16} onPress={handleOpenEditName} dark={false} />}
       />
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        className="flex-1"
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}>
-        {/* paddingTop = scrollRange (200-40=160) — bù phần expanded header overlay */}
-        <View style={{ paddingTop: 190 }} className="mt-0">
+        className="flex-1">
+
+        {/* ── Avatar + couple info section ── */}
+        <View className="items-center pt-6 pb-4">
+          <AvatarCircle
+            uri={vm.user?.avatar}
+            initials={vm.initials}
+            size={72}
+            onPress={vm.handleUploadAvatar}
+            showCameraBadge
+          />
+          <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
+          {vm.couple?.name ? (
+            <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
+              <Heart size={10} color={colors.primary} strokeWidth={1.5} />
+              <Text className="text-[10px] font-semibold text-primary">{vm.couple.name}</Text>
+            </View>
+          ) : null}
+          {vm.anniversaryDisplay ? (
+            <View className="mt-1.5 flex-row items-center gap-1">
+              <CalendarHeart size={11} color={colors.textLight} strokeWidth={1.5} />
+              <Text className="text-[10px] text-textMid">Since {vm.anniversaryDisplay}</Text>
+            </View>
+          ) : null}
+          {vm.slogan ? (
+            <Text className="text-[10px] text-textLight italic mt-1.5 text-center" numberOfLines={1}>
+              {vm.slogan}
+            </Text>
+          ) : null}
+        </View>
 
           {/* ── Partner card ── */}
           {vm.isCoupleLoading ? (
@@ -270,7 +254,6 @@ export default function ProfileScreen() {
             <Text className="text-textLight text-xs">{t.profile.deleteAccount.title}</Text>
           </Pressable>
 
-        </View>
       </Animated.ScrollView>
 
     </View>

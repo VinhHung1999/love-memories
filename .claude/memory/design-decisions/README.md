@@ -67,3 +67,18 @@ _(Record font choices, sizing scale, readability decisions)_
 - Benefit: NavigationContainer auto-applies colors to tab bars, headers, borders
 - Dark mode ready: swap AppTheme for DarkAppTheme in one place
 - Components access colors via useAppColors() hook, not direct import
+
+### Sprint 49: Mobile UI Revamp — Gentle & Soothing palette (web-aligned)
+- Palette shifted: primary #E8788A (was #FF6B6B), bg #FFF8F6 (was #FFF9F5), border #F0E6E3, textDark #2D2D2D, textMid #6B7280
+- ALL LinearGradient removed from screens/components — replaced with flat colors
+- CollapsibleHeader: no more FloatingHearts or gradient bg; flat #FFF8F6 + bottom border
+- BaseCard: `rounded-xl border border-borderSoft shadow-sm` (was rounded-3xl, no border)
+- MaterialCommunityIcons → lucide-react-native migration: EmptyState/AppBottomSheet icon prop changed from `string` to `React.ComponentType<{size,color,strokeWidth}>` — callers must pass the component itself (e.g. `icon={Bell}` not `icon="bell-outline"`)
+- CollapsibleHeader: removed `gradientColors` prop entirely — callers must remove it
+
+### Sprint 48: DailyQuestionsScreen → CollapsibleHeader + ProfileScreen style
+- Replaced custom header with CollapsibleHeader (expandedHeight=160, collapsedHeight=96)
+- Tab switcher as renderFooter: pill-style Pressables with primary/gray100 bg
+- AnswerCard: white bg + borderLeftWidth=3 accent color (was rgba tinted background)
+- TodayView/HistoryView: Animated.ScrollView/FlatList with onScroll={scrollHandler}
+- Pattern: useSharedValue(0) + useAnimatedScrollHandler in parent → passed as prop to sub-views

@@ -8,8 +8,6 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInDown,
-  useSharedValue,
-  useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import FastImage from 'react-native-fast-image';
 import { Bot, Check, ChefHat, FilterX, List, Plus } from 'lucide-react-native';
@@ -18,7 +16,7 @@ import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Recipe } from '../../types';
 import { useRecipesViewModel, type RecipeFilter } from './useRecipesViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
@@ -46,7 +44,7 @@ function RecipeCardSkeleton() {
 function RecipesLoadingSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1">
-      <View className="px-[14px] pb-[100px] pt-14">
+      <View className="px-[14px] pb-[100px] pt-3">
         <View className="flex-row gap-3">
           <View className="flex-1">
             <RecipeCardSkeleton />
@@ -165,11 +163,6 @@ export default function RecipesScreen() {
   const navigation = useAppNavigation();
   const vm = useRecipesViewModel();
 
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(event => {
-    scrollY.value = event.contentOffset.y;
-  });
-
   const filterOptions: { key: RecipeFilter; label: string }[] = [
     { key: 'all', label: t.recipes.allFilter },
     { key: 'cooked', label: t.recipes.cookedFilter },
@@ -178,40 +171,35 @@ export default function RecipesScreen() {
 
   return (
     <View className="flex-1 bg-baseBg">
-      <CollapsibleHeader
+      <ListHeader
         title={t.recipes.title}
         subtitle={t.recipes.subtitle}
-        expandedHeight={140}
-        collapsedHeight={96}
-        scrollY={scrollY}
-        dark
         onBack={() => navigation.goBack()}
-        renderRight={() => (
+        right={
           <Pressable
             onPress={() => navigation.navigate('WhatToEat')}
-            className="w-10 h-10 rounded-xl items-center justify-center bg-white/20">
-            <ChefHat size={20} strokeWidth={1.5} />
+            className="w-10 h-10 rounded-xl items-center justify-center"
+            style={{ backgroundColor: colors.primary + '14' }}>
+            <ChefHat size={20} color={colors.primary} strokeWidth={1.5} />
           </Pressable>
-        )}
-        renderFooter={() => (
-          <View className="bg-white border-b border-border/30">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="px-5">
-              <View className="flex-row gap-2 py-2 pr-5">
-                {filterOptions.map(opt => (
-                  <FilterChip
-                    key={opt.key}
-                    label={opt.label}
-                    active={vm.filter === opt.key}
-                    onPress={() => vm.setFilter(opt.key)}
-                  />
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        )}
+        }
+        filterBar={
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="px-5">
+            <View className="flex-row gap-2 py-2 pr-5">
+              {filterOptions.map(opt => (
+                <FilterChip
+                  key={opt.key}
+                  label={opt.label}
+                  active={vm.filter === opt.key}
+                  onPress={() => vm.setFilter(opt.key)}
+                />
+              ))}
+            </View>
+          </ScrollView>
+        }
       />
 
       {vm.isLoading ? (
@@ -231,11 +219,9 @@ export default function RecipesScreen() {
           <Text className="text-textMid text-sm mt-3">No recipes match this filter</Text>
         </View>
       ) : (
-        <Animated.ScrollView
+        <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={vm.isRefetching}
@@ -243,8 +229,7 @@ export default function RecipesScreen() {
               tintColor={colors.primary}
             />
           }>
-          {/* pt-14 = scrollRange(44) + gap */}
-          <View className="px-[14px] pt-14 pb-[100px]">
+          <View className="px-[14px] pt-3 pb-[100px]">
             <View className="flex-row gap-3">
               <View key={`left-${vm.filter}`} className="flex-1">
                 {vm.leftColumn.map((recipe, idx) => (
@@ -268,7 +253,7 @@ export default function RecipesScreen() {
               </View>
             </View>
           </View>
-        </Animated.ScrollView>
+        </ScrollView>
       )}
 
       {/* FAB — AI recipe */}

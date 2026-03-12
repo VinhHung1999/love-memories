@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Love Scrum Team - 2-Person Setup (PO + DEV)
-# Creates a tmux session with 2 Claude Code instances
+# Love Scrum Team - 5-Person Setup (PO + TL + WEB + BE + MOBILE)
+# Creates a tmux session with 5 Claude Code instances
 
 set -e
 
@@ -31,29 +31,45 @@ echo "Creating tmux session '$SESSION_NAME'..."
 cd "$PROJECT_ROOT"
 tmux new-session -d -s $SESSION_NAME
 
-# 3. Create 2-pane layout (horizontal split)
+# 3. Create 5-pane layout
+# Split into 5 panes: PO | TL | WEB | BE | MOBILE
+tmux split-window -h -t $SESSION_NAME
+tmux split-window -h -t $SESSION_NAME
+tmux split-window -h -t $SESSION_NAME
 tmux split-window -h -t $SESSION_NAME
 tmux select-layout -t $SESSION_NAME even-horizontal
 
 # 4. Resize for proper pane widths
-tmux resize-window -t $SESSION_NAME -x 300 -y 50
+tmux resize-window -t $SESSION_NAME -x 750 -y 50
 
 # 5. Set pane titles and role names
 tmux select-pane -t $SESSION_NAME:0.0 -T "PO"
-tmux select-pane -t $SESSION_NAME:0.1 -T "DEV"
+tmux select-pane -t $SESSION_NAME:0.1 -T "TL"
+tmux select-pane -t $SESSION_NAME:0.2 -T "WEB"
+tmux select-pane -t $SESSION_NAME:0.3 -T "BE"
+tmux select-pane -t $SESSION_NAME:0.4 -T "MOBILE"
 
 tmux set-option -p -t $SESSION_NAME:0.0 @role_name "PO"
-tmux set-option -p -t $SESSION_NAME:0.1 @role_name "DEV"
+tmux set-option -p -t $SESSION_NAME:0.1 @role_name "TL"
+tmux set-option -p -t $SESSION_NAME:0.2 @role_name "WEB"
+tmux set-option -p -t $SESSION_NAME:0.3 @role_name "BE"
+tmux set-option -p -t $SESSION_NAME:0.4 @role_name "MOBILE"
 
 # 6. Get pane IDs
 echo "Getting pane IDs..."
 PANE_IDS=$(tmux list-panes -t $SESSION_NAME -F "#{pane_id}")
 PO_PANE=$(echo "$PANE_IDS" | sed -n '1p')
-DEV_PANE=$(echo "$PANE_IDS" | sed -n '2p')
+TL_PANE=$(echo "$PANE_IDS" | sed -n '2p')
+WEB_PANE=$(echo "$PANE_IDS" | sed -n '3p')
+BE_PANE=$(echo "$PANE_IDS" | sed -n '4p')
+MOBILE_PANE=$(echo "$PANE_IDS" | sed -n '5p')
 
 echo "Pane IDs:"
-echo "  PO  (Pane 0): $PO_PANE"
-echo "  DEV (Pane 1): $DEV_PANE"
+echo "  PO     (Pane 0): $PO_PANE"
+echo "  TL     (Pane 1): $TL_PANE"
+echo "  WEB    (Pane 2): $WEB_PANE"
+echo "  BE     (Pane 3): $BE_PANE"
+echo "  MOBILE (Pane 4): $MOBILE_PANE"
 
 # 7. Verify tm-send is installed globally
 echo "Verifying tm-send installation..."
@@ -72,18 +88,27 @@ if [ ! -f "$HOOK_FILE" ]; then
     echo "WARNING: SessionStart hook not found at $HOOK_FILE"
 fi
 
-# 9. Start Claude Code in each pane
+# 9. Start Claude Code in each pane (each cd to their working dir)
 echo "Starting Claude Code in all panes..."
 
-# PO - Opus (coordination, review, QA)
+# PO - Opus (product ownership, QA)
 tmux send-keys -t $SESSION_NAME:0.0 "cd $PROJECT_ROOT && claude --model opus" C-m
 
-# DEV - Sonnet (implementation)
+# TL - Sonnet (code review, task coordination)
 tmux send-keys -t $SESSION_NAME:0.1 "cd $PROJECT_ROOT && claude --model sonnet" C-m
 
+# WEB - Sonnet (web frontend, cd to frontend/)
+tmux send-keys -t $SESSION_NAME:0.2 "cd $PROJECT_ROOT/frontend && claude --model sonnet" C-m
+
+# BE - Sonnet (backend, cd to backend/)
+tmux send-keys -t $SESSION_NAME:0.3 "cd $PROJECT_ROOT/backend && claude --model sonnet" C-m
+
+# MOBILE - Sonnet (mobile, cd to mobile/)
+tmux send-keys -t $SESSION_NAME:0.4 "cd $PROJECT_ROOT/mobile && claude --model sonnet" C-m
+
 # 10. Wait for Claude Code to start
-echo "Waiting 20 seconds for Claude Code instances..."
-sleep 20
+echo "Waiting 25 seconds for Claude Code instances..."
+sleep 25
 
 # 11. Initialize roles
 echo "Initializing agent roles..."
@@ -91,13 +116,29 @@ tmux send-keys -t $SESSION_NAME:0.0 "/init-role PO" C-m
 sleep 0.3
 tmux send-keys -t $SESSION_NAME:0.0 C-m
 sleep 3
-tmux send-keys -t $SESSION_NAME:0.1 "/init-role DEV" C-m
+
+tmux send-keys -t $SESSION_NAME:0.1 "/init-role TL" C-m
 sleep 0.3
 tmux send-keys -t $SESSION_NAME:0.1 C-m
+sleep 3
+
+tmux send-keys -t $SESSION_NAME:0.2 "/init-role WEB" C-m
+sleep 0.3
+tmux send-keys -t $SESSION_NAME:0.2 C-m
+sleep 3
+
+tmux send-keys -t $SESSION_NAME:0.3 "/init-role BE" C-m
+sleep 0.3
+tmux send-keys -t $SESSION_NAME:0.3 C-m
+sleep 3
+
+tmux send-keys -t $SESSION_NAME:0.4 "/init-role MOBILE" C-m
+sleep 0.3
+tmux send-keys -t $SESSION_NAME:0.4 C-m
 
 # 12. Wait for initialization
-echo "Waiting 15 seconds for role initialization..."
-sleep 15
+echo "Waiting 20 seconds for role initialization..."
+sleep 20
 
 # 13. Summary
 echo ""
@@ -107,19 +148,26 @@ echo "Session: $SESSION_NAME"
 echo "Project: $PROJECT_ROOT"
 echo ""
 echo "Team:"
-echo "  +--------+--------+"
-echo "  | PO     | DEV    |"
-echo "  | Pane 0 | Pane 1 |"
-echo "  | Opus   | Sonnet |"
-echo "  +--------+--------+"
+echo "  +--------+--------+--------+--------+--------+"
+echo "  | PO     | TL     | WEB    | BE     | MOBILE |"
+echo "  | Pane 0 | Pane 1 | Pane 2 | Pane 3 | Pane 4 |"
+echo "  | Opus   | Sonnet | Sonnet | Sonnet | Sonnet |"
+echo "  +--------+--------+--------+--------+--------+"
+echo ""
+echo "Communication flow:"
+echo "  Boss → PO → TL → WEB / BE / MOBILE"
+echo ""
+echo "Working directories:"
+echo "  PO:     $PROJECT_ROOT"
+echo "  TL:     $PROJECT_ROOT"
+echo "  WEB:    $PROJECT_ROOT/frontend"
+echo "  BE:     $PROJECT_ROOT/backend"
+echo "  MOBILE: $PROJECT_ROOT/mobile"
 echo ""
 echo "Next steps:"
 echo "  1. Attach: tmux attach -t $SESSION_NAME"
 echo "  2. Boss provides Sprint Goal to PO via >>>"
 echo "  3. Team executes Sprint"
-echo ""
-echo "Boss commands (from separate terminal):"
-echo "  >>> start sprint 1: [goal]"
 echo ""
 echo "To detach: Ctrl+B, then D"
 echo "To kill: tmux kill-session -t $SESSION_NAME"

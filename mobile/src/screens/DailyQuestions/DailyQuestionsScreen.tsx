@@ -17,7 +17,7 @@ import { ChevronDown, ChevronUp, Clock, Heart, HelpCircle, MessageCircle, Send, 
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import GlassTabBar from '../../components/GlassTabBar';
 import type { DailyQuestionHistoryItem } from '../../types';
 
@@ -422,25 +422,21 @@ export default function DailyQuestionsScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsibleHeader
+      <ListHeader
         title={t.dailyQuestions.cardTitle}
         subtitle="DAILY Q&A"
-        expandedHeight={140}
-        collapsedHeight={96}
-        scrollY={scrollY}
-        dark
         onBack={canGoBack ? vm.goBack : undefined}
-        renderFooter={() => (
+        filterBar={
           <GlassTabBar
             tabs={tabs}
             activeTab={vm.activeTab}
             onTabPress={vm.setActiveTab}
           />
-        )}
+        }
       />
 
       {/* ── Content ── */}
-      <View style={{paddingTop: 60, flex: 1}}>
+      <View className="flex-1">
         {vm.activeTab === 'today' ? (
           vm.todayLoading ? (
             <View className="flex-1 items-center justify-center">

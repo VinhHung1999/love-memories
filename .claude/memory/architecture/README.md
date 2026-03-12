@@ -256,3 +256,8 @@ Always respect this order when adding new overlay or panel components.
 - Sheets with single Save use onSave/isSaving/saveDisabled in header (WishFormSheet, PlanFormSheet)
 - RouteProp must come from @react-navigation/native, NOT @react-navigation/native-stack
 - draft-first letter flow: create draft → update → PATCH /send
+
+### loveLettersApi upload pattern (Sprint 48)
+- uploadPhoto/uploadAudio now use URI pattern (id, uri, mimeType) — consistent with momentsApi/foodSpotsApi
+- Must use raw `fetch` with manual Authorization header (not apiFetch) for multipart FormData uploads
+- scheduledAt supported in create/update; send via loveLettersApi.send() still separate call

@@ -1,11 +1,11 @@
-# Love Scrum - 2-Person Team (PO + DEV)
+# Love Scrum - 5-Person Team (PO + TL + WEB + BE + MOBILE)
 
 <context>
-A lightweight 2-agent team for the Love Scrum project.
-PO coordinates and manages product, DEV implements all code (backend + frontend).
+A 5-agent team for the Love Scrum project.
+PO owns product and talks to TL. TL coordinates and assigns tasks to WEB, BE, MOBILE devs.
 </context>
 
-**Terminology:** "Role" and "agent" are used interchangeably. Each role (PO, DEV) is a Claude Code AI agent instance.
+**Terminology:** "Role" and "agent" are used interchangeably. Each role is a Claude Code AI agent instance.
 
 ---
 
@@ -13,18 +13,28 @@ PO coordinates and manages product, DEV implements all code (backend + frontend)
 
 | Role | Pane | Purpose | Model |
 |------|------|---------|-------|
-| PO | 0 | Product Owner - backlog, priorities, specs, code review, QA | Opus |
-| DEV | 1 | Full-stack Developer - implements backend + frontend | Sonnet |
+| PO | 0 | Product Owner - backlog, priorities, specs, QA | Opus |
+| TL | 1 | Tech Lead - code review, task breakdown, dev coordination | Sonnet |
+| WEB | 2 | Web Frontend Developer - React + Vite + Tailwind | Sonnet |
+| BE | 3 | Backend Developer - Express + Prisma + PostgreSQL | Sonnet |
+| MOBILE | 4 | Mobile Developer - React Native + NativeWind | Sonnet |
 | Boss | Outside | Human user - sprint goals, acceptance | - |
 
 ---
 
-## Key Principle: PO is the Hub
+## Key Principle: Chain of Command
 
-All communication flows through PO:
-- Boss → PO → DEV
-- DEV → PO → Boss
-- DEV never communicates directly with Boss
+```
+Boss → PO → TL → WEB / BE / MOBILE
+```
+
+- **Boss** talks ONLY to **PO**
+- **PO** talks ONLY to **TL** (product specs, priorities, review results)
+- **TL** talks to **WEB, BE, MOBILE** (technical tasks, review feedback)
+- **WEB/BE/MOBILE** report ONLY to **TL**
+- **TL** aggregates and reports to **PO**
+
+**No skipping levels.** Devs never talk to PO or Boss directly.
 
 ---
 
@@ -46,9 +56,21 @@ tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 ### Use tm-send for ALL Messages
 
 ```bash
-# Correct
-tm-send DEV "PO [HH:mm]: Sprint assigned. See spec."
-tm-send PO "DEV [HH:mm]: Task done. Tests passing."
+# PO → TL
+tm-send TL "PO [HH:mm]: Sprint spec ready. See WHITEBOARD."
+
+# TL → Devs
+tm-send WEB "TL [HH:mm]: Implement dashboard redesign."
+tm-send BE "TL [HH:mm]: Add new API endpoint for recipes."
+tm-send MOBILE "TL [HH:mm]: Build recipe screen with MVVM."
+
+# Devs → TL
+tm-send TL "WEB [HH:mm]: Task done. Tests passing."
+tm-send TL "BE [HH:mm]: API endpoint ready."
+tm-send TL "MOBILE [HH:mm]: Screen done. Lint clean."
+
+# TL → PO
+tm-send PO "TL [HH:mm]: All tasks complete. Ready for review."
 
 # Forbidden - NEVER use raw tmux send-keys
 tmux send-keys -t %16 "message" C-m C-m  # NEVER!
@@ -62,23 +84,27 @@ Every task requires TWO responses:
 
 ---
 
-## Sprint Workflow (Simplified for 2-Person Team)
+## Sprint Workflow
 
 ### Phase 1: Sprint Planning
 ```
 Boss → PO: Sprint Goal / requirements
 PO: Creates spec with acceptance criteria
-PO → DEV: Sprint assignment with spec
+PO → TL: Sprint assignment with spec
+TL: Breaks spec into technical tasks for WEB/BE/MOBILE
+TL → WEB/BE/MOBILE: Task assignments
 ```
 
 ### Phase 2: Sprint Execution
 ```
-1. DEV acknowledges and starts implementation
-2. DEV implements with tests (backend + frontend)
-3. DEV → PO: Reports completion
-4. PO: Reviews code + runs tests (acts as TL + QA)
-5. PO → DEV: Feedback or approval
-6. Loop 3-5 until approved
+1. WEB/BE/MOBILE acknowledge and start (parallel)
+2. Each dev implements their domain with tests
+3. Dev → TL: Reports completion
+4. TL: Reviews code + runs tests
+5. TL → Dev: Feedback or approval
+6. Loop 3-5 until all tasks approved
+7. TL → PO: Sprint tasks complete
+8. PO: Final QA validation
 ```
 
 ### Phase 3: Sprint Review & Production Approval
@@ -87,13 +113,10 @@ PO → Boss: Sprint summary with deliverables (on dev environment)
 Boss: Reviews on dev environment, tests functionality
 Boss: APPROVE or REQUEST CHANGES
   - If APPROVE → PO merges to main and deploys to production
-  - If REQUEST CHANGES → PO creates feedback tasks → back to Phase 2
+  - If REQUEST CHANGES → PO → TL → devs fix → re-review
 ```
 
 **CRITICAL: Nothing goes to production without Boss approval.**
-- PO can merge feature branches into sprint branch (dev)
-- PO can deploy to dev environment for Boss review
-- Only Boss can authorize merge to main / deploy to production
 
 ---
 
@@ -101,9 +124,9 @@ Boss: APPROVE or REQUEST CHANGES
 
 A task is "Done" when:
 - [ ] Code implemented and committed
-- [ ] Tests pass (backend: jest, frontend: vitest)
+- [ ] Tests pass (backend: jest, frontend: vitest, mobile: jest + lint)
 - [ ] Lint and build pass
-- [ ] PO code review approved
+- [ ] TL code review approved
 - [ ] PO acceptance verified
 - [ ] **Boss approved for production** (required before merge to main)
 
@@ -115,10 +138,7 @@ A task is "Done" when:
 # Sprint branch (dev environment)
 git checkout -b sprint_{N}
 
-# Feature branches
-git checkout -b feature_{description}
-
-# After PO review → merge to sprint branch (dev only)
+# After TL review → merge to sprint branch (dev only)
 git checkout sprint_{N}
 git merge feature_{description}
 
@@ -135,29 +155,29 @@ git push origin main
 
 ## Development Commands
 
-### Backend
+### Backend (`backend/`)
 ```bash
-cd backend
 npm run dev          # Dev server (port 5005)
 npm test             # Jest tests
 npm run lint         # ESLint
 npm run build        # TypeScript compile
 ```
 
-### Frontend
+### Frontend (`frontend/`)
 ```bash
-cd frontend
 npm run dev          # Vite dev server (port 3337)
 npm test             # Vitest
 npm run lint         # ESLint
 npm run build        # tsc + vite build
 ```
 
-### Database
+### Mobile (`mobile/`)
 ```bash
-cd backend
-npx prisma migrate dev     # Run migrations
-npx prisma generate        # Regenerate client
+npm run ios          # Run on iOS simulator
+npm run android      # Run on Android emulator
+npm run start        # Metro bundler
+npm run lint         # tsc --noEmit + ESLint
+npm test             # Jest
 ```
 
 ---
@@ -170,7 +190,10 @@ love-scrum-team/
 ├── WHITEBOARD.md            # Sprint status (PO maintains)
 └── prompts/
     ├── PO_PROMPT.md         # Product Owner prompt
-    └── DEV_PROMPT.md        # Developer prompt
+    ├── TL_PROMPT.md         # Tech Lead prompt
+    ├── WEB_PROMPT.md        # Web Frontend Developer prompt
+    ├── BE_PROMPT.md         # Backend Developer prompt
+    └── MOBILE_PROMPT.md     # Mobile Developer prompt
 ```
 
 ---
@@ -181,7 +204,7 @@ Boss operates from a **separate terminal** outside the tmux session.
 
 **Communication Protocol:**
 - When Boss types `>>> [message]`, send to PO pane with prefix: `BOSS [HH:MM]: [message]`
-- Only send to PO, never directly to DEV
+- Only send to PO, never directly to other roles
 
 ```bash
 # Send to PO

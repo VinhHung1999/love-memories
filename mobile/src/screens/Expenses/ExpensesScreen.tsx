@@ -9,14 +9,13 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInDown,
-  useSharedValue,
 } from 'react-native-reanimated';
 import { Banknote, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import type { Expense, DailyStats } from '../../lib/api';
 import { useExpensesViewModel } from './useExpensesViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ListHeader from '../../components/ListHeader';
 import EmptyState from '../../components/EmptyState';
 import TagBadge from '../../components/TagBadge';
 import Skeleton from '../../components/Skeleton';
@@ -281,7 +280,6 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
 export default function ExpensesScreen() {
   const colors = useAppColors();
   const vm = useExpensesViewModel();
-  const scrollY = useSharedValue(200);
 
   // Build a quick map of limitPct/overLimit per category key for chip display
   const chipLimitMap = React.useMemo(() => {
@@ -298,13 +296,11 @@ export default function ExpensesScreen() {
 
   return (
     <View className="flex-1 bg-baseBg">
-      <CollapsibleHeader
+      <ListHeader
         title={t.expenses.title}
         subtitle={t.expenses.subtitle}
-        expandedHeight={140}
-        collapsedHeight={112}
-        scrollY={scrollY}
-        renderRight={() => (
+        onBack={vm.handleBack}
+        right={
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
               onPress={vm.handleOpenBudget}
@@ -320,14 +316,9 @@ export default function ExpensesScreen() {
               <Plus size={22} strokeWidth={1.5} />
             </TouchableOpacity>
           </View>
-        )}
-        onBack={vm.handleBack}
-        showBack
-        renderFooter={() => {
-          return  (
-          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40" onLayout={(e) => {
-            console.log(e.nativeEvent.layout)
-          }}>
+        }
+        filterBar={
+          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
             <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
               <ChevronLeft size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
@@ -345,8 +336,7 @@ export default function ExpensesScreen() {
               <ChevronRight size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
           </View>
-          )
-        }}
+        }
       />
 
      

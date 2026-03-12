@@ -1,10 +1,9 @@
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import FastImage from 'react-native-fast-image';
 import { useAppColors } from '../../navigation/theme';
 import { useLetterReadViewModel } from './useLetterReadViewModel';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
+import ScreenHeader from '../../components/ScreenHeader';
 import VoiceMemoSection from '../MomentDetail/components/VoiceMemoSection';
 import t from '../../locales/en';
 import type { MomentAudio } from '../../types';
@@ -16,8 +15,6 @@ const MOOD_EMOJI: Record<string, string> = {
 export default function LetterReadScreen() {
   const colors = useAppColors();
   const vm = useLetterReadViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   if (vm.isLoading || !vm.letter) {
     return (
@@ -35,23 +32,16 @@ export default function LetterReadScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <CollapsibleHeader
+      <ScreenHeader
         title={letter.title}
         subtitle={senderName}
-        expandedHeight={130}
-        collapsedHeight={96}
-        scrollY={scrollY}
         onBack={vm.handleBack}
-        renderRight={() => (
-          <Text className="text-2xl">{moodEmoji}</Text>
-        )}
+        right={<Text className="text-2xl">{moodEmoji}</Text>}
       />
 
-      <Animated.ScrollView
+      <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 }}>
 
         {/* Paper card */}
@@ -90,7 +80,7 @@ export default function LetterReadScreen() {
           onPlay={vm.handlePlayAudio}
           onStop={vm.handleStopAudio}
         />
-      </Animated.ScrollView>
+      </ScrollView>
     </View>
   );
 }

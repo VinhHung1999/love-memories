@@ -11,19 +11,13 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
-import { ChevronRight, ExternalLink, Images, MapPin, Music2, Pencil, Trash2 } from 'lucide-react-native';
+import { ChevronRight, ExternalLink, Images, MapPin, Music2 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import CollapsibleHeader from '../../components/CollapsibleHeader';
-import HeaderIconButton from '../../components/HeaderIconButton';
+import HeroHeader from '../../components/HeroHeader';
 import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import ReactionsBar from './components/ReactionsBar';
@@ -159,12 +153,6 @@ export default function MomentDetailScreen() {
   const vm = useMomentDetailViewModel();
   const { moment } = vm;
 
-  // Hooks must be unconditional — before early return
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => {
-    scrollY.value = e.contentOffset.y;
-  });
-
   if (vm.isLoading || !moment) {
     return <MomentDetailLoadingSkeleton />;
   }
@@ -174,59 +162,19 @@ export default function MomentDetailScreen() {
   return (
     <KeyboardAvoidingView className="flex-1 bg-gray-50" behavior="padding">
 
-      {/* ── Collapsible header (hero photo + back/edit/delete) ── */}
-      <CollapsibleHeader
+      {/* ── Hero header (sits in normal layout flow) ── */}
+      <HeroHeader
         title={moment.title}
-        expandedHeight={280}
-        collapsedHeight={56}
-        dark
-        scrollY={scrollY}
-        renderBackground={() => (
-          <>
-            {coverPhoto ? (
-              <FastImage
-                source={{ uri: coverPhoto.url, priority: FastImage.priority.high }}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                resizeMode={FastImage.resizeMode.cover}
-              />
-            ) : (
-              <LinearGradient
-                colors={['#FFE4EA', colors.primary, '#D4607A']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="absolute inset-0"
-              />
-            )}
-            <LinearGradient
-              colors={['rgba(0,0,0,0.22)', 'transparent', 'rgba(0,0,0,0.3)']}
-              locations={[0, 0.4, 1]}
-              className="absolute inset-0"
-            />
-          </>
-        )}
+        imageUri={coverPhoto?.url}
         onBack={vm.handleBack}
-        renderRight={() => (
-          <View className="flex-row gap-2">
-            <HeaderIconButton
-              icon={Pencil}
-              onPress={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
-            />
-            <HeaderIconButton
-              icon={Trash2}
-              onPress={vm.handleDeleteMoment}
-              disabled={vm.isDeleting}
-            />
-          </View>
-        )}
+        onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
+        onDelete={vm.handleDeleteMoment}
       />
 
-      <Animated.ScrollView
+      <ScrollView
         className="flex-1"
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}>
-        {/* paddingTop=224 = expandedHeight(280) - collapsedHeight(56) pushes content below expanded header */}
-        <View className="pt-[224px] pb-[60px]">
+        showsVerticalScrollIndicator={false}>
+        <View className="pb-[60px]">
 
           {/* ── Photo thumbnail strip ── */}
           {moment.photos.length > 1 ? (
@@ -372,7 +320,7 @@ export default function MomentDetailScreen() {
           </Card>
 
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
 
     </KeyboardAvoidingView>
   );
