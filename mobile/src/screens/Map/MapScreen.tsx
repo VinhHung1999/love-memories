@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
+import { Heart, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 // import Mapbox from '@rnmapbox/maps';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
@@ -140,6 +140,7 @@ function EmojiPickerModal({
 
 // ── Floating callout card ─────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PinCallout({
   pin,
   colors,
@@ -225,7 +226,7 @@ export default function MapScreen() {
   const colors = useAppColors();
   const vm = useMapViewModel();
   const cameraRef = useRef<any>(null);
-  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [userCoords, _setUserCoords] = useState<[number, number] | null>(null);
   const hasInitialFitRef = useRef(false);
 
   // ── Fit bounds helper ──────────────────────────────────────────────────────
@@ -284,7 +285,8 @@ export default function MapScreen() {
 
   // ── My Location handler ────────────────────────────────────────────────────
 
-  const handleMyLocation = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _handleMyLocation = () => {
     if (userCoords) {
       cameraRef.current?.setCamera({
         centerCoordinate: userCoords,
