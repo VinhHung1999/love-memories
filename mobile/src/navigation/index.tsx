@@ -167,7 +167,7 @@ import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
 
 const MODAL_OPTIONS = {
   animation: 'none',
-  presentation: 'transparentModal',
+  presentation: 'containedTransparentModal',
 } as const;
 
 // ---------------------------------------------------------------------------
