@@ -120,8 +120,9 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         enablePanDownToClose
         onDismiss={handleDismiss}
         backdropComponent={renderBackdrop}
-        keyboardBehavior="interactive"
+        keyboardBehavior="extend"
         keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
         handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
         backgroundStyle={{ backgroundColor: '#ffffff' }}
       >
