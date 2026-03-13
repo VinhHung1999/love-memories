@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import {  } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import t from '../../locales/en';
 import type { Expense, ExpenseCategory } from '../../lib/api';
 import { useAddExpenseViewModel } from './useAddExpenseViewModel';
@@ -18,6 +19,7 @@ interface AddExpenseSheetProps {
 
 export default function AddExpenseSheet({ editingExpense = null, onClose }: AddExpenseSheetProps) {
   const colors = useAppColors();
+  const { showBottomSheet } = useAppNavigation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const vm = useAddExpenseViewModel(editingExpense, onClose);
 
@@ -109,6 +111,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
         <DatePickerField
           value={new Date(vm.date + 'T00:00:00')}
           onChange={(d) => vm.setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)}
+          showBottomSheet={showBottomSheet}
         />
 
         {/* ── Note ── */}

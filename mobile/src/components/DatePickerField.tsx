@@ -1,9 +1,7 @@
-import React, { useCallback, useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import React, { useCallback } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
-import { useAppNavigation } from '../navigation/useAppNavigation';
 import DatePickerSheet from './DatePickerSheet';
 import FieldLabel from './FieldLabel';
 
@@ -13,6 +11,8 @@ interface DatePickerFieldProps {
   label?: string;
   maximumDate?: Date;
   minimumDate?: Date;
+  /** Parent must pass showBottomSheet from useAppNavigation() — portal context breaks useNavigation */
+  showBottomSheet: (screen: React.ComponentType<any>, props?: Record<string, any>) => void;
 }
 
 export default function DatePickerField({
@@ -21,30 +21,19 @@ export default function DatePickerField({
   label,
   maximumDate,
   minimumDate,
+  showBottomSheet,
 }: DatePickerFieldProps) {
   const colors = useAppColors();
-  const navigation = useAppNavigation();
-  // Android-only: system dialog
-  const [showAndroid, setShowAndroid] = useState(false);
-
-  const handleAndroidChange = useCallback((_: DateTimePickerEvent, selected?: Date) => {
-    setShowAndroid(false);
-    if (selected) onChange(selected);
-  }, [onChange]);
 
   const handleOpen = useCallback(() => {
-    if (Platform.OS === 'android') {
-      setShowAndroid(true);
-    } else {
-      navigation.showBottomSheet(DatePickerSheet, {
-        value,
-        onChange,
-        label,
-        maximumDate,
-        minimumDate,
-      });
-    }
-  }, [value, onChange, label, maximumDate, minimumDate, navigation]);
+    showBottomSheet(DatePickerSheet, {
+      value,
+      onChange,
+      label,
+      maximumDate,
+      minimumDate,
+    });
+  }, [value, onChange, label, maximumDate, minimumDate, showBottomSheet]);
 
   return (
     <View className="mb-3">
@@ -58,18 +47,6 @@ export default function DatePickerField({
         </Text>
         <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
-
-      {/* Android: system dialog */}
-      {Platform.OS === 'android' && showAndroid && (
-        <DateTimePicker
-          value={value}
-          mode="date"
-          display="default"
-          onChange={handleAndroidChange}
-          maximumDate={maximumDate}
-          minimumDate={minimumDate}
-        />
-      )}
     </View>
   );
 }

@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import t from '../../locales/en';
 import type { Moment } from '../../types';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useCreateMomentViewModel } from './useCreateMomentViewModel';
 import AppBottomSheet from '../../components/AppBottomSheet';
 import DatePickerField from '../../components/DatePickerField';
@@ -20,6 +21,7 @@ interface Props {
 
 export default function CreateMomentSheet({ moment: initialMoment, onClose }: Props) {
   const sheetRef = useRef<BottomSheetModal>(null);
+  const { showBottomSheet } = useAppNavigation();
 
   useEffect(() => {
     sheetRef.current?.present();
@@ -85,6 +87,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
             value={vm.date}
             onChange={vm.setDate}
             maximumDate={new Date()}
+            showBottomSheet={showBottomSheet}
           />
 
           <LocationPicker
