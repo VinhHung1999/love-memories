@@ -1155,6 +1155,11 @@ export const loveLettersApi = {
     const res = await apiFetch(`/api/love-letters/${id}/audio/${audioId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete audio');
   },
+  markRead: async (id: string): Promise<{ id: string; status: string; readAt: string }> => {
+    const res = await apiFetch(`/api/love-letters/${id}/mark-read`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('Failed to mark letter as read');
+    return res.json();
+  },
 };
 
 // ---------------------------------------------------------------------------

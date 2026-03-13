@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Linking,
   Pressable,
   Text,
   View,
@@ -246,6 +247,26 @@ export default function ProfileScreen() {
                 </Pressable>
               </View>
             )}
+          </Card>
+
+          {/* ── Legal ── */}
+          <Card>
+            <CardTitle>{t.legal.title}</CardTitle>
+            <Pressable
+              onPress={() => Linking.openURL('https://love-scrum.hungphu.work/privacy-policy')}
+              className="flex-row items-center py-3 border-b"
+              style={{ borderColor: colors.border }}
+            >
+              <Text className="flex-1 text-sm" style={{ color: colors.textDark }}>{t.legal.privacyPolicy}</Text>
+              <Text className="text-sm" style={{ color: colors.textLight }}>›</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => Linking.openURL('https://love-scrum.hungphu.work/terms-of-service')}
+              className="flex-row items-center py-3"
+            >
+              <Text className="flex-1 text-sm" style={{ color: colors.textDark }}>{t.legal.termsOfService}</Text>
+              <Text className="text-sm" style={{ color: colors.textLight }}>›</Text>
+            </Pressable>
           </Card>
 
           {/* ── Log Out ── */}
