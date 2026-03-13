@@ -17,7 +17,7 @@ export interface PricingPlan {
   label: string;
   price: string;
   period: string;
-  priceLocal: string;
+  priceUsd: string;
   perMonth?: string;
   productId: string;
   isBestValue?: boolean;
@@ -29,7 +29,7 @@ export const PLANS: PricingPlan[] = [
     label: t.paywall.monthly.label,
     price: t.paywall.monthly.price,
     period: t.paywall.monthly.period,
-    priceLocal: t.paywall.monthly.priceUsd,
+    priceUsd: t.paywall.monthly.priceUsd,
     productId: PRODUCT_IDS.monthly,
   },
   {
@@ -37,7 +37,7 @@ export const PLANS: PricingPlan[] = [
     label: t.paywall.annual.label,
     price: t.paywall.annual.price,
     period: t.paywall.annual.period,
-    priceLocal: t.paywall.annual.priceUsd,
+    priceUsd: t.paywall.annual.priceUsd,
     perMonth: t.paywall.annual.perMonth,
     productId: PRODUCT_IDS.annual,
     isBestValue: true,
@@ -47,7 +47,7 @@ export const PLANS: PricingPlan[] = [
     label: t.paywall.lifetime.label,
     price: t.paywall.lifetime.price,
     period: t.paywall.lifetime.period,
-    priceLocal: t.paywall.lifetime.priceUsd,
+    priceUsd: t.paywall.lifetime.priceUsd,
     perMonth: t.paywall.lifetime.perMonth,
     productId: PRODUCT_IDS.lifetime,
   },

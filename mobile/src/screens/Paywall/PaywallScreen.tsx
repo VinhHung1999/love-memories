@@ -141,7 +141,7 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
                 </Text>
               </View>
               <Text className="text-[11px]" style={{ color: colors.textLight }}>
-                {plan.priceLocal}
+                {plan.priceUsd}
               </Text>
             </View>
 
