@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -13,6 +13,7 @@ import {
   BottomSheetScrollView,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import { FullWindowOverlay } from 'react-native-screens';
 import { useAppColors } from '../navigation/theme';
 import t from '../locales/en';
 
@@ -112,6 +113,20 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
       return showHeader ? HEADER_HEIGHT : 0;
     }, [showHeader]);
 
+    // iOS: FullWindowOverlay renders the sheet in its own native UIWindow,
+    // above react-native-screens' modal screens. Without this, touches are
+    // intercepted by the native screen container and the sheet becomes
+    // unresponsive (frozen UI, no crash).
+    const renderContainerComponent = useCallback(
+      (props: { children?: React.ReactNode }) =>
+        Platform.OS === 'ios' ? (
+          <FullWindowOverlay>{props.children}</FullWindowOverlay>
+        ) : (
+          <>{props.children}</>
+        ),
+      [],
+    );
+
     return (
       <BottomSheetModal
         ref={internalRef}
@@ -120,6 +135,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         enablePanDownToClose
         onDismiss={handleDismiss}
         backdropComponent={renderBackdrop}
+        containerComponent={renderContainerComponent}
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
