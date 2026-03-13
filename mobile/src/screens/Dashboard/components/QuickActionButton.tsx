@@ -19,7 +19,7 @@ export function QuickActionButton({
 }: QuickActionButtonProps) {
   return (
     <Pressable onPress={onPress} className="flex-1">
-      <BaseCard className="py-4 items-center justify-center gap-1.5 shadow-sm">
+      <BaseCard className="py-4 items-center justify-center gap-1.5">
         <View className={`w-10 h-10 rounded-2xl items-center justify-center ${bgClass}`}>
           <IconComponent size={20} color={iconColor} strokeWidth={1.5} />
         </View>

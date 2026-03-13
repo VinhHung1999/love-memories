@@ -54,7 +54,7 @@ export default function LetterReadScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 }}>
 
         {/* Paper card */}
-        <View className="bg-white rounded-3xl p-6 shadow-sm mb-4">
+        <View className="bg-white rounded-3xl p-6 mb-4">
           <Text className="text-xl font-bold text-textDark mb-4">{letter.title}</Text>
           <Text className="text-[15px] text-textMid leading-7">{letter.content}</Text>
         </View>

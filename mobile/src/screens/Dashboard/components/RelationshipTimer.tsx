@@ -89,7 +89,7 @@ function AvatarWithRing({
     </Animated.View>
   );
 }
-
+ 
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function RelationshipTimer({

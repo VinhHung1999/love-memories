@@ -33,7 +33,7 @@ export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: (
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl px-4 py-4 mb-3 shadow-sm">
+      className="bg-white rounded-3xl px-4 py-4 mb-3">
       {/* Top row: date badge + status */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="rounded-xl px-2.5 py-1" style={{ backgroundColor: colors.primaryMuted }}>

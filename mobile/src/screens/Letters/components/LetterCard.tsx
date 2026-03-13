@@ -53,7 +53,7 @@ export default function LetterCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl px-4 py-3.5 flex-row items-center gap-3 mb-3 shadow-sm">
+      className="bg-white rounded-3xl px-4 py-3.5 flex-row items-center gap-3 mb-3">
       {/* Mood circle */}
       <View
         className="w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0"

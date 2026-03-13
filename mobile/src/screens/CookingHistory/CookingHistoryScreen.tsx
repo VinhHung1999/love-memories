@@ -53,7 +53,7 @@ function SessionCard({
     <Animated.View entering={FadeInDown.delay(delay)}>
       <Pressable
         onPress={onPress}
-        className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3 flex-row">
+        className="bg-white rounded-3xl overflow-hidden mb-3 flex-row">
 
         {/* Thumbnail */}
         <View className="w-[90px] h-[90px] bg-gray-100 flex-shrink-0">

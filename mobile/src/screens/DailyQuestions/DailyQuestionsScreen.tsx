@@ -149,7 +149,7 @@ function TodayView({
       {/* ── Question card ── */}
       <Animated.View entering={FadeInDown.delay(50).duration(500)}>
         <View
-          className="rounded-3xl overflow-hidden shadow-sm px-5 pt-5 pb-6"
+          className="rounded-3xl overflow-hidden px-5 pt-5 pb-6"
           style={{ backgroundColor: colors.primary }}>
           {/* Category */}
           <View className="flex-row items-center gap-2 mb-4">
@@ -278,7 +278,7 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
   return (
     <Pressable
       onPress={() => setExpanded(e => !e)}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm"
+      className="bg-white rounded-2xl overflow-hidden"
       style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.6)' }}>
 
       {/* Header */}

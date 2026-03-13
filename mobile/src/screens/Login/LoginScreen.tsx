@@ -36,6 +36,8 @@ export default function LoginScreen() {
     ]).start();
   }, [logoAnim, formAnim]);
 
+
+
   // style kept: Animated.Value opacity + transform — impossible to express as className
   const logoStyle = {
     opacity: logoAnim,
@@ -63,7 +65,7 @@ export default function LoginScreen() {
 
         {/* Google button */}
         <SpringPressable
-          className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border bg-white shadow-sm mb-1"
+          className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border bg-white mb-1"
           onPress={vm.handleGoogleSignIn}
           disabled={vm.loading}>
           <GoogleGLogo size={20} />
@@ -156,7 +158,7 @@ export default function LoginScreen() {
   );
 
   return (
-    <LinearGradient colors={['#FFF0F3', '#FFFFFF', '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} className="flex-1">
+    <LinearGradient colors={['#FFF0F3', '#FFFFFF', '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <DecoBlobs />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">

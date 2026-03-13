@@ -92,7 +92,7 @@ function SummaryCard({ total, count, breakdown }: {
   const overLimitCount = breakdown.filter(c => c.overLimit).length;
 
   return (
-    <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white border border-borderSoft shadow-sm">
+    <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white border border-borderSoft">
       <View className="px-5 pt-5 pb-4">
         <Text className="text-textMid text-xs font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Text>
         <View className="flex-row items-end justify-between mb-1">
@@ -314,7 +314,7 @@ export default function ExpensesScreen() {
         }
         filterBar={
           <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
-            <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white shadow-sm">
+            <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white">
               <ChevronLeft size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
             <View className="items-center">
@@ -401,7 +401,7 @@ export default function ExpensesScreen() {
                       <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">{group.dateLabel}</Text>
                       <Text className="text-xs font-semibold text-textMid">{formatVND(group.dayTotal)}</Text>
                     </View>
-                    <View className="bg-white mx-4 rounded-3xl shadow-sm overflow-hidden mb-3">
+                    <View className="bg-white mx-4 rounded-3xl overflow-hidden mb-3">
                       {group.expenses.map((expense, idx) => (
                         <ExpenseRow
                           key={expense.id}

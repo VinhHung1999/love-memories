@@ -141,7 +141,7 @@ export default function PhotoGalleryScreen() {
   const keyExtractor = useCallback((item: MomentPhoto) => item.id, []);
 
   return (
-    <GestureHandlerRootView className="flex-1 bg-[#0A0404]">
+    <GestureHandlerRootView style={{flex: 1, backgroundColor:"#0A0404"}}>
       <StatusBar hidden />
 
       {/* Photos list */}

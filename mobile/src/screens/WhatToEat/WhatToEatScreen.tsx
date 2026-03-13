@@ -96,7 +96,7 @@ function ActiveSessionBanner({ onResume }: { onResume: () => void }) {
   return (
     <Pressable
       onPress={onResume}
-      className="mx-4 mb-4 rounded-2xl overflow-hidden bg-white border border-borderSoft shadow-sm px-4 py-4 flex-row items-center gap-3">
+      className="mx-4 mb-4 rounded-2xl overflow-hidden bg-white border border-borderSoft px-4 py-4 flex-row items-center gap-3">
       <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
         <ChefHat size={20} color={colors.primary} strokeWidth={1.5} />
       </View>

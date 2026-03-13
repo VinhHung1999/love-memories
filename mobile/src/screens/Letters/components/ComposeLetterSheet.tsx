@@ -221,7 +221,7 @@ export default function ComposeLetterSheet({
               className="w-10 h-6 rounded-full"
               style={{ backgroundColor: vm.scheduleMode ? colors.primary : colors.gray100 }}>
               <View
-                className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                className="absolute top-1 w-4 h-4 rounded-full bg-white"
                 style={{ left: vm.scheduleMode ? 22 : 2 }}
               />
             </View>

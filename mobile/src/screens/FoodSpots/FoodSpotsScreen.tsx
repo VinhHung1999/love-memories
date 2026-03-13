@@ -24,7 +24,7 @@ import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 function FoodSpotCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3 shadow-sm">
+    <View className="bg-white rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[130px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -72,7 +72,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSoft mb-3">
+      className="bg-white rounded-3xl overflow-hidden border border-borderSoft mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">

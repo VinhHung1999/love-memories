@@ -5,6 +5,7 @@ module.exports = {
   // because plugins must return a visitor, not a { plugins } object.
   presets: ['module:@react-native/babel-preset', 'nativewind/babel'],
   plugins: [
+    'react-native-worklets/plugin',
     [
       'module-resolver',
       {

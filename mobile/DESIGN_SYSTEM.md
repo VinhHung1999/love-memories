@@ -230,7 +230,7 @@ className="text-[26px] font-bold text-textDark leading-none"
 
 **Base Card (White):**
 ```tsx
-className="bg-white rounded-3xl shadow-sm"
+className="bg-white rounded-3xl"
 // Shadow: soft, large blur (8px offset, 20px blur)
 // Padding: px-4 py-3 (16px / 12px)
 // Border radius: 24px

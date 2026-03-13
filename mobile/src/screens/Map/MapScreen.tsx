@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
-import Mapbox from '@rnmapbox/maps';
+// import Mapbox from '@rnmapbox/maps';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMapViewModel } from './useMapViewModel';
@@ -352,66 +352,7 @@ export default function MapScreen() {
       </SafeAreaView>
 
       {/* Map + overlays */}
-      <View className="flex-1">
-        {/* style exception: Mapbox.MapView is a native view requiring flex layout style */}
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Mapbox.MapView style={{ flex: 1 }} styleURL={Mapbox.StyleURL.Street}>
-          <Mapbox.Camera
-            ref={cameraRef}
-            defaultSettings={{ centerCoordinate: [106.66, 10.78], zoomLevel: 11 }}
-          />
-          <Mapbox.UserLocation
-            visible
-            animated
-            onUpdate={location => {
-              setUserCoords([location.coords.longitude, location.coords.latitude]);
-            }}
-          />
-          {/* eslint-disable react-native/no-inline-styles */}
-          {vm.pins.map(pin => (
-            <Mapbox.PointAnnotation
-              key={pin.id}
-              id={pin.id}
-              coordinate={[pin.longitude, pin.latitude]}
-              onSelected={() => vm.handlePinPress(pin)}>
-              {/* style required: Mapbox.PointAnnotation children are native views — NativeWind CssInterop cannot wrap them */}
-              {pin.tagIcon ? (
-                <View style={{
-                  width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: '#fff',
-                  alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: pin.type === 'foodspot' ? colors.secondary + '33' : colors.primary + '33',
-                }}>
-                  <Text style={{ fontSize: 16 }}>{pin.tagIcon}</Text>
-                </View>
-              ) : (
-                <View style={{
-                  width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#fff',
-                  backgroundColor: pin.type === 'foodspot' ? colors.secondary : colors.primary,
-                }} />
-              )}
-            </Mapbox.PointAnnotation>
-          ))}
-          {/* eslint-enable react-native/no-inline-styles */}
-        </Mapbox.MapView>
 
-        {/* Callout overlay */}
-        {vm.selectedPin ? (
-          <PinCallout
-            pin={vm.selectedPin}
-            colors={colors}
-            tagMetadata={vm.tagMetadata}
-            onViewDetails={() => vm.handleCalloutPress(vm.selectedPin!)}
-            onDismiss={vm.handleDismissCallout}
-          />
-        ) : null}
-
-        {/* My Location button */}
-        <TouchableOpacity
-          onPress={handleMyLocation}
-          className="absolute bottom-20 right-4 w-10 h-10 rounded-full bg-white shadow-md items-center justify-center">
-          <LocateFixed size={20} color={colors.primary} strokeWidth={1.5} />
-        </TouchableOpacity>
-      </View>
 
       {/* Emoji picker modal */}
       {vm.selectedTagForEmoji ? (

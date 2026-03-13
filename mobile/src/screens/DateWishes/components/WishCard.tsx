@@ -22,7 +22,7 @@ export default function WishCard({
 
   return (
     <View
-      className="bg-white rounded-3xl px-4 py-3.5 mb-3 shadow-sm"
+      className="bg-white rounded-3xl px-4 py-3.5 mb-3"
       style={{ opacity: wish.done ? 0.6 : 1 }}>
       <View className="flex-row items-center gap-3">
         {/* Category emoji */}

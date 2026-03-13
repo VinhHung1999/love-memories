@@ -416,6 +416,7 @@ export default function RootNavigator() {
     );
   }
 
+
   return (
     <NavigationContainer theme={AppTheme as any}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}

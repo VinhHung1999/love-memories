@@ -29,7 +29,7 @@ import { FAB } from '@/components/FAB';
 
 function RecipeCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3 shadow-sm">
+    <View className="bg-white rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[140px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -71,7 +71,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3">
+      className="bg-white rounded-3xl overflow-hidden mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full">
@@ -259,7 +259,7 @@ export default function RecipesScreen() {
       {/* FAB — AI recipe */}
       <Pressable
         onPress={() => navigation.showBottomSheet(AIRecipeSheet)}
-        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center shadow-sm bg-white border-2 border-primary/30">
+        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center bg-white border-2 border-primary/30">
         <Bot size={22} color={colors.primary} strokeWidth={1.5} />
       </Pressable>
 

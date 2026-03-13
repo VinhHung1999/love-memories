@@ -39,7 +39,7 @@ export default function StopCard({
 
       {/* Content */}
       <View className="flex-1 pb-5">
-        <View className="bg-white rounded-2xl p-3 shadow-sm">
+        <View className="bg-white rounded-2xl p-3">
           <View className="flex-row items-start gap-2">
             <View className="flex-1">
               {stop.time ? (
