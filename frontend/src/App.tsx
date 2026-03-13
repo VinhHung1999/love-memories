@@ -29,6 +29,8 @@ import ExpensesPage from './pages/ExpensesPage';
 import ShareViewerPage from './pages/ShareViewerPage';
 import DailyQuestionsPage from './pages/DailyQuestionsPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 
 async function registerPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -77,12 +79,13 @@ export default function App() {
   }, [isAuthenticated, queryClient]);
 
   // Public routes (outside auth gate)
-  // Check if current path is a share link
-  const isShareRoute = window.location.pathname.startsWith('/s/');
-  if (isShareRoute) {
+  const pathname = window.location.pathname;
+  if (pathname.startsWith('/s/') || pathname === '/privacy-policy' || pathname === '/terms-of-service') {
     return (
       <Routes>
         <Route path="/s/:token" element={<ShareViewerPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       </Routes>
     );
   }
