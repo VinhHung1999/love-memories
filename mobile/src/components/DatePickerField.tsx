@@ -1,12 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
-import AppBottomSheet from './AppBottomSheet';
+import { useAppNavigation } from '../navigation/useAppNavigation';
+import DatePickerSheet from './DatePickerSheet';
 import FieldLabel from './FieldLabel';
-import t from '../locales/en';
 
 interface DatePickerFieldProps {
   value: Date;
@@ -24,33 +23,28 @@ export default function DatePickerField({
   minimumDate,
 }: DatePickerFieldProps) {
   const colors = useAppColors();
-  const sheetRef = useRef<BottomSheetModal>(null);
-  const [tempDate, setTempDate] = useState(value);
+  const navigation = useAppNavigation();
   // Android-only: system dialog
   const [showAndroid, setShowAndroid] = useState(false);
 
-  const handleChange = useCallback((_: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowAndroid(false);
-      if (selected) onChange(selected);
-      return;
-    }
-    if (selected) setTempDate(selected);
+  const handleAndroidChange = useCallback((_: DateTimePickerEvent, selected?: Date) => {
+    setShowAndroid(false);
+    if (selected) onChange(selected);
   }, [onChange]);
 
-  const handleConfirm = useCallback(() => {
-    onChange(tempDate);
-    sheetRef.current?.dismiss();
-  }, [onChange, tempDate]);
-
   const handleOpen = useCallback(() => {
-    setTempDate(value);
     if (Platform.OS === 'android') {
       setShowAndroid(true);
     } else {
-      sheetRef.current?.present();
+      navigation.showBottomSheet(DatePickerSheet, {
+        value,
+        onChange,
+        label,
+        maximumDate,
+        minimumDate,
+      });
     }
-  }, [value]);
+  }, [value, onChange, label, maximumDate, minimumDate, navigation]);
 
   return (
     <View className="mb-3">
@@ -68,36 +62,13 @@ export default function DatePickerField({
       {/* Android: system dialog */}
       {Platform.OS === 'android' && showAndroid && (
         <DateTimePicker
-          value={tempDate}
+          value={value}
           mode="date"
           display="default"
-          onChange={handleChange}
+          onChange={handleAndroidChange}
           maximumDate={maximumDate}
           minimumDate={minimumDate}
         />
-      )}
-
-      {/* iOS: AppBottomSheet with spinner */}
-      {Platform.OS === 'ios' && (
-        <AppBottomSheet
-          ref={sheetRef}
-          title={label ?? t.common.selectDate}
-          icon={Calendar}
-          actionLabel={t.common.done}
-          onAction={handleConfirm}
-        >
-          <View className="items-center pb-6">
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              onChange={handleChange}
-              maximumDate={maximumDate}
-              minimumDate={minimumDate}
-              style={{ height: 200, width: '100%' }}
-            />
-          </View>
-        </AppBottomSheet>
       )}
     </View>
   );
