@@ -63,6 +63,12 @@ export const send = asyncHandler<IdParam>(async (req, res) => {
   res.json(letter);
 });
 
+export const markRead = asyncHandler<IdParam>(async (req, res) => {
+  const { userId, coupleId } = (req as AuthRequest).user!;
+  const result = await LoveLetterService.markRead(req.params.id, userId, coupleId);
+  res.json(result);
+});
+
 export const remove = asyncHandler<IdParam>(async (req, res) => {
   const { userId, coupleId } = (req as AuthRequest).user!;
   await LoveLetterService.remove(req.params.id, userId, coupleId);

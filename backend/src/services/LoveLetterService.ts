@@ -207,6 +207,21 @@ export async function send(id: string, userId: string, coupleId: string) {
   return updated;
 }
 
+export async function markRead(id: string, userId: string, coupleId: string) {
+  const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
+  if (!letter) throw new AppError(404, 'Letter not found');
+  if (letter.recipientId !== userId) throw new AppError(403, 'Only the recipient can mark a letter as read');
+  if (letter.status === 'READ') throw new AppError(400, 'Letter is already READ');
+
+  const updated = await prisma.loveLetter.update({
+    where: { id: letter.id },
+    data: { status: 'READ', readAt: new Date() },
+    select: { id: true, status: true, readAt: true },
+  });
+
+  return updated;
+}
+
 export async function remove(id: string, userId: string, coupleId: string) {
   const letter = await prisma.loveLetter.findFirst({ where: { id, coupleId } });
   if (!letter) throw new AppError(404, 'Letter not found');
