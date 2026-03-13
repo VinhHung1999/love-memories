@@ -29,14 +29,14 @@ const COMPARISON_ROWS: Array<{
   plus: string;
   plusIsCheck?: boolean;
 }> = [
-  { feature: t.paywall.features.moments,       free: t.paywall.freeVal.moments,       plus: t.paywall.plusVal.moments },
-  { feature: t.paywall.features.foodspots,     free: t.paywall.freeVal.foodspots,     plus: t.paywall.plusVal.foodspots },
-  { feature: t.paywall.features.expenses,      free: t.paywall.freeVal.expenses,      plus: t.paywall.plusVal.expenses },
-  { feature: t.paywall.features.sprints,       free: t.paywall.freeVal.sprints,       plus: t.paywall.plusVal.sprints },
-  { feature: t.paywall.features.letters,       free: t.paywall.freeVal.letters,       plus: t.paywall.plusVal.letters },
-  { feature: t.paywall.features.photoGalleries,free: t.paywall.freeVal.photoGalleries,plus: t.paywall.plusVal.photoGalleries, plusIsCheck: true },
-  { feature: t.paywall.features.voiceMemos,    free: t.paywall.freeVal.voiceMemos,    plus: t.paywall.plusVal.voiceMemos,    plusIsCheck: true },
-  { feature: t.paywall.features.prioritySupport,free: t.paywall.freeVal.prioritySupport,plus: t.paywall.plusVal.prioritySupport, plusIsCheck: true },
+  { feature: t.paywall.features.moments,     free: t.paywall.freeVal.moments,     plus: t.paywall.plusVal.moments,     plusIsCheck: true },
+  { feature: t.paywall.features.foodspots,   free: t.paywall.freeVal.foodspots,   plus: t.paywall.plusVal.foodspots,   plusIsCheck: true },
+  { feature: t.paywall.features.expenses,    free: t.paywall.freeVal.expenses,    plus: t.paywall.plusVal.expenses,    plusIsCheck: true },
+  { feature: t.paywall.features.recipes,     free: t.paywall.freeVal.recipes,     plus: t.paywall.plusVal.recipes,     plusIsCheck: true },
+  { feature: t.paywall.features.letters,     free: t.paywall.freeVal.letters,     plus: t.paywall.plusVal.letters,     plusIsCheck: true },
+  { feature: t.paywall.features.datePlanner, free: t.paywall.freeVal.datePlanner, plus: t.paywall.plusVal.datePlanner, plusIsCheck: true },
+  { feature: t.paywall.features.monthlyRecap,free: t.paywall.freeVal.monthlyRecap,plus: t.paywall.plusVal.monthlyRecap,plusIsCheck: true },
+  { feature: t.paywall.features.achievements,free: t.paywall.freeVal.achievements,plus: t.paywall.plusVal.achievements,plusIsCheck: true },
 ];
 
 // ── Animated pricing card ──────────────────────────────────────────────────
@@ -112,16 +112,13 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
           ) : null}
 
           <View className="flex-row items-center px-5 py-4">
-            {/* Plan name + local price */}
+            {/* Plan name + per-month note */}
             <View className="flex-1">
               <Text
                 className="text-base font-semibold"
                 style={{ color: isSelected ? colors.primary : colors.textDark }}
               >
                 {plan.label}
-              </Text>
-              <Text className="text-xs mt-0.5" style={{ color: colors.textMid }}>
-                {plan.priceLocal}
               </Text>
               {plan.perMonth ? (
                 <Text className="text-[11px] mt-0.5" style={{ color: colors.primary }}>
@@ -130,19 +127,22 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
               ) : null}
             </View>
 
-            {/* Price */}
+            {/* VND price (primary) + USD (secondary) */}
             <View className="items-end">
               <View className="flex-row items-baseline gap-0.5">
                 <Text
-                  className="text-2xl font-bold"
+                  className="text-xl font-bold"
                   style={{ color: isSelected ? colors.primary : colors.textDark }}
                 >
                   {plan.price}
                 </Text>
-                <Text className="text-sm" style={{ color: colors.textMid }}>
+                <Text className="text-xs" style={{ color: colors.textMid }}>
                   {plan.period}
                 </Text>
               </View>
+              <Text className="text-[11px]" style={{ color: colors.textLight }}>
+                {plan.priceLocal}
+              </Text>
             </View>
 
             {/* Selection indicator */}
