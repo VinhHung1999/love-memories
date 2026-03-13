@@ -1205,6 +1205,18 @@ export const dailyQuestionsApi = {
 
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+
+export const subscriptionApi = {
+  getStatus: async (): Promise<import('../types').SubscriptionStatus> => {
+    const res = await apiFetch('/api/subscription/status');
+    if (!res.ok) throw new Error('Failed to fetch subscription status');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+
 export const settingsApi = {
   get: async (key: string): Promise<{ key: string; value: string | null }> => {
     const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);

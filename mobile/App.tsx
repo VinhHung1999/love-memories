@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthProvider } from './src/lib/auth';
+import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { LoadingProvider } from './src/contexts/LoadingContext';
 import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
 import Mapbox from '@rnmapbox/maps';
@@ -47,9 +48,11 @@ export default function App() {
             <UploadProgressProvider>
               <LoadingProvider>
                 <AuthProvider>
-                  <ErrorBoundary>
-                    <RootNavigator />
-                  </ErrorBoundary>
+                  <SubscriptionProvider>
+                    <ErrorBoundary>
+                      <RootNavigator />
+                    </ErrorBoundary>
+                  </SubscriptionProvider>
                 </AuthProvider>
               </LoadingProvider>
             </UploadProgressProvider>
