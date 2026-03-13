@@ -10,12 +10,16 @@ import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
 import Mapbox from '@rnmapbox/maps';
 import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
 import { warmupConnection } from './src/lib/api';
+import { initPurchases } from './src/lib/purchasesService';
 import RootNavigator from './src/navigation';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import './src/global.css';
 
 // Pre-warm DNS + TLS to Cloudflare Tunnel so first API call isn't slow
 warmupConnection();
+
+// Initialize RevenueCat SDK at app launch (before any component mounts)
+initPurchases();
 
 // Initialize Mapbox once at app startup, before NavigationContainer mounts
 Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
