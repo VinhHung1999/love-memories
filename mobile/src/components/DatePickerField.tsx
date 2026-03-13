@@ -1,8 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { Modal, Platform, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Platform, Pressable, Text, View } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
+import AppBottomSheet from './AppBottomSheet';
 import FieldLabel from './FieldLabel';
 import t from '../locales/en';
 
@@ -22,32 +24,32 @@ export default function DatePickerField({
   minimumDate,
 }: DatePickerFieldProps) {
   const colors = useAppColors();
-  const [show, setShow] = useState(false);
+  const sheetRef = useRef<BottomSheetModal>(null);
   const [tempDate, setTempDate] = useState(value);
+  // Android-only: system dialog
+  const [showAndroid, setShowAndroid] = useState(false);
 
   const handleChange = useCallback((_: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === 'android') {
-      setShow(false);
+      setShowAndroid(false);
       if (selected) onChange(selected);
       return;
     }
-    // iOS: update temp date (user confirms with Done button)
     if (selected) setTempDate(selected);
   }, [onChange]);
 
   const handleConfirm = useCallback(() => {
     onChange(tempDate);
-    setShow(false);
+    sheetRef.current?.dismiss();
   }, [onChange, tempDate]);
-
-  const handleCancel = useCallback(() => {
-    setTempDate(value);
-    setShow(false);
-  }, [value]);
 
   const handleOpen = useCallback(() => {
     setTempDate(value);
-    setShow(true);
+    if (Platform.OS === 'android') {
+      setShowAndroid(true);
+    } else {
+      sheetRef.current?.present();
+    }
   }, [value]);
 
   return (
@@ -64,7 +66,7 @@ export default function DatePickerField({
       </Pressable>
 
       {/* Android: system dialog */}
-      {Platform.OS === 'android' && show && (
+      {Platform.OS === 'android' && showAndroid && (
         <DateTimePicker
           value={tempDate}
           mode="date"
@@ -75,43 +77,27 @@ export default function DatePickerField({
         />
       )}
 
-      {/* iOS: modal bottom sheet with spinner */}
+      {/* iOS: AppBottomSheet with spinner */}
       {Platform.OS === 'ios' && (
-        <Modal
-          visible={show}
-          transparent
-          animationType="slide"
-          onRequestClose={handleCancel}
+        <AppBottomSheet
+          ref={sheetRef}
+          title={label ?? t.common.selectDate}
+          icon={Calendar}
+          actionLabel={t.common.done}
+          onAction={handleConfirm}
         >
-          <Pressable
-            onPress={handleCancel}
-            className="flex-1 bg-black/40 justify-end"
-          >
-            <Pressable onPress={() => {}} className="bg-white rounded-t-2xl">
-              {/* Header bar */}
-              <View className="flex-row items-center justify-between px-5 py-3 border-b border-border">
-                <Pressable onPress={handleCancel}>
-                  <Text className="text-sm text-textMid">{t.common.cancel}</Text>
-                </Pressable>
-                <Text className="font-semibold text-textDark">{label ?? t.common.selectDate}</Text>
-                <Pressable onPress={handleConfirm}>
-                  <Text className="text-sm font-semibold" style={{ color: colors.primary }}>
-                    {t.common.done}
-                  </Text>
-                </Pressable>
-              </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleChange}
-                maximumDate={maximumDate}
-                minimumDate={minimumDate}
-                style={{ height: 200 }}
-              />
-            </Pressable>
-          </Pressable>
-        </Modal>
+          <View className="items-center pb-6">
+            <DateTimePicker
+              value={tempDate}
+              mode="date"
+              display="spinner"
+              onChange={handleChange}
+              maximumDate={maximumDate}
+              minimumDate={minimumDate}
+              style={{ height: 200, width: '100%' }}
+            />
+          </View>
+        </AppBottomSheet>
       )}
     </View>
   );
