@@ -891,6 +891,8 @@ const en = {
     loading: 'Loading...',
     uploading: 'Uploading',
     uploadComplete: 'Upload complete',
+    done: 'Done',
+    selectDate: 'Select Date',
   },
 } as const;
 
