@@ -56,7 +56,7 @@ export async function unregisterPushToken(): Promise<void> {
 // Firebase's requestPermission() only works for iOS — Android needs the
 // native POST_NOTIFICATIONS permission request to show the system dialog.
 // On Android <13: permission is auto-granted, no dialog needed.
-async function requestPermission(): Promise<boolean> {
+export async function requestPermission(): Promise<boolean> {
   if (Platform.OS === 'android') {
     // Note: Notification — Android 13+ requires explicit permission request
     if (Platform.Version >= 33) {
@@ -113,15 +113,14 @@ function handleNotificationNavigation(
   }
 }
 
-// Note: Notification — Main hook to initialize push notifications.
+// Note: Notification — Main hook to initialize push notification LISTENERS only.
 // Call this ONCE in the root navigator (after user is authenticated).
-// It does the following:
-// 1. Requests permission (iOS shows dialog, Android auto-grants on <13)
-// 2. Gets the FCM token and registers it with the backend
-// 3. Subscribes to token refresh events (token can change periodically)
-// 4. Listens for foreground notifications (shows an Alert)
-// 5. Listens for notification taps when app was in background
-// 6. Checks if app was opened from a killed state by a notification tap
+// Permission + token registration is handled by useRequestNotificationPermission()
+// in DashboardScreen. This hook handles events only:
+// 1. Subscribes to token refresh events (token can change periodically)
+// 2. Listens for foreground notifications (shows an Alert)
+// 3. Listens for notification taps when app was in background
+// 4. Checks if app was opened from a killed state by a notification tap
 export function usePushNotifications(): void {
   const navigation = useNavigation<any>();
   const initialized = useRef(false);
@@ -131,30 +130,14 @@ export function usePushNotifications(): void {
     initialized.current = true;
 
     async function setup() {
-      // Note: Notification — Step 1: Request permission
-      const hasPermission = await requestPermission();
-      if (!hasPermission) return;
-
-      // Note: Notification — Step 2: Get FCM token and register with backend.
-      // The FCM token is a unique identifier for this device+app combination.
-      // It's what the backend uses to target push messages to this specific device.
-      try {
-        const token = await messaging().getToken();
-        if (token) {
-          await registerTokenWithBackend(token);
-        }
-      } catch {
-        // Token retrieval can fail if Firebase is not configured yet — that's OK
-      }
-
-      // Note: Notification — Step 3: Listen for token refresh.
+      // Note: Notification — Step 1: Listen for token refresh.
       // FCM tokens can be rotated by the system. When that happens,
       // we need to send the new token to our backend.
       const unsubscribeTokenRefresh = messaging().onTokenRefresh(async (newToken) => {
         await registerTokenWithBackend(newToken);
       });
 
-      // Note: Notification — Step 4: Handle foreground notifications.
+      // Note: Notification — Step 2: Handle foreground notifications.
       // When the app is open and a push arrives, the OS does NOT show a banner.
       // We show a simple Alert instead so the user knows something happened.
       const unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
@@ -171,7 +154,7 @@ export function usePushNotifications(): void {
         }
       });
 
-      // Note: Notification — Step 5: Handle notification tap when app is in background.
+      // Note: Notification — Step 3: Handle notification tap when app is in background.
       // When user taps a notification banner while the app is backgrounded,
       // this callback fires with the notification data so we can navigate.
       const unsubscribeBackground = messaging().onNotificationOpenedApp((remoteMessage) => {
@@ -179,7 +162,7 @@ export function usePushNotifications(): void {
         handleNotificationNavigation(navigation, remoteMessage.data as Record<string, string>);
       });
 
-      // Note: Notification — Step 6: Handle cold start from notification.
+      // Note: Notification — Step 4: Handle cold start from notification.
       // If the app was completely killed and the user taps a notification,
       // this retrieves the notification that launched the app.
       const initialNotification = await messaging().getInitialNotification();
