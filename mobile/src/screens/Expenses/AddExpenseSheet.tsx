@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Heading, Caption } from '../../components/Typography';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import {  } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
@@ -42,11 +43,11 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
     >
       {/* ── Amount Hero ── */}
       <View className="items-center px-5 py-6 border-b border-border/40">
-        <Text className="text-xs font-bold text-textLight tracking-[1px] uppercase mb-3">
+        <Caption className="font-bold text-textLight tracking-[1px] uppercase mb-3">
           {t.expenses.labels.amount}
-        </Text>
+        </Caption>
         <View className="flex-row items-baseline gap-1">
-          <Text className="text-2xl font-bold text-textMid">₫</Text>
+          <Heading size="lg" className="text-textMid">₫</Heading>
           <BottomSheetTextInput
             value={vm.amount}
             onChangeText={vm.handleAmountChange}
@@ -137,7 +138,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
           }}
         />
 
-        {vm.error ? <Text className="text-xs text-error mt-1">{vm.error}</Text> : null}
+        {vm.error ? <Caption className="text-error mt-1">{vm.error}</Caption> : null}
       </View>
     </AppBottomSheet>
   );

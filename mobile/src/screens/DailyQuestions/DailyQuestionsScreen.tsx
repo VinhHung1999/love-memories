@@ -6,7 +6,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { Heading, Body } from '../../components/Typography';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -159,9 +159,9 @@ function TodayView({
               style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
               <meta.icon size={14} color="#fff" strokeWidth={1.5} />
             </View>
-            <Text className="text-[11px] font-bold text-white/70 tracking-widest uppercase">
+            <Caption className="font-bold text-white/70 tracking-widest uppercase">
               {t.dailyQuestions.questionLabel}
-            </Text>
+            </Caption>
           </View>
 
           {/* Question text */}
@@ -171,9 +171,9 @@ function TodayView({
 
           {/* Vietnamese translation */}
           {question.textVi ? (
-            <Text className="text-[13px] text-white/65 mt-2 italic leading-relaxed">
+            <Body size="md" className="text-white/65 mt-2 italic leading-relaxed">
               {question.textVi}
-            </Text>
+            </Body>
           ) : null}
         </View>
       </Animated.View>
@@ -200,9 +200,9 @@ function TodayView({
           />
 
           {/* Character count */}
-          <Text className="text-[10px] text-textLight text-right">
+          <Caption className="text-textLight text-right">
             {answerText.length}/500
-          </Text>
+          </Caption>
 
           {/* Error */}
           {submitError ? (
@@ -222,17 +222,17 @@ function TodayView({
             ) : (
               <Send size={16} strokeWidth={1.5} />
             )}
-            <Text className="text-white font-bold text-[15px]">
+            <Label className="text-white font-bold">
               {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
-            </Text>
+            </Label>
           </Pressable>
         </Animated.View>
       ) : (
         /* ── Both answers revealed ── */
         <Animated.View entering={FadeIn.duration(400)} className="gap-3">
-          <Text className="text-xs text-textLight font-semibold uppercase tracking-wider px-1">
+          <Caption className="text-textLight font-semibold uppercase tracking-wider px-1">
             {partnerAnswer ? t.dailyQuestions.bothAnswered : t.dailyQuestions.answered}
-          </Text>
+          </Caption>
           <View className="flex-row gap-3">
             <AnswerCard
               label={t.dailyQuestions.myAnswer}
@@ -253,9 +253,9 @@ function TodayView({
 
           {/* Hint if waiting */}
           {!partnerAnswer ? (
-            <Text className="text-[11px] text-textLight text-center italic">
+            <Caption className="text-textLight text-center italic">
               {t.dailyQuestions.waitingHint}
-            </Text>
+            </Caption>
           ) : null}
         </Animated.View>
       )}
@@ -287,13 +287,13 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1 gap-2">
             <CategoryBadge category={item.question.category} />
-            <Text className="text-[14px] font-semibold text-textDark leading-snug">
+            <Body size="md" className="font-semibold text-textDark leading-snug">
               {item.question.text}
-            </Text>
+            </Body>
           </View>
           <View className="items-end gap-1.5">
             {date ? (
-              <Text className="text-[10px] text-textLight font-medium">{date}</Text>
+              <Caption className="text-textLight font-medium">{date}</Caption>
             ) : null}
             {expanded
               ? <ChevronUp size={16} color={colors.textLight} strokeWidth={1.5} />
@@ -305,14 +305,14 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
         <View className="flex-row gap-1.5 mt-2.5">
           {item.myAnswer ? (
             <View className="rounded-full px-2.5 py-0.5 bg-primary/10">
-              <Text className="text-[10px] font-semibold text-primary">My answer</Text>
+              <Caption className="font-semibold text-primary">My answer</Caption>
             </View>
           ) : null}
           {item.partnerAnswer ? (
             <View className="rounded-full px-2.5 py-0.5 bg-accent/10">
-              <Text className="text-[10px] font-semibold text-accent">
+              <Caption className="font-semibold text-accent">
                 {item.partnerName ?? 'Partner'}&apos;s answer
-              </Text>
+              </Caption>
             </View>
           ) : null}
         </View>
@@ -326,18 +326,18 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
           <View className="h-px bg-border" />
           {item.myAnswer ? (
             <View>
-              <Text className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
+              <Caption className="font-bold text-primary uppercase tracking-wider mb-1.5">
                 {t.dailyQuestions.myAnswer}
-              </Text>
-              <Text className="text-[13px] text-textMid leading-relaxed">{item.myAnswer}</Text>
+              </Caption>
+              <Body size="md" className="text-textMid leading-relaxed">{item.myAnswer}</Body>
             </View>
           ) : null}
           {item.partnerAnswer ? (
             <View>
-              <Text className="text-[10px] font-bold text-accent uppercase tracking-wider mb-1.5">
+              <Caption className="font-bold text-accent uppercase tracking-wider mb-1.5">
                 {t.dailyQuestions.partnerAnswer.replace('{name}', item.partnerName ?? '♥')}
-              </Text>
-              <Text className="text-[13px] text-textMid leading-relaxed">{item.partnerAnswer}</Text>
+              </Caption>
+              <Body size="md" className="text-textMid leading-relaxed">{item.partnerAnswer}</Body>
             </View>
           ) : null}
         </Animated.View>
@@ -374,9 +374,9 @@ function HistoryView({
         <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
           <HelpCircle size={28} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Text className="text-base font-semibold text-textDark text-center">
+        <Heading size="sm" className="text-textDark text-center">
           {t.dailyQuestions.noHistory}
-        </Text>
+        </Heading>
         <Body size="md" className="text-textLight text-center leading-relaxed">
           {t.dailyQuestions.noHistorySubtitle}
         </Body>
@@ -441,11 +441,11 @@ export default function DailyQuestionsScreen() {
           ) : vm.todayError ? (
             <View className="flex-1 items-center justify-center gap-3 px-8">
               <WifiOff size={28} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-sm text-textLight text-center">
+              <Body size="sm" className="text-textLight text-center">
                 {t.dailyQuestions.errors.fetchFailed}
-              </Text>
+              </Body>
               <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
-                <Text className="text-sm font-semibold text-primary">Try again</Text>
+                <Body size="sm" className="font-semibold text-primary">Try again</Body>
               </Pressable>
             </View>
           ) : (

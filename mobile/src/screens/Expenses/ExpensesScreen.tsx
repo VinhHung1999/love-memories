@@ -7,7 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Heading, Body, Caption } from '../../components/Typography';
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
@@ -72,10 +72,10 @@ function ExpenseRow({ expense, isLast, onPress }: { expense: Expense; isLast: bo
         <Text className="text-lg">{getCategoryEmoji(expense.category)}</Text>
       </View>
       <View className="flex-1">
-        <Text className="text-sm font-semibold text-textDark" numberOfLines={1}>{expense.description}</Text>
-        {expense.note ? <Text className="text-xs text-textMid mt-0.5" numberOfLines={1}>{expense.note}</Text> : null}
+        <Body size="sm" className="font-semibold text-textDark" numberOfLines={1}>{expense.description}</Body>
+        {expense.note ? <Caption className="text-textMid mt-0.5" numberOfLines={1}>{expense.note}</Caption> : null}
       </View>
-      <Text className="text-sm font-bold text-textDark">{formatVND(expense.amount)}</Text>
+      <Body size="sm" className="font-bold text-textDark">{formatVND(expense.amount)}</Body>
     </Pressable>
   );
 }
@@ -95,23 +95,23 @@ function SummaryCard({ total, count, breakdown }: {
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white border border-borderSoft">
       <View className="px-5 pt-5 pb-4">
-        <Text className="text-textMid text-xs font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Text>
+        <Caption className="text-textMid font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Caption>
         <View className="flex-row items-end justify-between mb-1">
-          <Text className="text-textDark text-3xl font-bold">{total}</Text>
+          <Heading size="xl" className="text-textDark">{total}</Heading>
           {overLimitCount > 0 && (
             <View className="flex-row items-center gap-1 bg-error/10 rounded-full px-2.5 py-1">
               <Text className="text-sm">⚠️</Text>
-              <Text className="text-error text-xs font-bold">{overLimitCount} over</Text>
+              <Caption className="text-error font-bold">{overLimitCount} over</Caption>
             </View>
           )}
         </View>
-        <Text className="text-textLight text-xs mb-4">{count} {t.expenses.transactions}</Text>
+        <Caption className="text-textLight mb-4">{count} {t.expenses.transactions}</Caption>
         {breakdown.map(cat => (
           <View key={cat.key} className="mb-2.5">
             <View className="flex-row items-center justify-between mb-1">
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-sm">{cat.emoji}</Text>
-                <Text className="text-textMid text-xs font-medium">{cat.label}</Text>
+                <Caption className="text-textMid font-medium">{cat.label}</Caption>
                 {cat.overLimit && <Text className="text-xs">⚠️</Text>}
               </View>
               <View className="flex-row items-center gap-1.5">
@@ -120,7 +120,7 @@ function SummaryCard({ total, count, breakdown }: {
                     {cat.limitPct}%
                   </Text>
                 )}
-                <Text className="text-textDark text-xs font-semibold">{cat.formattedAmount}</Text>
+                <Caption className="text-textDark font-semibold">{cat.formattedAmount}</Caption>
               </View>
             </View>
             <View className="h-1.5 bg-borderSoft rounded-full overflow-hidden">
@@ -130,9 +130,9 @@ function SummaryCard({ total, count, breakdown }: {
               />
             </View>
             {cat.overLimit && cat.limit !== null && (
-              <Text className="text-error text-[9px] mt-0.5 text-right">
+              <Caption className="text-error mt-0.5 text-right">
                 +{formatVND(cat.amount - cat.limit)} {t.expenses.budget.overBudget}
-              </Text>
+              </Caption>
             )}
           </View>
         ))}
@@ -187,14 +187,14 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
     <Animated.View entering={FadeInDown.duration(400)} className="bg-white rounded-3xl overflow-hidden mx-4 mb-4 px-4 pt-4 pb-3">
       {/* Header + legend */}
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">
+        <Caption className="font-bold text-textLight tracking-[0.8px] uppercase">
           {t.expenses.chart.title}
-        </Text>
+        </Caption>
         <View className="flex-row flex-wrap gap-x-2 gap-y-1 justify-end max-w-[180px]">
           {activeCategories.map(cat => (
             <View key={cat} className="flex-row items-center gap-1">
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CATEGORY_CHART_COLORS[cat] }} />
-              <Text className="text-[9px] text-textLight">{EXPENSE_CATEGORIES.find(c => c.key === cat)?.label ?? cat}</Text>
+              <Caption className="text-textLight">{EXPENSE_CATEGORIES.find(c => c.key === cat)?.label ?? cat}</Caption>
             </View>
           ))}
         </View>
@@ -205,9 +205,9 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
         {/* Y-axis labels: top (max) → bottom (0) */}
         <View style={{ width: Y_AXIS_W, height: BAR_AREA_H, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 6 }}>
           {ticks.slice().reverse().map((tick, i) => (
-            <Text key={i} className="text-[8px] text-textLight leading-none">
+            <Caption key={i} className="text-textLight leading-none">
               {formatShortVND(tick)}
-            </Text>
+            </Caption>
           ))}
         </View>
 
@@ -322,7 +322,7 @@ export default function ExpensesScreen() {
               <Heading size="sm" className="text-textDark">{vm.monthLabel}</Heading>
               {vm.isCurrentMonth && (
                 <View className="mt-0.5 bg-primary/10 rounded-full px-2 py-[1px]">
-                  <Text className="text-[9px] font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Text>
+                  <Caption className="font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Caption>
                 </View>
               )}
             </View>
@@ -393,14 +393,14 @@ export default function ExpensesScreen() {
 
               {vm.isEmpty ? (
                 <View className="items-center py-12">
-                  <Text className="text-textLight text-sm">{t.expenses.noExpenses}</Text>
+                  <Body size="sm" className="text-textLight">{t.expenses.noExpenses}</Body>
                 </View>
               ) : (
                 vm.groupedExpenses.map(group => (
                   <Animated.View key={group.dateLabel} entering={FadeInDown.duration(300)}>
                     <View className="flex-row items-center justify-between px-5 mb-2">
-                      <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">{group.dateLabel}</Text>
-                      <Text className="text-xs font-semibold text-textMid">{formatVND(group.dayTotal)}</Text>
+                      <Caption className="font-bold text-textLight tracking-[0.8px] uppercase">{group.dateLabel}</Caption>
+                      <Caption className="font-semibold text-textMid">{formatVND(group.dayTotal)}</Caption>
                     </View>
                     <View className="bg-white mx-4 rounded-3xl overflow-hidden mb-3">
                       {group.expenses.map((expense, idx) => (

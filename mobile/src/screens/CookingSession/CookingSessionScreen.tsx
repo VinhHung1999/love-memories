@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, Camera, Check, CheckCircle, ChefHat, Clock, ImagePlus, PlayCircle, ShoppingCart, Star, Timer, Trash2, Trophy } from 'lucide-react-native';
@@ -76,17 +76,17 @@ function ShoppingPhase({
       <View className="px-5 pt-4 pb-2">
         <Heading size="sm" className="text-textDark">{t.whatToEat.shopping.title}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
-          <Text className="text-xs text-textLight">{t.whatToEat.shopping.subtitle}</Text>
+          <Caption className="text-textLight">{t.whatToEat.shopping.subtitle}</Caption>
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
-            <Text className="text-[10px] font-semibold text-primary">
+            <Caption className="font-semibold text-primary">
               {checkedCount}/{session.items.length}
-            </Text>
+            </Caption>
           </View>
         </View>
         {totalCost > 0 ? (
-          <Text className="text-xs text-textMid mt-1">
+          <Caption className="text-textMid mt-1">
             {t.whatToEat.shopping.totalCost}: {totalCost.toLocaleString()}đ
-          </Text>
+          </Caption>
         ) : null}
       </View>
 
@@ -109,7 +109,7 @@ function ShoppingPhase({
                 {item.ingredient}
               </Text>
               {item.price ? (
-                <Text className="text-xs text-textLight">{item.price.toLocaleString()}đ</Text>
+                <Caption className="text-textLight">{item.price.toLocaleString()}đ</Caption>
               ) : null}
             </Pressable>
           ))}
@@ -124,9 +124,9 @@ function ShoppingPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: allChecked ? colors.primary : '#ccc' }}>
           <ChefHat size={14} strokeWidth={1.5} />
-          <Text className="text-white font-bold text-sm">
+          <Label className="text-white">
             {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
-          </Text>
+          </Label>
         </Pressable>
       </View>
     </>
@@ -229,7 +229,7 @@ function ElapsedTimer({ startedAt }: { startedAt: string | null }) {
   return (
     <View className="flex-row items-center gap-1 bg-primary/10 rounded-full px-2.5 py-0.5">
       <Clock size={11} color={colors.primary} strokeWidth={1.5} />
-      <Text className="text-[11px] font-bold text-primary">{display}</Text>
+      <Caption className="font-bold text-primary">{display}</Caption>
     </View>
   );
 }
@@ -259,9 +259,9 @@ function CookingPhase({
         <Heading size="sm" className="text-textDark">{t.whatToEat.cooking.title}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
-            <Text className="text-[10px] font-semibold text-primary">
+            <Caption className="font-semibold text-primary">
               {checkedCount}/{session.steps.length}
-            </Text>
+            </Caption>
           </View>
           <ElapsedTimer startedAt={session.startedAt} />
         </View>
@@ -275,17 +275,17 @@ function CookingPhase({
             <View key={sr.id} className="mb-3">
               {/* Recipe section header with optional tutorial link */}
               <View className="flex-row items-center justify-between mb-2 px-1">
-                <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider">
+                <Caption className="font-bold text-textLight uppercase tracking-wider">
                   {sr.recipe.title}
-                </Text>
+                </Caption>
                 {sr.recipe.tutorialUrl ? (
                   <Pressable
                     onPress={() => Linking.openURL(sr.recipe.tutorialUrl!).catch(() => {})}
                     className="flex-row items-center gap-1">
                     <PlayCircle size={13} color={colors.secondary} strokeWidth={1.5} />
-                    <Text className="text-[11px] font-semibold text-secondary">
+                    <Caption className="font-semibold text-secondary">
                       {t.whatToEat.cooking.viewGuide}
-                    </Text>
+                    </Caption>
                   </Pressable>
                 ) : null}
               </View>
@@ -303,7 +303,7 @@ function CookingPhase({
                       {step.checked ? (
                         <Check size={12} strokeWidth={1.5} />
                       ) : (
-                        <Text className="text-[10px] font-bold text-primary">{step.stepIndex + 1}</Text>
+                        <Caption className="font-bold text-primary">{step.stepIndex + 1}</Caption>
                       )}
                     </View>
                     <View className="flex-1">
@@ -316,7 +316,7 @@ function CookingPhase({
                         <StepCountdown durationSeconds={step.durationSeconds} />
                       ) : null}
                       {step.checkedBy ? (
-                        <Text className="text-[10px] text-green-600 mt-0.5">✓ {step.checkedBy}</Text>
+                        <Caption className="text-green-600 mt-0.5">✓ {step.checkedBy}</Caption>
                       ) : null}
                     </View>
                   </Pressable>
@@ -335,7 +335,7 @@ function CookingPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: allChecked ? colors.primary : '#ccc' }}>
           <Camera size={14} strokeWidth={1.5} />
-          <Text className="text-white font-bold text-sm">{t.whatToEat.cooking.takePhoto}</Text>
+          <Label className="text-white">{t.whatToEat.cooking.takePhoto}</Label>
         </Pressable>
       </View>
     </>
@@ -361,7 +361,7 @@ function PhotoPhase({
     <>
       <View className="px-5 pt-4 pb-2">
         <Heading size="sm" className="text-textDark">{t.whatToEat.photo.title}</Heading>
-        <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.photo.subtitle}</Text>
+        <Caption className="text-textLight mt-0.5">{t.whatToEat.photo.subtitle}</Caption>
       </View>
 
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
@@ -385,13 +385,13 @@ function PhotoPhase({
             onPress={onAddPhotoFromCamera}
             className="flex-1 border-2 border-dashed border-primary/40 rounded-2xl py-5 items-center gap-2">
             <Camera size={24} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-xs font-semibold text-primary">Camera</Text>
+            <Caption className="font-semibold text-primary">Camera</Caption>
           </Pressable>
           <Pressable
             onPress={onAddPhoto}
             className="flex-1 border-2 border-dashed border-border rounded-2xl py-5 items-center gap-2">
             <ImagePlus size={24} color={colors.textMid} strokeWidth={1.5} />
-            <Text className="text-xs font-semibold text-textMid">Gallery</Text>
+            <Caption className="font-semibold text-textMid">Gallery</Caption>
           </Pressable>
         </View>
 
@@ -404,10 +404,10 @@ function PhotoPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: colors.primary }}>
           <Star size={14} strokeWidth={1.5} />
-          <Text className="text-white font-bold text-sm">{t.whatToEat.photo.finish}</Text>
+          <Label className="text-white">{t.whatToEat.photo.finish}</Label>
         </Pressable>
         <Pressable onPress={onAdvance} className="py-2 items-center">
-          <Text className="text-xs text-textLight">{t.whatToEat.photo.skip}</Text>
+          <Caption className="text-textLight">{t.whatToEat.photo.skip}</Caption>
         </Pressable>
       </View>
     </>
@@ -441,7 +441,7 @@ function RatingPhase({
         </View>
         <Heading size="xl" className="text-textDark">Meal complete!</Heading>
         {durationMin ? (
-          <Text className="text-sm text-textMid mt-1">Cooked in {durationMin} minutes</Text>
+          <Body size="sm" className="text-textMid mt-1">Cooked in {durationMin} minutes</Body>
         ) : null}
       </View>
 
@@ -463,19 +463,19 @@ function RatingPhase({
 
       {/* Recipes cooked */}
       <View className="px-5 mb-6">
-        <Text className="text-sm font-semibold text-textMid mb-2">Recipes cooked:</Text>
+        <Body size="sm" className="font-semibold text-textMid mb-2">Recipes cooked:</Body>
         {session.recipes.map(sr => (
           <View key={sr.id} className="flex-row items-center gap-2 mb-1">
             <CheckCircle size={14} color={colors.success} strokeWidth={1.5} />
-            <Text className="text-sm text-textDark">{sr.recipe.title}</Text>
+            <Body size="sm" className="text-textDark">{sr.recipe.title}</Body>
           </View>
         ))}
       </View>
 
       {/* Star rating */}
       <View className="px-5 items-center mb-8">
-        <Text className="text-sm font-semibold text-textDark mb-3">{t.whatToEat.rating.title}</Text>
-        <Text className="text-xs text-textLight mb-4">{t.whatToEat.rating.subtitle}</Text>
+        <Body size="sm" className="font-semibold text-textDark mb-3">{t.whatToEat.rating.title}</Body>
+        <Caption className="text-textLight mb-4">{t.whatToEat.rating.subtitle}</Caption>
         <View className="flex-row gap-3">
           {[1, 2, 3, 4, 5].map(i => (
             <Pressable key={i} onPress={() => onSetRating(i)} hitSlop={8}>
@@ -497,7 +497,7 @@ function RatingPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: colors.primary }}>
           <Check size={14} strokeWidth={1.5} />
-          <Text className="text-white font-bold text-sm">{t.whatToEat.rating.confirm}</Text>
+          <Label className="text-white">{t.whatToEat.rating.confirm}</Label>
         </Pressable>
       </View>
     </ScrollView>
@@ -519,7 +519,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
           <Trophy size={38} color={colors.primary} strokeWidth={1.5} />
         </View>
         <Heading size="xl" className="text-textDark">{t.whatToEat.completed.title}</Heading>
-        <Text className="text-sm text-textMid mt-1">{t.whatToEat.completed.subtitle}</Text>
+        <Body size="sm" className="text-textMid mt-1">{t.whatToEat.completed.subtitle}</Body>
       </View>
 
       {/* Duration */}
@@ -529,8 +529,8 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
             <Clock size={18} color={colors.primary} strokeWidth={1.5} />
           </View>
           <View>
-            <Text className="text-[11px] text-textLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Text>
-            <Text className="text-base font-bold text-textDark">{durationMin} min</Text>
+            <Caption className="text-textLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Caption>
+            <Heading size="sm" className="text-textDark">{durationMin} min</Heading>
           </View>
         </View>
       ) : null}
@@ -542,7 +542,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
             <Star size={18} color={colors.starRating} strokeWidth={1.5} />
           </View>
           <View className="flex-1">
-            <Text className="text-[11px] text-textLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Text>
+            <Caption className="text-textLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Caption>
             <View className="flex-row items-center gap-1 mt-0.5">
               {[1, 2, 3, 4, 5].map(i => (
                 <Star
@@ -553,7 +553,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
                   fill={i <= session.rating! ? colors.starRating : 'none'}
                 />
               ))}
-              <Text className="text-sm font-bold text-textDark ml-1">{session.rating}/5</Text>
+              <Body size="sm" className="font-bold text-textDark ml-1">{session.rating}/5</Body>
             </View>
           </View>
         </View>
@@ -562,9 +562,9 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
       {/* Food photos */}
       {session.photos.length > 0 ? (
         <View className="mb-4">
-          <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2 px-5">
+          <Caption className="font-bold text-textLight uppercase tracking-wider mb-2 px-5">
             {t.whatToEat.photo.title}
-          </Text>
+          </Caption>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5">
             <View className="flex-row gap-3">
               {session.photos.map(photo => (
@@ -582,11 +582,11 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
 
       {/* Recipes cooked */}
       <View className="mx-5 mb-8 bg-white rounded-2xl px-4 py-3">
-        <Text className="text-[11px] font-bold text-textLight uppercase tracking-wider mb-2">Recipes</Text>
+        <Caption className="font-bold text-textLight uppercase tracking-wider mb-2">Recipes</Caption>
         {session.recipes.map(sr => (
           <View key={sr.id} className="flex-row items-center gap-2 py-1">
             <CheckCircle size={15} color={colors.success} strokeWidth={1.5} />
-            <Text className="text-sm text-textDark flex-1">{sr.recipe.title}</Text>
+            <Body size="sm" className="text-textDark flex-1">{sr.recipe.title}</Body>
           </View>
         ))}
       </View>
@@ -635,10 +635,10 @@ export default function CookingSessionScreen() {
       <View className="px-5 pt-3 pb-3 bg-white flex-row items-center gap-3">
         <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
         <View className="flex-1">
-          <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
+          <Body size="sm" className="font-bold text-textDark" numberOfLines={1}>
             {session.recipes.map(r => r.recipe.title).join(' + ')}
-          </Text>
-          <Text className="text-xs text-textLight">{phaseTitles[session.status]}</Text>
+          </Body>
+          <Caption className="text-textLight">{phaseTitles[session.status]}</Caption>
         </View>
         {/* Abandon button — only show for active sessions */}
         {!isCompletedAndRated ? (
@@ -695,7 +695,7 @@ export default function CookingSessionScreen() {
         ) : (
           /* selecting — shouldn't arrive here, but handle gracefully */
           <View className="flex-1 items-center justify-center">
-            <Text className="text-textMid">Loading session...</Text>
+            <Body size="md" className="text-textMid">Loading session...</Body>
           </View>
         )}
       </Animated.View>
