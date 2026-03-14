@@ -3,8 +3,6 @@ import {
   KeyboardAvoidingView,
   Linking,
   Pressable,
-  ScrollView,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Heading, Body, Caption } from '../../components/Typography';
@@ -12,10 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
 import {
-  ChevronRight,
   ExternalLink,
   Heart,
-  Images,
   MapPin,
   Music2,
 } from 'lucide-react-native';
@@ -24,7 +20,6 @@ import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
-import { Card, CardTitle } from '../../components/Card';
 import TagBadge from '../../components/TagBadge';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
@@ -137,9 +132,7 @@ function MomentDetailLoadingSkeleton() {
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Hero */}
       <Skeleton className="w-full h-[280px]" />
-      <View className="h-4" />
-      {/* Title card */}
-      <View className="bg-white mx-4 rounded-3xl px-4 py-4 mb-3">
+      <View className="mx-4 mt-5 mb-3">
         <Skeleton className="w-28 h-3 rounded-md mb-3" />
         <Skeleton className="w-3/4 h-5 rounded-md mb-2" />
         <Skeleton className="w-full h-3 rounded-md mb-1" />
@@ -149,18 +142,16 @@ function MomentDetailLoadingSkeleton() {
           <Skeleton className="w-16 h-5 rounded-full" />
         </View>
       </View>
-      {/* Reactions card */}
-      <View className="bg-white mx-4 rounded-3xl px-4 py-4 mb-3">
-        <Skeleton className="w-20 h-3 rounded-md mb-3" />
+      <View className="h-[1px] bg-border/30 mx-4 my-2" />
+      <View className="mx-4 py-3">
         <View className="flex-row gap-2">
           {[0, 1, 2, 3, 4].map(i => (
             <Skeleton key={i} className="w-9 h-9 rounded-full" />
           ))}
         </View>
       </View>
-      {/* Comments card */}
-      <View className="bg-white mx-4 rounded-3xl px-4 py-4">
-        <Skeleton className="w-24 h-3 rounded-md mb-3" />
+      <View className="h-[1px] bg-border/30 mx-4 my-2" />
+      <View className="mx-4 py-3">
         <Skeleton className="w-full h-3 rounded-md mb-1.5" />
         <Skeleton className="w-4/5 h-3 rounded-md" />
       </View>
@@ -202,66 +193,22 @@ export default function MomentDetailScreen() {
         onDelete={vm.handleDeleteMoment}
         icon={Heart}
       >
-        {/* ── Photo thumbnail strip ── */}
-        {moment.photos.length > 1 ? (
-          <View className="bg-white mx-4 mt-5 rounded-3xl px-3 py-3 mb-3">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row gap-2">
-                {moment.photos.map((photo, idx) => (
-                  <Pressable
-                    key={photo.id}
-                    onPress={() => vm.handleOpenGallery(moment.photos, idx)}
-                  >
-                    <FastImage
-                      source={{
-                        uri: photo.url,
-                        priority: FastImage.priority.high,
-                      }}
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 12,
-                        borderWidth: idx === 0 ? 2 : 0,
-                        borderColor: colors.primary,
-                        opacity: idx === 0 ? 1 : 0.75,
-                      }}
-                      resizeMode={FastImage.resizeMode.cover}
-                    />
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        ) : (
-          <View className="h-4" />
-        )}
 
-        {/* ── Title card ── */}
-        <Card>
-          {/* Date row */}
-          <View className="flex-row items-center mb-2">
-            <Body size="sm" className="text-textMid">
-              📅 {formatDate(moment.date)}
-            </Body>
-          </View>
+        {/* ── Content section ── */}
+        <View className="mx-4 mt-5 mb-2">
 
-          <Heading size="lg" className="leading-tight tracking-tight mb-2">
-            {moment.title}
-          </Heading>
-
-          {moment.caption ? (
-            <Body size="md" className="text-textMid italic leading-relaxed mb-2">
-              "{moment.caption}"
-            </Body>
-          ) : null}
+          {/* Meta: date */}
+          <Caption className="text-textLight mb-2">
+            📅 {formatDate(moment.date)}
+          </Caption>
 
           {/* Location */}
           {moment.location ? (
-            <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
-              <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-              <Body size="sm" className="text-textMid flex-1">
+            <View className="flex-row items-center gap-1.5 mb-3">
+              <MapPin size={11} color={colors.textLight} strokeWidth={1.5} />
+              <Caption className="text-textLight flex-1" numberOfLines={1}>
                 {moment.location}
-              </Body>
+              </Caption>
               {moment.latitude && moment.longitude ? (
                 <Pressable
                   onPress={() =>
@@ -270,58 +217,44 @@ export default function MomentDetailScreen() {
                     ).catch(() => {})
                   }
                 >
-                  <Body size="sm" className="font-semibold text-accent">
+                  <Caption className="font-semibold text-accent">
                     {t.moments.detail.mapsLink}
-                  </Body>
+                  </Caption>
                 </Pressable>
               ) : null}
             </View>
           ) : null}
 
+          {/* Title */}
+          <Heading size="lg" className="leading-tight tracking-tight mb-2 text-textDark">
+            {moment.title}
+          </Heading>
+
+          {/* Caption */}
+          {moment.caption ? (
+            <Body size="md" className="text-textMid italic leading-relaxed mb-3">
+              "{moment.caption}"
+            </Body>
+          ) : null}
+
           {/* Tags */}
           {moment.tags.length > 0 ? (
-            <View className="flex-row flex-wrap gap-1.5 pt-2">
+            <View className="flex-row flex-wrap gap-1.5 mb-3">
               {moment.tags.map(tag => (
                 <TagBadge key={tag} label={tag} variant="display" />
               ))}
             </View>
           ) : null}
-        </Card>
 
-        {/* ── Spotify track card ── */}
-        {moment.spotifyUrl ? (
-          <Card>
-            <CardTitle>{t.moments.detail.spotifyLink}</CardTitle>
-            <View className="py-2">
+          {/* Spotify */}
+          {moment.spotifyUrl ? (
+            <View className="mb-3">
               <SpotifyTrackCard spotifyUrl={moment.spotifyUrl} />
             </View>
-          </Card>
-        ) : null}
+          ) : null}
 
-        {/* ── Photos gallery link ── */}
-        {moment.photos.length > 0 ? (
-          <Card>
-            <TouchableOpacity
-              onPress={() => vm.handleOpenGallery(moment.photos, 0)}
-              className="flex-row items-center gap-2 py-1"
-            >
-              <Images size={16} color={colors.primary} strokeWidth={1.5} />
-              <Body size="md" className="font-semibold text-primary flex-1">
-                {t.moments.detail.viewGallery} ({moment.photos.length})
-              </Body>
-              <ChevronRight
-                size={16}
-                color={colors.textLight}
-                strokeWidth={1.5}
-              />
-            </TouchableOpacity>
-          </Card>
-        ) : null}
-
-        {/* ── Voice memos ── */}
-        {moment.audios.length > 0 ? (
-          <Card>
-            <CardTitle>{t.moments.detail.voiceMemo}</CardTitle>
+          {/* Voice memo */}
+          {moment.audios.length > 0 ? (
             <VoiceMemoSection
               audios={moment.audios}
               playingAudioId={vm.playingAudioId}
@@ -329,23 +262,28 @@ export default function MomentDetailScreen() {
               onPlay={vm.handlePlayAudio}
               onStop={vm.handleStopAudio}
             />
-          </Card>
-        ) : null}
+          ) : null}
 
-        {/* ── Reactions ── */}
-        <Card>
-          <CardTitle>{t.moments.detail.reactions}</CardTitle>
+        </View>
+
+        {/* ── Divider ── */}
+        <View className="h-[1px] bg-border/30 mx-4 mb-1" />
+
+        {/* ── Reactions — inline, no CardTitle ── */}
+        <View className="mx-4 py-3">
           <ReactionsBar
             presetEmojis={vm.presetEmojis}
             reactionCounts={vm.reactionCounts}
             hasReacted={vm.hasReacted}
             onToggle={vm.handleToggleReaction}
           />
-        </Card>
+        </View>
 
-        {/* ── Comments ── */}
-        <Card>
-          <CardTitle>{t.moments.detail.comments}</CardTitle>
+        {/* ── Divider ── */}
+        <View className="h-[1px] bg-border/30 mx-4 mb-1" />
+
+        {/* ── Comments — inline, no CardTitle ── */}
+        <View className="mx-4 py-3">
           <CommentsSection
             comments={moment.comments}
             commentText={vm.commentText}
@@ -355,7 +293,7 @@ export default function MomentDetailScreen() {
             onSubmit={vm.handleAddComment}
             onDelete={vm.handleDeleteComment}
           />
-        </Card>
+        </View>
 
         {/* Bottom spacer */}
         <View className="h-20" />
