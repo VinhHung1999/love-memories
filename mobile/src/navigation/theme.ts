@@ -73,12 +73,12 @@ export const AppTheme = {
     gray100:     '#F5F3F4',
   },
   fonts: {
-    // Be Vietnam Pro - designed for Vietnamese with excellent diacritics support
-    heading: 'BeVietnamPro-Bold',        // 700 - Large titles, headers
-    headingSemi: 'BeVietnamPro-SemiBold', // 600 - Subtitles, section headers
-    body: 'BeVietnamPro-Regular',        // 400 - Body text, descriptions
-    bodyMedium: 'BeVietnamPro-Medium',   // 500 - Emphasized text, labels
-    bodyLight: 'BeVietnamPro-Light',     // 300 - Secondary text
+    // Alan Sans - clean geometric sans-serif, variable font
+    heading: 'AlanSans-Bold',        // 700 - Large titles, headers
+    headingSemi: 'AlanSans-SemiBold', // 600 - Subtitles, section headers
+    body: 'AlanSans-Regular',        // 400 - Body text, descriptions
+    bodyMedium: 'AlanSans-Medium',   // 500 - Emphasized text, labels
+    bodyLight: 'AlanSans-Light',     // 300 - Secondary text
   },
 } as const;
 

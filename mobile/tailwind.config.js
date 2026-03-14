@@ -39,12 +39,12 @@ module.exports = {
         errorBg:        '#FFF0F0',
       },
       fontFamily: {
-        // Be Vietnam Pro - designed for Vietnamese with excellent diacritics
-        heading: ['BeVietnamPro-Bold'],
-        headingSemi: ['BeVietnamPro-SemiBold'],
-        body: ['BeVietnamPro-Regular'],
-        bodyMedium: ['BeVietnamPro-Medium'],
-        bodyLight: ['BeVietnamPro-Light'],
+        // Alan Sans - clean geometric sans-serif, variable font
+        heading: ['AlanSans-Bold'],
+        headingSemi: ['AlanSans-SemiBold'],
+        body: ['AlanSans-Regular'],
+        bodyMedium: ['AlanSans-Medium'],
+        bodyLight: ['AlanSans-Light'],
       },
     },
   },
