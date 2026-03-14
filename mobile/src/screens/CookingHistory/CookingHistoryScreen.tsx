@@ -4,10 +4,9 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { BookOpen, ChefHat, ChevronRight, Star, Timer } from 'lucide-react-native';
@@ -73,31 +72,31 @@ function SessionCard({
 
         {/* Content */}
         <View className="flex-1 px-3 py-3">
-          <Text className="text-sm font-semibold text-textDark" numberOfLines={1}>
+          <Label className="text-textDark" numberOfLines={1}>
             {session.recipes.map(r => r.recipe.title).join(', ')}
-          </Text>
-          <Text className="text-xs text-textLight mt-0.5">{dateStr}</Text>
+          </Label>
+          <Caption className="text-textLight mt-0.5">{dateStr}</Caption>
 
           <View className="flex-row items-center gap-3 mt-2">
             {/* Duration */}
             <View className="flex-row items-center gap-1">
               <Timer size={12} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-[11px] text-textMid">{formatDuration(session.totalTimeMs)}</Text>
+              <Caption className="text-textMid">{formatDuration(session.totalTimeMs)}</Caption>
             </View>
 
             {/* Recipes count */}
             <View className="flex-row items-center gap-1">
               <BookOpen size={12} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-[11px] text-textMid">
+              <Caption className="text-textMid">
                 {session.recipes.length} {t.whatToEat.history.recipes}
-              </Text>
+              </Caption>
             </View>
 
             {/* Rating */}
             {session.rating ? (
               <View className="flex-row items-center gap-0.5">
                 <Star size={12} color={colors.starRating} strokeWidth={1.5} />
-                <Text className="text-[11px] text-textMid">{session.rating}/5</Text>
+                <Caption className="text-textMid">{session.rating}/5</Caption>
               </View>
             ) : null}
           </View>
@@ -127,9 +126,9 @@ export default function CookingHistoryScreen() {
           <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
             <Heading size="md" className="text-textDark">{t.whatToEat.historyTitle}</Heading>
-            <Text className="text-xs text-textLight">
+            <Caption className="text-textLight">
               {vm.sessions.length} sessions
-            </Text>
+            </Caption>
           </View>
         </View>
       </View>
@@ -151,8 +150,8 @@ export default function CookingHistoryScreen() {
       ) : vm.sessions.length === 0 ? (
         <View className="flex-1 items-center justify-center pb-20">
           <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
-          <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noHistory}</Text>
-          <Text className="text-textLight text-sm mt-1 text-center px-8">{t.whatToEat.noHistorySubtitle}</Text>
+          <Body size="md" className="font-semibold text-textMid mt-4">{t.whatToEat.noHistory}</Body>
+          <Body size="sm" className="text-textLight mt-1 text-center px-8">{t.whatToEat.noHistorySubtitle}</Body>
         </View>
       ) : (
         <ScrollView

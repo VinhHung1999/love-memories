@@ -1,11 +1,12 @@
 import React, { ReactNode } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, type TextStyle, type StyleProp } from 'react-native';
 
 interface TypographyProps {
   children: ReactNode;
   className?: string;
   numberOfLines?: number;
   onPress?: () => void;
+  style?: StyleProp<TextStyle>;
 }
 
 // ── Heading — BeVietnamPro-Bold ────────────────────────────────────────────────
@@ -21,10 +22,10 @@ const headingSizeClass: Record<NonNullable<HeadingProps['size']>, string> = {
   sm: 'text-[16px]',
 };
 
-export function Heading({ size = 'md', children, className, numberOfLines, onPress }: HeadingProps) {
+export function Heading({ size = 'md', children, className, numberOfLines, onPress, style }: HeadingProps) {
   const base = `font-heading text-textDark ${headingSizeClass[size]}`;
   const text = (
-    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines}>
+    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
     </Text>
   );
@@ -44,10 +45,10 @@ const bodySizeClass: Record<NonNullable<BodyProps['size']>, string> = {
   sm: 'text-[12px]',
 };
 
-export function Body({ size = 'md', children, className, numberOfLines, onPress }: BodyProps) {
+export function Body({ size = 'md', children, className, numberOfLines, onPress, style }: BodyProps) {
   const base = `font-body text-textDark ${bodySizeClass[size]}`;
   const text = (
-    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines}>
+    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
     </Text>
   );
@@ -56,10 +57,10 @@ export function Body({ size = 'md', children, className, numberOfLines, onPress 
 }
 
 // ── Caption — BeVietnamPro-Light, 11px, textLight ─────────────────────────────
-export function Caption({ children, className, numberOfLines, onPress }: TypographyProps) {
+export function Caption({ children, className, numberOfLines, onPress, style }: TypographyProps) {
   const base = 'font-bodyLight text-[11px] text-textLight';
   const text = (
-    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines}>
+    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
     </Text>
   );
@@ -68,10 +69,10 @@ export function Caption({ children, className, numberOfLines, onPress }: Typogra
 }
 
 // ── Label — BeVietnamPro-Medium, 13px ─────────────────────────────────────────
-export function Label({ children, className, numberOfLines, onPress }: TypographyProps) {
+export function Label({ children, className, numberOfLines, onPress, style }: TypographyProps) {
   const base = 'font-bodyMedium text-[13px] text-textDark';
   const text = (
-    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines}>
+    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
     </Text>
   );
@@ -80,10 +81,10 @@ export function Label({ children, className, numberOfLines, onPress }: Typograph
 }
 
 // ── Cursive — Borel-Regular, decorative ───────────────────────────────────────
-export function Cursive({ children, className, numberOfLines, onPress }: TypographyProps) {
+export function Cursive({ children, className, numberOfLines, onPress, style }: TypographyProps) {
   const base = 'font-cursive text-textDark';
   const text = (
-    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines}>
+    <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
     </Text>
   );

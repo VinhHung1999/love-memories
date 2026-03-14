@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
+import { Caption, Label } from '../../../components/Typography';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutDown } from 'react-native-reanimated';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -42,11 +43,11 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
                 borderColor: reacted ? colors.primary + '4D' : colors.textLight + '33',
               }}>
               <Text className="text-base">{emoji}</Text>
-              <Text
-                className="text-[12px] font-semibold"
+              <Label
+                className="font-semibold"
                 style={{ color: reacted ? colors.primary : colors.textMid }}>
                 {count}
-              </Text>
+              </Label>
             </Pressable>
           );
         })}
@@ -59,17 +60,17 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
           className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border"
           style={{ borderColor: colors.textLight + '33', backgroundColor: colors.textDark + '0A' }}>
           <Text className="text-base">😊</Text>
-          <Text className="text-[11px] font-semibold" style={{ color: colors.textLight }}>
+          <Caption className="font-semibold" style={{ color: colors.textLight }}>
             {myReactions.length > 0 ? myReactions[0] : '+'}
-          </Text>
+          </Caption>
         </Pressable>
       </View>
 
       {/* Hint */}
       {activeEmojis.length === 0 ? (
-        <Text className="text-[11px] text-textLight mt-1 italic">
+        <Caption className="text-textLight mt-1 italic">
           {t.moments.detail.reactHint ?? 'Tap + to react'}
-        </Text>
+        </Caption>
       ) : null}
 
       {/* ── Emoji picker modal ── */}
@@ -103,9 +104,9 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
               shadowRadius: 20,
               elevation: 12,
             }}>
-            <Text className="text-xs font-bold text-textLight uppercase tracking-wider mb-3 text-center">
+            <Caption className="font-bold text-textLight uppercase tracking-wider mb-3 text-center">
               React to this moment
-            </Text>
+            </Caption>
             <View className="flex-row flex-wrap justify-center gap-2">
               {presetEmojis.map((emoji, idx) => {
                 const reacted = hasReacted(emoji);
@@ -125,13 +126,13 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
                       }}>
                       <Text style={{ fontSize: 32 }}>{emoji}</Text>
                       {count > 0 ? (
-                        <Text
-                          className="text-[10px] font-bold"
+                        <Caption
+                          className="font-bold"
                           style={{ color: reacted ? colors.primary : colors.textLight }}>
                           {count}
-                        </Text>
+                        </Caption>
                       ) : (
-                        <Text className="text-[10px]" style={{ color: 'transparent' }}>0</Text>
+                        <Caption style={{ color: 'transparent' }}>0</Caption>
                       )}
                     </Pressable>
                   </Animated.View>

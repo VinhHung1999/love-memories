@@ -18,6 +18,7 @@ import {
   View,
   type ListRenderItemInfo,
 } from 'react-native';
+import { Caption, Label } from '../Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   FadeIn,
@@ -116,12 +117,12 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
                 <Heart size={14} color={colors.primary} fill={colors.primary} strokeWidth={0} />
               </View>
               <View>
-                <Text style={{ fontSize: 10, color: colors.textLight, letterSpacing: 0.5 }}>
+                <Caption className="tracking-[0.5px]" style={{ color: colors.textLight }}>
                   {t.letterOverlay.from.toUpperCase()}
-                </Text>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textDark }}>
+                </Caption>
+                <Label className="font-semibold" style={{ color: colors.textDark }}>
                   {senderName}
-                </Text>
+                </Label>
               </View>
             </View>
 
@@ -156,9 +157,9 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
                   className="self-start rounded-full px-3 py-1 mt-4"
                   style={{ backgroundColor: colors.primaryMuted }}
                 >
-                  <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '500' }}>
+                  <Caption className="font-medium" style={{ color: colors.primary }}>
                     {letter.mood}
-                  </Text>
+                  </Caption>
                 </View>
               ) : null}
             </Animated.View>
@@ -246,9 +247,9 @@ export default function LetterOverlay() {
               style={{ backgroundColor: colors.primaryMuted }}
             >
               <Mail size={14} color={colors.primary} strokeWidth={1.5} />
-              <Text style={{ fontSize: 12, color: colors.primary, fontWeight: '600', letterSpacing: 0.3 }}>
+              <Caption className="font-semibold tracking-[0.3px]" style={{ color: colors.primary }}>
                 {title}
-              </Text>
+              </Caption>
             </View>
             <Text
               style={{
@@ -285,13 +286,13 @@ export default function LetterOverlay() {
           {/* Hint text */}
           <View className="items-center mt-4 px-8">
             {vm.allRead ? (
-              <Text style={{ fontSize: 13, color: colors.success, fontWeight: '600' }}>
+              <Label className="font-semibold" style={{ color: colors.success }}>
                 {t.letterOverlay.readAll}
-              </Text>
+              </Label>
             ) : (
-              <Text style={{ fontSize: 12, color: colors.textLight, textAlign: 'center' }}>
+              <Caption className="text-center" style={{ color: colors.textLight }}>
                 {t.letterOverlay.swipeHint}
-              </Text>
+              </Caption>
             )}
           </View>
 

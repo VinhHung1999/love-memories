@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Heading, Body } from '../../components/Typography';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -115,35 +115,35 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
           <View className="flex-row items-center px-5 py-4">
             {/* Plan name + per-month note */}
             <View className="flex-1">
-              <Text
-                className="text-base font-semibold"
+              <Label
+                className="font-semibold"
                 style={{ color: isSelected ? colors.primary : colors.textDark }}
               >
                 {plan.label}
-              </Text>
+              </Label>
               {plan.perMonth ? (
-                <Text className="text-[11px] mt-0.5" style={{ color: colors.primary }}>
+                <Caption className="mt-0.5" style={{ color: colors.primary }}>
                   {plan.perMonth}
-                </Text>
+                </Caption>
               ) : null}
             </View>
 
             {/* VND price (primary) + USD (secondary) */}
             <View className="items-end">
               <View className="flex-row items-baseline gap-0.5">
-                <Text
-                  className="text-xl font-bold"
+                <Heading
+                  size="sm"
                   style={{ color: isSelected ? colors.primary : colors.textDark }}
                 >
                   {plan.price}
-                </Text>
-                <Text className="text-xs" style={{ color: colors.textMid }}>
+                </Heading>
+                <Caption style={{ color: colors.textMid }}>
                   {plan.period}
-                </Text>
+                </Caption>
               </View>
-              <Text className="text-[11px]" style={{ color: colors.textLight }}>
+              <Caption style={{ color: colors.textLight }}>
                 {plan.priceUsd}
-              </Text>
+              </Caption>
             </View>
 
             {/* Selection indicator */}
@@ -173,15 +173,15 @@ function FeatureTable() {
       <View className="rounded-2xl overflow-hidden" style={{ borderWidth: 1, borderColor: colors.border }}>
         {/* Header */}
         <View className="flex-row" style={{ backgroundColor: colors.primaryMuted }}>
-          <Text className="flex-1 text-xs font-semibold py-2.5 px-4" style={{ color: colors.textDark }}>
+          <Caption className="flex-1 font-semibold py-2.5 px-4" style={{ color: colors.textDark }}>
             Feature
-          </Text>
-          <Text className="w-20 text-xs font-semibold py-2.5 text-center" style={{ color: colors.textMid }}>
+          </Caption>
+          <Caption className="w-20 font-semibold py-2.5 text-center" style={{ color: colors.textMid }}>
             {t.paywall.free}
-          </Text>
-          <Text className="w-20 text-xs font-semibold py-2.5 text-center" style={{ color: colors.primary }}>
+          </Caption>
+          <Caption className="w-20 font-semibold py-2.5 text-center" style={{ color: colors.primary }}>
             {t.paywall.plus}
-          </Text>
+          </Caption>
         </View>
 
         {COMPARISON_ROWS.map((row, i) => (
@@ -194,18 +194,18 @@ function FeatureTable() {
               borderColor: colors.border,
             }}
           >
-            <Text className="flex-1 text-xs py-2.5 px-4" style={{ color: colors.textDark }}>
+            <Caption className="flex-1 py-2.5 px-4" style={{ color: colors.textDark }}>
               {row.feature}
-            </Text>
+            </Caption>
 
             {/* Free value */}
             <View className="w-20 items-center py-2.5">
-              <Text
-                className="text-xs text-center"
+              <Caption
+                className="text-center"
                 style={{ color: row.free === '—' ? colors.textLight : colors.textMid }}
               >
                 {row.free}
-              </Text>
+              </Caption>
             </View>
 
             {/* Plus value */}
@@ -218,12 +218,12 @@ function FeatureTable() {
                   <Check size={11} color={colors.primary} strokeWidth={2.5} />
                 </View>
               ) : (
-                <Text
-                  className="text-xs font-semibold text-center"
+                <Caption
+                  className="font-semibold text-center"
                   style={{ color: colors.primary }}
                 >
                   {row.plus}
-                </Text>
+                </Caption>
               )}
             </View>
           </View>
@@ -275,10 +275,10 @@ export default function PaywallScreen({ navigation, route }: Props) {
               className="flex-row items-center gap-2 rounded-2xl px-4 py-3 mb-4 mt-2"
               style={{ backgroundColor: '#FFF0F2', borderWidth: 1, borderColor: colors.primaryLighter }}
             >
-              <Text className="text-xs" style={{ color: colors.primary }}>
+              <Caption style={{ color: colors.primary }}>
                 {t.paywall.limitBanner}{' '}
-                <Text className="font-semibold">{blockedFeature}</Text>.
-              </Text>
+                <Caption className="font-semibold">{blockedFeature}</Caption>.
+              </Caption>
             </View>
           </Animated.View>
         ) : null}
@@ -346,9 +346,9 @@ export default function PaywallScreen({ navigation, route }: Props) {
           disabled={vm.isRestoring || vm.isPurchasing}
           className="mt-6 items-center py-3"
         >
-          <Text className="text-xs" style={{ color: colors.textLight }}>
+          <Caption style={{ color: colors.textLight }}>
             {vm.isRestoring ? t.paywall.restoring : t.paywall.restore}
-          </Text>
+          </Caption>
         </Pressable>
       </ScrollView>
 
