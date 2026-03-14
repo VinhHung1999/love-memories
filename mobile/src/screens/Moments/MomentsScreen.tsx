@@ -177,11 +177,11 @@ function MonthCalendar({
                     {day}
                   </Caption>
                 </View>
-                {/* Moment dot */}
+                {/* Moment heart indicator */}
                 {hasM ? (
-                  <View className="w-1 h-1 rounded-full bg-primary mt-0.5" />
+                  <Heart size={7} color={colors.primary} fill={colors.primary} strokeWidth={0} style={{ marginTop: 2 }} />
                 ) : (
-                  <View className="w-1 h-1 mt-0.5" />
+                  <View style={{ width: 7, height: 7, marginTop: 2 }} />
                 )}
               </Pressable>
             );
