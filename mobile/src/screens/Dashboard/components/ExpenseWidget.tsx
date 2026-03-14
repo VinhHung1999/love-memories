@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, View, Pressable } from 'react-native';
+import { Body } from '../../../components/Typography';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Banknote } from 'lucide-react-native';
 import t from '../../../locales/en';
@@ -53,9 +54,9 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
             <Text className="text-[20px] font-heading text-textDark leading-none">
               {formatVND(stats.total)}
             </Text>
-            <Text className="text-xs font-body text-textMid mt-0.5 mb-4">
+            <Body size="sm" className="text-textMid mt-0.5 mb-4">
               {stats.count} {t.expenses.transactions}
-            </Text>
+            </Body>
             <View className="gap-2.5">
               {topCategories.map(({ cat, pct }) => (
                 <View key={cat}>

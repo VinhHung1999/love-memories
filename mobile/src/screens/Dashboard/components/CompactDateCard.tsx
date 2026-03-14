@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, View, Pressable } from 'react-native';
 import { CalendarHeart } from 'lucide-react-native';
+import { Caption } from '../../../components/Typography';
 import type { DatePlan } from '../../../types';
 import t from '../../../locales/en';
 
@@ -37,9 +38,9 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
             </Text>
           </View>
         ) : (
-          <Text className="text-[11px] font-bodyLight text-textMid italic mt-2">
+          <Caption className="text-textMid italic mt-2">
             {t.dashboard.compactDateCard.noPlans}
-          </Text>
+          </Caption>
         )}
       </View>
     </Pressable>

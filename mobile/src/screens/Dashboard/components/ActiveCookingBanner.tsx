@@ -1,7 +1,8 @@
 import React from 'react';
-import { Text, View, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { ArrowRight, ChefHat } from 'lucide-react-native';
 import t from '../../../locales/en';
+import { Label, Caption } from '../../../components/Typography';
 
 interface ActiveCookingBannerProps {
   recipeTitles: string;
@@ -16,8 +17,8 @@ export function ActiveCookingBanner({ recipeTitles, onPress }: ActiveCookingBann
           <ChefHat size={18} strokeWidth={1.5} />
         </View>
         <View className="flex-1">
-          <Text className="text-textDark font-heading text-[13px]">{t.dashboard.activeCooking}</Text>
-          <Text className="text-textMid font-body text-[11px] mt-0.5" numberOfLines={1}>{recipeTitles}</Text>
+          <Label className="text-textDark">{t.dashboard.activeCooking}</Label>
+          <Caption className="text-textMid mt-0.5" numberOfLines={1}>{recipeTitles}</Caption>
         </View>
         <ArrowRight size={18} strokeWidth={1.5} />
       </View>

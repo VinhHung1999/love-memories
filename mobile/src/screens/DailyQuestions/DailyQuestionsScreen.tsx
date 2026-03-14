@@ -6,7 +6,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Heading, Body } from '../../components/Typography';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -85,7 +85,7 @@ function AnswerCard({
             {label}
           </Text>
         </View>
-        <Text className="text-sm text-textDark leading-relaxed">{answer}</Text>
+        <Body size="md" className="text-textDark leading-relaxed">{answer}</Body>
       </View>
     </Animated.View>
   );
@@ -107,9 +107,9 @@ function WaitingCard({ partnerName }: { partnerName: string | null }) {
           borderStyle: 'dashed',
         }}>
         <Clock size={20} color={colors.textLight} strokeWidth={1.5} />
-        <Text className="text-xs text-textLight text-center mt-2 leading-relaxed">
+        <Body size="sm" className="text-textLight text-center mt-2 leading-relaxed">
           {t.dailyQuestions.waitingForPartner.replace('{name}', name)}
-        </Text>
+        </Body>
       </View>
     </Animated.View>
   );
@@ -206,7 +206,7 @@ function TodayView({
 
           {/* Error */}
           {submitError ? (
-            <Text className="text-[12px] text-error text-center">{submitError}</Text>
+            <Body size="sm" className="text-error text-center">{submitError}</Body>
           ) : null}
 
           {/* Submit */}
@@ -377,9 +377,9 @@ function HistoryView({
         <Text className="text-base font-semibold text-textDark text-center">
           {t.dailyQuestions.noHistory}
         </Text>
-        <Text className="text-sm text-textLight text-center leading-relaxed">
+        <Body size="md" className="text-textLight text-center leading-relaxed">
           {t.dailyQuestions.noHistorySubtitle}
-        </Text>
+        </Body>
       </View>
     );
   }
