@@ -19,7 +19,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { MomentsStackParamList } from '../../navigation';
@@ -122,6 +122,20 @@ export default function PhotoGalleryScreen() {
 
   const handleClose = useCallback(() => navigation.goBack(), [navigation]);
 
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex - 1, animated: true });
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex]);
+
+  const handleNext = useCallback(() => {
+    if (currentIndex < photos.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [currentIndex, photos.length]);
+
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
       if (viewableItems[0]?.index != null) {
@@ -169,12 +183,13 @@ export default function PhotoGalleryScreen() {
           {/* Close */}
           <TouchableOpacity
             onPress={handleClose}
-            className="w-10 h-10 rounded-full items-center justify-center bg-white/12">
-            <X size={22} strokeWidth={1.5} />
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+            <X size={22} color="#fff" strokeWidth={1.5} />
           </TouchableOpacity>
 
           {/* Counter */}
-          <View className="bg-white/12 rounded-full px-[14px] py-[6px]">
+          <View className="rounded-full px-[14px] py-[6px]" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
             <Label className="text-white/85">
               {currentIndex + 1} / {photos.length}
             </Label>
@@ -184,6 +199,42 @@ export default function PhotoGalleryScreen() {
           <View className="w-10" />
         </View>
       </SafeAreaView>
+
+      {/* Prev / Next navigation buttons */}
+      {photos.length > 1 && (
+        <View
+          className="absolute inset-y-0 inset-x-4 flex-row items-center justify-between z-10"
+          pointerEvents="box-none">
+          <TouchableOpacity
+            onPress={handlePrev}
+            disabled={currentIndex === 0}
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.45)',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: currentIndex === 0 ? 0.3 : 1,
+            }}>
+            <ChevronLeft size={22} color="#fff" strokeWidth={1.5} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleNext}
+            disabled={currentIndex === photos.length - 1}
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.45)',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: currentIndex === photos.length - 1 ? 0.3 : 1,
+            }}>
+            <ChevronRight size={22} color="#fff" strokeWidth={1.5} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Dot indicators */}
       {photos.length > 1 && photos.length <= 10 ? (
