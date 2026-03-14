@@ -3,6 +3,7 @@ import {
   KeyboardAvoidingView,
   Linking,
   Pressable,
+  ScrollView,
   View,
 } from 'react-native';
 import { Heading, Body, Caption } from '../../components/Typography';
@@ -191,8 +192,38 @@ export default function MomentDetailScreen() {
         onBack={vm.handleBack}
         onEdit={() => navigation.showBottomSheet(CreateMomentSheet, { moment })}
         onDelete={vm.handleDeleteMoment}
+        onHeroPress={moment.photos.length > 0
+          ? () => vm.handleOpenGallery(moment.photos, 0)
+          : undefined}
         icon={Heart}
       >
+
+        {/* ── Thumbnail strip (2+ photos) ── */}
+        {moment.photos.length >= 2 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mx-4 mt-4 mb-1"
+            contentContainerStyle={{ gap: 8 }}>
+            {moment.photos.map((photo, idx) => (
+              <Pressable
+                key={photo.id}
+                onPress={() => vm.handleOpenGallery(moment.photos, idx)}>
+                <FastImage
+                  source={{ uri: photo.url, priority: FastImage.priority.high }}
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 12,
+                    borderWidth: idx === 0 ? 2 : 0,
+                    borderColor: colors.primary,
+                  }}
+                  resizeMode={FastImage.resizeMode.cover}
+                />
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : null}
 
         {/* ── Content section ── */}
         <View className="mx-4 mt-5 mb-2">

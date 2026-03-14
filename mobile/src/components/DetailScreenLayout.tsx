@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Heading, Label } from './Typography';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
@@ -28,6 +28,7 @@ interface DetailScreenLayoutProps {
   onBack: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onHeroPress?: () => void;
   /** Screen-specific body — rendered inside the white rounded-t-3xl content card */
   children: ReactNode;
 }
@@ -53,9 +54,10 @@ export default function DetailScreenLayout({
   coverImageUri,
   fallbackGradient,
   onBack,
-  icon: Icon = Heart, 
+  icon: Icon = Heart,
   onEdit,
   onDelete,
+  onHeroPress,
   children,
 }: DetailScreenLayoutProps) {
   const colors = useAppColors();
@@ -92,6 +94,7 @@ export default function DetailScreenLayout({
         style={{ backgroundColor: scrollBg, flexGrow: 1 }}
       >
         {/* ── Full-bleed cover (280px) ── */}
+        <Pressable onPress={onHeroPress} disabled={!onHeroPress}>
         <View style={{ height: 280 }}>
           {coverImageUri ? (
             <Animated.View style={heroStyle}>
@@ -167,6 +170,7 @@ export default function DetailScreenLayout({
             </Heading>
           </View>
         </View>
+        </Pressable>
 
         {/* ── Content card (slides up 24px over cover, rounded top corners) ── */}
         <View className="bg-white rounded-t-3xl -mt-6" style={{height: "100%"}}>
