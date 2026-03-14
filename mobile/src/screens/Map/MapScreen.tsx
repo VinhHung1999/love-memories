@@ -362,7 +362,7 @@ export default function MapScreen() {
           />
           <Mapbox.UserLocation
             visible
-            animated
+            animated={false}
             onUpdate={location => {
               setUserCoords([location.coords.longitude, location.coords.latitude]);
             }}
