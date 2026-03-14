@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Body } from '../../components/Typography';
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
@@ -110,11 +111,12 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Text
-          className="text-sm font-semibold text-textDark leading-snug mb-1.5"
+        <Body
+          size="md"
+          className="font-semibold text-textDark leading-snug mb-1.5"
           numberOfLines={2}>
           {recipe.title}
-        </Text>
+        </Body>
 
         {recipe.description ? (
           <Text className="text-[11px] text-textMid mb-1.5" numberOfLines={1}>
@@ -216,7 +218,7 @@ export default function RecipesScreen() {
         // Filtered empty
         <View className="flex-1 items-center justify-center pb-20">
           <FilterX size={36} color={colors.textLight} strokeWidth={1.5} />
-          <Text className="text-textMid text-sm mt-3">No recipes match this filter</Text>
+          <Body size="md" className="text-textMid mt-3">No recipes match this filter</Body>
         </View>
       ) : (
         <ScrollView

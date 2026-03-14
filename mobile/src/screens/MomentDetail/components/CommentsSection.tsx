@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Body } from '../../../components/Typography';
 import { Send, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -56,7 +57,7 @@ function CommentItem({
             </Pressable>
           ) : null}
         </View>
-        <Text className="text-xs text-textMid leading-relaxed">{comment.content}</Text>
+        <Body size="sm" className="text-textMid leading-relaxed">{comment.content}</Body>
         <Text className="text-[10px] text-textLight mt-1">{timeAgo(comment.createdAt)}</Text>
       </View>
     </View>
@@ -77,7 +78,7 @@ export default function CommentsSection({
   return (
     <View className="mb-4">
       {comments.length === 0 ? (
-        <Text className="text-xs text-textLight italic mb-3">{t.moments.detail.noComments}</Text>
+        <Body size="sm" className="text-textLight italic mb-3">{t.moments.detail.noComments}</Body>
       ) : (
         comments.map(comment => (
           <CommentItem

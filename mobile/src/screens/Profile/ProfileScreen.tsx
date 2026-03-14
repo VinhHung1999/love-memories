@@ -5,6 +5,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Body } from '../../components/Typography';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { CalendarHeart, Check, CheckCircle, Copy, Heart, Pencil, Plus, QrCode, RefreshCw } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
@@ -39,9 +40,9 @@ function InfoRow({
   const colors = useAppColors();
   const inner = (
     <View className="flex-row items-center justify-between py-[14px]" style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '80' }}>
-      <Text className="text-sm text-textMid flex-1">{label}</Text>
+      <Body size="md" className="text-textMid flex-1">{label}</Body>
       <View className="flex-row items-center gap-2">
-        <Text className="text-sm font-medium text-textDark">{value}</Text>
+        <Body size="md" className="font-medium text-textDark">{value}</Body>
         {icon && React.createElement(icon, { size: 14, color: colors.textLight, strokeWidth: 1.5 })}
       </View>
     </View>
@@ -99,7 +100,7 @@ export default function ProfileScreen() {
             onPress={vm.handleUploadAvatar}
             showCameraBadge
           />
-          <Text className="text-xs text-textMid mt-1">{vm.user?.email}</Text>
+          <Body size="sm" className="text-textMid mt-1">{vm.user?.email}</Body>
           {vm.couple?.name ? (
             <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
               <Heart size={10} color={colors.primary} strokeWidth={1.5} />
@@ -140,8 +141,8 @@ export default function ProfileScreen() {
                   size={44}
                 />
                 <View className="flex-1">
-                  <Text className="font-semibold text-sm text-textDark">{vm.partner.name}</Text>
-                  <Text className="text-xs text-textMid mt-0.5">{vm.partner.email}</Text>
+                  <Body size="md" className="font-semibold text-textDark">{vm.partner.name}</Body>
+                  <Body size="sm" className="text-textMid mt-0.5">{vm.partner.email}</Body>
                 </View>
                 <View className="w-2 h-2 rounded-full bg-green-400" />
               </View>
@@ -221,7 +222,7 @@ export default function ProfileScreen() {
                     ? <Skeleton className="w-32 h-4 rounded-full" />
                     : <>
                         <QrCode size={16} color={colors.primary} strokeWidth={1.5} />
-                        <Text className="text-sm font-medium text-primary">{t.profile.couple.generateInvite}</Text>
+                        <Body size="md" className="font-medium text-primary">{t.profile.couple.generateInvite}</Body>
                       </>}
                 </Pressable>
               )}
@@ -234,16 +235,16 @@ export default function ProfileScreen() {
             {vm.user?.googleId ? (
               <View className="flex-row items-center gap-2 py-3">
                 <CheckCircle size={16} color={colors.success} strokeWidth={1.5} />
-                <Text className="text-sm text-success font-medium">{t.profile.google.linked}</Text>
+                <Body size="md" className="text-success font-medium">{t.profile.google.linked}</Body>
               </View>
             ) : (
               <View className="py-3">
-                <Text className="text-xs text-textMid mb-3">{t.profile.google.linkHint}</Text>
+                <Body size="sm" className="text-textMid mb-3">{t.profile.google.linkHint}</Body>
                 <Pressable
                   onPress={vm.handleLinkGoogle}
                   className="border border-border rounded-2xl py-2.5 flex-row items-center justify-center gap-2">
                   <GoogleGLogo size={18} />
-                  <Text className="text-sm font-semibold text-textDark">{t.profile.google.linkButton}</Text>
+                  <Body size="md" className="font-semibold text-textDark">{t.profile.google.linkButton}</Body>
                 </Pressable>
               </View>
             )}
@@ -271,12 +272,12 @@ export default function ProfileScreen() {
 
           {/* ── Log Out ── */}
           <Pressable onPress={vm.handleLogout} className="mt-2 items-center py-4 mx-4">
-            <Text className="text-red-400 text-sm font-semibold">{t.profile.logout}</Text>
+            <Body size="md" className="text-red-400 font-semibold">{t.profile.logout}</Body>
           </Pressable>
 
           {/* ── Delete Account ── */}
           <Pressable onPress={handleOpenDeleteAccount} className="mb-10 items-center py-2 mx-4">
-            <Text className="text-textLight text-xs">{t.profile.deleteAccount.title}</Text>
+            <Body size="sm" className="text-textLight">{t.profile.deleteAccount.title}</Body>
           </Pressable>
 
       </Animated.ScrollView>

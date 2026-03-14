@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Body } from '../../components/Typography';
 import Animated, {
   FadeInDown,
   useAnimatedScrollHandler,
@@ -101,9 +102,9 @@ function NotificationRow({
               numberOfLines={2}>
               {item.title}
             </Text>
-            <Text className="text-xs text-textMid mt-0.5 leading-relaxed" numberOfLines={2}>
+            <Body size="sm" className="text-textMid mt-0.5 leading-relaxed" numberOfLines={2}>
               {item.message}
-            </Text>
+            </Body>
             <Text className="text-[10px] text-textLight mt-1.5 font-medium">
               {relativeTime(item.createdAt)}
             </Text>
@@ -146,7 +147,7 @@ export default function NotificationsScreen() {
         onBack={navigation.goBack}
         right={vm.hasUnread ? (
           <Pressable onPress={vm.handleMarkAll} className="py-1">
-            <Text className="text-sm font-semibold text-primary">{t.notifications.markAll}</Text>
+            <Body size="md" className="font-semibold text-primary">{t.notifications.markAll}</Body>
           </Pressable>
         ) : null}
       />

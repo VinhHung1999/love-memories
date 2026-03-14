@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Heading, Body } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, ArrowRight, Check, CheckCircle, ChefHat, Hash, List } from 'lucide-react-native';
@@ -101,8 +102,8 @@ function ActiveSessionBanner({ onResume }: { onResume: () => void }) {
         <ChefHat size={20} color={colors.primary} strokeWidth={1.5} />
       </View>
       <View className="flex-1">
-        <Text className="text-textDark font-bold text-sm">{t.whatToEat.activeSession}</Text>
-        <Text className="text-textMid text-xs mt-0.5">Tap to resume where you left off</Text>
+        <Body size="md" className="text-textDark font-bold">{t.whatToEat.activeSession}</Body>
+        <Body size="sm" className="text-textMid mt-0.5">Tap to resume where you left off</Body>
       </View>
       <ArrowRight size={20} color={colors.textMid} strokeWidth={1.5} />
     </Pressable>
@@ -123,8 +124,8 @@ export default function WhatToEatScreen() {
         <View className="flex-row items-center gap-3">
           <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
-            <Text className="text-lg font-bold text-textDark">{t.whatToEat.title}</Text>
-            <Text className="text-xs text-textLight">{t.whatToEat.subtitle}</Text>
+            <Heading size="md">{t.whatToEat.title}</Heading>
+            <Body size="sm" className="text-textLight">{t.whatToEat.subtitle}</Body>
           </View>
           <Pressable
             onPress={vm.handleViewHistory}
@@ -158,15 +159,15 @@ export default function WhatToEatScreen() {
         ) : vm.recipes.length === 0 ? (
           <View className="flex-1 items-center justify-center pb-20">
             <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
-            <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noRecipes}</Text>
-            <Text className="text-textLight text-sm mt-1">{t.whatToEat.addRecipesFirst}</Text>
+            <Heading size="sm" className="text-textMid mt-4">{t.whatToEat.noRecipes}</Heading>
+            <Body size="md" className="text-textLight mt-1">{t.whatToEat.addRecipesFirst}</Body>
           </View>
         ) : (
           <>
             {/* Section title */}
             <View className="px-5 pt-4 pb-2">
-              <Text className="text-base font-bold text-textDark">{t.whatToEat.selecting.title}</Text>
-              <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.selecting.subtitle}</Text>
+              <Heading size="sm">{t.whatToEat.selecting.title}</Heading>
+              <Body size="sm" className="text-textLight mt-0.5">{t.whatToEat.selecting.subtitle}</Body>
             </View>
 
             <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>

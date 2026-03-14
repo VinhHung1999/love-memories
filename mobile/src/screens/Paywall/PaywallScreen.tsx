@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Heading, Body } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -254,12 +255,9 @@ export default function PaywallScreen({ navigation, route }: Props) {
         >
           <X size={18} color={colors.primary} strokeWidth={2} />
         </Pressable>
-        <Text
-          className="flex-1 text-center text-base font-semibold"
-          style={{ color: colors.textDark }}
-        >
+        <Heading size="sm" className="flex-1 text-center text-textDark">
           {t.paywall.title}
-        </Text>
+        </Heading>
         {/* Spacer to balance X button */}
         <View className="w-9" />
       </View>
@@ -337,12 +335,9 @@ export default function PaywallScreen({ navigation, route }: Props) {
         </View>
 
         {/* Feature comparison */}
-        <Text
-          className="text-sm font-semibold mb-3"
-          style={{ color: colors.textDark }}
-        >
+        <Body size="md" className="font-semibold mb-3 text-textDark">
           What's included
-        </Text>
+        </Body>
         <FeatureTable />
 
         {/* Restore purchases */}

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Heading, Body } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -222,9 +223,9 @@ export default function RecipeDetailScreen() {
         <Card>
           {/* Title + cooked badge */}
           <View className="flex-row items-start gap-2 mb-1">
-            <Text className="text-xl font-bold text-textDark leading-tight flex-1">
+            <Heading size="lg" className="leading-tight flex-1">
               {recipe.title}
-            </Text>
+            </Heading>
             {recipe.cooked ? (
               <View className="bg-green-100 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
                 <CheckCircle
@@ -240,9 +241,9 @@ export default function RecipeDetailScreen() {
           </View>
 
           {recipe.description ? (
-            <Text className="text-sm text-textMid italic leading-relaxed mb-3">
+            <Body size="md" className="text-textMid italic leading-relaxed mb-3">
               {recipe.description}
-            </Text>
+            </Body>
           ) : null}
 
           {/* Tags */}
@@ -258,12 +259,12 @@ export default function RecipeDetailScreen() {
           {recipe.foodSpot ? (
             <View className="flex-row items-center gap-1.5 pt-2 border-t border-border/30">
               <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-xs text-textMid flex-1">
+              <Body size="sm" className="text-textMid flex-1">
                 {t.recipes.detail.linkedSpot}:{' '}
                 <Text className="font-semibold text-secondary">
                   {recipe.foodSpot.name}
                 </Text>
-              </Text>
+              </Body>
             </View>
           ) : null}
         </Card>
@@ -276,9 +277,9 @@ export default function RecipeDetailScreen() {
               className="flex-row items-center gap-2 py-1"
             >
               <Images size={16} color={colors.primary} strokeWidth={1.5} />
-              <Text className="text-sm font-semibold text-primary flex-1">
+              <Body size="md" className="font-semibold text-primary flex-1">
                 {t.recipes.detail.photos} ({recipe.photos.length})
-              </Text>
+              </Body>
               <ChevronRight
                 size={16}
                 color={colors.textLight}
@@ -323,9 +324,9 @@ export default function RecipeDetailScreen() {
         {recipe.notes ? (
           <Card>
             <CardTitle>{t.recipes.detail.notes}</CardTitle>
-            <Text className="text-sm text-textMid leading-relaxed pt-1">
+            <Body size="md" className="text-textMid leading-relaxed pt-1">
               {recipe.notes}
-            </Text>
+            </Body>
           </Card>
         ) : null}
 
@@ -342,12 +343,12 @@ export default function RecipeDetailScreen() {
                 <PlayCircle size={20} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-textDark">
+                <Body size="md" className="font-semibold text-textDark">
                   {t.recipes.detail.tutorialLink}
-                </Text>
-                <Text className="text-xs text-textLight" numberOfLines={1}>
+                </Body>
+                <Body size="sm" className="text-textLight" numberOfLines={1}>
                   {recipe.tutorialUrl}
-                </Text>
+                </Body>
               </View>
               <ExternalLink
                 size={15}
