@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Body, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import t from '../../locales/en';
 import Input from '../../components/Input';
@@ -55,7 +55,7 @@ export default function LoginScreen() {
       {/* ── Logo / hero ── */}
       <Animated.View className="items-center pb-5" style={logoStyle}>
         <HeartLogo />
-        <Text className="text-2xl font-extrabold text-textDark tracking-[0.3px]">{t.app.name}</Text>
+        <Heading size="lg" className="text-textDark tracking-[0.3px]">{t.app.name}</Heading>
       </Animated.View>
 
       {/* ── Form ── */}
@@ -78,7 +78,7 @@ export default function LoginScreen() {
         {/* Divider */}
         <View className="flex-row items-center gap-3 mt-[14px] mb-[14px]">
           <View className="flex-1 h-[1px] bg-textMid/15" />
-          <Text className="text-xs font-medium text-textLight">{t.login.or}</Text>
+          <Body size="sm" className="text-textLight">{t.login.or}</Body>
           <View className="flex-1 h-[1px] bg-textMid/15" />
         </View>
 
@@ -122,9 +122,9 @@ export default function LoginScreen() {
         />
 
         <Pressable onPress={vm.toggleMode}>
-          <Text className="text-center text-sm font-medium text-primary">
+          <Label className="text-center text-primary">
             {vm.mode === 'login' ? t.login.noAccount : t.login.hasAccount}
-          </Text>
+          </Label>
         </Pressable>
       </Animated.View>
 
@@ -136,7 +136,7 @@ export default function LoginScreen() {
       <Heading size="lg" className="text-textDark mb-2">
         Welcome, {vm.pendingGoogleProfile?.name}! 👋
       </Heading>
-      <Text className="text-sm text-textMid mb-6">{t.login.googleSetup.subtitle}</Text>
+      <Body size="md" className="text-textMid mb-6">{t.login.googleSetup.subtitle}</Body>
 
       <FieldLabel>{t.login.labels.couple}</FieldLabel>
       <CoupleModeSelector value={vm.googleCoupleMode} onChange={vm.setGoogleCoupleMode} />
@@ -153,7 +153,7 @@ export default function LoginScreen() {
       <Button label={t.login.createAccount} onPress={vm.handleGoogleCoupleComplete} loading={vm.loading} />
 
       <Pressable onPress={vm.backFromGoogleSetup}>
-        <Text className="text-center text-sm font-medium text-textMid">{t.login.back}</Text>
+        <Label className="text-center text-textMid">{t.login.back}</Label>
       </Pressable>
     </View>
   );

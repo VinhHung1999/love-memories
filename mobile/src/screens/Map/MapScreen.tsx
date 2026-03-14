@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Body, Caption, Heading } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
@@ -189,9 +189,9 @@ function PinCallout({
           {pin.location ? (
             <View className="flex-row items-center gap-1 mt-0.5">
               <MapPinIcon size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-[11px] text-textLight flex-1" numberOfLines={1}>
+              <Caption className="text-textLight flex-1" numberOfLines={1}>
                 {pin.location}
-              </Text>
+              </Caption>
             </View>
           ) : null}
           {pin.tags.length > 0 ? (
@@ -301,7 +301,7 @@ export default function MapScreen() {
         {/* Header */}
         <View className="px-5 pt-3 pb-2">
           <Heading size="xl" className="text-textDark">{t.map.title}</Heading>
-          <Text className="text-xs text-textLight mt-0.5">{t.map.subtitle}</Text>
+          <Body size="sm" className="text-textLight mt-0.5">{t.map.subtitle}</Body>
         </View>
 
         {/* Type filter chips */}

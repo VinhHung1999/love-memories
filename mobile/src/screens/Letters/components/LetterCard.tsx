@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Body, Caption } from '../../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { Music2, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
@@ -75,11 +76,11 @@ export default function LetterCard({
           ) : null}
         </View>
         {showSender && letter.sender ? (
-          <Text className="text-[11px] text-textLight">{letter.sender.name}</Text>
+          <Caption className="text-textLight">{letter.sender.name}</Caption>
         ) : null}
-        <Text className="text-[12px] text-textMid" numberOfLines={1}>
+        <Body size="sm" className="text-textMid" numberOfLines={1}>
           {letter.content.slice(0, 60)}
-        </Text>
+        </Body>
 
         {/* Media indicators */}
         {(hasPhotos || hasAudio) ? (
@@ -94,14 +95,14 @@ export default function LetterCard({
                   />
                 </View>
                 {(letter.photos?.length ?? 0) > 1 ? (
-                  <Text className="text-[10px] text-textLight">+{(letter.photos?.length ?? 0) - 1}</Text>
+                  <Caption className="text-textLight">+{(letter.photos?.length ?? 0) - 1}</Caption>
                 ) : null}
               </View>
             ) : null}
             {hasAudio ? (
               <View className="flex-row items-center gap-0.5">
                 <Music2 size={12} color={colors.textLight} strokeWidth={1.5} />
-                <Text className="text-[10px] text-textLight">{letter.audio?.length}</Text>
+                <Caption className="text-textLight">{letter.audio?.length}</Caption>
               </View>
             ) : null}
           </View>
@@ -109,8 +110,8 @@ export default function LetterCard({
 
         <View className="flex-row items-center gap-2 mt-1">
           <Text className="text-[11px]" style={{ color: statusColor }}>{statusLabel}</Text>
-          <Text className="text-[11px] text-textLight">·</Text>
-          <Text className="text-[11px] text-textLight">{formatDate(letter.createdAt)}</Text>
+          <Caption className="text-textLight">·</Caption>
+          <Caption className="text-textLight">{formatDate(letter.createdAt)}</Caption>
         </View>
       </View>
 

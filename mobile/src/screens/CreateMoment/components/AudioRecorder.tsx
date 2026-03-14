@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, TouchableOpacity, View } from 'react-native';
 import { Mic, Pause, Play, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
+import { Body, Label } from '../../../components/Typography';
 import t from '../../../locales/en';
 
 interface AudioRecorderProps {
@@ -42,8 +43,8 @@ export default function AudioRecorder({
           {isPlayingPreview ? <Pause size={22} color="#fff" strokeWidth={1.5} /> : <Play size={22} color="#fff" strokeWidth={1.5} />}
         </TouchableOpacity>
         <View className="flex-1">
-          <Text className="text-sm font-semibold text-textDark">Voice memo recorded</Text>
-          <Text className="text-xs text-textLight mt-0.5">{formatSecs(recordingDuration)} • m4a</Text>
+          <Label className="text-textDark">Voice memo recorded</Label>
+          <Body size="sm" className="text-textLight mt-0.5">{formatSecs(recordingDuration)} • m4a</Body>
         </View>
         <Pressable onPress={onDelete} hitSlop={8}>
           <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
@@ -70,14 +71,14 @@ export default function AudioRecorder({
 
       {/* Label */}
       <View className="flex-1">
-        <Text className="text-sm font-semibold text-textDark">
+        <Label className="text-textDark">
           {isRecording ? t.moments.create.recording : t.moments.create.recordMemo}
-        </Text>
-        <Text className="text-xs text-textLight mt-0.5">
+        </Label>
+        <Body size="sm" className="text-textLight mt-0.5">
           {isRecording
             ? `${formatSecs(recordingDuration)} · ${t.moments.create.stopRecording}`
             : t.moments.create.recordHint}
-        </Text>
+        </Body>
       </View>
 
       {/* Live indicator */}

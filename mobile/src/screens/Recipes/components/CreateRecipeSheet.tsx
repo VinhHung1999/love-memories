@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { PlusCircle, Timer, XCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
@@ -16,9 +17,9 @@ import PhotoPicker from '../../CreateMoment/components/PhotoPicker';
 
 function SectionHeader({ icon, label }: { icon: string; label: string }) {
   return (
-    <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+    <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
       {icon}{'  '}{label}
-    </Text>
+    </Caption>
   );
 }
 
@@ -131,7 +132,7 @@ function StepInputRow({
           maxLength={2}
           className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
         />
-        <Text className="text-xs text-textLight">min</Text>
+        <Body size="sm" className="text-textLight">min</Body>
         <TextInput
           value={secs}
           onChangeText={v => { setSecs(v); commit(mins, v); }}
@@ -141,7 +142,7 @@ function StepInputRow({
           maxLength={2}
           className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
         />
-        <Text className="text-xs text-textLight">sec</Text>
+        <Body size="sm" className="text-textLight">sec</Body>
       </View>
     </View>
   );
@@ -229,7 +230,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
             onPress={vm.addIngredient}
             className="flex-row items-center gap-2 py-2 mt-1">
             <PlusCircle size={18} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-sm text-primary font-semibold">{t.recipes.create.addIngredient}</Text>
+            <Label className="text-primary">{t.recipes.create.addIngredient}</Label>
           </Pressable>
         </View>
 
@@ -253,7 +254,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
             onPress={vm.addStep}
             className="flex-row items-center gap-2 py-2 mt-1">
             <PlusCircle size={18} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-sm text-primary font-semibold">{t.recipes.create.addStep}</Text>
+            <Label className="text-primary">{t.recipes.create.addStep}</Label>
           </Pressable>
         </View>
 

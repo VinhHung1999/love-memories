@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
+import { Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -124,7 +125,7 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
             <Pressable
               onPress={() => setShowDatePicker(false)}
               className="py-3 items-center border-t border-border">
-              <Text className="text-primary font-semibold text-sm">Done</Text>
+              <Label className="text-primary">Done</Label>
             </Pressable>
           </View>
         )}
@@ -132,7 +133,7 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         {/* Clear anniversary */}
         {anniversaryDate && !showDatePicker && (
           <Pressable onPress={() => setAnniversaryDate(null)} className="mb-2">
-            <Text className="text-xs text-textLight text-center">Clear anniversary date</Text>
+            <Caption className="text-textLight text-center">Clear anniversary date</Caption>
           </Pressable>
         )}
 

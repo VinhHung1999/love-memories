@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Label } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { Plus, Star, Utensils } from 'lucide-react-native';
 
@@ -111,11 +112,9 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Text
-          className="text-sm font-semibold text-textDark leading-snug mb-1.5"
-          numberOfLines={2}>
+        <Label className="text-textDark leading-snug mb-1.5" numberOfLines={2}>
           {spot.name}
-        </Text>
+        </Label>
 
         {/* Stars row */}
         <View className="flex-row items-center gap-1 mb-1.5">

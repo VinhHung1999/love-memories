@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Body, Caption } from '../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Star } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
@@ -29,7 +30,7 @@ function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: nu
           />
         </Pressable>
       ))}
-      <Text className="text-sm text-textMid self-center ml-1">{value}/5</Text>
+      <Body size="md" className="text-textMid self-center ml-1">{value}/5</Body>
     </View>
   );
 }
@@ -90,9 +91,9 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
       <View className="pb-[60px] pt-2">
 
         {/* ── Photos ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`📷  ${t.foodSpots.create.photos}`}
-        </Text>
+        </Caption>
         <View className="px-5 mb-4">
           <PhotoPicker
             photos={vm.photos}
@@ -105,9 +106,9 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
         <View className="h-[1px] bg-border/40 mx-5 mb-4" />
 
         {/* ── Details ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`✏️  ${t.foodSpots.create.details}`}
-        </Text>
+        </Caption>
         <View className="px-5">
           <FieldLabel>{`${t.foodSpots.labels.name} *`}</FieldLabel>
           <Input
@@ -145,9 +146,9 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
         <View className="h-[1px] bg-border/40 mx-5 mb-4" />
 
         {/* ── Tags ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`🏷️  ${t.foodSpots.labels.tags}`}
-        </Text>
+        </Caption>
         <View className="px-5 mb-4">
           <TagInput
             tags={vm.tags}

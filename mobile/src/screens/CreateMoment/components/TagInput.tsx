@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useAppColors } from '../../../navigation/theme';
+import { Label } from '../../../components/Typography';
 import t from '../../../locales/en';
 
 interface TagInputProps {
@@ -21,7 +22,7 @@ export default function TagInput({ tags, tagInput, onChangeTagInput, onAddTag, o
           key={tag}
           onPress={() => onRemoveTag(tag)}
           className="flex-row items-center gap-1 px-3 py-[3px] rounded-lg bg-primary/12">
-          <Text className="text-xs font-medium text-primary">{tag}</Text>
+          <Label className="text-primary">{tag}</Label>
           <Text className="text-[10px] text-primary opacity-60">×</Text>
         </Pressable>
       ))}

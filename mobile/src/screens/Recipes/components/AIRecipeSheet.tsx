@@ -5,6 +5,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Bot, Dot, FileText, Globe, Music2, PlusCircle, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -181,7 +182,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
         /* ── Loading ── */
         <View className="h-64 items-center justify-center gap-4">
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text className="text-sm text-textMid">{t.recipes.ai.generating}</Text>
+          <Body size="md" className="text-textMid">{t.recipes.ai.generating}</Body>
         </View>
 
       ) : phase === 'input' ? (
@@ -255,9 +256,9 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           />
 
           {/* Ingredients */}
-          <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
+          <Caption className="tracking-wider uppercase mb-3">
             🛒  {t.recipes.create.ingredientsSection}
-          </Text>
+          </Caption>
           {ingredients.map((ing, idx) => (
             <EditIngredientRow
               key={idx}
@@ -268,13 +269,13 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           ))}
           <Pressable onPress={() => setIngredients(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
             <PlusCircle size={16} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-sm text-primary font-medium">{t.recipes.create.addIngredient}</Text>
+            <Label className="text-primary">{t.recipes.create.addIngredient}</Label>
           </Pressable>
 
           {/* Steps */}
-          <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
+          <Caption className="tracking-wider uppercase mb-3">
             📋  {t.recipes.create.stepsSection}
-          </Text>
+          </Caption>
           {steps.map((step, idx) => (
             <EditStepRow
               key={idx}
@@ -286,7 +287,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           ))}
           <Pressable onPress={() => setSteps(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
             <PlusCircle size={16} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-sm text-primary font-medium">{t.recipes.create.addStep}</Text>
+            <Label className="text-primary">{t.recipes.create.addStep}</Label>
           </Pressable>
 
           {/* Notes */}

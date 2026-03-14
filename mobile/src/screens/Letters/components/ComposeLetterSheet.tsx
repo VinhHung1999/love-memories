@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Body, Label } from '../../../components/Typography';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import FastImage from 'react-native-fast-image';
@@ -127,10 +128,10 @@ export default function ComposeLetterSheet({
                 <Check size={18} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-textDark">Voice memo recorded</Text>
-                <Text className="text-xs text-textLight mt-0.5">
+                <Label className="text-textDark">Voice memo recorded</Label>
+                <Body size="sm" className="text-textLight mt-0.5">
                   {formatSecs(vm.recordingDuration)} · m4a
-                </Text>
+                </Body>
               </View>
               <Pressable onPress={vm.handleDeleteAudio} hitSlop={8}>
                 <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
@@ -155,14 +156,14 @@ export default function ComposeLetterSheet({
                 )}
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-textDark">
+                <Label className="text-textDark">
                   {vm.isRecording ? t.loveLetters.recording : t.loveLetters.recordMemo}
-                </Text>
-                <Text className="text-xs text-textLight mt-0.5">
+                </Label>
+                <Body size="sm" className="text-textLight mt-0.5">
                   {vm.isRecording
                     ? `${formatSecs(vm.recordingDuration)} · ${t.loveLetters.stopRecording}`
                     : t.loveLetters.recordHint}
-                </Text>
+                </Body>
               </View>
               {vm.isRecording ? (
                 <View className="w-2 h-2 rounded-full bg-primary" />
@@ -210,11 +211,11 @@ export default function ComposeLetterSheet({
                 {t.loveLetters.scheduleLabel}
               </Text>
               {vm.scheduleMode && vm.scheduledAt ? (
-                <Text className="text-xs text-textMid mt-0.5">
+                <Body size="sm" className="text-textMid mt-0.5">
                   {formatScheduledAt(vm.scheduledAt)}
-                </Text>
+                </Body>
               ) : (
-                <Text className="text-xs text-textLight mt-0.5">Tap to set delivery time</Text>
+                <Body size="sm" className="text-textLight mt-0.5">Tap to set delivery time</Body>
               )}
             </View>
             <View
