@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { Body, Caption } from '../../components/Typography';
+import { Pressable, View } from 'react-native';
+import { Body, Caption, Label } from '../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Star } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
@@ -49,9 +49,9 @@ function PriceRangePicker({ value, onChange }: { value: number; onChange: (v: nu
             onPress={() => onChange(i)}
             className="px-3 py-1.5 rounded-xl border"
             style={{ backgroundColor: active ? colors.secondary : 'transparent', borderColor: active ? colors.secondary : colors.border }}>
-            <Text className="text-sm font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+            <Label style={{ color: active ? '#fff' : colors.textMid }}>
               {'$'.repeat(i)}
-            </Text>
+            </Label>
           </Pressable>
         );
       })}

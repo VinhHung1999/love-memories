@@ -3,10 +3,9 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
-import { Body } from '../../components/Typography';
+import { Body, Caption } from '../../components/Typography';
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
@@ -92,11 +91,11 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {recipe.cooked ? (
           <View className="absolute top-2 right-2 bg-green-500 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
             <Check size={9} strokeWidth={1.5} />
-            <Text className="text-[9px] font-bold text-white">{t.recipes.detail.cookedBadge}</Text>
+            <Caption className="font-bold text-white">{t.recipes.detail.cookedBadge}</Caption>
           </View>
         ) : (
           <View className="absolute top-2 right-2 bg-white/80 rounded-xl px-2 py-0.5">
-            <Text className="text-[9px] font-semibold text-primary">To Try</Text>
+            <Caption className="font-semibold text-primary">To Try</Caption>
           </View>
         )}
 
@@ -104,7 +103,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {recipe.ingredients.length > 0 ? (
           <View className="absolute bottom-2 left-2 bg-black/40 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
             <List size={9} strokeWidth={1.5} />
-            <Text className="text-[9px] text-white">{recipe.ingredients.length} ingredients</Text>
+            <Caption className="text-white">{recipe.ingredients.length} ingredients</Caption>
           </View>
         ) : null}
       </View>
@@ -119,9 +118,9 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         </Body>
 
         {recipe.description ? (
-          <Text className="text-[11px] text-textMid mb-1.5" numberOfLines={1}>
+          <Caption className="text-textMid mb-1.5" numberOfLines={1}>
             {recipe.description}
-          </Text>
+          </Caption>
         ) : null}
 
         {recipe.tags.length > 0 ? (
@@ -153,9 +152,9 @@ function FilterChip({
       onPress={onPress}
       className="px-3 py-1.5 rounded-xl border"
       style={{ backgroundColor: active ? colors.primary : '#fff', borderColor: active ? colors.primary : colors.border }}>
-      <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+      <Caption className="font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
         {label}
-      </Text>
+      </Caption>
     </Pressable>
   );
 }

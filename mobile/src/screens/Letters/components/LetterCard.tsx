@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Body, Caption } from '../../../components/Typography';
+import { Body, Caption, Label } from '../../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { Music2, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
@@ -65,9 +65,9 @@ export default function LetterCard({
       {/* Content */}
       <View className="flex-1 gap-0.5">
         <View className="flex-row items-center gap-1.5">
-          <Text className="text-[14px] font-semibold text-textDark flex-1" numberOfLines={1}>
+          <Label className="text-textDark flex-1" numberOfLines={1}>
             {letter.title}
-          </Text>
+          </Label>
           {isUnread ? (
             <View
               className="w-2 h-2 rounded-full"
@@ -109,7 +109,7 @@ export default function LetterCard({
         ) : null}
 
         <View className="flex-row items-center gap-2 mt-1">
-          <Text className="text-[11px]" style={{ color: statusColor }}>{statusLabel}</Text>
+          <Caption style={{ color: statusColor }}>{statusLabel}</Caption>
           <Caption className="text-textLight">·</Caption>
           <Caption className="text-textLight">{formatDate(letter.createdAt)}</Caption>
         </View>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Caption } from '../../../components/Typography';
 import { BaseCard } from '../../../components/Card';
 
 interface QuickActionButtonProps {
@@ -23,7 +24,7 @@ export function QuickActionButton({
         <View className={`w-10 h-10 rounded-2xl items-center justify-center ${bgClass}`}>
           <IconComponent size={20} color={iconColor} strokeWidth={1.5} />
         </View>
-        <Text className="text-[11px] font-headingSemi text-textMid">{label}</Text>
+        <Caption className="font-headingSemi text-textMid">{label}</Caption>
       </BaseCard>
     </Pressable>
   );

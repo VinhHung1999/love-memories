@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Caption, Label } from '../../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { ChevronRight, Star, Utensils } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
@@ -24,9 +25,9 @@ export function FoodHighlightCard({ spot, onPress }: FoodHighlightCardProps) {
         )}
       </View>
       <View className="flex-1 px-3 py-3 justify-center">
-        <Text className="text-sm font-headingSemi text-textDark mb-0.5" numberOfLines={1}>
+        <Label className="font-headingSemi text-textDark mb-0.5" numberOfLines={1}>
           {spot.name}
-        </Text>
+        </Label>
         <View className="flex-row items-center gap-1">
           {[1, 2, 3, 4, 5].map(i => (
             <Star
@@ -37,12 +38,12 @@ export function FoodHighlightCard({ spot, onPress }: FoodHighlightCardProps) {
               fill={i <= Math.round(spot.rating) ? colors.starRating : 'none'}
             />
           ))}
-          <Text className="text-[10px] font-bodyLight text-textLight ml-0.5">{spot.rating}/5</Text>
+          <Caption className="font-bodyLight text-textLight ml-0.5">{spot.rating}/5</Caption>
         </View>
         {spot.location ? (
-          <Text className="text-[10px] font-bodyLight text-textLight mt-0.5" numberOfLines={1}>
+          <Caption className="font-bodyLight text-textLight mt-0.5" numberOfLines={1}>
             📍 {spot.location}
-          </Text>
+          </Caption>
         ) : null}
       </View>
       <View className="items-center justify-center pr-3">

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -90,9 +90,9 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         <Pressable
           onPress={() => setShowDatePicker(v => !v)}
           className="flex-row items-center justify-between bg-inputBg border border-border rounded-2xl px-4 h-[50px] mb-4">
-          <Text className={anniversaryDate ? 'text-textDark text-sm' : 'text-textLight text-sm'}>
+          <Label style={{ color: anniversaryDate ? colors.textDark : colors.textLight }}>
             {anniversaryDate ? formatDateDisplay(anniversaryDate) : t.profile.couple.noAnniversary}
-          </Text>
+          </Label>
           {showDatePicker
             ? <ChevronUp size={18} color={colors.primary} strokeWidth={1.5} />
             : <CalendarHeart size={18} color={colors.primary} strokeWidth={1.5} />}

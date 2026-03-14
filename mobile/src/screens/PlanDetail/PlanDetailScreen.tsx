@@ -1,6 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
-import { Body } from '../../components/Typography';
+import { ActivityIndicator, View } from 'react-native';
+import { Body, Caption } from '../../components/Typography';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanDetailViewModel } from './usePlanDetailViewModel';
@@ -58,9 +58,9 @@ export default function PlanDetailScreen() {
         <View className="gap-2 mb-4">
           <View className="flex-row items-center gap-2">
             <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusBg }}>
-              <Text className="text-[11px] font-bold" style={{ color: statusTextColor }}>
+              <Caption className="font-bold" style={{ color: statusTextColor }}>
                 {statusLabel}
-              </Text>
+              </Caption>
             </View>
           </View>
           {plan.stops.length > 0 ? (

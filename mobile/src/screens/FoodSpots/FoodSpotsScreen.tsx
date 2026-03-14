@@ -3,10 +3,9 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
-import { Label } from '../../components/Typography';
+import { Caption, Label } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { Plus, Star, Utensils } from 'lucide-react-native';
 
@@ -93,19 +92,19 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
         <View className="absolute top-2 left-2 flex-row gap-1.5">
           <View className="rounded-xl px-2 py-0.5 bg-black/50 flex-row items-center">
             <Star size={9} color={colors.starRating} strokeWidth={1.5} />
-            <Text className="text-[10px] font-bold text-white ml-0.5">{spot.rating}</Text>
+            <Caption className="font-bold text-white ml-0.5">{spot.rating}</Caption>
           </View>
           <View className="rounded-xl px-2 py-0.5 bg-black/50">
-            <Text className="text-[10px] font-bold text-white">{priceLabel(spot.priceRange)}</Text>
+            <Caption className="font-bold text-white">{priceLabel(spot.priceRange)}</Caption>
           </View>
         </View>
 
         {/* Location overlay */}
         {spot.location ? (
           <View className="absolute bottom-2 left-2 right-2">
-            <Text className="text-[9px] font-semibold text-white/95" numberOfLines={1}>
+            <Caption className="font-semibold text-white/95" numberOfLines={1}>
               📍 {spot.location}
-            </Text>
+            </Caption>
           </View>
         ) : null}
       </View>

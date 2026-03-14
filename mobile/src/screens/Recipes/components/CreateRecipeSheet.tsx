@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
 import { Body, Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { PlusCircle, Timer, XCircle } from 'lucide-react-native';
@@ -105,7 +105,7 @@ function StepInputRow({
       {/* Step content row */}
       <View className="flex-row items-start gap-2">
         <View className="w-6 h-6 rounded-full bg-primary/10 items-center justify-center mt-[10px] flex-shrink-0">
-          <Text className="text-[10px] font-bold text-primary">{index + 1}</Text>
+          <Caption className="font-bold text-primary">{index + 1}</Caption>
         </View>
         <TextInput
           value={content}

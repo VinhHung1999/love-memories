@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Caption } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Plus, X } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
@@ -80,9 +81,9 @@ export default function PlanFormSheet({
               className="flex-row items-center gap-1 px-2 py-1 rounded-lg"
               style={{ backgroundColor: colors.primaryMuted }}>
               <Plus size={14} color={colors.primary} strokeWidth={1.5} />
-              <Text className="text-[12px] font-semibold" style={{ color: colors.primary }}>
+              <Caption className="font-semibold" style={{ color: colors.primary }}>
                 {t.datePlanner.addStop}
-              </Text>
+              </Caption>
             </Pressable>
           </View>
           <View className="gap-3">

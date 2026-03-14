@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Caption, Label } from '../../../components/Typography';
 import { useAppColors } from '../../../navigation/theme';
 import type { DatePlan } from '../../../types';
 import t from '../../../locales/en';
@@ -37,28 +38,28 @@ export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: (
       {/* Top row: date badge + status */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="rounded-xl px-2.5 py-1" style={{ backgroundColor: colors.primaryMuted }}>
-          <Text className="text-[11px] font-bold" style={{ color: colors.primary }}>
+          <Caption className="font-bold" style={{ color: colors.primary }}>
             {formatDate(plan.date)}
-          </Text>
+          </Caption>
         </View>
         <View className="rounded-full px-3 py-1" style={{ backgroundColor: statusBg }}>
-          <Text className="text-[11px] font-semibold" style={{ color: statusText }}>
+          <Caption className="font-semibold" style={{ color: statusText }}>
             {statusLabel}
-          </Text>
+          </Caption>
         </View>
       </View>
 
       {/* Title */}
-      <Text className="text-[15px] font-semibold text-textDark mb-1">{plan.title}</Text>
+      <Label className="text-textDark mb-1">{plan.title}</Label>
 
       {/* Stops progress */}
       {totalStops > 0 ? (
         <View className="gap-1.5">
-          <Text className="text-[12px] text-textLight">
+          <Caption className="text-textLight">
             {t.datePlanner.stopsProgress
               .replace('{done}', String(doneStops))
               .replace('{total}', String(totalStops))}
-          </Text>
+          </Caption>
           <View className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: colors.gray100 }}>
             <View
               className="h-full rounded-full"

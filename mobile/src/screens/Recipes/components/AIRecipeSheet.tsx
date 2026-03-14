@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  Text,
   View,
 } from 'react-native';
 import { Body, Caption, Label } from '../../../components/Typography';
@@ -28,7 +27,7 @@ function ModeTab({ label, icon: IconComponent, active, onPress }: { label: strin
       className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl"
       style={{ backgroundColor: active ? colors.primary : '#f3f4f6' }}>
       <IconComponent size={14} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
-      <Text className="text-[12px] font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>{label}</Text>
+      <Caption className="font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>{label}</Caption>
     </Pressable>
   );
 }
@@ -61,7 +60,7 @@ function EditStepRow({ index, value, onChange, onRemove }: { index: number; valu
   return (
     <View className="flex-row items-start gap-2 mb-1.5">
       <View className="w-5 h-5 rounded-full bg-primary/10 items-center justify-center mt-1.5 flex-shrink-0">
-        <Text className="text-[10px] font-bold text-primary">{index + 1}</Text>
+        <Caption className="font-bold text-primary">{index + 1}</Caption>
       </View>
       <BottomSheetTextInput
         value={value}
@@ -227,7 +226,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             }}
           />
 
-          {error ? <Text className="text-xs text-red-500 mt-2">{error}</Text> : null}
+          {error ? <Caption className="text-red-500 mt-2">{error}</Caption> : null}
         </View>
 
       ) : (
@@ -319,7 +318,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             </>
           ) : null}
 
-          {error ? <Text className="text-xs text-red-500 mb-3">{error}</Text> : null}
+          {error ? <Caption className="text-red-500 mb-3">{error}</Caption> : null}
         </View>
 
       )}

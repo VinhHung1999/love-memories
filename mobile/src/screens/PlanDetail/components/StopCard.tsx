@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { Body, Caption } from '../../../components/Typography';
+import { Pressable, View } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { Check, CheckCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DatePlanStop } from '../../../types';
@@ -48,11 +48,10 @@ export default function StopCard({
                   {stop.time}
                 </Caption>
               ) : null}
-              <Text
-                className="text-[14px] font-semibold"
+              <Label
                 style={{ color: stop.done ? colors.textLight : colors.textDark }}>
                 {stop.title}
-              </Text>
+              </Label>
               {stop.description ? (
                 <Body size="sm" className="text-textLight mt-0.5">{stop.description}</Body>
               ) : null}

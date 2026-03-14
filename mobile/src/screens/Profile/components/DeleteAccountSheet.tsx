@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
-import { Heading } from '../../../components/Typography';
+import { View } from 'react-native';
+import { Body, Caption, Heading } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { AlertCircle } from 'lucide-react-native';
 import AppBottomSheet from '../../../components/AppBottomSheet';
@@ -59,18 +59,18 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
           <Heading size="md" className="text-textDark text-center">
             {t.profile.deleteAccount.title}
           </Heading>
-          <Text className="text-xs text-error font-semibold mt-0.5">
+          <Caption className="text-error font-semibold mt-0.5">
             {t.profile.deleteAccount.subtitle}
-          </Text>
+          </Caption>
         </View>
 
         {/* Warning text */}
         <View
           className="rounded-2xl px-4 py-3 mb-5"
           style={{ backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)' }}>
-          <Text className="text-[13px] text-textMid leading-relaxed">
+          <Body size="sm" className="text-textMid leading-relaxed">
             {t.profile.deleteAccount.warning}
-          </Text>
+          </Body>
         </View>
 
         {error ? <ErrorBox message={error} /> : null}

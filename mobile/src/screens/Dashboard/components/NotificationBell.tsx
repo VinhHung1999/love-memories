@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Caption } from '../../../components/Typography';
 import { Bell } from 'lucide-react-native';
 import { useUnreadCount } from '../../Notifications/useNotificationsViewModel';
 import { useAppColors } from '@/navigation/theme';
@@ -18,9 +19,9 @@ export function NotificationBell({ onPress }: NotificationBellProps) {
         <View
           className="absolute top-0.5 right-0.5 bg-error rounded-full items-center justify-center"
           style={{ minWidth: 14, height: 14, paddingHorizontal: 3 }}>
-          <Text className="text-white text-[9px] font-heading leading-none">
+          <Caption className="text-white font-heading leading-none">
             {count > 99 ? '99+' : count}
-          </Text>
+          </Caption>
         </View>
       )}
     </Pressable>

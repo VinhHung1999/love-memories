@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Caption } from '../../components/Typography';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CalendarHeart, Heart, Plus } from 'lucide-react-native';
  // used in FAB
@@ -46,11 +47,11 @@ export default function WishesScreen() {
                     style={{
                       backgroundColor: vm.statusFilter === f.key ? colors.primary : colors.gray100,
                     }}>
-                    <Text
-                      className="text-[12px] font-semibold"
+                    <Caption
+                      className="font-semibold"
                       style={{ color: vm.statusFilter === f.key ? '#fff' : colors.textMid }}>
                       {f.label}
-                    </Text>
+                    </Caption>
                   </Pressable>
                 ))}
               </View>
@@ -64,11 +65,11 @@ export default function WishesScreen() {
                   style={{
                     backgroundColor: !vm.categoryFilter ? colors.secondary : colors.gray100,
                   }}>
-                  <Text
-                    className="text-[12px] font-semibold"
+                  <Caption
+                    className="font-semibold"
                     style={{ color: !vm.categoryFilter ? '#fff' : colors.textMid }}>
                     {t.datePlanner.allFilter}
-                  </Text>
+                  </Caption>
                 </Pressable>
                 {WISH_CATEGORIES.map(cat => (
                   <Pressable
@@ -78,12 +79,12 @@ export default function WishesScreen() {
                     style={{
                       backgroundColor: vm.categoryFilter === cat.key ? colors.secondary : colors.gray100,
                     }}>
-                    <Text className="text-[12px]">{cat.emoji}</Text>
-                    <Text
-                      className="text-[12px] font-medium"
+                    <Caption>{cat.emoji}</Caption>
+                    <Caption
+                      className="font-medium"
                       style={{ color: vm.categoryFilter === cat.key ? '#fff' : colors.textMid }}>
                       {cat.label}
-                    </Text>
+                    </Caption>
                   </Pressable>
                 ))}
               </View>
