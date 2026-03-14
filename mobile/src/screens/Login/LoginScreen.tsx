@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import t from '../../locales/en';
 import Input from '../../components/Input';
@@ -59,9 +60,9 @@ export default function LoginScreen() {
 
       {/* ── Form ── */}
       <Animated.View className="w-full" style={formStyle}>
-        <Text className="text-[22px] font-bold text-textDark mb-4 tracking-[0.2px]">
+        <Heading size="lg" className="text-textDark mb-4 tracking-[0.2px]">
           {vm.mode === 'login' ? t.login.welcomeBack : t.login.createAccount}
-        </Text>
+        </Heading>
 
         {/* Google button */}
         <SpringPressable
@@ -132,9 +133,9 @@ export default function LoginScreen() {
 
   const googleSetupForm = (
     <View className="px-7 py-8">
-      <Text className="text-[22px] font-bold text-textDark mb-2">
+      <Heading size="lg" className="text-textDark mb-2">
         Welcome, {vm.pendingGoogleProfile?.name}! 👋
-      </Text>
+      </Heading>
       <Text className="text-sm text-textMid mb-6">{t.login.googleSetup.subtitle}</Text>
 
       <FieldLabel>{t.login.labels.couple}</FieldLabel>

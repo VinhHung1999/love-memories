@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Heading } from '../../../components/Typography';
 import { BaseCard } from '../../../components/Card';
 import { useCountUp } from './useCountUp';
 
@@ -28,9 +29,9 @@ export function StatCard({
         <IconComponent size={15} color={iconColor} strokeWidth={1.5} />
 
         {/* Count */}
-        <Text className="text-[22px] font-bold text-textDark leading-none mt-1">
+        <Heading size="lg" className="text-textDark leading-none mt-1">
           {displayCount}
-        </Text>
+        </Heading>
 
         {/* Label */}
         <Text className="text-[9px] font-semibold text-textMid tracking-[1px] uppercase mt-0.5">

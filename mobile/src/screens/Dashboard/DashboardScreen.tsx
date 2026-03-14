@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Heading, Cursive } from '../../components/Typography';
 import Animated, {
   FadeInDown,
   useAnimatedScrollHandler,
@@ -55,14 +56,14 @@ export default function DashboardScreen() {
                   }}
                 >
                   {/* ── Title ── */}
-                  <Text className='text-[32px] font-heading text-textDark leading-none"'>
+                  <Heading size="xl" className="text-textDark leading-none">
                     {vm.headerTitle}
-                  </Text>
+                  </Heading>
                 </View>
                 {vm.slogan ? (
-                  <Text className="text-[11px] font-cursive text-textLight">
+                  <Cursive className="text-[11px] text-textLight">
                     {vm.slogan}
-                  </Text>
+                  </Cursive>
                 ) : null}
               </View>
 
