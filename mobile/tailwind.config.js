@@ -39,12 +39,12 @@ module.exports = {
         errorBg:        '#FFF0F0',
       },
       fontFamily: {
-        // Alan Sans - clean geometric sans-serif, variable font
-        heading: ['AlanSans-Bold'],
-        headingSemi: ['AlanSans-SemiBold'],
-        body: ['AlanSans-Regular'],
-        bodyMedium: ['AlanSans-Medium'],
-        bodyLight: ['AlanSans-Light'],
+        // Borel - cursive/handwritten, single weight (Regular 400)
+        heading: ['Borel-Regular'],
+        headingSemi: ['Borel-Regular'],
+        body: ['Borel-Regular'],
+        bodyMedium: ['Borel-Regular'],
+        bodyLight: ['Borel-Regular'],
       },
     },
   },

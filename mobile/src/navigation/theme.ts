@@ -73,12 +73,12 @@ export const AppTheme = {
     gray100:     '#F5F3F4',
   },
   fonts: {
-    // Alan Sans - clean geometric sans-serif, variable font
-    heading: 'AlanSans-Bold',        // 700 - Large titles, headers
-    headingSemi: 'AlanSans-SemiBold', // 600 - Subtitles, section headers
-    body: 'AlanSans-Regular',        // 400 - Body text, descriptions
-    bodyMedium: 'AlanSans-Medium',   // 500 - Emphasized text, labels
-    bodyLight: 'AlanSans-Light',     // 300 - Secondary text
+    // Borel - cursive/handwritten, single weight (Regular 400)
+    heading: 'Borel-Regular',
+    headingSemi: 'Borel-Regular',
+    body: 'Borel-Regular',
+    bodyMedium: 'Borel-Regular',
+    bodyLight: 'Borel-Regular',
   },
 } as const;
 
