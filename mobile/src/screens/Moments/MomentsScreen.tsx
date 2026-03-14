@@ -15,6 +15,7 @@ import t from '../../locales/en';
 import type { Moment } from '../../types';
 import { useMomentsViewModel } from './useMomentsViewModel';
 import ListHeader from '../../components/ListHeader';
+import { Label } from '../../components/Typography';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
@@ -121,9 +122,9 @@ function MonthCalendar({
           style={{ backgroundColor: colors.textDark + '0F' }}>
           <ChevronLeft size={16} color={colors.textDark} strokeWidth={1.5} />
         </Pressable>
-        <Text className="text-[15px] font-bold text-textDark">
+        <Label className="text-[15px] text-textDark">
           {MONTH_NAMES[selectedMonth.month]} {selectedMonth.year}
-        </Text>
+        </Label>
         <Pressable
           onPress={onNextMonth}
           className="w-8 h-8 rounded-xl items-center justify-center"

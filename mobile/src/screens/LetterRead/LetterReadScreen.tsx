@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import { Heading } from '../../components/Typography';
+import { Body, Heading } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import Animated, {
   useAnimatedScrollHandler,
@@ -57,7 +57,7 @@ export default function LetterReadScreen() {
         {/* Paper card */}
         <View className="bg-white rounded-3xl p-6 mb-4">
           <Heading size="lg" className="text-textDark mb-4">{letter.title}</Heading>
-          <Text className="text-[15px] text-textMid leading-7">{letter.content}</Text>
+          <Body size="md" className="leading-7">{letter.content}</Body>
         </View>
 
         {/* Photos */}
