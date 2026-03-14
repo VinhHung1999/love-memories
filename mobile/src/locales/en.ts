@@ -896,4 +896,6 @@ const en = {
   },
 } as const;
 
+export type LocaleStrings = typeof en;
+
 export default en;
