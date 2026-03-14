@@ -5,6 +5,7 @@ import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { useAppColors } from '../navigation/theme';
@@ -63,6 +64,17 @@ export default function DetailScreenLayout({
     scrollY.value = e.contentOffset.y;
   });
 
+  const heroStyle = useAnimatedStyle(() => {
+    const offset = Math.min(0, scrollY.value);
+    return {
+      position: 'absolute',
+      top: offset,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    };
+  });
+
   const gradient: [string, string] = fallbackGradient ?? [
     colors.primary + '22',
     colors.primary + '08',
@@ -82,7 +94,7 @@ export default function DetailScreenLayout({
         {/* ── Full-bleed cover (280px) ── */}
         <View style={{ height: 280 }}>
           {coverImageUri ? (
-            <>
+            <Animated.View style={heroStyle}>
               {/* Photo */}
               <FastImage
                 source={{
@@ -103,7 +115,7 @@ export default function DetailScreenLayout({
                 locations={[0, 0.3, 0.55, 1]}
                 style={FILL}
               />
-            </>
+            </Animated.View>
           ) : (
             /* Gradient fallback when no photo */
             <>
