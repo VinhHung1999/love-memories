@@ -22,12 +22,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   FadeIn,
   FadeOut,
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { Heart, Mail, ChevronRight } from 'lucide-react-native';
@@ -48,31 +45,16 @@ interface LetterCardProps {
 
 function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
   const colors = useAppColors();
-  const flapRotation = useSharedValue(0);  // 0 = closed, 1 = open
   const contentOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(24);
 
   function handlePress() {
     if (isRead) return;
-    // Flap opens: rotateX 0 → 180°
-    flapRotation.value = withTiming(1, {
-      duration: 500,
-      easing: Easing.out(Easing.cubic),
-    });
     // Letter content slides up + fades in
-    contentOpacity.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) });
+    contentOpacity.value = withSpring(1, { mass: 0.6, stiffness: 180, damping: 20 });
     contentTranslateY.value = withSpring(0, { mass: 0.6, stiffness: 180, damping: 20 });
     onOpen();
   }
-
-  const flapStyle = useAnimatedStyle(() => {
-    const rotX = interpolate(flapRotation.value, [0, 1], [0, -180]);
-    return {
-      transform: [{ perspective: 800 }, { rotateX: `${rotX}deg` }],
-      transformOrigin: 'top center' as any,
-      zIndex: flapRotation.value > 0.5 ? 0 : 10,
-    };
-  });
 
   const contentStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
@@ -100,7 +82,7 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
           }}
         >
           {/* Envelope flap */}
-          <Animated.View style={[flapStyle, { backfaceVisibility: 'hidden' }]}>
+          <View>
             <LinearGradient
               colors={[colors.primary, colors.primaryLight]}
               start={{ x: 0, y: 0 }}
@@ -121,7 +103,7 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
                 {isRead ? '✓ Letter read' : t.letterOverlay.tapToOpen}
               </Text>
             </LinearGradient>
-          </Animated.View>
+          </View>
 
           {/* Letter content */}
           <View style={{ paddingHorizontal: 24, paddingBottom: 28 }}>
