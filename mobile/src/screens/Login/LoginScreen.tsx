@@ -49,7 +49,7 @@ export default function LoginScreen() {
   };
 
   const form = (
-    <View className="min-h-full px-7 pt-14 pb-8">
+    <View className="px-7 py-8">
 
       {/* ── Logo / hero ── */}
       <Animated.View className="items-center pb-5" style={logoStyle}>
@@ -131,7 +131,7 @@ export default function LoginScreen() {
   );
 
   const googleSetupForm = (
-    <View className="min-h-full px-7 pt-14 pb-8">
+    <View className="px-7 py-8">
       <Text className="text-[22px] font-bold text-textDark mb-2">
         Welcome, {vm.pendingGoogleProfile?.name}! 👋
       </Text>
@@ -162,7 +162,7 @@ export default function LoginScreen() {
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <DecoBlobs />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerClassName="flex-grow justify-center">
           {vm.googleStep === 'couple-setup' ? googleSetupForm : form}
         </ScrollView>
       </KeyboardAvoidingView>
