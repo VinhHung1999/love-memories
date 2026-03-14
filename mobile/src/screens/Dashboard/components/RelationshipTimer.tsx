@@ -4,13 +4,14 @@ import Animated, {
   FadeIn,
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedProps,
   withDelay,
   withRepeat,
   withSequence,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
+import Svg, { Path } from 'react-native-svg';
 import { Heart } from 'lucide-react-native';
 import { Body } from '../../../components/Typography';
 import AvatarCircle from '../../../components/AvatarCircle';
@@ -19,8 +20,14 @@ import t from '../../../locales/en';
 
 // Pale rose ring color around avatars
 const AVATAR_RING = '#F9D0D8';
-// Gradient midpoint for connector line
-const CONNECTOR_MID = '#F4C5CC';
+
+// ECG path: flat → P wave → QRS complex → T wave → flat
+const ECG_PATH = 'M 0,20 L 12,20 L 16,20 L 18,10 L 20,28 L 22,14 L 24,20 L 28,20 L 32,16 L 34,20 L 80,20';
+// Approximate total path length for strokeDasharray animation
+const ECG_PATH_LENGTH = 125;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnimatedPath = Animated.createAnimatedComponent(Path) as any;
 
 interface RelationshipTimerProps {
   duration?: { years: number; months: number; days: number; totalDays: number } | null;
@@ -102,12 +109,34 @@ export function RelationshipTimer({
 }: RelationshipTimerProps) {
   const colors = useAppColors();
   const heartScale = useSharedValue(1);
+  const ecgOffset = useSharedValue(0);
 
+  // Heartbeat: two quick beats then a pause (like a real heart: lub-dub ... lub-dub)
   useEffect(() => {
+    const quick = { duration: 150, easing: Easing.inOut(Easing.ease) };
+    const release = { duration: 200, easing: Easing.inOut(Easing.ease) };
+    const pause = { duration: 600, easing: Easing.linear };
+
     heartScale.value = withRepeat(
       withSequence(
-        withTiming(1.25, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1.0, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        // First beat (lub)
+        withTiming(1.3, quick),
+        withTiming(1.0, release),
+        // Second beat (dub)
+        withTiming(1.2, quick),
+        withTiming(1.0, release),
+        // Pause before next cycle
+        withTiming(1.0, pause),
+      ),
+      -1,
+      false,
+    );
+
+    // ECG stroke-dashoffset: 0→length→0 for waveform pulse effect
+    ecgOffset.value = withRepeat(
+      withSequence(
+        withTiming(ECG_PATH_LENGTH, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
       ),
       -1,
       false,
@@ -117,6 +146,10 @@ export function RelationshipTimer({
 
   const heartStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heartScale.value }],
+  }));
+
+  const ecgProps = useAnimatedProps(() => ({
+    strokeDashoffset: ecgOffset.value,
   }));
 
   if (!duration) return null;
@@ -130,31 +163,27 @@ export function RelationshipTimer({
       <View className="bg-white rounded-3xl border border-borderSoft px-5 py-4">
 
         {/* Avatar row */}
-        <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center justify-center gap-2">
           {/* Left avatar — starts pulsing immediately */}
           <AvatarWithRing uri={userAvatar} initials={userInitials} animDelay={0} />
 
-          {/* Connector: gradient line with floating heart centered on top */}
-          <View className="flex-1 mx-3 items-center justify-center" style={{ height: 60 }}>
-            {/* Gradient fade line */}
-            <LinearGradient
-              colors={['transparent', CONNECTOR_MID, 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ position: 'absolute', left: 0, right: 0, height: 1 }}
-            />
-            {/* Heart with white cutout behind it */}
-            <Animated.View style={heartStyle} className="items-center justify-center">
-              <View
-                className="rounded-full bg-white items-center justify-center"
-                style={{ width: 28, height: 28 }}>
-                <Heart
-                  size={20}
-                  color={colors.primary}
-                  fill={colors.primary}
-                  strokeWidth={0}
-                />
-              </View>
+          {/* Connector: ECG heartbeat waveform */}
+          <View className="items-center justify-center" style={{ height: 60, width: 80 }}>
+            <Svg width={80} height={40} viewBox="0 0 80 40">
+              <AnimatedPath
+                d={ECG_PATH}
+                stroke={colors.primary}
+                strokeWidth={1.5}
+                fill="none"
+                strokeDasharray={ECG_PATH_LENGTH}
+                animatedProps={ecgProps}
+              />
+            </Svg>
+            {/* Heart centered on path */}
+            <Animated.View
+              style={[heartStyle, { position: 'absolute' }]}
+              className="items-center justify-center">
+              <Heart size={16} color={colors.primary} fill={colors.primary} strokeWidth={0} />
             </Animated.View>
           </View>
 
