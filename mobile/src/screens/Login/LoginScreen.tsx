@@ -6,7 +6,6 @@ import {
   Pressable,
   ScrollView,
   StatusBar,
-  Text,
   View,
 } from 'react-native';
 import { Body, Heading, Label } from '../../components/Typography';
@@ -70,9 +69,9 @@ export default function LoginScreen() {
           onPress={vm.handleGoogleSignIn}
           disabled={vm.loading}>
           <GoogleGLogo size={20} />
-          <Text className="text-[15px] font-semibold text-textDark tracking-[0.1px]">
+          <Body size="lg" className="font-semibold text-textDark tracking-[0.1px]">
             {vm.mode === 'login' ? t.login.continueWithGoogle : t.login.signUpWithGoogle}
-          </Text>
+          </Body>
         </SpringPressable>
 
         {/* Divider */}

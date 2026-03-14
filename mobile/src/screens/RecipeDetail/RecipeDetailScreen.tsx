@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Heading, Body } from '../../components/Typography';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -84,19 +84,20 @@ function IngredientRow({
       >
         {checked ? <Check size={11} strokeWidth={1.5} /> : null}
       </View>
-      <Text
-        className="flex-1 text-sm"
+      <Body
+        size="md"
+        className="flex-1"
         style={{
           color: checked ? colors.textLight : colors.textDark,
           textDecorationLine: checked ? 'line-through' : 'none',
         }}
       >
         {ingredient}
-      </Text>
+      </Body>
       {price ? (
-        <Text className="text-xs text-textLight font-medium">
+        <Caption className="text-textLight font-medium">
           {price.toLocaleString()}đ
-        </Text>
+        </Caption>
       ) : null}
     </Pressable>
   );
@@ -135,30 +136,31 @@ function StepRow({
         {done ? (
           <Check size={13} strokeWidth={1.5} />
         ) : (
-          <Text className="text-xs font-bold text-primary">{index + 1}</Text>
+          <Caption className="font-bold text-primary">{index + 1}</Caption>
         )}
       </View>
 
       <View className="flex-1">
-        <Text
-          className="text-sm leading-relaxed"
+        <Body
+          size="md"
+          className="leading-relaxed"
           style={{
             color: done ? colors.textLight : colors.textDark,
             textDecorationLine: done ? 'line-through' : 'none',
           }}
         >
           {content}
-        </Text>
+        </Body>
         {duration ? (
           <View className="flex-row items-center gap-1 mt-1">
             <Timer size={11} color={colors.textLight} strokeWidth={1.5} />
-            <Text className="text-[11px] text-textLight">
+            <Caption className="text-textLight">
               {duration >= 60
                 ? `${Math.floor(duration / 60)}m ${
                     duration % 60 > 0 ? `${duration % 60}s` : ''
                   }`
                 : `${duration}s`}
-            </Text>
+            </Caption>
           </View>
         ) : null}
       </View>
@@ -233,9 +235,9 @@ export default function RecipeDetailScreen() {
                   color={colors.success}
                   strokeWidth={1.5}
                 />
-                <Text className="text-[10px] font-semibold text-green-700">
+                <Caption className="font-semibold text-green-700">
                   Cooked
-                </Text>
+                </Caption>
               </View>
             ) : null}
           </View>
@@ -261,9 +263,9 @@ export default function RecipeDetailScreen() {
               <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
               <Body size="sm" className="text-textMid flex-1">
                 {t.recipes.detail.linkedSpot}:{' '}
-                <Text className="font-semibold text-secondary">
+                <Label className="font-semibold text-secondary">
                   {recipe.foodSpot.name}
-                </Text>
+                </Label>
               </Body>
             </View>
           ) : null}

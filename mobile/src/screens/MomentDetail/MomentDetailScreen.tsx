@@ -4,11 +4,10 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Heading, Body } from '../../components/Typography';
+import { Heading, Body, Caption } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
@@ -96,9 +95,9 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
           <Body size="sm" className="text-textLight">Loading track info...</Body>
         ) : meta ? (
           <>
-            <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark" numberOfLines={1}>
               {meta.title}
-            </Text>
+            </Body>
             {meta.author_name ? (
               <Body size="sm" className="text-textMid mt-0.5" numberOfLines={1}>
                 {meta.author_name}
@@ -106,18 +105,18 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
             ) : null}
           </>
         ) : (
-          <Text className="text-sm font-semibold text-textDark">
+          <Body size="md" className="font-semibold text-textDark">
             {t.moments.detail.spotifyLink}
-          </Text>
+          </Body>
         )}
         <View className="flex-row items-center gap-1 mt-1">
           <Music2 size={10} strokeWidth={1.5} />
-          <Text
-            className="text-[10px] font-semibold"
+          <Caption
+            className="font-semibold"
             style={{ color: '#1DB954' }}
           >
             Open in Spotify
-          </Text>
+          </Caption>
         </View>
       </View>
 

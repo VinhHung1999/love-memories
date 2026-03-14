@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Body } from '../../components/Typography';
+import { Body, Caption } from '../../components/Typography';
 import Animated, {
   FadeInDown,
   useAnimatedScrollHandler,
@@ -96,18 +96,19 @@ function NotificationRow({
 
           {/* Text */}
           <View className="flex-1">
-            <Text
-              className="text-sm leading-snug"
+            <Body
+              size="md"
+              className="leading-snug"
               style={{ fontWeight: item.read ? '500' : '600', color: item.read ? colors.textMid : colors.textDark }}
               numberOfLines={2}>
               {item.title}
-            </Text>
+            </Body>
             <Body size="sm" className="text-textMid mt-0.5 leading-relaxed" numberOfLines={2}>
               {item.message}
             </Body>
-            <Text className="text-[10px] text-textLight mt-1.5 font-medium">
+            <Caption className="text-textLight mt-1.5 font-medium">
               {relativeTime(item.createdAt)}
-            </Text>
+            </Caption>
           </View>
 
           {/* Unread dot + delete */}
@@ -180,9 +181,9 @@ export default function NotificationsScreen() {
           <View key={vm.grouped.map(g => g.items.map(i => i.id).join(',')).join('|')} className="pt-4 pb-[100px]">
             {vm.grouped.map(group => (
               <View key={group.label}>
-                <Text className="text-[11px] font-bold text-textLight tracking-[1px] uppercase px-5 pt-4 pb-2">
+                <Caption className="font-bold text-textLight tracking-[1px] uppercase px-5 pt-4 pb-2">
                   {GROUP_LABELS[group.label] ?? group.label}
-                </Text>
+                </Caption>
                 {group.items.map(item => (
                   <NotificationRow
                     key={item.id}

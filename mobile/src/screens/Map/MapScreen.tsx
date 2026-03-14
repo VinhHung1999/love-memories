@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Body, Caption, Heading } from '../../components/Typography';
+import { Body, Caption, Heading, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
@@ -92,11 +92,10 @@ function EmojiPickerModal({
                   onPress={() => setActiveCategory(i)}
                   className="px-3 py-1.5 rounded-xl border"
                   style={{ backgroundColor: i === activeCategory ? colors.primary : 'transparent', borderColor: i === activeCategory ? colors.primary : colors.border }}>
-                  <Text
-                    className="text-xs font-semibold"
+                  <Label
                     style={{ color: i === activeCategory ? '#fff' : colors.textMid }}>
                     {cat.label}
-                  </Text>
+                  </Label>
                 </Pressable>
               ))}
             </View>
@@ -130,7 +129,7 @@ function EmojiPickerModal({
               disabled={!customEmoji.trim() || isSaving}
               className="px-4 py-2.5 rounded-xl"
               style={{ backgroundColor: customEmoji.trim() ? colors.primary : colors.border }}>
-              <Text className="text-white text-sm font-semibold">{t.common.save}</Text>
+              <Label className="text-white">{t.common.save}</Label>
             </TouchableOpacity>
           </View>
         </View>
@@ -179,9 +178,9 @@ function PinCallout({
         )}
         <View className="flex-1 py-3 pr-3">
           <View className="flex-row items-start justify-between">
-            <Text className="text-sm font-bold text-textDark flex-1 mr-2" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark flex-1 mr-2" numberOfLines={1}>
               {pin.title}
-            </Text>
+            </Body>
             <TouchableOpacity onPress={onDismiss} className="w-6 h-6 items-center justify-center">
               <X size={16} color={colors.textLight} strokeWidth={1.5} />
             </TouchableOpacity>
@@ -212,7 +211,7 @@ function PinCallout({
             onPress={onViewDetails}
             className="mt-2 px-3 py-1.5 rounded-xl self-start"
             style={{ backgroundColor: isFood ? colors.secondary : colors.primary }}>
-            <Text className="text-white text-[11px] font-semibold">{t.map.viewDetails}</Text>
+            <Caption className="text-white font-semibold">{t.map.viewDetails}</Caption>
           </TouchableOpacity>
         </View>
       </View>
@@ -315,9 +314,9 @@ export default function MapScreen() {
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border"
                 style={{ backgroundColor: active ? colors.primary : 'transparent', borderColor: active ? colors.primary : colors.border }}>
                 <f.icon size={13} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
-                <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+                <Label style={{ color: active ? '#fff' : colors.textMid }}>
                   {f.label}
-                </Text>
+                </Label>
               </Pressable>
             );
           })}
