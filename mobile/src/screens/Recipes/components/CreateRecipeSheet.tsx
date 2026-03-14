@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Body, Caption, Label } from '../../../components/Typography';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { PlusCircle, Timer, XCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -46,7 +46,7 @@ function IngredientInputRow({
   return (
     <View className="flex-row items-center gap-2 mb-2">
       <View className="flex-1">
-        <TextInput
+        <BottomSheetTextInput
           value={ingredient}
           onChangeText={onChangeIngredient}
           placeholder={t.recipes.create.ingredientPlaceholder}
@@ -55,7 +55,7 @@ function IngredientInputRow({
         />
       </View>
       <View className="w-[80px]">
-        <TextInput
+        <BottomSheetTextInput
           value={price}
           onChangeText={onChangePrice}
           placeholder={t.recipes.create.pricePlaceholder}
@@ -107,7 +107,7 @@ function StepInputRow({
         <View className="w-6 h-6 rounded-full bg-primary/10 items-center justify-center mt-[10px] flex-shrink-0">
           <Caption className="font-bold text-primary">{index + 1}</Caption>
         </View>
-        <TextInput
+        <BottomSheetTextInput
           value={content}
           onChangeText={onChangeContent}
           placeholder={t.recipes.create.stepPlaceholder}
@@ -123,7 +123,7 @@ function StepInputRow({
       {/* Duration row — below content, indented to align with text */}
       <View className="flex-row items-center gap-1.5 mt-1.5 ml-8">
         <Timer size={13} color={colors.textLight} strokeWidth={1.5} />
-        <TextInput
+        <BottomSheetTextInput
           value={mins}
           onChangeText={v => { setMins(v); commit(v, secs); }}
           placeholder="0"
@@ -133,7 +133,7 @@ function StepInputRow({
           className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
         />
         <Body size="sm" className="text-textLight">min</Body>
-        <TextInput
+        <BottomSheetTextInput
           value={secs}
           onChangeText={v => { setSecs(v); commit(mins, v); }}
           placeholder="0"
@@ -194,6 +194,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
         <View className="px-5">
           <FieldLabel>{`${t.recipes.labels.title} *`}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.recipes.placeholders.title}
             value={vm.title}
             onChangeText={vm.setTitle}
@@ -202,6 +203,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
 
           <FieldLabel>{t.recipes.labels.description}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.recipes.placeholders.description}
             value={vm.description}
             onChangeText={vm.setDescription}
@@ -278,6 +280,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
         <SectionHeader icon="📝" label={t.recipes.labels.notes} />
         <View className="px-5">
           <Input
+            bottomSheet
             placeholder={t.recipes.placeholders.notes}
             value={vm.notes}
             onChangeText={vm.setNotes}
@@ -288,6 +291,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
 
           <FieldLabel>{t.recipes.labels.tutorialUrl}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.recipes.placeholders.tutorialUrl}
             value={vm.tutorialUrl}
             onChangeText={vm.setTutorialUrl}

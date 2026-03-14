@@ -79,6 +79,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
         <View className="mb-6">
           <FieldLabel>{t.profile.deleteAccount.passwordLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={password}
             onChangeText={setPassword}
             placeholder={t.profile.deleteAccount.passwordPlaceholder}

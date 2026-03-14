@@ -70,6 +70,7 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         {/* Couple name */}
         <FieldLabel>{t.profile.labels.coupleName}</FieldLabel>
         <Input
+          bottomSheet
           value={coupleNameInput}
           onChangeText={setCoupleNameInput}
           placeholder="Hung & Nhu"
@@ -79,6 +80,7 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         {/* Slogan */}
         <FieldLabel>{t.profile.labels.slogan}</FieldLabel>
         <Input
+          bottomSheet
           value={sloganInput}
           onChangeText={setSloganInput}
           placeholder={t.profile.placeholders.slogan}

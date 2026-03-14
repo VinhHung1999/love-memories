@@ -112,6 +112,7 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
         <View className="px-5">
           <FieldLabel>{`${t.foodSpots.labels.name} *`}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.foodSpots.placeholders.name}
             value={vm.name}
             onChangeText={vm.setName}
@@ -120,6 +121,7 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
 
           <FieldLabel>{t.foodSpots.labels.description}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.foodSpots.placeholders.description}
             value={vm.description}
             onChangeText={vm.setDescription}

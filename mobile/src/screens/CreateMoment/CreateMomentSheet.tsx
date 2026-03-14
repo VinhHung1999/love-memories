@@ -67,6 +67,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="px-5">
           <FieldLabel>{`${t.moments.labels.title} *`}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.moments.placeholders.title}
             value={vm.title}
             onChangeText={vm.setTitle}
@@ -75,6 +76,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
 
           <FieldLabel>{t.moments.labels.caption}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.moments.placeholders.caption}
             value={vm.caption}
             onChangeText={vm.setCaption}
@@ -125,6 +127,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="px-5">
           <FieldLabel>{t.moments.labels.spotifyUrl}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.moments.placeholders.spotifyUrl}
             value={vm.spotifyUrl}
             onChangeText={vm.setSpotifyUrl}
