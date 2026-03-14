@@ -8,8 +8,10 @@ import { AuthProvider } from './src/lib/auth';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { LoadingProvider } from './src/contexts/LoadingContext';
 import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
+import Mapbox from '@rnmapbox/maps';
 import { warmupConnection } from './src/lib/api';
 import { initPurchases } from './src/lib/purchasesService';
+import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
 import RootNavigator from './src/navigation';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import './src/global.css';
@@ -19,6 +21,9 @@ warmupConnection();
 
 // Initialize RevenueCat SDK at app launch (before any component mounts)
 initPurchases();
+
+// Initialize Mapbox/MapLibre — token needed for geocoding API
+Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
 // Configure Google Sign-In once at app startup.
 // webClientId = your Google OAuth Web Client ID (same GOOGLE_CLIENT_ID used on backend).
