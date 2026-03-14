@@ -60,7 +60,7 @@ export default function DashboardScreen() {
                   </Text>
                 </View>
                 {vm.slogan ? (
-                  <Text className="text-[11px] font-bodyLight text-textLight italic">
+                  <Text className="text-[11px] font-cursive text-textLight">
                     {vm.slogan}
                   </Text>
                 ) : null}

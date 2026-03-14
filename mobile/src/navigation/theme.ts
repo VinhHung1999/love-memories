@@ -73,12 +73,13 @@ export const AppTheme = {
     gray100:     '#F5F3F4',
   },
   fonts: {
-    // Borel - cursive/handwritten, single weight (Regular 400)
-    heading: 'Borel-Regular',
-    headingSemi: 'Borel-Regular',
-    body: 'Borel-Regular',
-    bodyMedium: 'Borel-Regular',
-    bodyLight: 'Borel-Regular',
+    // Be Vietnam Pro - designed for Vietnamese with excellent diacritics support
+    heading: 'BeVietnamPro-Bold',        // 700 - Large titles, headers
+    headingSemi: 'BeVietnamPro-SemiBold', // 600 - Subtitles, section headers
+    body: 'BeVietnamPro-Regular',        // 400 - Body text, descriptions
+    bodyMedium: 'BeVietnamPro-Medium',   // 500 - Emphasized text, labels
+    bodyLight: 'BeVietnamPro-Light',     // 300 - Secondary text
+    // Borel-Regular available via tailwind 'font-cursive' (slogans only)
   },
 } as const;
 

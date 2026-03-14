@@ -39,12 +39,14 @@ module.exports = {
         errorBg:        '#FFF0F0',
       },
       fontFamily: {
-        // Borel - cursive/handwritten, single weight (Regular 400)
-        heading: ['Borel-Regular'],
-        headingSemi: ['Borel-Regular'],
-        body: ['Borel-Regular'],
-        bodyMedium: ['Borel-Regular'],
-        bodyLight: ['Borel-Regular'],
+        // Be Vietnam Pro - designed for Vietnamese with excellent diacritics
+        heading: ['BeVietnamPro-Bold'],
+        headingSemi: ['BeVietnamPro-SemiBold'],
+        body: ['BeVietnamPro-Regular'],
+        bodyMedium: ['BeVietnamPro-Medium'],
+        bodyLight: ['BeVietnamPro-Light'],
+        // Borel - cursive/handwritten accent font (slogans only)
+        cursive: ['Borel-Regular'],
       },
     },
   },
