@@ -36,7 +36,7 @@ export default function DashboardScreen() {
 
   return (
     <>
-      <View className="flex-1 bg-baseBg" style={{ top: insects.top }}>
+      <View className="flex-1 bg-baseBg" style={{ paddingTop: insects.top }}>
         {vm.isLoading ? (
           <DashboardSkeleton />
         ) : (
