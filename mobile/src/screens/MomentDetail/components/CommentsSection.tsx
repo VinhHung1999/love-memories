@@ -5,6 +5,7 @@ import { Send, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
 import type { MomentComment } from '../../../types';
+import AvatarCircle from '../../../components/AvatarCircle';
 
 interface CommentsSectionProps {
   comments: MomentComment[];
@@ -41,11 +42,11 @@ function CommentItem({
   return (
     <View className="flex-row gap-2.5 mb-3">
       {/* Avatar */}
-      <View
-        className="w-8 h-8 rounded-full items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: isOwn ? colors.primary : colors.accent }}>
-        <Caption className="font-bold text-white">{initial}</Caption>
-      </View>
+      <AvatarCircle
+        uri={comment.user?.avatar}
+        initials={initial}
+        size={32}
+      />
 
       {/* Bubble */}
       <View className="flex-1 rounded-tl-none rounded-2xl px-3 py-2 bg-textDark/4">

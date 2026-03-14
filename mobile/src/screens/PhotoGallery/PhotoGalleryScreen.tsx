@@ -1,12 +1,16 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
+  PermissionsAndroid,
+  Platform,
   StatusBar,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -19,7 +23,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Download, X } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { MomentsStackParamList } from '../../navigation';
@@ -122,6 +126,22 @@ export default function PhotoGalleryScreen() {
 
   const handleClose = useCallback(() => navigation.goBack(), [navigation]);
 
+  const handleSave = useCallback(async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
+      }
+      const currentPhoto = photos[currentIndex];
+      await CameraRoll.saveAsset(currentPhoto.url, { type: 'photo' });
+      Alert.alert('Saved', 'Photo saved to your library.');
+    } catch {
+      Alert.alert('Error', 'Could not save photo.');
+    }
+  }, [currentIndex, photos]);
+
   const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
       flatListRef.current?.scrollToIndex({ index: currentIndex - 1, animated: true });
@@ -195,8 +215,12 @@ export default function PhotoGalleryScreen() {
             </Label>
           </View>
 
-          {/* Share placeholder */}
-          <View className="w-10" />
+          {/* Save to library */}
+          <TouchableOpacity
+            onPress={handleSave}
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)', width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+            <Download size={20} color="#fff" strokeWidth={1.5} />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
 
