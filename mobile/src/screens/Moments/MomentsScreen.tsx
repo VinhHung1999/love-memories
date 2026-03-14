@@ -243,28 +243,29 @@ function TimelineDayGroup({
 
   return (
     <View className="flex-row py-3" style={{ paddingLeft: 16 }}>
-      {/* Left: vertical spine + dot + date label */}
-      <View style={{ width: TIMELINE_LEFT_W }} className="items-center">
-        {/* Spine line */}
+      {/* Left: vertical spine + date label + dot */}
+      <View style={{ width: TIMELINE_LEFT_W }} className="flex-row items-start">
+        {/* Spine line — aligned with dot on the right */}
         <View
           style={{
             position: 'absolute',
             top: 0,
             bottom: isLast ? '55%' : 0,
-            left: TIMELINE_LEFT_W / 2 - 1,
+            right: 4,
             width: 1,
             backgroundColor: colors.border,
           }}
         />
-        {/* Filled dot */}
+        {/* Date label — left side, right-aligned text */}
+        <Caption className="text-textLight font-body text-right"
+          style={{ letterSpacing: 0.3, flex: 1, marginTop: 3, paddingRight: 4 }}>
+          {group.label}
+        </Caption>
+        {/* Dot — right side, spine passes through center */}
         <View
           className="rounded-full"
           style={{ width: 10, height: 10, backgroundColor: colors.primary, marginTop: 2, zIndex: 1 }}
         />
-        {/* Date */}
-        <Caption className="text-textLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
-          {group.label}
-        </Caption>
       </View>
 
       {/* Right: horizontal moment card row */}
