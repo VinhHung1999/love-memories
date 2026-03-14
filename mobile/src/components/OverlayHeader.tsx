@@ -1,9 +1,10 @@
 import React, { JSX } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
+import { Body, Heading } from './Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
@@ -79,21 +80,17 @@ export default function OverlayHeader({
         {/* Back */}
         <HeaderIcon icon={ArrowLeft} onPress={onBack} />
         <Animated.View className="flex-1" style={[{ paddingLeft: 12 },titleStyle]}>
-          <Text
-            className="font-bold text-textDark"
-            style={{ fontSize: 18 }}
-            numberOfLines={1}
-          >
+          <Heading size="md" className="text-textDark" numberOfLines={1}>
             {title}
-          </Text>
+          </Heading>
           {subtitle ? (
-            <Text
+            <Body
+              size="sm"
               className="text-textMid font-medium"
-              style={{ fontSize: 12 }}
               numberOfLines={1}
             >
               {subtitle}
-            </Text>
+            </Body>
           ) : null}
         </Animated.View>
 

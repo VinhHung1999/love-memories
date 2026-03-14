@@ -1,8 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Caption } from '../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import t from '../../locales/en';
 import type { Moment } from '../../types';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useCreateMomentViewModel } from './useCreateMomentViewModel';
 import AppBottomSheet from '../../components/AppBottomSheet';
 import DatePickerField from '../../components/DatePickerField';
@@ -20,6 +22,7 @@ interface Props {
 
 export default function CreateMomentSheet({ moment: initialMoment, onClose }: Props) {
   const sheetRef = useRef<BottomSheetModal>(null);
+  const { showBottomSheet } = useAppNavigation();
 
   useEffect(() => {
     sheetRef.current?.present();
@@ -43,9 +46,9 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
       <View className="pb-[60px] pt-2">
 
         {/* ── Photos ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`📷  ${t.moments.create.photos}`}
-        </Text>
+        </Caption>
         <View className="px-5 mb-4">
           <PhotoPicker
             photos={vm.photos}
@@ -58,9 +61,9 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="h-[1px] bg-border/40 mx-5 mb-4" />
 
         {/* ── Details ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`✏️  ${t.moments.create.details}`}
-        </Text>
+        </Caption>
         <View className="px-5">
           <FieldLabel>{`${t.moments.labels.title} *`}</FieldLabel>
           <Input
@@ -85,6 +88,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
             value={vm.date}
             onChange={vm.setDate}
             maximumDate={new Date()}
+            showBottomSheet={showBottomSheet}
           />
 
           <LocationPicker
@@ -99,9 +103,9 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="h-[1px] bg-border/40 mx-5 mb-4" />
 
         {/* ── Tags ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`🏷️  ${t.moments.labels.tags}`}
-        </Text>
+        </Caption>
         <View className="px-5 mb-4">
           <TagInput
             tags={vm.tags}
@@ -115,9 +119,9 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="h-[1px] bg-border/40 mx-5 mb-4" />
 
         {/* ── Song + Voice Memo ── */}
-        <Text className="text-[11px] font-bold text-textLight tracking-[0.8px] uppercase px-5 mb-2">
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`🎵  ${t.moments.create.songAndMemo}`}
-        </Text>
+        </Caption>
         <View className="px-5">
           <FieldLabel>{t.moments.labels.spotifyUrl}</FieldLabel>
           <Input

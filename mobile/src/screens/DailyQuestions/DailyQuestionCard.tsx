@@ -4,7 +4,8 @@
  * Tap to open DailyQuestionsTab full-screen.
  */
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
+import { Body, Caption } from '../../components/Typography';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Check, CheckCheck, MessageCircle, Star, Smile, Heart, Telescope } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -49,33 +50,33 @@ export default function DailyQuestionCard() {
     <Animated.View entering={FadeInDown.delay(160).duration(500)}>
       <Pressable
         onPress={() => navigation.navigate('DailyQuestionsTab')}
-        className="rounded-3xl overflow-hidden shadow-sm border border-borderSoft px-4 py-3"
+        className="rounded-3xl overflow-hidden border border-borderSoft px-4 py-3"
         style={{ backgroundColor: colors.primary }}>
 
         {/* Compact header */}
         <View className="flex-row items-center gap-1.5 mb-2">
           <CategoryIcon size={12} color="#fff" strokeWidth={1.5} />
-          <Text className="text-[9px] font-bold text-white/70 tracking-[1.2px] uppercase">
+          <Caption className="font-bold text-white/70 tracking-[1.2px] uppercase">
             {t.dailyQuestions.cardTitle}
-          </Text>
+          </Caption>
           <View className="flex-1" />
           {bothAnswered ? (
             <View className="flex-row items-center gap-0.5 bg-white/20 rounded-full px-2 py-0.5">
               <CheckCheck size={9} strokeWidth={1.5} />
-              <Text className="text-[8px] font-bold text-white">{t.dailyQuestions.bothAnswered}</Text>
+              <Caption className="font-bold text-white">{t.dailyQuestions.bothAnswered}</Caption>
             </View>
           ) : hasAnswered ? (
             <View className="flex-row items-center gap-0.5 bg-white/20 rounded-full px-2 py-0.5">
               <Check size={9} strokeWidth={1.5} color='#fff'/>
-              <Text className="text-[8px] font-bold text-white">{t.dailyQuestions.answered}</Text>
+              <Caption className="font-bold text-white">{t.dailyQuestions.answered}</Caption>
             </View>
           ) : null}
         </View>
 
         {/* Question preview (compact) */}
-        <Text className="text-[14px] font-bold text-white leading-tight" numberOfLines={2}>
+        <Body size="md" className="font-bold text-white leading-tight" numberOfLines={2}>
           {question.text}
-        </Text>
+        </Body>
       </Pressable>
     </Animated.View>
   );

@@ -5,11 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthProvider } from './src/lib/auth';
+import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { LoadingProvider } from './src/contexts/LoadingContext';
 import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
 import Mapbox from '@rnmapbox/maps';
-import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
 import { warmupConnection } from './src/lib/api';
+import { initPurchases } from './src/lib/purchasesService';
+import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
 import RootNavigator from './src/navigation';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import './src/global.css';
@@ -17,7 +19,10 @@ import './src/global.css';
 // Pre-warm DNS + TLS to Cloudflare Tunnel so first API call isn't slow
 warmupConnection();
 
-// Initialize Mapbox once at app startup, before NavigationContainer mounts
+// Initialize RevenueCat SDK at app launch (before any component mounts)
+initPurchases();
+
+// Initialize Mapbox/MapLibre — token needed for geocoding API
 Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
 // Configure Google Sign-In once at app startup.
@@ -36,16 +41,18 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <GestureHandlerRootView className="flex-1">
+    <GestureHandlerRootView style={{flex: 1}}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
             <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
             <UploadProgressProvider>
               <LoadingProvider>
                 <AuthProvider>
-                  <ErrorBoundary>
-                    <RootNavigator />
-                  </ErrorBoundary>
+                  <SubscriptionProvider>
+                    <ErrorBoundary>
+                      <RootNavigator />
+                    </ErrorBoundary>
+                  </SubscriptionProvider>
                 </AuthProvider>
               </LoadingProvider>
             </UploadProgressProvider>

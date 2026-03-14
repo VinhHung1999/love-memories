@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Text, View } from 'react-native';
+import { Caption } from '../../components/Typography';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useQueryClient } from '@tanstack/react-query';
 import { expensesApi } from '../../lib/api';
@@ -81,7 +82,7 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
       onDismiss={onClose}
     >
       <View className="px-5 pt-4 pb-8">
-        <Text className="text-xs text-textMid mb-5">{t.expenses.budget.hint}</Text>
+        <Caption className="text-textMid mb-5">{t.expenses.budget.hint}</Caption>
 
         {CATS.map((cat, idx) => {
           const currentLimit = cachedLimits[cat.key] ?? null;
@@ -92,9 +93,9 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
                 <Text className="text-lg">{cat.emoji}</Text>
                 <FieldLabel>{cat.label}</FieldLabel>
                 {currentLimit != null && (
-                  <Text className="ml-auto text-xs text-textMid">
+                  <Caption className="ml-auto text-textMid">
                     now: {formatVND(currentLimit)}
-                  </Text>
+                  </Caption>
                 )}
               </View>
               <BottomSheetTextInput

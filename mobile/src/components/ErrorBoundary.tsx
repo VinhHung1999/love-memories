@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { HeartCrack } from 'lucide-react-native';
+import { Heading, Body } from './Typography';
 
 interface Props {
   children: React.ReactNode;
@@ -46,12 +47,12 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         </View>
 
         {/* Heading */}
-        <Text className="text-xl font-bold text-textDark text-center mb-2">
+        <Heading size="lg" className="text-center mb-2">
           Something went wrong
-        </Text>
-        <Text className="text-sm text-textLight text-center leading-relaxed mb-8">
+        </Heading>
+        <Body size="md" className="text-textLight text-center leading-relaxed mb-8">
           An unexpected error occurred. Your data is safe — tap below to try again.
-        </Text>
+        </Body>
 
         {/* Try Again */}
         <Pressable

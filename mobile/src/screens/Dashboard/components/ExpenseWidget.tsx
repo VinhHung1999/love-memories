@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
+import { Body, Caption, Heading } from '../../../components/Typography';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Banknote } from 'lucide-react-native';
 import t from '../../../locales/en';
@@ -33,37 +34,37 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
 
   return (
     <Pressable onPress={onPress}>
-      <Animated.View entering={FadeInDown.delay(180).duration(500)} className="bg-white rounded-3xl shadow-sm px-5 pt-4 pb-5 border border-borderSoft">
+      <Animated.View entering={FadeInDown.delay(180).duration(500)} className="bg-white rounded-3xl px-5 pt-4 pb-5 border border-borderSoft">
         {/* Label row */}
         <View className="flex-row items-center gap-2 mb-2">
           <View className="w-7 h-7 rounded-xl bg-expensePurple/10 items-center justify-center">
             <Banknote size={14} strokeWidth={1.5} />
           </View>
-          <Text className="text-[11px] font-headingSemi text-expensePurple tracking-[0.8px] uppercase">
+          <Caption className="font-headingSemi text-expensePurple tracking-[0.8px] uppercase">
             {t.dashboard.expenseWidget.label}
-          </Text>
+          </Caption>
         </View>
 
         {!hasData ? (
-          <Text className="text-sm font-bodyLight text-textMid italic mt-1">
+          <Body size="sm" className="font-bodyLight text-textMid italic mt-1">
             {t.dashboard.expenseWidget.noData}
-          </Text>
+          </Body>
         ) : (
           <>
-            <Text className="text-[20px] font-heading text-textDark leading-none">
+            <Heading size="sm" className="text-textDark leading-none" style={{ fontSize: 20 }}>
               {formatVND(stats.total)}
-            </Text>
-            <Text className="text-xs font-body text-textMid mt-0.5 mb-4">
+            </Heading>
+            <Body size="sm" className="text-textMid mt-0.5 mb-4">
               {stats.count} {t.expenses.transactions}
-            </Text>
+            </Body>
             <View className="gap-2.5">
               {topCategories.map(({ cat, pct }) => (
                 <View key={cat}>
                   <View className="flex-row items-center justify-between mb-1">
-                    <Text className="text-[11px] text-textMid font-bodyMedium">
+                    <Caption className="text-textMid font-bodyMedium">
                       {catEmoji[cat]} {catLabel[cat]}
-                    </Text>
-                    <Text className="text-[10px] text-textLight font-headingSemi">{pct}%</Text>
+                    </Caption>
+                    <Caption className="text-textLight font-headingSemi">{pct}%</Caption>
                   </View>
                   <View className="h-1 bg-expensePurple/10 rounded-full overflow-hidden">
                     <View

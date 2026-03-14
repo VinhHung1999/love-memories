@@ -29,16 +29,15 @@ export function GradientCard({
         colors={colors}
         start={start}
         end={end}
-        className={`rounded-3xl ${className}`}
-        style={style}>
+        style={[{ borderRadius: 24 }, className ? {} : {}, style]}>
         {children}
       </LinearGradient>
     );
   }
 
   return (
-    <Pressable onPress={onPress} className={`rounded-3xl overflow-hidden ${pressableClassName}`} style={style}>
-      <LinearGradient colors={colors} start={start} end={end} className={className}>
+    <Pressable onPress={onPress} style={[{ borderRadius: 24, overflow: 'hidden' }, pressableClassName ? {} : {}, style]}>
+      <LinearGradient colors={colors} start={start} end={end}>
         {children}
       </LinearGradient>
     </Pressable>

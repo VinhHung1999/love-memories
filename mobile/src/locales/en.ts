@@ -183,7 +183,8 @@ const en = {
       noPlans: 'No plans yet',
     },
     activeCooking: 'Cooking Now',
-    noMomentsYet: 'No moments yet\nAdd your first memory together',
+    noMomentsYet: 'No memories yet',
+    addFirstMemory: 'Tap to add your first memory',
     noFoodYet: 'No food spots yet',
     defaultSlogan: 'Our little world, beautifully organized',
   },
@@ -795,6 +796,91 @@ const en = {
     },
   },
 
+  paywall: {
+    title: 'Love Memories Plus',
+    headline: 'Unlock Your Full\nLove Story',
+    subtitle: 'Everything you need to capture,\ncherish, and grow together.',
+    limitBanner: "You've reached your free limit for",
+    bestValue: 'BEST VALUE',
+    monthly: {
+      label: 'Monthly',
+      price: '49.000 ₫',
+      period: '/tháng',
+      priceUsd: '$3.99/mo',
+    },
+    annual: {
+      label: 'Annual',
+      price: '399.000 ₫',
+      period: '/năm',
+      priceUsd: '$29.99/yr',
+      perMonth: 'Chỉ 33.250 ₫/tháng',
+    },
+    lifetime: {
+      label: 'Lifetime',
+      price: '999.000 ₫',
+      period: ' một lần',
+      priceUsd: '$79.99',
+      perMonth: 'Mua một lần, dùng mãi mãi',
+    },
+    features: {
+      moments: 'Moments',
+      foodspots: 'Food Spots',
+      expenses: 'Expenses',
+      recipes: 'Recipes',
+      letters: 'Love Letters',
+      datePlanner: 'Date Planner',
+      monthlyRecap: 'Monthly Recap',
+      achievements: 'Achievements',
+    },
+    free: 'Free',
+    plus: 'Plus',
+    freeVal: {
+      moments: '10',
+      foodspots: '10',
+      expenses: '20',
+      recipes: '—',
+      letters: '—',
+      datePlanner: '—',
+      monthlyRecap: '—',
+      achievements: '—',
+    },
+    plusVal: {
+      moments: 'Unlimited',
+      foodspots: 'Unlimited',
+      expenses: 'Unlimited',
+      recipes: 'Unlimited',
+      letters: 'Unlimited',
+      datePlanner: 'Unlimited',
+      monthlyRecap: 'Unlimited',
+      achievements: 'Unlimited',
+    },
+    cta: 'Start Plus',
+    restore: 'Restore Purchases',
+    restoring: 'Restoring...',
+    purchasing: 'Processing...',
+    successTitle: "You're now on Plus!",
+    successBody: 'Enjoy unlimited access to all features.',
+    errorPurchase: 'Purchase failed. Please try again.',
+    errorRestore: 'No purchases found to restore.',
+  },
+
+  letterOverlay: {
+    title: 'You have a letter',
+    titlePlural: 'You have {count} letters',
+    from: 'From',
+    tapToOpen: 'Tap to open',
+    swipeHint: 'Read all letters to continue',
+    dismiss: 'Continue to app',
+    readAll: 'All letters read!',
+    markingRead: 'Marking as read…',
+  },
+
+  legal: {
+    title: 'Legal',
+    privacyPolicy: 'Privacy Policy',
+    termsOfService: 'Terms of Service',
+  },
+
   common: {
     error: 'Error',
     success: 'Success',
@@ -806,7 +892,11 @@ const en = {
     loading: 'Loading...',
     uploading: 'Uploading',
     uploadComplete: 'Upload complete',
+    done: 'Done',
+    selectDate: 'Select Date',
   },
 } as const;
+
+export type LocaleStrings = typeof en;
 
 export default en;

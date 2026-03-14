@@ -23,6 +23,7 @@ import FastImage from 'react-native-fast-image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import t from '../../locales/en';
+import { Heading, Body, Label } from '../../components/Typography';
 import {
   useMonthlyRecapViewModel,
   formatMonthDisplay,
@@ -359,12 +360,12 @@ export default function MonthlyRecapScreen({ route }: { route?: { params?: { mon
             <X size={22} strokeWidth={1.5} />
           </Pressable>
           <Text style={{ fontSize: 72, marginBottom: 16 }}>💤</Text>
-          <Text style={{ fontSize: 24, fontWeight: '800', color: '#fff', marginBottom: 8, textAlign: 'center' }}>
+          <Heading style={{ fontSize: 24, color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>
             {t.monthlyRecap.emptyTitle}
-          </Text>
-          <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.70)', textAlign: 'center' }}>
+          </Heading>
+          <Body style={{ fontSize: 14, color: 'rgba(255,255,255,0.70)', textAlign: 'center' }}>
             {t.monthlyRecap.emptySubtitle}
-          </Text>
+          </Body>
         </LinearGradient>
       )}
 
@@ -409,9 +410,9 @@ export default function MonthlyRecapScreen({ route }: { route?: { params?: { mon
               <Pressable onPress={vm.goToPrevMonth} hitSlop={12}>
                 <ChevronLeft size={18} strokeWidth={1.5} />
               </Pressable>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
+              <Label style={{ color: '#FFFFFF' }}>
                 {formatMonthDisplay(vm.month)}
-              </Text>
+              </Label>
               {vm.canGoNext ? (
                 <Pressable onPress={vm.goToNextMonth} hitSlop={12}>
                   <ChevronRight size={18} strokeWidth={1.5} />

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
+import { Caption, Heading } from '../../../components/Typography';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Heart, Utensils } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
@@ -34,13 +35,13 @@ export function DashboardStatsCard({
           <Pressable onPress={onMomentsPress} className="flex-1 items-center py-2">
             <View className="flex-row items-center gap-1.5 mb-1">
               <Heart size={14} color={colors.primary} strokeWidth={1.5} />
-              <Text className="text-[20px] font-heading text-textDark leading-none">
+              <Heading size="sm" className="font-heading text-textDark leading-none">
                 {displayMoments}
-              </Text>
+              </Heading>
             </View>
-            <Text className="text-[9px] font-headingSemi text-textMid tracking-[0.8px] uppercase">
+            <Caption className="font-headingSemi text-textMid tracking-[0.8px] uppercase">
               {t.dashboard.stats.moments}
-            </Text>
+            </Caption>
           </Pressable>
 
           {/* Vertical Divider */}
@@ -50,13 +51,13 @@ export function DashboardStatsCard({
           <Pressable onPress={onFoodSpotsPress} className="flex-1 items-center py-2">
             <View className="flex-row items-center gap-1.5 mb-1">
               <Utensils size={14} color={colors.secondary} strokeWidth={1.5} />
-              <Text className="text-[20px] font-heading text-textDark leading-none">
+              <Heading size="sm" className="font-heading text-textDark leading-none">
                 {displayFoodSpots}
-              </Text>
+              </Heading>
             </View>
-            <Text className="text-[9px] font-headingSemi text-textMid tracking-[0.8px] uppercase">
+            <Caption className="font-headingSemi text-textMid tracking-[0.8px] uppercase">
               {t.dashboard.stats.foodSpots}
-            </Text>
+            </Caption>
           </Pressable>
         </View>
 

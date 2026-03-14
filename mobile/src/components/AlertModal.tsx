@@ -1,8 +1,9 @@
 import React from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
 import { AlertCircle, HelpCircle, Info, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import t from '../locales/en';
+import { Body, Heading, Label } from './Typography';
 
 // ── AlertConfig — exported for ViewModel alert state ─────────────────────────
 
@@ -71,11 +72,11 @@ export default function AlertModal({
           </View>
 
           {/* Title */}
-          <Text className="text-lg font-bold text-textDark text-center mb-2">{title}</Text>
+          <Heading size="md" className="text-textDark text-center mb-2">{title}</Heading>
 
           {/* Message */}
           {message ? (
-            <Text className="text-sm text-textMid text-center mb-6 leading-relaxed">{message}</Text>
+            <Body className="text-textMid text-center mb-6 leading-relaxed">{message}</Body>
           ) : (
             <View className="mb-4" />
           )}
@@ -86,18 +87,18 @@ export default function AlertModal({
               <Pressable
                 onPress={handleCancel}
                 className="flex-1 py-3 rounded-2xl border border-border items-center">
-                <Text className="text-sm font-semibold text-textMid">
+                <Label className="font-semibold text-textMid">
                   {cancelLabel ?? t.common.cancel}
-                </Text>
+                </Label>
               </Pressable>
             )}
             <Pressable
               onPress={handleConfirm}
               className="py-3 rounded-2xl items-center"
               style={{ flex: hasCancel ? 1 : undefined, width: hasCancel ? undefined : '100%', backgroundColor: isDestructive ? colors.errorColor : colors.primary }}>
-              <Text className="text-sm font-semibold text-white">
+              <Label className="font-semibold" style={{ color: '#FFFFFF' }}>
                 {confirmLabel ?? t.common.ok}
-              </Text>
+              </Label>
             </Pressable>
           </View>
 

@@ -5,7 +5,8 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Body, Heading, Label } from './Typography';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -120,8 +121,9 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         enablePanDownToClose
         onDismiss={handleDismiss}
         backdropComponent={renderBackdrop}
-        keyboardBehavior="interactive"
+        keyboardBehavior="extend"
         keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
         handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
         backgroundStyle={{ backgroundColor: '#ffffff' }}
       >
@@ -134,9 +136,9 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
                 {icon && React.createElement(icon, { size: 24, color: colors.primary, strokeWidth: 1.5 })}
               </View>
               <View className="flex-1">
-                <Text className="text-base font-bold text-textDark">{title}</Text>
+                <Heading size="sm" className="text-textDark">{title}</Heading>
                 {subtitle ? (
-                  <Text className="text-sm text-textMid mt-0.5">{subtitle}</Text>
+                  <Body className="text-textMid mt-0.5">{subtitle}</Body>
                 ) : null}
               </View>
               {actionLabel ? (
@@ -148,9 +150,9 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
                   {actionLoading ? (
                     <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
-                    <Text className="font-semibold text-sm" style={{ color: actionDisabled ? colors.textLight : colors.primary }}>
+                    <Label className="font-semibold" style={{ color: actionDisabled ? colors.textLight : colors.primary }}>
                       {actionLabel}
-                    </Text>
+                    </Label>
                   )}
                 </Pressable>
               ) : null}
@@ -159,11 +161,11 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
             /* Classic Cancel / Title / Save style */
             <View className="flex-row items-center px-5 py-3 border-b border-border">
               <Pressable onPress={handleCancel} className="w-[60px]">
-                <Text className="text-sm text-textMid">{cancel}</Text>
+                <Body className="text-textMid">{cancel}</Body>
               </Pressable>
-              <Text className="flex-1 text-center font-semibold text-textDark">
+              <Label className="flex-1 text-center font-semibold text-textDark">
                 {title}
-              </Text>
+              </Label>
               <Pressable
                 onPress={onSave}
                 disabled={saveDisabled || isSaving}
@@ -172,9 +174,9 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
                 {isSaving ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
-                  <Text className="font-semibold text-sm" style={{ color: saveDisabled ? colors.textLight : colors.primary }}>
+                  <Label className="font-semibold" style={{ color: saveDisabled ? colors.textLight : colors.primary }}>
                     {save}
-                  </Text>
+                  </Label>
                 )}
               </Pressable>
             </View>

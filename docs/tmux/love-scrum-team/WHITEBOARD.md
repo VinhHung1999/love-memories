@@ -1,7 +1,7 @@
 # Team Whiteboard
 
 **Sprint:** 50
-**Goal:** TBD
+**Goal:** Subscription Flow + Love Letter Overlay + Privacy Policy
 
 ---
 
@@ -9,11 +9,23 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | IDLE   | — | 2026-03-13 |
-| TL   | IDLE   | — | 2026-03-13 |
-| WEB  | IDLE   | — | 2026-03-13 |
+| PO   | ACTIVE | Sprint 50 spec sent to TL | 2026-03-13 |
+| TL   | IDLE   | Awaiting sprint assignment | 2026-03-13 |
+| WEB  | IDLE   | Awaiting tasks | 2026-03-13 |
 | BE   | IDLE   | — | 2026-03-13 |
-| MOBILE | IDLE | Sprint 49 CLOSED — merged to main | 2026-03-13 |
+| MOBILE | IDLE | Awaiting tasks | 2026-03-13 |
+
+---
+
+## Sprint 50 Tasks
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 1 | Privacy Policy + Terms of Service — generate content + create static web pages hosted on domain. Include: data collected, usage, third-party services, contact info. Link from app settings | M | TODO | WEB |
+| 2 | RevenueCat SDK — install `react-native-purchases`, init on app launch. API key placeholder (Boss provides later). Configure entitlements: "plus" with 3 products (monthly $3.99/49K VND, annual $29.99/399K VND, lifetime $79.99/999K VND) | M | TODO | MOBILE |
+| 3 | SubscriptionContext + useSubscription() hook — fetch `/api/subscription/status` on app launch, cache plan status, expose `isPremium`, `plan`, `limits`. Refresh on app foreground | M | TODO | MOBILE |
+| 4 | Paywall screen — triggered when hitting free limit or tapping locked module. Show 3 tiers with pricing, feature comparison, restore purchases button. Use frontend-design skill | L | TODO | MOBILE |
+| 5 | Love Letter Overlay — on app open, if unread letters exist (GET /api/love-letters/unread-count > 0), show full-screen overlay. Swipeable list of unread letters. Tap letter → envelope open animation (flap rotateX 0→180° + letter content slideUp). Shows full letter content on overlay. Auto marks as READ via API. Must read all letters before dismiss. Use frontend-design skill | L | TODO | MOBILE |
 
 ---
 
@@ -86,6 +98,8 @@
 | B29 | RN Subscription: Client-side free tier checks across all screens | P1 |
 | B30 | RN Subscription: Lock premium module navigation | P1 |
 | B31 | RN Subscription: Restore purchases + Plus badge in Profile | P1 |
+| B32 | RN: Dev/Prod environment separation — iOS build schemes (Dev/Prod) + Android build flavors + react-native-config (.env.dev/.env.prod) + separate Firebase projects (2x GoogleService-Info.plist, 2x google-services.json) + RevenueCat sandbox/prod keys + Google OAuth client IDs | P1 |
+| B33 | RN: Typography system refactor — Create shared Typography components (Heading, Body, Caption, Label, etc.) to replace raw `<Text>` + className everywhere. Centralize font family, size, weight, color presets. Migrate ALL screens to use Typography components instead of raw Text. Ensures consistent font usage (Be Vietnam Pro) + Borel for special cases (slogan) | P1 |
 
 ---
 

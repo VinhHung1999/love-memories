@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { Check, CheckCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DateWish } from '../../../types';
@@ -22,7 +23,7 @@ export default function WishCard({
 
   return (
     <View
-      className="bg-white rounded-3xl px-4 py-3.5 mb-3 shadow-sm"
+      className="bg-white rounded-3xl px-4 py-3.5 mb-3"
       style={{ opacity: wish.done ? 0.6 : 1 }}>
       <View className="flex-row items-center gap-3">
         {/* Category emoji */}
@@ -35,28 +36,28 @@ export default function WishCard({
         {/* Content */}
         <View className="flex-1">
           <View className="flex-row items-center gap-2">
-            <Text
-              className="text-[14px] font-semibold flex-1"
+            <Label
+              className="font-semibold flex-1"
               style={{
                 color: colors.textDark,
                 textDecorationLine: wish.done ? 'line-through' : 'none',
               }}>
               {wish.title}
-            </Text>
+            </Label>
             {wish.done ? (
               <CheckCircle size={16} color={colors.accent} strokeWidth={1.5} />
             ) : null}
           </View>
           {wish.description ? (
-            <Text className="text-[12px] text-textLight mt-0.5" numberOfLines={2}>
+            <Body size="sm" className="text-textLight mt-0.5" numberOfLines={2}>
               {wish.description}
-            </Text>
+            </Body>
           ) : null}
           {wish.tags?.length > 0 ? (
             <View className="flex-row flex-wrap gap-1 mt-1.5">
               {wish.tags.slice(0, 3).map(tag => (
                 <View key={tag} className="rounded-full px-2 py-0.5 bg-gray-100">
-                  <Text className="text-[11px] text-textMid">{tag}</Text>
+                  <Caption className="text-textMid">{tag}</Caption>
                 </View>
               ))}
             </View>

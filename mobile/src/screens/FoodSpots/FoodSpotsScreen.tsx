@@ -3,9 +3,9 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
+import { Caption, Label } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { Plus, Star, Utensils } from 'lucide-react-native';
 
@@ -24,7 +24,7 @@ import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 function FoodSpotCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3 shadow-sm">
+    <View className="bg-white rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[130px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -72,7 +72,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm border border-borderSoft mb-3">
+      className="bg-white rounded-3xl overflow-hidden border border-borderSoft mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
@@ -92,30 +92,28 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
         <View className="absolute top-2 left-2 flex-row gap-1.5">
           <View className="rounded-xl px-2 py-0.5 bg-black/50 flex-row items-center">
             <Star size={9} color={colors.starRating} strokeWidth={1.5} />
-            <Text className="text-[10px] font-bold text-white ml-0.5">{spot.rating}</Text>
+            <Caption className="font-bold text-white ml-0.5">{spot.rating}</Caption>
           </View>
           <View className="rounded-xl px-2 py-0.5 bg-black/50">
-            <Text className="text-[10px] font-bold text-white">{priceLabel(spot.priceRange)}</Text>
+            <Caption className="font-bold text-white">{priceLabel(spot.priceRange)}</Caption>
           </View>
         </View>
 
         {/* Location overlay */}
         {spot.location ? (
           <View className="absolute bottom-2 left-2 right-2">
-            <Text className="text-[9px] font-semibold text-white/95" numberOfLines={1}>
+            <Caption className="font-semibold text-white/95" numberOfLines={1}>
               📍 {spot.location}
-            </Text>
+            </Caption>
           </View>
         ) : null}
       </View>
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Text
-          className="text-sm font-semibold text-textDark leading-snug mb-1.5"
-          numberOfLines={2}>
+        <Label className="text-textDark leading-snug mb-1.5" numberOfLines={2}>
           {spot.name}
-        </Text>
+        </Label>
 
         {/* Stars row */}
         <View className="flex-row items-center gap-1 mb-1.5">

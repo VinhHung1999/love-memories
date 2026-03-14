@@ -10,6 +10,7 @@ import { useAchievementsViewModel } from './useAchievementsViewModel';
 import type { AchievementGroup } from './useAchievementsViewModel';
 import type { Achievement } from '../../types';
 import ListHeader from '../../components/ListHeader';
+import { Body, Caption, Label } from '../../components/Typography';
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
   moments: Heart,
@@ -33,12 +34,12 @@ function AchievementRow({ item }: { item: Achievement }) {
         <Text className="text-2xl">{item.icon}</Text>
       </View>
       <View className="flex-1">
-        <Text className="text-[14px] font-semibold text-textDark">{item.title}</Text>
-        <Text className="text-[12px] text-textLight mt-0.5" numberOfLines={2}>{item.description}</Text>
+        <Label className="text-textDark">{item.title}</Label>
+        <Body size="sm" className="text-textLight mt-0.5" numberOfLines={2}>{item.description}</Body>
         {item.unlocked && item.unlockedAt ? (
-          <Text className="text-[11px] mt-1" style={{ color: colors.accent }}>
+          <Caption className="mt-1" style={{ color: colors.accent }}>
             {t.achievements.unlockedOn} {new Date(item.unlockedAt).toLocaleDateString()}
-          </Text>
+          </Caption>
         ) : null}
       </View>
       {item.unlocked ? (
@@ -70,11 +71,11 @@ export default function AchievementsScreen() {
         onBack={vm.handleBack}
         filterBar={vm.totalCount > 0 && !vm.isLoading ? (
           <View className="px-5 pb-3 pt-1">
-            <Text className="text-[12px] text-textMid mb-1.5">
+            <Body size="sm" className="text-textMid mb-1.5">
               {t.achievements.progress
                 .replace('{unlocked}', String(vm.unlockedCount))
                 .replace('{total}', String(vm.totalCount))}
-            </Text>
+            </Body>
             <View className="h-1.5 bg-borderSoft rounded-full overflow-hidden">
               <Animated.View
                 entering={FadeInDown.duration(600)}
@@ -103,12 +104,12 @@ export default function AchievementsScreen() {
                 className="flex-row items-center gap-2 px-4 py-2.5"
                 style={{ backgroundColor: colors.background }}>
                 {(() => { const CatIcon = CATEGORY_ICON[group.category] ?? Star; return <CatIcon size={14} color={colors.primary} strokeWidth={1.5} />; })()}
-                <Text className="text-[12px] font-bold text-textMid uppercase tracking-wider">
+                <Caption className="font-bold text-textMid uppercase tracking-wider">
                   {group.label}
-                </Text>
-                <Text className="text-[11px] text-textLight ml-auto">
+                </Caption>
+                <Caption className="ml-auto">
                   {group.unlocked}/{group.total}
-                </Text>
+                </Caption>
               </View>
             );
           }}

@@ -4,10 +4,10 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Heading, Body, Caption } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import FastImage from 'react-native-fast-image';
@@ -92,31 +92,31 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
       {/* Track info */}
       <View className="flex-1">
         {isLoading ? (
-          <Text className="text-xs text-textLight">Loading track info...</Text>
+          <Body size="sm" className="text-textLight">Loading track info...</Body>
         ) : meta ? (
           <>
-            <Text className="text-sm font-bold text-textDark" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark" numberOfLines={1}>
               {meta.title}
-            </Text>
+            </Body>
             {meta.author_name ? (
-              <Text className="text-xs text-textMid mt-0.5" numberOfLines={1}>
+              <Body size="sm" className="text-textMid mt-0.5" numberOfLines={1}>
                 {meta.author_name}
-              </Text>
+              </Body>
             ) : null}
           </>
         ) : (
-          <Text className="text-sm font-semibold text-textDark">
+          <Body size="md" className="font-semibold text-textDark">
             {t.moments.detail.spotifyLink}
-          </Text>
+          </Body>
         )}
         <View className="flex-row items-center gap-1 mt-1">
           <Music2 size={10} strokeWidth={1.5} />
-          <Text
-            className="text-[10px] font-semibold"
+          <Caption
+            className="font-semibold"
             style={{ color: '#1DB954' }}
           >
             Open in Spotify
-          </Text>
+          </Caption>
         </View>
       </View>
 
@@ -204,7 +204,7 @@ export default function MomentDetailScreen() {
       >
         {/* ── Photo thumbnail strip ── */}
         {moment.photos.length > 1 ? (
-          <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+          <View className="bg-white mx-4 mt-5 rounded-3xl px-3 py-3 mb-3">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2">
                 {moment.photos.map((photo, idx) => (
@@ -240,28 +240,28 @@ export default function MomentDetailScreen() {
         <Card>
           {/* Date row */}
           <View className="flex-row items-center mb-2">
-            <Text className="text-xs text-textMid">
+            <Body size="sm" className="text-textMid">
               📅 {formatDate(moment.date)}
-            </Text>
+            </Body>
           </View>
 
-          <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
+          <Heading size="lg" className="leading-tight tracking-tight mb-2">
             {moment.title}
-          </Text>
+          </Heading>
 
           {moment.caption ? (
-            <Text className="text-sm text-textMid italic leading-relaxed mb-2">
+            <Body size="md" className="text-textMid italic leading-relaxed mb-2">
               "{moment.caption}"
-            </Text>
+            </Body>
           ) : null}
 
           {/* Location */}
           {moment.location ? (
             <View className="flex-row items-center gap-1.5 pt-1 border-t border-border/30">
               <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-xs text-textMid flex-1">
+              <Body size="sm" className="text-textMid flex-1">
                 {moment.location}
-              </Text>
+              </Body>
               {moment.latitude && moment.longitude ? (
                 <Pressable
                   onPress={() =>
@@ -270,9 +270,9 @@ export default function MomentDetailScreen() {
                     ).catch(() => {})
                   }
                 >
-                  <Text className="text-xs font-semibold text-accent">
+                  <Body size="sm" className="font-semibold text-accent">
                     {t.moments.detail.mapsLink}
-                  </Text>
+                  </Body>
                 </Pressable>
               ) : null}
             </View>
@@ -306,9 +306,9 @@ export default function MomentDetailScreen() {
               className="flex-row items-center gap-2 py-1"
             >
               <Images size={16} color={colors.primary} strokeWidth={1.5} />
-              <Text className="text-sm font-semibold text-primary flex-1">
+              <Body size="md" className="font-semibold text-primary flex-1">
                 {t.moments.detail.viewGallery} ({moment.photos.length})
-              </Text>
+              </Body>
               <ChevronRight
                 size={16}
                 color={colors.textLight}

@@ -8,10 +8,24 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
+# Required for FirebaseCoreInternal → GoogleUtilities when Mapbox uses dynamic frameworks
+use_modular_headers!
+
+# ── Mapbox Maps SDK ───────────────────────────────────────────────────────────
+# Uses Mapbox Maps SDK (v11). Requires a secret token in ~/.netrc:
+#   machine api.mapbox.com
+#   login maptoken
+#   password sk.eyJ1...YOUR_SECRET_TOKEN...
+$RNMapboxMapsImpl = 'mapbox'
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+end
+
+pre_install do |installer|
+  $RNMapboxMaps.pre_install(installer)
 end
 
 target 'LoveScrum' do
@@ -30,5 +44,6 @@ target 'LoveScrum' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+    $RNMapboxMaps.post_install(installer)
   end
 end

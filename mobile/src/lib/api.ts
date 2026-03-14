@@ -1155,6 +1155,11 @@ export const loveLettersApi = {
     const res = await apiFetch(`/api/love-letters/${id}/audio/${audioId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete audio');
   },
+  markRead: async (id: string): Promise<{ id: string; status: string; readAt: string }> => {
+    const res = await apiFetch(`/api/love-letters/${id}/mark-read`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('Failed to mark letter as read');
+    return res.json();
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -1199,6 +1204,18 @@ export const dailyQuestionsApi = {
   history: async (page = 1, limit = 20): Promise<import('../types').DailyQuestionHistory> => {
     const res = await apiFetch(`/api/daily-questions/history?page=${page}&limit=${limit}`);
     if (!res.ok) throw new Error('Failed to fetch history');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+
+export const subscriptionApi = {
+  getStatus: async (): Promise<import('../types').SubscriptionStatus> => {
+    const res = await apiFetch('/api/subscription/status');
+    if (!res.ok) throw new Error('Failed to fetch subscription status');
     return res.json();
   },
 };

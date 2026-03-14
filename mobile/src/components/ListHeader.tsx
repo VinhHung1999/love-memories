@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
+import { Body, Heading } from './Typography';
 
 interface ListHeaderProps {
   title: string;
@@ -32,13 +33,13 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar }
         <View className="flex-row items-center px-4 gap-3" style={{ height: 56 }}>
           <HeaderIcon icon={ArrowLeft} onPress={onBack} />
           <View className="flex-1">
-            <Text className="font-bold text-textDark" style={{ fontSize: 18 }} numberOfLines={1}>
+            <Heading size="md" className="text-textDark" numberOfLines={1}>
               {title}
-            </Text>
+            </Heading>
             {subtitle ? (
-              <Text className="text-textMid font-medium" style={{ fontSize: 12 }} numberOfLines={1}>
+              <Body size="sm" className="text-textMid font-medium" numberOfLines={1}>
                 {subtitle}
-              </Text>
+              </Body>
             ) : null}
           </View>
           {right ? <View>{right}</View> : null}

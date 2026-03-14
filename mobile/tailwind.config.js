@@ -45,6 +45,8 @@ module.exports = {
         body: ['BeVietnamPro-Regular'],
         bodyMedium: ['BeVietnamPro-Medium'],
         bodyLight: ['BeVietnamPro-Light'],
+        // Borel - cursive/handwritten accent font (slogans only)
+        cursive: ['Borel-Regular'],
       },
     },
   },

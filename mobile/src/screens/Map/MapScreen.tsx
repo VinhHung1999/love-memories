@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Body, Caption, Heading, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
@@ -74,9 +75,9 @@ function EmojiPickerModal({
         <View className="bg-white rounded-t-3xl">
           {/* Header */}
           <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
-            <Text className="text-base font-bold text-textDark">
+            <Heading size="sm" className="text-textDark">
               {t.map.emojiPickerTitle} "{tagName}"
-            </Text>
+            </Heading>
             <TouchableOpacity onPress={onClose} className="w-7 h-7 items-center justify-center">
               <X size={20} color={colors.textLight} strokeWidth={1.5} />
             </TouchableOpacity>
@@ -91,11 +92,10 @@ function EmojiPickerModal({
                   onPress={() => setActiveCategory(i)}
                   className="px-3 py-1.5 rounded-xl border"
                   style={{ backgroundColor: i === activeCategory ? colors.primary : 'transparent', borderColor: i === activeCategory ? colors.primary : colors.border }}>
-                  <Text
-                    className="text-xs font-semibold"
+                  <Label
                     style={{ color: i === activeCategory ? '#fff' : colors.textMid }}>
                     {cat.label}
-                  </Text>
+                  </Label>
                 </Pressable>
               ))}
             </View>
@@ -129,7 +129,7 @@ function EmojiPickerModal({
               disabled={!customEmoji.trim() || isSaving}
               className="px-4 py-2.5 rounded-xl"
               style={{ backgroundColor: customEmoji.trim() ? colors.primary : colors.border }}>
-              <Text className="text-white text-sm font-semibold">{t.common.save}</Text>
+              <Label className="text-white">{t.common.save}</Label>
             </TouchableOpacity>
           </View>
         </View>
@@ -178,9 +178,9 @@ function PinCallout({
         )}
         <View className="flex-1 py-3 pr-3">
           <View className="flex-row items-start justify-between">
-            <Text className="text-sm font-bold text-textDark flex-1 mr-2" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark flex-1 mr-2" numberOfLines={1}>
               {pin.title}
-            </Text>
+            </Body>
             <TouchableOpacity onPress={onDismiss} className="w-6 h-6 items-center justify-center">
               <X size={16} color={colors.textLight} strokeWidth={1.5} />
             </TouchableOpacity>
@@ -188,9 +188,9 @@ function PinCallout({
           {pin.location ? (
             <View className="flex-row items-center gap-1 mt-0.5">
               <MapPinIcon size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-[11px] text-textLight flex-1" numberOfLines={1}>
+              <Caption className="text-textLight flex-1" numberOfLines={1}>
                 {pin.location}
-              </Text>
+              </Caption>
             </View>
           ) : null}
           {pin.tags.length > 0 ? (
@@ -211,7 +211,7 @@ function PinCallout({
             onPress={onViewDetails}
             className="mt-2 px-3 py-1.5 rounded-xl self-start"
             style={{ backgroundColor: isFood ? colors.secondary : colors.primary }}>
-            <Text className="text-white text-[11px] font-semibold">{t.map.viewDetails}</Text>
+            <Caption className="text-white font-semibold">{t.map.viewDetails}</Caption>
           </TouchableOpacity>
         </View>
       </View>
@@ -299,8 +299,8 @@ export default function MapScreen() {
       <SafeAreaView edges={['top']} className="bg-white">
         {/* Header */}
         <View className="px-5 pt-3 pb-2">
-          <Text className="text-2xl font-bold text-textDark">{t.map.title}</Text>
-          <Text className="text-xs text-textLight mt-0.5">{t.map.subtitle}</Text>
+          <Heading size="xl" className="text-textDark">{t.map.title}</Heading>
+          <Body size="sm" className="text-textLight mt-0.5">{t.map.subtitle}</Body>
         </View>
 
         {/* Type filter chips */}
@@ -314,9 +314,9 @@ export default function MapScreen() {
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border"
                 style={{ backgroundColor: active ? colors.primary : 'transparent', borderColor: active ? colors.primary : colors.border }}>
                 <f.icon size={13} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
-                <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+                <Label style={{ color: active ? '#fff' : colors.textMid }}>
                   {f.label}
-                </Text>
+                </Label>
               </Pressable>
             );
           })}

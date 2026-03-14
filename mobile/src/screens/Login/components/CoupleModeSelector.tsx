@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { Caption } from '../../../components/Typography';
 import { Heart, Plus } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import SpringPressable from '../../../components/SpringPressable';
@@ -28,9 +29,9 @@ export default function CoupleModeSelector({
               {opt === 'create'
                 ? <Plus size={20} color={active ? colors.primary : colors.textLight} strokeWidth={1.5} />
                 : <Heart size={20} color={active ? colors.primary : colors.textLight} strokeWidth={1.5} />}
-              <Text className="text-xs" style={{ color: active ? colors.primary : colors.textLight, fontWeight: active ? '600' : '500' }}>
+              <Caption style={{ color: active ? colors.primary : colors.textLight, fontWeight: active ? '600' : '500' }}>
                 {opt === 'create' ? t.login.couple.createNew : t.login.couple.joinExisting}
-              </Text>
+              </Caption>
             </SpringPressable>
           </View>
         );

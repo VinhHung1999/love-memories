@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  Text,
   View,
 } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Bot, Dot, FileText, Globe, Music2, PlusCircle, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -27,7 +27,7 @@ function ModeTab({ label, icon: IconComponent, active, onPress }: { label: strin
       className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl"
       style={{ backgroundColor: active ? colors.primary : '#f3f4f6' }}>
       <IconComponent size={14} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
-      <Text className="text-[12px] font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>{label}</Text>
+      <Caption className="font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>{label}</Caption>
     </Pressable>
   );
 }
@@ -60,7 +60,7 @@ function EditStepRow({ index, value, onChange, onRemove }: { index: number; valu
   return (
     <View className="flex-row items-start gap-2 mb-1.5">
       <View className="w-5 h-5 rounded-full bg-primary/10 items-center justify-center mt-1.5 flex-shrink-0">
-        <Text className="text-[10px] font-bold text-primary">{index + 1}</Text>
+        <Caption className="font-bold text-primary">{index + 1}</Caption>
       </View>
       <BottomSheetTextInput
         value={value}
@@ -181,7 +181,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
         /* ── Loading ── */
         <View className="h-64 items-center justify-center gap-4">
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text className="text-sm text-textMid">{t.recipes.ai.generating}</Text>
+          <Body size="md" className="text-textMid">{t.recipes.ai.generating}</Body>
         </View>
 
       ) : phase === 'input' ? (
@@ -226,7 +226,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             }}
           />
 
-          {error ? <Text className="text-xs text-red-500 mt-2">{error}</Text> : null}
+          {error ? <Caption className="text-red-500 mt-2">{error}</Caption> : null}
         </View>
 
       ) : (
@@ -255,9 +255,9 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           />
 
           {/* Ingredients */}
-          <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
+          <Caption className="tracking-wider uppercase mb-3">
             🛒  {t.recipes.create.ingredientsSection}
-          </Text>
+          </Caption>
           {ingredients.map((ing, idx) => (
             <EditIngredientRow
               key={idx}
@@ -268,13 +268,13 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           ))}
           <Pressable onPress={() => setIngredients(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
             <PlusCircle size={16} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-sm text-primary font-medium">{t.recipes.create.addIngredient}</Text>
+            <Label className="text-primary">{t.recipes.create.addIngredient}</Label>
           </Pressable>
 
           {/* Steps */}
-          <Text className="text-[11px] font-bold text-textLight tracking-wider uppercase mb-3">
+          <Caption className="tracking-wider uppercase mb-3">
             📋  {t.recipes.create.stepsSection}
-          </Text>
+          </Caption>
           {steps.map((step, idx) => (
             <EditStepRow
               key={idx}
@@ -286,7 +286,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
           ))}
           <Pressable onPress={() => setSteps(prev => [...prev, ''])} className="flex-row items-center gap-2 py-2 mb-4">
             <PlusCircle size={16} color={colors.primary} strokeWidth={1.5} />
-            <Text className="text-sm text-primary font-medium">{t.recipes.create.addStep}</Text>
+            <Label className="text-primary">{t.recipes.create.addStep}</Label>
           </Pressable>
 
           {/* Notes */}
@@ -318,7 +318,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
             </>
           ) : null}
 
-          {error ? <Text className="text-xs text-red-500 mb-3">{error}</Text> : null}
+          {error ? <Caption className="text-red-500 mb-3">{error}</Caption> : null}
         </View>
 
       )}

@@ -35,6 +35,7 @@ export type AppStackParamList = {
   MapTab: undefined;
   Achievements: undefined;
   MonthlyRecapTab: { month?: string } | undefined;
+  Paywall: { trigger: 'limit' | 'browse'; blockedFeature?: string } | undefined;
 };
 
 /** Only the 5 visible bottom tabs */
@@ -157,6 +158,8 @@ import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen';
 import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
+import PaywallScreen from '../screens/Paywall/PaywallScreen';
+import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -164,7 +167,7 @@ import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
 
 const MODAL_OPTIONS = {
   animation: 'none',
-  presentation: 'transparentModal',
+  presentation: 'containedTransparentModal',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -389,6 +392,11 @@ function AppNavigator() {
         component={MonthlyRecapScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
+      <AppStack.Screen
+        name="Paywall"
+        component={PaywallScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
     </AppStack.Navigator>
   );
 }
@@ -408,12 +416,14 @@ export default function RootNavigator() {
     );
   }
 
+
   return (
     <NavigationContainer theme={AppTheme as any}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
         {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
         {/* Global overlays — inside NavigationContainer for useAppColors() access */}
+        {isAuthenticated ? <LetterOverlay /> : null}
         <LoadingOverlay />
         <UploadProgressFloat />
       </BottomSheetModalProvider>

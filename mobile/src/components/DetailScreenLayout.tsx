@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Heading, Label } from './Typography';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
@@ -127,7 +128,7 @@ export default function DetailScreenLayout({
             style={{ position: 'absolute', bottom: 28, left: 20, right: 20 }}
           >
             {coverSubtitle ? (
-              <Text
+              <Label
                 className="font-semibold mb-1.5"
                 style={{
                   fontSize: 13,
@@ -138,12 +139,12 @@ export default function DetailScreenLayout({
                 numberOfLines={1}
               >
                 {coverSubtitle}
-              </Text>
+              </Label>
             ) : null}
-            <Text
+            <Heading
+              size="lg"
               style={{
                 fontSize: 26,
-                fontWeight: 'bold',
                 color: coverImageUri ? '#FFFFFF' : '#2D2D2D',
                 lineHeight: 33,
                 letterSpacing: -0.3,
@@ -151,7 +152,7 @@ export default function DetailScreenLayout({
               numberOfLines={2}
             >
               {title}
-            </Text>
+            </Heading>
           </View>
         </View>
 

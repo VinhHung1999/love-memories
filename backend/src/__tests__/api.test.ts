@@ -1352,6 +1352,52 @@ describe('Love Letters', () => {
       expect(Array.isArray(letter.audio)).toBe(true);
     }
   });
+
+  it('PATCH /api/love-letters/:id/mark-read returns 200 with status READ and readAt', async () => {
+    // partnerToken is the recipient of the letter sent by auth() user
+    const res = await request(app)
+      .patch(`/api/love-letters/${letterId}/mark-read`)
+      .set(partnerAuth());
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(letterId);
+    expect(res.body.status).toBe('READ');
+    expect(res.body.readAt).toBeTruthy();
+  });
+
+  it('PATCH /api/love-letters/:id/mark-read returns 400 if already READ', async () => {
+    const res = await request(app)
+      .patch(`/api/love-letters/${letterId}/mark-read`)
+      .set(partnerAuth());
+    expect(res.status).toBe(400);
+  });
+
+  it('PATCH /api/love-letters/:id/mark-read returns 403 if sender (not recipient) calls it', async () => {
+    // Create a new delivered letter for this test
+    const createRes = await request(app).post('/api/love-letters').set(auth()).send({
+      title: 'Another Letter',
+      content: 'Test',
+      sendNow: true,
+    });
+    const newLetterId = createRes.body.id;
+    // Sender tries to mark their own sent letter as read — should 403
+    const res = await request(app)
+      .patch(`/api/love-letters/${newLetterId}/mark-read`)
+      .set(auth());
+    expect(res.status).toBe(403);
+  });
+
+  it('PATCH /api/love-letters/:id/mark-read returns 404 for non-existent letter', async () => {
+    const fakeId = '00000000-0000-0000-0000-000000000000';
+    const res = await request(app)
+      .patch(`/api/love-letters/${fakeId}/mark-read`)
+      .set(partnerAuth());
+    expect(res.status).toBe(404);
+  });
+
+  it('PATCH /api/love-letters/:id/mark-read returns 401 without auth', async () => {
+    const res = await request(app).patch(`/api/love-letters/${letterId}/mark-read`);
+    expect(res.status).toBe(401);
+  });
 });
 
 // ─── JWT Auth Upgrade ────────────────────────────────────────────────────────

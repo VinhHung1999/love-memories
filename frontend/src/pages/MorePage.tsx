@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Pencil, Check, X, LogOut, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users, Trash2, AlertTriangle } from 'lucide-react';
+import { Pencil, Check, X, LogOut, Camera, Bell, MapPin, Mic, Shield, Heart, Copy, RefreshCw, Users, Trash2, AlertTriangle, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -362,6 +363,36 @@ export default function MorePage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Legal links */}
+      <div className="mt-6 bg-white rounded-2xl shadow-sm divide-y divide-border">
+        <Link
+          to="/privacy-policy"
+          className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors rounded-t-2xl"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+            <Shield className="w-4.5 h-4.5" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-text">Privacy Policy</p>
+            <p className="text-xs text-text-light">How we handle your data</p>
+          </div>
+          <X className="w-4 h-4 text-text-light/40 rotate-45 flex-shrink-0" />
+        </Link>
+        <Link
+          to="/terms-of-service"
+          className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors rounded-b-2xl"
+        >
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+            <FileText className="w-4.5 h-4.5" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-medium text-text">Terms of Service</p>
+            <p className="text-xs text-text-light">Rules for using the App</p>
+          </div>
+          <X className="w-4 h-4 text-text-light/40 rotate-45 flex-shrink-0" />
+        </Link>
       </div>
 
       {/* Log Out & Delete Account */}

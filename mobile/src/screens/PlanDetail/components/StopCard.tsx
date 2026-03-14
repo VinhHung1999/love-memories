@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { Check, CheckCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DatePlanStop } from '../../../types';
@@ -39,24 +40,23 @@ export default function StopCard({
 
       {/* Content */}
       <View className="flex-1 pb-5">
-        <View className="bg-white rounded-2xl p-3 shadow-sm">
+        <View className="bg-white rounded-2xl p-3">
           <View className="flex-row items-start gap-2">
             <View className="flex-1">
               {stop.time ? (
-                <Text className="text-[11px] font-semibold text-textLight mb-0.5 uppercase tracking-wider">
+                <Caption className="text-textLight mb-0.5 uppercase tracking-wider">
                   {stop.time}
-                </Text>
+                </Caption>
               ) : null}
-              <Text
-                className="text-[14px] font-semibold"
+              <Label
                 style={{ color: stop.done ? colors.textLight : colors.textDark }}>
                 {stop.title}
-              </Text>
+              </Label>
               {stop.description ? (
-                <Text className="text-[12px] text-textLight mt-0.5">{stop.description}</Text>
+                <Body size="sm" className="text-textLight mt-0.5">{stop.description}</Body>
               ) : null}
               {stop.notes ? (
-                <Text className="text-[12px] text-textMid mt-1 italic">{stop.notes}</Text>
+                <Body size="sm" className="text-textMid mt-1 italic">{stop.notes}</Body>
               ) : null}
             </View>
             {!stop.done ? (

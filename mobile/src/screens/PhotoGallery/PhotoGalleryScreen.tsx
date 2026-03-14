@@ -4,10 +4,10 @@ import {
   FlatList,
   Image,
   StatusBar,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Gesture,
@@ -141,7 +141,7 @@ export default function PhotoGalleryScreen() {
   const keyExtractor = useCallback((item: MomentPhoto) => item.id, []);
 
   return (
-    <GestureHandlerRootView className="flex-1 bg-[#0A0404]">
+    <GestureHandlerRootView style={{flex: 1, backgroundColor:"#0A0404"}}>
       <StatusBar hidden />
 
       {/* Photos list */}
@@ -175,9 +175,9 @@ export default function PhotoGalleryScreen() {
 
           {/* Counter */}
           <View className="bg-white/12 rounded-full px-[14px] py-[6px]">
-            <Text className="text-white/85 text-sm font-medium">
+            <Label className="text-white/85">
               {currentIndex + 1} / {photos.length}
-            </Text>
+            </Label>
           </View>
 
           {/* Share placeholder */}

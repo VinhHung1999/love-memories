@@ -1,5 +1,7 @@
 import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Body, Caption, Cursive, Heading } from '../../components/Typography';
+import { useAppColors } from '../../navigation/theme';
 import Animated, {
   FadeInDown,
   useAnimatedScrollHandler,
@@ -23,11 +25,14 @@ import { DashboardStatsCard } from './components/DashboardStatsCard';
 import { RelationshipTimer } from './components/RelationshipTimer';
 import OverlayHeader from '@/components/OverlayHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRequestNotificationPermission } from '../../hooks/useRequestNotificationPermission';
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
+  useRequestNotificationPermission();
   const vm = useDashboardViewModel();
+  const colors = useAppColors();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => {
     scrollY.value = e.contentOffset.y;
@@ -36,7 +41,7 @@ export default function DashboardScreen() {
 
   return (
     <>
-      <View className="flex-1 bg-baseBg" style={{ top: insects.top }}>
+      <View className="flex-1 bg-baseBg" style={{ paddingTop: insects.top }}>
         {vm.isLoading ? (
           <DashboardSkeleton />
         ) : (
@@ -55,14 +60,14 @@ export default function DashboardScreen() {
                   }}
                 >
                   {/* ── Title ── */}
-                  <Text className='text-[32px] font-heading text-textDark leading-none"'>
+                  <Heading size="xl" className="text-textDark leading-none">
                     {vm.headerTitle}
-                  </Text>
+                  </Heading>
                 </View>
                 {vm.slogan ? (
-                  <Text className="text-[11px] font-bodyLight text-textLight italic">
+                  <Cursive className="text-[11px] text-textLight">
                     {vm.slogan}
-                  </Text>
+                  </Cursive>
                 ) : null}
               </View>
 
@@ -88,9 +93,13 @@ export default function DashboardScreen() {
                   ))}
                 </ScrollView>
               ) : (
-                <View className="h-[160px] rounded-2xl bg-white/60 items-center justify-center">
-                  <Images size={28} strokeWidth={1.5} />
-                </View>
+                <Pressable
+                  onPress={() => vm.navigateTo('MomentsTab')}
+                  className="h-[160px] rounded-2xl bg-white/60 items-center justify-center gap-2">
+                  <Images size={28} color={colors.primary} strokeWidth={1.5} />
+                  <Body size="sm" className="text-textMid">{t.dashboard.noMomentsYet}</Body>
+                  <Caption className="text-primary">{t.dashboard.addFirstMemory}</Caption>
+                </Pressable>
               )}
 
               {/* ── 0. Relationship Timer ── */}

@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { Heading, Caption } from '../../components/Typography';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import {  } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import t from '../../locales/en';
 import type { Expense, ExpenseCategory } from '../../lib/api';
 import { useAddExpenseViewModel } from './useAddExpenseViewModel';
@@ -18,6 +20,7 @@ interface AddExpenseSheetProps {
 
 export default function AddExpenseSheet({ editingExpense = null, onClose }: AddExpenseSheetProps) {
   const colors = useAppColors();
+  const { showBottomSheet } = useAppNavigation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const vm = useAddExpenseViewModel(editingExpense, onClose);
 
@@ -40,11 +43,11 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
     >
       {/* ── Amount Hero ── */}
       <View className="items-center px-5 py-6 border-b border-border/40">
-        <Text className="text-xs font-bold text-textLight tracking-[1px] uppercase mb-3">
+        <Caption className="font-bold text-textLight tracking-[1px] uppercase mb-3">
           {t.expenses.labels.amount}
-        </Text>
+        </Caption>
         <View className="flex-row items-baseline gap-1">
-          <Text className="text-2xl font-bold text-textMid">₫</Text>
+          <Heading size="lg" className="text-textMid">₫</Heading>
           <BottomSheetTextInput
             value={vm.amount}
             onChangeText={vm.handleAmountChange}
@@ -75,9 +78,9 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
                 className="items-center gap-1 rounded-2xl px-3 py-2.5 border"
                 style={{ minWidth: '22%', backgroundColor: isSelected ? colors.primary + '1A' : '#fff', borderColor: isSelected ? colors.primary + '4D' : colors.border + '99' }}>
                 <Text className="text-2xl">{cat.emoji}</Text>
-                <Text className="text-[10px] font-semibold" style={{ color: isSelected ? colors.primary : colors.textMid }}>
+                <Caption className="font-semibold" style={{ color: isSelected ? colors.primary : colors.textMid }}>
                   {cat.label}
-                </Text>
+                </Caption>
               </Pressable>
             );
           })}
@@ -109,6 +112,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
         <DatePickerField
           value={new Date(vm.date + 'T00:00:00')}
           onChange={(d) => vm.setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)}
+          showBottomSheet={showBottomSheet}
         />
 
         {/* ── Note ── */}
@@ -134,7 +138,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
           }}
         />
 
-        {vm.error ? <Text className="text-xs text-error mt-1">{vm.error}</Text> : null}
+        {vm.error ? <Caption className="text-error mt-1">{vm.error}</Caption> : null}
       </View>
     </AppBottomSheet>
   );

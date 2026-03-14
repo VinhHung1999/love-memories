@@ -3,9 +3,9 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, ArrowRight, Check, CheckCircle, ChefHat, Hash, List } from 'lucide-react-native';
@@ -49,31 +49,31 @@ function RecipePickCard({
 
       {/* Info */}
       <View className="flex-1">
-        <Text className="text-sm font-semibold text-textDark" numberOfLines={1}>
+        <Label className="text-textDark" numberOfLines={1}>
           {recipe.title}
-        </Text>
+        </Label>
         {recipe.description ? (
-          <Text className="text-xs text-textMid mt-0.5" numberOfLines={1}>
+          <Caption className="text-textMid mt-0.5" numberOfLines={1}>
             {recipe.description}
-          </Text>
+          </Caption>
         ) : null}
         <View className="flex-row items-center gap-2 mt-1">
           {recipe.ingredients.length > 0 ? (
             <View className="flex-row items-center gap-0.5">
               <List size={10} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-[10px] text-textLight">{recipe.ingredients.length} ingr.</Text>
+              <Caption className="text-textLight">{recipe.ingredients.length} ingr.</Caption>
             </View>
           ) : null}
           {recipe.steps.length > 0 ? (
             <View className="flex-row items-center gap-0.5">
               <Hash size={10} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-[10px] text-textLight">{recipe.steps.length} steps</Text>
+              <Caption className="text-textLight">{recipe.steps.length} steps</Caption>
             </View>
           ) : null}
           {recipe.cooked ? (
             <View className="flex-row items-center gap-0.5">
               <CheckCircle size={10} color={colors.success} strokeWidth={1.5} />
-              <Text className="text-[10px] text-green-600">Cooked</Text>
+              <Caption className="text-green-600">Cooked</Caption>
             </View>
           ) : null}
         </View>
@@ -96,13 +96,13 @@ function ActiveSessionBanner({ onResume }: { onResume: () => void }) {
   return (
     <Pressable
       onPress={onResume}
-      className="mx-4 mb-4 rounded-2xl overflow-hidden bg-white border border-borderSoft shadow-sm px-4 py-4 flex-row items-center gap-3">
+      className="mx-4 mb-4 rounded-2xl overflow-hidden bg-white border border-borderSoft px-4 py-4 flex-row items-center gap-3">
       <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
         <ChefHat size={20} color={colors.primary} strokeWidth={1.5} />
       </View>
       <View className="flex-1">
-        <Text className="text-textDark font-bold text-sm">{t.whatToEat.activeSession}</Text>
-        <Text className="text-textMid text-xs mt-0.5">Tap to resume where you left off</Text>
+        <Body size="md" className="text-textDark font-bold">{t.whatToEat.activeSession}</Body>
+        <Body size="sm" className="text-textMid mt-0.5">Tap to resume where you left off</Body>
       </View>
       <ArrowRight size={20} color={colors.textMid} strokeWidth={1.5} />
     </Pressable>
@@ -123,13 +123,13 @@ export default function WhatToEatScreen() {
         <View className="flex-row items-center gap-3">
           <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
-            <Text className="text-lg font-bold text-textDark">{t.whatToEat.title}</Text>
-            <Text className="text-xs text-textLight">{t.whatToEat.subtitle}</Text>
+            <Heading size="md">{t.whatToEat.title}</Heading>
+            <Body size="sm" className="text-textLight">{t.whatToEat.subtitle}</Body>
           </View>
           <Pressable
             onPress={vm.handleViewHistory}
             className="px-3 py-1.5 rounded-xl border border-border">
-            <Text className="text-xs font-semibold text-textMid">History</Text>
+            <Caption className="font-semibold text-textMid">History</Caption>
           </Pressable>
         </View>
       </View>
@@ -158,15 +158,15 @@ export default function WhatToEatScreen() {
         ) : vm.recipes.length === 0 ? (
           <View className="flex-1 items-center justify-center pb-20">
             <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
-            <Text className="text-textMid font-semibold text-base mt-4">{t.whatToEat.noRecipes}</Text>
-            <Text className="text-textLight text-sm mt-1">{t.whatToEat.addRecipesFirst}</Text>
+            <Heading size="sm" className="text-textMid mt-4">{t.whatToEat.noRecipes}</Heading>
+            <Body size="md" className="text-textLight mt-1">{t.whatToEat.addRecipesFirst}</Body>
           </View>
         ) : (
           <>
             {/* Section title */}
             <View className="px-5 pt-4 pb-2">
-              <Text className="text-base font-bold text-textDark">{t.whatToEat.selecting.title}</Text>
-              <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.selecting.subtitle}</Text>
+              <Heading size="sm">{t.whatToEat.selecting.title}</Heading>
+              <Body size="sm" className="text-textLight mt-0.5">{t.whatToEat.selecting.subtitle}</Body>
             </View>
 
             <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
@@ -191,9 +191,9 @@ export default function WhatToEatScreen() {
         <Animated.View entering={FadeInDown} className="border-t border-border bg-white px-5 py-3 flex-row items-center">
           <View className="flex-1 flex-row items-center gap-2">
             <View className="w-7 h-7 rounded-full bg-primary/12 items-center justify-center">
-              <Text className="text-primary font-bold text-sm">{vm.selectedIds.size}</Text>
+              <Label className="text-primary">{vm.selectedIds.size}</Label>
             </View>
-            <Text className="text-sm text-textMid">{t.whatToEat.selecting.recipesSelected}</Text>
+            <Body size="sm" className="text-textMid">{t.whatToEat.selecting.recipesSelected}</Body>
           </View>
           <Pressable
             onPress={vm.handleStart}
@@ -201,7 +201,7 @@ export default function WhatToEatScreen() {
             className="rounded-2xl px-4 py-2.5 flex-row items-center gap-1.5"
             style={{ backgroundColor: colors.primary }}>
             <ChefHat size={14} strokeWidth={1.5} />
-            <Text className="text-white font-bold text-sm">{t.whatToEat.selecting.startShopping}</Text>
+            <Label className="text-white">{t.whatToEat.selecting.startShopping}</Label>
           </Pressable>
         </Animated.View>
       ) : null}

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useAppColors } from '../navigation/theme';
+import { Body, Heading, Label } from './Typography';
 
 interface EmptyStateProps {
   icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
@@ -26,13 +27,13 @@ export default function EmptyState({
           <IconComponent size={36} color={colors.primary} strokeWidth={1.5} />
         </View>
       )}
-      <Text className="text-xl font-bold text-textDark text-center mb-2">{title}</Text>
+      <Heading size="lg" className="text-textDark text-center mb-2">{title}</Heading>
       {subtitle && (
-        <Text className="text-sm text-textMid text-center mb-6 leading-relaxed">{subtitle}</Text>
+        <Body className="text-textMid text-center mb-6 leading-relaxed">{subtitle}</Body>
       )}
       {actionLabel && onAction && (
         <Pressable onPress={onAction} className="px-6 py-3 rounded-2xl bg-primary">
-          <Text className="text-white font-semibold text-sm">{actionLabel}</Text>
+          <Label className="font-semibold" style={{ color: '#FFFFFF' }}>{actionLabel}</Label>
         </Pressable>
       )}
     </View>

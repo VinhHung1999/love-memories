@@ -4,10 +4,10 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -83,19 +83,20 @@ function IngredientRow({
       >
         {checked ? <Check size={11} strokeWidth={1.5} /> : null}
       </View>
-      <Text
-        className="flex-1 text-sm"
+      <Body
+        size="md"
+        className="flex-1"
         style={{
           color: checked ? colors.textLight : colors.textDark,
           textDecorationLine: checked ? 'line-through' : 'none',
         }}
       >
         {ingredient}
-      </Text>
+      </Body>
       {price ? (
-        <Text className="text-xs text-textLight font-medium">
+        <Caption className="text-textLight font-medium">
           {price.toLocaleString()}đ
-        </Text>
+        </Caption>
       ) : null}
     </Pressable>
   );
@@ -134,30 +135,31 @@ function StepRow({
         {done ? (
           <Check size={13} strokeWidth={1.5} />
         ) : (
-          <Text className="text-xs font-bold text-primary">{index + 1}</Text>
+          <Caption className="font-bold text-primary">{index + 1}</Caption>
         )}
       </View>
 
       <View className="flex-1">
-        <Text
-          className="text-sm leading-relaxed"
+        <Body
+          size="md"
+          className="leading-relaxed"
           style={{
             color: done ? colors.textLight : colors.textDark,
             textDecorationLine: done ? 'line-through' : 'none',
           }}
         >
           {content}
-        </Text>
+        </Body>
         {duration ? (
           <View className="flex-row items-center gap-1 mt-1">
             <Timer size={11} color={colors.textLight} strokeWidth={1.5} />
-            <Text className="text-[11px] text-textLight">
+            <Caption className="text-textLight">
               {duration >= 60
                 ? `${Math.floor(duration / 60)}m ${
                     duration % 60 > 0 ? `${duration % 60}s` : ''
                   }`
                 : `${duration}s`}
-            </Text>
+            </Caption>
           </View>
         ) : null}
       </View>
@@ -192,7 +194,7 @@ export default function RecipeDetailScreen() {
       >
         {/* ── Photo thumbnail strip ── */}
         {recipe.photos.length > 1 ? (
-          <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+          <View className="bg-white mx-4 mt-5 rounded-3xl px-3 py-3 mb-3">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2">
                 {recipe.photos.map((photo, idx) => (
@@ -222,9 +224,9 @@ export default function RecipeDetailScreen() {
         <Card>
           {/* Title + cooked badge */}
           <View className="flex-row items-start gap-2 mb-1">
-            <Text className="text-xl font-bold text-textDark leading-tight flex-1">
+            <Heading size="lg" className="leading-tight flex-1">
               {recipe.title}
-            </Text>
+            </Heading>
             {recipe.cooked ? (
               <View className="bg-green-100 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
                 <CheckCircle
@@ -232,17 +234,17 @@ export default function RecipeDetailScreen() {
                   color={colors.success}
                   strokeWidth={1.5}
                 />
-                <Text className="text-[10px] font-semibold text-green-700">
+                <Caption className="font-semibold text-green-700">
                   Cooked
-                </Text>
+                </Caption>
               </View>
             ) : null}
           </View>
 
           {recipe.description ? (
-            <Text className="text-sm text-textMid italic leading-relaxed mb-3">
+            <Body size="md" className="text-textMid italic leading-relaxed mb-3">
               {recipe.description}
-            </Text>
+            </Body>
           ) : null}
 
           {/* Tags */}
@@ -258,12 +260,12 @@ export default function RecipeDetailScreen() {
           {recipe.foodSpot ? (
             <View className="flex-row items-center gap-1.5 pt-2 border-t border-border/30">
               <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-xs text-textMid flex-1">
+              <Body size="sm" className="text-textMid flex-1">
                 {t.recipes.detail.linkedSpot}:{' '}
-                <Text className="font-semibold text-secondary">
+                <Label className="font-semibold text-secondary">
                   {recipe.foodSpot.name}
-                </Text>
-              </Text>
+                </Label>
+              </Body>
             </View>
           ) : null}
         </Card>
@@ -276,9 +278,9 @@ export default function RecipeDetailScreen() {
               className="flex-row items-center gap-2 py-1"
             >
               <Images size={16} color={colors.primary} strokeWidth={1.5} />
-              <Text className="text-sm font-semibold text-primary flex-1">
+              <Body size="md" className="font-semibold text-primary flex-1">
                 {t.recipes.detail.photos} ({recipe.photos.length})
-              </Text>
+              </Body>
               <ChevronRight
                 size={16}
                 color={colors.textLight}
@@ -323,9 +325,9 @@ export default function RecipeDetailScreen() {
         {recipe.notes ? (
           <Card>
             <CardTitle>{t.recipes.detail.notes}</CardTitle>
-            <Text className="text-sm text-textMid leading-relaxed pt-1">
+            <Body size="md" className="text-textMid leading-relaxed pt-1">
               {recipe.notes}
-            </Text>
+            </Body>
           </Card>
         ) : null}
 
@@ -342,12 +344,12 @@ export default function RecipeDetailScreen() {
                 <PlayCircle size={20} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-textDark">
+                <Body size="md" className="font-semibold text-textDark">
                   {t.recipes.detail.tutorialLink}
-                </Text>
-                <Text className="text-xs text-textLight" numberOfLines={1}>
+                </Body>
+                <Body size="sm" className="text-textLight" numberOfLines={1}>
                   {recipe.tutorialUrl}
-                </Text>
+                </Body>
               </View>
               <ExternalLink
                 size={15}
@@ -375,9 +377,9 @@ export default function RecipeDetailScreen() {
             className="py-4 flex-row items-center justify-center gap-2"
           >
             <ChefHat size={18} strokeWidth={1.5} color='#fff'/>
-            <Text className="text-white font-bold text-base">
+            <Label className="font-bold" style={{ color: '#FFFFFF' }}>
               {t.recipes.detail.cookNow}
-            </Text>
+            </Label>
           </LinearGradient>
         </Pressable>
       </View>

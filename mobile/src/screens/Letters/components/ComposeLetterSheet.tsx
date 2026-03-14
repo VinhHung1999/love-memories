@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Body, Caption, Label } from '../../../components/Typography';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import FastImage from 'react-native-fast-image';
@@ -108,9 +109,9 @@ export default function ComposeLetterSheet({
                   className="w-[72px] h-[72px] rounded-xl border border-dashed border-primary/30 items-center justify-center mt-0"
                   style={{ backgroundColor: colors.primaryMuted + '33' }}>
                   <ImagePlus size={22} color={colors.primary} strokeWidth={1.5} />
-                  <Text className="text-[10px] text-primary mt-0.5">
+                  <Caption className="text-primary mt-0.5">
                     {vm.pendingPhotos.length}/{vm.maxPhotos}
-                  </Text>
+                  </Caption>
                 </Pressable>
               ) : null}
             </View>
@@ -127,10 +128,10 @@ export default function ComposeLetterSheet({
                 <Check size={18} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-textDark">Voice memo recorded</Text>
-                <Text className="text-xs text-textLight mt-0.5">
+                <Label className="text-textDark">Voice memo recorded</Label>
+                <Body size="sm" className="text-textLight mt-0.5">
                   {formatSecs(vm.recordingDuration)} · m4a
-                </Text>
+                </Body>
               </View>
               <Pressable onPress={vm.handleDeleteAudio} hitSlop={8}>
                 <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
@@ -155,14 +156,14 @@ export default function ComposeLetterSheet({
                 )}
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-textDark">
+                <Label className="text-textDark">
                   {vm.isRecording ? t.loveLetters.recording : t.loveLetters.recordMemo}
-                </Text>
-                <Text className="text-xs text-textLight mt-0.5">
+                </Label>
+                <Body size="sm" className="text-textLight mt-0.5">
                   {vm.isRecording
                     ? `${formatSecs(vm.recordingDuration)} · ${t.loveLetters.stopRecording}`
                     : t.loveLetters.recordHint}
-                </Text>
+                </Body>
               </View>
               {vm.isRecording ? (
                 <View className="w-2 h-2 rounded-full bg-primary" />
@@ -187,11 +188,10 @@ export default function ComposeLetterSheet({
                   borderColor: vm.mood === m ? colors.primary : 'transparent',
                 }}>
                 <Text className="text-2xl">{MOOD_EMOJI[m]}</Text>
-                <Text
-                  className="text-[10px] font-semibold capitalize"
+                <Caption
                   style={{ color: vm.mood === m ? colors.primary : colors.textLight }}>
                   {m}
-                </Text>
+                </Caption>
               </TouchableOpacity>
             ))}
           </View>
@@ -204,24 +204,23 @@ export default function ComposeLetterSheet({
             className="flex-row items-center gap-3 p-4 rounded-2xl border border-border/50 bg-gray-50">
             <Clock size={20} color={vm.scheduleMode ? colors.primary : colors.textLight} strokeWidth={1.5} />
             <View className="flex-1">
-              <Text
-                className="text-sm font-semibold"
+              <Label
                 style={{ color: vm.scheduleMode ? colors.primary : colors.textDark }}>
                 {t.loveLetters.scheduleLabel}
-              </Text>
+              </Label>
               {vm.scheduleMode && vm.scheduledAt ? (
-                <Text className="text-xs text-textMid mt-0.5">
+                <Body size="sm" className="text-textMid mt-0.5">
                   {formatScheduledAt(vm.scheduledAt)}
-                </Text>
+                </Body>
               ) : (
-                <Text className="text-xs text-textLight mt-0.5">Tap to set delivery time</Text>
+                <Body size="sm" className="text-textLight mt-0.5">Tap to set delivery time</Body>
               )}
             </View>
             <View
               className="w-10 h-6 rounded-full"
               style={{ backgroundColor: vm.scheduleMode ? colors.primary : colors.gray100 }}>
               <View
-                className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                className="absolute top-1 w-4 h-4 rounded-full bg-white"
                 style={{ left: vm.scheduleMode ? 22 : 2 }}
               />
             </View>
@@ -241,11 +240,11 @@ export default function ComposeLetterSheet({
             <Pressable
               onPress={() => vm.setShowDatePicker(true)}
               className="mt-2 py-2.5 rounded-xl border border-primary/30 items-center">
-              <Text className="text-sm font-semibold text-primary">
+              <Label className="text-primary">
                 {vm.scheduledAt
                   ? formatScheduledAt(vm.scheduledAt)
                   : 'Pick date & time'}
-              </Text>
+              </Label>
             </Pressable>
           ) : null}
         </View>

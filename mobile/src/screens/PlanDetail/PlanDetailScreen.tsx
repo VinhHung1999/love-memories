@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { Body, Caption } from '../../components/Typography';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { usePlanDetailViewModel } from './usePlanDetailViewModel';
@@ -57,24 +58,24 @@ export default function PlanDetailScreen() {
         <View className="gap-2 mb-4">
           <View className="flex-row items-center gap-2">
             <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusBg }}>
-              <Text className="text-[11px] font-bold" style={{ color: statusTextColor }}>
+              <Caption className="font-bold" style={{ color: statusTextColor }}>
                 {statusLabel}
-              </Text>
+              </Caption>
             </View>
           </View>
           {plan.stops.length > 0 ? (
-            <Text className="text-[12px] text-textMid">
+            <Body size="sm" className="text-textMid">
               {t.datePlanner.stopsProgress
                 .replace('{done}', String(doneCount))
                 .replace('{total}', String(plan.stops.length))}
-            </Text>
+            </Body>
           ) : null}
         </View>
 
         {/* Stops timeline */}
         {vm.sortedStops.length === 0 ? (
           <View className="items-center py-12 gap-2">
-            <Text className="text-textLight text-[14px]">{t.datePlanner.noStops}</Text>
+            <Body size="md" className="text-textLight">{t.datePlanner.noStops}</Body>
           </View>
         ) : (
           vm.sortedStops.map((stop, idx) => (

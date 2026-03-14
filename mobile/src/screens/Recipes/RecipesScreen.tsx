@@ -3,9 +3,9 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
+import { Body, Caption } from '../../components/Typography';
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
@@ -29,7 +29,7 @@ import { FAB } from '@/components/FAB';
 
 function RecipeCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3 shadow-sm">
+    <View className="bg-white rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[140px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -71,7 +71,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden shadow-sm mb-3">
+      className="bg-white rounded-3xl overflow-hidden mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full">
@@ -91,11 +91,11 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {recipe.cooked ? (
           <View className="absolute top-2 right-2 bg-green-500 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
             <Check size={9} strokeWidth={1.5} />
-            <Text className="text-[9px] font-bold text-white">{t.recipes.detail.cookedBadge}</Text>
+            <Caption className="font-bold text-white">{t.recipes.detail.cookedBadge}</Caption>
           </View>
         ) : (
           <View className="absolute top-2 right-2 bg-white/80 rounded-xl px-2 py-0.5">
-            <Text className="text-[9px] font-semibold text-primary">To Try</Text>
+            <Caption className="font-semibold text-primary">To Try</Caption>
           </View>
         )}
 
@@ -103,23 +103,24 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {recipe.ingredients.length > 0 ? (
           <View className="absolute bottom-2 left-2 bg-black/40 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
             <List size={9} strokeWidth={1.5} />
-            <Text className="text-[9px] text-white">{recipe.ingredients.length} ingredients</Text>
+            <Caption className="text-white">{recipe.ingredients.length} ingredients</Caption>
           </View>
         ) : null}
       </View>
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Text
-          className="text-sm font-semibold text-textDark leading-snug mb-1.5"
+        <Body
+          size="md"
+          className="font-semibold text-textDark leading-snug mb-1.5"
           numberOfLines={2}>
           {recipe.title}
-        </Text>
+        </Body>
 
         {recipe.description ? (
-          <Text className="text-[11px] text-textMid mb-1.5" numberOfLines={1}>
+          <Caption className="text-textMid mb-1.5" numberOfLines={1}>
             {recipe.description}
-          </Text>
+          </Caption>
         ) : null}
 
         {recipe.tags.length > 0 ? (
@@ -151,9 +152,9 @@ function FilterChip({
       onPress={onPress}
       className="px-3 py-1.5 rounded-xl border"
       style={{ backgroundColor: active ? colors.primary : '#fff', borderColor: active ? colors.primary : colors.border }}>
-      <Text className="text-xs font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+      <Caption className="font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
         {label}
-      </Text>
+      </Caption>
     </Pressable>
   );
 }
@@ -216,7 +217,7 @@ export default function RecipesScreen() {
         // Filtered empty
         <View className="flex-1 items-center justify-center pb-20">
           <FilterX size={36} color={colors.textLight} strokeWidth={1.5} />
-          <Text className="text-textMid text-sm mt-3">No recipes match this filter</Text>
+          <Body size="md" className="text-textMid mt-3">No recipes match this filter</Body>
         </View>
       ) : (
         <ScrollView
@@ -259,7 +260,7 @@ export default function RecipesScreen() {
       {/* FAB — AI recipe */}
       <Pressable
         onPress={() => navigation.showBottomSheet(AIRecipeSheet)}
-        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center shadow-sm bg-white border-2 border-primary/30">
+        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center bg-white border-2 border-primary/30">
         <Bot size={22} color={colors.primary} strokeWidth={1.5} />
       </Pressable>
 

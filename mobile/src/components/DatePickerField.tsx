@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useCallback } from 'react';
+import { Pressable, View } from 'react-native';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
+import DatePickerSheet from './DatePickerSheet';
 import FieldLabel from './FieldLabel';
+import { Body } from './Typography';
 
 interface DatePickerFieldProps {
   value: Date;
@@ -11,6 +12,8 @@ interface DatePickerFieldProps {
   label?: string;
   maximumDate?: Date;
   minimumDate?: Date;
+  /** Parent must pass showBottomSheet from useAppNavigation() — portal context breaks useNavigation */
+  showBottomSheet: (screen: React.ComponentType<any>, props?: Record<string, any>) => void;
 }
 
 export default function DatePickerField({
@@ -19,37 +22,32 @@ export default function DatePickerField({
   label,
   maximumDate,
   minimumDate,
+  showBottomSheet,
 }: DatePickerFieldProps) {
   const colors = useAppColors();
-  const [show, setShow] = useState(false);
 
-  const handleChange = (_: unknown, selected?: Date) => {
-    if (Platform.OS === 'android') setShow(false);
-    if (selected) onChange(selected);
-  };
+  const handleOpen = useCallback(() => {
+    showBottomSheet(DatePickerSheet, {
+      value,
+      onChange,
+      label,
+      maximumDate,
+      minimumDate,
+    });
+  }, [value, onChange, label, maximumDate, minimumDate, showBottomSheet]);
 
   return (
     <View className="mb-3">
       {label ? <FieldLabel>{label}</FieldLabel> : null}
       <Pressable
-        onPress={() => setShow(true)}
-        className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] h-[50px] bg-inputBg">
+        onPress={handleOpen}
+        className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] py-[13px] bg-inputBg">
         <Calendar size={18} color={colors.textLight} strokeWidth={1.5} />
-        <Text className="text-base text-textDark flex-1">
+        <Body size="lg" className="text-textDark flex-1">
           {value.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-        </Text>
+        </Body>
         <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
-      {show && (
-        <DateTimePicker
-          value={value}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleChange}
-          maximumDate={maximumDate}
-          minimumDate={minimumDate}
-        />
-      )}
     </View>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Pressable, TextInput, TouchableOpacity, View } from 'react-native';
+import { Body, Caption } from '../../../components/Typography';
 import { Send, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -43,21 +44,21 @@ function CommentItem({
       <View
         className="w-8 h-8 rounded-full items-center justify-center flex-shrink-0"
         style={{ backgroundColor: isOwn ? colors.primary : colors.accent }}>
-        <Text className="text-xs font-bold text-white">{initial}</Text>
+        <Caption className="font-bold text-white">{initial}</Caption>
       </View>
 
       {/* Bubble */}
       <View className="flex-1 rounded-tl-none rounded-2xl px-3 py-2 bg-textDark/4">
         <View className="flex-row items-center justify-between mb-0.5">
-          <Text className="text-[11px] font-semibold text-textDark">{comment.author}</Text>
+          <Caption className="font-semibold text-textDark">{comment.author}</Caption>
           {isOwn ? (
             <Pressable onPress={onDelete} hitSlop={8}>
               <Trash2 size={12} color={colors.textLight} strokeWidth={1.5} />
             </Pressable>
           ) : null}
         </View>
-        <Text className="text-xs text-textMid leading-relaxed">{comment.content}</Text>
-        <Text className="text-[10px] text-textLight mt-1">{timeAgo(comment.createdAt)}</Text>
+        <Body size="sm" className="text-textMid leading-relaxed">{comment.content}</Body>
+        <Caption className="text-textLight mt-1">{timeAgo(comment.createdAt)}</Caption>
       </View>
     </View>
   );
@@ -77,7 +78,7 @@ export default function CommentsSection({
   return (
     <View className="mb-4">
       {comments.length === 0 ? (
-        <Text className="text-xs text-textLight italic mb-3">{t.moments.detail.noComments}</Text>
+        <Body size="sm" className="text-textLight italic mb-3">{t.moments.detail.noComments}</Body>
       ) : (
         comments.map(comment => (
           <CommentItem

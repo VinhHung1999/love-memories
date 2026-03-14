@@ -79,6 +79,7 @@ export const AppTheme = {
     body: 'BeVietnamPro-Regular',        // 400 - Body text, descriptions
     bodyMedium: 'BeVietnamPro-Medium',   // 500 - Emphasized text, labels
     bodyLight: 'BeVietnamPro-Light',     // 300 - Secondary text
+    // Borel-Regular available via tailwind 'font-cursive' (slogans only)
   },
 } as const;
 

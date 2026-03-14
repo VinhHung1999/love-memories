@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUploadProgress } from '../contexts/UploadProgressContext';
 import { useAppColors } from '../navigation/theme';
 import t from '../locales/en';
+import { Label } from './Typography';
 
 type Phase = 'hidden' | 'uploading' | 'complete';
 
@@ -129,11 +130,11 @@ export default function UploadProgressFloat() {
                 ? <CheckCircle size={16} color="#22c55e" strokeWidth={1.5} />
                 : <CloudUpload size={16} color={colors.primary} strokeWidth={1.5} />}
             </View>
-            <Text className="flex-1 text-sm font-semibold text-textDark">
+            <Label className="flex-1 text-textDark">
               {isComplete
                 ? t.common.uploadComplete
                 : `${t.common.uploading} ${done}/${total} ${noun}...`}
-            </Text>
+            </Label>
             <Pressable onPress={dismiss} className="p-1">
               <X size={14} color={colors.textLight} strokeWidth={1.5} />
             </Pressable>

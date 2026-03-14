@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Caption, Label } from '../../../components/Typography';
 import { Pause, Play } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -51,9 +52,9 @@ export default function VoiceMemoSection({
     <View className="mb-4">
       <View className="flex-row items-center gap-2 mb-2">
         <View className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <Text className="text-[10px] font-bold text-textLight tracking-[1px] uppercase">
+        <Caption className="text-textLight tracking-[1px] uppercase">
           {t.moments.detail.voiceMemo}
-        </Text>
+        </Caption>
       </View>
       {audios.map(audio => {
         const isPlaying = playingAudioId === audio.id;
@@ -76,9 +77,9 @@ export default function VoiceMemoSection({
             </View>
 
             {/* Duration */}
-            <Text className="text-[11px] font-medium text-textMid">
+            <Label className="text-textMid">
               {duration > 0 ? formatDuration(duration) : '--:--'}
-            </Text>
+            </Label>
           </Pressable>
         );
       })}

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Caption } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -75,12 +76,12 @@ export default function WishFormSheet({
                   borderWidth: 1.5,
                   borderColor: vm.category === cat.key ? colors.primary : 'transparent',
                 }}>
-                <Text>{cat.emoji}</Text>
-                <Text
-                  className="text-[12px] font-medium"
+                <Caption>{cat.emoji}</Caption>
+                <Caption
+                  className="font-medium"
                   style={{ color: vm.category === cat.key ? colors.primary : colors.textMid }}>
                   {cat.label}
-                </Text>
+                </Caption>
               </TouchableOpacity>
             ))}
           </View>

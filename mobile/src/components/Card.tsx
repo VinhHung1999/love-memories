@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { BaseCard } from './BaseCard';
+import { Caption, Label } from './Typography';
 
 export { BaseCard };
 
@@ -29,12 +30,12 @@ interface CardTitleProps {
 export function CardTitle({ children, action }: CardTitleProps) {
   return (
     <View className="flex-row items-center justify-between pt-3 pb-1">
-      <Text className="text-xs font-bold text-textLight tracking-[0.8px] uppercase">
+      <Caption className="tracking-[0.8px] uppercase">
         {children}
-      </Text>
+      </Caption>
       {action && (
         <Pressable onPress={action.onPress}>
-          <Text className="text-xs font-semibold text-primary">{action.label}</Text>
+          <Label className="text-primary">{action.label}</Label>
         </Pressable>
       )}
     </View>

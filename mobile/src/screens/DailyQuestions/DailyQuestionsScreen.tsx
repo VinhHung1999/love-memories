@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import {
   View,
-  Text,
   Pressable,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { Heading, Body, Caption, Label } from '../../components/Typography';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -45,9 +45,9 @@ function CategoryBadge({ category }: { category: string }) {
       className="flex-row items-center gap-1.5 rounded-full px-3 py-1 self-start"
       style={{ backgroundColor: meta.bg }}>
       <meta.icon size={11} color={meta.color} strokeWidth={1.5} />
-      <Text className="text-[11px] font-semibold" style={{ color: meta.color }}>
+      <Caption className="font-semibold" style={{ color: meta.color }}>
         {label}
-      </Text>
+      </Caption>
     </View>
   );
 }
@@ -78,13 +78,13 @@ function AnswerCard({
           {isPartner
             ? <Users size={13} color={colors.accent} strokeWidth={1.5} />
             : <User size={13} color={colors.primary} strokeWidth={1.5} />}
-          <Text
-            className="text-[11px] font-bold tracking-wide uppercase"
+          <Caption
+            className="font-bold tracking-wide uppercase"
             style={{ color: isPartner ? colors.accent : colors.primary }}>
             {label}
-          </Text>
+          </Caption>
         </View>
-        <Text className="text-sm text-textDark leading-relaxed">{answer}</Text>
+        <Body size="md" className="text-textDark leading-relaxed">{answer}</Body>
       </View>
     </Animated.View>
   );
@@ -106,9 +106,9 @@ function WaitingCard({ partnerName }: { partnerName: string | null }) {
           borderStyle: 'dashed',
         }}>
         <Clock size={20} color={colors.textLight} strokeWidth={1.5} />
-        <Text className="text-xs text-textLight text-center mt-2 leading-relaxed">
+        <Body size="sm" className="text-textLight text-center mt-2 leading-relaxed">
           {t.dailyQuestions.waitingForPartner.replace('{name}', name)}
-        </Text>
+        </Body>
       </View>
     </Animated.View>
   );
@@ -149,7 +149,7 @@ function TodayView({
       {/* ── Question card ── */}
       <Animated.View entering={FadeInDown.delay(50).duration(500)}>
         <View
-          className="rounded-3xl overflow-hidden shadow-sm px-5 pt-5 pb-6"
+          className="rounded-3xl overflow-hidden px-5 pt-5 pb-6"
           style={{ backgroundColor: colors.primary }}>
           {/* Category */}
           <View className="flex-row items-center gap-2 mb-4">
@@ -158,21 +158,21 @@ function TodayView({
               style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
               <meta.icon size={14} color="#fff" strokeWidth={1.5} />
             </View>
-            <Text className="text-[11px] font-bold text-white/70 tracking-widest uppercase">
+            <Caption className="font-bold text-white/70 tracking-widest uppercase">
               {t.dailyQuestions.questionLabel}
-            </Text>
+            </Caption>
           </View>
 
           {/* Question text */}
-          <Text className="text-xl font-bold text-white leading-snug">
+          <Heading size="lg" className="text-white leading-snug">
             {question.text}
-          </Text>
+          </Heading>
 
           {/* Vietnamese translation */}
           {question.textVi ? (
-            <Text className="text-[13px] text-white/65 mt-2 italic leading-relaxed">
+            <Body size="md" className="text-white/65 mt-2 italic leading-relaxed">
               {question.textVi}
-            </Text>
+            </Body>
           ) : null}
         </View>
       </Animated.View>
@@ -199,13 +199,13 @@ function TodayView({
           />
 
           {/* Character count */}
-          <Text className="text-[10px] text-textLight text-right">
+          <Caption className="text-textLight text-right">
             {answerText.length}/500
-          </Text>
+          </Caption>
 
           {/* Error */}
           {submitError ? (
-            <Text className="text-[12px] text-error text-center">{submitError}</Text>
+            <Body size="sm" className="text-error text-center">{submitError}</Body>
           ) : null}
 
           {/* Submit */}
@@ -221,17 +221,17 @@ function TodayView({
             ) : (
               <Send size={16} strokeWidth={1.5} />
             )}
-            <Text className="text-white font-bold text-[15px]">
+            <Label className="text-white font-bold">
               {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
-            </Text>
+            </Label>
           </Pressable>
         </Animated.View>
       ) : (
         /* ── Both answers revealed ── */
         <Animated.View entering={FadeIn.duration(400)} className="gap-3">
-          <Text className="text-xs text-textLight font-semibold uppercase tracking-wider px-1">
+          <Caption className="text-textLight font-semibold uppercase tracking-wider px-1">
             {partnerAnswer ? t.dailyQuestions.bothAnswered : t.dailyQuestions.answered}
-          </Text>
+          </Caption>
           <View className="flex-row gap-3">
             <AnswerCard
               label={t.dailyQuestions.myAnswer}
@@ -252,9 +252,9 @@ function TodayView({
 
           {/* Hint if waiting */}
           {!partnerAnswer ? (
-            <Text className="text-[11px] text-textLight text-center italic">
+            <Caption className="text-textLight text-center italic">
               {t.dailyQuestions.waitingHint}
-            </Text>
+            </Caption>
           ) : null}
         </Animated.View>
       )}
@@ -278,7 +278,7 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
   return (
     <Pressable
       onPress={() => setExpanded(e => !e)}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm"
+      className="bg-white rounded-2xl overflow-hidden"
       style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.6)' }}>
 
       {/* Header */}
@@ -286,13 +286,13 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1 gap-2">
             <CategoryBadge category={item.question.category} />
-            <Text className="text-[14px] font-semibold text-textDark leading-snug">
+            <Body size="md" className="font-semibold text-textDark leading-snug">
               {item.question.text}
-            </Text>
+            </Body>
           </View>
           <View className="items-end gap-1.5">
             {date ? (
-              <Text className="text-[10px] text-textLight font-medium">{date}</Text>
+              <Caption className="text-textLight font-medium">{date}</Caption>
             ) : null}
             {expanded
               ? <ChevronUp size={16} color={colors.textLight} strokeWidth={1.5} />
@@ -304,14 +304,14 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
         <View className="flex-row gap-1.5 mt-2.5">
           {item.myAnswer ? (
             <View className="rounded-full px-2.5 py-0.5 bg-primary/10">
-              <Text className="text-[10px] font-semibold text-primary">My answer</Text>
+              <Caption className="font-semibold text-primary">My answer</Caption>
             </View>
           ) : null}
           {item.partnerAnswer ? (
             <View className="rounded-full px-2.5 py-0.5 bg-accent/10">
-              <Text className="text-[10px] font-semibold text-accent">
+              <Caption className="font-semibold text-accent">
                 {item.partnerName ?? 'Partner'}&apos;s answer
-              </Text>
+              </Caption>
             </View>
           ) : null}
         </View>
@@ -325,18 +325,18 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
           <View className="h-px bg-border" />
           {item.myAnswer ? (
             <View>
-              <Text className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
+              <Caption className="font-bold text-primary uppercase tracking-wider mb-1.5">
                 {t.dailyQuestions.myAnswer}
-              </Text>
-              <Text className="text-[13px] text-textMid leading-relaxed">{item.myAnswer}</Text>
+              </Caption>
+              <Body size="md" className="text-textMid leading-relaxed">{item.myAnswer}</Body>
             </View>
           ) : null}
           {item.partnerAnswer ? (
             <View>
-              <Text className="text-[10px] font-bold text-accent uppercase tracking-wider mb-1.5">
+              <Caption className="font-bold text-accent uppercase tracking-wider mb-1.5">
                 {t.dailyQuestions.partnerAnswer.replace('{name}', item.partnerName ?? '♥')}
-              </Text>
-              <Text className="text-[13px] text-textMid leading-relaxed">{item.partnerAnswer}</Text>
+              </Caption>
+              <Body size="md" className="text-textMid leading-relaxed">{item.partnerAnswer}</Body>
             </View>
           ) : null}
         </Animated.View>
@@ -373,12 +373,12 @@ function HistoryView({
         <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
           <HelpCircle size={28} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Text className="text-base font-semibold text-textDark text-center">
+        <Heading size="sm" className="text-textDark text-center">
           {t.dailyQuestions.noHistory}
-        </Text>
-        <Text className="text-sm text-textLight text-center leading-relaxed">
+        </Heading>
+        <Body size="md" className="text-textLight text-center leading-relaxed">
           {t.dailyQuestions.noHistorySubtitle}
-        </Text>
+        </Body>
       </View>
     );
   }
@@ -440,11 +440,11 @@ export default function DailyQuestionsScreen() {
           ) : vm.todayError ? (
             <View className="flex-1 items-center justify-center gap-3 px-8">
               <WifiOff size={28} color={colors.textLight} strokeWidth={1.5} />
-              <Text className="text-sm text-textLight text-center">
+              <Body size="sm" className="text-textLight text-center">
                 {t.dailyQuestions.errors.fetchFailed}
-              </Text>
+              </Body>
               <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
-                <Text className="text-sm font-semibold text-primary">Try again</Text>
+                <Body size="sm" className="font-semibold text-primary">Try again</Body>
               </Pressable>
             </View>
           ) : (

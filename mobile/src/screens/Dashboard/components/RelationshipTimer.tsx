@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   FadeIn,
   useSharedValue,
@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { Heart } from 'lucide-react-native';
+import { Body } from '../../../components/Typography';
 import AvatarCircle from '../../../components/AvatarCircle';
 import { useAppColors } from '../../../navigation/theme';
 import t from '../../../locales/en';
@@ -89,7 +90,7 @@ function AvatarWithRing({
     </Animated.View>
   );
 }
-
+ 
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function RelationshipTimer({
@@ -162,9 +163,9 @@ export function RelationshipTimer({
         </View>
 
         {/* Days count */}
-        <Text className="text-center text-[13px] text-textMid font-body mt-3">
+        <Body size="sm" className="text-center text-textMid font-body mt-3">
           {daysLabel}
-        </Text>
+        </Body>
 
       </View>
     </Animated.View>

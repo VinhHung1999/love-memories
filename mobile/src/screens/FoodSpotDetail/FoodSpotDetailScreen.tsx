@@ -3,10 +3,10 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Heading, Body, Caption } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight, Images, MapPin, Star, Utensils } from 'lucide-react-native';
@@ -73,7 +73,7 @@ export default function FoodSpotDetailScreen() {
     >
       {/* ── Photo thumbnail strip ── */}
       {spot.photos.length > 1 ? (
-        <View className="bg-white mx-4 mt-5 rounded-3xl shadow-sm px-3 py-3 mb-3">
+        <View className="bg-white mx-4 mt-5 rounded-3xl px-3 py-3 mb-3">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} >
             <View className="flex-row gap-2">
               {spot.photos.map((photo, idx) => (
@@ -105,9 +105,9 @@ export default function FoodSpotDetailScreen() {
       {/* ── Info card ── */}
       <Card>
         {/* Name */}
-        <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
+        <Heading size="lg" className="text-textDark leading-tight tracking-tight mb-2">
           {spot.name}
-        </Text>
+        </Heading>
 
         {/* Rating + Price row */}
         <View className="flex-row items-center gap-3 mb-3">
@@ -121,26 +121,26 @@ export default function FoodSpotDetailScreen() {
                 fill={i <= Math.round(spot.rating) ? colors.starRating : 'none'}
               />
             ))}
-            <Text className="text-xs text-textMid ml-1">{spot.rating}/5</Text>
+            <Caption className="text-textMid ml-1">{spot.rating}/5</Caption>
           </View>
           <View className="w-px h-3 bg-border" />
-          <Text className="text-sm font-semibold text-textMid">
+          <Body size="md" className="font-semibold text-textMid">
             {priceLabel(spot.priceRange)}
-          </Text>
+          </Body>
         </View>
 
         {/* Description */}
         {spot.description ? (
-          <Text className="text-sm text-textMid italic leading-relaxed mb-3">
+          <Body size="md" className="text-textMid italic leading-relaxed mb-3">
             "{spot.description}"
-          </Text>
+          </Body>
         ) : null}
 
         {/* Location */}
         {spot.location ? (
           <View className="flex-row items-center gap-1.5 pt-2 border-t border-border/30">
             <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-            <Text className="text-xs text-textMid flex-1">{spot.location}</Text>
+            <Caption className="text-textMid flex-1">{spot.location}</Caption>
             {spot.latitude && spot.longitude ? (
               <Pressable
                 onPress={() =>
@@ -149,9 +149,9 @@ export default function FoodSpotDetailScreen() {
                   ).catch(() => {})
                 }
               >
-                <Text className="text-xs font-semibold text-secondary">
+                <Caption className="font-semibold text-secondary">
                   {t.foodSpots.detail.mapsLink}
-                </Text>
+                </Caption>
               </Pressable>
             ) : null}
           </View>
@@ -175,9 +175,9 @@ export default function FoodSpotDetailScreen() {
             className="flex-row items-center gap-2 py-1"
           >
             <Images size={16} color={colors.secondary} strokeWidth={1.5} />
-            <Text className="text-sm font-semibold text-secondary flex-1">
+            <Body size="md" className="font-semibold text-secondary flex-1">
               {t.foodSpots.detail.viewGallery} ({spot.photos.length})
-            </Text>
+            </Body>
             <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
           </TouchableOpacity>
         </Card>
