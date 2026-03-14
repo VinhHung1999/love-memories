@@ -4,7 +4,6 @@ import {
   PermissionsAndroid,
   Platform,
   Pressable,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -15,6 +14,7 @@ import { useAppColors } from '../navigation/theme';
 import FieldLabel from './FieldLabel';
 import { geocodeApi, resolveLocation as resolveLocationApi } from '../lib/api';
 import t from '../locales/en';
+import { Body } from './Typography';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -271,9 +271,9 @@ export default function LocationPicker({
               className="flex-row items-start gap-3 px-4 py-3"
               style={{ borderBottomWidth: i < results.length - 1 ? 1 : 0, borderBottomColor: colors.border + '66' }}>
               <MapPin size={15} color={colors.primary} strokeWidth={1.5} style={{ marginTop: 2 }} />
-              <Text className="flex-1 text-sm text-textDark" numberOfLines={2}>
+              <Body size="md" className="flex-1 text-textDark" numberOfLines={2}>
                 {cleanPlaceName(r.place_name)}
-              </Text>
+              </Body>
             </Pressable>
           ))}
         </View>

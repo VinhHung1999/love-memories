@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import DatePickerSheet from './DatePickerSheet';
 import FieldLabel from './FieldLabel';
+import { Body } from './Typography';
 
 interface DatePickerFieldProps {
   value: Date;
@@ -42,9 +43,9 @@ export default function DatePickerField({
         onPress={handleOpen}
         className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] py-[13px] bg-inputBg">
         <Calendar size={18} color={colors.textLight} strokeWidth={1.5} />
-        <Text className="text-base text-textDark flex-1">
+        <Body size="lg" className="text-textDark flex-1">
           {value.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-        </Text>
+        </Body>
         <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
       </Pressable>
     </View>
