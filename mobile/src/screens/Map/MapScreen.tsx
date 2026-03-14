@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
@@ -74,9 +75,9 @@ function EmojiPickerModal({
         <View className="bg-white rounded-t-3xl">
           {/* Header */}
           <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
-            <Text className="text-base font-bold text-textDark">
+            <Heading size="sm" className="text-textDark">
               {t.map.emojiPickerTitle} "{tagName}"
-            </Text>
+            </Heading>
             <TouchableOpacity onPress={onClose} className="w-7 h-7 items-center justify-center">
               <X size={20} color={colors.textLight} strokeWidth={1.5} />
             </TouchableOpacity>
@@ -299,7 +300,7 @@ export default function MapScreen() {
       <SafeAreaView edges={['top']} className="bg-white">
         {/* Header */}
         <View className="px-5 pt-3 pb-2">
-          <Text className="text-2xl font-bold text-textDark">{t.map.title}</Text>
+          <Heading size="xl" className="text-textDark">{t.map.title}</Heading>
           <Text className="text-xs text-textLight mt-0.5">{t.map.subtitle}</Text>
         </View>
 

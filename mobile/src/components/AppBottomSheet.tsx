@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Heading } from './Typography';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -135,7 +136,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
                 {icon && React.createElement(icon, { size: 24, color: colors.primary, strokeWidth: 1.5 })}
               </View>
               <View className="flex-1">
-                <Text className="text-base font-bold text-textDark">{title}</Text>
+                <Heading size="sm" className="text-textDark">{title}</Heading>
                 {subtitle ? (
                   <Text className="text-sm text-textMid mt-0.5">{subtitle}</Text>
                 ) : null}

@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { BookOpen, ChefHat, ChevronRight, Star, Timer } from 'lucide-react-native';
@@ -125,7 +126,7 @@ export default function CookingHistoryScreen() {
         <View className="flex-row items-center gap-3">
           <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
-            <Text className="text-lg font-bold text-textDark">{t.whatToEat.historyTitle}</Text>
+            <Heading size="md" className="text-textDark">{t.whatToEat.historyTitle}</Heading>
             <Text className="text-xs text-textLight">
               {vm.sessions.length} sessions
             </Text>

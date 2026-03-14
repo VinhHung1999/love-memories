@@ -7,6 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
@@ -318,7 +319,7 @@ export default function ExpensesScreen() {
               <ChevronLeft size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
             <View className="items-center">
-              <Text className="text-base font-bold text-textDark">{vm.monthLabel}</Text>
+              <Heading size="sm" className="text-textDark">{vm.monthLabel}</Heading>
               {vm.isCurrentMonth && (
                 <View className="mt-0.5 bg-primary/10 rounded-full px-2 py-[1px]">
                   <Text className="text-[9px] font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Text>

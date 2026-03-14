@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useAppColors } from '../navigation/theme';
+import { Heading } from './Typography';
 
 interface EmptyStateProps {
   icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
@@ -26,7 +27,7 @@ export default function EmptyState({
           <IconComponent size={36} color={colors.primary} strokeWidth={1.5} />
         </View>
       )}
-      <Text className="text-xl font-bold text-textDark text-center mb-2">{title}</Text>
+      <Heading size="lg" className="text-textDark text-center mb-2">{title}</Heading>
       {subtitle && (
         <Text className="text-sm text-textMid text-center mb-6 leading-relaxed">{subtitle}</Text>
       )}

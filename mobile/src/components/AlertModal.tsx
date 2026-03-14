@@ -3,6 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import { AlertCircle, HelpCircle, Info, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import t from '../locales/en';
+import { Heading } from './Typography';
 
 // ── AlertConfig — exported for ViewModel alert state ─────────────────────────
 
@@ -71,7 +72,7 @@ export default function AlertModal({
           </View>
 
           {/* Title */}
-          <Text className="text-lg font-bold text-textDark text-center mb-2">{title}</Text>
+          <Heading size="md" className="text-textDark text-center mb-2">{title}</Heading>
 
           {/* Message */}
           {message ? (

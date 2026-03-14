@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight, Images, MapPin, Star, Utensils } from 'lucide-react-native';
@@ -105,9 +106,9 @@ export default function FoodSpotDetailScreen() {
       {/* ── Info card ── */}
       <Card>
         {/* Name */}
-        <Text className="text-xl font-bold text-textDark leading-tight tracking-tight mb-2">
+        <Heading size="lg" className="text-textDark leading-tight tracking-tight mb-2">
           {spot.name}
-        </Text>
+        </Heading>
 
         {/* Rating + Price row */}
         <View className="flex-row items-center gap-3 mb-3">

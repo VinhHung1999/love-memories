@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, Camera, Check, CheckCircle, ChefHat, Clock, ImagePlus, PlayCircle, ShoppingCart, Star, Timer, Trash2, Trophy } from 'lucide-react-native';
@@ -73,7 +74,7 @@ function ShoppingPhase({
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Text className="text-base font-bold text-textDark">{t.whatToEat.shopping.title}</Text>
+        <Heading size="sm" className="text-textDark">{t.whatToEat.shopping.title}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
           <Text className="text-xs text-textLight">{t.whatToEat.shopping.subtitle}</Text>
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
@@ -255,7 +256,7 @@ function CookingPhase({
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Text className="text-base font-bold text-textDark">{t.whatToEat.cooking.title}</Text>
+        <Heading size="sm" className="text-textDark">{t.whatToEat.cooking.title}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
             <Text className="text-[10px] font-semibold text-primary">
@@ -359,7 +360,7 @@ function PhotoPhase({
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Text className="text-base font-bold text-textDark">{t.whatToEat.photo.title}</Text>
+        <Heading size="sm" className="text-textDark">{t.whatToEat.photo.title}</Heading>
         <Text className="text-xs text-textLight mt-0.5">{t.whatToEat.photo.subtitle}</Text>
       </View>
 
@@ -438,7 +439,7 @@ function RatingPhase({
         <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <ChefHat size={38} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Text className="text-2xl font-bold text-textDark">Meal complete!</Text>
+        <Heading size="xl" className="text-textDark">Meal complete!</Heading>
         {durationMin ? (
           <Text className="text-sm text-textMid mt-1">Cooked in {durationMin} minutes</Text>
         ) : null}
@@ -517,7 +518,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
         <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <Trophy size={38} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Text className="text-2xl font-bold text-textDark">{t.whatToEat.completed.title}</Text>
+        <Heading size="xl" className="text-textDark">{t.whatToEat.completed.title}</Heading>
         <Text className="text-sm text-textMid mt-1">{t.whatToEat.completed.subtitle}</Text>
       </View>
 

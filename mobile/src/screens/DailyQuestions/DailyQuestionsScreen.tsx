@@ -6,6 +6,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { Heading } from '../../components/Typography';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -164,9 +165,9 @@ function TodayView({
           </View>
 
           {/* Question text */}
-          <Text className="text-xl font-bold text-white leading-snug">
+          <Heading size="lg" className="text-white leading-snug">
             {question.text}
-          </Text>
+          </Heading>
 
           {/* Vietnamese translation */}
           {question.textVi ? (

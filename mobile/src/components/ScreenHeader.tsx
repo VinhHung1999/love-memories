@@ -6,8 +6,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import { useAppColors } from '../navigation/theme';
 import HeaderIcon from './HeaderIcon';
+import { Heading } from './Typography';
 
 interface ScreenHeaderProps {
   title: string;
@@ -32,7 +32,6 @@ export default function ScreenHeader({
   fadeEnd = 200,
 }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
-  const colors = useAppColors();
 
   // Opacity: 0→1 over first 50px of scroll. When no scrollY → always opaque.
   const bgStyle = useAnimatedStyle(() => {
@@ -62,13 +61,9 @@ export default function ScreenHeader({
             <HeaderIcon icon={ArrowLeft} onPress={onBack} />
           )}
           <View className="flex-1">
-            <Text
-              className="font-bold text-textDark"
-              style={{ fontSize: 18, color: colors.text }}
-              numberOfLines={1}
-            >
+            <Heading size="md" className="text-textDark" numberOfLines={1}>
               {title}
-            </Text>
+            </Heading>
             {subtitle ? (
               <Text
                 className="text-textMid font-medium"
