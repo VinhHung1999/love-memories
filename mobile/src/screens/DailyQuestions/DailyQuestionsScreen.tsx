@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import {
   View,
-  Text,
   Pressable,
   TextInput,
   ActivityIndicator,
@@ -46,9 +45,9 @@ function CategoryBadge({ category }: { category: string }) {
       className="flex-row items-center gap-1.5 rounded-full px-3 py-1 self-start"
       style={{ backgroundColor: meta.bg }}>
       <meta.icon size={11} color={meta.color} strokeWidth={1.5} />
-      <Text className="text-[11px] font-semibold" style={{ color: meta.color }}>
+      <Caption className="font-semibold" style={{ color: meta.color }}>
         {label}
-      </Text>
+      </Caption>
     </View>
   );
 }
@@ -79,11 +78,11 @@ function AnswerCard({
           {isPartner
             ? <Users size={13} color={colors.accent} strokeWidth={1.5} />
             : <User size={13} color={colors.primary} strokeWidth={1.5} />}
-          <Text
-            className="text-[11px] font-bold tracking-wide uppercase"
+          <Caption
+            className="font-bold tracking-wide uppercase"
             style={{ color: isPartner ? colors.accent : colors.primary }}>
             {label}
-          </Text>
+          </Caption>
         </View>
         <Body size="md" className="text-textDark leading-relaxed">{answer}</Body>
       </View>

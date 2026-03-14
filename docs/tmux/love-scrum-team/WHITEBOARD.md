@@ -99,6 +99,7 @@
 | B30 | RN Subscription: Lock premium module navigation | P1 |
 | B31 | RN Subscription: Restore purchases + Plus badge in Profile | P1 |
 | B32 | RN: Dev/Prod environment separation — iOS build schemes (Dev/Prod) + Android build flavors + react-native-config (.env.dev/.env.prod) + separate Firebase projects (2x GoogleService-Info.plist, 2x google-services.json) + RevenueCat sandbox/prod keys + Google OAuth client IDs | P1 |
+| B33 | RN: Typography system refactor — Create shared Typography components (Heading, Body, Caption, Label, etc.) to replace raw `<Text>` + className everywhere. Centralize font family, size, weight, color presets. Migrate ALL screens to use Typography components instead of raw Text. Ensures consistent font usage (Be Vietnam Pro) + Borel for special cases (slogan) | P1 |
 
 ---
 

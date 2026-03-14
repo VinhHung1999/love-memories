@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text, View, Pressable } from 'react-native';
-import { Body } from '../../../components/Typography';
+import { View, Pressable } from 'react-native';
+import { Body, Caption, Heading } from '../../../components/Typography';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Banknote } from 'lucide-react-native';
 import t from '../../../locales/en';
@@ -40,20 +40,20 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
           <View className="w-7 h-7 rounded-xl bg-expensePurple/10 items-center justify-center">
             <Banknote size={14} strokeWidth={1.5} />
           </View>
-          <Text className="text-[11px] font-headingSemi text-expensePurple tracking-[0.8px] uppercase">
+          <Caption className="font-headingSemi text-expensePurple tracking-[0.8px] uppercase">
             {t.dashboard.expenseWidget.label}
-          </Text>
+          </Caption>
         </View>
 
         {!hasData ? (
-          <Text className="text-sm font-bodyLight text-textMid italic mt-1">
+          <Body size="sm" className="font-bodyLight text-textMid italic mt-1">
             {t.dashboard.expenseWidget.noData}
-          </Text>
+          </Body>
         ) : (
           <>
-            <Text className="text-[20px] font-heading text-textDark leading-none">
+            <Heading size="sm" className="text-textDark leading-none" style={{ fontSize: 20 }}>
               {formatVND(stats.total)}
-            </Text>
+            </Heading>
             <Body size="sm" className="text-textMid mt-0.5 mb-4">
               {stats.count} {t.expenses.transactions}
             </Body>
@@ -61,10 +61,10 @@ export function ExpenseWidget({ stats, onPress }: ExpenseWidgetProps) {
               {topCategories.map(({ cat, pct }) => (
                 <View key={cat}>
                   <View className="flex-row items-center justify-between mb-1">
-                    <Text className="text-[11px] text-textMid font-bodyMedium">
+                    <Caption className="text-textMid font-bodyMedium">
                       {catEmoji[cat]} {catLabel[cat]}
-                    </Text>
-                    <Text className="text-[10px] text-textLight font-headingSemi">{pct}%</Text>
+                    </Caption>
+                    <Caption className="text-textLight font-headingSemi">{pct}%</Caption>
                   </View>
                   <View className="h-1 bg-expensePurple/10 rounded-full overflow-hidden">
                     <View

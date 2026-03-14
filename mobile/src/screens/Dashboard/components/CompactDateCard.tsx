@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { CalendarHeart } from 'lucide-react-native';
 import { Caption } from '../../../components/Typography';
 import type { DatePlan } from '../../../types';
@@ -24,18 +24,18 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
           <View className="w-6 h-6 rounded-xl bg-secondary/10 items-center justify-center">
             <CalendarHeart size={12} strokeWidth={1.5} />
           </View>
-          <Text className="text-[10px] font-headingSemi text-secondary tracking-widest uppercase">
+          <Caption className="font-headingSemi text-secondary tracking-widest uppercase">
             {t.dashboard.compactDateCard.label}
-          </Text>
+          </Caption>
         </View>
         {firstPlan ? (
           <View className="mt-2">
-            <Text className="text-[12px] font-heading text-textDark" numberOfLines={1}>
+            <Caption className="font-heading text-textDark" style={{ fontSize: 12 }} numberOfLines={1}>
               {firstPlan.title}
-            </Text>
-            <Text className="text-[10px] font-bodyLight text-textMid mt-0.5">
+            </Caption>
+            <Caption className="font-bodyLight text-textMid mt-0.5">
               {fmtDateShort(firstPlan.date)}
-            </Text>
+            </Caption>
           </View>
         ) : (
           <Caption className="text-textMid italic mt-2">

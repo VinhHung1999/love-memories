@@ -4,7 +4,6 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -378,9 +377,9 @@ export default function RecipeDetailScreen() {
             className="py-4 flex-row items-center justify-center gap-2"
           >
             <ChefHat size={18} strokeWidth={1.5} color='#fff'/>
-            <Text className="text-white font-bold text-base">
+            <Label className="font-bold" style={{ color: '#FFFFFF' }}>
               {t.recipes.detail.cookNow}
-            </Text>
+            </Label>
           </LinearGradient>
         </Pressable>
       </View>

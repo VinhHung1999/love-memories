@@ -1,9 +1,9 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
-import { Heading } from './Typography';
+import { Body, Heading } from './Typography';
 
 interface ListHeaderProps {
   title: string;
@@ -37,9 +37,9 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar }
               {title}
             </Heading>
             {subtitle ? (
-              <Text className="text-textMid font-medium" style={{ fontSize: 12 }} numberOfLines={1}>
+              <Body size="sm" className="text-textMid font-medium" numberOfLines={1}>
                 {subtitle}
-              </Text>
+              </Body>
             ) : null}
           </View>
           {right ? <View>{right}</View> : null}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   type SharedValue,
@@ -7,7 +7,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
-import { Heading } from './Typography';
+import { Body, Heading } from './Typography';
 
 interface ScreenHeaderProps {
   title: string;
@@ -65,13 +65,13 @@ export default function ScreenHeader({
               {title}
             </Heading>
             {subtitle ? (
-              <Text
+              <Body
+                size="sm"
                 className="text-textMid font-medium"
-                style={{ fontSize: 12 }}
                 numberOfLines={1}
               >
                 {subtitle}
-              </Text>
+              </Body>
             ) : null}
           </View>
           {right ? <View>{right}</View> : null}

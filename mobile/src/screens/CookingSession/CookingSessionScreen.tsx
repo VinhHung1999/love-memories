@@ -4,7 +4,6 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { Heading, Body, Caption, Label } from '../../components/Typography';
@@ -103,11 +102,12 @@ function ShoppingPhase({
                 style={{ backgroundColor: item.checked ? '#22c55e' : 'transparent', borderColor: item.checked ? '#22c55e' : colors.border }}>
                 {item.checked ? <Check size={11} strokeWidth={1.5} /> : null}
               </View>
-              <Text
-                className="flex-1 text-sm"
-              style={{ color: item.checked ? colors.textLight : colors.textDark, textDecorationLine: item.checked ? 'line-through' : 'none' }}>
+              <Body
+                size="sm"
+                className="flex-1"
+                style={{ color: item.checked ? colors.textLight : colors.textDark, textDecorationLine: item.checked ? 'line-through' : 'none' }}>
                 {item.ingredient}
-              </Text>
+              </Body>
               {item.price ? (
                 <Caption className="text-textLight">{item.price.toLocaleString()}đ</Caption>
               ) : null}
@@ -194,11 +194,11 @@ function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
       {isDone
         ? <CheckCircle size={12} color={colors.success} strokeWidth={1.5} />
         : <Timer size={12} color={isRunning ? colors.primary : colors.textLight} strokeWidth={1.5} />}
-      <Text
-        className="text-[11px] font-semibold"
+      <Caption
+        className="font-semibold"
         style={{ color: isDone ? '#16a34a' : isRunning ? colors.primary : colors.textLight }}>
         {isDone ? 'Done!' : display}
-      </Text>
+      </Caption>
     </Pressable>
   );
 }
@@ -307,11 +307,12 @@ function CookingPhase({
                       )}
                     </View>
                     <View className="flex-1">
-                      <Text
-                        className="text-sm leading-relaxed"
-                      style={{ color: step.checked ? colors.textLight : colors.textDark, textDecorationLine: step.checked ? 'line-through' : 'none' }}>
+                      <Body
+                        size="sm"
+                        className="leading-relaxed"
+                        style={{ color: step.checked ? colors.textLight : colors.textDark, textDecorationLine: step.checked ? 'line-through' : 'none' }}>
                         {step.content}
-                      </Text>
+                      </Body>
                       {step.durationSeconds ? (
                         <StepCountdown durationSeconds={step.durationSeconds} />
                       ) : null}

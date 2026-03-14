@@ -78,9 +78,9 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
                 className="items-center gap-1 rounded-2xl px-3 py-2.5 border"
                 style={{ minWidth: '22%', backgroundColor: isSelected ? colors.primary + '1A' : '#fff', borderColor: isSelected ? colors.primary + '4D' : colors.border + '99' }}>
                 <Text className="text-2xl">{cat.emoji}</Text>
-                <Text className="text-[10px] font-semibold" style={{ color: isSelected ? colors.primary : colors.textMid }}>
+                <Caption className="font-semibold" style={{ color: isSelected ? colors.primary : colors.textMid }}>
                   {cat.label}
-                </Text>
+                </Caption>
               </Pressable>
             );
           })}

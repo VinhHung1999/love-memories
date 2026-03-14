@@ -116,9 +116,9 @@ function SummaryCard({ total, count, breakdown }: {
               </View>
               <View className="flex-row items-center gap-1.5">
                 {cat.limitPct !== null && (
-                  <Text className="text-[10px] font-bold" style={{ color: cat.overLimit ? themeColors.errorColor : themeColors.textLight }}>
+                  <Caption className="font-bold" style={{ color: cat.overLimit ? themeColors.errorColor : themeColors.textLight }}>
                     {cat.limitPct}%
-                  </Text>
+                  </Caption>
                 )}
                 <Caption className="text-textDark font-semibold">{cat.formattedAmount}</Caption>
               </View>
@@ -266,9 +266,9 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
       {/* X-axis labels */}
       <View className="flex-row justify-around mt-1.5" style={{ paddingLeft: Y_AXIS_W }}>
         {weekData.map((day, i) => (
-          <Text key={i} className="text-[9px] text-center" style={{ color: day.isToday ? colors.primary : colors.textLight, fontWeight: day.isToday ? 'bold' : 'normal' }}>
+          <Caption key={i} className="text-center" style={{ color: day.isToday ? colors.primary : colors.textLight, fontWeight: day.isToday ? 'bold' : 'normal', fontSize: 9 }}>
             {day.label}
-          </Text>
+          </Caption>
         ))}
       </View>
     </Animated.View>
@@ -380,9 +380,9 @@ export default function ExpensesScreen() {
                             onPress={() => vm.setActiveCategory(cat.key as any)}
                           />
                           {limitInfo && cat.key !== 'all' && (
-                            <Text className="text-[8px] mt-0.5 font-semibold" style={{ color: limitInfo.over ? colors.errorColor : colors.textMid }}>
+                            <Caption className="mt-0.5 font-semibold" style={{ color: limitInfo.over ? colors.errorColor : colors.textMid, fontSize: 8 }}>
                               {limitInfo.pct}%
-                            </Text>
+                            </Caption>
                           )}
                         </View>
                       );

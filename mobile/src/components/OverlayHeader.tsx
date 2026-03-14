@@ -1,10 +1,10 @@
 import React, { JSX } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
-import { Heading } from './Typography';
+import { Body, Heading } from './Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
@@ -84,13 +84,13 @@ export default function OverlayHeader({
             {title}
           </Heading>
           {subtitle ? (
-            <Text
+            <Body
+              size="sm"
               className="text-textMid font-medium"
-              style={{ fontSize: 12 }}
               numberOfLines={1}
             >
               {subtitle}
-            </Text>
+            </Body>
           ) : null}
         </Animated.View>
 

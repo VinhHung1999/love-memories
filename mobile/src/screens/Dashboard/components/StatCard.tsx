@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { Heading } from '../../../components/Typography';
+import { Pressable, View } from 'react-native';
+import { Heading, Caption } from '../../../components/Typography';
 import { BaseCard } from '../../../components/Card';
 import { useCountUp } from './useCountUp';
 
@@ -34,9 +34,9 @@ export function StatCard({
         </Heading>
 
         {/* Label */}
-        <Text className="text-[9px] font-semibold text-textMid tracking-[1px] uppercase mt-0.5">
+        <Caption className="font-semibold text-textMid tracking-[1px] uppercase mt-0.5" style={{ fontSize: 9 }}>
           {label}
-        </Text>
+        </Caption>
 
         {/* Subtle bottom accent */}
         <View className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full ${bgClass}`} />

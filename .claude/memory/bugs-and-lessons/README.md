@@ -16,6 +16,11 @@
 - **Fix:** How it was resolved
 ```
 
+### @rnmapbox/maps v10 dropped maplibre — use 'mapbox' + use_modular_headers!
+- **Cause:** `$RNMapboxMapsImpl = 'maplibre'` removed in @rnmapbox/maps v10; only `'mapbox'` valid
+- **Fix:** Set `$RNMapboxMapsImpl = 'mapbox'` + add `use_modular_headers!` (FirebaseCoreInternal/GoogleUtilities module conflict with Mapbox dynamic frameworks)
+- Keep pre_install/post_install `$RNMapboxMaps` hooks in Podfile
+
 ## Lessons Learned
 
 _(Add lessons from debugging, design mistakes, or surprising behaviors)_

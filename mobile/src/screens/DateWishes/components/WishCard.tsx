@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Body, Caption } from '../../../components/Typography';
+import { Body, Caption, Label } from '../../../components/Typography';
 import { Check, CheckCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DateWish } from '../../../types';
@@ -36,14 +36,14 @@ export default function WishCard({
         {/* Content */}
         <View className="flex-1">
           <View className="flex-row items-center gap-2">
-            <Text
-              className="text-[14px] font-semibold flex-1"
+            <Label
+              className="font-semibold flex-1"
               style={{
                 color: colors.textDark,
                 textDecorationLine: wish.done ? 'line-through' : 'none',
               }}>
               {wish.title}
-            </Text>
+            </Label>
             {wish.done ? (
               <CheckCircle size={16} color={colors.accent} strokeWidth={1.5} />
             ) : null}

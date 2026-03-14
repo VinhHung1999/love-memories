@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useAppColors } from '../navigation/theme';
+import { Label } from './Typography';
 
 interface Tab<T extends string = string> {
   key: T;
@@ -41,15 +42,14 @@ export default function GlassTabBar<T extends string = string>({ tabs, activeTab
                 shadowOpacity: isActive ? 0.25 : 0,
                 shadowRadius: 4,
               }}>
-              <Text
+              <Label
                 className="text-[13px]"
                 style={{
                   color: isActive ? '#FFFFFF' : colors.textMid,
                   fontWeight: isActive ? '600' : '500',
-                  fontFamily: 'BeVietnamPro-SemiBold',
                 }}>
                 {tab.label}
-              </Text>
+              </Label>
             </Pressable>
           );
         })}

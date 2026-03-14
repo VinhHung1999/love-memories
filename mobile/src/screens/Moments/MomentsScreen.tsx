@@ -3,7 +3,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,7 +14,7 @@ import t from '../../locales/en';
 import type { Moment } from '../../types';
 import { useMomentsViewModel } from './useMomentsViewModel';
 import ListHeader from '../../components/ListHeader';
-import { Label } from '../../components/Typography';
+import { Label, Caption } from '../../components/Typography';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
@@ -137,9 +136,9 @@ function MonthCalendar({
       <View className="flex-row mb-1">
         {DAY_HEADERS.map(h => (
           <View key={h} className="flex-1 items-center">
-            <Text className="text-[10px] text-textLight font-body" style={{ letterSpacing: 0.5 }}>
+            <Caption className="text-textLight font-body" style={{ letterSpacing: 0.5 }}>
               {h}
-            </Text>
+            </Caption>
           </View>
         ))}
       </View>
@@ -172,11 +171,11 @@ function MonthCalendar({
                     shadowOpacity: isSel ? 0.3 : 0,
                     shadowRadius: 4,
                   }}>
-                  <Text
-                    className="text-[13px] font-body"
-                    style={{ color: textColor, fontWeight: isToday || isSel ? '600' : '500' }}>
+                  <Caption
+                    className="font-body"
+                    style={{ color: textColor, fontWeight: isToday || isSel ? '600' : '500', fontSize: 13 }}>
                     {day}
-                  </Text>
+                  </Caption>
                 </View>
                 {/* Moment dot */}
                 {hasM ? (
@@ -218,12 +217,12 @@ function MomentMiniCard({ moment, onPress }: { moment: Moment; onPress: () => vo
         </View>
       )}
       <View className="px-2 py-1.5" style={{ height: MINI_CARD_H - MINI_CARD_PHOTO_H }}>
-        <Text
-          className="text-[11px] text-textDark"
-          style={{ fontWeight: '600', lineHeight: 15 }}
+        <Caption
+          className="text-textDark"
+          style={{ fontWeight: '600', lineHeight: 15, fontSize: 11 }}
           numberOfLines={2}>
           {moment.title}
-        </Text>
+        </Caption>
       </View>
     </Pressable>
   );
@@ -263,9 +262,9 @@ function TimelineDayGroup({
           style={{ width: 10, height: 10, backgroundColor: colors.primary, marginTop: 2, zIndex: 1 }}
         />
         {/* Date */}
-        <Text className="text-[10px] text-textLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
+        <Caption className="text-textLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
           {group.label}
-        </Text>
+        </Caption>
       </View>
 
       {/* Right: horizontal moment card row */}

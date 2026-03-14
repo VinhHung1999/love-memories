@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import { Body, Heading } from '../../components/Typography';
+import { Body, Caption, Heading } from '../../components/Typography';
 import FastImage from 'react-native-fast-image';
 import Animated, {
   useAnimatedScrollHandler,
@@ -63,9 +63,9 @@ export default function LetterReadScreen() {
         {/* Photos */}
         {letter.photos && letter.photos.length > 0 ? (
           <View className="mb-4">
-            <Text className="text-[12px] font-bold text-textLight uppercase tracking-wider mb-2 px-1">
+            <Caption className="font-bold text-textLight uppercase tracking-wider mb-2 px-1">
               {t.loveLetters.photosLabel}
-            </Text>
+            </Caption>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
               <View className="flex-row gap-2 px-1">
                 {letter.photos.map(photo => (

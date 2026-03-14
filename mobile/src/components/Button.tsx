@@ -3,11 +3,11 @@ import {
   Animated,
   ActivityIndicator,
   Pressable,
-  Text,
   Vibration,
   ViewStyle,
 } from 'react-native';
 import { useAppColors } from '../navigation/theme';
+import { Body } from './Typography';
 
 interface ButtonProps {
   onPress: () => void;
@@ -94,14 +94,15 @@ export default function Button({
         {loading ? (
           <ActivityIndicator color={isPrimary ? colors.white : colors.primary} />
         ) : (
-          <Text
+          <Body
+            size="lg"
             className={
               isPrimary
-                ? 'text-white text-base font-bold tracking-[0.4px]'
-                : 'text-textDark text-[15px] font-semibold tracking-[0.1px]'
+                ? 'text-white font-bold tracking-[0.4px]'
+                : 'text-textDark font-semibold tracking-[0.1px]'
             }>
             {label}
-          </Text>
+          </Body>
         )}
       </Animated.View>
     </Pressable>

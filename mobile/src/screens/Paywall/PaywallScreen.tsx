@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { Heading, Body, Caption, Label } from '../../components/Typography';
@@ -79,9 +78,9 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
             end={{ x: 1, y: 0 }}
             style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700', letterSpacing: 0.8 }}>
+            <Caption className="font-bold" style={{ color: '#FFFFFF', letterSpacing: 0.8 }}>
               {t.paywall.bestValue}
-            </Text>
+            </Caption>
           </LinearGradient>
         </View>
       ) : null}
@@ -310,15 +309,15 @@ export default function PaywallScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          <Text
-            className="text-3xl font-bold text-center"
+          <Heading
+            className="text-center"
             style={{ color: colors.textDark, letterSpacing: -0.5, lineHeight: 38 }}
           >
             {t.paywall.headline}
-          </Text>
-          <Text className="text-sm text-center mt-2" style={{ color: colors.textMid, lineHeight: 20 }}>
+          </Heading>
+          <Body size="sm" className="text-center mt-2" style={{ color: colors.textMid, lineHeight: 20 }}>
             {t.paywall.subtitle}
-          </Text>
+          </Body>
         </Animated.View>
 
         {/* Pricing cards */}
@@ -379,9 +378,9 @@ export default function PaywallScreen({ navigation, route }: Props) {
             {vm.isPurchasing ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 }}>
+              <Label className="font-bold" style={{ color: '#FFFFFF', fontSize: 16, letterSpacing: 0.3 }}>
                 {t.paywall.cta}
-              </Text>
+              </Label>
             )}
           </LinearGradient>
         </Pressable>
