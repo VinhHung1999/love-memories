@@ -1,11 +1,11 @@
 /**
- * CurvedTabBar — custom bottom tab bar with SVG notch at center top.
- * The camera button floats above the notch, perfectly seated in the concave curve.
+ * CurvedTabBar — custom bottom tab bar with SVG elliptical-arc notch.
  *
  * Layout:
- *   - SVG background: fills from notch top to safe-area bottom
- *   - 4 regular tab items (2 left, 2 right of the empty camera slot)
- *   - CameraFloatButton: absolutely positioned, center-top of bar, overflows above
+ *   Root View: position absolute, bottom 0, height = TAB_H + 32 (overflow for camera)
+ *   SVG background: fills TAB_H at bottom, arc notch cut at center top
+ *   Tab items row: 2 left + spacer + 2 right, positioned at bar bottom
+ *   Camera float button: absolute center-top, zIndex 10, overflows above bar
  */
 import React, { useEffect } from 'react';
 import { Dimensions, Platform, Pressable, View } from 'react-native';
@@ -31,45 +31,37 @@ const { width: W } = Dimensions.get('window');
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
-const TAB_H = 80;          // height of the visible tab items area
-const CAMERA_SIZE = 64;    // diameter of floating camera button
-// Notch geometry — tuned to fully seat the 64px camera button
-const NOTCH_W = 56;        // horizontal half-width of notch (full = 112px, button + 24px each side)
-const NOTCH_D = 36;        // notch floor depth from top edge
-const NOTCH_BOTTOM = NOTCH_D + 8; // actual lowest point of curve (44px)
-const CURVE_T = 16;        // horizontal extent of bezier transition shoulder
+const TAB_H      = 60;   // standard iOS tab bar height
+const CAMERA_SIZE = 64;  // floating camera button diameter
+const CUTOUT_R   = 36;   // arc radius — slightly larger than camera radius (32)
 
-const cx = W / 2; // center x = notch center
+// Camera button overflows above the arc notch by (CAMERA_SIZE/2 - CUTOUT_R) + some clearance.
+// Root container height = TAB_H + CAMERA_SIZE/2 so the button has room to render.
+const CONTAINER_H = TAB_H + CAMERA_SIZE / 2;
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
-const ACTIVE_COLOR = '#E8788A';
+const ACTIVE_COLOR   = '#E8788A';
 const INACTIVE_COLOR = '#A898AD';
-const BAR_FILL = '#FFFAFA';
+const BAR_FILL       = '#FFFAFA';
 
-// ── SVG Path Builder ─────────────────────────────────────────────────────────
-// Draws the tab bar shape: flat top edge with deep concave notch at center,
-// rectangular bottom. Uses cubic bezier curves for a smooth, natural shape
-// that fully seats the 64px floating camera button.
-// Height is dynamic to include safe area padding.
+// ── SVG Path Builder ──────────────────────────────────────────────────────────
+// Flat top with a perfect semicircle notch at center.
+// Arc command: A rx,ry x-rotation large-arc-flag sweep-flag x,y
+//   sweep-flag=0 → counter-clockwise → arc curves UPWARD (concave notch).
 
-function buildNotchPath(height: number): string {
-  const L = cx - NOTCH_W;
-  const R = cx + NOTCH_W;
+function buildArcPath(barHeight: number): string {
+  const x1 = W / 2 - CUTOUT_R;
+  const x2 = W / 2 + CUTOUT_R;
   return [
     'M0,0',
-    // Flat left side up to notch shoulder
-    `L${L - CURVE_T},0`,
-    // Cubic bezier — left shoulder curving down into notch floor
-    `C${L - CURVE_T},0 ${L},0 ${L},${NOTCH_D}`,
-    // Cubic bezier — notch floor curves down to the deepest point at center
-    `C${L},${NOTCH_D} ${cx},${NOTCH_BOTTOM} ${cx},${NOTCH_BOTTOM}`,
-    // Cubic bezier — deepest point back up to right notch floor
-    `C${cx},${NOTCH_BOTTOM} ${R},${NOTCH_D} ${R},${NOTCH_D}`,
-    // Cubic bezier — right notch floor curves back up to flat
-    `C${R},0 ${R + CURVE_T},0 ${R + CURVE_T},0`,
-    // Flat right side
-    `L${W},0 L${W},${height} L0,${height} Z`,
+    `L${x1},0`,
+    // Semicircle arc — counter-clockwise so it bows upward into the notch
+    `A${CUTOUT_R},${CUTOUT_R} 0 0 0 ${x2},0`,
+    `L${W},0`,
+    `L${W},${barHeight}`,
+    `L0,${barHeight}`,
+    'Z',
   ].join(' ');
 }
 
@@ -119,21 +111,13 @@ function CameraFloatButton() {
     });
   };
 
-  // Position button so its center aligns with the notch top edge (y=0).
-  // Button top = -CAMERA_SIZE/2 = -32, button bottom = +32.
-  // With NOTCH_BOTTOM = 44, bottom of button stays 12px above notch floor —
-  // perfectly seated in the curve with notch edges visible on both sides.
   return (
     <Animated.View
       style={[
         {
-          position: 'absolute',
-          top: -(CAMERA_SIZE / 2),
-          left: (W - CAMERA_SIZE) / 2,
           width: CAMERA_SIZE,
           height: CAMERA_SIZE,
           borderRadius: CAMERA_SIZE / 2,
-          zIndex: 10,
           shadowColor: '#E8788A',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.4,
@@ -155,12 +139,7 @@ function CameraFloatButton() {
           colors={['#F4A0B0', '#E8788A']}
           start={{ x: 0.15, y: 0 }}
           end={{ x: 0.85, y: 1 }}
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          {/* Explicit center wrapper guarantees icon pixel-perfect center */}
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
           </View>
@@ -175,65 +154,87 @@ function CameraFloatButton() {
 export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 8);
-  const totalHeight = TAB_H + bottomPad;
-  const svgPath = buildNotchPath(totalHeight);
+  const barHeight = TAB_H + bottomPad;
+  const svgPath = buildArcPath(barHeight);
 
   return (
     <View
       style={{
+        position: 'absolute',
+        bottom: 0,
         width: W,
-        height: totalHeight,
+        // Container taller than bar so camera button can overflow upward
+        height: CONTAINER_H + bottomPad,
         overflow: 'visible',
-        // iOS shadow on the bar panel — avoid elevation here so overflow visible works on Android
-        ...Platform.select({
-          ios: {
+      }}>
+
+      {/* ── SVG background with arc notch — sits at the bottom of container ── */}
+      <Svg
+        width={W}
+        height={barHeight}
+        style={{ position: 'absolute', bottom: 0, left: 0 }}>
+        <Path d={svgPath} fill={BAR_FILL} />
+      </Svg>
+
+      {/* iOS shadow on bar panel */}
+      {Platform.OS === 'ios' && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: W,
+            height: barHeight,
             shadowColor: '#4A2040',
             shadowOffset: { width: 0, height: -3 },
             shadowOpacity: 0.07,
             shadowRadius: 12,
-          },
-        }),
-      }}>
+          }}
+        />
+      )}
 
-      {/* ── SVG background with notch ── */}
-      <Svg
-        width={W}
-        height={totalHeight}
-        style={{ position: 'absolute', top: 0, left: 0 }}>
-        <Path d={svgPath} fill={BAR_FILL} />
-      </Svg>
-
-      {/* Android elevation workaround — separate layer that can have elevation */}
+      {/* Android elevation workaround */}
       {Platform.OS === 'android' && (
         <View
           style={{
             position: 'absolute',
-            top: 0, left: 0,
-            width: W, height: totalHeight,
+            bottom: 0,
+            left: 0,
+            width: W,
+            height: barHeight,
             elevation: 8,
             backgroundColor: 'transparent',
           }}
         />
       )}
 
-      {/* ── Tab items row ── */}
+      {/* ── Tab items row — absolute at bottom of container ── */}
       <View
         style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: W,
+          height: barHeight,
           flexDirection: 'row',
-          height: TAB_H,
-          alignItems: 'center',
+          alignItems: 'flex-start',
+          paddingTop: 10,
         }}>
         {TABS.map((tab, index) => {
           const route = state.routes[index];
           if (!route) return null;
 
-          const isFocused = state.index === index;
-
-          // Camera slot — empty spacer (floating button renders above)
+          // Camera spacer — floating button renders above
           if (tab.Icon === null) {
-            return <View key={tab.name} style={{ flex: 1 }} />;
+            return (
+              <View
+                key={tab.name}
+                style={{ width: CUTOUT_R * 2 + 8 }}
+              />
+            );
           }
 
+          const isFocused = state.index === index;
           const color = isFocused ? ACTIVE_COLOR : INACTIVE_COLOR;
           const Icon = tab.Icon;
 
@@ -244,7 +245,6 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
               canPreventDefault: true,
             });
             if (!isFocused && !event.defaultPrevented) {
-              // Navigate to root screen of each stack tab
               if (route.name === 'MomentsTab') {
                 navigation.navigate('MomentsTab', { screen: 'MomentsList' } as any);
               } else if (route.name === 'LettersTab') {
@@ -267,8 +267,8 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
                 flex: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: NOTCH_D - 4,  // push items below the notch curve
                 gap: 3,
+                paddingBottom: bottomPad,
               }}>
               <Icon
                 size={22}
@@ -289,13 +289,19 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         })}
       </View>
 
-      {/* Bottom safe area fill */}
-      {bottomPad > 0 && (
-        <View style={{ height: bottomPad, backgroundColor: BAR_FILL }} />
-      )}
-
-      {/* ── Floating camera button — overflows above container ── */}
-      <CameraFloatButton />
+      {/* ── Camera button — floats above arc notch, zIndex above SVG ── */}
+      <View
+        style={{
+          position: 'absolute',
+          // bottom = TAB_H - CAMERA_SIZE/2 so button center sits at the bar top edge
+          // (half above bar = inside notch arc, half below = inside bar)
+          bottom: TAB_H - CAMERA_SIZE / 2 + bottomPad,
+          alignSelf: 'center',
+          left: W / 2 - CAMERA_SIZE / 2,
+          zIndex: 10,
+        }}>
+        <CameraFloatButton />
+      </View>
 
     </View>
   );
