@@ -127,7 +127,6 @@ function CameraFloatButton() {
           shadowOpacity: 0.4,
           shadowRadius: 14,
           elevation: 10,
-          backgroundColor:"red"
         },
         animStyle,
       ]}>
@@ -305,7 +304,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         ref={tabBarRefs.cameraButton}
         style={{
           position: 'absolute',
-          top: -5,
+          top: 0,
           left: W / 2 - CAMERA_SIZE / 2,
           zIndex: 100,
           elevation: 100,
