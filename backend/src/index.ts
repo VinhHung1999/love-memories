@@ -40,8 +40,24 @@ app.use(requestLogger);
 
 // Task 4: Rate limiting (skip in test environment)
 if (process.env.NODE_ENV !== 'test') {
+  const isDev = process.env.NODE_ENV !== 'production';
   const globalLimiter = rateLimit({ windowMs: 60_000, max: 100, standardHeaders: true, legacyHeaders: false });
-  const authLimiter = rateLimit({ windowMs: 15 * 60_000, max: 5, standardHeaders: true, legacyHeaders: false });
+  const authLimiter = rateLimit({
+    windowMs: isDev ? 60_000 : 15 * 60_000,
+    max: isDev ? 50 : 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, res) => {
+      const windowMin = isDev ? 1 : 15;
+      res
+        .status(429)
+        .set('Retry-After', String(windowMin * 60))
+        .json({
+          error: `Too many login attempts. Please try again in ${windowMin} minute${windowMin > 1 ? 's' : ''}.`,
+          retryAfterSeconds: windowMin * 60,
+        });
+    },
+  });
   const aiLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true, legacyHeaders: false });
   const uploadLimiter = rateLimit({ windowMs: 60_000, max: 30, standardHeaders: true, legacyHeaders: false });
 
