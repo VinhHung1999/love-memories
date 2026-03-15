@@ -305,6 +305,16 @@ export const coupleApi = {
     if (!res.ok) throw new Error(data.error || 'Invalid invite code');
     return data;
   },
+
+  validateInvite: async (code: string): Promise<
+    { valid: true; coupleName: string; partnerName: string } |
+    { valid: false; error: string }
+  > => {
+    const res = await apiFetch(`/api/couple/validate-invite?code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if (!res.ok) return { valid: false, error: data.error || 'Invalid invite code' };
+    return data;
+  },
 };
 
 // ---------------------------------------------------------------------------

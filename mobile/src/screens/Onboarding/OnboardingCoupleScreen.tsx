@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Input from '../../components/Input';
 import SpringPressable from '../../components/SpringPressable';
-import ErrorBox from '../../components/ErrorBox';
+import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import { coupleApi, storeTokens } from '../../lib/api';
 import t from '../../locales/en';
 
@@ -109,14 +109,18 @@ export default function OnboardingCoupleScreen() {
   const [coupleMode, setCoupleMode] = useState<CoupleMode | null>(null);
   const [coupleName, setCoupleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
+
+  const showError = (message: string) => {
+    setAlert({ visible: true, title: t.common.error, message, type: 'error' });
+  };
+
   const handleContinue = async () => {
-    setError('');
-    if (!coupleMode) { setError(t.onboarding.couple.errors.coupleModeRequired); return; }
-    if (coupleMode === 'create' && !coupleName.trim()) { setError(t.onboarding.couple.errors.coupleNameRequired); return; }
-    if (coupleMode === 'join' && !inviteCode.trim()) { setError(t.onboarding.couple.errors.inviteCodeRequired); return; }
+    if (!coupleMode) { showError(t.onboarding.couple.errors.coupleModeRequired); return; }
+    if (coupleMode === 'create' && !coupleName.trim()) { showError(t.onboarding.couple.errors.coupleNameRequired); return; }
+    if (coupleMode === 'join' && !inviteCode.trim()) { showError(t.onboarding.couple.errors.inviteCodeRequired); return; }
 
     setLoading(true);
     try {
@@ -125,13 +129,41 @@ export default function OnboardingCoupleScreen() {
         await storeTokens(result.accessToken || result.token, result.refreshToken);
         navigation.navigate('OnboardingAnniversary', { coupleId: result.user.coupleId! });
       } else {
-        const result = await coupleApi.join(inviteCode.trim());
-        await storeTokens(result.accessToken || result.token, result.refreshToken);
-        navigation.navigate('OnboardingCelebration', { coupleId: result.user.coupleId!, partnerName: result.partnerName });
+        // Validate invite first
+        const validation = await coupleApi.validateInvite(inviteCode.trim());
+        if (!validation.valid) {
+          showError(validation.error);
+          return;
+        }
+        // Show confirm dialog
+        setAlert({
+          visible: true,
+          title: `Join ${validation.coupleName}?`,
+          message: `You will be connected with ${validation.partnerName}.`,
+          type: 'confirm',
+          confirmLabel: t.onboarding.couple.joinConfirmBtn,
+          onConfirm: async () => {
+            await doJoin();
+          },
+        });
       }
     } catch (err) {
       const e = err as Error;
-      setError(e.message || t.onboarding.couple.errors.failed);
+      showError(e.message || t.onboarding.couple.errors.failed);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const doJoin = async () => {
+    setLoading(true);
+    try {
+      const result = await coupleApi.join(inviteCode.trim());
+      await storeTokens(result.accessToken || result.token, result.refreshToken);
+      navigation.navigate('OnboardingCelebration', { coupleId: result.user.coupleId!, partnerName: result.partnerName });
+    } catch (err) {
+      const e = err as Error;
+      showError(e.message || t.onboarding.couple.errors.failed);
     } finally {
       setLoading(false);
     }
@@ -169,14 +201,14 @@ export default function OnboardingCoupleScreen() {
           <Animated.View entering={FadeInDown.delay(250).duration(400)} className="flex-row gap-4 mb-6">
             <OptionCard
               selected={coupleMode === 'create'}
-              onPress={() => { setCoupleMode('create'); setError(''); }}
+              onPress={() => { setCoupleMode('create'); }}
               icon={<Heart size={22} color={coupleMode === 'create' ? '#E8788A' : '#A898AD'} strokeWidth={1.5} />}
               label={t.onboarding.couple.createLabel}
               subtitle={t.onboarding.couple.createSubtitle}
             />
             <OptionCard
               selected={coupleMode === 'join'}
-              onPress={() => { setCoupleMode('join'); setError(''); }}
+              onPress={() => { setCoupleMode('join'); }}
               icon={<Link size={22} color={coupleMode === 'join' ? '#E8788A' : '#A898AD'} strokeWidth={1.5} />}
               label={t.onboarding.couple.joinLabel}
               subtitle={t.onboarding.couple.joinSubtitle}
@@ -205,8 +237,6 @@ export default function OnboardingCoupleScreen() {
             </Animated.View>
           )}
 
-          {!!error && <ErrorBox message={error} />}
-
           <View className="flex-1" />
 
           {/* Continue button */}
@@ -224,6 +254,12 @@ export default function OnboardingCoupleScreen() {
 
         </View>
       </ScrollView>
+
+      <AlertModal
+        {...alert}
+        onDismiss={() => setAlert(a => ({ ...a, visible: false }))}
+        onCancel={() => setAlert(a => ({ ...a, visible: false }))}
+      />
     </LinearGradient>
   );
 }

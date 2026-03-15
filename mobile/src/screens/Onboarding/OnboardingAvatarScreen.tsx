@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Image, Pressable, StatusBar, View } from 'react-native';
+import { Image, Pressable, StatusBar, View } from 'react-native';
 import { Body, Caption, Heading } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -22,6 +22,7 @@ import Animated, {
 import { useAuth } from '../../lib/auth';
 import { coupleApi, profileApi } from '../../lib/api';
 import SpringPressable from '../../components/SpringPressable';
+import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
 
 // ── Progress Dots ─────────────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ export default function OnboardingAvatarScreen() {
   const [avatarMime, setAvatarMime] = useState('image/jpeg');
   const [loading, setLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
+  const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
 
   const handlePickPhoto = async () => {
     const result = await launchImageLibrary({ mediaType: 'photo', quality: 0.9, selectionLimit: 1 });
@@ -200,7 +202,12 @@ export default function OnboardingAvatarScreen() {
       }, 1800);
     } catch (err) {
       setLoading(false);
-      Alert.alert(t.common.error, err instanceof Error ? err.message : t.onboarding.avatar.errors.setupFailed);
+      setAlert({
+        visible: true,
+        title: t.common.error,
+        message: err instanceof Error ? err.message : t.onboarding.avatar.errors.setupFailed,
+        type: 'error',
+      });
     }
   };
 
@@ -295,6 +302,11 @@ export default function OnboardingAvatarScreen() {
 
       {/* Completion overlay */}
       {showCompletion && <CompletionOverlay />}
+
+      <AlertModal
+        {...alert}
+        onDismiss={() => setAlert(a => ({ ...a, visible: false }))}
+      />
     </LinearGradient>
   );
 }

@@ -908,6 +908,7 @@ const en = {
       namePlaceholder: 'Couple name (e.g. Hung & Nhu)',
       codePlaceholder: 'Invite code from your partner',
       continueBtn: 'Continue',
+      joinConfirmBtn: 'Join',
       errors: {
         coupleModeRequired: 'Please choose an option',
         coupleNameRequired: 'Please enter a couple name',
