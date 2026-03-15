@@ -116,7 +116,6 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
             placeholder={t.foodSpots.placeholders.name}
             value={vm.name}
             onChangeText={vm.setName}
-            maxLength={200}
           />
 
           <FieldLabel>{t.foodSpots.labels.description}</FieldLabel>

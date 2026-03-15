@@ -39,7 +39,7 @@ const { width: W } = Dimensions.get('window');
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
 const TAB_H       = 60;              // visible tab bar height
-const CAMERA_SIZE = 64;              // floating camera button diameter
+const CAMERA_SIZE = 60;              // floating camera button diameter
 const CUTOUT_R    = 36;              // arc radius (slightly > CAMERA_SIZE/2=32)
 // Total container: camera zone on top + tab bar below — everything in-bounds
 const CONTAINER_H = TAB_H + CAMERA_SIZE;   // 124px
@@ -126,6 +126,7 @@ function CameraFloatButton() {
           shadowOpacity: 0.4,
           shadowRadius: 14,
           elevation: 10,
+          backgroundColor:"red"
         },
         animStyle,
       ]}>
@@ -142,8 +143,8 @@ function CameraFloatButton() {
           colors={['#F4A0B0', '#E8788A']}
           start={{ x: 0.15, y: 0 }}
           end={{ x: 0.85, y: 1 }}
-          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+          style={{width: "100%", height: "100%",  borderRadius: CAMERA_SIZE / 2,}}>
+          <View style={{ flex: 1,  alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
           </View>
         </LinearGradient>
@@ -167,7 +168,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         bottom: 0,
         width: W,
         // Full container: camera zone (CAMERA_SIZE) + tab bar (TAB_H) + safe area
-        height: CONTAINER_H + bottomPad,
+        height: CONTAINER_H,
         overflow: 'visible',
       }}>
 
@@ -295,7 +296,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
       <View
         style={{
           position: 'absolute',
-          top: 0,
+          top: -5,
           left: W / 2 - CAMERA_SIZE / 2,
           zIndex: 100,
           elevation: 100,

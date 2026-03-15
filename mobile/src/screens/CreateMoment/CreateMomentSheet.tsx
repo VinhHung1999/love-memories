@@ -73,7 +73,6 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
             placeholder={t.moments.placeholders.title}
             value={vm.title}
             onChangeText={vm.setTitle}
-            maxLength={200}
           />
 
           <FieldLabel>{t.moments.labels.caption}</FieldLabel>

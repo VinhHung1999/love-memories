@@ -24,25 +24,6 @@ import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
 
-// ── Progress Dots ─────────────────────────────────────────────────────────────
-
-function ProgressDots({ step, total }: { step: number; total: number }) {
-  return (
-    <View className="flex-row items-center justify-center gap-2">
-      {Array.from({ length: total }).map((_, i) => (
-        <View
-          key={i}
-          className="rounded-full"
-          style={{
-            width: i === step ? 20 : 8,
-            height: 8,
-            backgroundColor: i === step ? '#E8788A' : '#E8788A40',
-          }}
-        />
-      ))}
-    </View>
-  );
-}
 
 // ── Sparkle Particles ─────────────────────────────────────────────────────────
 
@@ -249,12 +230,6 @@ export default function OnboardingInviteScreen() {
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
       <View className="flex-1 px-6 pt-16 pb-10">
-
-        {/* Progress dots */}
-        <Animated.View entering={FadeInDown.delay(50).duration(300)} className="flex-row items-center justify-center mb-8">
-          <ProgressDots step={3} total={4} />
-        </Animated.View>
-
         {/* ── Hero area (flex-1 fills remaining space, centers content) ── */}
         <Animated.View entering={FadeInDown.delay(120).duration(500)} className="flex-1 items-center justify-center gap-5">
 
@@ -299,8 +274,9 @@ export default function OnboardingInviteScreen() {
                 colors={['#E8788A', '#F09AAA', '#F4B8C4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={{ paddingHorizontal: 24, paddingVertical: 28, alignItems: 'center', gap: 12 }}>
-                <Caption style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: 2.5, textTransform: 'uppercase', fontSize: 10, fontWeight: '700' }}>
+                >
+                  <View style={{ paddingHorizontal: 24, paddingVertical: 28, alignItems: 'center', gap: 12 }}>
+                  <Caption style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: 2.5, textTransform: 'uppercase', fontSize: 10, fontWeight: '700' }}>
                   {t.onboarding.invite.codeLabel}
                 </Caption>
 
@@ -330,6 +306,8 @@ export default function OnboardingInviteScreen() {
                     {copied ? t.onboarding.invite.copied : t.onboarding.invite.copyHint}
                   </Caption>
                 </View>
+                  </View>
+               
 
               </LinearGradient>
             </View>
