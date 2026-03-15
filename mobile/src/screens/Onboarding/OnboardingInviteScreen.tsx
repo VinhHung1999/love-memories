@@ -277,27 +277,30 @@ export default function OnboardingInviteScreen() {
                 </Pressable>
               )}
 
-              <View className="w-full h-px bg-white/20 mt-6 mb-5" />
-
-              {/* Share button inside card */}
-              <SpringPressable
-                onPress={handleShare}
-                disabled={!inviteCode}
-                className="flex-row items-center gap-2 bg-white rounded-2xl px-6 py-3">
-                <Send size={16} color="#E8788A" strokeWidth={1.8} />
-                <Body size="md" className="font-semibold" style={{ color: '#E8788A' }}>
-                  {t.onboarding.invite.shareBtn}
-                </Body>
-              </SpringPressable>
             </LinearGradient>
           </View>
         </Animated.View>
 
-        {/* Done button */}
-        <Animated.View entering={FadeInDown.delay(350).duration(400)} className="mt-6">
+        {/* Share + Done button row */}
+        <Animated.View entering={FadeInDown.delay(350).duration(400)} className="flex-row gap-4 mt-6">
+          <SpringPressable
+            onPress={handleShare}
+            disabled={!inviteCode}
+            className="flex-1 h-14 rounded-2xl flex-row items-center justify-center gap-2"
+            style={{
+              borderWidth: 1.5,
+              borderColor: '#E8788A',
+              backgroundColor: 'transparent',
+            }}>
+            <Send size={16} color="#E8788A" strokeWidth={1.8} />
+            <Body size="md" className="font-semibold" style={{ color: '#E8788A', letterSpacing: 0.3 }}>
+              {t.onboarding.invite.shareBtn}
+            </Body>
+          </SpringPressable>
+
           <SpringPressable
             onPress={handleDone}
-            className="w-full h-14 rounded-2xl items-center justify-center"
+            className="flex-1 h-14 rounded-2xl items-center justify-center"
             style={{ backgroundColor: '#E8788A' }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
               {t.onboarding.invite.doneBtn}
