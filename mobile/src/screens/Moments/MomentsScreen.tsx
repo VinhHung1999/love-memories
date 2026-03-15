@@ -244,14 +244,14 @@ function TimelineDayGroup({
     <View className="flex-row py-3" style={{ paddingLeft: 16 }}>
       {/* Left: vertical spine + dot + date label */}
       <View style={{ width: TIMELINE_LEFT_W }} className="items-center">
-        {/* Spine: stops at dot (height = marginTop(2) + dot height(10)) */}
+        {/* Spine: extends full height minus date label area (bottom:18 clears Caption ~14px + mt-1 4px) */}
         <View
           style={{
             position: 'absolute',
             top: 0,
+            bottom: 18,
             left: TIMELINE_LEFT_W / 2 - 1,
             width: 1,
-            height: 12,
             backgroundColor: colors.border,
           }}
         />

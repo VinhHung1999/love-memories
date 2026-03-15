@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Text, View } from 'react-native';
 import { Caption } from '../../components/Typography';
-import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useQueryClient } from '@tanstack/react-query';
 import { expensesApi } from '../../lib/api';
 import { useAppColors } from '../../navigation/theme';
