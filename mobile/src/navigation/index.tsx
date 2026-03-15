@@ -11,9 +11,10 @@ import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { useColorScheme } from 'react-native';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
-import { AppTheme } from './theme';
+import { AppTheme, DarkAppTheme } from './theme';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import UploadProgressFloat from '../components/UploadProgressFloat';
 import type { BottomSheetParams, AlertParams } from './useAppNavigation';
@@ -456,18 +457,20 @@ const linking = {
 
 export default function RootNavigator() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const colorScheme = useColorScheme();
+  const navTheme = colorScheme === 'dark' ? DarkAppTheme : AppTheme;
 
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color={AppTheme.colors.primary} />
+        <ActivityIndicator size="large" color={navTheme.colors.primary} />
       </View>
     );
   }
 
 
   return (
-    <NavigationContainer theme={AppTheme as any} linking={linking}>
+    <NavigationContainer theme={navTheme as any} linking={linking}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
         {!isAuthenticated

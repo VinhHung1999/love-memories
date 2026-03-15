@@ -11,9 +11,8 @@
  *   const colors = useAppColors();
  *   <View style={{ backgroundColor: colors.primary }} />
  */
-import React from 'react';
-import { DefaultTheme } from '@react-navigation/native';
-import { ThemeContext } from '@react-navigation/core';
+import { useColorScheme } from 'react-native';
+import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 
 export const AppTheme = {
   ...DefaultTheme,
@@ -83,15 +82,71 @@ export const AppTheme = {
   },
 } as const;
 
-export type AppColors = typeof AppTheme.colors;
+export const DarkAppTheme = {
+  ...DarkTheme,
+  dark: true,
+  colors: {
+    // ── React Navigation base ─────────────────────────────────────────────
+    primary:      '#E8788A',
+    background:   '#121212',
+    card:         '#1E1E1E',
+    text:         '#E5E5E5',
+    border:       '#2C2C2C',
+    notification: '#E8788A',
+
+    // ── Brand palette ─────────────────────────────────────────────────────
+    primaryLight:   '#F2A5B0',
+    primaryLighter: '#3D2328',
+    primaryShadow:  'rgba(232,120,138,0.30)',
+    primaryMuted:   'rgba(232,120,138,0.15)',
+
+    secondary:      '#F4A261',
+    secondaryMuted: 'rgba(244,162,97,0.15)',
+
+    accent:         '#7EC8B5',
+    accentMuted:    'rgba(126,200,181,0.15)',
+
+    success:        '#7EC8B5',
+    successBg:      'rgba(126,200,181,0.15)',
+
+    // ── Backgrounds ────────────────────────────────────────────────────────
+    baseBg:         '#121212',
+    bgCard:         '#1E1E1E',
+    borderSoft:     '#2C2C2C',
+
+    // ── Text ──────────────────────────────────────────────────────────────
+    textDark:  '#E5E5E5',
+    textMid:   '#B0B0B0',
+    textLight: '#808080',
+
+    // ── Input states ──────────────────────────────────────────────────────
+    white:            '#FFFFFF',
+    inputBg:          'rgba(30,30,30,0.90)',
+    inputFocusBg:     '#2A2A2A',
+    inputBorderFocus: 'rgba(232,120,138,0.40)',
+
+    // ── Misc ─────────────────────────────────────────────────────────────
+    starRating:  '#F4A261',
+
+    // ── Status ────────────────────────────────────────────────────────────
+    errorColor:  '#FF6B75',
+    errorBg:     'rgba(80,20,20,0.95)',
+
+    // ── Neutral ───────────────────────────────────────────────────────────
+    gray100:     '#2C2C2C',
+  },
+  fonts: AppTheme.fonts,
+} as const;
+
+/** Color map with widened string values — supports both light and dark palettes. */
+export type AppColors = { [K in keyof typeof AppTheme.colors]: string };
 
 /**
- * Typed hook to access app colors.
- * Uses React.useContext directly (returns undefined instead of throwing)
- * with fallback to static AppTheme.colors — safe during screen transitions
- * where NavigationContainer context may be temporarily unavailable.
+ * Typed hook to access app colors based on system color scheme.
+ * Uses useColorScheme() from react-native — system-only, no user override.
+ * Returns dark colors when OS is in dark mode, light colors otherwise.
  */
 export function useAppColors(): AppColors {
-  const theme = React.useContext(ThemeContext);
-  return ((theme?.colors ?? AppTheme.colors) as unknown) as AppColors;
+  const scheme = useColorScheme();
+  return (scheme === 'dark' ? DarkAppTheme.colors : AppTheme.colors) as AppColors;
 }
