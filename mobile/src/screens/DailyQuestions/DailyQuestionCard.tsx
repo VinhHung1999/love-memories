@@ -49,7 +49,7 @@ export default function DailyQuestionCard() {
   return (
     <Animated.View entering={FadeInDown.delay(160).duration(500)}>
       <Pressable
-        onPress={() => navigation.navigate('DailyQuestionsTab')}
+        onPress={() => navigation.navigate('DailyQuestions')}
         className="rounded-3xl overflow-hidden border border-borderSoft px-4 py-3"
         style={{ backgroundColor: colors.primary }}>
 

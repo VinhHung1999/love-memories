@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { ChevronDown, ChevronUp, Clock, Heart, HelpCircle, MessageCircle, Send, Smile, Star, Telescope, User, Users, WifiOff } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
 import t from '../../locales/en';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
@@ -408,6 +409,7 @@ function HistoryView({
 export default function DailyQuestionsScreen() {
   const colors = useAppColors();
   const vm = useDailyQuestionsViewModel();
+  const navigation = useNavigation<any>();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
@@ -421,6 +423,7 @@ export default function DailyQuestionsScreen() {
       <ListHeader
         title={t.dailyQuestions.cardTitle}
         subtitle="DAILY Q&A"
+        onBack={() => navigation.goBack()}
         filterBar={
           <GlassTabBar
             tabs={tabs}
