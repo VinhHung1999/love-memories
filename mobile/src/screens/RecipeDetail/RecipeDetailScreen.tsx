@@ -19,6 +19,7 @@ import {
   Images,
   MapPin,
   PlayCircle,
+  Share2,
   Timer,
 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
@@ -359,6 +360,20 @@ export default function RecipeDetailScreen() {
             </Pressable>
           </Card>
         ) : null}
+
+        {/* ── Share ── */}
+        <View className="mx-4 mb-4">
+          <Pressable
+            onPress={vm.handleShare}
+            className="flex-row items-center justify-center gap-2 rounded-2xl py-3"
+            style={{ backgroundColor: colors.primaryMuted }}
+          >
+            <Share2 size={16} color={colors.primary} strokeWidth={1.5} />
+            <Body size="sm" className="font-semibold text-primary">
+              {t.shareViewer.share}
+            </Body>
+          </Pressable>
+        </View>
 
         {/* Bottom spacer — extra height for the fixed "Cook This!" bar */}
         <View className="h-[120px]" />

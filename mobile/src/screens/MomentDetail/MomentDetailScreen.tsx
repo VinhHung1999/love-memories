@@ -15,6 +15,7 @@ import {
   Heart,
   MapPin,
   Music2,
+  Share2,
 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
@@ -324,6 +325,20 @@ export default function MomentDetailScreen() {
             onSubmit={vm.handleAddComment}
             onDelete={vm.handleDeleteComment}
           />
+        </View>
+
+        {/* ── Share ── */}
+        <View className="mx-4 mb-4">
+          <Pressable
+            onPress={vm.handleShare}
+            className="flex-row items-center justify-center gap-2 rounded-2xl py-3"
+            style={{ backgroundColor: colors.primaryMuted }}
+          >
+            <Share2 size={16} color={colors.primary} strokeWidth={1.5} />
+            <Body size="sm" className="font-semibold text-primary">
+              {t.shareViewer.share}
+            </Body>
+          </Pressable>
         </View>
 
         {/* Bottom spacer */}

@@ -5,7 +5,10 @@ import type { RouteProp } from '@react-navigation/native';
 import audioPlayer, { type PlayBackType } from 'react-native-audio-recorder-player';
 import type { MomentsStackParamList } from '../../navigation';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { momentsApi } from '../../lib/api';
+import { momentsApi, shareApi } from '../../lib/api';
+import { Share } from 'react-native';
+
+const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
 import { useAuth } from '../../lib/auth';
 import type { MomentPhoto } from '../../types';
 import t from '../../locales/en';
@@ -86,6 +89,17 @@ export function useMomentDetailViewModel() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleBack = () => navigation.goBack();
+
+  const handleShare = async () => {
+    if (!momentId) return;
+    try {
+      const { token } = await shareApi.create('moment', momentId);
+      const url = `${APP_BASE_URL}/share/${token}`;
+      await Share.share({ url, message: url });
+    } catch {
+      // Share cancelled or failed — no-op
+    }
+  };
 
   // Edit is handled imperatively via the sheet ref in the screen (MVVM: view owns the ref)
   // Kept as no-op so callers don't break — screens call sheetRef.current?.present() directly
@@ -185,5 +199,6 @@ export function useMomentDetailViewModel() {
     handleDeleteMoment,
     handlePlayAudio,
     handleStopAudio,
+    handleShare,
   };
 }

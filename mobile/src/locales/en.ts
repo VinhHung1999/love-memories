@@ -990,6 +990,26 @@ const en = {
     },
   },
 
+  shareViewer: {
+    title: 'Shared Memory',
+    notFound: 'Link not found',
+    notFoundDesc: 'This share link may have expired or been revoked.',
+    sharedVia: 'Shared via Love Memories',
+    share: 'Share',
+  },
+
+  joinCouple: {
+    title: 'Join Partner',
+    desc: 'You\'ve been invited to connect with your partner.',
+    code: 'Invite code',
+    joinBtn: 'Accept Invitation',
+    joining: 'Connecting you with your partner...',
+    successTitle: 'Connected! 🎉',
+    successDesc: 'You and your partner are now connected.',
+    errorTitle: 'Could not join',
+    tryAgain: 'Try Again',
+  },
+
   common: {
     error: 'Error',
     success: 'Success',

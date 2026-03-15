@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -46,6 +47,8 @@ export type AppStackParamList = {
   Achievements: undefined;
   MonthlyRecapTab: { month?: string } | undefined;
   Paywall: { trigger: 'limit' | 'browse'; blockedFeature?: string } | undefined;
+  ShareViewer: { token: string };
+  JoinCouple: { code: string };
 };
 
 /** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
@@ -220,6 +223,8 @@ import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen
 import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
 import PaywallScreen from '../screens/Paywall/PaywallScreen';
 import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
+import ShareViewerScreen from '../screens/ShareViewer/ShareViewerScreen';
+import JoinCoupleScreen from '../screens/JoinCouple/JoinCoupleScreen';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -417,9 +422,33 @@ function AppNavigator() {
         component={PaywallScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
       />
+      <AppStack.Screen name="ShareViewer" component={ShareViewerScreen} />
+      <AppStack.Screen name="JoinCouple" component={JoinCoupleScreen} />
     </AppStack.Navigator>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Deep linking config
+// ---------------------------------------------------------------------------
+
+const linking = {
+  prefixes: ['https://love-scrum.hungphu.work', 'lovescrum://'],
+  config: {
+    screens: {
+      ShareViewer: 'share/:token',
+      JoinCouple: 'invite/:code',
+    },
+  },
+  async getInitialURL() {
+    const url = await Linking.getInitialURL();
+    return url ?? undefined;
+  },
+  subscribe(listener: (url: string) => void) {
+    const subscription = Linking.addEventListener('url', ({ url }) => listener(url));
+    return () => subscription.remove();
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Root navigator — switches based on auth state
@@ -438,7 +467,7 @@ export default function RootNavigator() {
 
 
   return (
-    <NavigationContainer theme={AppTheme as any}>
+    <NavigationContainer theme={AppTheme as any} linking={linking}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
         {!isAuthenticated

@@ -3,7 +3,10 @@ import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { RecipesStackParamList } from '../../navigation';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { recipesApi } from '../../lib/api';
+import { recipesApi, shareApi } from '../../lib/api';
+import { Share } from 'react-native';
+
+const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
 import type { RecipePhoto, MomentPhoto } from '../../types';
 import t from '../../locales/en';
 
@@ -60,6 +63,17 @@ export function useRecipeDetailViewModel() {
     navigation.navigate('WhatToEat');
   };
 
+  const handleShare = async () => {
+    if (!recipeId) return;
+    try {
+      const { token } = await shareApi.create('recipe', recipeId);
+      const url = `${APP_BASE_URL}/share/${token}`;
+      await Share.share({ url, message: url });
+    } catch {
+      // Share cancelled or failed — no-op
+    }
+  };
+
   return {
     recipe,
     isLoading,
@@ -68,5 +82,6 @@ export function useRecipeDetailViewModel() {
     handleDelete,
     handleOpenGallery,
     handleCookThis,
+    handleShare,
   };
 }
