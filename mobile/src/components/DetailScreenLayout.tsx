@@ -83,7 +83,7 @@ export default function DetailScreenLayout({
   ];
 
   // ScrollView background: dark behind cover (upward over-scroll), white below content
-  const scrollBg = coverImageUri ? '#1A1624' : gradient[0];
+  const scrollBg = coverImageUri ? 'white' : gradient[0];
 
   return (
     <View className="flex-1 bg-white">
@@ -173,18 +173,7 @@ export default function DetailScreenLayout({
         </Pressable>
 
         {/* ── Content card (slides up 24px over cover, rounded top corners) ── */}
-        <View className="bg-white rounded-t-3xl -mt-6" style={{height: "100%"}}>
-          {/* Drag pill — bottom-sheet affordance */}
-          <View className="items-center pt-3 pb-1">
-            <View
-              style={{
-                width: 36,
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: '#F0E6E3',
-              }}
-            />
-          </View>
+        <View className="bg-white rounded-t-3xl -mt-6" >
           {children}
         </View>
       </Animated.ScrollView>

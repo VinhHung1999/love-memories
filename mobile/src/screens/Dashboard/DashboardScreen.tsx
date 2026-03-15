@@ -57,6 +57,7 @@ export default function DashboardScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    paddingTop: 10
                   }}
                 >
                   {/* ── Title ── */}
@@ -193,6 +194,8 @@ export default function DashboardScreen() {
       <OverlayHeader
         scrollY={scrollY}
         title={vm.headerTitle}
+        fadeStart={20}
+        fadeEnd={50}
         right={() => {
           return <NotificationBell onPress={vm.navigateToNotifications} />;
         }}

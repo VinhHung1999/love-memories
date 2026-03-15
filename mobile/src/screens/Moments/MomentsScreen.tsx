@@ -350,7 +350,7 @@ export default function MomentsScreen() {
 
           {/* Timeline or empty */}
           {vm.isEmpty ? (
-            <View className="pt-10 pb-[100px]">
+            <View style={{flex: 1}}>
               <EmptyState
                 icon={Heart}
                 title={t.moments.emptyTitle}

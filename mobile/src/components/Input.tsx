@@ -18,7 +18,7 @@ export default function Input(props: TextInputProps) {
       placeholderTextColor={colors.textLight}
       onFocus={e => { setFocused(true); props.onFocus?.(e); }}
       onBlur={e  => { setFocused(false); props.onBlur?.(e); }}
-      className={`${props.multiline ? 'min-h-[72px] py-3' : 'py-[13px]'} rounded-2xl border-[1.5px] border-border px-[18px] text-base text-textDark mb-[10px]`}
+      className={`${props.multiline ? 'min-h-[72px] py-3' : 'h-[50px]'} rounded-2xl border-[1.5px] border-border px-[18px] mb-[10px]`}
       style={[
         { backgroundColor: focused ? colors.inputFocusBg : colors.inputBg },
         focused && { borderColor: colors.inputBorderFocus },

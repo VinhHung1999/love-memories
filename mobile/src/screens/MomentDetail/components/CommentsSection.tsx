@@ -107,7 +107,7 @@ export default function CommentsSection({
           disabled={!commentText.trim() || isSubmitting}
           className="w-8 h-8 rounded-full items-center justify-center"
           style={{ backgroundColor: commentText.trim() ? colors.primary : colors.primaryMuted }}>
-          <Send size={14} strokeWidth={1.5} />
+          <Send size={14} strokeWidth={1.5} color={colors.primary}/>
         </TouchableOpacity>
       </View>
     </View>

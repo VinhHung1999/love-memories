@@ -219,7 +219,7 @@ function TodayView({
             {isSubmitting ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Send size={16} strokeWidth={1.5} />
+              <Send size={16} strokeWidth={1.5} color='white'/>
             )}
             <Label className="text-white font-bold">
               {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
