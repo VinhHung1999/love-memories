@@ -1,11 +1,18 @@
 /**
  * CurvedTabBar — custom bottom tab bar with SVG elliptical-arc notch.
  *
- * Layout:
- *   Root View: position absolute, bottom 0, height = TAB_H + 32 (overflow for camera)
- *   SVG background: fills TAB_H at bottom, arc notch cut at center top
- *   Tab items row: 2 left + spacer + 2 right, positioned at bar bottom
- *   Camera float button: absolute center-top, zIndex 10, overflows above bar
+ * Layout (all within bounds — no negative positioning):
+ *
+ *   CONTAINER_H = TAB_H + CAMERA_SIZE = 60 + 64 = 124px
+ *   ┌─────────────────────────────────────────┐ y=0
+ *   │         [ camera button 64×64 ]         │
+ *   ├──────────────────────────────────────────┤ y=CAMERA_SIZE=64
+ *   │  SVG background (arc notch at top=0)    │
+ *   │  [ Home ] [ Moments ] [ ] [ Letters ] [ Profile ] │
+ *   └──────────────────────────────────────────┘ y=124 (+bottomPad)
+ *
+ *   Camera sits in the notch arc: the arc's center is at y=CAMERA_SIZE, the
+ *   camera button occupies y=0..64, perfectly centered in the cutout.
  */
 import React, { useEffect } from 'react';
 import { Dimensions, Platform, Pressable, View } from 'react-native';
@@ -31,32 +38,32 @@ const { width: W } = Dimensions.get('window');
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
-const TAB_H      = 60;   // standard iOS tab bar height
-const CAMERA_SIZE = 64;  // floating camera button diameter
-const CUTOUT_R   = 36;   // arc radius — slightly larger than camera radius (32)
+const TAB_H       = 60;              // visible tab bar height
+const CAMERA_SIZE = 64;              // floating camera button diameter
+const CUTOUT_R    = 36;              // arc radius (slightly > CAMERA_SIZE/2=32)
+// Total container: camera zone on top + tab bar below — everything in-bounds
+const CONTAINER_H = TAB_H + CAMERA_SIZE;   // 124px
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
 const ACTIVE_COLOR   = '#E8788A';
 const INACTIVE_COLOR = '#A898AD';
-const BAR_FILL       = '#FFFFFF';
 
-// ── SVG Path Builder ──────────────────────────────────────────────────────────
-// Flat top with a perfect semicircle notch at center.
-// Arc command: A rx,ry x-rotation large-arc-flag sweep-flag x,y
-//   sweep-flag=0 → counter-clockwise → arc curves UPWARD (concave notch).
+// ── SVG Path ──────────────────────────────────────────────────────────────────
+// Flat rectangle with semicircle arc notch at center-top.
+// Arc: sweep-flag=0 → counter-clockwise → bows upward (concave notch).
+// Stroke '#F0E6E3' gives a subtle top-edge shadow line without extra layers.
 
-function buildArcPath(barHeight: number): string {
+function buildArcPath(h: number): string {
   const x1 = W / 2 - CUTOUT_R;
   const x2 = W / 2 + CUTOUT_R;
   return [
     'M0,0',
     `L${x1},0`,
-    // Semicircle arc — counter-clockwise so it bows upward into the notch
     `A${CUTOUT_R},${CUTOUT_R} 0 0 0 ${x2},0`,
     `L${W},0`,
-    `L${W},${barHeight}`,
-    `L0,${barHeight}`,
+    `L${W},${h}`,
+    `L0,${h}`,
     'Z',
   ].join(' ');
 }
@@ -159,19 +166,21 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         position: 'absolute',
         bottom: 0,
         width: W,
-        height: TAB_H + 40,   // extra 40px headroom so camera button overflow is not clipped
-        overflow: 'visible',  // CRITICAL — must NOT be 'hidden'
+        // Full container: camera zone (CAMERA_SIZE) + tab bar (TAB_H) + safe area
+        height: CONTAINER_H + bottomPad,
+        overflow: 'visible',
       }}>
 
-      {/* ── SVG background with arc notch — sits at the bottom of container ── */}
+      {/* ── SVG background: pinned to bottom, arc notch opens upward ── */}
       <Svg
         width={W}
         height={barHeight}
         style={{ position: 'absolute', bottom: 0, left: 0 }}>
-        <Path d={svgPath} fill={BAR_FILL} />
+        {/* Stroke gives subtle top-edge shadow line without an extra layer */}
+        <Path d={svgPath} fill="#FFFFFF" stroke="#F0E6E3" strokeWidth={1} />
       </Svg>
 
-      {/* iOS shadow on bar panel */}
+      {/* iOS bar shadow */}
       {Platform.OS === 'ios' && (
         <View
           style={{
@@ -181,9 +190,9 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
             width: W,
             height: barHeight,
             shadowColor: '#4A2040',
-            shadowOffset: { width: 0, height: -3 },
-            shadowOpacity: 0.07,
-            shadowRadius: 12,
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 10,
           }}
         />
       )}
@@ -203,7 +212,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         />
       )}
 
-      {/* ── Tab items row — absolute at bottom of container ── */}
+      {/* ── Tab items: 2 left + spacer + 2 right, pinned to bottom ── */}
       <View
         style={{
           position: 'absolute',
@@ -212,20 +221,17 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
           width: W,
           height: barHeight,
           flexDirection: 'row',
-          alignItems: 'flex-start',
-          paddingTop: 10,
+          alignItems: 'center',
+          paddingBottom: bottomPad,
         }}>
         {TABS.map((tab, index) => {
           const route = state.routes[index];
           if (!route) return null;
 
-          // Camera spacer — floating button renders above
+          // Camera slot — empty spacer matching arc cutout width
           if (tab.Icon === null) {
             return (
-              <View
-                key={tab.name}
-                style={{ width: CUTOUT_R * 2 + 8 }}
-              />
+              <View key={tab.name} style={{ width: CUTOUT_R * 2 + 8 }} />
             );
           }
 
@@ -263,7 +269,6 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 3,
-                paddingBottom: bottomPad,
               }}>
               <Icon
                 size={22}
@@ -284,13 +289,13 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         })}
       </View>
 
-      {/* ── Camera button — negative top = floats ABOVE container top edge ── */}
+      {/* ── Camera button: top=0 = sits at container top (inside bounds) ── */}
+      {/* Container top = y=0, SVG starts at y=CAMERA_SIZE=64              */}
+      {/* Camera occupies y=0..64, centered over arc notch                 */}
       <View
         style={{
           position: 'absolute',
-          // Negative top pushes button above the container's top edge.
-          // With overflow:'visible' on parent this renders above the tab bar.
-          top: -(CAMERA_SIZE / 2) + 8,
+          top: 0,
           left: W / 2 - CAMERA_SIZE / 2,
           zIndex: 100,
           elevation: 100,
