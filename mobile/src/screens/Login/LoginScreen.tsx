@@ -10,9 +10,6 @@ import {
 } from 'react-native';
 import { Body, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../navigation/index';
 import t from '../../locales/en';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
@@ -27,7 +24,6 @@ import { useLoginViewModel } from './useLoginViewModel';
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen() {
   const vm = useLoginViewModel();
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   const logoAnim = useRef(new Animated.Value(0)).current;
   const formAnim = useRef(new Animated.Value(0)).current;
@@ -38,14 +34,6 @@ export default function LoginScreen() {
       Animated.spring(formAnim, { toValue: 1, useNativeDriver: true, speed: 10, bounciness: 5 }),
     ]).start();
   }, [logoAnim, formAnim]);
-
-  // Navigate to onboarding when VM signals readiness
-  useEffect(() => {
-    if (vm.pendingOnboarding) {
-      navigation.navigate('OnboardingWelcome', { data: vm.pendingOnboarding });
-      vm.clearPendingOnboarding();
-    }
-  }, [vm.pendingOnboarding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const logoStyle = {
     opacity: logoAnim,

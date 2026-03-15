@@ -20,14 +20,16 @@ import type { MomentPhoto } from '../types';
 // Stack param types
 // ---------------------------------------------------------------------------
 
-import type { OnboardingData } from '../screens/Onboarding/types';
-
 export type AuthStackParamList = {
   Login: undefined;
-  OnboardingWelcome:    { data: OnboardingData };
-  OnboardingCouple:     { data: OnboardingData };
-  OnboardingAnniversary:{ data: OnboardingData };
-  OnboardingAvatar:     { data: OnboardingData };
+};
+
+export type OnboardingStackParamList = {
+  OnboardingCouple: undefined;
+  OnboardingAnniversary: { coupleId: string };
+  OnboardingInvite: { coupleId: string; anniversaryDate?: string };
+  OnboardingCelebration: { coupleId: string; partnerName?: string };
+  OnboardingAvatar: { coupleId: string; anniversaryDate?: string };
 };
 
 /** Root stack for authenticated users — 5-tab MainTabs + full-screen stacks */
@@ -114,6 +116,7 @@ export type LettersStackParamList = {
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
@@ -129,20 +132,31 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 // Auth stack (unauthenticated)
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
 import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
 import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
 import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
+import OnboardingInviteScreen from '../screens/Onboarding/OnboardingInviteScreen';
+import OnboardingCelebrationScreen from '../screens/Onboarding/OnboardingCelebrationScreen';
 
 function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
-      <AuthStack.Screen name="OnboardingWelcome" component={OnboardingWelcomeScreen} />
-      <AuthStack.Screen name="OnboardingCouple" component={OnboardingCoupleScreen} />
-      <AuthStack.Screen name="OnboardingAnniversary" component={OnboardingAnniversaryScreen} />
-      <AuthStack.Screen name="OnboardingAvatar" component={OnboardingAvatarScreen} />
     </AuthStack.Navigator>
+  );
+}
+
+function OnboardingNavigator() {
+  return (
+    <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+      <OnboardingStack.Screen name="OnboardingCouple" component={OnboardingCoupleScreen} />
+      <OnboardingStack.Screen name="OnboardingAnniversary" component={OnboardingAnniversaryScreen} />
+      <OnboardingStack.Screen name="OnboardingInvite" component={OnboardingInviteScreen} />
+      <OnboardingStack.Screen name="OnboardingCelebration" component={OnboardingCelebrationScreen} />
+      <OnboardingStack.Screen name="OnboardingAvatar" component={OnboardingAvatarScreen} />
+    </OnboardingStack.Navigator>
   );
 }
 
@@ -449,7 +463,7 @@ function AppNavigator() {
 // ---------------------------------------------------------------------------
 
 export default function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -464,7 +478,11 @@ export default function RootNavigator() {
     <NavigationContainer theme={AppTheme as any}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
-        {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+        {!isAuthenticated
+          ? <AuthNavigator />
+          : !user?.coupleId
+            ? <OnboardingNavigator />
+            : <AppNavigator />}
         {/* Global overlays — inside NavigationContainer for useAppColors() access */}
         {isAuthenticated ? <LetterOverlay /> : null}
         <LoadingOverlay />

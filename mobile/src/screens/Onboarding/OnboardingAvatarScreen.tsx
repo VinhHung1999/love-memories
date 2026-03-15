@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { AuthStackParamList } from '../../navigation/index';
+import type { OnboardingStackParamList } from '../../navigation/index';
 import { Camera, ChevronLeft, Heart, Sparkles } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Animated, {
@@ -161,11 +161,10 @@ function CompletionOverlay() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingAvatarScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const route = useRoute<RouteProp<AuthStackParamList, 'OnboardingAvatar'>>();
-  const { data } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
+  const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingAvatar'>>();
 
-  const { beginEmailOnboarding, beginGoogleOnboarding, completeOnboarding } = useAuth();
+  const { updateUser } = useAuth();
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarMime, setAvatarMime] = useState('image/jpeg');
   const [loading, setLoading] = useState(false);
@@ -184,36 +183,20 @@ export default function OnboardingAvatarScreen() {
   const handleFinish = async () => {
     setLoading(true);
     try {
-      let user;
-      const coupleOpts = {
-        coupleName: data.coupleMode === 'create' ? data.coupleName : undefined,
-        inviteCode: data.coupleMode === 'join' ? data.inviteCode : undefined,
-      };
-
-      if (data.googleIdToken) {
-        user = await beginGoogleOnboarding(data.googleIdToken, coupleOpts);
-      } else if (data.email && data.password && data.userName) {
-        user = await beginEmailOnboarding(data.email, data.password, data.userName, coupleOpts);
-      } else {
-        throw new Error('Missing credentials');
-      }
-
-      // Run anniversary + avatar uploads concurrently (tokens are now stored)
+      const data = route.params;
       await Promise.all([
         data.anniversaryDate
           ? coupleApi.update({ anniversaryDate: data.anniversaryDate })
           : Promise.resolve(),
         avatarUri
-          ? profileApi.uploadAvatar(avatarUri, avatarMime).then(updatedUser => {
-              user = { ...user!, avatar: updatedUser.avatar };
-            })
+          ? profileApi.uploadAvatar(avatarUri, avatarMime)
           : Promise.resolve(),
       ]);
 
-      // Show completion animation, then set user → MainTabs auto-switches
+      // Show completion animation, then update coupleId → AppNavigator auto-switches
       setShowCompletion(true);
       setTimeout(() => {
-        completeOnboarding(user!);
+        updateUser({ coupleId: route.params.coupleId });
       }, 1800);
     } catch (err) {
       setLoading(false);

@@ -4,8 +4,8 @@ import { Body, Heading } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
-import type { AuthStackParamList } from '../../navigation/index';
+import type { RouteProp } from '@react-navigation/native'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import type { OnboardingStackParamList } from '../../navigation/index';
 import { Heart } from 'lucide-react-native';
 import Animated, {
   Easing,
@@ -155,9 +155,9 @@ function PulsingHeart() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingWelcomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const route = useRoute<RouteProp<AuthStackParamList, 'OnboardingWelcome'>>();
-  const { data } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingCouple'>>();
 
   const btnScale = useSharedValue(0.8);
   const btnOpacity = useSharedValue(0);
@@ -174,7 +174,7 @@ export default function OnboardingWelcomeScreen() {
   }));
 
   const handleStart = () => {
-    navigation.navigate('OnboardingCouple', { data });
+    navigation.navigate('OnboardingCouple');
   };
 
   return (
@@ -220,11 +220,6 @@ export default function OnboardingWelcomeScreen() {
           <Body size="md" className="text-textMid text-center" style={{ lineHeight: 22 }}>
             {t.onboarding.welcome.subtitle}
           </Body>
-          {data.googleProfile?.name ? (
-            <Body size="sm" className="text-primary mt-3 font-semibold">
-              Welcome, {data.googleProfile.name}! 👋
-            </Body>
-          ) : null}
         </Animated.View>
 
         {/* CTA button */}

@@ -25,8 +25,8 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   updateUser: (updates: Partial<AuthUser>) => void;
   // Onboarding: register/googleComplete WITHOUT setUser — caller does extra APIs then calls completeOnboarding
-  beginEmailOnboarding: (email: string, password: string, name: string, opts?: { inviteCode?: string; coupleName?: string }) => Promise<AuthUser>;
-  beginGoogleOnboarding: (idToken: string, opts: { inviteCode?: string; coupleName?: string }) => Promise<AuthUser>;
+  beginEmailOnboarding: (email: string, password: string, name: string) => Promise<AuthUser>;
+  beginGoogleOnboarding: (idToken: string) => Promise<AuthUser>;
   completeOnboarding: (user: AuthUser) => void;
 }
 
@@ -127,8 +127,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const beginEmailOnboarding = useCallback(
-    async (email: string, password: string, name: string, opts?: { inviteCode?: string; coupleName?: string }) => {
-      const data = await authApi.register(email, password, name, opts);
+    async (email: string, password: string, name: string) => {
+      const data = await authApi.register(email, password, name);
       await storeTokens(data.accessToken || data.token, data.refreshToken);
       return data.user as AuthUser;
     },
@@ -136,8 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const beginGoogleOnboarding = useCallback(
-    async (idToken: string, opts: { inviteCode?: string; coupleName?: string }) => {
-      const data = await authApi.googleComplete(idToken, opts);
+    async (idToken: string) => {
+      const data = await authApi.googleComplete(idToken, {});
       await storeTokens(data.accessToken || data.token, data.refreshToken);
       return data.user as AuthUser;
     },

@@ -201,6 +201,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name, ...opts }),
     });
+    await throwIfRateLimited(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
     return data;
@@ -281,6 +282,28 @@ export const coupleApi = {
     const res = await apiFetch('/api/couple/generate-invite', { method: 'POST' });
     if (!res.ok) throw new Error('Failed to generate invite');
     return res.json();
+  },
+
+  create: async (name: string): Promise<AuthResponse> => {
+    const res = await apiFetch('/api/couple', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+    await throwIfRateLimited(res);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create couple');
+    return data;
+  },
+
+  join: async (inviteCode: string): Promise<AuthResponse & { partnerName?: string }> => {
+    const res = await apiFetch('/api/couple/join', {
+      method: 'POST',
+      body: JSON.stringify({ inviteCode }),
+    });
+    await throwIfRateLimited(res);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Invalid invite code');
+    return data;
   },
 };
 

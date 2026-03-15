@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StatusBar, View } from 'react-native';
 import { Body, Caption, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RouteProp } from '@react-navigation/native';
-import type { AuthStackParamList } from '../../navigation/index';
-import { ChevronLeft, Heart, Link } from 'lucide-react-native';
+import type { OnboardingStackParamList } from '../../navigation/index';
+import { Heart, Link } from 'lucide-react-native';
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -16,6 +15,7 @@ import Animated, {
 import Input from '../../components/Input';
 import SpringPressable from '../../components/SpringPressable';
 import ErrorBox from '../../components/ErrorBox';
+import { coupleApi, storeTokens } from '../../lib/api';
 import t from '../../locales/en';
 
 type CoupleMode = 'create' | 'join';
@@ -104,29 +104,37 @@ function OptionCard({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingCoupleScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const route = useRoute<RouteProp<AuthStackParamList, 'OnboardingCouple'>>();
-  const { data } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
 
   const [coupleMode, setCoupleMode] = useState<CoupleMode | null>(null);
   const [coupleName, setCoupleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setError('');
     if (!coupleMode) { setError(t.onboarding.couple.errors.coupleModeRequired); return; }
     if (coupleMode === 'create' && !coupleName.trim()) { setError(t.onboarding.couple.errors.coupleNameRequired); return; }
     if (coupleMode === 'join' && !inviteCode.trim()) { setError(t.onboarding.couple.errors.inviteCodeRequired); return; }
 
-    navigation.navigate('OnboardingAnniversary', {
-      data: {
-        ...data,
-        coupleMode,
-        coupleName: coupleMode === 'create' ? coupleName.trim() : undefined,
-        inviteCode: coupleMode === 'join' ? inviteCode.trim() : undefined,
-      },
-    });
+    setLoading(true);
+    try {
+      if (coupleMode === 'create') {
+        const result = await coupleApi.create(coupleName.trim());
+        await storeTokens(result.accessToken || result.token, result.refreshToken);
+        navigation.navigate('OnboardingAnniversary', { coupleId: result.user.coupleId! });
+      } else {
+        const result = await coupleApi.join(inviteCode.trim());
+        await storeTokens(result.accessToken || result.token, result.refreshToken);
+        navigation.navigate('OnboardingCelebration', { coupleId: result.user.coupleId!, partnerName: result.partnerName });
+      }
+    } catch (err) {
+      const e = err as Error;
+      setError(e.message || t.onboarding.couple.errors.failed);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -143,15 +151,10 @@ export default function OnboardingCoupleScreen() {
         contentContainerStyle={{ flexGrow: 1 }}>
         <View className="flex-1 px-6 pt-16 pb-10">
 
-          {/* Back + dots */}
+          {/* dots (no back button — first screen of OnboardingNavigator) */}
           <Animated.View entering={FadeInDown.delay(50).duration(300)} className="flex-row items-center justify-between mb-8">
-            <Pressable
-              onPress={() => navigation.goBack()}
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: '#E8788A15' }}>
-              <ChevronLeft size={20} color="#E8788A" strokeWidth={2} />
-            </Pressable>
-            <ProgressDots step={1} total={4} />
+            <View className="w-10" />
+            <ProgressDots step={0} total={4} />
             <View className="w-10" />
           </Animated.View>
 
@@ -210,8 +213,9 @@ export default function OnboardingCoupleScreen() {
           <Animated.View entering={FadeInDown.delay(350).duration(400)}>
             <SpringPressable
               onPress={handleContinue}
+              disabled={loading}
               className="w-full h-14 rounded-2xl items-center justify-center"
-              style={{ backgroundColor: '#E8788A' }}>
+              style={{ backgroundColor: loading ? '#E8788A80' : '#E8788A' }}>
               <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
                 {t.onboarding.couple.continueBtn}  →
               </Body>

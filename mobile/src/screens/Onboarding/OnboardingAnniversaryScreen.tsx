@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { AuthStackParamList } from '../../navigation/index';
+import type { OnboardingStackParamList } from '../../navigation/index';
 import { ChevronLeft, Heart } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -31,9 +31,9 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
 }
 
 export default function OnboardingAnniversaryScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const route = useRoute<RouteProp<AuthStackParamList, 'OnboardingAnniversary'>>();
-  const { data } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
+  const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingAnniversary'>>();
+  const { coupleId } = route.params;
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
@@ -42,12 +42,13 @@ export default function OnboardingAnniversaryScreen() {
   };
 
   const handleSkip = () => {
-    navigation.navigate('OnboardingAvatar', { data });
+    navigation.navigate('OnboardingInvite', { coupleId });
   };
 
   const handleConfirm = () => {
-    navigation.navigate('OnboardingAvatar', {
-      data: { ...data, anniversaryDate: selectedDate.toISOString() },
+    navigation.navigate('OnboardingInvite', {
+      coupleId,
+      anniversaryDate: selectedDate.toISOString(),
     });
   };
 
@@ -69,7 +70,7 @@ export default function OnboardingAnniversaryScreen() {
             style={{ backgroundColor: '#E8788A15' }}>
             <ChevronLeft size={20} color="#E8788A" strokeWidth={2} />
           </Pressable>
-          <ProgressDots step={2} total={4} />
+          <ProgressDots step={1} total={4} />
           <View className="w-10" />
         </Animated.View>
 

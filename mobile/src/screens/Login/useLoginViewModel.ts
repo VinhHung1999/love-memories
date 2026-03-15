@@ -5,7 +5,6 @@ import {
 } from '@react-native-google-signin/google-signin';
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
-import type { OnboardingData } from '../Onboarding/types';
 import t from '../../locales/en';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,12 +54,9 @@ function reducer(state: LoginState, action: LoginAction): LoginState {
 
 // ── ViewModel ──────────────────────────────────────────────────────────────────
 export function useLoginViewModel() {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, beginEmailOnboarding, completeOnboarding, beginGoogleOnboarding } = useAuth();
   const { showLoading, hideLoading, isLoading } = useLoading();
   const [s, dispatch] = useReducer(reducer, initialState);
-
-  // Pending onboarding data — set to navigate to wizard
-  const [pendingOnboarding, setPendingOnboarding] = useState<OnboardingData | null>(null);
 
   // ── Rate-limit countdown ──────────────────────────────────────────────────
   const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
@@ -107,8 +103,21 @@ export function useLoginViewModel() {
       if (s.password.length < MIN_PASSWORD_LENGTH) { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordTooShort }); return; }
       if (s.confirmPassword !== s.password)        { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordMismatch }); return; }
       if (!s.name.trim())                          { dispatch({ type: 'SET_ERROR', message: t.login.errors.nameRequired }); return; }
-      // Navigate to onboarding wizard instead of calling register directly
-      setPendingOnboarding({ email: s.email.trim(), password: s.password, userName: s.name.trim() });
+      // Register immediately, then navigation auto-redirects to OnboardingNavigator (coupleId=null)
+      showLoading();
+      try {
+        const regUser = await beginEmailOnboarding(s.email.trim(), s.password, s.name.trim());
+        completeOnboarding(regUser);
+      } catch (err) {
+        const e = err as Error & { status?: number; retryAfterSeconds?: number };
+        if (e.status === 429 || e.retryAfterSeconds) {
+          startRetryCountdown(e.retryAfterSeconds ?? 60);
+        } else {
+          dispatch({ type: 'SET_ERROR', message: e.message || t.login.errors.somethingWrong });
+        }
+      } finally {
+        hideLoading();
+      }
       return;
     }
 
@@ -138,8 +147,8 @@ export function useLoginViewModel() {
       showLoading();
       const result = await loginWithGoogle(idToken);
       if (result?.needsCouple) {
-        // Navigate to onboarding wizard
-        setPendingOnboarding({ googleIdToken: idToken, googleProfile: result.googleProfile });
+        const regUser = await beginGoogleOnboarding(idToken);
+        completeOnboarding(regUser);
       }
     } catch (err: unknown) {
       const e = err as { code?: string; status?: number; retryAfterSeconds?: number; message?: string };
@@ -159,8 +168,6 @@ export function useLoginViewModel() {
     ...s,
     loading: isLoading,
     isRateLimited: retrySeconds !== null,
-    pendingOnboarding,
-    clearPendingOnboarding: () => setPendingOnboarding(null),
 
     setEmail:           (v: string) => dispatch({ type: 'SET_EMAIL',            value: v }),
     setPassword:        (v: string) => dispatch({ type: 'SET_PASSWORD',         value: v }),
