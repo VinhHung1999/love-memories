@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import RNFS from 'react-native-fs';
 import { Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -134,11 +135,14 @@ export default function PhotoGalleryScreen() {
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
       }
-      const currentPhoto = photos[currentIndex];
-      await CameraRoll.saveAsset(currentPhoto.url, { type: 'photo' });
+      const url = photos[currentIndex].url;
+      const tmpPath = `${RNFS.TemporaryDirectoryPath}/photo_${Date.now()}.jpg`;
+      await RNFS.downloadFile({ fromUrl: url, toFile: tmpPath }).promise;
+      await CameraRoll.saveAsset(`file://${tmpPath}`, { type: 'photo' });
+      await RNFS.unlink(tmpPath).catch(() => {});
       Alert.alert('Saved', 'Photo saved to your library.');
     } catch {
-      Alert.alert('Error', 'Could not save photo.');
+      Alert.alert('Error', 'Could not save photo. Please try again.');
     }
   }, [currentIndex, photos]);
 
