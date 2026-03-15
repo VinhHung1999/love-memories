@@ -164,7 +164,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
     if (s.spotifyUrl && !SPOTIFY_REGEX.test(s.spotifyUrl.trim()))
       return t('moments.errors.spotifyInvalid');
     return null;
-  }, [s.title, s.spotifyUrl]);
+  }, [s.title, s.spotifyUrl, t]);
 
   // ── Save mutation ───────────────────────────────────────────────────────────
   const saveMutation = useMutation({

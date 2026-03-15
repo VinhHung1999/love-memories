@@ -21,7 +21,6 @@ import Skeleton from '../../components/Skeleton';
 
 const PHASES = ['shopping', 'cooking', 'photo', 'completed'] as const;
 const PHASE_ICONS: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>[] = [ShoppingCart, ChefHat, Camera, CheckCircle];
-  const { t } = useTranslation();
 
 function PhaseBar({ status }: { status: string }) {
   const colors = useAppColors();

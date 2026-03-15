@@ -110,6 +110,12 @@ const vi: LocaleStrings = {
       slogan: 'Khẩu hiệu của cặp đôi bạn...',
     },
 
+    language: {
+      title: '🌐 Ngôn ngữ',
+      english: 'English',
+      vietnamese: 'Tiếng Việt',
+    },
+
     deleteAccount: {
       title: 'Xóa tài khoản',
       subtitle: 'Hành động này không thể hoàn tác',

@@ -7,6 +7,7 @@ import {
 import { Body, Caption } from '../../components/Typography';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { CalendarHeart, Check, CheckCircle, Copy, Heart, Pencil, Plus, QrCode, RefreshCw } from 'lucide-react-native';
+import type { AppLanguage } from '../../lib/i18n';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAuth } from '../../lib/auth';
@@ -48,6 +49,43 @@ function InfoRow({
   );
   if (onPress) return <Pressable onPress={onPress}>{inner}</Pressable>;
   return inner;
+}
+
+// ── Language option row ───────────────────────────────────────────────────────
+function LanguageOption({
+  lang,
+  label,
+  flag,
+  isSelected,
+  onPress,
+  isLast,
+}: {
+  lang: AppLanguage;
+  label: string;
+  flag: string;
+  isSelected: boolean;
+  onPress: (lang: AppLanguage) => void;
+  isLast?: boolean;
+}) {
+  const colors = useAppColors();
+  return (
+    <Pressable
+      onPress={() => onPress(lang)}
+      className="flex-row items-center justify-between py-[14px]"
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '80' }}>
+      <View className="flex-row items-center gap-3">
+        <Body size="lg">{flag}</Body>
+        <Body size="md" className="text-textDark dark:text-darkTextDark font-medium">{label}</Body>
+      </View>
+      {isSelected && (
+        <View
+          className="w-6 h-6 rounded-full items-center justify-center"
+          style={{ backgroundColor: colors.primary }}>
+          <Check size={13} color="#fff" strokeWidth={2.5} />
+        </View>
+      )}
+    </Pressable>
+  );
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
@@ -269,6 +307,26 @@ export default function ProfileScreen() {
               <Body size="sm" className="flex-1" style={{ color: colors.textDark }}>{t('legal.termsOfService')}</Body>
               <Body size="sm" style={{ color: colors.textLight }}>›</Body>
             </Pressable>
+          </Card>
+
+          {/* ── Language ── */}
+          <Card>
+            <CardTitle>{t('profile.language.title')}</CardTitle>
+            <LanguageOption
+              lang="en"
+              label={t('profile.language.english')}
+              flag="🇬🇧"
+              isSelected={vm.currentLanguage === 'en'}
+              onPress={vm.handleSetLanguage}
+            />
+            <LanguageOption
+              lang="vi"
+              label={t('profile.language.vietnamese')}
+              flag="🇻🇳"
+              isSelected={vm.currentLanguage === 'vi'}
+              onPress={vm.handleSetLanguage}
+              isLast
+            />
           </Card>
 
           {/* ── Log Out ── */}

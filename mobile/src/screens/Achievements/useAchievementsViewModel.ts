@@ -37,7 +37,7 @@ export function useAchievementsViewModel() {
     }));
     const unlockedCount = achievements.filter(a => a.unlocked).length;
     return { groups, unlockedCount, totalCount: achievements.length };
-  }, [achievements]);
+  }, [achievements, t]);
 
   return {
     isLoading,

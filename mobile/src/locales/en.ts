@@ -110,6 +110,12 @@ const en = {
       slogan: "Your couple's motto...",
     },
 
+    language: {
+      title: '🌐 Language',
+      english: 'English',
+      vietnamese: 'Tiếng Việt',
+    },
+
     deleteAccount: {
       title: 'Delete Account',
       subtitle: 'This action cannot be undone',

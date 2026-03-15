@@ -155,7 +155,7 @@ export function useCreateRecipeViewModel({ recipe: initialRecipe, onClose }: Pro
   const validate = useCallback((): string | null => {
     if (!s.title.trim()) return t('recipes.errors.titleRequired');
     return null;
-  }, [s.title]);
+  }, [s.title, t]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {

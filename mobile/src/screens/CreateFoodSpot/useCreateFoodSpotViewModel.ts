@@ -124,7 +124,7 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
   const validate = useCallback((): string | null => {
     if (!s.name.trim()) return t('foodSpots.errors.nameRequired');
     return null;
-  }, [s.name]);
+  }, [s.name, t]);
 
   // ── Save mutation ───────────────────────────────────────────────────────────
   const saveMutation = useMutation({

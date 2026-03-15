@@ -134,7 +134,7 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
       setIsSaving(false);
       setIsSending(false);
     }
-  }, [draftId, title, content, mood, isValid, scheduleMode, scheduledAt, pendingPhotos, recordedAudioPath, queryClient, onClose, startUpload, incrementUpload]);
+  }, [draftId, title, content, mood, isValid, scheduleMode, scheduledAt, pendingPhotos, recordedAudioPath, queryClient, onClose, startUpload, incrementUpload, t]);
 
   const saveDraft = useCallback(() => executeFlow(false), [executeFlow]);
   const sendNow = useCallback(() => executeFlow(true), [executeFlow]);

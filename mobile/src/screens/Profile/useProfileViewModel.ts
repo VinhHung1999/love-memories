@@ -12,8 +12,19 @@ import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { coupleApi, profileApi, settingsApi } from '../../lib/api';
 import { useTranslation } from 'react-i18next';
+import { setAppLanguage, type AppLanguage } from '../../lib/i18n';
+import i18n from '../../lib/i18n';
+
 export function useProfileViewModel() {
   const { t } = useTranslation();
+  const [currentLanguage, setCurrentLanguage] = useState<AppLanguage>(
+    (i18n.language === 'vi' ? 'vi' : 'en') as AppLanguage,
+  );
+
+  const handleSetLanguage = async (lang: AppLanguage) => {
+    setCurrentLanguage(lang);
+    await setAppLanguage(lang);
+  };
   const { user, logout, updateUser, linkGoogle } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const { startUpload, incrementUpload } = useUploadProgress();
@@ -150,6 +161,10 @@ export function useProfileViewModel() {
     isInviteGenerating: inviteMutation.isPending,
     generateInvite: () => inviteMutation.mutate(),
     copyInviteCode,
+
+    // language
+    currentLanguage,
+    handleSetLanguage,
 
     // actions
     handleUploadAvatar,

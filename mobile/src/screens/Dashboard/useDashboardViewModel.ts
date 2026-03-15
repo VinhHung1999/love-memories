@@ -210,7 +210,7 @@ export function useDashboardViewModel() {
     if (!code) return;
     const message = t('dashboard.noPartnerBanner.shareMessage').replace('{code}', code);
     await Share.share({ message }).catch(() => {});
-  }, [couple?.inviteCode]);
+  }, [couple?.inviteCode, t]);
 
   const handleSetAnniversary = useCallback(async (date: Date) => {
     await coupleApi.update({ anniversaryDate: date.toISOString().slice(0, 10) });
@@ -244,7 +244,7 @@ export function useDashboardViewModel() {
     // MVP-HIDDEN: v1.1 — { icon: CalendarHeart, label: t('dashboard.quickActions.datePlanner'), onPress: navigateToDatePlanner }
     // MVP-HIDDEN: v1.1 — { icon: Trophy, label: t('dashboard.quickActions.achievements'), onPress: navigateToAchievements }
     // MVP-HIDDEN: v1.1 — { icon: Map, label: t('dashboard.quickActions.map'), onPress: navigateToMap }
-  ], [colors, navigateTo, navigateToLetters]);
+  ], [colors, navigateTo, navigateToLetters, t]);
 
   // ── Return ─────────────────────────────────────────────────────────────────
 
