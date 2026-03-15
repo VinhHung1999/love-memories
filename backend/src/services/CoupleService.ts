@@ -61,13 +61,14 @@ export async function createCouple(userId: string, name: string) {
   if (!user) throw new AppError(404, 'User not found');
   if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
 
-  const couple = await prisma.couple.create({ data: { name: name.trim() } });
+  const inviteCode = crypto.randomBytes(4).toString('hex');
+  const couple = await prisma.couple.create({ data: { name: name.trim(), inviteCode } });
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { coupleId: couple.id },
     select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
   });
-  return updated;
+  return { ...updated, inviteCode: couple.inviteCode };
 }
 
 export async function joinCouple(userId: string, inviteCode: string) {

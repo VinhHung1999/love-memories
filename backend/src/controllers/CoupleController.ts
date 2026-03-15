@@ -39,10 +39,10 @@ export const validateInvite = asyncHandler(async (req: AuthRequest, res: Respons
 
 export const createCouple = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { name } = req.body;
-  const user = await CoupleService.createCouple(req.user!.userId, name);
+  const { inviteCode, ...user } = await CoupleService.createCouple(req.user!.userId, name);
   const accessToken = generateAccessToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  res.status(201).json(buildAuthResponse(user, accessToken, refreshToken));
+  res.status(201).json({ ...buildAuthResponse(user, accessToken, refreshToken), inviteCode });
 });
 
 export const joinCouple = asyncHandler(async (req: AuthRequest, res: Response) => {
