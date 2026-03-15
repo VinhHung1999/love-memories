@@ -203,7 +203,7 @@ export default function MomentDetailScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="mx-4 mt-4 mb-1"
+            className="mx-4 mt-4"
             contentContainerStyle={{ gap: 8 }}>
             {moment.photos.map((photo, idx) => (
               <Pressable
@@ -226,7 +226,7 @@ export default function MomentDetailScreen() {
         ) : null}
 
         {/* ── Content section ── */}
-        <View className="mx-4 mt-5 mb-2">
+        <View className="mx-4 mt-3 mb-2">
 
           {/* Meta: date */}
           <Caption className="text-textLight mb-2">
