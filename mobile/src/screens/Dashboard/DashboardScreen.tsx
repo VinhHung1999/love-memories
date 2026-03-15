@@ -26,6 +26,8 @@ import { RelationshipTimer } from './components/RelationshipTimer';
 import OverlayHeader from '@/components/OverlayHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRequestNotificationPermission } from '../../hooks/useRequestNotificationPermission';
+import { useDashboardTour } from './useDashboardTour';
+import DashboardTourOverlay from './components/DashboardTourOverlay';
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -33,6 +35,7 @@ export default function DashboardScreen() {
   useRequestNotificationPermission();
   const vm = useDashboardViewModel();
   const colors = useAppColors();
+  const tour = useDashboardTour();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => {
     scrollY.value = e.contentOffset.y;
@@ -200,6 +203,13 @@ export default function DashboardScreen() {
           return <NotificationBell onPress={vm.navigateToNotifications} />;
         }}
       />
+      {tour.tourStep !== null && (
+        <DashboardTourOverlay
+          step={tour.tourStep}
+          onAdvance={tour.advanceTour}
+          onDismiss={tour.dismissTour}
+        />
+      )}
     </>
   );
 }
