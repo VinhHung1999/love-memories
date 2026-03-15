@@ -7,7 +7,7 @@ import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
 import { coupleApi } from '../../lib/api';
-import { getPendingInviteCode } from '../../lib/pendingInvite';
+import { clearPendingInviteCode, getPendingInviteCode } from '../../lib/pendingInvite';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -76,7 +76,10 @@ export function useLoginViewModel() {
     }).catch(() => {});
   }, []);
 
-  const dismissInviteBanner = () => setInviteBanner(null);
+  const dismissInviteBanner = () => {
+    clearPendingInviteCode();
+    setInviteBanner(null);
+  };
 
   // ── Rate-limit countdown ──────────────────────────────────────────────────
   const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
