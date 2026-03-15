@@ -31,12 +31,13 @@ const { width: W } = Dimensions.get('window');
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
-const TAB_HEIGHT = 68;     // height of the visible tab items area
+const TAB_H = 80;          // height of the visible tab items area
 const CAMERA_SIZE = 64;    // diameter of floating camera button
-const FLOAT_OFFSET = 28;   // camera button `top` offset above bar (button center = +4px into bar)
-const NOTCH_DEPTH = 30;    // how deep the concave notch dips from the top edge
-const NOTCH_R = 40;        // horizontal half-width of notch
-const CURVE_W = 22;        // horizontal extent of bezier transition into notch
+// Notch geometry — tuned to fully seat the 64px camera button
+const NOTCH_W = 56;        // horizontal half-width of notch (full = 112px, button + 24px each side)
+const NOTCH_D = 36;        // notch floor depth from top edge
+const NOTCH_BOTTOM = NOTCH_D + 8; // actual lowest point of curve (44px)
+const CURVE_T = 16;        // horizontal extent of bezier transition shoulder
 
 const cx = W / 2; // center x = notch center
 
@@ -47,25 +48,28 @@ const INACTIVE_COLOR = '#A898AD';
 const BAR_FILL = '#FFFAFA';
 
 // ── SVG Path Builder ─────────────────────────────────────────────────────────
-// Draws the tab bar shape: flat top edge with concave notch at center,
-// rectangular bottom. Height is dynamic to include safe area padding.
+// Draws the tab bar shape: flat top edge with deep concave notch at center,
+// rectangular bottom. Uses cubic bezier curves for a smooth, natural shape
+// that fully seats the 64px floating camera button.
+// Height is dynamic to include safe area padding.
 
 function buildNotchPath(height: number): string {
-  const L = cx - NOTCH_R;
-  const R = cx + NOTCH_R;
+  const L = cx - NOTCH_W;
+  const R = cx + NOTCH_W;
   return [
-    `M 0,0`,
-    `L ${L - CURVE_W},0`,
-    // Left curve into notch — quadratic bezier
-    `Q ${L},0 ${L},${NOTCH_DEPTH / 2}`,
-    // Notch floor then right curve out — quadratic bezier
-    `Q ${cx},${NOTCH_DEPTH} ${R},${NOTCH_DEPTH / 2}`,
-    // Right curve back to flat — quadratic bezier
-    `Q ${R + CURVE_W},0 ${R + CURVE_W},0`,
-    `L ${W},0`,
-    `L ${W},${height}`,
-    `L 0,${height}`,
-    `Z`,
+    'M0,0',
+    // Flat left side up to notch shoulder
+    `L${L - CURVE_T},0`,
+    // Cubic bezier — left shoulder curving down into notch floor
+    `C${L - CURVE_T},0 ${L},0 ${L},${NOTCH_D}`,
+    // Cubic bezier — notch floor curves down to the deepest point at center
+    `C${L},${NOTCH_D} ${cx},${NOTCH_BOTTOM} ${cx},${NOTCH_BOTTOM}`,
+    // Cubic bezier — deepest point back up to right notch floor
+    `C${cx},${NOTCH_BOTTOM} ${R},${NOTCH_D} ${R},${NOTCH_D}`,
+    // Cubic bezier — right notch floor curves back up to flat
+    `C${R},0 ${R + CURVE_T},0 ${R + CURVE_T},0`,
+    // Flat right side
+    `L${W},0 L${W},${height} L0,${height} Z`,
   ].join(' ');
 }
 
@@ -115,16 +119,21 @@ function CameraFloatButton() {
     });
   };
 
+  // Position button so its center aligns with the notch top edge (y=0).
+  // Button top = -CAMERA_SIZE/2 = -32, button bottom = +32.
+  // With NOTCH_BOTTOM = 44, bottom of button stays 12px above notch floor —
+  // perfectly seated in the curve with notch edges visible on both sides.
   return (
     <Animated.View
       style={[
         {
           position: 'absolute',
-          top: -FLOAT_OFFSET,
+          top: -(CAMERA_SIZE / 2),
           left: (W - CAMERA_SIZE) / 2,
           width: CAMERA_SIZE,
           height: CAMERA_SIZE,
           borderRadius: CAMERA_SIZE / 2,
+          zIndex: 10,
           shadowColor: '#E8788A',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.4,
@@ -166,7 +175,7 @@ function CameraFloatButton() {
 export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 8);
-  const totalHeight = TAB_HEIGHT + bottomPad;
+  const totalHeight = TAB_H + bottomPad;
   const svgPath = buildNotchPath(totalHeight);
 
   return (
@@ -211,7 +220,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
       <View
         style={{
           flexDirection: 'row',
-          height: TAB_HEIGHT,
+          height: TAB_H,
           alignItems: 'center',
         }}>
         {TABS.map((tab, index) => {
@@ -258,7 +267,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
                 flex: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: NOTCH_DEPTH - 4,  // push items below the notch curve
+                paddingTop: NOTCH_D - 4,  // push items below the notch curve
                 gap: 3,
               }}>
               <Icon
