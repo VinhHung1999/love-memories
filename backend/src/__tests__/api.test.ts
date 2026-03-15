@@ -1525,6 +1525,54 @@ describe('Couple Profile', () => {
     const res = await request(app).get('/api/couple');
     expect(res.status).toBe(401);
   });
+
+  it('GET /api/couple/validate-invite returns valid=true for valid code with partnerName', async () => {
+    // Create a joinable couple with exactly 1 member
+    const joinable = await prisma.couple.create({ data: { name: 'Joinable Couple', inviteCode: 'JOINTEST' } });
+    await prisma.user.create({ data: { email: 'solo@test.com', password: 'x', name: 'Solo User', coupleId: joinable.id } });
+    const res = await request(app).get('/api/couple/validate-invite?code=JOINTEST').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(true);
+    expect(res.body.coupleName).toBe('Joinable Couple');
+    expect(res.body.partnerName).toBe('Solo User');
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: 'solo@test.com' } });
+    await prisma.couple.delete({ where: { id: joinable.id } });
+  });
+
+  it('GET /api/couple/validate-invite returns valid=false for unknown code', async () => {
+    const res = await request(app).get('/api/couple/validate-invite?code=BADCODE').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(false);
+    expect(res.body.error).toBe('Invalid invite code');
+  });
+
+  it('GET /api/couple/validate-invite returns valid=false for full couple', async () => {
+    const fullCouple = await prisma.couple.create({ data: { inviteCode: 'FULLTEST' } });
+    await prisma.user.createMany({
+      data: [
+        { email: 'full1@test.com', password: 'x', name: 'Full 1', coupleId: fullCouple.id },
+        { email: 'full2@test.com', password: 'x', name: 'Full 2', coupleId: fullCouple.id },
+      ],
+    });
+    const res = await request(app).get('/api/couple/validate-invite?code=FULLTEST').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(false);
+    expect(res.body.error).toBe('This couple is already full');
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: { in: ['full1@test.com', 'full2@test.com'] } } });
+    await prisma.couple.delete({ where: { id: fullCouple.id } });
+  });
+
+  it('GET /api/couple/validate-invite returns 400 without code param', async () => {
+    const res = await request(app).get('/api/couple/validate-invite').set(auth());
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/couple/validate-invite returns 401 without auth', async () => {
+    const res = await request(app).get('/api/couple/validate-invite?code=ANYCODE');
+    expect(res.status).toBe(401);
+  });
 });
 
 // ─── Share Links ─────────────────────────────────────────────────────────────

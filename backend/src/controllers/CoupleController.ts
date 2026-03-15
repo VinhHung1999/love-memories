@@ -21,6 +21,16 @@ export const generateInvite = asyncHandler(async (req: AuthRequest, res: Respons
   res.json(result);
 });
 
+export const validateInvite = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const code = req.query.code as string;
+  if (!code) {
+    res.status(400).json({ valid: false, error: 'Missing invite code' });
+    return;
+  }
+  const result = await CoupleService.validateInvite(code);
+  res.json(result);
+});
+
 export const createCouple = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { name } = req.body;
   const user = await CoupleService.createCouple(req.user!.userId, name);
