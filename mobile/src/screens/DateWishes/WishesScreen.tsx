@@ -28,7 +28,7 @@ export default function WishesScreen() {
   const vm = useWishesViewModel();
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1">
       <ListHeader
         title={t.datePlanner.wishesTitle}
         subtitle={t.datePlanner.wishesSubtitle}

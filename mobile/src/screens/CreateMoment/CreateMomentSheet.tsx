@@ -60,7 +60,7 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
           />
         </View>
 
-        <View className="h-[1px] bg-border/40 mx-5 mb-4" />
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
 
         {/* ── Details ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
@@ -103,7 +103,7 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
           />
         </View>
 
-        <View className="h-[1px] bg-border/40 mx-5 mb-4" />
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
 
         {/* ── Tags ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
@@ -119,7 +119,7 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
           />
         </View>
 
-        <View className="h-[1px] bg-border/40 mx-5 mb-4" />
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
 
         {/* ── Song + Voice Memo ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
