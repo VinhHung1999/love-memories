@@ -151,6 +151,37 @@ describe('Health', () => {
   });
 });
 
+describe('Well-Known', () => {
+  it('GET /.well-known/apple-app-site-association returns JSON with applinks', async () => {
+    const res = await request(app).get('/.well-known/apple-app-site-association');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/application\/json/);
+    expect(res.body).toHaveProperty('applinks');
+    expect(res.body.applinks).toHaveProperty('apps');
+    expect(res.body.applinks).toHaveProperty('details');
+    const detail = res.body.applinks.details[0];
+    expect(detail.appIDs).toEqual(expect.arrayContaining([expect.stringMatching(/^TEAMID\./)]) );
+    expect(detail.components).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ '/': '/share/*' }),
+        expect.objectContaining({ '/': '/invite/*' }),
+      ])
+    );
+  });
+
+  it('GET /.well-known/assetlinks.json returns JSON with android_app target', async () => {
+    const res = await request(app).get('/.well-known/assetlinks.json');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/application\/json/);
+    expect(Array.isArray(res.body)).toBe(true);
+    const entry = res.body[0];
+    expect(entry.relation).toEqual(['delegate_permission/common.handle_all_urls']);
+    expect(entry.target.namespace).toBe('android_app');
+    expect(entry.target).toHaveProperty('package_name');
+    expect(Array.isArray(entry.target.sha256_cert_fingerprints)).toBe(true);
+  });
+});
+
 describe('Auth', () => {
   it('POST /api/auth/register succeeds without coupleName or inviteCode (coupleId=null)', async () => {
     const res = await request(app).post('/api/auth/register').send({
