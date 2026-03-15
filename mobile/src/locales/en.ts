@@ -948,7 +948,7 @@ const en = {
     celebration: {
       title: "You're connected! 🎉",
       subtitle: 'You and {name} are now in the same space',
-      subtitleNoName: "You've successfully joined your partner",
+      subtitleNoName: 'You are now connected! 🎉',
       continueBtn: 'Continue',
     },
   },

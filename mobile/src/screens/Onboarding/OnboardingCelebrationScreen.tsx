@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StatusBar, View } from 'react-native';
-import { Body, Caption, Heading } from '../../components/Typography';
+import { Body, Heading } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -114,12 +114,9 @@ export default function OnboardingCelebrationScreen() {
 
         {/* Text */}
         <Animated.View entering={FadeInDown.delay(300).duration(400)} className="items-center gap-3 mb-12">
-          <Heading size="xl" className="text-textDark text-center" style={{ fontSize: 28, lineHeight: 36 }}>
-            {t.onboarding.celebration.title}
-          </Heading>
-          <Caption className="text-textMid text-center" style={{ lineHeight: 20 }}>
+          <Heading size="xl" className="text-textDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
             {subtitle}
-          </Caption>
+          </Heading>
         </Animated.View>
 
         {/* Continue button */}
