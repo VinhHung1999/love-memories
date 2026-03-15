@@ -40,7 +40,7 @@ const { width: W } = Dimensions.get('window');
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
 const TAB_H       = 60;              // visible tab bar height
-const CAMERA_SIZE = 60;              // floating camera button diameter
+export const CAMERA_SIZE = 60;              // floating camera button diameter
 const CUTOUT_R    = 36;              // arc radius (slightly > CAMERA_SIZE/2=32)
 // Total container: camera zone on top + tab bar below — everything in-bounds
 export const CONTAINER_H = TAB_H + CAMERA_SIZE;   // 120px — exported for scene padding
@@ -304,7 +304,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         ref={tabBarRefs.cameraButton}
         style={{
           position: 'absolute',
-          top: 0,
+          top: -5,
           left: W / 2 - CAMERA_SIZE / 2,
           zIndex: 100,
           elevation: 100,

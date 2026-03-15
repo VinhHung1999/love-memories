@@ -145,7 +145,7 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import CameraTabButton from '../components/CameraTabButton';
-import CurvedTabBar, { CONTAINER_H } from '../components/CurvedTabBar';
+import CurvedTabBar, { CAMERA_SIZE, CONTAINER_H } from '../components/CurvedTabBar';
 import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
 import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
 import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
@@ -349,7 +349,7 @@ function MainTabNavigator() {
     <MainTab.Navigator
       // CurvedTabBar handles all rendering — SVG notch + floating camera button
       tabBar={(props) => <CurvedTabBar {...props} />}
-      screenOptions={{ headerShown: false, sceneStyle: { paddingBottom: CONTAINER_H } }}>
+      screenOptions={{ headerShown: false, sceneStyle: { paddingBottom: CONTAINER_H -  CAMERA_SIZE / 2} }}>
       <MainTab.Screen name="Dashboard" component={DashboardNavigator} />
       <MainTab.Screen name="MomentsTab" component={MomentsNavigator} />
       {/* CameraTab: no component rendered — CurvedTabBar handles the floating button */}

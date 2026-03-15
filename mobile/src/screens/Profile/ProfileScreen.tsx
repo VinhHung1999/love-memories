@@ -88,7 +88,8 @@ export default function ProfileScreen() {
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={scrollHandler}
-        className="flex-1">
+        className="flex-1"
+        contentContainerStyle={{paddingBottom: 20}}>
 
         {/* ── Avatar + couple info section ── */}
         <View className="items-center pt-2 pb-4">
