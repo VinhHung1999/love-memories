@@ -27,7 +27,7 @@ export type AuthStackParamList = {
 export type OnboardingStackParamList = {
   OnboardingCouple: undefined;
   OnboardingAnniversary: { coupleName: string };
-  OnboardingInvite: { coupleName: string; anniversaryDate?: string };
+  OnboardingInvite: { coupleId: string; anniversaryDate?: string };
   OnboardingCelebration: { coupleId: string; partnerName?: string };
   OnboardingAvatar: { coupleName?: string; coupleId?: string; anniversaryDate?: string };
 };
@@ -161,9 +161,9 @@ function OnboardingNavigator() {
     <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
       <OnboardingStack.Screen name="OnboardingCouple" component={OnboardingCoupleScreen} />
       <OnboardingStack.Screen name="OnboardingAnniversary" component={OnboardingAnniversaryScreen} />
-      <OnboardingStack.Screen name="OnboardingInvite" component={OnboardingInviteScreen} />
       <OnboardingStack.Screen name="OnboardingCelebration" component={OnboardingCelebrationScreen} />
       <OnboardingStack.Screen name="OnboardingAvatar" component={OnboardingAvatarScreen} />
+      <OnboardingStack.Screen name="OnboardingInvite" component={OnboardingInviteScreen} />
     </OnboardingStack.Navigator>
   );
 }

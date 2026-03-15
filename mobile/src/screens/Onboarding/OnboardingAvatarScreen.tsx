@@ -209,11 +209,17 @@ export default function OnboardingAvatarScreen() {
           : Promise.resolve(),
       ]);
 
-      // Show completion animation, then set coupleId → AppNavigator auto-switches
-      setShowCompletion(true);
-      setTimeout(() => {
-        updateUser({ coupleId: finalCoupleId });
-      }, 1800);
+      if (data.coupleName) {
+        // Create flow → navigate to Invite screen with real coupleId
+        setLoading(false);
+        navigation.navigate('OnboardingInvite', { coupleId: finalCoupleId, anniversaryDate: data.anniversaryDate });
+      } else {
+        // Join flow → show completion animation, then enter app
+        setShowCompletion(true);
+        setTimeout(() => {
+          updateUser({ coupleId: finalCoupleId });
+        }, 1800);
+      }
     } catch (err) {
       setLoading(false);
       setAlert({
@@ -301,7 +307,11 @@ export default function OnboardingAvatarScreen() {
             className="w-full h-14 rounded-2xl items-center justify-center"
             style={{ backgroundColor: loading ? '#E8788A80' : '#E8788A' }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-              {loading ? t.onboarding.avatar.completing : t.onboarding.avatar.finishBtn}
+              {loading
+              ? t.onboarding.avatar.completing
+              : route.params?.coupleName
+                ? t.onboarding.avatar.createCoupleBtn
+                : t.onboarding.avatar.finishBtn}
             </Body>
           </SpringPressable>
 

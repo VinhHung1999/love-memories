@@ -42,11 +42,11 @@ export default function OnboardingAnniversaryScreen() {
   };
 
   const handleSkip = () => {
-    navigation.navigate('OnboardingInvite', { coupleName });
+    navigation.navigate('OnboardingAvatar', { coupleName });
   };
 
   const handleConfirm = () => {
-    navigation.navigate('OnboardingInvite', {
+    navigation.navigate('OnboardingAvatar', {
       coupleName,
       anniversaryDate: selectedDate.toISOString(),
     });
