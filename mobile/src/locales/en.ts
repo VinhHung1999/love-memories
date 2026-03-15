@@ -820,6 +820,8 @@ const en = {
     noHistorySubtitle: 'Answer today\'s question to get started',
     answered: 'Answered',
     bothAnswered: 'Both answered',
+    answerNow: 'Answer now',
+    noQuestion: 'No question today',
     categories: {
       general: 'General',
       deep: 'Deep',
