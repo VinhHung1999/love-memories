@@ -349,7 +349,7 @@ function MainTabNavigator() {
     <MainTab.Navigator
       // CurvedTabBar handles all rendering — SVG notch + floating camera button
       tabBar={(props) => <CurvedTabBar {...props} />}
-      screenOptions={{ headerShown: false, tabBarStyle: { height: CONTAINER_H } }}>
+      screenOptions={{ headerShown: false, sceneStyle: { paddingBottom: CONTAINER_H } }}>
       <MainTab.Screen name="Dashboard" component={DashboardNavigator} />
       <MainTab.Screen name="MomentsTab" component={MomentsNavigator} />
       {/* CameraTab: no component rendered — CurvedTabBar handles the floating button */}
