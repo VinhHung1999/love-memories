@@ -187,33 +187,29 @@ export default function OnboardingInviteScreen() {
   const { coupleId } = route.params;
 
   const { updateUser } = useAuth();
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [codeError, setCodeError] = useState(false);
+  // Single state object — 1 setState = 1 render, eliminates loading/code race
+  const [codeState, setCodeState] = useState<{ code: string | null; loading: boolean; error: boolean }>(
+    { code: null, loading: true, error: false },
+  );
   const [copied, setCopied] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
 
   const loadCode = async () => {
-    setLoading(true);
-    setCodeError(false);
+    setCodeState({ code: null, loading: true, error: false });
     try {
-      const { inviteCode: code } = await coupleApi.generateInvite();
-      setInviteCode(code);
-      setLoading(false);
-      return; // success — do NOT proceed to retry block
+      const { inviteCode } = await coupleApi.generateInvite();
+      setCodeState({ code: inviteCode, loading: false, error: false });
+      return;
     } catch {
-      // Attempt 1 failed — fall through to retry
+      // Attempt 1 failed — retry after 500ms
     }
-    // Only reached when attempt 1 threw
     await new Promise<void>(resolve => setTimeout(resolve, 500));
     try {
-      const { inviteCode: code } = await coupleApi.generateInvite();
-      setInviteCode(code);
+      const { inviteCode } = await coupleApi.generateInvite();
+      setCodeState({ code: inviteCode, loading: false, error: false });
     } catch {
-      setCodeError(true);
-    } finally {
-      setLoading(false);
+      setCodeState({ code: null, loading: false, error: true });
     }
   };
 
@@ -223,15 +219,15 @@ export default function OnboardingInviteScreen() {
   }, []);
 
   const handleCopy = () => {
-    if (!inviteCode) return;
-    Clipboard.setString(inviteCode);
+    if (!codeState.code) return;
+    Clipboard.setString(codeState.code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2200);
   };
 
   const handleShare = async () => {
-    if (!inviteCode) return;
-    const message = t.onboarding.invite.shareMessage.replace('{code}', inviteCode);
+    if (!codeState.code) return;
+    const message = t.onboarding.invite.shareMessage.replace('{code}', codeState.code);
     await Share.share({ message });
   };
 
@@ -277,7 +273,7 @@ export default function OnboardingInviteScreen() {
           {/* Invite code card — tap to copy */}
           <Pressable
             onPress={handleCopy}
-            disabled={!inviteCode}
+            disabled={!codeState.code}
             className="w-full"
             style={{ marginTop: 4 }}>
             <View
@@ -299,11 +295,11 @@ export default function OnboardingInviteScreen() {
                   {t.onboarding.invite.codeLabel}
                 </Caption>
 
-                {loading ? (
+                {codeState.loading ? (
                   <Body size="lg" style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 5 }}>
                     {t.onboarding.invite.generatingCode}
                   </Body>
-                ) : codeError ? (
+                ) : codeState.error ? (
                   <Pressable onPress={loadCode} style={{ alignItems: 'center', gap: 4 }}>
                     <Body size="sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
                       {t.onboarding.invite.errors.failedToGenerate}
@@ -317,7 +313,7 @@ export default function OnboardingInviteScreen() {
                     size="xl"
                     style={{ color: '#fff', fontSize: 34, letterSpacing: 10, fontVariant: ['tabular-nums'] }}
                     numberOfLines={1}>
-                    {inviteCode ?? '------'}
+                    {codeState.code!}
                   </Heading>
                 )}
 
@@ -349,9 +345,9 @@ export default function OnboardingInviteScreen() {
           {/* Primary — Share Invite Link */}
           <SpringPressable
             onPress={handleShare}
-            disabled={!inviteCode}
+            disabled={!codeState.code}
             className="w-full h-14 rounded-2xl flex-row items-center justify-center gap-2"
-            style={{ backgroundColor: inviteCode ? '#E8788A' : '#E8788A80' }}>
+            style={{ backgroundColor: codeState.code ? '#E8788A' : '#E8788A80' }}>
             <Send size={18} color="#fff" strokeWidth={1.8} />
             <Body size="lg" style={{ color: '#fff', fontWeight: '700', letterSpacing: 0.4 }}>
               {t.onboarding.invite.shareBtn}
