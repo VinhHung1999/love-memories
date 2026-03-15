@@ -20,8 +20,14 @@ import type { MomentPhoto } from '../types';
 // Stack param types
 // ---------------------------------------------------------------------------
 
+import type { OnboardingData } from '../screens/Onboarding/types';
+
 export type AuthStackParamList = {
   Login: undefined;
+  OnboardingWelcome:    { data: OnboardingData };
+  OnboardingCouple:     { data: OnboardingData };
+  OnboardingAnniversary:{ data: OnboardingData };
+  OnboardingAvatar:     { data: OnboardingData };
 };
 
 /** Root stack for authenticated users — 5-tab MainTabs + full-screen stacks */
@@ -123,10 +129,19 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 // Auth stack (unauthenticated)
 // ---------------------------------------------------------------------------
 
+import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
+import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
+import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
+import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
+
 function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="OnboardingWelcome" component={OnboardingWelcomeScreen} />
+      <AuthStack.Screen name="OnboardingCouple" component={OnboardingCoupleScreen} />
+      <AuthStack.Screen name="OnboardingAnniversary" component={OnboardingAnniversaryScreen} />
+      <AuthStack.Screen name="OnboardingAvatar" component={OnboardingAvatarScreen} />
     </AuthStack.Navigator>
   );
 }

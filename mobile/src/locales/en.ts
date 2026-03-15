@@ -881,6 +881,50 @@ const en = {
     termsOfService: 'Terms of Service',
   },
 
+  onboarding: {
+    welcome: {
+      title: 'Your love story\nbegins here',
+      subtitle: 'Capture moments, write letters,\ngrow together ♥',
+      cta: "Let's Start",
+    },
+    couple: {
+      title: 'How are you two\nconnected?',
+      createLabel: 'Create our couple',
+      createSubtitle: 'Start fresh together',
+      joinLabel: 'Join with invite code',
+      joinSubtitle: 'Partner already in the app?',
+      namePlaceholder: 'Couple name (e.g. Hung & Nhu)',
+      codePlaceholder: 'Invite code from your partner',
+      continueBtn: 'Continue',
+      errors: {
+        coupleModeRequired: 'Please choose an option',
+        coupleNameRequired: 'Please enter a couple name',
+        inviteCodeRequired: 'Please enter the invite code',
+      },
+    },
+    anniversary: {
+      title: 'When did you two\nbecome official?',
+      subtitle: 'We\'ll celebrate your anniversary every year ♥',
+      skipBtn: 'Skip for now',
+      confirmBtn: 'Set This Date',
+    },
+    avatar: {
+      title: 'Add your photo',
+      subtitle: 'Let your partner know it\'s you',
+      optional: 'Optional — you can skip this',
+      changePhoto: 'Change photo',
+      addPhoto: 'Add photo',
+      finishBtn: 'Finish',
+      skipBtn: 'Skip',
+      completing: 'Setting up your love story...',
+      doneTitle: "You're all set!",
+      doneSubtitle: 'Welcome to Love Memories ♥',
+      errors: {
+        setupFailed: 'Setup failed. Please try again.',
+      },
+    },
+  },
+
   common: {
     error: 'Error',
     success: 'Success',

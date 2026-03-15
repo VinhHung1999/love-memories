@@ -5,7 +5,7 @@ import { Heart, Plus } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import SpringPressable from '../../../components/SpringPressable';
 import t from '../../../locales/en';
-import { CoupleMode } from '../useLoginViewModel';
+type CoupleMode = 'create' | 'join' | null;
 
 export default function CoupleModeSelector({
   value,
