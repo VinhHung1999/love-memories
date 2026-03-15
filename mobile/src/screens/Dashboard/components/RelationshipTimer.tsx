@@ -21,10 +21,14 @@ import t from '../../../locales/en';
 // Pale rose ring color around avatars
 const AVATAR_RING = '#F9D0D8';
 
-// ECG path: flat → P wave → QRS complex → T wave → flat
-const ECG_PATH = 'M 0,20 L 12,20 L 16,20 L 18,10 L 20,28 L 22,14 L 24,20 L 28,20 L 32,16 L 34,20 L 80,20';
-// Approximate total path length for strokeDasharray animation
-const ECG_PATH_LENGTH = 125;
+// ECG path: symmetric waveform both sides, heart gap at center (x=38–42)
+// Left:  flat → QRS spike → T wave → flat(→38)
+// Right: flat(42→) → T wave → QRS spike → flat  (mirror of left)
+const ECG_PATH =
+  'M 0,20 L 10,20 L 12,14 L 13,6 L 14,28 L 15,20 L 18,20 L 20,14 L 22,20 L 38,20 ' +
+  'M 42,20 L 58,20 L 60,14 L 62,20 L 65,20 L 66,28 L 67,6 L 68,14 L 70,20 L 80,20';
+// Approximate total path length (left ≈ 88 + right ≈ 88)
+const ECG_PATH_LENGTH = 180;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const AnimatedPath = Animated.createAnimatedComponent(Path) as any;
