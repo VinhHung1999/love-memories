@@ -304,6 +304,13 @@ function MainTabNavigator() {
       <MainTab.Screen
         name="MomentsTab"
         component={MomentsNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: e => {
+            e.preventDefault();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            navigation.navigate('MomentsTab', { screen: 'MomentsList' } as any);
+          },
+        })}
         options={{
           tabBarLabel: 'Moments',
           tabBarIcon: ({ color, size }) => <Heart size={size} color={color} strokeWidth={1.5} />,
@@ -320,6 +327,13 @@ function MainTabNavigator() {
       <MainTab.Screen
         name="LettersTab"
         component={LettersNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: e => {
+            e.preventDefault();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            navigation.navigate('LettersTab', { screen: 'LettersList' } as any);
+          },
+        })}
         options={{
           tabBarLabel: 'Letters',
           tabBarIcon: ({ color, size }) => <Mail size={size} color={color} strokeWidth={1.5} />,
@@ -328,6 +342,13 @@ function MainTabNavigator() {
       <MainTab.Screen
         name="ProfileTab"
         component={ProfileNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: e => {
+            e.preventDefault();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            navigation.navigate('ProfileTab', { screen: 'ProfileMain' } as any);
+          },
+        })}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }) => <CircleUser size={size} color={color} strokeWidth={1.5} />,
