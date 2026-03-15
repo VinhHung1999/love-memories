@@ -3,6 +3,12 @@ import app from '../index';
 import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
 
+// Mock CDN so file upload tests don't hit real CDN
+jest.mock('../utils/cdn', () => ({
+  uploadToCdn: jest.fn().mockResolvedValue({ filename: 'test-file.jpg', url: 'https://cdn.example.com/test-file.jpg' }),
+  deleteFromCdn: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock google-auth-library so Google token tests don't require real tokens
 // Mock nodemailer so email tests don't require SMTP
 jest.mock('nodemailer', () => ({
@@ -376,6 +382,18 @@ describe('Email Verification', () => {
 });
 
 describe('Google OAuth', () => {
+  // Clean up googleuser@example.com before and after to prevent test pollution
+  const cleanupGoogleUser = async () => {
+    const user = await prisma.user.findUnique({ where: { email: 'googleuser@example.com' } });
+    if (user) {
+      await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+      if (user.coupleId) await prisma.couple.delete({ where: { id: user.coupleId } }).catch(() => {});
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  };
+  beforeAll(cleanupGoogleUser);
+  afterAll(cleanupGoogleUser);
+
   it('POST /api/auth/google returns 400 without idToken', async () => {
     const res = await request(app).post('/api/auth/google').send({});
     expect(res.status).toBe(400);
@@ -405,9 +423,13 @@ describe('Google OAuth', () => {
     await prisma.user.update({ where: { email: 'test@lovescrum.test' }, data: { googleId: null } });
   });
 
-  it('POST /api/auth/google/complete returns 400 without couple info', async () => {
+  it('POST /api/auth/google/complete creates user with coupleId=null when no couple info provided', async () => {
     const res = await request(app).post('/api/auth/google/complete').send({ idToken: 'valid-google-token' });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.coupleId).toBeNull();
+    // Cleanup so next test can re-create the same google user
+    await cleanupGoogleUser();
   });
 
   it('POST /api/auth/google/complete creates user with couple', async () => {
