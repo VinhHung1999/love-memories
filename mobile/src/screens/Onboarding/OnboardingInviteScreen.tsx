@@ -167,10 +167,10 @@ function CompletionOverlay() {
         <Heart size={64} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
       <Animated.View style={textStyle} className="items-center">
-        <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26 }}>
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26 }}>
           {t.onboarding.avatar.doneTitle}
         </Heading>
-        <Body size="md" className="text-textMid text-center">
+        <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
           {t.onboarding.avatar.doneSubtitle}
         </Body>
       </Animated.View>
@@ -240,11 +240,11 @@ export default function OnboardingInviteScreen() {
           <View className="items-center gap-2">
             <Heading
               size="xl"
-              className="text-textDark text-center"
+              className="text-textDark dark:text-darkTextDark text-center"
               style={{ fontSize: 27, lineHeight: 36 }}>
               Your couple is ready! 💕
             </Heading>
-            <Body size="md" className="text-textMid text-center" style={{ lineHeight: 22 }}>
+            <Body size="md" className="text-textMid dark:text-darkTextMid text-center" style={{ lineHeight: 22 }}>
               {t.onboarding.invite.subtitle}
             </Body>
           </View>
@@ -326,7 +326,7 @@ export default function OnboardingInviteScreen() {
 
           {/* Ghost — Done */}
           <Pressable onPress={handleDone} className="items-center py-3">
-            <Body size="md" className="text-textMid" style={{ fontWeight: '500' }}>
+            <Body size="md" className="text-textMid dark:text-darkTextMid" style={{ fontWeight: '500' }}>
               {t.onboarding.invite.doneBtn}
             </Body>
           </Pressable>

@@ -52,7 +52,7 @@ export default function DashboardScreen() {
 
   return (
     <>
-      <View className="flex-1 bg-baseBg" style={{ paddingTop: insects.top }}>
+      <View className="flex-1 bg-baseBg dark:bg-darkBaseBg" style={{ paddingTop: insects.top }}>
         {vm.isLoading ? (
           <DashboardSkeleton />
         ) : (
@@ -72,12 +72,12 @@ export default function DashboardScreen() {
                   }}
                 >
                   {/* ── Title ── */}
-                  <Heading size="xl" className="text-textDark leading-none">
+                  <Heading size="xl" className="text-textDark dark:text-darkTextDark leading-none">
                     {vm.headerTitle}
                   </Heading>
                 </View>
                 {vm.slogan ? (
-                  <Cursive className="text-[11px] text-textLight mt-2">
+                  <Cursive className="text-[11px] text-textLight dark:text-darkTextLight mt-2">
                     {vm.slogan}
                   </Cursive>
                 ) : null}
@@ -115,9 +115,9 @@ export default function DashboardScreen() {
               ) : (
                 <Pressable
                   onPress={() => vm.navigateTo('MomentsTab')}
-                  className="h-[160px] rounded-2xl bg-white/60 items-center justify-center gap-2">
+                  className="h-[160px] rounded-2xl bg-white/60 dark:bg-darkBgCard/60 items-center justify-center gap-2">
                   <Images size={28} color={colors.primary} strokeWidth={1.5} />
-                  <Body size="sm" className="text-textMid">{t.dashboard.noMomentsYet}</Body>
+                  <Body size="sm" className="text-textMid dark:text-darkTextMid">{t.dashboard.noMomentsYet}</Body>
                   <Caption className="text-primary">{t.dashboard.addFirstMemory}</Caption>
                 </Pressable>
               )}

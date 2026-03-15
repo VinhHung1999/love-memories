@@ -254,7 +254,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         >
           <X size={18} color={colors.primary} strokeWidth={2} />
         </Pressable>
-        <Heading size="sm" className="flex-1 text-center text-textDark">
+        <Heading size="sm" className="flex-1 text-center text-textDark dark:text-darkTextDark">
           {t.paywall.title}
         </Heading>
         {/* Spacer to balance X button */}
@@ -334,7 +334,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         </View>
 
         {/* Feature comparison */}
-        <Body size="md" className="font-semibold mb-3 text-textDark">
+        <Body size="md" className="font-semibold mb-3 text-textDark dark:text-darkTextDark">
           What's included
         </Body>
         <FeatureTable />

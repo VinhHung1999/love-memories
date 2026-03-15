@@ -38,6 +38,16 @@ module.exports = {
         successBg:      'rgba(126,200,181,0.10)',
         error:          '#D94F58',
         errorBg:        '#FFF0F0',
+
+        // ── Dark mode palette (matches DarkAppTheme in theme.ts) ───────────────
+        // Use these as dark: variants: e.g. dark:bg-darkBgCard
+        darkBaseBg:   '#121212',
+        darkBgCard:   '#1E1E1E',
+        darkBorder:   '#2C2C2C',
+        darkTextDark: '#E5E5E5',
+        darkTextMid:  '#B0B0B0',
+        darkTextLight:'#808080',
+        darkInputBg:  'rgba(30,30,30,0.90)',
       },
       fontFamily: {
         // Be Vietnam Pro - designed for Vietnamese with excellent diacritics

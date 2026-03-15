@@ -207,7 +207,7 @@ export default function LocationPicker({
 
       {/* Input row */}
       <View
-        className="flex-row items-center rounded-2xl border-[1.5px] px-[14px] h-[50px] bg-inputBg"
+        className="flex-row items-center rounded-2xl border-[1.5px] px-[14px] h-[50px] bg-inputBg dark:bg-darkInputBg"
         style={{ borderColor: isResolvingUrl ? colors.primaryShadow : colors.border }}>
         {isResolvingUrl ? (
           <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
@@ -263,7 +263,7 @@ export default function LocationPicker({
 
       {/* Autocomplete results */}
       {results.length > 0 ? (
-        <View className="mt-1 rounded-2xl border border-border/60 overflow-hidden bg-white">
+        <View className="mt-1 rounded-2xl border border-border dark:border-darkBorder/60 overflow-hidden bg-white dark:bg-darkBgCard">
           {results.map((r, i) => (
             <Pressable
               key={i}
@@ -271,7 +271,7 @@ export default function LocationPicker({
               className="flex-row items-start gap-3 px-4 py-3"
               style={{ borderBottomWidth: i < results.length - 1 ? 1 : 0, borderBottomColor: colors.border + '66' }}>
               <MapPin size={15} color={colors.primary} strokeWidth={1.5} style={{ marginTop: 2 }} />
-              <Body size="md" className="flex-1 text-textDark" numberOfLines={2}>
+              <Body size="md" className="flex-1 text-textDark dark:text-darkTextDark" numberOfLines={2}>
                 {cleanPlaceName(r.place_name)}
               </Body>
             </Pressable>

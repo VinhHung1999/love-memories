@@ -40,7 +40,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     }
 
     return (
-      <View className="flex-1 bg-white items-center justify-center px-8">
+      <View className="flex-1 bg-white dark:bg-darkBgCard items-center justify-center px-8">
         {/* Icon */}
         <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6">
           <HeartCrack size={36} strokeWidth={1.5} />
@@ -50,7 +50,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         <Heading size="lg" className="text-center mb-2">
           Something went wrong
         </Heading>
-        <Body size="md" className="text-textLight text-center leading-relaxed mb-8">
+        <Body size="md" className="text-textLight dark:text-darkTextLight text-center leading-relaxed mb-8">
           An unexpected error occurred. Your data is safe — tap below to try again.
         </Body>
 

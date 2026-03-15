@@ -51,7 +51,7 @@ function IngredientInputRow({
           onChangeText={onChangeIngredient}
           placeholder={t.recipes.create.ingredientPlaceholder}
           placeholderTextColor={colors.textLight}
-          className="bg-inputBg border border-border rounded-xl px-3 h-[42px] text-sm text-textDark"
+          className="bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-xl px-3 h-[42px] text-sm text-textDark dark:text-darkTextDark"
         />
       </View>
       <View className="w-[80px]">
@@ -61,7 +61,7 @@ function IngredientInputRow({
           placeholder={t.recipes.create.pricePlaceholder}
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
-          className="bg-inputBg border border-border rounded-xl px-3 h-[42px] text-sm text-textDark"
+          className="bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-xl px-3 h-[42px] text-sm text-textDark dark:text-darkTextDark"
         />
       </View>
       <Pressable onPress={onRemove} hitSlop={8}>
@@ -114,7 +114,7 @@ function StepInputRow({
           placeholderTextColor={colors.textLight}
           multiline
           textAlignVertical="top"
-          className="flex-1 bg-inputBg border border-border rounded-xl px-3 py-2.5 text-sm text-textDark min-h-[42px]"
+          className="flex-1 bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-xl px-3 py-2.5 text-sm text-textDark dark:text-darkTextDark min-h-[42px]"
         />
         <Pressable onPress={onRemove} hitSlop={8} className="mt-[10px]">
           <XCircle size={20} color={colors.textLight} strokeWidth={1.5} />
@@ -130,9 +130,9 @@ function StepInputRow({
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
           maxLength={2}
-          className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
+          className="w-10 bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-lg px-2 h-7 text-xs text-textDark dark:text-darkTextDark text-center"
         />
-        <Body size="sm" className="text-textLight">min</Body>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight">min</Body>
         <BottomSheetTextInput
           value={secs}
           onChangeText={v => { setSecs(v); commit(mins, v); }}
@@ -140,9 +140,9 @@ function StepInputRow({
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
           maxLength={2}
-          className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
+          className="w-10 bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-lg px-2 h-7 text-xs text-textDark dark:text-darkTextDark text-center"
         />
-        <Body size="sm" className="text-textLight">sec</Body>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight">sec</Body>
       </View>
     </View>
   );

@@ -34,8 +34,8 @@ function AchievementRow({ item }: { item: Achievement }) {
         <Text className="text-2xl">{item.icon}</Text>
       </View>
       <View className="flex-1">
-        <Label className="text-textDark">{item.title}</Label>
-        <Body size="sm" className="text-textLight mt-0.5" numberOfLines={2}>{item.description}</Body>
+        <Label className="text-textDark dark:text-darkTextDark">{item.title}</Label>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5" numberOfLines={2}>{item.description}</Body>
         {item.unlocked && item.unlockedAt ? (
           <Caption className="mt-1" style={{ color: colors.accent }}>
             {t.achievements.unlockedOn} {new Date(item.unlockedAt).toLocaleDateString()}
@@ -71,7 +71,7 @@ export default function AchievementsScreen() {
         onBack={vm.handleBack}
         filterBar={vm.totalCount > 0 && !vm.isLoading ? (
           <View className="px-5 pb-3 pt-1">
-            <Body size="sm" className="text-textMid mb-1.5">
+            <Body size="sm" className="text-textMid dark:text-darkTextMid mb-1.5">
               {t.achievements.progress
                 .replace('{unlocked}', String(vm.unlockedCount))
                 .replace('{total}', String(vm.totalCount))}
@@ -104,7 +104,7 @@ export default function AchievementsScreen() {
                 className="flex-row items-center gap-2 px-4 py-2.5"
                 style={{ backgroundColor: colors.background }}>
                 {(() => { const CatIcon = CATEGORY_ICON[group.category] ?? Star; return <CatIcon size={14} color={colors.primary} strokeWidth={1.5} />; })()}
-                <Caption className="font-bold text-textMid uppercase tracking-wider">
+                <Caption className="font-bold text-textMid dark:text-darkTextMid uppercase tracking-wider">
                   {group.label}
                 </Caption>
                 <Caption className="ml-auto">

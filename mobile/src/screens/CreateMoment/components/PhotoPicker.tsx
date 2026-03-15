@@ -30,7 +30,7 @@ export default function PhotoPicker({ photos, onAddFromLibrary, onAddFromCamera,
           onPress={handleAddPress}
           className="w-[72px] h-[72px] rounded-xl items-center justify-center border-[1.5px] border-dashed bg-transparent" style={{ borderColor: colors.textLight + '66' }}>
           <Plus size={22} color={colors.textLight} strokeWidth={1.5} />
-          <Text className="text-[9px] font-medium text-textLight mt-0.5">Add</Text>
+          <Text className="text-[9px] font-medium text-textLight dark:text-darkTextLight mt-0.5">Add</Text>
         </Pressable>
       ) : null}
 

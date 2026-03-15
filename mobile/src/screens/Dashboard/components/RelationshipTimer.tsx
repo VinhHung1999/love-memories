@@ -168,14 +168,14 @@ export function RelationshipTimer({
   if (!hasCouple) {
     return (
       <Animated.View entering={FadeIn.duration(600)}>
-        <View className="bg-white rounded-3xl border border-borderSoft px-5 py-5">
+        <View className="bg-white dark:bg-darkBgCard rounded-3xl border border-borderSoft dark:border-darkBorder px-5 py-5">
           <View className="items-center gap-3">
             <Heart size={32} color={colors.primary} strokeWidth={1.5} />
             <View className="items-center gap-1">
-              <Label className="text-textDark font-semibold text-center">
+              <Label className="text-textDark dark:text-darkTextDark font-semibold text-center">
                 {t.dashboard.invitePartner.title}
               </Label>
-              <Caption className="text-textLight text-center">
+              <Caption className="text-textLight dark:text-darkTextLight text-center">
                 {t.dashboard.invitePartner.subtitle}
               </Caption>
             </View>
@@ -197,14 +197,14 @@ export function RelationshipTimer({
   if (!duration) {
     return (
       <Animated.View entering={FadeIn.duration(600)}>
-        <View className="bg-white rounded-3xl border border-borderSoft px-5 py-5">
+        <View className="bg-white dark:bg-darkBgCard rounded-3xl border border-borderSoft dark:border-darkBorder px-5 py-5">
           <View className="items-center gap-3">
             <CalendarHeart size={32} color={colors.primary} strokeWidth={1.5} />
             <View className="items-center gap-1">
-              <Label className="text-textDark font-semibold text-center">
+              <Label className="text-textDark dark:text-darkTextDark font-semibold text-center">
                 {t.dashboard.setAnniversary.title}
               </Label>
-              <Caption className="text-textLight text-center">
+              <Caption className="text-textLight dark:text-darkTextLight text-center">
                 {t.dashboard.setAnniversary.subtitle}
               </Caption>
             </View>
@@ -227,7 +227,7 @@ export function RelationshipTimer({
 
   return (
     <Animated.View entering={FadeIn.duration(600)}>
-      <View className="bg-white rounded-3xl border border-borderSoft px-5 py-4">
+      <View className="bg-white dark:bg-darkBgCard rounded-3xl border border-borderSoft dark:border-darkBorder px-5 py-4">
 
         {/* Avatar row */}
         <View className="flex-row items-center justify-center gap-2">
@@ -259,7 +259,7 @@ export function RelationshipTimer({
         </View>
 
         {/* Days count */}
-        <Body size="sm" className="text-center text-textMid font-body mt-3">
+        <Body size="sm" className="text-center text-textMid dark:text-darkTextMid font-body mt-3">
           {daysLabel}
         </Body>
 

@@ -20,9 +20,9 @@
 		8B01BE7B52B34B9991B9F9D0 /* BeVietnamPro-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B688A0791BE54CE7B15FE240 /* BeVietnamPro-Light.ttf */; };
 		93EAE1EE8E3D4C44A0CA3801 /* BeVietnamPro-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5F62A8A5C55D4B6E908590B1 /* BeVietnamPro-ExtraBold.ttf */; };
 		AFE867CC76ED436294DD16E6 /* BeVietnamPro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C2EA51F34364E17B5C07B67 /* BeVietnamPro-Medium.ttf */; };
+		B48FB777E7C74EAE83D97F5E /* Borel-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A7DBC04E2BA84639B9A57E45 /* Borel-Regular.ttf */; };
 		E65053FC2F640432005362ED /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E65053FB2F640432005362ED /* GoogleService-Info.plist */; };
 		FE40BF22502D4FEDA618F740 /* BeVietnamPro-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DECE5E323FB547149E81D0BC /* BeVietnamPro-Regular.ttf */; };
-		B48FB777E7C74EAE83D97F5E /* Borel-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A7DBC04E2BA84639B9A57E45 /* Borel-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,13 +40,13 @@
 		5F62A8A5C55D4B6E908590B1 /* BeVietnamPro-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-ExtraBold.ttf"; path = "../assets/fonts/BeVietnamPro-ExtraBold.ttf"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LoveScrum/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LoveScrum/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A7DBC04E2BA84639B9A57E45 /* Borel-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Borel-Regular.ttf"; path = "../assets/fonts/Borel-Regular.ttf"; sourceTree = "<group>"; };
 		B688A0791BE54CE7B15FE240 /* BeVietnamPro-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-Light.ttf"; path = "../assets/fonts/BeVietnamPro-Light.ttf"; sourceTree = "<group>"; };
 		DECE5E323FB547149E81D0BC /* BeVietnamPro-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-Regular.ttf"; path = "../assets/fonts/BeVietnamPro-Regular.ttf"; sourceTree = "<group>"; };
 		E65053FB2F640432005362ED /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F5945502D9CA482FBE37F788 /* BeVietnamPro-ExtraLight.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-ExtraLight.ttf"; path = "../assets/fonts/BeVietnamPro-ExtraLight.ttf"; sourceTree = "<group>"; };
 		F64E66CEC33F4DD9B294A5B7 /* BeVietnamPro-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-Bold.ttf"; path = "../assets/fonts/BeVietnamPro-Bold.ttf"; sourceTree = "<group>"; };
-		A7DBC04E2BA84639B9A57E45 /* Borel-Regular.ttf */ = {isa = PBXFileReference; name = "Borel-Regular.ttf"; path = "../assets/fonts/Borel-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

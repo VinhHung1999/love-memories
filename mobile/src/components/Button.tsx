@@ -99,7 +99,7 @@ export default function Button({
             className={
               isPrimary
                 ? 'text-white font-bold tracking-[0.4px]'
-                : 'text-textDark font-semibold tracking-[0.1px]'
+                : 'text-textDark dark:text-darkTextDark font-semibold tracking-[0.1px]'
             }>
             {label}
           </Body>

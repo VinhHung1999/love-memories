@@ -218,11 +218,11 @@ export default function OnboardingWelcomeScreen() {
         <Animated.View entering={FadeInDown.delay(400).duration(500)} className="items-center mb-10">
           <Heading
             size="xl"
-            className="text-textDark text-center leading-tight mb-3"
+            className="text-textDark dark:text-darkTextDark text-center leading-tight mb-3"
             style={{ fontSize: 30, lineHeight: 38 }}>
             {t.onboarding.welcome.title}
           </Heading>
-          <Body size="md" className="text-textMid text-center" style={{ lineHeight: 22 }}>
+          <Body size="md" className="text-textMid dark:text-darkTextMid text-center" style={{ lineHeight: 22 }}>
             {t.onboarding.welcome.subtitle}
           </Body>
         </Animated.View>

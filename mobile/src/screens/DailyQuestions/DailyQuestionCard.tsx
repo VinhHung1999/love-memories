@@ -50,7 +50,7 @@ export default function DailyQuestionCard() {
     return (
       <Animated.View entering={FadeInDown.delay(160).duration(500)}>
         <View
-          className="rounded-3xl border border-borderSoft px-4 py-3"
+          className="rounded-3xl border border-borderSoft dark:border-darkBorder px-4 py-3"
           style={{ opacity: 0.5 }}>
           <View className="flex-row items-center gap-1.5">
             <MessageCircle size={12} color={colors.textLight} strokeWidth={1.5} />
@@ -77,7 +77,7 @@ export default function DailyQuestionCard() {
       <Animated.View entering={FadeInDown.delay(160).duration(500)}>
         <Pressable
           onPress={() => navigation.navigate('DailyQuestions')}
-          className="rounded-3xl overflow-hidden border border-borderSoft px-4 py-3"
+          className="rounded-3xl overflow-hidden border border-borderSoft dark:border-darkBorder px-4 py-3"
           style={{ backgroundColor: colors.primaryMuted }}>
 
           {/* Header */}
@@ -118,7 +118,7 @@ export default function DailyQuestionCard() {
     <Animated.View entering={FadeInDown.delay(160).duration(500)}>
       <Pressable
         onPress={() => navigation.navigate('DailyQuestions')}
-        className="rounded-3xl overflow-hidden border border-borderSoft px-4 py-3"
+        className="rounded-3xl overflow-hidden border border-borderSoft dark:border-darkBorder px-4 py-3"
         style={{ backgroundColor: colors.primary }}>
 
         {/* Header */}
@@ -129,7 +129,7 @@ export default function DailyQuestionCard() {
           </Caption>
           <View style={{ flex: 1 }} />
           {hasAnswered && (
-            <View className="flex-row items-center gap-0.5 bg-white/20 rounded-full px-2 py-0.5">
+            <View className="flex-row items-center gap-0.5 bg-white/20 dark:bg-darkBgCard/20 rounded-full px-2 py-0.5">
               <Check size={9} strokeWidth={1.5} color="#fff" />
               <Caption style={{ fontWeight: '700', color: '#fff', fontSize: 10, marginLeft: 2 }}>{t.dailyQuestions.answered}</Caption>
             </View>

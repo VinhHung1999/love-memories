@@ -96,7 +96,7 @@ function OptionCard({
           style={{ color: selected ? colors.primary : colors.textDark, fontSize: 13 }}>
           {label}
         </Label>
-        <Caption className="text-center text-textLight" style={{ lineHeight: 16 }}>
+        <Caption className="text-center text-textLight dark:text-darkTextLight" style={{ lineHeight: 16 }}>
           {subtitle}
         </Caption>
       </Pressable>
@@ -196,7 +196,7 @@ export default function OnboardingCoupleScreen() {
 
           {/* Heading */}
           <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mb-8">
-            <Heading size="xl" className="text-textDark" style={{ fontSize: 28, lineHeight: 36 }}>
+            <Heading size="xl" className="text-textDark dark:text-darkTextDark" style={{ fontSize: 28, lineHeight: 36 }}>
               {t.onboarding.couple.title}
             </Heading>
           </Animated.View>

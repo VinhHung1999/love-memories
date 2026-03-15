@@ -53,7 +53,7 @@ function SessionCard({
     <Animated.View entering={FadeInDown.delay(delay)}>
       <Pressable
         onPress={onPress}
-        className="bg-white rounded-3xl overflow-hidden mb-3 flex-row">
+        className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden mb-3 flex-row">
 
         {/* Thumbnail */}
         <View className="w-[90px] h-[90px] bg-gray-100 flex-shrink-0">
@@ -72,22 +72,22 @@ function SessionCard({
 
         {/* Content */}
         <View className="flex-1 px-3 py-3">
-          <Label className="text-textDark" numberOfLines={1}>
+          <Label className="text-textDark dark:text-darkTextDark" numberOfLines={1}>
             {session.recipes.map(r => r.recipe.title).join(', ')}
           </Label>
-          <Caption className="text-textLight mt-0.5">{dateStr}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight mt-0.5">{dateStr}</Caption>
 
           <View className="flex-row items-center gap-3 mt-2">
             {/* Duration */}
             <View className="flex-row items-center gap-1">
               <Timer size={12} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textMid">{formatDuration(session.totalTimeMs)}</Caption>
+              <Caption className="text-textMid dark:text-darkTextMid">{formatDuration(session.totalTimeMs)}</Caption>
             </View>
 
             {/* Recipes count */}
             <View className="flex-row items-center gap-1">
               <BookOpen size={12} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textMid">
+              <Caption className="text-textMid dark:text-darkTextMid">
                 {session.recipes.length} {t.whatToEat.history.recipes}
               </Caption>
             </View>
@@ -96,7 +96,7 @@ function SessionCard({
             {session.rating ? (
               <View className="flex-row items-center gap-0.5">
                 <Star size={12} color={colors.starRating} strokeWidth={1.5} />
-                <Caption className="text-textMid">{session.rating}/5</Caption>
+                <Caption className="text-textMid dark:text-darkTextMid">{session.rating}/5</Caption>
               </View>
             ) : null}
           </View>
@@ -121,12 +121,12 @@ export default function CookingHistoryScreen() {
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
 
       {/* ── Header ── */}
-      <View className="px-5 pt-4 pb-3 bg-white border-b border-border/30">
+      <View className="px-5 pt-4 pb-3 bg-white dark:bg-darkBgCard border-b border-border dark:border-darkBorder/30">
         <View className="flex-row items-center gap-3">
           <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
-            <Heading size="md" className="text-textDark">{t.whatToEat.historyTitle}</Heading>
-            <Caption className="text-textLight">
+            <Heading size="md" className="text-textDark dark:text-darkTextDark">{t.whatToEat.historyTitle}</Heading>
+            <Caption className="text-textLight dark:text-darkTextLight">
               {vm.sessions.length} sessions
             </Caption>
           </View>
@@ -137,7 +137,7 @@ export default function CookingHistoryScreen() {
       {vm.isLoading ? (
         <View className="flex-1 px-4 pt-4 gap-3">
           {[1, 2, 3].map(i => (
-            <View key={i} className="flex-row bg-white rounded-3xl overflow-hidden h-[90px]">
+            <View key={i} className="flex-row bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden h-[90px]">
               <Skeleton className="w-[90px] h-full" />
               <View className="flex-1 px-3 py-3 gap-2">
                 <Skeleton className="w-3/4 h-3.5 rounded-md" />
@@ -150,8 +150,8 @@ export default function CookingHistoryScreen() {
       ) : vm.sessions.length === 0 ? (
         <View className="flex-1 items-center justify-center pb-20">
           <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
-          <Body size="md" className="font-semibold text-textMid mt-4">{t.whatToEat.noHistory}</Body>
-          <Body size="sm" className="text-textLight mt-1 text-center px-8">{t.whatToEat.noHistorySubtitle}</Body>
+          <Body size="md" className="font-semibold text-textMid dark:text-darkTextMid mt-4">{t.whatToEat.noHistory}</Body>
+          <Body size="sm" className="text-textLight dark:text-darkTextLight mt-1 text-center px-8">{t.whatToEat.noHistorySubtitle}</Body>
         </View>
       ) : (
         <ScrollView

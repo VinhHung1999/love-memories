@@ -88,10 +88,10 @@ export default function OnboardingAnniversaryScreen() {
 
         {/* Heading */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)} className="items-center mb-2">
-          <Heading size="xl" className="text-textDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
             {t.onboarding.anniversary.title}
           </Heading>
-          <Caption className="text-textMid text-center mt-2" style={{ lineHeight: 18 }}>
+          <Caption className="text-textMid dark:text-darkTextMid text-center mt-2" style={{ lineHeight: 18 }}>
             {t.onboarding.anniversary.subtitle}
           </Caption>
         </Animated.View>
@@ -121,7 +121,7 @@ export default function OnboardingAnniversaryScreen() {
           </SpringPressable>
 
           <Pressable onPress={handleSkip} className="items-center py-3">
-            <Body size="sm" className="text-textLight">{t.onboarding.anniversary.skipBtn}</Body>
+            <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.onboarding.anniversary.skipBtn}</Body>
           </Pressable>
         </Animated.View>
 

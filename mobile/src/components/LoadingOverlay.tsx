@@ -29,7 +29,7 @@ export function LoadingOverlay() {
         style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
         pointerEvents="auto">
         <View
-          className="bg-white rounded-2xl p-6 items-center justify-center"
+          className="bg-white dark:bg-darkBgCard rounded-2xl p-6 items-center justify-center"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },

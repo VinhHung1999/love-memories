@@ -42,7 +42,7 @@ function EditIngredientRow({ value, onChange, onRemove }: { value: string; onCha
       <BottomSheetTextInput
         value={value}
         onChangeText={onChange}
-        className="flex-1 text-sm text-textDark py-1.5 border-b border-border/40"
+        className="flex-1 text-sm text-textDark dark:text-darkTextDark py-1.5 border-b border-border dark:border-darkBorder/40"
         placeholderTextColor={colors.textLight}
         placeholder={t.recipes.create.ingredientPlaceholder}
       />
@@ -66,7 +66,7 @@ function EditStepRow({ index, value, onChange, onRemove }: { index: number; valu
         value={value}
         onChangeText={onChange}
         multiline
-        className="flex-1 text-sm text-textDark py-1.5 border-b border-border/40"
+        className="flex-1 text-sm text-textDark dark:text-darkTextDark py-1.5 border-b border-border dark:border-darkBorder/40"
         placeholderTextColor={colors.textLight}
         placeholder={t.recipes.create.stepPlaceholder}
       />
@@ -181,7 +181,7 @@ export default function AIRecipeSheet({ onClose }: { onClose?: () => void }) {
         /* ── Loading ── */
         <View className="h-64 items-center justify-center gap-4">
           <ActivityIndicator size="large" color={colors.primary} />
-          <Body size="md" className="text-textMid">{t.recipes.ai.generating}</Body>
+          <Body size="md" className="text-textMid dark:text-darkTextMid">{t.recipes.ai.generating}</Body>
         </View>
 
       ) : phase === 'input' ? (

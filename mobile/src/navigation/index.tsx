@@ -462,7 +462,7 @@ export default function RootNavigator() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-darkBgCard">
         <ActivityIndicator size="large" color={navTheme.colors.primary} />
       </View>
     );

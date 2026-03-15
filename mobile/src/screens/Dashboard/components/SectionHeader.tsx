@@ -14,7 +14,7 @@ export function SectionHeader({ title, onSeeAll }: SectionHeaderProps) {
   const colors = useAppColors();
   return (
     <View className="flex-row items-center justify-between mb-3">
-      <Heading size="sm" className="text-textDark tracking-tight">{title}</Heading>
+      <Heading size="sm" className="text-textDark dark:text-darkTextDark tracking-tight">{title}</Heading>
       {onSeeAll ? (
         <Pressable onPress={onSeeAll} className="flex-row items-center gap-0.5">
           <Caption className="font-headingSemi text-primary">{t.dashboard.sections.seeAll}</Caption>

@@ -43,8 +43,8 @@ export default function AudioRecorder({
           {isPlayingPreview ? <Pause size={22} color="#fff" strokeWidth={1.5} /> : <Play size={22} color="#fff" strokeWidth={1.5} />}
         </TouchableOpacity>
         <View className="flex-1">
-          <Label className="text-textDark">Voice memo recorded</Label>
-          <Body size="sm" className="text-textLight mt-0.5">{formatSecs(recordingDuration)} • m4a</Body>
+          <Label className="text-textDark dark:text-darkTextDark">Voice memo recorded</Label>
+          <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">{formatSecs(recordingDuration)} • m4a</Body>
         </View>
         <Pressable onPress={onDelete} hitSlop={8}>
           <Trash2 size={18} color={colors.textLight} strokeWidth={1.5} />
@@ -63,7 +63,7 @@ export default function AudioRecorder({
         className="w-12 h-12 rounded-full items-center justify-center"
         style={{ backgroundColor: isRecording ? colors.primary : colors.accent }}>
         {isRecording ? (
-          <View className="w-4 h-4 rounded bg-white" />
+          <View className="w-4 h-4 rounded bg-white dark:bg-darkBgCard" />
         ) : (
           <Mic size={22} strokeWidth={1.5} />
         )}
@@ -71,10 +71,10 @@ export default function AudioRecorder({
 
       {/* Label */}
       <View className="flex-1">
-        <Label className="text-textDark">
+        <Label className="text-textDark dark:text-darkTextDark">
           {isRecording ? t.moments.create.recording : t.moments.create.recordMemo}
         </Label>
-        <Body size="sm" className="text-textLight mt-0.5">
+        <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">
           {isRecording
             ? `${formatSecs(recordingDuration)} · ${t.moments.create.stopRecording}`
             : t.moments.create.recordHint}

@@ -24,7 +24,7 @@ import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 function FoodSpotCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3">
+    <View className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[130px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -72,7 +72,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden border border-borderSoft mb-3">
+      className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden border border-borderSoft dark:border-darkBorder mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
@@ -111,7 +111,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Label className="text-textDark leading-snug mb-1.5" numberOfLines={2}>
+        <Label className="text-textDark dark:text-darkTextDark leading-snug mb-1.5" numberOfLines={2}>
           {spot.name}
         </Label>
 
@@ -148,7 +148,7 @@ export default function FoodSpotsScreen() {
   const vm = useFoodSpotsViewModel();
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
         title={t.foodSpots.title}
         subtitle={t.foodSpots.subtitle}

@@ -68,7 +68,7 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
 
       {/* Hint */}
       {activeEmojis.length === 0 ? (
-        <Caption className="text-textLight mt-1 italic">
+        <Caption className="text-textLight dark:text-darkTextLight mt-1 italic">
           {t.moments.detail.reactHint ?? 'Tap + to react'}
         </Caption>
       ) : null}
@@ -96,7 +96,7 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
           exiting={FadeOutDown.duration(200)}
           className="absolute bottom-8 left-4 right-4">
           <View
-            className="bg-white rounded-3xl px-4 py-4 shadow-lg"
+            className="bg-white dark:bg-darkBgCard rounded-3xl px-4 py-4 shadow-lg"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 8 },
@@ -104,7 +104,7 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
               shadowRadius: 20,
               elevation: 12,
             }}>
-            <Caption className="font-bold text-textLight uppercase tracking-wider mb-3 text-center">
+            <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider mb-3 text-center">
               React to this moment
             </Caption>
             <View className="flex-row flex-wrap justify-center gap-2">

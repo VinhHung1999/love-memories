@@ -27,7 +27,7 @@ function PhaseBar({ status }: { status: string }) {
   const currentIdx = PHASES.indexOf(status as any);
 
   return (
-    <View className="flex-row items-center px-5 py-3 bg-white border-b border-border/30">
+    <View className="flex-row items-center px-5 py-3 bg-white dark:bg-darkBgCard border-b border-border dark:border-darkBorder/30">
       {PHASES.map((phase, idx) => {
         const done = idx < currentIdx;
         const active = idx === currentIdx;
@@ -73,9 +73,9 @@ function ShoppingPhase({
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Heading size="sm" className="text-textDark">{t.whatToEat.shopping.title}</Heading>
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t.whatToEat.shopping.title}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
-          <Caption className="text-textLight">{t.whatToEat.shopping.subtitle}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{t.whatToEat.shopping.subtitle}</Caption>
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
             <Caption className="font-semibold text-primary">
               {checkedCount}/{session.items.length}
@@ -83,14 +83,14 @@ function ShoppingPhase({
           </View>
         </View>
         {totalCost > 0 ? (
-          <Caption className="text-textMid mt-1">
+          <Caption className="text-textMid dark:text-darkTextMid mt-1">
             {t.whatToEat.shopping.totalCost}: {totalCost.toLocaleString()}đ
           </Caption>
         ) : null}
       </View>
 
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-        <View className="bg-white rounded-2xl overflow-hidden mb-4">
+        <View className="bg-white dark:bg-darkBgCard rounded-2xl overflow-hidden mb-4">
           {session.items.map((item: CookingSessionItem, idx) => (
             <Pressable
               key={item.id}
@@ -109,7 +109,7 @@ function ShoppingPhase({
                 {item.ingredient}
               </Body>
               {item.price ? (
-                <Caption className="text-textLight">{item.price.toLocaleString()}đ</Caption>
+                <Caption className="text-textLight dark:text-darkTextLight">{item.price.toLocaleString()}đ</Caption>
               ) : null}
             </Pressable>
           ))}
@@ -117,7 +117,7 @@ function ShoppingPhase({
         <View className="h-[100px]" />
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95 dark:bg-darkBgCard/95">
         <Pressable
           onPress={onAdvance}
           disabled={!allChecked || isAdvancing}
@@ -256,7 +256,7 @@ function CookingPhase({
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Heading size="sm" className="text-textDark">{t.whatToEat.cooking.title}</Heading>
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t.whatToEat.cooking.title}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
             <Caption className="font-semibold text-primary">
@@ -275,7 +275,7 @@ function CookingPhase({
             <View key={sr.id} className="mb-3">
               {/* Recipe section header with optional tutorial link */}
               <View className="flex-row items-center justify-between mb-2 px-1">
-                <Caption className="font-bold text-textLight uppercase tracking-wider">
+                <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider">
                   {sr.recipe.title}
                 </Caption>
                 {sr.recipe.tutorialUrl ? (
@@ -290,7 +290,7 @@ function CookingPhase({
                 ) : null}
               </View>
 
-              <View className="bg-white rounded-2xl overflow-hidden">
+              <View className="bg-white dark:bg-darkBgCard rounded-2xl overflow-hidden">
                 {stepsForRecipe.map((step: CookingSessionStep, idx) => (
                   <Pressable
                     key={step.id}
@@ -329,7 +329,7 @@ function CookingPhase({
         <View className="h-[100px]" />
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95 dark:bg-darkBgCard/95">
         <Pressable
           onPress={onAdvance}
           disabled={!allChecked || isAdvancing}
@@ -361,8 +361,8 @@ function PhotoPhase({
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Heading size="sm" className="text-textDark">{t.whatToEat.photo.title}</Heading>
-        <Caption className="text-textLight mt-0.5">{t.whatToEat.photo.subtitle}</Caption>
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t.whatToEat.photo.title}</Heading>
+        <Caption className="text-textLight dark:text-darkTextLight mt-0.5">{t.whatToEat.photo.subtitle}</Caption>
       </View>
 
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
@@ -390,16 +390,16 @@ function PhotoPhase({
           </Pressable>
           <Pressable
             onPress={onAddPhoto}
-            className="flex-1 border-2 border-dashed border-border rounded-2xl py-5 items-center gap-2">
+            className="flex-1 border-2 border-dashed border-border dark:border-darkBorder rounded-2xl py-5 items-center gap-2">
             <ImagePlus size={24} color={colors.textMid} strokeWidth={1.5} />
-            <Caption className="font-semibold text-textMid">Gallery</Caption>
+            <Caption className="font-semibold text-textMid dark:text-darkTextMid">Gallery</Caption>
           </Pressable>
         </View>
 
         <View className="h-[100px]" />
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95 gap-2">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3 bg-white/95 dark:bg-darkBgCard/95 gap-2">
         <Pressable
           onPress={onAdvance}
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
@@ -408,7 +408,7 @@ function PhotoPhase({
           <Label className="text-white">{t.whatToEat.photo.finish}</Label>
         </Pressable>
         <Pressable onPress={onAdvance} className="py-2 items-center">
-          <Caption className="text-textLight">{t.whatToEat.photo.skip}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{t.whatToEat.photo.skip}</Caption>
         </Pressable>
       </View>
     </>
@@ -440,9 +440,9 @@ function RatingPhase({
         <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <ChefHat size={38} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Heading size="xl" className="text-textDark">Meal complete!</Heading>
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark">Meal complete!</Heading>
         {durationMin ? (
-          <Body size="sm" className="text-textMid mt-1">Cooked in {durationMin} minutes</Body>
+          <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1">Cooked in {durationMin} minutes</Body>
         ) : null}
       </View>
 
@@ -464,19 +464,19 @@ function RatingPhase({
 
       {/* Recipes cooked */}
       <View className="px-5 mb-6">
-        <Body size="sm" className="font-semibold text-textMid mb-2">Recipes cooked:</Body>
+        <Body size="sm" className="font-semibold text-textMid dark:text-darkTextMid mb-2">Recipes cooked:</Body>
         {session.recipes.map(sr => (
           <View key={sr.id} className="flex-row items-center gap-2 mb-1">
             <CheckCircle size={14} color={colors.success} strokeWidth={1.5} />
-            <Body size="sm" className="text-textDark">{sr.recipe.title}</Body>
+            <Body size="sm" className="text-textDark dark:text-darkTextDark">{sr.recipe.title}</Body>
           </View>
         ))}
       </View>
 
       {/* Star rating */}
       <View className="px-5 items-center mb-8">
-        <Body size="sm" className="font-semibold text-textDark mb-3">{t.whatToEat.rating.title}</Body>
-        <Caption className="text-textLight mb-4">{t.whatToEat.rating.subtitle}</Caption>
+        <Body size="sm" className="font-semibold text-textDark dark:text-darkTextDark mb-3">{t.whatToEat.rating.title}</Body>
+        <Caption className="text-textLight dark:text-darkTextLight mb-4">{t.whatToEat.rating.subtitle}</Caption>
         <View className="flex-row gap-3">
           {[1, 2, 3, 4, 5].map(i => (
             <Pressable key={i} onPress={() => onSetRating(i)} hitSlop={8}>
@@ -519,31 +519,31 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
         <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <Trophy size={38} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Heading size="xl" className="text-textDark">{t.whatToEat.completed.title}</Heading>
-        <Body size="sm" className="text-textMid mt-1">{t.whatToEat.completed.subtitle}</Body>
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark">{t.whatToEat.completed.title}</Heading>
+        <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1">{t.whatToEat.completed.subtitle}</Body>
       </View>
 
       {/* Duration */}
       {durationMin ? (
-        <View className="mx-5 mb-4 bg-white rounded-2xl px-4 py-3 flex-row items-center gap-3">
+        <View className="mx-5 mb-4 bg-white dark:bg-darkBgCard rounded-2xl px-4 py-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-xl bg-primary/10 items-center justify-center">
             <Clock size={18} color={colors.primary} strokeWidth={1.5} />
           </View>
           <View>
-            <Caption className="text-textLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Caption>
-            <Heading size="sm" className="text-textDark">{durationMin} min</Heading>
+            <Caption className="text-textLight dark:text-darkTextLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Caption>
+            <Heading size="sm" className="text-textDark dark:text-darkTextDark">{durationMin} min</Heading>
           </View>
         </View>
       ) : null}
 
       {/* Rating (read-only) */}
       {session.rating ? (
-        <View className="mx-5 mb-4 bg-white rounded-2xl px-4 py-3 flex-row items-center gap-3">
+        <View className="mx-5 mb-4 bg-white dark:bg-darkBgCard rounded-2xl px-4 py-3 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-xl bg-amber-50 items-center justify-center">
             <Star size={18} color={colors.starRating} strokeWidth={1.5} />
           </View>
           <View className="flex-1">
-            <Caption className="text-textLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Caption>
+            <Caption className="text-textLight dark:text-darkTextLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Caption>
             <View className="flex-row items-center gap-1 mt-0.5">
               {[1, 2, 3, 4, 5].map(i => (
                 <Star
@@ -554,7 +554,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
                   fill={i <= session.rating! ? colors.starRating : 'none'}
                 />
               ))}
-              <Body size="sm" className="font-bold text-textDark ml-1">{session.rating}/5</Body>
+              <Body size="sm" className="font-bold text-textDark dark:text-darkTextDark ml-1">{session.rating}/5</Body>
             </View>
           </View>
         </View>
@@ -563,7 +563,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
       {/* Food photos */}
       {session.photos.length > 0 ? (
         <View className="mb-4">
-          <Caption className="font-bold text-textLight uppercase tracking-wider mb-2 px-5">
+          <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider mb-2 px-5">
             {t.whatToEat.photo.title}
           </Caption>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5">
@@ -582,12 +582,12 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
       ) : null}
 
       {/* Recipes cooked */}
-      <View className="mx-5 mb-8 bg-white rounded-2xl px-4 py-3">
-        <Caption className="font-bold text-textLight uppercase tracking-wider mb-2">Recipes</Caption>
+      <View className="mx-5 mb-8 bg-white dark:bg-darkBgCard rounded-2xl px-4 py-3">
+        <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider mb-2">Recipes</Caption>
         {session.recipes.map(sr => (
           <View key={sr.id} className="flex-row items-center gap-2 py-1">
             <CheckCircle size={15} color={colors.success} strokeWidth={1.5} />
-            <Body size="sm" className="text-textDark flex-1">{sr.recipe.title}</Body>
+            <Body size="sm" className="text-textDark dark:text-darkTextDark flex-1">{sr.recipe.title}</Body>
           </View>
         ))}
       </View>
@@ -604,8 +604,8 @@ export default function CookingSessionScreen() {
 
   if (vm.isLoading || !session) {
     return (
-      <SafeAreaView className="flex-1 bg-baseBg" edges={['top']}>
-        <View className="h-14 bg-white border-b border-border/30 px-4 flex-row items-center gap-3">
+      <SafeAreaView className="flex-1 bg-baseBg dark:bg-darkBaseBg" edges={['top']}>
+        <View className="h-14 bg-white dark:bg-darkBgCard border-b border-border dark:border-darkBorder/30 px-4 flex-row items-center gap-3">
           <Skeleton className="w-9 h-9 rounded-xl" />
           <Skeleton className="w-40 h-4 rounded-md" />
         </View>
@@ -630,16 +630,16 @@ export default function CookingSessionScreen() {
   const isCompletedAndRated = session.status === 'completed' && session.rating != null;
 
   return (
-    <SafeAreaView className="flex-1 bg-baseBg" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-baseBg dark:bg-darkBaseBg" edges={['top']}>
 
       {/* ── Header ── */}
-      <View className="px-5 pt-3 pb-3 bg-white flex-row items-center gap-3">
+      <View className="px-5 pt-3 pb-3 bg-white dark:bg-darkBgCard flex-row items-center gap-3">
         <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
         <View className="flex-1">
-          <Body size="sm" className="font-bold text-textDark" numberOfLines={1}>
+          <Body size="sm" className="font-bold text-textDark dark:text-darkTextDark" numberOfLines={1}>
             {session.recipes.map(r => r.recipe.title).join(' + ')}
           </Body>
-          <Caption className="text-textLight">{phaseTitles[session.status]}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{phaseTitles[session.status]}</Caption>
         </View>
         {/* Abandon button — only show for active sessions */}
         {!isCompletedAndRated ? (
@@ -696,7 +696,7 @@ export default function CookingSessionScreen() {
         ) : (
           /* selecting — shouldn't arrive here, but handle gracefully */
           <View className="flex-1 items-center justify-center">
-            <Body size="md" className="text-textMid">Loading session...</Body>
+            <Body size="md" className="text-textMid dark:text-darkTextMid">Loading session...</Body>
           </View>
         )}
       </Animated.View>

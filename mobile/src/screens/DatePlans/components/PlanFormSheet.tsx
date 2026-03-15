@@ -107,7 +107,7 @@ export default function PlanFormSheet({
                   </View>
                   <Pressable
                     onPress={() => vm.removeStop(idx)}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-white">
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-white dark:bg-darkBgCard">
                     <X size={16} color={colors.textLight} strokeWidth={1.5} />
                   </Pressable>
                 </View>

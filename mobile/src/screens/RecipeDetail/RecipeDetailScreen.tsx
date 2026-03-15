@@ -39,7 +39,7 @@ function RecipeDetailSkeleton() {
     <SafeAreaView className="flex-1 bg-gray-50">
       <Skeleton className="w-full h-[280px]" />
       <View className="h-4" />
-      <View className="bg-white mx-4 rounded-3xl px-4 py-4 mb-3">
+      <View className="bg-white dark:bg-darkBgCard mx-4 rounded-3xl px-4 py-4 mb-3">
         <Skeleton className="w-3/4 h-5 rounded-md mb-2" />
         <Skeleton className="w-full h-3 rounded-md mb-1" />
         <Skeleton className="w-2/3 h-3 rounded-md mb-3" />
@@ -95,7 +95,7 @@ function IngredientRow({
         {ingredient}
       </Body>
       {price ? (
-        <Caption className="text-textLight font-medium">
+        <Caption className="text-textLight dark:text-darkTextLight font-medium">
           {price.toLocaleString()}đ
         </Caption>
       ) : null}
@@ -154,7 +154,7 @@ function StepRow({
         {duration ? (
           <View className="flex-row items-center gap-1 mt-1">
             <Timer size={11} color={colors.textLight} strokeWidth={1.5} />
-            <Caption className="text-textLight">
+            <Caption className="text-textLight dark:text-darkTextLight">
               {duration >= 60
                 ? `${Math.floor(duration / 60)}m ${
                     duration % 60 > 0 ? `${duration % 60}s` : ''
@@ -183,7 +183,7 @@ export default function RecipeDetailScreen() {
   const coverPhoto = recipe.photos[0];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white dark:bg-darkBgCard">
       <DetailScreenLayout
         title={recipe.title}
         coverImageUri={coverPhoto?.url}
@@ -195,7 +195,7 @@ export default function RecipeDetailScreen() {
       >
         {/* ── Photo thumbnail strip ── */}
         {recipe.photos.length > 1 ? (
-          <View className="bg-white mx-4 mt-5 rounded-3xl px-3 py-3 mb-3">
+          <View className="bg-white dark:bg-darkBgCard mx-4 mt-5 rounded-3xl px-3 py-3 mb-3">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2">
                 {recipe.photos.map((photo, idx) => (
@@ -243,7 +243,7 @@ export default function RecipeDetailScreen() {
           </View>
 
           {recipe.description ? (
-            <Body size="md" className="text-textMid italic leading-relaxed mb-3">
+            <Body size="md" className="text-textMid dark:text-darkTextMid italic leading-relaxed mb-3">
               {recipe.description}
             </Body>
           ) : null}
@@ -259,9 +259,9 @@ export default function RecipeDetailScreen() {
 
           {/* Linked food spot */}
           {recipe.foodSpot ? (
-            <View className="flex-row items-center gap-1.5 pt-2 border-t border-border/30">
+            <View className="flex-row items-center gap-1.5 pt-2 border-t border-border dark:border-darkBorder/30">
               <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-              <Body size="sm" className="text-textMid flex-1">
+              <Body size="sm" className="text-textMid dark:text-darkTextMid flex-1">
                 {t.recipes.detail.linkedSpot}:{' '}
                 <Label className="font-semibold text-secondary">
                   {recipe.foodSpot.name}
@@ -326,7 +326,7 @@ export default function RecipeDetailScreen() {
         {recipe.notes ? (
           <Card>
             <CardTitle>{t.recipes.detail.notes}</CardTitle>
-            <Body size="md" className="text-textMid leading-relaxed pt-1">
+            <Body size="md" className="text-textMid dark:text-darkTextMid leading-relaxed pt-1">
               {recipe.notes}
             </Body>
           </Card>
@@ -345,10 +345,10 @@ export default function RecipeDetailScreen() {
                 <PlayCircle size={20} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Body size="md" className="font-semibold text-textDark">
+                <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
                   {t.recipes.detail.tutorialLink}
                 </Body>
-                <Body size="sm" className="text-textLight" numberOfLines={1}>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight" numberOfLines={1}>
                   {recipe.tutorialUrl}
                 </Body>
               </View>
@@ -380,7 +380,7 @@ export default function RecipeDetailScreen() {
       </DetailScreenLayout>
 
       {/* ── "Cook This!" fixed bottom CTA ── */}
-      <View className="absolute bottom-0 left-0 right-0 pb-6 px-5 pt-3 bg-white/95">
+      <View className="absolute bottom-0 left-0 right-0 pb-6 px-5 pt-3 bg-white/95 dark:bg-darkBgCard/95">
         <Pressable
           onPress={vm.handleCookThis}
           className="rounded-2xl overflow-hidden"

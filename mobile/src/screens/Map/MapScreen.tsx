@@ -73,10 +73,10 @@ function EmojiPickerModal({
     <Modal transparent animationType="slide" visible onRequestClose={onClose}>
       <View className="flex-1 justify-end">
         <Pressable className="flex-1 bg-black/40" onPress={onClose} />
-        <View className="bg-white rounded-t-3xl">
+        <View className="bg-white dark:bg-darkBgCard rounded-t-3xl">
           {/* Header */}
           <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
-            <Heading size="sm" className="text-textDark">
+            <Heading size="sm" className="text-textDark dark:text-darkTextDark">
               {t.map.emojiPickerTitle} "{tagName}"
             </Heading>
             <TouchableOpacity onPress={onClose} className="w-7 h-7 items-center justify-center">
@@ -122,7 +122,7 @@ function EmojiPickerModal({
               onChangeText={setCustomEmoji}
               placeholder={t.map.emojiPickerCustomPlaceholder}
               placeholderTextColor={colors.textLight}
-              className="flex-1 border border-border rounded-xl px-3 py-2.5 text-base text-textDark"
+              className="flex-1 border border-border dark:border-darkBorder rounded-xl px-3 py-2.5 text-base text-textDark dark:text-darkTextDark"
               maxLength={2}
             />
             <TouchableOpacity
@@ -156,7 +156,7 @@ function PinCallout({
 }) {
   const isFood = pin.type === 'foodspot';
   return (
-    <View className="absolute bottom-6 left-4 right-4 bg-white rounded-3xl overflow-hidden shadow-lg">
+    <View className="absolute bottom-6 left-4 right-4 bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden shadow-lg">
       <View className="flex-row">
         {pin.thumbnail ? (
           <Image
@@ -179,7 +179,7 @@ function PinCallout({
         )}
         <View className="flex-1 py-3 pr-3">
           <View className="flex-row items-start justify-between">
-            <Body size="md" className="font-bold text-textDark flex-1 mr-2" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark dark:text-darkTextDark flex-1 mr-2" numberOfLines={1}>
               {pin.title}
             </Body>
             <TouchableOpacity onPress={onDismiss} className="w-6 h-6 items-center justify-center">
@@ -189,7 +189,7 @@ function PinCallout({
           {pin.location ? (
             <View className="flex-row items-center gap-1 mt-0.5">
               <MapPinIcon size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textLight flex-1" numberOfLines={1}>
+              <Caption className="text-textLight dark:text-darkTextLight flex-1" numberOfLines={1}>
                 {pin.location}
               </Caption>
             </View>
@@ -416,7 +416,7 @@ export default function MapScreen() {
         {/* My Location button */}
         <TouchableOpacity
           onPress={handleMyLocation}
-          className="absolute bottom-20 right-4 w-10 h-10 rounded-full bg-white shadow-md items-center justify-center">
+          className="absolute bottom-20 right-4 w-10 h-10 rounded-full bg-white dark:bg-darkBgCard shadow-md items-center justify-center">
           <LocateFixed size={20} color={colors.primary} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>

@@ -115,7 +115,7 @@ export default function UploadProgressFloat() {
         {/* shadow-lg via style — NativeWind shadow className inconsistent across platforms */}
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <View
-          className="bg-white rounded-2xl px-4 py-3 gap-2"
+          className="bg-white dark:bg-darkBgCard rounded-2xl px-4 py-3 gap-2"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
@@ -130,7 +130,7 @@ export default function UploadProgressFloat() {
                 ? <CheckCircle size={16} color="#22c55e" strokeWidth={1.5} />
                 : <CloudUpload size={16} color={colors.primary} strokeWidth={1.5} />}
             </View>
-            <Label className="flex-1 text-textDark">
+            <Label className="flex-1 text-textDark dark:text-darkTextDark">
               {isComplete
                 ? t.common.uploadComplete
                 : `${t.common.uploading} ${done}/${total} ${noun}...`}

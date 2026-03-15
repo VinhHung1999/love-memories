@@ -42,12 +42,12 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
       onDismiss={onClose}
     >
       {/* ── Amount Hero ── */}
-      <View className="items-center px-5 py-6 border-b border-border/40">
-        <Caption className="font-bold text-textLight tracking-[1px] uppercase mb-3">
+      <View className="items-center px-5 py-6 border-b border-border dark:border-darkBorder/40">
+        <Caption className="font-bold text-textLight dark:text-darkTextLight tracking-[1px] uppercase mb-3">
           {t.expenses.labels.amount}
         </Caption>
         <View className="flex-row items-baseline gap-1">
-          <Heading size="lg" className="text-textMid">₫</Heading>
+          <Heading size="lg" className="text-textMid dark:text-darkTextMid">₫</Heading>
           <BottomSheetTextInput
             value={vm.amount}
             onChangeText={vm.handleAmountChange}

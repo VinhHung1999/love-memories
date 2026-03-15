@@ -37,38 +37,38 @@ export default function JoinCoupleScreen() {
         {vm.isJoining ? (
           <>
             <ActivityIndicator size="large" color={colors.primary} className="mb-4" />
-            <Body size="md" className="text-textMid text-center">
+            <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
               {t.joinCouple.joining}
             </Body>
           </>
         ) : vm.error ? (
           <>
-            <Heading size="lg" className="text-textDark text-center mb-2">
+            <Heading size="lg" className="text-textDark dark:text-darkTextDark text-center mb-2">
               {t.joinCouple.errorTitle}
             </Heading>
-            <Body size="md" className="text-textMid text-center mb-6">
+            <Body size="md" className="text-textMid dark:text-darkTextMid text-center mb-6">
               {vm.error}
             </Body>
             <Button label={t.joinCouple.tryAgain} onPress={vm.handleJoin} variant="primary" />
           </>
         ) : vm.isSuccess ? (
           <>
-            <Heading size="xl" className="text-textDark text-center mb-2">
+            <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2">
               {t.joinCouple.successTitle}
             </Heading>
-            <Body size="md" className="text-textMid text-center mb-6">
+            <Body size="md" className="text-textMid dark:text-darkTextMid text-center mb-6">
               {t.joinCouple.successDesc}
             </Body>
           </>
         ) : (
           <>
-            <Heading size="xl" className="text-textDark text-center mb-2">
+            <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2">
               {t.joinCouple.title}
             </Heading>
-            <Body size="md" className="text-textMid text-center mb-2">
+            <Body size="md" className="text-textMid dark:text-darkTextMid text-center mb-2">
               {t.joinCouple.desc}
             </Body>
-            <Body size="sm" className="text-textLight text-center mb-6">
+            <Body size="sm" className="text-textLight dark:text-darkTextLight text-center mb-6">
               {t.joinCouple.code}: <Body size="sm" className="font-bold text-primary">{vm.code}</Body>
             </Body>
             <Button label={t.joinCouple.joinBtn} onPress={vm.handleJoin} variant="primary" />

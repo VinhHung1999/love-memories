@@ -55,15 +55,15 @@ export default function LetterReadScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 }}>
 
         {/* Paper card */}
-        <View className="bg-white rounded-3xl p-6 mb-4">
-          <Heading size="lg" className="text-textDark mb-4">{letter.title}</Heading>
+        <View className="bg-white dark:bg-darkBgCard rounded-3xl p-6 mb-4">
+          <Heading size="lg" className="text-textDark dark:text-darkTextDark mb-4">{letter.title}</Heading>
           <Body size="md" className="leading-7">{letter.content}</Body>
         </View>
 
         {/* Photos */}
         {letter.photos && letter.photos.length > 0 ? (
           <View className="mb-4">
-            <Caption className="font-bold text-textLight uppercase tracking-wider mb-2 px-1">
+            <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider mb-2 px-1">
               {t.loveLetters.photosLabel}
             </Caption>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">

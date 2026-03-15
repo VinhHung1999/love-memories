@@ -62,7 +62,7 @@ export default function AlertModal({
         className="flex-1 bg-black/40 items-center justify-center px-8"
         onPress={handleBackdropPress}>
         {/* Card — absorbs tap to prevent backdrop dismiss */}
-        <Pressable className="bg-white rounded-3xl w-full p-6" onPress={() => {}}>
+        <Pressable className="bg-white dark:bg-darkBgCard rounded-3xl w-full p-6" onPress={() => {}}>
 
           {/* Icon */}
           <View
@@ -72,11 +72,11 @@ export default function AlertModal({
           </View>
 
           {/* Title */}
-          <Heading size="md" className="text-textDark text-center mb-2">{title}</Heading>
+          <Heading size="md" className="text-textDark dark:text-darkTextDark text-center mb-2">{title}</Heading>
 
           {/* Message */}
           {message ? (
-            <Body className="text-textMid text-center mb-6 leading-relaxed">{message}</Body>
+            <Body className="text-textMid dark:text-darkTextMid text-center mb-6 leading-relaxed">{message}</Body>
           ) : (
             <View className="mb-4" />
           )}
@@ -86,8 +86,8 @@ export default function AlertModal({
             {hasCancel && (
               <Pressable
                 onPress={handleCancel}
-                className="flex-1 py-3 rounded-2xl border border-border items-center">
-                <Label className="font-semibold text-textMid">
+                className="flex-1 py-3 rounded-2xl border border-border dark:border-darkBorder items-center">
+                <Label className="font-semibold text-textMid dark:text-darkTextMid">
                   {cancelLabel ?? t.common.cancel}
                 </Label>
               </Pressable>

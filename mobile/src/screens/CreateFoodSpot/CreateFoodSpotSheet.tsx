@@ -30,7 +30,7 @@ function StarRatingPicker({ value, onChange }: { value: number; onChange: (v: nu
           />
         </Pressable>
       ))}
-      <Body size="md" className="text-textMid self-center ml-1">{value}/5</Body>
+      <Body size="md" className="text-textMid dark:text-darkTextMid self-center ml-1">{value}/5</Body>
     </View>
   );
 }

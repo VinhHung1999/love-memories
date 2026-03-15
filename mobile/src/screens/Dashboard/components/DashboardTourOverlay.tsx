@@ -99,16 +99,16 @@ function TooltipCard({
         {step + 1} / {total}
       </Caption>
 
-      <Label className="text-textDark font-semibold mb-1" style={{ fontSize: 15 }}>
+      <Label className="text-textDark dark:text-darkTextDark font-semibold mb-1" style={{ fontSize: 15 }}>
         {title}
       </Label>
-      <Body size="sm" className="text-textMid mb-4" style={{ lineHeight: 18 }}>
+      <Body size="sm" className="text-textMid dark:text-darkTextMid mb-4" style={{ lineHeight: 18 }}>
         {body}
       </Body>
 
       <View className="flex-row items-center justify-between">
         <Pressable onPress={onSkip}>
-          <Caption className="text-textLight">Skip tour</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">Skip tour</Caption>
         </Pressable>
         <SpringPressable
           onPress={onNext}

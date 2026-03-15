@@ -131,14 +131,14 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         {showHeader && (
           icon ? (
             /* Icon + title + subtitle style — row layout (no Cancel/Save) */
-            <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border">
+            <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border dark:border-darkBorder">
               <View className="w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primaryMuted }}>
                 {icon && React.createElement(icon, { size: 24, color: colors.primary, strokeWidth: 1.5 })}
               </View>
               <View className="flex-1">
-                <Heading size="sm" className="text-textDark">{title}</Heading>
+                <Heading size="sm" className="text-textDark dark:text-darkTextDark">{title}</Heading>
                 {subtitle ? (
-                  <Body className="text-textMid mt-0.5">{subtitle}</Body>
+                  <Body className="text-textMid dark:text-darkTextMid mt-0.5">{subtitle}</Body>
                 ) : null}
               </View>
               {actionLabel ? (
@@ -159,11 +159,11 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
             </View>
           ) : (
             /* Classic Cancel / Title / Save style */
-            <View className="flex-row items-center px-5 py-3 border-b border-border">
+            <View className="flex-row items-center px-5 py-3 border-b border-border dark:border-darkBorder">
               <Pressable onPress={handleCancel} className="w-[60px]">
-                <Body className="text-textMid">{cancel}</Body>
+                <Body className="text-textMid dark:text-darkTextMid">{cancel}</Body>
               </Pressable>
-              <Label className="flex-1 text-center font-semibold text-textDark">
+              <Label className="flex-1 text-center font-semibold text-textDark dark:text-darkTextDark">
                 {title}
               </Label>
               <Pressable

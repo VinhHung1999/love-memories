@@ -52,7 +52,7 @@ export default function VoiceMemoSection({
     <View className="mb-4">
       <View className="flex-row items-center gap-2 mb-2">
         <View className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <Caption className="text-textLight tracking-[1px] uppercase">
+        <Caption className="text-textLight dark:text-darkTextLight tracking-[1px] uppercase">
           {t.moments.detail.voiceMemo}
         </Caption>
       </View>
@@ -77,7 +77,7 @@ export default function VoiceMemoSection({
             </View>
 
             {/* Duration */}
-            <Label className="text-textMid">
+            <Label className="text-textMid dark:text-darkTextMid">
               {duration > 0 ? formatDuration(duration) : '--:--'}
             </Label>
           </Pressable>

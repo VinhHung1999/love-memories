@@ -54,7 +54,7 @@ export default function LetterCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl px-4 py-3.5 flex-row items-center gap-3 mb-3">
+      className="bg-white dark:bg-darkBgCard rounded-3xl px-4 py-3.5 flex-row items-center gap-3 mb-3">
       {/* Mood circle */}
       <View
         className="w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0"
@@ -65,7 +65,7 @@ export default function LetterCard({
       {/* Content */}
       <View className="flex-1 gap-0.5">
         <View className="flex-row items-center gap-1.5">
-          <Label className="text-textDark flex-1" numberOfLines={1}>
+          <Label className="text-textDark dark:text-darkTextDark flex-1" numberOfLines={1}>
             {letter.title}
           </Label>
           {isUnread ? (
@@ -76,9 +76,9 @@ export default function LetterCard({
           ) : null}
         </View>
         {showSender && letter.sender ? (
-          <Caption className="text-textLight">{letter.sender.name}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{letter.sender.name}</Caption>
         ) : null}
-        <Body size="sm" className="text-textMid" numberOfLines={1}>
+        <Body size="sm" className="text-textMid dark:text-darkTextMid" numberOfLines={1}>
           {letter.content.slice(0, 60)}
         </Body>
 
@@ -95,14 +95,14 @@ export default function LetterCard({
                   />
                 </View>
                 {(letter.photos?.length ?? 0) > 1 ? (
-                  <Caption className="text-textLight">+{(letter.photos?.length ?? 0) - 1}</Caption>
+                  <Caption className="text-textLight dark:text-darkTextLight">+{(letter.photos?.length ?? 0) - 1}</Caption>
                 ) : null}
               </View>
             ) : null}
             {hasAudio ? (
               <View className="flex-row items-center gap-0.5">
                 <Music2 size={12} color={colors.textLight} strokeWidth={1.5} />
-                <Caption className="text-textLight">{letter.audio?.length}</Caption>
+                <Caption className="text-textLight dark:text-darkTextLight">{letter.audio?.length}</Caption>
               </View>
             ) : null}
           </View>
@@ -110,8 +110,8 @@ export default function LetterCard({
 
         <View className="flex-row items-center gap-2 mt-1">
           <Caption style={{ color: statusColor }}>{statusLabel}</Caption>
-          <Caption className="text-textLight">·</Caption>
-          <Caption className="text-textLight">{formatDate(letter.createdAt)}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">·</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{formatDate(letter.createdAt)}</Caption>
         </View>
       </View>
 

@@ -145,10 +145,10 @@ function CompletionOverlay() {
       </Animated.View>
 
       <Animated.View style={textStyle} className="items-center">
-        <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26 }}>
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26 }}>
           {t.onboarding.avatar.doneTitle}
         </Heading>
-        <Body size="md" className="text-textMid text-center">
+        <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
           {t.onboarding.avatar.doneSubtitle}
         </Body>
       </Animated.View>
@@ -266,11 +266,11 @@ export default function OnboardingAvatarScreen() {
 
         {/* Heading */}
         <Animated.View entering={FadeInDown.delay(150).duration(400)} className="items-center mb-8">
-          <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26, lineHeight: 34 }}>
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26, lineHeight: 34 }}>
             {t.onboarding.avatar.title}
           </Heading>
-          <Body size="md" className="text-textMid text-center">{t.onboarding.avatar.subtitle}</Body>
-          <Caption className="text-textLight text-center mt-1">{t.onboarding.avatar.optional}</Caption>
+          <Body size="md" className="text-textMid dark:text-darkTextMid text-center">{t.onboarding.avatar.subtitle}</Body>
+          <Caption className="text-textLight dark:text-darkTextLight text-center mt-1">{t.onboarding.avatar.optional}</Caption>
         </Animated.View>
 
         {/* Avatar circle */}
@@ -327,7 +327,7 @@ export default function OnboardingAvatarScreen() {
 
           {!loading && (
             <Pressable onPress={handleFinish} className="items-center py-3">
-              <Body size="sm" className="text-textLight">{t.onboarding.avatar.skipBtn}</Body>
+              <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.onboarding.avatar.skipBtn}</Body>
             </Pressable>
           )}
         </Animated.View>

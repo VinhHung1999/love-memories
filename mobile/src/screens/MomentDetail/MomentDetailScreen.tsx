@@ -89,20 +89,20 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
       {/* Track info */}
       <View className="flex-1">
         {isLoading ? (
-          <Body size="sm" className="text-textLight">Loading track info...</Body>
+          <Body size="sm" className="text-textLight dark:text-darkTextLight">Loading track info...</Body>
         ) : meta ? (
           <>
-            <Body size="md" className="font-bold text-textDark" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark dark:text-darkTextDark" numberOfLines={1}>
               {meta.title}
             </Body>
             {meta.author_name ? (
-              <Body size="sm" className="text-textMid mt-0.5" numberOfLines={1}>
+              <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5" numberOfLines={1}>
                 {meta.author_name}
               </Body>
             ) : null}
           </>
         ) : (
-          <Body size="md" className="font-semibold text-textDark">
+          <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
             {t.moments.detail.spotifyLink}
           </Body>
         )}
@@ -230,7 +230,7 @@ export default function MomentDetailScreen() {
         <View className="mx-4 mt-3 mb-2">
 
           {/* Meta: date */}
-          <Caption className="text-textLight mb-2">
+          <Caption className="text-textLight dark:text-darkTextLight mb-2">
             📅 {formatDate(moment.date)}
           </Caption>
 
@@ -238,7 +238,7 @@ export default function MomentDetailScreen() {
           {moment.location ? (
             <View className="flex-row items-center gap-1.5 mb-3">
               <MapPin size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textLight flex-1" numberOfLines={1}>
+              <Caption className="text-textLight dark:text-darkTextLight flex-1" numberOfLines={1}>
                 {moment.location}
               </Caption>
               {moment.latitude && moment.longitude ? (
@@ -258,13 +258,13 @@ export default function MomentDetailScreen() {
           ) : null}
 
           {/* Title */}
-          <Heading size="lg" className="leading-tight tracking-tight mb-2 text-textDark">
+          <Heading size="lg" className="leading-tight tracking-tight mb-2 text-textDark dark:text-darkTextDark">
             {moment.title}
           </Heading>
 
           {/* Caption */}
           {moment.caption ? (
-            <Body size="md" className="text-textMid italic leading-relaxed mb-3">
+            <Body size="md" className="text-textMid dark:text-darkTextMid italic leading-relaxed mb-3">
               "{moment.caption}"
             </Body>
           ) : null}

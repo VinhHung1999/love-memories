@@ -36,7 +36,7 @@ const MONTH_NAMES = [
 function MomentsLoadingSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1">
-      <View className="bg-white border-b border-borderSoft px-4 py-3">
+      <View className="bg-white dark:bg-darkBgCard border-b border-borderSoft dark:border-darkBorder px-4 py-3">
         <View className="flex-row justify-between items-center mb-3">
           <Skeleton className="w-8 h-8 rounded-xl" />
           <Skeleton className="w-28 h-4 rounded-md" />
@@ -110,7 +110,7 @@ function MonthCalendar({
 
   return (
     <View
-      className="bg-white border-b border-borderSoft px-4 py-3"
+      className="bg-white dark:bg-darkBgCard border-b border-borderSoft dark:border-darkBorder px-4 py-3"
       onLayout={e => onLayout(e.nativeEvent.layout.height)}>
 
       {/* Month nav row */}
@@ -121,7 +121,7 @@ function MonthCalendar({
           style={{ backgroundColor: colors.textDark + '0F' }}>
           <ChevronLeft size={16} color={colors.textDark} strokeWidth={1.5} />
         </Pressable>
-        <Label className="text-[15px] text-textDark">
+        <Label className="text-[15px] text-textDark dark:text-darkTextDark">
           {MONTH_NAMES[selectedMonth.month]} {selectedMonth.year}
         </Label>
         <Pressable
@@ -136,7 +136,7 @@ function MonthCalendar({
       <View className="flex-row mb-1">
         {DAY_HEADERS.map(h => (
           <View key={h} className="flex-1 items-center">
-            <Caption className="text-textLight font-body" style={{ letterSpacing: 0.5 }}>
+            <Caption className="text-textLight dark:text-darkTextLight font-body" style={{ letterSpacing: 0.5 }}>
               {h}
             </Caption>
           </View>
@@ -201,7 +201,7 @@ function MomentMiniCard({ moment, onPress }: { moment: Moment; onPress: () => vo
   return (
     <Pressable
       onPress={onPress}
-      className="rounded-2xl overflow-hidden border border-borderSoft bg-white"
+      className="rounded-2xl overflow-hidden border border-borderSoft dark:border-darkBorder bg-white dark:bg-darkBgCard"
       style={{ width: MINI_CARD_W, height: MINI_CARD_H }}>
       {cover ? (
         <FastImage
@@ -218,7 +218,7 @@ function MomentMiniCard({ moment, onPress }: { moment: Moment; onPress: () => vo
       )}
       <View className="px-2 py-1.5" style={{ height: MINI_CARD_H - MINI_CARD_PHOTO_H }}>
         <Caption
-          className="text-textDark"
+          className="text-textDark dark:text-darkTextDark"
           style={{ fontWeight: '600', lineHeight: 15, fontSize: 11 }}
           numberOfLines={2}>
           {moment.title}
@@ -261,7 +261,7 @@ function TimelineDayGroup({
           style={{ width: 10, height: 10, backgroundColor: colors.primary, marginTop: 2, zIndex: 1 }}
         />
         {/* Date — below dot, not crossed by spine */}
-        <Caption className="text-textLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
+        <Caption className="text-textLight dark:text-darkTextLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
           {group.label}
         </Caption>
       </View>
@@ -306,7 +306,7 @@ export default function MomentsScreen() {
   }, [vm.selectedDay]);
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
         title={t.moments.title}
         subtitle={t.moments.subtitle}

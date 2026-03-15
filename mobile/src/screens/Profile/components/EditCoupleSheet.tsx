@@ -90,7 +90,7 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         {/* Clear anniversary */}
         {anniversaryDate ? (
           <Pressable onPress={() => setAnniversaryDate(null)} className="mb-2 -mt-1">
-            <Caption className="text-textLight text-center">Clear anniversary date</Caption>
+            <Caption className="text-textLight dark:text-darkTextLight text-center">Clear anniversary date</Caption>
           </Pressable>
         ) : null}
 

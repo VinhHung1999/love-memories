@@ -130,8 +130,8 @@ export default function ComposeLetterSheet({
                 <Check size={18} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Label className="text-textDark">Voice memo recorded</Label>
-                <Body size="sm" className="text-textLight mt-0.5">
+                <Label className="text-textDark dark:text-darkTextDark">Voice memo recorded</Label>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">
                   {formatSecs(vm.recordingDuration)} · m4a
                 </Body>
               </View>
@@ -152,16 +152,16 @@ export default function ComposeLetterSheet({
                 className="w-10 h-10 rounded-full items-center justify-center"
                 style={{ backgroundColor: vm.isRecording ? colors.primary : colors.accent }}>
                 {vm.isRecording ? (
-                  <View className="w-3.5 h-3.5 rounded bg-white" />
+                  <View className="w-3.5 h-3.5 rounded bg-white dark:bg-darkBgCard" />
                 ) : (
                   <Mic size={18} strokeWidth={1.5} />
                 )}
               </View>
               <View className="flex-1">
-                <Label className="text-textDark">
+                <Label className="text-textDark dark:text-darkTextDark">
                   {vm.isRecording ? t.loveLetters.recording : t.loveLetters.recordMemo}
                 </Label>
-                <Body size="sm" className="text-textLight mt-0.5">
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">
                   {vm.isRecording
                     ? `${formatSecs(vm.recordingDuration)} · ${t.loveLetters.stopRecording}`
                     : t.loveLetters.recordHint}
@@ -203,7 +203,7 @@ export default function ComposeLetterSheet({
         <View className="mb-6">
           <Pressable
             onPress={vm.toggleScheduleMode}
-            className="flex-row items-center gap-3 p-4 rounded-2xl border border-border/50 bg-gray-50">
+            className="flex-row items-center gap-3 p-4 rounded-2xl border border-border dark:border-darkBorder/50 bg-gray-50">
             <Clock size={20} color={vm.scheduleMode ? colors.primary : colors.textLight} strokeWidth={1.5} />
             <View className="flex-1">
               <Label
@@ -211,18 +211,18 @@ export default function ComposeLetterSheet({
                 {t.loveLetters.scheduleLabel}
               </Label>
               {vm.scheduleMode && vm.scheduledAt ? (
-                <Body size="sm" className="text-textMid mt-0.5">
+                <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5">
                   {formatScheduledAt(vm.scheduledAt)}
                 </Body>
               ) : (
-                <Body size="sm" className="text-textLight mt-0.5">Tap to set delivery time</Body>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">Tap to set delivery time</Body>
               )}
             </View>
             <View
               className="w-10 h-6 rounded-full"
               style={{ backgroundColor: vm.scheduleMode ? colors.primary : colors.gray100 }}>
               <View
-                className="absolute top-1 w-4 h-4 rounded-full bg-white"
+                className="absolute top-1 w-4 h-4 rounded-full bg-white dark:bg-darkBgCard"
                 style={{ left: vm.scheduleMode ? 22 : 2 }}
               />
             </View>

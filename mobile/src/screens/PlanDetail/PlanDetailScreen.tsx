@@ -64,7 +64,7 @@ export default function PlanDetailScreen() {
             </View>
           </View>
           {plan.stops.length > 0 ? (
-            <Body size="sm" className="text-textMid">
+            <Body size="sm" className="text-textMid dark:text-darkTextMid">
               {t.datePlanner.stopsProgress
                 .replace('{done}', String(doneCount))
                 .replace('{total}', String(plan.stops.length))}
@@ -75,7 +75,7 @@ export default function PlanDetailScreen() {
         {/* Stops timeline */}
         {vm.sortedStops.length === 0 ? (
           <View className="items-center py-12 gap-2">
-            <Body size="md" className="text-textLight">{t.datePlanner.noStops}</Body>
+            <Body size="md" className="text-textLight dark:text-darkTextLight">{t.datePlanner.noStops}</Body>
           </View>
         ) : (
           vm.sortedStops.map((stop, idx) => (

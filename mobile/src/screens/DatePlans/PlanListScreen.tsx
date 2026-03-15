@@ -23,7 +23,7 @@ function PlansSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1 px-4 pt-4">
       {[0, 1, 2].map(i => (
-        <View key={i} className="bg-white rounded-3xl p-4 mb-3">
+        <View key={i} className="bg-white dark:bg-darkBgCard rounded-3xl p-4 mb-3">
           <View className="flex-row justify-between mb-2">
             <Skeleton className="w-24 h-6 rounded-xl" />
             <Skeleton className="w-16 h-6 rounded-full" />

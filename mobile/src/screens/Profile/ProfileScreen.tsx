@@ -39,9 +39,9 @@ function InfoRow({
   const colors = useAppColors();
   const inner = (
     <View className="flex-row items-center justify-between py-[14px]" style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '80' }}>
-      <Body size="md" className="text-textMid flex-1">{label}</Body>
+      <Body size="md" className="text-textMid dark:text-darkTextMid flex-1">{label}</Body>
       <View className="flex-row items-center gap-2">
-        <Body size="md" className="font-medium text-textDark">{value}</Body>
+        <Body size="md" className="font-medium text-textDark dark:text-darkTextDark">{value}</Body>
         {icon && React.createElement(icon, { size: 14, color: colors.textLight, strokeWidth: 1.5 })}
       </View>
     </View>
@@ -76,7 +76,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
 
       <ScreenHeader
         scrollY={scrollY}
@@ -100,7 +100,7 @@ export default function ProfileScreen() {
             onPress={vm.handleUploadAvatar}
             showCameraBadge
           />
-          <Body size="sm" className="text-textMid mt-1">{vm.user?.email}</Body>
+          <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1">{vm.user?.email}</Body>
           {vm.couple?.name ? (
             <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
               <Heart size={10} color={colors.primary} strokeWidth={1.5} />
@@ -110,11 +110,11 @@ export default function ProfileScreen() {
           {vm.anniversaryDisplay ? (
             <View className="mt-1.5 flex-row items-center gap-1">
               <CalendarHeart size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textMid">Since {vm.anniversaryDisplay}</Caption>
+              <Caption className="text-textMid dark:text-darkTextMid">Since {vm.anniversaryDisplay}</Caption>
             </View>
           ) : null}
           {vm.slogan ? (
-            <Caption className="text-textLight italic mt-1.5 text-center" numberOfLines={1}>
+            <Caption className="text-textLight dark:text-darkTextLight italic mt-1.5 text-center" numberOfLines={1}>
               {vm.slogan}
             </Caption>
           ) : null}
@@ -141,8 +141,8 @@ export default function ProfileScreen() {
                   size={44}
                 />
                 <View className="flex-1">
-                  <Body size="md" className="font-semibold text-textDark">{vm.partner.name}</Body>
-                  <Body size="sm" className="text-textMid mt-0.5">{vm.partner.email}</Body>
+                  <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">{vm.partner.name}</Body>
+                  <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5">{vm.partner.email}</Body>
                 </View>
                 <View className="w-2 h-2 rounded-full bg-green-400" />
               </View>
@@ -186,8 +186,8 @@ export default function ProfileScreen() {
               {vm.couple?.inviteCode ? (
                 <>
                   <View className="flex-row items-center gap-3">
-                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-3 border border-border/50">
-                      <Body size="md" className="font-mono tracking-[3px] text-textDark text-center">
+                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-3 border border-border dark:border-darkBorder/50">
+                      <Body size="md" className="font-mono tracking-[3px] text-textDark dark:text-darkTextDark text-center">
                         {vm.couple.inviteCode}
                       </Body>
                     </View>
@@ -200,7 +200,7 @@ export default function ProfileScreen() {
                         : <Copy size={17} color={colors.primary} strokeWidth={1.5} />}
                     </Pressable>
                   </View>
-                  <Caption className="text-textLight mt-2">{t.profile.couple.shareHint}</Caption>
+                  <Caption className="text-textLight dark:text-darkTextLight mt-2">{t.profile.couple.shareHint}</Caption>
                   <Pressable
                     onPress={vm.generateInvite}
                     disabled={vm.isInviteGenerating}
@@ -209,7 +209,7 @@ export default function ProfileScreen() {
                       ? <Skeleton className="w-24 h-3.5 rounded-full" />
                       : <>
                           <RefreshCw size={13} color={colors.textLight} strokeWidth={1.5} />
-                          <Caption className="text-textLight">{t.profile.couple.generateInvite}</Caption>
+                          <Caption className="text-textLight dark:text-darkTextLight">{t.profile.couple.generateInvite}</Caption>
                         </>}
                   </Pressable>
                 </>
@@ -239,12 +239,12 @@ export default function ProfileScreen() {
               </View>
             ) : (
               <View className="py-3">
-                <Body size="sm" className="text-textMid mb-3">{t.profile.google.linkHint}</Body>
+                <Body size="sm" className="text-textMid dark:text-darkTextMid mb-3">{t.profile.google.linkHint}</Body>
                 <Pressable
                   onPress={vm.handleLinkGoogle}
-                  className="border border-border rounded-2xl py-2.5 flex-row items-center justify-center gap-2">
+                  className="border border-border dark:border-darkBorder rounded-2xl py-2.5 flex-row items-center justify-center gap-2">
                   <GoogleGLogo size={18} />
-                  <Body size="md" className="font-semibold text-textDark">{t.profile.google.linkButton}</Body>
+                  <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">{t.profile.google.linkButton}</Body>
                 </Pressable>
               </View>
             )}
@@ -277,7 +277,7 @@ export default function ProfileScreen() {
 
           {/* ── Delete Account ── */}
           <Pressable onPress={handleOpenDeleteAccount} className="mb-10 items-center py-2 mx-4">
-            <Body size="sm" className="text-textLight">{t.profile.deleteAccount.title}</Body>
+            <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.profile.deleteAccount.title}</Body>
           </Pressable>
 
       </Animated.ScrollView>

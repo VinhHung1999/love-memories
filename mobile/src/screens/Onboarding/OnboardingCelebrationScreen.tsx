@@ -116,7 +116,7 @@ export default function OnboardingCelebrationScreen() {
 
         {/* Text */}
         <Animated.View entering={FadeInDown.delay(300).duration(400)} className="items-center gap-3 mb-12">
-          <Heading size="xl" className="text-textDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
             {subtitle}
           </Heading>
         </Animated.View>

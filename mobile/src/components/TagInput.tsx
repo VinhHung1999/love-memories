@@ -27,7 +27,7 @@ export default function TagInput({ tags, tagInput, onChangeTagInput, onAddTag, o
         </Pressable>
       ))}
       <TextInput
-        className="text-[13px] text-textDark flex-1 min-w-[120px]"
+        className="text-[13px] text-textDark dark:text-darkTextDark flex-1 min-w-[120px]"
         placeholder={t.moments.create.typeTag}
         placeholderTextColor={colors.textLight}
         value={tagInput}

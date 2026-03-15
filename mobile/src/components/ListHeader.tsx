@@ -33,11 +33,11 @@ export default function ListHeader({ title, subtitle, onBack, right, filterBar }
         <View className="flex-row items-center px-4 gap-3" style={{ height: 56 }}>
           <HeaderIcon icon={ArrowLeft} onPress={onBack} />
           <View className="flex-1">
-            <Heading size="md" className="text-textDark" numberOfLines={1}>
+            <Heading size="md" className="text-textDark dark:text-darkTextDark" numberOfLines={1}>
               {title}
             </Heading>
             {subtitle ? (
-              <Body size="sm" className="text-textMid font-medium" numberOfLines={1}>
+              <Body size="sm" className="text-textMid dark:text-darkTextMid font-medium" numberOfLines={1}>
                 {subtitle}
               </Body>
             ) : null}

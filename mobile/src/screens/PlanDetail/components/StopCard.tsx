@@ -40,11 +40,11 @@ export default function StopCard({
 
       {/* Content */}
       <View className="flex-1 pb-5">
-        <View className="bg-white rounded-2xl p-3">
+        <View className="bg-white dark:bg-darkBgCard rounded-2xl p-3">
           <View className="flex-row items-start gap-2">
             <View className="flex-1">
               {stop.time ? (
-                <Caption className="text-textLight mb-0.5 uppercase tracking-wider">
+                <Caption className="text-textLight dark:text-darkTextLight mb-0.5 uppercase tracking-wider">
                   {stop.time}
                 </Caption>
               ) : null}
@@ -53,10 +53,10 @@ export default function StopCard({
                 {stop.title}
               </Label>
               {stop.description ? (
-                <Body size="sm" className="text-textLight mt-0.5">{stop.description}</Body>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">{stop.description}</Body>
               ) : null}
               {stop.notes ? (
-                <Body size="sm" className="text-textMid mt-1 italic">{stop.notes}</Body>
+                <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1 italic">{stop.notes}</Body>
               ) : null}
             </View>
             {!stop.done ? (

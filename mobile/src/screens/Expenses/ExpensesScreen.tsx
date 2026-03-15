@@ -40,7 +40,7 @@ import HeaderIcon from '@/components/HeaderIcon';
 function ExpenseSkeleton() {
   const colors = useAppColors();
   return (
-    <View className="bg-white mx-4 rounded-3xl overflow-hidden mb-3">
+    <View className="bg-white dark:bg-darkBgCard mx-4 rounded-3xl overflow-hidden mb-3">
       {[0, 1, 2].map(i => (
         <View key={i} className="flex-row items-center gap-3 px-4 py-3.5" style={{ borderTopWidth: i > 0 ? 1 : 0, borderTopColor: colors.border + '66' }}>
           <Skeleton className="w-10 h-10 rounded-2xl" />
@@ -72,10 +72,10 @@ function ExpenseRow({ expense, isLast, onPress }: { expense: Expense; isLast: bo
         <Text className="text-lg">{getCategoryEmoji(expense.category)}</Text>
       </View>
       <View className="flex-1">
-        <Body size="sm" className="font-semibold text-textDark" numberOfLines={1}>{expense.description}</Body>
-        {expense.note ? <Caption className="text-textMid mt-0.5" numberOfLines={1}>{expense.note}</Caption> : null}
+        <Body size="sm" className="font-semibold text-textDark dark:text-darkTextDark" numberOfLines={1}>{expense.description}</Body>
+        {expense.note ? <Caption className="text-textMid dark:text-darkTextMid mt-0.5" numberOfLines={1}>{expense.note}</Caption> : null}
       </View>
-      <Body size="sm" className="font-bold text-textDark">{formatVND(expense.amount)}</Body>
+      <Body size="sm" className="font-bold text-textDark dark:text-darkTextDark">{formatVND(expense.amount)}</Body>
     </Pressable>
   );
 }
@@ -93,11 +93,11 @@ function SummaryCard({ total, count, breakdown }: {
   const overLimitCount = breakdown.filter(c => c.overLimit).length;
 
   return (
-    <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white border border-borderSoft">
+    <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white dark:bg-darkBgCard border border-borderSoft dark:border-darkBorder">
       <View className="px-5 pt-5 pb-4">
-        <Caption className="text-textMid font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Caption>
+        <Caption className="text-textMid dark:text-darkTextMid font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Caption>
         <View className="flex-row items-end justify-between mb-1">
-          <Heading size="xl" className="text-textDark">{total}</Heading>
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark">{total}</Heading>
           {overLimitCount > 0 && (
             <View className="flex-row items-center gap-1 bg-error/10 rounded-full px-2.5 py-1">
               <Text className="text-sm">⚠️</Text>
@@ -105,13 +105,13 @@ function SummaryCard({ total, count, breakdown }: {
             </View>
           )}
         </View>
-        <Caption className="text-textLight mb-4">{count} {t.expenses.transactions}</Caption>
+        <Caption className="text-textLight dark:text-darkTextLight mb-4">{count} {t.expenses.transactions}</Caption>
         {breakdown.map(cat => (
           <View key={cat.key} className="mb-2.5">
             <View className="flex-row items-center justify-between mb-1">
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-sm">{cat.emoji}</Text>
-                <Caption className="text-textMid font-medium">{cat.label}</Caption>
+                <Caption className="text-textMid dark:text-darkTextMid font-medium">{cat.label}</Caption>
                 {cat.overLimit && <Text className="text-xs">⚠️</Text>}
               </View>
               <View className="flex-row items-center gap-1.5">
@@ -120,7 +120,7 @@ function SummaryCard({ total, count, breakdown }: {
                     {cat.limitPct}%
                   </Caption>
                 )}
-                <Caption className="text-textDark font-semibold">{cat.formattedAmount}</Caption>
+                <Caption className="text-textDark dark:text-darkTextDark font-semibold">{cat.formattedAmount}</Caption>
               </View>
             </View>
             <View className="h-1.5 bg-borderSoft rounded-full overflow-hidden">
@@ -184,17 +184,17 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
   );
 
   return (
-    <Animated.View entering={FadeInDown.duration(400)} className="bg-white rounded-3xl overflow-hidden mx-4 mb-4 px-4 pt-4 pb-3">
+    <Animated.View entering={FadeInDown.duration(400)} className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden mx-4 mb-4 px-4 pt-4 pb-3">
       {/* Header + legend */}
       <View className="flex-row items-center justify-between mb-3">
-        <Caption className="font-bold text-textLight tracking-[0.8px] uppercase">
+        <Caption className="font-bold text-textLight dark:text-darkTextLight tracking-[0.8px] uppercase">
           {t.expenses.chart.title}
         </Caption>
         <View className="flex-row flex-wrap gap-x-2 gap-y-1 justify-end max-w-[180px]">
           {activeCategories.map(cat => (
             <View key={cat} className="flex-row items-center gap-1">
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CATEGORY_CHART_COLORS[cat] }} />
-              <Caption className="text-textLight">{EXPENSE_CATEGORIES.find(c => c.key === cat)?.label ?? cat}</Caption>
+              <Caption className="text-textLight dark:text-darkTextLight">{EXPENSE_CATEGORIES.find(c => c.key === cat)?.label ?? cat}</Caption>
             </View>
           ))}
         </View>
@@ -205,7 +205,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
         {/* Y-axis labels: top (max) → bottom (0) */}
         <View style={{ width: Y_AXIS_W, height: BAR_AREA_H, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 6 }}>
           {ticks.slice().reverse().map((tick, i) => (
-            <Caption key={i} className="text-textLight leading-none">
+            <Caption key={i} className="text-textLight dark:text-darkTextLight leading-none">
               {formatShortVND(tick)}
             </Caption>
           ))}
@@ -297,7 +297,7 @@ export default function ExpensesScreen() {
   }, [vm.categoryBreakdown]);
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
         title={t.expenses.title}
         subtitle={t.expenses.subtitle}
@@ -314,12 +314,12 @@ export default function ExpensesScreen() {
           </View>
         }
         filterBar={
-          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border/40">
-            <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white">
+          <View className="flex-row items-center justify-between px-5 py-3 bg-gray-50 border-b border-border dark:border-darkBorder/40">
+            <Pressable onPress={vm.prevMonth} className="w-9 h-9 items-center justify-center rounded-xl bg-white dark:bg-darkBgCard">
               <ChevronLeft size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
             <View className="items-center">
-              <Heading size="sm" className="text-textDark">{vm.monthLabel}</Heading>
+              <Heading size="sm" className="text-textDark dark:text-darkTextDark">{vm.monthLabel}</Heading>
               {vm.isCurrentMonth && (
                 <View className="mt-0.5 bg-primary/10 rounded-full px-2 py-[1px]">
                   <Caption className="font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Caption>
@@ -393,16 +393,16 @@ export default function ExpensesScreen() {
 
               {vm.isEmpty ? (
                 <View className="items-center py-12">
-                  <Body size="sm" className="text-textLight">{t.expenses.noExpenses}</Body>
+                  <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.expenses.noExpenses}</Body>
                 </View>
               ) : (
                 vm.groupedExpenses.map(group => (
                   <Animated.View key={group.dateLabel} entering={FadeInDown.duration(300)}>
                     <View className="flex-row items-center justify-between px-5 mb-2">
-                      <Caption className="font-bold text-textLight tracking-[0.8px] uppercase">{group.dateLabel}</Caption>
-                      <Caption className="font-semibold text-textMid">{formatVND(group.dayTotal)}</Caption>
+                      <Caption className="font-bold text-textLight dark:text-darkTextLight tracking-[0.8px] uppercase">{group.dateLabel}</Caption>
+                      <Caption className="font-semibold text-textMid dark:text-darkTextMid">{formatVND(group.dayTotal)}</Caption>
                     </View>
-                    <View className="bg-white mx-4 rounded-3xl overflow-hidden mb-3">
+                    <View className="bg-white dark:bg-darkBgCard mx-4 rounded-3xl overflow-hidden mb-3">
                       {group.expenses.map((expense, idx) => (
                         <ExpenseRow
                           key={expense.id}

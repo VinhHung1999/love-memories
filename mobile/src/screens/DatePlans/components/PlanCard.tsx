@@ -34,7 +34,7 @@ export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: (
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl px-4 py-4 mb-3">
+      className="bg-white dark:bg-darkBgCard rounded-3xl px-4 py-4 mb-3">
       {/* Top row: date badge + status */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="rounded-xl px-2.5 py-1" style={{ backgroundColor: colors.primaryMuted }}>
@@ -50,12 +50,12 @@ export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: (
       </View>
 
       {/* Title */}
-      <Label className="text-textDark mb-1">{plan.title}</Label>
+      <Label className="text-textDark dark:text-darkTextDark mb-1">{plan.title}</Label>
 
       {/* Stops progress */}
       {totalStops > 0 ? (
         <View className="gap-1.5">
-          <Caption className="text-textLight">
+          <Caption className="text-textLight dark:text-darkTextLight">
             {t.datePlanner.stopsProgress
               .replace('{done}', String(doneStops))
               .replace('{total}', String(totalStops))}

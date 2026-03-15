@@ -57,22 +57,22 @@ export default function LoginScreen() {
             {/* ── Logo / hero ── */}
             <Animated.View className="items-center pb-5" style={logoStyle}>
               <HeartLogo />
-              <Heading size="lg" className="text-textDark tracking-[0.3px]">{t.app.name}</Heading>
+              <Heading size="lg" className="text-textDark dark:text-darkTextDark tracking-[0.3px]">{t.app.name}</Heading>
             </Animated.View>
 
             {/* ── Form ── */}
             <Animated.View className="w-full" style={formStyle}>
-              <Heading size="lg" className="text-textDark mb-4 tracking-[0.2px]">
+              <Heading size="lg" className="text-textDark dark:text-darkTextDark mb-4 tracking-[0.2px]">
                 {vm.mode === 'login' ? t.login.welcomeBack : t.login.createAccount}
               </Heading>
 
               {/* Google button */}
               <SpringPressable
-                className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border bg-white mb-1"
+                className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border dark:border-darkBorder bg-white dark:bg-darkBgCard mb-1"
                 onPress={vm.handleGoogleSignIn}
                 disabled={vm.loading}>
                 <GoogleGLogo size={20} />
-                <Body size="lg" className="font-semibold text-textDark tracking-[0.1px]">
+                <Body size="lg" className="font-semibold text-textDark dark:text-darkTextDark tracking-[0.1px]">
                   {vm.mode === 'login' ? t.login.continueWithGoogle : t.login.signUpWithGoogle}
                 </Body>
               </SpringPressable>
@@ -80,7 +80,7 @@ export default function LoginScreen() {
               {/* Divider */}
               <View className="flex-row items-center gap-3 mt-[14px] mb-[14px]">
                 <View className="flex-1 h-[1px] bg-textMid/15" />
-                <Body size="sm" className="text-textLight">{t.login.or}</Body>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.login.or}</Body>
                 <View className="flex-1 h-[1px] bg-textMid/15" />
               </View>
 

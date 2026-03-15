@@ -22,7 +22,7 @@ function LettersSkeleton() {
   return (
     <ScrollView scrollEnabled={false} className="flex-1 px-4 pt-4">
       {[0, 1, 2].map(i => (
-        <View key={i} className="flex-row items-center gap-3 mb-3 p-4 bg-white rounded-3xl">
+        <View key={i} className="flex-row items-center gap-3 mb-3 p-4 bg-white dark:bg-darkBgCard rounded-3xl">
           <Skeleton className="w-12 h-12 rounded-2xl" />
           <View className="flex-1 gap-2">
             <Skeleton className="w-3/4 h-3.5 rounded-md" />

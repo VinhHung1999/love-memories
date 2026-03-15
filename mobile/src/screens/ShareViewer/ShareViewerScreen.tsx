@@ -32,10 +32,10 @@ export default function ShareViewerScreen() {
         </View>
       ) : vm.error ? (
         <View className="flex-1 items-center justify-center px-8">
-          <Heading size="md" className="text-textMid text-center mb-2">
+          <Heading size="md" className="text-textMid dark:text-darkTextMid text-center mb-2">
             {t.shareViewer.notFound}
           </Heading>
-          <Body size="sm" className="text-textLight text-center">
+          <Body size="sm" className="text-textLight dark:text-darkTextLight text-center">
             {t.shareViewer.notFoundDesc}
           </Body>
         </View>
@@ -64,13 +64,13 @@ export default function ShareViewerScreen() {
             </View>
 
             {/* Title */}
-            <Heading size="xl" className="text-textDark mb-2 leading-tight">
+            <Heading size="xl" className="text-textDark dark:text-darkTextDark mb-2 leading-tight">
               {vm.data.title}
             </Heading>
 
             {/* Caption */}
             {vm.data.caption ? (
-              <Body size="md" className="text-textMid italic leading-relaxed mb-3">
+              <Body size="md" className="text-textMid dark:text-darkTextMid italic leading-relaxed mb-3">
                 "{vm.data.caption}"
               </Body>
             ) : null}
@@ -79,7 +79,7 @@ export default function ShareViewerScreen() {
             {vm.data.location ? (
               <View className="flex-row items-center gap-1.5 mb-3">
                 <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
-                <Caption className="text-textLight">{vm.data.location}</Caption>
+                <Caption className="text-textLight dark:text-darkTextLight">{vm.data.location}</Caption>
               </View>
             ) : null}
 
@@ -97,7 +97,7 @@ export default function ShareViewerScreen() {
               className="mt-4 p-3 rounded-2xl"
               style={{ backgroundColor: colors.primaryMuted }}
             >
-              <Caption className="text-textMid text-center">
+              <Caption className="text-textMid dark:text-darkTextMid text-center">
                 {t.shareViewer.sharedVia}
               </Caption>
             </View>

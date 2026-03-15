@@ -61,13 +61,13 @@ export default function ScreenHeader({
             <HeaderIcon icon={ArrowLeft} onPress={onBack} />
           )}
           <View className="flex-1">
-            <Heading size="md" className="text-textDark" numberOfLines={1}>
+            <Heading size="md" className="text-textDark dark:text-darkTextDark" numberOfLines={1}>
               {title}
             </Heading>
             {subtitle ? (
               <Body
                 size="sm"
-                className="text-textMid font-medium"
+                className="text-textMid dark:text-darkTextMid font-medium"
                 numberOfLines={1}
               >
                 {subtitle}
