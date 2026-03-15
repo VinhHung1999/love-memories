@@ -23,22 +23,22 @@
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 1 | **BE: AASA + assetlinks hosting** — Serve `/.well-known/apple-app-site-association` (JSON, NOT signed) and `/.well-known/assetlinks.json` from backend. AASA paths: `/share/*`, `/invite/*`. Domain: `love-scrum.hungphu.work`. Boss provides Team ID + Bundle ID later | S | TODO | BE |
-| 2 | **MOBILE: iOS Associated Domains** — Add `applinks:love-scrum.hungphu.work` to `LoveScrum.entitlements`. Enable Associated Domains capability in Xcode | S | TODO | MOBILE |
-| 3 | **MOBILE: Android App Links** — Add intent-filter in `AndroidManifest.xml` for `love-scrum.hungphu.work` with `autoVerify=true`. Paths: `/share/*`, `/invite/*` | S | TODO | MOBILE |
-| 4 | **MOBILE: Deep link routing** — Configure React Navigation `linking` config. Map URL paths to screens: `/share/:token` → ShareViewer, `/invite/:code` → JoinCouple. Handle `Linking.getInitialURL()` (cold start) + `Linking.addEventListener` (warm) | M | TODO | MOBILE |
-| 5 | **MOBILE: Share feature update** — Update share buttons (Moments, Recipes, FoodSpots) to use universal link URL (`https://love-scrum.hungphu.work/share/:token`) instead of plain API URL. When app installed → opens in app; not installed → opens web | S | TODO | MOBILE |
+| 1 | **BE: AASA + assetlinks hosting** | S | DONE | BE |
+| 2 | **MOBILE: iOS Associated Domains** | S | DONE | MOBILE |
+| 3 | **MOBILE: Android App Links** | S | DONE | MOBILE |
+| 4 | **MOBILE: Deep link routing** | M | DONE | MOBILE |
+| 5 | **MOBILE: Share feature update** | S | DONE | MOBILE |
 
 ### 2. Dark Mode / Light Mode
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 6 | **MOBILE: Hardcoded color audit + cleanup** — Scan ALL screen/component files for hardcoded hex values (`#FFF8F6`, `#2D2D2D`, `#E8788A`, etc.) and `rgba(...)` literals. Replace with theme-aware references (NativeWind theme colors or `useAppColors()`). This MUST happen before dark mode — otherwise dark mode won't apply everywhere. Boss confirmed many hardcoded colors exist | M | TODO | MOBILE |
-| 7 | **MOBILE: DarkAppTheme** — Create dark color palette in `theme.ts` alongside existing `AppTheme`. Dark colors: bg `#121212`, card `#1E1E1E`, text `#E5E5E5`, border `#2C2C2C`, primary stays `#E8788A`. Extend `useAppColors()` to return dark/light colors based on mode | M | TODO | MOBILE |
-| 8 | **MOBILE: ThemeContext + useThemeMode()** — Follow OS system appearance (`useColorScheme()`). NO manual toggle — always matches device dark/light setting. Provide `isDark` boolean via context. NavigationContainer receives correct theme (AppTheme or DarkAppTheme) based on OS | S | TODO | MOBILE |
-| 9 | **MOBILE: NativeWind dark class** — Configure NativeWind/Tailwind `darkMode: 'class'`. Wrap root with dark class when dark mode active. Update `tailwind.config.js` colors to support `dark:` variants | M | TODO | MOBILE |
-| 10 | **MOBILE: Screen-by-screen dark mode** — Add `dark:` variants to ALL screens + components. Key areas: cards, modals, bottom sheets, headers, tab bar, inputs, empty states | L | TODO | MOBILE |
-| 11 | **MOBILE: Verify dark mode end-to-end** — Toggle device dark mode in simulator, verify all screens render correctly. No Profile toggle needed — purely system-driven | S | TODO | MOBILE |
+| 6 | **MOBILE: Hardcoded color audit + cleanup** | M | DONE | MOBILE |
+| 7 | **MOBILE: DarkAppTheme** | M | DONE | MOBILE |
+| 8 | **MOBILE: ThemeContext (system-only)** | S | DONE | MOBILE |
+| 9 | **MOBILE: NativeWind dark class** | M | DONE | MOBILE |
+| 10 | **MOBILE: Screen-by-screen dark mode** (87 files) | L | DONE | MOBILE |
+| 11 | **MOBILE: E2E dark mode verification** | S | DONE | MOBILE |
 
 ### 3. Vietnamese Language (i18n)
 

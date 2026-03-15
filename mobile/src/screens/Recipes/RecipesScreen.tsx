@@ -13,7 +13,7 @@ import FastImage from 'react-native-fast-image';
 import { Bot, Check, ChefHat, FilterX, List, Plus } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Recipe } from '../../types';
 import { useRecipesViewModel, type RecipeFilter } from './useRecipesViewModel';
 import ListHeader from '../../components/ListHeader';
@@ -65,6 +65,7 @@ function RecipesLoadingSkeleton() {
 // ── Recipe Card ───────────────────────────────────────────────────────────────
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const coverPhoto = recipe.photos[0];
 
@@ -91,7 +92,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {recipe.cooked ? (
           <View className="absolute top-2 right-2 bg-green-500 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
             <Check size={9} strokeWidth={1.5} />
-            <Caption className="font-bold text-white">{t.recipes.detail.cookedBadge}</Caption>
+            <Caption className="font-bold text-white">{t('recipes.detail.cookedBadge')}</Caption>
           </View>
         ) : (
           <View className="absolute top-2 right-2 bg-white/80 dark:bg-darkBgCard/80 rounded-xl px-2 py-0.5">
@@ -162,21 +163,22 @@ function FilterChip({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function RecipesScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useRecipesViewModel();
 
   const filterOptions: { key: RecipeFilter; label: string }[] = [
-    { key: 'all', label: t.recipes.allFilter },
-    { key: 'cooked', label: t.recipes.cookedFilter },
-    { key: 'uncooked', label: t.recipes.uncookedFilter },
+    { key: 'all', label: t('recipes.allFilter') },
+    { key: 'cooked', label: t('recipes.cookedFilter') },
+    { key: 'uncooked', label: t('recipes.uncookedFilter') },
   ];
 
   return (
     <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
-        title={t.recipes.title}
-        subtitle={t.recipes.subtitle}
+        title={t('recipes.title')}
+        subtitle={t('recipes.subtitle')}
         onBack={() => navigation.goBack()}
         right={
           <HeaderIcon
@@ -208,9 +210,9 @@ export default function RecipesScreen() {
       ) : vm.isEmpty && vm.totalCount === 0 ? (
         <EmptyState
           icon={ChefHat}
-          title={t.recipes.emptyTitle}
-          subtitle={t.recipes.emptySubtitle}
-          actionLabel={t.recipes.emptyAction}
+          title={t('recipes.emptyTitle')}
+          subtitle={t('recipes.emptySubtitle')}
+          actionLabel={t('recipes.emptyAction')}
           onAction={() => navigation.showBottomSheet(CreateRecipeSheet)}
         />
       ) : vm.isEmpty ? (

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Body, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import SpringPressable from '../../components/SpringPressable';
@@ -24,6 +24,7 @@ import { useAppColors } from '../../navigation/theme';
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useLoginViewModel();
 
@@ -57,13 +58,13 @@ export default function LoginScreen() {
             {/* ── Logo / hero ── */}
             <Animated.View className="items-center pb-5" style={logoStyle}>
               <HeartLogo />
-              <Heading size="lg" className="text-textDark dark:text-darkTextDark tracking-[0.3px]">{t.app.name}</Heading>
+              <Heading size="lg" className="text-textDark dark:text-darkTextDark tracking-[0.3px]">{t('app.name')}</Heading>
             </Animated.View>
 
             {/* ── Form ── */}
             <Animated.View className="w-full" style={formStyle}>
               <Heading size="lg" className="text-textDark dark:text-darkTextDark mb-4 tracking-[0.2px]">
-                {vm.mode === 'login' ? t.login.welcomeBack : t.login.createAccount}
+                {vm.mode === 'login' ? t('login.welcomeBack') : t('login.createAccount')}
               </Heading>
 
               {/* Google button */}
@@ -73,42 +74,42 @@ export default function LoginScreen() {
                 disabled={vm.loading}>
                 <GoogleGLogo size={20} />
                 <Body size="lg" className="font-semibold text-textDark dark:text-darkTextDark tracking-[0.1px]">
-                  {vm.mode === 'login' ? t.login.continueWithGoogle : t.login.signUpWithGoogle}
+                  {vm.mode === 'login' ? t('login.continueWithGoogle') : t('login.signUpWithGoogle')}
                 </Body>
               </SpringPressable>
 
               {/* Divider */}
               <View className="flex-row items-center gap-3 mt-[14px] mb-[14px]">
                 <View className="flex-1 h-[1px] bg-textMid/15" />
-                <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.login.or}</Body>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('login.or')}</Body>
                 <View className="flex-1 h-[1px] bg-textMid/15" />
               </View>
 
               {/* Register-only: name */}
               {vm.mode === 'register' && (
                 <>
-                  <FieldLabel>{t.login.labels.name}</FieldLabel>
-                  <Input placeholder={t.login.placeholders.name} value={vm.name} onChangeText={vm.setName} autoCapitalize="words" />
+                  <FieldLabel>{t('login.labels.name')}</FieldLabel>
+                  <Input placeholder={t('login.placeholders.name')} value={vm.name} onChangeText={vm.setName} autoCapitalize="words" />
                 </>
               )}
 
-              <FieldLabel>{t.login.labels.email}</FieldLabel>
-              <Input placeholder={t.login.placeholders.email} value={vm.email} onChangeText={vm.setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+              <FieldLabel>{t('login.labels.email')}</FieldLabel>
+              <Input placeholder={t('login.placeholders.email')} value={vm.email} onChangeText={vm.setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
 
-              <FieldLabel>{t.login.labels.password}</FieldLabel>
-              <Input placeholder={t.login.placeholders.password} value={vm.password} onChangeText={vm.setPassword} secureTextEntry autoComplete={vm.mode === 'login' ? 'password' : 'new-password'} />
+              <FieldLabel>{t('login.labels.password')}</FieldLabel>
+              <Input placeholder={t('login.placeholders.password')} value={vm.password} onChangeText={vm.setPassword} secureTextEntry autoComplete={vm.mode === 'login' ? 'password' : 'new-password'} />
 
               {vm.mode === 'register' && (
                 <>
-                  <FieldLabel>{t.login.labels.confirmPassword}</FieldLabel>
-                  <Input placeholder={t.login.placeholders.confirmPassword} value={vm.confirmPassword} onChangeText={vm.setConfirmPassword} secureTextEntry autoComplete="new-password" />
+                  <FieldLabel>{t('login.labels.confirmPassword')}</FieldLabel>
+                  <Input placeholder={t('login.placeholders.confirmPassword')} value={vm.confirmPassword} onChangeText={vm.setConfirmPassword} secureTextEntry autoComplete="new-password" />
                 </>
               )}
 
               {!!vm.error && <ErrorBox message={vm.error} />}
 
               <Button
-                label={vm.mode === 'login' ? t.login.signIn : t.login.createAccount}
+                label={vm.mode === 'login' ? t('login.signIn') : t('login.createAccount')}
                 onPress={vm.handleSubmit}
                 loading={vm.loading}
                 disabled={vm.isRateLimited}
@@ -116,7 +117,7 @@ export default function LoginScreen() {
 
               <Pressable onPress={vm.toggleMode}>
                 <Label className="text-center text-primary">
-                  {vm.mode === 'login' ? t.login.noAccount : t.login.hasAccount}
+                  {vm.mode === 'login' ? t('login.noAccount') : t('login.hasAccount')}
                 </Label>
               </Pressable>
             </Animated.View>

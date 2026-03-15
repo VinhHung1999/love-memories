@@ -10,7 +10,7 @@ import FastImage from 'react-native-fast-image';
 import { ChevronLeft, ChevronRight, Heart, ImageIcon, Plus } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Moment } from '../../types';
 import { useMomentsViewModel } from './useMomentsViewModel';
 import ListHeader from '../../components/ListHeader';
@@ -283,6 +283,7 @@ function TimelineDayGroup({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function MomentsScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useMomentsViewModel();
@@ -308,8 +309,8 @@ export default function MomentsScreen() {
   return (
     <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
-        title={t.moments.title}
-        subtitle={t.moments.subtitle}
+        title={t('moments.title')}
+        subtitle={t('moments.subtitle')}
         right={
           <TouchableOpacity
             onPress={openCreateForm}
@@ -353,9 +354,9 @@ export default function MomentsScreen() {
             <View style={{flex: 1}}>
               <EmptyState
                 icon={Heart}
-                title={t.moments.emptyTitle}
-                subtitle={t.moments.emptySubtitle}
-                actionLabel={t.moments.emptyAction}
+                title={t('moments.emptyTitle')}
+                subtitle={t('moments.emptySubtitle')}
+                actionLabel={t('moments.emptyAction')}
                 onAction={openCreateForm}
               />
             </View>

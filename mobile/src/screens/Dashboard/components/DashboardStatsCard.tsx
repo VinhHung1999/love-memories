@@ -4,7 +4,7 @@ import { Caption, Heading } from '../../../components/Typography';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Heart, Utensils } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useCountUp } from './useCountUp';
 
 interface DashboardStatsCardProps {
@@ -21,6 +21,7 @@ export function DashboardStatsCard({
   onMomentsPress,
   onFoodSpotsPress,
 }: DashboardStatsCardProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const displayMoments = useCountUp(momentsCount);
   const displayFoodSpots = useCountUp(foodSpotsCount);
@@ -40,7 +41,7 @@ export function DashboardStatsCard({
               </Heading>
             </View>
             <Caption className="font-headingSemi text-textMid dark:text-darkTextMid tracking-[0.8px] uppercase">
-              {t.dashboard.stats.moments}
+              {t('dashboard.stats.moments')}
             </Caption>
           </Pressable>
 
@@ -56,7 +57,7 @@ export function DashboardStatsCard({
               </Heading>
             </View>
             <Caption className="font-headingSemi text-textMid dark:text-darkTextMid tracking-[0.8px] uppercase">
-              {t.dashboard.stats.foodSpots}
+              {t('dashboard.stats.foodSpots')}
             </Caption>
           </Pressable>
         </View>

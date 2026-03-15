@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import type { PurchasesOfferings, PurchasesPackage } from 'react-native-purchases';
 import {
@@ -8,8 +8,7 @@ import {
   PRODUCT_IDS,
 } from '../../lib/purchasesService';
 import { useSubscription } from '../../contexts/SubscriptionContext';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export type PlanKey = 'monthly' | 'annual' | 'lifetime';
 
 export interface PricingPlan {
@@ -23,42 +22,13 @@ export interface PricingPlan {
   isBestValue?: boolean;
 }
 
-export const PLANS: PricingPlan[] = [
-  {
-    key: 'monthly',
-    label: t.paywall.monthly.label,
-    price: t.paywall.monthly.price,
-    period: t.paywall.monthly.period,
-    priceUsd: t.paywall.monthly.priceUsd,
-    productId: PRODUCT_IDS.monthly,
-  },
-  {
-    key: 'annual',
-    label: t.paywall.annual.label,
-    price: t.paywall.annual.price,
-    period: t.paywall.annual.period,
-    priceUsd: t.paywall.annual.priceUsd,
-    perMonth: t.paywall.annual.perMonth,
-    productId: PRODUCT_IDS.annual,
-    isBestValue: true,
-  },
-  {
-    key: 'lifetime',
-    label: t.paywall.lifetime.label,
-    price: t.paywall.lifetime.price,
-    period: t.paywall.lifetime.period,
-    priceUsd: t.paywall.lifetime.priceUsd,
-    perMonth: t.paywall.lifetime.perMonth,
-    productId: PRODUCT_IDS.lifetime,
-  },
-];
-
 interface UsePaywallViewModelReturn {
   selectedPlan: PlanKey;
   setSelectedPlan: (key: PlanKey) => void;
   offerings: PurchasesOfferings | null;
   isPurchasing: boolean;
   isRestoring: boolean;
+  plans: PricingPlan[];
   handlePurchase: () => Promise<void>;
   handleRestore: () => Promise<void>;
 }
@@ -66,11 +36,42 @@ interface UsePaywallViewModelReturn {
 export function usePaywallViewModel(
   onSuccess: () => void,
 ): UsePaywallViewModelReturn {
+  const { t } = useTranslation();
   const { refresh } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<PlanKey>('annual');
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+
+  const plans = useMemo<PricingPlan[]>(() => [
+    {
+      key: 'monthly',
+      label: t('paywall.monthly.label'),
+      price: t('paywall.monthly.price'),
+      period: t('paywall.monthly.period'),
+      priceUsd: t('paywall.monthly.priceUsd'),
+      productId: PRODUCT_IDS.monthly,
+    },
+    {
+      key: 'annual',
+      label: t('paywall.annual.label'),
+      price: t('paywall.annual.price'),
+      period: t('paywall.annual.period'),
+      priceUsd: t('paywall.annual.priceUsd'),
+      perMonth: t('paywall.annual.perMonth'),
+      productId: PRODUCT_IDS.annual,
+      isBestValue: true,
+    },
+    {
+      key: 'lifetime',
+      label: t('paywall.lifetime.label'),
+      price: t('paywall.lifetime.price'),
+      period: t('paywall.lifetime.period'),
+      priceUsd: t('paywall.lifetime.priceUsd'),
+      perMonth: t('paywall.lifetime.perMonth'),
+      productId: PRODUCT_IDS.lifetime,
+    },
+  ], [t]);
 
   useEffect(() => {
     getOfferings().then(setOfferings).catch(() => {});
@@ -78,21 +79,20 @@ export function usePaywallViewModel(
 
   const findPackage = useCallback((): PurchasesPackage | undefined => {
     if (!offerings?.current) return undefined;
-    const plan = PLANS.find(p => p.key === selectedPlan);
+    const plan = plans.find(p => p.key === selectedPlan);
     if (!plan) return undefined;
     return offerings.current.availablePackages.find(
       pkg => pkg.product.identifier === plan.productId,
     );
-  }, [offerings, selectedPlan]);
+  }, [offerings, selectedPlan, plans]);
 
   const handlePurchase = useCallback(async () => {
     const pkg = findPackage();
     if (!pkg) {
-      // RevenueCat not configured yet — show info alert
       Alert.alert(
-        t.paywall.title,
+        t('paywall.title'),
         'In-app purchases are not configured yet. Please contact support.',
-        [{ text: t.common.ok }],
+        [{ text: t('common.ok') }],
       );
       return;
     }
@@ -102,16 +102,16 @@ export function usePaywallViewModel(
       const info = await purchasePackage(pkg);
       if (info) {
         await refresh();
-        Alert.alert(t.paywall.successTitle, t.paywall.successBody, [
-          { text: t.common.ok, onPress: onSuccess },
+        Alert.alert(t('paywall.successTitle'), t('paywall.successBody'), [
+          { text: t('common.ok'), onPress: onSuccess },
         ]);
       }
     } catch {
-      Alert.alert(t.common.error, t.paywall.errorPurchase, [{ text: t.common.ok }]);
+      Alert.alert(t('common.error'), t('paywall.errorPurchase'), [{ text: t('common.ok') }]);
     } finally {
       setIsPurchasing(false);
     }
-  }, [findPackage, refresh, onSuccess]);
+  }, [findPackage, refresh, onSuccess, t]);
 
   const handleRestore = useCallback(async () => {
     setIsRestoring(true);
@@ -120,18 +120,18 @@ export function usePaywallViewModel(
       const hasPlus = !!info.entitlements.active['plus'];
       if (hasPlus) {
         await refresh();
-        Alert.alert(t.paywall.successTitle, t.paywall.successBody, [
-          { text: t.common.ok, onPress: onSuccess },
+        Alert.alert(t('paywall.successTitle'), t('paywall.successBody'), [
+          { text: t('common.ok'), onPress: onSuccess },
         ]);
       } else {
-        Alert.alert(t.common.error, t.paywall.errorRestore, [{ text: t.common.ok }]);
+        Alert.alert(t('common.error'), t('paywall.errorRestore'), [{ text: t('common.ok') }]);
       }
     } catch {
-      Alert.alert(t.common.error, t.paywall.errorRestore, [{ text: t.common.ok }]);
+      Alert.alert(t('common.error'), t('paywall.errorRestore'), [{ text: t('common.ok') }]);
     } finally {
       setIsRestoring(false);
     }
-  }, [refresh, onSuccess]);
+  }, [refresh, onSuccess, t]);
 
   return {
     selectedPlan,
@@ -139,6 +139,7 @@ export function usePaywallViewModel(
     offerings,
     isPurchasing,
     isRestoring,
+    plans,
     handlePurchase,
     handleRestore,
   };

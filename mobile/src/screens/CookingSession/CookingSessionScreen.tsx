@@ -12,7 +12,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, Camera, Check, CheckCircle, ChefHat, Clock, ImagePlus, PlayCircle, ShoppingCart, Star, Timer, Trash2, Trophy } from 'lucide-react-native';
 import HeaderIcon from '../../components/HeaderIcon';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { CookingSession, CookingSessionItem, CookingSessionStep } from '../../types';
 import { useCookingSessionViewModel } from './useCookingSessionViewModel';
 import Skeleton from '../../components/Skeleton';
@@ -21,6 +21,7 @@ import Skeleton from '../../components/Skeleton';
 
 const PHASES = ['shopping', 'cooking', 'photo', 'completed'] as const;
 const PHASE_ICONS: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>[] = [ShoppingCart, ChefHat, Camera, CheckCircle];
+  const { t } = useTranslation();
 
 function PhaseBar({ status }: { status: string }) {
   const colors = useAppColors();
@@ -67,15 +68,16 @@ function ShoppingPhase({
   onAdvance: () => void;
   isAdvancing: boolean;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const totalCost = session.items.reduce((sum, item) => sum + (item.price ?? 0), 0);
 
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t.whatToEat.shopping.title}</Heading>
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t('whatToEat.shopping.title')}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
-          <Caption className="text-textLight dark:text-darkTextLight">{t.whatToEat.shopping.subtitle}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{t('whatToEat.shopping.subtitle')}</Caption>
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
             <Caption className="font-semibold text-primary">
               {checkedCount}/{session.items.length}
@@ -84,7 +86,7 @@ function ShoppingPhase({
         </View>
         {totalCost > 0 ? (
           <Caption className="text-textMid dark:text-darkTextMid mt-1">
-            {t.whatToEat.shopping.totalCost}: {totalCost.toLocaleString()}đ
+            {t('whatToEat.shopping.totalCost')}: {totalCost.toLocaleString()}đ
           </Caption>
         ) : null}
       </View>
@@ -125,7 +127,7 @@ function ShoppingPhase({
           style={{ backgroundColor: allChecked ? colors.primary : colors.gray100 }}>
           <ChefHat size={14} strokeWidth={1.5} />
           <Label className="text-white">
-            {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
+            {allChecked ? t('whatToEat.shopping.startCooking') : t('whatToEat.shopping.subtitle')}
           </Label>
         </Pressable>
       </View>
@@ -251,12 +253,13 @@ function CookingPhase({
   onAdvance: () => void;
   isAdvancing: boolean;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t.whatToEat.cooking.title}</Heading>
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t('whatToEat.cooking.title')}</Heading>
         <View className="flex-row items-center gap-2 mt-1">
           <View className="bg-primary/10 rounded-full px-2 py-0.5">
             <Caption className="font-semibold text-primary">
@@ -284,7 +287,7 @@ function CookingPhase({
                     className="flex-row items-center gap-1">
                     <PlayCircle size={13} color={colors.secondary} strokeWidth={1.5} />
                     <Caption className="font-semibold text-secondary">
-                      {t.whatToEat.cooking.viewGuide}
+                      {t('whatToEat.cooking.viewGuide')}
                     </Caption>
                   </Pressable>
                 ) : null}
@@ -336,7 +339,7 @@ function CookingPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: allChecked ? colors.primary : colors.gray100 }}>
           <Camera size={14} strokeWidth={1.5} />
-          <Label className="text-white">{t.whatToEat.cooking.takePhoto}</Label>
+          <Label className="text-white">{t('whatToEat.cooking.takePhoto')}</Label>
         </Pressable>
       </View>
     </>
@@ -356,13 +359,14 @@ function PhotoPhase({
   onAddPhotoFromCamera: () => void;
   onAdvance: () => void;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   return (
     <>
       <View className="px-5 pt-4 pb-2">
-        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t.whatToEat.photo.title}</Heading>
-        <Caption className="text-textLight dark:text-darkTextLight mt-0.5">{t.whatToEat.photo.subtitle}</Caption>
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark">{t('whatToEat.photo.title')}</Heading>
+        <Caption className="text-textLight dark:text-darkTextLight mt-0.5">{t('whatToEat.photo.subtitle')}</Caption>
       </View>
 
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
@@ -405,10 +409,10 @@ function PhotoPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: colors.primary }}>
           <Star size={14} strokeWidth={1.5} />
-          <Label className="text-white">{t.whatToEat.photo.finish}</Label>
+          <Label className="text-white">{t('whatToEat.photo.finish')}</Label>
         </Pressable>
         <Pressable onPress={onAdvance} className="py-2 items-center">
-          <Caption className="text-textLight dark:text-darkTextLight">{t.whatToEat.photo.skip}</Caption>
+          <Caption className="text-textLight dark:text-darkTextLight">{t('whatToEat.photo.skip')}</Caption>
         </Pressable>
       </View>
     </>
@@ -430,6 +434,7 @@ function RatingPhase({
   onFinish: () => void;
   isRating: boolean;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const durationMs = session.totalTimeMs;
   const durationMin = durationMs ? Math.round(durationMs / 60000) : null;
@@ -475,8 +480,8 @@ function RatingPhase({
 
       {/* Star rating */}
       <View className="px-5 items-center mb-8">
-        <Body size="sm" className="font-semibold text-textDark dark:text-darkTextDark mb-3">{t.whatToEat.rating.title}</Body>
-        <Caption className="text-textLight dark:text-darkTextLight mb-4">{t.whatToEat.rating.subtitle}</Caption>
+        <Body size="sm" className="font-semibold text-textDark dark:text-darkTextDark mb-3">{t('whatToEat.rating.title')}</Body>
+        <Caption className="text-textLight dark:text-darkTextLight mb-4">{t('whatToEat.rating.subtitle')}</Caption>
         <View className="flex-row gap-3">
           {[1, 2, 3, 4, 5].map(i => (
             <Pressable key={i} onPress={() => onSetRating(i)} hitSlop={8}>
@@ -498,7 +503,7 @@ function RatingPhase({
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
           style={{ backgroundColor: colors.primary }}>
           <Check size={14} strokeWidth={1.5} />
-          <Label className="text-white">{t.whatToEat.rating.confirm}</Label>
+          <Label className="text-white">{t('whatToEat.rating.confirm')}</Label>
         </Pressable>
       </View>
     </ScrollView>
@@ -508,6 +513,7 @@ function RatingPhase({
 // ── Completed summary view (already rated — read-only) ────────────────────────
 
 function CompletedSummaryView({ session }: { session: CookingSession }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const durationMs = session.totalTimeMs;
   const durationMin = durationMs ? Math.round(durationMs / 60000) : null;
@@ -519,8 +525,8 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
         <View className="w-20 h-20 rounded-full items-center justify-center mb-4 bg-primary/10">
           <Trophy size={38} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Heading size="xl" className="text-textDark dark:text-darkTextDark">{t.whatToEat.completed.title}</Heading>
-        <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1">{t.whatToEat.completed.subtitle}</Body>
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark">{t('whatToEat.completed.title')}</Heading>
+        <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1">{t('whatToEat.completed.subtitle')}</Body>
       </View>
 
       {/* Duration */}
@@ -530,7 +536,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
             <Clock size={18} color={colors.primary} strokeWidth={1.5} />
           </View>
           <View>
-            <Caption className="text-textLight dark:text-darkTextLight uppercase tracking-wider">{t.whatToEat.completed.cookedIn}</Caption>
+            <Caption className="text-textLight dark:text-darkTextLight uppercase tracking-wider">{t('whatToEat.completed.cookedIn')}</Caption>
             <Heading size="sm" className="text-textDark dark:text-darkTextDark">{durationMin} min</Heading>
           </View>
         </View>
@@ -543,7 +549,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
             <Star size={18} color={colors.starRating} strokeWidth={1.5} />
           </View>
           <View className="flex-1">
-            <Caption className="text-textLight dark:text-darkTextLight uppercase tracking-wider">{t.whatToEat.completed.yourRating}</Caption>
+            <Caption className="text-textLight dark:text-darkTextLight uppercase tracking-wider">{t('whatToEat.completed.yourRating')}</Caption>
             <View className="flex-row items-center gap-1 mt-0.5">
               {[1, 2, 3, 4, 5].map(i => (
                 <Star
@@ -564,7 +570,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
       {session.photos.length > 0 ? (
         <View className="mb-4">
           <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider mb-2 px-5">
-            {t.whatToEat.photo.title}
+            {t('whatToEat.photo.title')}
           </Caption>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-5">
             <View className="flex-row gap-3">
@@ -598,6 +604,7 @@ function CompletedSummaryView({ session }: { session: CookingSession }) {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function CookingSessionScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useCookingSessionViewModel();
   const { session } = vm;
@@ -619,11 +626,11 @@ export default function CookingSessionScreen() {
   }
 
   const phaseTitles: Record<string, string> = {
-    selecting: t.whatToEat.phases.selecting,
-    shopping: t.whatToEat.phases.shopping,
-    cooking: t.whatToEat.phases.cooking,
-    photo: t.whatToEat.phases.photo,
-    completed: t.whatToEat.phases.completed,
+    selecting: t('whatToEat.phases.selecting'),
+    shopping: t('whatToEat.phases.shopping'),
+    cooking: t('whatToEat.phases.cooking'),
+    photo: t('whatToEat.phases.photo'),
+    completed: t('whatToEat.phases.completed'),
   };
 
   // When session is completed AND already rated → read-only summary view

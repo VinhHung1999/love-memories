@@ -5,8 +5,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -54,6 +53,7 @@ function reducer(state: LoginState, action: LoginAction): LoginState {
 
 // ── ViewModel ──────────────────────────────────────────────────────────────────
 export function useLoginViewModel() {
+  const { t } = useTranslation();
   const { login, loginWithGoogle, beginEmailOnboarding, completeOnboarding, beginGoogleOnboarding } = useAuth();
   const { showLoading, hideLoading, isLoading } = useLoading();
   const [s, dispatch] = useReducer(reducer, initialState);
@@ -95,14 +95,14 @@ export function useLoginViewModel() {
 
   const handleSubmit = async () => {
     dispatch({ type: 'SET_ERROR', message: '' });
-    if (!s.email.trim())                { dispatch({ type: 'SET_ERROR', message: t.login.errors.emailRequired }); return; }
-    if (!EMAIL_RE.test(s.email.trim())) { dispatch({ type: 'SET_ERROR', message: t.login.errors.emailInvalid }); return; }
-    if (!s.password)                    { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordRequired }); return; }
+    if (!s.email.trim())                { dispatch({ type: 'SET_ERROR', message: t('login.errors.emailRequired') }); return; }
+    if (!EMAIL_RE.test(s.email.trim())) { dispatch({ type: 'SET_ERROR', message: t('login.errors.emailInvalid') }); return; }
+    if (!s.password)                    { dispatch({ type: 'SET_ERROR', message: t('login.errors.passwordRequired') }); return; }
 
     if (s.mode === 'register') {
-      if (s.password.length < MIN_PASSWORD_LENGTH) { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordTooShort }); return; }
-      if (s.confirmPassword !== s.password)        { dispatch({ type: 'SET_ERROR', message: t.login.errors.passwordMismatch }); return; }
-      if (!s.name.trim())                          { dispatch({ type: 'SET_ERROR', message: t.login.errors.nameRequired }); return; }
+      if (s.password.length < MIN_PASSWORD_LENGTH) { dispatch({ type: 'SET_ERROR', message: t('login.errors.passwordTooShort') }); return; }
+      if (s.confirmPassword !== s.password)        { dispatch({ type: 'SET_ERROR', message: t('login.errors.passwordMismatch') }); return; }
+      if (!s.name.trim())                          { dispatch({ type: 'SET_ERROR', message: t('login.errors.nameRequired') }); return; }
       // Register immediately, then navigation auto-redirects to OnboardingNavigator (coupleId=null)
       showLoading();
       try {
@@ -113,7 +113,7 @@ export function useLoginViewModel() {
         if (e.status === 429 || e.retryAfterSeconds) {
           startRetryCountdown(e.retryAfterSeconds ?? 60);
         } else {
-          dispatch({ type: 'SET_ERROR', message: e.message || t.login.errors.somethingWrong });
+          dispatch({ type: 'SET_ERROR', message: e.message || t('login.errors.somethingWrong') });
         }
       } finally {
         hideLoading();
@@ -130,7 +130,7 @@ export function useLoginViewModel() {
       if (e.status === 429 || e.retryAfterSeconds) {
         startRetryCountdown(e.retryAfterSeconds ?? 60);
       } else {
-        dispatch({ type: 'SET_ERROR', message: e.message || t.login.errors.somethingWrong });
+        dispatch({ type: 'SET_ERROR', message: e.message || t('login.errors.somethingWrong') });
       }
     } finally {
       hideLoading();
@@ -143,7 +143,7 @@ export function useLoginViewModel() {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
-      if (!idToken) { dispatch({ type: 'SET_ERROR', message: t.login.errors.googleNoToken }); return; }
+      if (!idToken) { dispatch({ type: 'SET_ERROR', message: t('login.errors.googleNoToken') }); return; }
       showLoading();
       const result = await loginWithGoogle(idToken);
       if (result?.needsCouple) {
@@ -157,7 +157,7 @@ export function useLoginViewModel() {
       if (e?.status === 429 || e?.retryAfterSeconds) {
         startRetryCountdown(e.retryAfterSeconds ?? 60);
       } else {
-        dispatch({ type: 'SET_ERROR', message: e.message || t.login.errors.googleSignInFailed });
+        dispatch({ type: 'SET_ERROR', message: e.message || t('login.errors.googleSignInFailed') });
       }
     } finally {
       hideLoading();

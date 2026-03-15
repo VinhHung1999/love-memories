@@ -15,7 +15,7 @@ import Animated, {
 import { ChevronDown, ChevronUp, Clock, Heart, HelpCircle, MessageCircle, Send, Smile, Star, Telescope, User, Users, WifiOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
 import ListHeader from '../../components/ListHeader';
 import GlassTabBar from '../../components/GlassTabBar';
@@ -38,9 +38,9 @@ function getCategoryMeta(cat: string) {
 // ── CategoryBadge ─────────────────────────────────────────────────────────────
 
 function CategoryBadge({ category }: { category: string }) {
+  const { t } = useTranslation();
   const meta = getCategoryMeta(category);
-  const label = t.dailyQuestions.categories[category as keyof typeof t.dailyQuestions.categories]
-    ?? category;
+  const label = t(`dailyQuestions.categories.${category}`) || category;
   return (
     <View
       className="flex-row items-center gap-1.5 rounded-full px-3 py-1 self-start"
@@ -94,6 +94,7 @@ function AnswerCard({
 // ── WaitingCard ───────────────────────────────────────────────────────────────
 
 function WaitingCard({ partnerName }: { partnerName: string | null }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const name = partnerName ?? 'your partner';
   return (
@@ -108,7 +109,7 @@ function WaitingCard({ partnerName }: { partnerName: string | null }) {
         }}>
         <Clock size={20} color={colors.textLight} strokeWidth={1.5} />
         <Body size="sm" className="text-textLight dark:text-darkTextLight text-center mt-2 leading-relaxed">
-          {t.dailyQuestions.waitingForPartner.replace('{name}', name)}
+          {t('dailyQuestions.waitingForPartner').replace('{name}', name)}
         </Body>
       </View>
     </Animated.View>
@@ -130,6 +131,7 @@ function TodayView({
   onScroll: ReturnType<typeof useAnimatedScrollHandler>;
 }) {
   const colors = useAppColors();
+  const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);
 
   if (!todayData) return null;
@@ -160,7 +162,7 @@ function TodayView({
               <meta.icon size={14} color="#fff" strokeWidth={1.5} />
             </View>
             <Caption className="font-bold text-white/70 tracking-widest uppercase">
-              {t.dailyQuestions.questionLabel}
+              {t('dailyQuestions.questionLabel')}
             </Caption>
           </View>
 
@@ -192,7 +194,7 @@ function TodayView({
               fontSize: 14,
             }}
             multiline
-            placeholder={t.dailyQuestions.answerPlaceholder}
+            placeholder={t('dailyQuestions.answerPlaceholder')}
             placeholderTextColor={colors.textLight}
             value={answerText}
             onChangeText={setAnswerText}
@@ -223,7 +225,7 @@ function TodayView({
               <Send size={16} strokeWidth={1.5} color='white'/>
             )}
             <Label className="text-white font-bold">
-              {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
+              {isSubmitting ? t('dailyQuestions.submitting') : t('dailyQuestions.submitAnswer')}
             </Label>
           </Pressable>
         </Animated.View>
@@ -231,17 +233,17 @@ function TodayView({
         /* ── Both answers revealed ── */
         <Animated.View entering={FadeIn.duration(400)} className="gap-3">
           <Caption className="text-textLight dark:text-darkTextLight font-semibold uppercase tracking-wider px-1">
-            {partnerAnswer ? t.dailyQuestions.bothAnswered : t.dailyQuestions.answered}
+            {partnerAnswer ? t('dailyQuestions.bothAnswered') : t('dailyQuestions.answered')}
           </Caption>
           <View className="flex-row gap-3">
             <AnswerCard
-              label={t.dailyQuestions.myAnswer}
+              label={t('dailyQuestions.myAnswer')}
               answer={myAnswer!}
               delay={0}
             />
             {partnerAnswer ? (
               <AnswerCard
-                label={t.dailyQuestions.partnerAnswer.replace('{name}', partnerName ?? '♥')}
+                label={t('dailyQuestions.partnerAnswer').replace('{name}', partnerName ?? '♥')}
                 answer={partnerAnswer}
                 isPartner
                 delay={120}
@@ -254,7 +256,7 @@ function TodayView({
           {/* Hint if waiting */}
           {!partnerAnswer ? (
             <Caption className="text-textLight dark:text-darkTextLight text-center italic">
-              {t.dailyQuestions.waitingHint}
+              {t('dailyQuestions.waitingHint')}
             </Caption>
           ) : null}
         </Animated.View>
@@ -266,6 +268,7 @@ function TodayView({
 // ── HistoryItem ───────────────────────────────────────────────────────────────
 
 function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const [expanded, setExpanded] = React.useState(false);
 
@@ -327,7 +330,7 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
           {item.myAnswer ? (
             <View>
               <Caption className="font-bold text-primary uppercase tracking-wider mb-1.5">
-                {t.dailyQuestions.myAnswer}
+                {t('dailyQuestions.myAnswer')}
               </Caption>
               <Body size="md" className="text-textMid dark:text-darkTextMid leading-relaxed">{item.myAnswer}</Body>
             </View>
@@ -335,7 +338,7 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
           {item.partnerAnswer ? (
             <View>
               <Caption className="font-bold text-accent uppercase tracking-wider mb-1.5">
-                {t.dailyQuestions.partnerAnswer.replace('{name}', item.partnerName ?? '♥')}
+                {t('dailyQuestions.partnerAnswer').replace('{name}', item.partnerName ?? '♥')}
               </Caption>
               <Body size="md" className="text-textMid dark:text-darkTextMid leading-relaxed">{item.partnerAnswer}</Body>
             </View>
@@ -359,6 +362,7 @@ function HistoryView({
   'historyItems' | 'historyLoading' | 'historyPage' | 'loadNextPage'
 > & { onScroll: ReturnType<typeof useAnimatedScrollHandler> }) {
   const colors = useAppColors();
+  const { t } = useTranslation();
 
   if (historyLoading && historyPage === 1) {
     return (
@@ -375,10 +379,10 @@ function HistoryView({
           <HelpCircle size={28} color={colors.primary} strokeWidth={1.5} />
         </View>
         <Heading size="sm" className="text-textDark dark:text-darkTextDark text-center">
-          {t.dailyQuestions.noHistory}
+          {t('dailyQuestions.noHistory')}
         </Heading>
         <Body size="md" className="text-textLight dark:text-darkTextLight text-center leading-relaxed">
-          {t.dailyQuestions.noHistorySubtitle}
+          {t('dailyQuestions.noHistorySubtitle')}
         </Body>
       </View>
     );
@@ -407,6 +411,7 @@ function HistoryView({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DailyQuestionsScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useDailyQuestionsViewModel();
   const navigation = useNavigation<any>();
@@ -414,14 +419,14 @@ export default function DailyQuestionsScreen() {
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   const tabs = [
-    { key: 'today' as const, label: t.dailyQuestions.todayTab },
-    { key: 'history' as const, label: t.dailyQuestions.historyTab },
+    { key: 'today' as const, label: t('dailyQuestions.todayTab') },
+    { key: 'history' as const, label: t('dailyQuestions.historyTab') },
   ];
 
   return (
     <View className="flex-1 bg-background">
       <ListHeader
-        title={t.dailyQuestions.cardTitle}
+        title={t('dailyQuestions.cardTitle')}
         subtitle="DAILY Q&A"
         onBack={() => navigation.goBack()}
         filterBar={
@@ -444,7 +449,7 @@ export default function DailyQuestionsScreen() {
             <View className="flex-1 items-center justify-center gap-3 px-8">
               <WifiOff size={28} color={colors.textLight} strokeWidth={1.5} />
               <Body size="sm" className="text-textLight dark:text-darkTextLight text-center">
-                {t.dailyQuestions.errors.fetchFailed}
+                {t('dailyQuestions.errors.fetchFailed')}
               </Body>
               <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
                 <Body size="sm" className="font-semibold text-primary">Try again</Body>

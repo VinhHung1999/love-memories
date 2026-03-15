@@ -8,7 +8,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { Images } from 'lucide-react-native';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useDashboardViewModel } from './useDashboardViewModel';
 import DailyQuestionCard from '../DailyQuestions/DailyQuestionCard';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
@@ -40,6 +40,7 @@ import NoPartnerBanner from '../../components/NoPartnerBanner';
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
+  const { t } = useTranslation();
   useRequestNotificationPermission();
   const vm = useDashboardViewModel();
   const colors = useAppColors();
@@ -117,8 +118,8 @@ export default function DashboardScreen() {
                   onPress={() => vm.navigateTo('MomentsTab')}
                   className="h-[160px] rounded-2xl bg-white/60 dark:bg-darkBgCard/60 items-center justify-center gap-2">
                   <Images size={28} color={colors.primary} strokeWidth={1.5} />
-                  <Body size="sm" className="text-textMid dark:text-darkTextMid">{t.dashboard.noMomentsYet}</Body>
-                  <Caption className="text-primary">{t.dashboard.addFirstMemory}</Caption>
+                  <Body size="sm" className="text-textMid dark:text-darkTextMid">{t('dashboard.noMomentsYet')}</Body>
+                  <Caption className="text-primary">{t('dashboard.addFirstMemory')}</Caption>
                 </Pressable>
               )}
 
@@ -172,7 +173,7 @@ export default function DashboardScreen() {
 
               {/* ── 3. Quick Actions ── */}
               <Animated.View entering={FadeInDown.delay(140).duration(500)}>
-                <SectionHeader title={t.dashboard.sections.quickActions} />
+                <SectionHeader title={t('dashboard.sections.quickActions')} />
                 <View className="flex-row gap-3">
                   {vm.quickActions.map((action, idx) => (
                     <QuickActionButton key={idx} {...action} />
@@ -183,7 +184,7 @@ export default function DashboardScreen() {
               {/* MVP-HIDDEN: v1.1 — Food Highlights */}
               {/* {vm.recentFoodSpots.length > 0 ? (
                 <Animated.View entering={FadeInDown.delay(220).duration(500)}>
-                  <SectionHeader title={t.dashboard.sections.foodHighlights} onSeeAll={vm.handleFoodSpotListPress} />
+                  <SectionHeader title={t('dashboard.sections.foodHighlights')} onSeeAll={vm.handleFoodSpotListPress} />
                   <View className="gap-3">
                     {vm.recentFoodSpots.map(spot => (
                       <FoodHighlightCard key={spot.id} spot={spot} onPress={() => vm.handleFoodSpotPress(spot.id)} />
@@ -216,7 +217,7 @@ export default function DashboardScreen() {
         <DatePickerSheet
           value={new Date()}
           onChange={vm.handleSetAnniversary}
-          label={t.dashboard.setAnniversary.title}
+          label={t('dashboard.setAnniversary.title')}
           maximumDate={new Date()}
           onClose={() => vm.setShowAnniversaryPicker(false)}
         />

@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight, Images, MapPin, Share2, Star, Utensils } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useFoodSpotDetailViewModel } from './useFoodSpotDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import { Card } from '../../components/Card';
@@ -50,6 +50,7 @@ function priceLabel(priceRange: number): string {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function FoodSpotDetailScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useFoodSpotDetailViewModel();
@@ -150,7 +151,7 @@ export default function FoodSpotDetailScreen() {
                 }
               >
                 <Caption className="font-semibold text-secondary">
-                  {t.foodSpots.detail.mapsLink}
+                  {t('foodSpots.detail.mapsLink')}
                 </Caption>
               </Pressable>
             ) : null}
@@ -176,7 +177,7 @@ export default function FoodSpotDetailScreen() {
           >
             <Images size={16} color={colors.secondary} strokeWidth={1.5} />
             <Body size="md" className="font-semibold text-secondary flex-1">
-              {t.foodSpots.detail.viewGallery} ({spot.photos.length})
+              {t('foodSpots.detail.viewGallery')} ({spot.photos.length})
             </Body>
             <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />
           </TouchableOpacity>
@@ -192,7 +193,7 @@ export default function FoodSpotDetailScreen() {
         >
           <Share2 size={16} color={colors.primary} strokeWidth={1.5} />
           <Body size="sm" className="font-semibold text-primary">
-            {t.shareViewer.share}
+            {t('shareViewer.share')}
           </Body>
         </Pressable>
       </View>

@@ -21,7 +21,7 @@ import Animated, {
 import { useAuth } from '../../lib/auth';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 
 
@@ -131,6 +131,7 @@ function HeroHeart() {
 // ── Completion Overlay ────────────────────────────────────────────────────────
 
 function CompletionOverlay() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const textScale = useSharedValue(0.8);
   const heartScale = useSharedValue(1);
@@ -168,15 +169,15 @@ function CompletionOverlay() {
       </Animated.View>
       <Animated.View style={textStyle} className="items-center">
         <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26 }}>
-          {t.onboarding.avatar.doneTitle}
+          {t('onboarding.avatar.doneTitle')}
         </Heading>
         <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
-          {t.onboarding.avatar.doneSubtitle}
+          {t('onboarding.avatar.doneSubtitle')}
         </Body>
       </Animated.View>
       <Animated.View entering={FadeInDown.delay(600).duration(400)} className="mt-6 flex-row items-center gap-2">
         <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
-        <Caption className="text-primary">{t.onboarding.invite.completing}</Caption>
+        <Caption className="text-primary">{t('onboarding.invite.completing')}</Caption>
         <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
       </Animated.View>
     </Animated.View>
@@ -186,6 +187,7 @@ function CompletionOverlay() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingInviteScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingInvite'>>();
   const { coupleId } = route.params;
@@ -206,7 +208,7 @@ export default function OnboardingInviteScreen() {
 
   const handleShare = async () => {
     if (!inviteCode) return;
-    const message = t.onboarding.invite.shareMessage.replace('{code}', inviteCode);
+    const message = t('onboarding.invite.shareMessage').replace('{code}', inviteCode);
     await Share.share({ message });
   };
 
@@ -245,7 +247,7 @@ export default function OnboardingInviteScreen() {
               Your couple is ready! 💕
             </Heading>
             <Body size="md" className="text-textMid dark:text-darkTextMid text-center" style={{ lineHeight: 22 }}>
-              {t.onboarding.invite.subtitle}
+              {t('onboarding.invite.subtitle')}
             </Body>
           </View>
 
@@ -271,7 +273,7 @@ export default function OnboardingInviteScreen() {
                 >
                   <View style={{ paddingHorizontal: 24, paddingVertical: 28, alignItems: 'center', gap: 12 }}>
                   <Caption style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: 2.5, textTransform: 'uppercase', fontSize: 10, fontWeight: '700' }}>
-                  {t.onboarding.invite.codeLabel}
+                  {t('onboarding.invite.codeLabel')}
                 </Caption>
 
                 {inviteCode ? (
@@ -283,7 +285,7 @@ export default function OnboardingInviteScreen() {
                   </Heading>
                 ) : (
                   <Body size="lg" style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 5 }}>
-                    {t.onboarding.invite.generatingCode}
+                    {t('onboarding.invite.generatingCode')}
                   </Body>
                 )}
 
@@ -297,7 +299,7 @@ export default function OnboardingInviteScreen() {
                     ? <CheckCircle size={13} color="rgba(255,255,255,0.95)" strokeWidth={2} />
                     : <Copy size={13} color="rgba(255,255,255,0.85)" strokeWidth={2} />}
                   <Caption style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '600' }}>
-                    {copied ? t.onboarding.invite.copied : t.onboarding.invite.copyHint}
+                    {copied ? t('onboarding.invite.copied') : t('onboarding.invite.copyHint')}
                   </Caption>
                 </View>
                   </View>
@@ -320,14 +322,14 @@ export default function OnboardingInviteScreen() {
             style={{ backgroundColor: inviteCode ? colors.primary : colors.primaryShadow }}>
             <Send size={18} color="#fff" strokeWidth={1.8} />
             <Body size="lg" style={{ color: '#fff', fontWeight: '700', letterSpacing: 0.4 }}>
-              {t.onboarding.invite.shareBtn}
+              {t('onboarding.invite.shareBtn')}
             </Body>
           </SpringPressable>
 
           {/* Ghost — Done */}
           <Pressable onPress={handleDone} className="items-center py-3">
             <Body size="md" className="text-textMid dark:text-darkTextMid" style={{ fontWeight: '500' }}>
-              {t.onboarding.invite.doneBtn}
+              {t('onboarding.invite.doneBtn')}
             </Body>
           </Pressable>
 

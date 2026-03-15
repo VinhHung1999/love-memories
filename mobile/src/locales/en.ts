@@ -1026,6 +1026,7 @@ const en = {
   },
 } as const;
 
-export type LocaleStrings = typeof en;
+type DeepPartialStrings<T> = T extends string ? string : { [K in keyof T]: DeepPartialStrings<T[K]> };
+export type LocaleStrings = DeepPartialStrings<typeof en>;
 
 export default en;

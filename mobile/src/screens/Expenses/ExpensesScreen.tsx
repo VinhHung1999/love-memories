@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Banknote, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Expense, DailyStats } from '../../lib/api';
 import { useExpensesViewModel } from './useExpensesViewModel';
 import ListHeader from '../../components/ListHeader';
@@ -89,13 +89,14 @@ function SummaryCard({ total, count, breakdown }: {
   count: number;
   breakdown: ReturnType<typeof useExpensesViewModel>['categoryBreakdown'];
 }) {
+  const { t } = useTranslation();
   const themeColors = useAppColors();
   const overLimitCount = breakdown.filter(c => c.overLimit).length;
 
   return (
     <Animated.View entering={FadeInDown.duration(400)} className="mx-4 mb-4 rounded-3xl overflow-hidden bg-white dark:bg-darkBgCard border border-borderSoft dark:border-darkBorder">
       <View className="px-5 pt-5 pb-4">
-        <Caption className="text-textMid dark:text-darkTextMid font-semibold tracking-[1px] uppercase mb-1">{t.expenses.totalSpent}</Caption>
+        <Caption className="text-textMid dark:text-darkTextMid font-semibold tracking-[1px] uppercase mb-1">{t('expenses.totalSpent')}</Caption>
         <View className="flex-row items-end justify-between mb-1">
           <Heading size="xl" className="text-textDark dark:text-darkTextDark">{total}</Heading>
           {overLimitCount > 0 && (
@@ -105,7 +106,7 @@ function SummaryCard({ total, count, breakdown }: {
             </View>
           )}
         </View>
-        <Caption className="text-textLight dark:text-darkTextLight mb-4">{count} {t.expenses.transactions}</Caption>
+        <Caption className="text-textLight dark:text-darkTextLight mb-4">{count} {t('expenses.transactions')}</Caption>
         {breakdown.map(cat => (
           <View key={cat.key} className="mb-2.5">
             <View className="flex-row items-center justify-between mb-1">
@@ -131,7 +132,7 @@ function SummaryCard({ total, count, breakdown }: {
             </View>
             {cat.overLimit && cat.limit !== null && (
               <Caption className="text-error mt-0.5 text-right">
-                +{formatVND(cat.amount - cat.limit)} {t.expenses.budget.overBudget}
+                +{formatVND(cat.amount - cat.limit)} {t('expenses.budget.overBudget')}
               </Caption>
             )}
           </View>
@@ -148,6 +149,7 @@ function SummaryCard({ total, count, breakdown }: {
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const colors = useAppColors();
 
@@ -188,7 +190,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
       {/* Header + legend */}
       <View className="flex-row items-center justify-between mb-3">
         <Caption className="font-bold text-textLight dark:text-darkTextLight tracking-[0.8px] uppercase">
-          {t.expenses.chart.title}
+          {t('expenses.chart.title')}
         </Caption>
         <View className="flex-row flex-wrap gap-x-2 gap-y-1 justify-end max-w-[180px]">
           {activeCategories.map(cat => (
@@ -280,6 +282,7 @@ function WeeklySpendingChart({ dailyStats }: { dailyStats: DailyStats | null }) 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ExpensesScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useExpensesViewModel();
 
@@ -299,8 +302,8 @@ export default function ExpensesScreen() {
   return (
     <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
-        title={t.expenses.title}
-        subtitle={t.expenses.subtitle}
+        title={t('expenses.title')}
+        subtitle={t('expenses.subtitle')}
         onBack={vm.handleBack}
         right={
           <View className="flex-row items-center gap-2">
@@ -322,7 +325,7 @@ export default function ExpensesScreen() {
               <Heading size="sm" className="text-textDark dark:text-darkTextDark">{vm.monthLabel}</Heading>
               {vm.isCurrentMonth && (
                 <View className="mt-0.5 bg-primary/10 rounded-full px-2 py-[1px]">
-                  <Caption className="font-bold text-primary tracking-wide">{t.expenses.currentBadge}</Caption>
+                  <Caption className="font-bold text-primary tracking-wide">{t('expenses.currentBadge')}</Caption>
                 </View>
               )}
             </View>
@@ -353,9 +356,9 @@ export default function ExpensesScreen() {
           ) : vm.isEmpty && vm.categoryBreakdown.length === 0 ? (
             <EmptyState
               icon={Banknote}
-              title={t.expenses.emptyTitle}
-              subtitle={t.expenses.emptySubtitle}
-              actionLabel={t.expenses.emptyAction}
+              title={t('expenses.emptyTitle')}
+              subtitle={t('expenses.emptySubtitle')}
+              actionLabel={t('expenses.emptyAction')}
               onAction={vm.handleAdd}
             />
           ) : (
@@ -393,7 +396,7 @@ export default function ExpensesScreen() {
 
               {vm.isEmpty ? (
                 <View className="items-center py-12">
-                  <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.expenses.noExpenses}</Body>
+                  <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('expenses.noExpenses')}</Body>
                 </View>
               ) : (
                 vm.groupedExpenses.map(group => (

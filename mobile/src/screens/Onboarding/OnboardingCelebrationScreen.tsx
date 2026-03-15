@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import SpringPressable from '../../components/SpringPressable';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 
 // Reuse confetti pattern from Avatar screen
@@ -63,6 +63,7 @@ function ConfettiParticle({ tx, ty, color, size, delay }: { tx: number; ty: numb
 }
 
 export default function OnboardingCelebrationScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingCelebration'>>();
@@ -94,8 +95,8 @@ export default function OnboardingCelebrationScreen() {
   }, []);
 
   const subtitle = partnerName
-    ? t.onboarding.celebration.subtitle.replace('{name}', partnerName)
-    : t.onboarding.celebration.subtitleNoName;
+    ? t('onboarding.celebration.subtitle').replace('{name}', partnerName)
+    : t('onboarding.celebration.subtitleNoName');
 
   return (
     <LinearGradient colors={[colors.primaryLighter, colors.baseBg, colors.white]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={{ flex: 1 }}>
@@ -128,7 +129,7 @@ export default function OnboardingCelebrationScreen() {
             className="w-full h-14 rounded-2xl items-center justify-center"
             style={{ backgroundColor: colors.primary }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-              {t.onboarding.celebration.continueBtn}
+              {t('onboarding.celebration.continueBtn')}
             </Body>
           </SpringPressable>
         </Animated.View>

@@ -3,8 +3,7 @@ import { Pressable, TouchableOpacity, View } from 'react-native';
 import { Mic, Pause, Play, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import { Body, Label } from '../../../components/Typography';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface AudioRecorderProps {
   isRecording: boolean;
   recordedPath: string | null;
@@ -32,6 +31,7 @@ export default function AudioRecorder({
   onPlayPreview,
   onDelete,
 }: AudioRecorderProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   if (recordedPath) {
@@ -72,12 +72,12 @@ export default function AudioRecorder({
       {/* Label */}
       <View className="flex-1">
         <Label className="text-textDark dark:text-darkTextDark">
-          {isRecording ? t.moments.create.recording : t.moments.create.recordMemo}
+          {isRecording ? t('moments.create.recording') : t('moments.create.recordMemo')}
         </Label>
         <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">
           {isRecording
-            ? `${formatSecs(recordingDuration)} · ${t.moments.create.stopRecording}`
-            : t.moments.create.recordHint}
+            ? `${formatSecs(recordingDuration)} · ${t('moments.create.stopRecording')}`
+            : t('moments.create.recordHint')}
         </Body>
       </View>
 

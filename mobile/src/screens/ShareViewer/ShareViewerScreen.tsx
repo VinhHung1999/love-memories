@@ -9,9 +9,9 @@ import ScreenHeader from '../../components/ScreenHeader';
 import FastImage from 'react-native-fast-image';
 import TagBadge from '../../components/TagBadge';
 import { MapPin, Heart } from 'lucide-react-native';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export default function ShareViewerScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useShareViewerViewModel();
   const scrollY = useSharedValue(0);
@@ -19,7 +19,7 @@ export default function ShareViewerScreen() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.baseBg }}>
       <ScreenHeader
-        title={t.shareViewer.title}
+        title={t('shareViewer.title')}
         onBack={vm.handleBack}
         scrollY={scrollY}
         fadeStart={0}
@@ -33,10 +33,10 @@ export default function ShareViewerScreen() {
       ) : vm.error ? (
         <View className="flex-1 items-center justify-center px-8">
           <Heading size="md" className="text-textMid dark:text-darkTextMid text-center mb-2">
-            {t.shareViewer.notFound}
+            {t('shareViewer.notFound')}
           </Heading>
           <Body size="sm" className="text-textLight dark:text-darkTextLight text-center">
-            {t.shareViewer.notFoundDesc}
+            {t('shareViewer.notFoundDesc')}
           </Body>
         </View>
       ) : vm.data ? (
@@ -98,7 +98,7 @@ export default function ShareViewerScreen() {
               style={{ backgroundColor: colors.primaryMuted }}
             >
               <Caption className="text-textMid dark:text-darkTextMid text-center">
-                {t.shareViewer.sharedVia}
+                {t('shareViewer.sharedVia')}
               </Caption>
             </View>
           </View>

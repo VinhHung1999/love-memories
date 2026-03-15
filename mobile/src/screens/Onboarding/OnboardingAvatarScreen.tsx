@@ -23,7 +23,7 @@ import { useAuth } from '../../lib/auth';
 import { coupleApi, profileApi, storeTokens } from '../../lib/api';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 
 // ── Progress Dots ─────────────────────────────────────────────────────────────
@@ -96,6 +96,7 @@ function ConfettiParticle({ tx, ty, color, size, delay }: { tx: number; ty: numb
 // ── Completion Overlay ────────────────────────────────────────────────────────
 
 function CompletionOverlay() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const textScale = useSharedValue(0.8);
 
@@ -146,16 +147,16 @@ function CompletionOverlay() {
 
       <Animated.View style={textStyle} className="items-center">
         <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26 }}>
-          {t.onboarding.avatar.doneTitle}
+          {t('onboarding.avatar.doneTitle')}
         </Heading>
         <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
-          {t.onboarding.avatar.doneSubtitle}
+          {t('onboarding.avatar.doneSubtitle')}
         </Body>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(600).duration(400)} className="mt-6 flex-row items-center gap-2">
         <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
-        <Caption className="text-primary">{t.onboarding.avatar.completing}</Caption>
+        <Caption className="text-primary">{t('onboarding.avatar.completing')}</Caption>
         <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
       </Animated.View>
     </Animated.View>
@@ -165,6 +166,7 @@ function CompletionOverlay() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingAvatarScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingAvatar'>>();
@@ -234,8 +236,8 @@ export default function OnboardingAvatarScreen() {
       setLoading(false);
       setAlert({
         visible: true,
-        title: t.common.error,
-        message: err instanceof Error ? err.message : t.onboarding.avatar.errors.setupFailed,
+        title: t('common.error'),
+        message: err instanceof Error ? err.message : t('onboarding.avatar.errors.setupFailed'),
         type: 'error',
       });
     }
@@ -267,10 +269,10 @@ export default function OnboardingAvatarScreen() {
         {/* Heading */}
         <Animated.View entering={FadeInDown.delay(150).duration(400)} className="items-center mb-8">
           <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26, lineHeight: 34 }}>
-            {t.onboarding.avatar.title}
+            {t('onboarding.avatar.title')}
           </Heading>
-          <Body size="md" className="text-textMid dark:text-darkTextMid text-center">{t.onboarding.avatar.subtitle}</Body>
-          <Caption className="text-textLight dark:text-darkTextLight text-center mt-1">{t.onboarding.avatar.optional}</Caption>
+          <Body size="md" className="text-textMid dark:text-darkTextMid text-center">{t('onboarding.avatar.subtitle')}</Body>
+          <Caption className="text-textLight dark:text-darkTextLight text-center mt-1">{t('onboarding.avatar.optional')}</Caption>
         </Animated.View>
 
         {/* Avatar circle */}
@@ -304,7 +306,7 @@ export default function OnboardingAvatarScreen() {
 
           <Pressable onPress={handlePickPhoto} disabled={loading} className="mt-4">
             <Body size="sm" className="text-primary font-semibold">
-              {avatarUri ? t.onboarding.avatar.changePhoto : t.onboarding.avatar.addPhoto}
+              {avatarUri ? t('onboarding.avatar.changePhoto') : t('onboarding.avatar.addPhoto')}
             </Body>
           </Pressable>
         </Animated.View>
@@ -318,16 +320,16 @@ export default function OnboardingAvatarScreen() {
             style={{ backgroundColor: loading ? colors.primaryShadow : colors.primary }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
               {loading
-              ? t.onboarding.avatar.completing
+              ? t('onboarding.avatar.completing')
               : route.params?.coupleName
-                ? t.onboarding.avatar.createCoupleBtn
-                : t.onboarding.avatar.finishBtn}
+                ? t('onboarding.avatar.createCoupleBtn')
+                : t('onboarding.avatar.finishBtn')}
             </Body>
           </SpringPressable>
 
           {!loading && (
             <Pressable onPress={handleFinish} className="items-center py-3">
-              <Body size="sm" className="text-textLight dark:text-darkTextLight">{t.onboarding.avatar.skipBtn}</Body>
+              <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('onboarding.avatar.skipBtn')}</Body>
             </Pressable>
           )}
         </Animated.View>

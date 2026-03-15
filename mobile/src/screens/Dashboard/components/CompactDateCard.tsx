@@ -3,14 +3,14 @@ import { View, Pressable } from 'react-native';
 import { CalendarHeart } from 'lucide-react-native';
 import { Caption } from '../../../components/Typography';
 import type { DatePlan } from '../../../types';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface CompactDateCardProps {
   plans: DatePlan[];
   onPress: () => void;
 }
 
 export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
+  const { t } = useTranslation();
   const firstPlan = plans[0];
 
   function fmtDateShort(iso: string) {
@@ -25,7 +25,7 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
             <CalendarHeart size={12} strokeWidth={1.5} />
           </View>
           <Caption className="font-headingSemi text-secondary tracking-widest uppercase">
-            {t.dashboard.compactDateCard.label}
+            {t('dashboard.compactDateCard.label')}
           </Caption>
         </View>
         {firstPlan ? (
@@ -39,7 +39,7 @@ export function CompactDateCard({ plans, onPress }: CompactDateCardProps) {
           </View>
         ) : (
           <Caption className="text-textMid dark:text-darkTextMid italic mt-2">
-            {t.dashboard.compactDateCard.noPlans}
+            {t('dashboard.compactDateCard.noPlans')}
           </Caption>
         )}
       </View>

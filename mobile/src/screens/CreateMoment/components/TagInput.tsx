@@ -2,8 +2,7 @@ import React from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useAppColors } from '../../../navigation/theme';
 import { Label } from '../../../components/Typography';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface TagInputProps {
   tags: string[];
   tagInput: string;
@@ -13,6 +12,7 @@ interface TagInputProps {
 }
 
 export default function TagInput({ tags, tagInput, onChangeTagInput, onAddTag, onRemoveTag }: TagInputProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   return (
@@ -28,7 +28,7 @@ export default function TagInput({ tags, tagInput, onChangeTagInput, onAddTag, o
       ))}
       <TextInput
         className="text-[13px] text-textDark dark:text-darkTextDark flex-1 min-w-[120px]"
-        placeholder={t.moments.create.typeTag}
+        placeholder={t('moments.create.typeTag')}
         placeholderTextColor={colors.textLight}
         value={tagInput}
         onChangeText={onChangeTagInput}

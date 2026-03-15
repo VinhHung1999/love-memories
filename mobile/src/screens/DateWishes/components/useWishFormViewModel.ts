@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { dateWishesApi } from '../../../lib/api';
 import type { DateWish } from '../../../types';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export function useWishFormViewModel(onClose: () => void, initialWish?: DateWish) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState(initialWish?.title ?? '');
   const [description, setDescription] = useState(initialWish?.description ?? '');
@@ -34,7 +34,7 @@ export function useWishFormViewModel(onClose: () => void, initialWish?: DateWish
       queryClient.invalidateQueries({ queryKey: ['wishes'] });
       onClose();
     } catch {
-      setError(t.datePlanner.errors.saveFailed);
+      setError(t('datePlanner.errors.saveFailed'));
     }
     setIsSaving(false);
   };

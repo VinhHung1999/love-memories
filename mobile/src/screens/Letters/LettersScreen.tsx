@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Mail, PenLine } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useLettersViewModel } from './useLettersViewModel';
 import LetterCard from './components/LetterCard';
 import ComposeLetterSheet from './components/ComposeLetterSheet';
@@ -36,6 +36,7 @@ function LettersSkeleton() {
 }
 
 export default function LettersScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useLettersViewModel();
@@ -44,15 +45,15 @@ export default function LettersScreen() {
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   const tabs = [
-    { key: 'inbox' as const, label: t.loveLetters.inboxTab },
-    { key: 'sent' as const, label: t.loveLetters.sentTab },
+    { key: 'inbox' as const, label: t('loveLetters.inboxTab') },
+    { key: 'sent' as const, label: t('loveLetters.sentTab') },
   ];
 
   return (
     <View className="flex-1 bg-background">
       <ListHeader
-        title={t.loveLetters.title}
-        subtitle={t.loveLetters.subtitle}
+        title={t('loveLetters.title')}
+        subtitle={t('loveLetters.subtitle')}
         filterBar={
           <GlassTabBar
             tabs={tabs}
@@ -67,9 +68,9 @@ export default function LettersScreen() {
       ) : vm.isEmpty ? (
         <EmptyState
           icon={Mail}
-          title={vm.activeTab === 'inbox' ? t.loveLetters.emptyInboxTitle : t.loveLetters.emptySentTitle}
-          subtitle={vm.activeTab === 'inbox' ? t.loveLetters.emptyInboxSubtitle : t.loveLetters.emptySentSubtitle}
-          actionLabel={t.loveLetters.compose}
+          title={vm.activeTab === 'inbox' ? t('loveLetters.emptyInboxTitle') : t('loveLetters.emptySentTitle')}
+          subtitle={vm.activeTab === 'inbox' ? t('loveLetters.emptyInboxSubtitle') : t('loveLetters.emptySentSubtitle')}
+          actionLabel={t('loveLetters.compose')}
           onAction={() => navigation.showBottomSheet(ComposeLetterSheet)}
         />
       ) : (

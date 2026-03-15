@@ -24,7 +24,7 @@ import {
 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useRecipeDetailViewModel } from './useRecipeDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import { Card, CardTitle } from '../../components/Card';
@@ -171,6 +171,7 @@ function StepRow({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function RecipeDetailScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useRecipeDetailViewModel();
@@ -262,7 +263,7 @@ export default function RecipeDetailScreen() {
             <View className="flex-row items-center gap-1.5 pt-2 border-t border-border dark:border-darkBorder/30">
               <MapPin size={13} color={colors.textLight} strokeWidth={1.5} />
               <Body size="sm" className="text-textMid dark:text-darkTextMid flex-1">
-                {t.recipes.detail.linkedSpot}:{' '}
+                {t('recipes.detail.linkedSpot')}:{' '}
                 <Label className="font-semibold text-secondary">
                   {recipe.foodSpot.name}
                 </Label>
@@ -280,7 +281,7 @@ export default function RecipeDetailScreen() {
             >
               <Images size={16} color={colors.primary} strokeWidth={1.5} />
               <Body size="md" className="font-semibold text-primary flex-1">
-                {t.recipes.detail.photos} ({recipe.photos.length})
+                {t('recipes.detail.photos')} ({recipe.photos.length})
               </Body>
               <ChevronRight
                 size={16}
@@ -294,7 +295,7 @@ export default function RecipeDetailScreen() {
         {/* ── Ingredients ── */}
         {recipe.ingredients.length > 0 ? (
           <Card>
-            <CardTitle>{t.recipes.detail.ingredients}</CardTitle>
+            <CardTitle>{t('recipes.detail.ingredients')}</CardTitle>
             {recipe.ingredients.map((ing, idx) => (
               <IngredientRow
                 key={idx}
@@ -309,7 +310,7 @@ export default function RecipeDetailScreen() {
         {/* ── Steps ── */}
         {recipe.steps.length > 0 ? (
           <Card>
-            <CardTitle>{t.recipes.detail.steps}</CardTitle>
+            <CardTitle>{t('recipes.detail.steps')}</CardTitle>
             {recipe.steps.map((step, idx) => (
               <StepRow
                 key={idx}
@@ -325,7 +326,7 @@ export default function RecipeDetailScreen() {
         {/* ── Notes ── */}
         {recipe.notes ? (
           <Card>
-            <CardTitle>{t.recipes.detail.notes}</CardTitle>
+            <CardTitle>{t('recipes.detail.notes')}</CardTitle>
             <Body size="md" className="text-textMid dark:text-darkTextMid leading-relaxed pt-1">
               {recipe.notes}
             </Body>
@@ -346,7 +347,7 @@ export default function RecipeDetailScreen() {
               </View>
               <View className="flex-1">
                 <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
-                  {t.recipes.detail.tutorialLink}
+                  {t('recipes.detail.tutorialLink')}
                 </Body>
                 <Body size="sm" className="text-textLight dark:text-darkTextLight" numberOfLines={1}>
                   {recipe.tutorialUrl}
@@ -370,7 +371,7 @@ export default function RecipeDetailScreen() {
           >
             <Share2 size={16} color={colors.primary} strokeWidth={1.5} />
             <Body size="sm" className="font-semibold text-primary">
-              {t.shareViewer.share}
+              {t('shareViewer.share')}
             </Body>
           </Pressable>
         </View>
@@ -393,7 +394,7 @@ export default function RecipeDetailScreen() {
           >
             <ChefHat size={18} strokeWidth={1.5} color='#fff'/>
             <Label className="font-bold" style={{ color: '#FFFFFF' }}>
-              {t.recipes.detail.cookNow}
+              {t('recipes.detail.cookNow')}
             </Label>
           </LinearGradient>
         </Pressable>

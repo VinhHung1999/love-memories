@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { AlertCircle, HelpCircle, Info, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
-import t from '../locales/en';
+import { useTranslation } from 'react-i18next';
 import { Body, Heading, Label } from './Typography';
 
 // ── AlertConfig — exported for ViewModel alert state ─────────────────────────
@@ -46,6 +46,7 @@ export default function AlertModal({
   onCancel,
   onDismiss,
 }: AlertModalProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const icon = ICON_CONFIG[type];
   const isDestructive = type === 'destructive';
@@ -88,7 +89,7 @@ export default function AlertModal({
                 onPress={handleCancel}
                 className="flex-1 py-3 rounded-2xl border border-border dark:border-darkBorder items-center">
                 <Label className="font-semibold text-textMid dark:text-darkTextMid">
-                  {cancelLabel ?? t.common.cancel}
+                  {cancelLabel ?? t('common.cancel')}
                 </Label>
               </Pressable>
             )}
@@ -97,7 +98,7 @@ export default function AlertModal({
               className="py-3 rounded-2xl items-center"
               style={{ flex: hasCancel ? 1 : undefined, width: hasCancel ? undefined : '100%', backgroundColor: isDestructive ? colors.errorColor : colors.primary }}>
               <Label className="font-semibold" style={{ color: '#FFFFFF' }}>
-                {confirmLabel ?? t.common.ok}
+                {confirmLabel ?? t('common.ok')}
               </Label>
             </Pressable>
           </View>

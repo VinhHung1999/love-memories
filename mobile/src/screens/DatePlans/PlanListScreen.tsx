@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Calendar, Heart, Plus } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { usePlanListViewModel } from './usePlanListViewModel';
 import PlanCard from './components/PlanCard';
 import PlanFormSheet from './components/PlanFormSheet';
@@ -37,6 +37,7 @@ function PlansSkeleton() {
 }
 
 export default function PlanListScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = usePlanListViewModel();
@@ -46,8 +47,8 @@ export default function PlanListScreen() {
   return (
     <View className="flex-1 bg-background">
       <ScreenHeader
-        title={t.datePlanner.plansTitle}
-        subtitle={t.datePlanner.plansSubtitle}
+        title={t('datePlanner.plansTitle')}
+        subtitle={t('datePlanner.plansSubtitle')}
         onBack={vm.handleBack}
         right={<HeaderIcon icon={Heart} onPress={vm.handleNavigateWishes} />}
         scrollY={scrollY}
@@ -58,9 +59,9 @@ export default function PlanListScreen() {
       ) : vm.isEmpty ? (
         <EmptyState
           icon={Calendar}
-          title={t.datePlanner.planEmptyTitle}
-          subtitle={t.datePlanner.planEmptySubtitle}
-          actionLabel={t.datePlanner.planEmptyAction}
+          title={t('datePlanner.planEmptyTitle')}
+          subtitle={t('datePlanner.planEmptySubtitle')}
+          actionLabel={t('datePlanner.planEmptyAction')}
           onAction={() => navigation.showBottomSheet(PlanFormSheet)}
         />
       ) : (

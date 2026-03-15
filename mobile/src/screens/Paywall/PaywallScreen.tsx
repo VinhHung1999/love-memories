@@ -18,37 +18,21 @@ import { X, Heart, Check } from 'lucide-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../navigation';
 import { useAppColors } from '../../navigation/theme';
-import { PLANS, usePaywallViewModel, type PlanKey } from './usePaywallViewModel';
-import t from '../../locales/en';
-
+import { usePaywallViewModel, type PricingPlan, type PlanKey } from './usePaywallViewModel';
+import { useTranslation } from 'react-i18next';
 // ── Feature comparison rows ─────────────────────────────────────────────────
-
-const COMPARISON_ROWS: Array<{
-  feature: string;
-  free: string;
-  plus: string;
-  plusIsCheck?: boolean;
-}> = [
-  { feature: t.paywall.features.moments,     free: t.paywall.freeVal.moments,     plus: t.paywall.plusVal.moments,     plusIsCheck: true },
-  { feature: t.paywall.features.foodspots,   free: t.paywall.freeVal.foodspots,   plus: t.paywall.plusVal.foodspots,   plusIsCheck: true },
-  { feature: t.paywall.features.expenses,    free: t.paywall.freeVal.expenses,    plus: t.paywall.plusVal.expenses,    plusIsCheck: true },
-  { feature: t.paywall.features.recipes,     free: t.paywall.freeVal.recipes,     plus: t.paywall.plusVal.recipes,     plusIsCheck: true },
-  { feature: t.paywall.features.letters,     free: t.paywall.freeVal.letters,     plus: t.paywall.plusVal.letters,     plusIsCheck: true },
-  { feature: t.paywall.features.datePlanner, free: t.paywall.freeVal.datePlanner, plus: t.paywall.plusVal.datePlanner, plusIsCheck: true },
-  { feature: t.paywall.features.monthlyRecap,free: t.paywall.freeVal.monthlyRecap,plus: t.paywall.plusVal.monthlyRecap,plusIsCheck: true },
-  { feature: t.paywall.features.achievements,free: t.paywall.freeVal.achievements,plus: t.paywall.plusVal.achievements,plusIsCheck: true },
-];
 
 // ── Animated pricing card ──────────────────────────────────────────────────
 
 interface PricingCardProps {
-  plan: typeof PLANS[number];
+  plan: PricingPlan;
   isSelected: boolean;
   index: number;
   onPress: (key: PlanKey) => void;
 }
 
 function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const scale = useSharedValue(1);
 
@@ -79,7 +63,7 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
             style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}
           >
             <Caption className="font-bold" style={{ color: '#FFFFFF', letterSpacing: 0.8 }}>
-              {t.paywall.bestValue}
+              {t('paywall.bestValue')}
             </Caption>
           </LinearGradient>
         </View>
@@ -166,7 +150,23 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
 // ── Feature comparison table ───────────────────────────────────────────────
 
 function FeatureTable() {
+  const { t } = useTranslation();
   const colors = useAppColors();
+  const COMPARISON_ROWS: Array<{
+    feature: string;
+    free: string;
+    plus: string;
+    plusIsCheck?: boolean;
+  }> = [
+    { feature: t('paywall.features.moments'),     free: t('paywall.freeVal.moments'),     plus: t('paywall.plusVal.moments'),     plusIsCheck: true },
+    { feature: t('paywall.features.foodspots'),   free: t('paywall.freeVal.foodspots'),   plus: t('paywall.plusVal.foodspots'),   plusIsCheck: true },
+    { feature: t('paywall.features.expenses'),    free: t('paywall.freeVal.expenses'),    plus: t('paywall.plusVal.expenses'),    plusIsCheck: true },
+    { feature: t('paywall.features.recipes'),     free: t('paywall.freeVal.recipes'),     plus: t('paywall.plusVal.recipes'),     plusIsCheck: true },
+    { feature: t('paywall.features.letters'),     free: t('paywall.freeVal.letters'),     plus: t('paywall.plusVal.letters'),     plusIsCheck: true },
+    { feature: t('paywall.features.datePlanner'), free: t('paywall.freeVal.datePlanner'), plus: t('paywall.plusVal.datePlanner'), plusIsCheck: true },
+    { feature: t('paywall.features.monthlyRecap'),free: t('paywall.freeVal.monthlyRecap'),plus: t('paywall.plusVal.monthlyRecap'),plusIsCheck: true },
+    { feature: t('paywall.features.achievements'),free: t('paywall.freeVal.achievements'),plus: t('paywall.plusVal.achievements'),plusIsCheck: true },
+  ];
   return (
     <Animated.View entering={FadeInDown.delay(360).springify().damping(18)}>
       <View className="rounded-2xl overflow-hidden" style={{ borderWidth: 1, borderColor: colors.border }}>
@@ -176,10 +176,10 @@ function FeatureTable() {
             Feature
           </Caption>
           <Caption className="w-20 font-semibold py-2.5 text-center" style={{ color: colors.textMid }}>
-            {t.paywall.free}
+            {t('paywall.free')}
           </Caption>
           <Caption className="w-20 font-semibold py-2.5 text-center" style={{ color: colors.primary }}>
-            {t.paywall.plus}
+            {t('paywall.plus')}
           </Caption>
         </View>
 
@@ -237,6 +237,7 @@ function FeatureTable() {
 type Props = NativeStackScreenProps<AppStackParamList, 'Paywall'>;
 
 export default function PaywallScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const trigger = route.params?.trigger ?? 'browse';
   const blockedFeature = route.params?.blockedFeature;
@@ -255,7 +256,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
           <X size={18} color={colors.primary} strokeWidth={2} />
         </Pressable>
         <Heading size="sm" className="flex-1 text-center text-textDark dark:text-darkTextDark">
-          {t.paywall.title}
+          {t('paywall.title')}
         </Heading>
         {/* Spacer to balance X button */}
         <View className="w-9" />
@@ -275,7 +276,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
               style={{ backgroundColor: colors.primaryMuted, borderWidth: 1, borderColor: colors.primaryLighter }}
             >
               <Caption style={{ color: colors.primary }}>
-                {t.paywall.limitBanner}{' '}
+                {t('paywall.limitBanner')}{' '}
                 <Caption className="font-semibold">{blockedFeature}</Caption>.
               </Caption>
             </View>
@@ -313,16 +314,16 @@ export default function PaywallScreen({ navigation, route }: Props) {
             className="text-center"
             style={{ color: colors.textDark, letterSpacing: -0.5, lineHeight: 38 }}
           >
-            {t.paywall.headline}
+            {t('paywall.headline')}
           </Heading>
           <Body size="sm" className="text-center mt-2" style={{ color: colors.textMid, lineHeight: 20 }}>
-            {t.paywall.subtitle}
+            {t('paywall.subtitle')}
           </Body>
         </Animated.View>
 
         {/* Pricing cards */}
         <View className="mt-2 mb-6">
-          {PLANS.map((plan, i) => (
+          {vm.plans.map((plan, i) => (
             <PricingCard
               key={plan.key}
               plan={plan}
@@ -346,7 +347,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
           className="mt-6 items-center py-3"
         >
           <Caption style={{ color: colors.textLight }}>
-            {vm.isRestoring ? t.paywall.restoring : t.paywall.restore}
+            {vm.isRestoring ? t('paywall.restoring') : t('paywall.restore')}
           </Caption>
         </Pressable>
       </ScrollView>
@@ -379,7 +380,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Label className="font-bold" style={{ color: '#FFFFFF', fontSize: 16, letterSpacing: 0.3 }}>
-                {t.paywall.cta}
+                {t('paywall.cta')}
               </Label>
             )}
           </LinearGradient>

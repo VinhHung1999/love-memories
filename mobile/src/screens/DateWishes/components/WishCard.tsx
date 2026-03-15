@@ -4,7 +4,7 @@ import { Body, Caption, Label } from '../../../components/Typography';
 import { Check, CheckCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DateWish } from '../../../types';
-import { WISH_CATEGORIES } from '../useWishesViewModel';
+import { useWishCategories } from '../useWishesViewModel';
 
 export default function WishCard({
   wish,
@@ -18,7 +18,8 @@ export default function WishCard({
   onDelete: () => void;
 }) {
   const colors = useAppColors();
-  const cat = WISH_CATEGORIES.find(c => c.key === wish.category);
+  const wishCategories = useWishCategories();
+  const cat = wishCategories.find(c => c.key === wish.category);
   const emoji = cat?.emoji ?? '⭐';
 
   return (

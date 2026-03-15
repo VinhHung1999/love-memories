@@ -3,8 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { achievementsApi } from '../../lib/api';
 import type { Achievement } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export type AchievementGroup = {
   category: string;
   label: string;
@@ -14,6 +13,7 @@ export type AchievementGroup = {
 };
 
 export function useAchievementsViewModel() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const { data: achievements = [], isLoading } = useQuery({
     queryKey: ['achievements'],
@@ -30,7 +30,7 @@ export function useAchievementsViewModel() {
     });
     const groups: AchievementGroup[] = Array.from(map.entries()).map(([cat, items]) => ({
       category: cat,
-      label: (t.achievements.categories as Record<string, string>)[cat] ?? cat,
+      label: t(`achievements.categories.${cat}`) || cat,
       unlocked: items.filter(i => i.unlocked).length,
       total: items.length,
       items: [...items].sort((a, b) => (b.unlocked ? 1 : 0) - (a.unlocked ? 1 : 0)),

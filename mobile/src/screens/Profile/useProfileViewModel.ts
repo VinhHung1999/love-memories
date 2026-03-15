@@ -11,9 +11,9 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { coupleApi, profileApi, settingsApi } from '../../lib/api';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export function useProfileViewModel() {
+  const { t } = useTranslation();
   const { user, logout, updateUser, linkGoogle } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const { startUpload, incrementUpload } = useUploadProgress();
@@ -44,7 +44,7 @@ export function useProfileViewModel() {
     mutationFn: coupleApi.generateInvite,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['couple'] }),
     onError: (err: Error) =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: err.message }),
   });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -63,8 +63,8 @@ export function useProfileViewModel() {
       incrementUpload(); // still complete the progress indicator
       navigation.showAlert({
         type: 'error',
-        title: t.common.error,
-        message: err instanceof Error ? err.message : t.profile.errors.avatarFailed,
+        title: t('common.error'),
+        message: err instanceof Error ? err.message : t('profile.errors.avatarFailed'),
       });
     } finally {
       hideLoading();
@@ -78,18 +78,18 @@ export function useProfileViewModel() {
       const userInfo = await GoogleSignin.signIn();
       const idToken = userInfo.data?.idToken;
       if (!idToken) {
-        navigation.showAlert({ type: 'error', title: t.common.error, message: t.profile.errors.noGoogleToken });
+        navigation.showAlert({ type: 'error', title: t('common.error'), message: t('profile.errors.noGoogleToken') });
         return;
       }
       await linkGoogle(idToken);
-      navigation.showAlert({ type: 'info', title: t.common.success, message: t.profile.google.linkedSuccess });
+      navigation.showAlert({ type: 'info', title: t('common.success'), message: t('profile.google.linkedSuccess') });
     } catch (err: unknown) {
       const e = err as { code?: string };
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
       navigation.showAlert({
         type: 'error',
-        title: t.common.error,
-        message: err instanceof Error ? err.message : t.profile.errors.googleLinkFailed,
+        title: t('common.error'),
+        message: err instanceof Error ? err.message : t('profile.errors.googleLinkFailed'),
       });
     } finally {
       hideLoading();
@@ -99,9 +99,9 @@ export function useProfileViewModel() {
   const handleLogout = () => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.profile.logout,
-      message: t.profile.logoutMessage,
-      confirmLabel: t.profile.logout,
+      title: t('profile.logout'),
+      message: t('profile.logoutMessage'),
+      confirmLabel: t('profile.logout'),
       onConfirm: async () => {
         await GoogleSignin.signOut().catch(() => {});
         await logout();
@@ -134,7 +134,7 @@ export function useProfileViewModel() {
       })
     : null;
 
-  const slogan = sloganSetting?.value ?? t.dashboard.defaultSlogan;
+  const slogan = sloganSetting?.value ?? t('dashboard.defaultSlogan');
 
   return {
     user,

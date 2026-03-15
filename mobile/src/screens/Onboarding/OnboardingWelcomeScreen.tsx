@@ -19,7 +19,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import SpringPressable from '../../components/SpringPressable';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 
 // ── Progress Dots ─────────────────────────────────────────────────────────────
@@ -159,6 +159,7 @@ function PulsingHeart() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingWelcomeScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -220,10 +221,10 @@ export default function OnboardingWelcomeScreen() {
             size="xl"
             className="text-textDark dark:text-darkTextDark text-center leading-tight mb-3"
             style={{ fontSize: 30, lineHeight: 38 }}>
-            {t.onboarding.welcome.title}
+            {t('onboarding.welcome.title')}
           </Heading>
           <Body size="md" className="text-textMid dark:text-darkTextMid text-center" style={{ lineHeight: 22 }}>
-            {t.onboarding.welcome.subtitle}
+            {t('onboarding.welcome.subtitle')}
           </Body>
         </Animated.View>
 
@@ -234,7 +235,7 @@ export default function OnboardingWelcomeScreen() {
             className="w-full h-14 rounded-2xl items-center justify-center"
             style={{ backgroundColor: colors.primary }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-              {t.onboarding.welcome.cta}  →
+              {t('onboarding.welcome.cta')}  →
             </Body>
           </SpringPressable>
         </Animated.View>

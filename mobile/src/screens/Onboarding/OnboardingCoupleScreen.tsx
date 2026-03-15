@@ -16,7 +16,7 @@ import Input from '../../components/Input';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import { coupleApi, storeTokens } from '../../lib/api';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 
 type CoupleMode = 'create' | 'join';
@@ -107,6 +107,7 @@ function OptionCard({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingCoupleScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
 
@@ -118,13 +119,13 @@ export default function OnboardingCoupleScreen() {
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
 
   const showError = (message: string) => {
-    setAlert({ visible: true, title: t.common.error, message, type: 'error' });
+    setAlert({ visible: true, title: t('common.error'), message, type: 'error' });
   };
 
   const handleContinue = async () => {
-    if (!coupleMode) { showError(t.onboarding.couple.errors.coupleModeRequired); return; }
-    if (coupleMode === 'create' && !coupleName.trim()) { showError(t.onboarding.couple.errors.coupleNameRequired); return; }
-    if (coupleMode === 'join' && !inviteCode.trim()) { showError(t.onboarding.couple.errors.inviteCodeRequired); return; }
+    if (!coupleMode) { showError(t('onboarding.couple.errors.coupleModeRequired')); return; }
+    if (coupleMode === 'create' && !coupleName.trim()) { showError(t('onboarding.couple.errors.coupleNameRequired')); return; }
+    if (coupleMode === 'join' && !inviteCode.trim()) { showError(t('onboarding.couple.errors.inviteCodeRequired')); return; }
 
     if (coupleMode === 'create') {
       // Defer API call to final Avatar step — just carry coupleName through params
@@ -146,14 +147,14 @@ export default function OnboardingCoupleScreen() {
         title: `Join ${validation.coupleName}?`,
         message: `You will be connected with ${validation.partnerName}.`,
         type: 'confirm',
-        confirmLabel: t.onboarding.couple.joinConfirmBtn,
+        confirmLabel: t('onboarding.couple.joinConfirmBtn'),
         onConfirm: async () => {
           await doJoin();
         },
       });
     } catch (err) {
       const e = err as Error;
-      showError(e.message || t.onboarding.couple.errors.failed);
+      showError(e.message || t('onboarding.couple.errors.failed'));
     } finally {
       setLoading(false);
     }
@@ -167,7 +168,7 @@ export default function OnboardingCoupleScreen() {
       navigation.navigate('OnboardingCelebration', { coupleId: result.user.coupleId!, partnerName: result.partnerName });
     } catch (err) {
       const e = err as Error;
-      showError(e.message || t.onboarding.couple.errors.failed);
+      showError(e.message || t('onboarding.couple.errors.failed'));
     } finally {
       setLoading(false);
     }
@@ -197,7 +198,7 @@ export default function OnboardingCoupleScreen() {
           {/* Heading */}
           <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mb-8">
             <Heading size="xl" className="text-textDark dark:text-darkTextDark" style={{ fontSize: 28, lineHeight: 36 }}>
-              {t.onboarding.couple.title}
+              {t('onboarding.couple.title')}
             </Heading>
           </Animated.View>
 
@@ -207,15 +208,15 @@ export default function OnboardingCoupleScreen() {
               selected={coupleMode === 'create'}
               onPress={() => { setCoupleMode('create'); }}
               icon={<Heart size={22} color={coupleMode === 'create' ? colors.primary : '#A898AD'} strokeWidth={1.5} />}
-              label={t.onboarding.couple.createLabel}
-              subtitle={t.onboarding.couple.createSubtitle}
+              label={t('onboarding.couple.createLabel')}
+              subtitle={t('onboarding.couple.createSubtitle')}
             />
             <OptionCard
               selected={coupleMode === 'join'}
               onPress={() => { setCoupleMode('join'); }}
               icon={<Link size={22} color={coupleMode === 'join' ? colors.primary : '#A898AD'} strokeWidth={1.5} />}
-              label={t.onboarding.couple.joinLabel}
-              subtitle={t.onboarding.couple.joinSubtitle}
+              label={t('onboarding.couple.joinLabel')}
+              subtitle={t('onboarding.couple.joinSubtitle')}
             />
           </Animated.View>
 
@@ -225,7 +226,7 @@ export default function OnboardingCoupleScreen() {
               <Input
                 value={coupleName}
                 onChangeText={setCoupleName}
-                placeholder={t.onboarding.couple.namePlaceholder}
+                placeholder={t('onboarding.couple.namePlaceholder')}
                 autoCapitalize="words"
               />
             </Animated.View>
@@ -235,7 +236,7 @@ export default function OnboardingCoupleScreen() {
               <Input
                 value={inviteCode}
                 onChangeText={setInviteCode}
-                placeholder={t.onboarding.couple.codePlaceholder}
+                placeholder={t('onboarding.couple.codePlaceholder')}
                 autoCapitalize="none"
               />
             </Animated.View>
@@ -251,7 +252,7 @@ export default function OnboardingCoupleScreen() {
               className="w-full h-14 rounded-2xl items-center justify-center"
               style={{ backgroundColor: loading ? colors.primaryShadow : colors.primary }}>
               <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-                {t.onboarding.couple.continueBtn}  →
+                {t('onboarding.couple.continueBtn')}  →
               </Body>
             </SpringPressable>
           </Animated.View>

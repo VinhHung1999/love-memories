@@ -8,9 +8,9 @@ import Button from '../../components/Button';
 import { useJoinCoupleViewModel } from './useJoinCoupleViewModel';
 import ScreenHeader from '../../components/ScreenHeader';
 import { Heart } from 'lucide-react-native';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export default function JoinCoupleScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useJoinCoupleViewModel();
   const scrollY = useSharedValue(0);
@@ -18,7 +18,7 @@ export default function JoinCoupleScreen() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.baseBg }}>
       <ScreenHeader
-        title={t.joinCouple.title}
+        title={t('joinCouple.title')}
         onBack={vm.handleBack}
         scrollY={scrollY}
         fadeStart={0}
@@ -38,40 +38,40 @@ export default function JoinCoupleScreen() {
           <>
             <ActivityIndicator size="large" color={colors.primary} className="mb-4" />
             <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
-              {t.joinCouple.joining}
+              {t('joinCouple.joining')}
             </Body>
           </>
         ) : vm.error ? (
           <>
             <Heading size="lg" className="text-textDark dark:text-darkTextDark text-center mb-2">
-              {t.joinCouple.errorTitle}
+              {t('joinCouple.errorTitle')}
             </Heading>
             <Body size="md" className="text-textMid dark:text-darkTextMid text-center mb-6">
               {vm.error}
             </Body>
-            <Button label={t.joinCouple.tryAgain} onPress={vm.handleJoin} variant="primary" />
+            <Button label={t('joinCouple.tryAgain')} onPress={vm.handleJoin} variant="primary" />
           </>
         ) : vm.isSuccess ? (
           <>
             <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2">
-              {t.joinCouple.successTitle}
+              {t('joinCouple.successTitle')}
             </Heading>
             <Body size="md" className="text-textMid dark:text-darkTextMid text-center mb-6">
-              {t.joinCouple.successDesc}
+              {t('joinCouple.successDesc')}
             </Body>
           </>
         ) : (
           <>
             <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2">
-              {t.joinCouple.title}
+              {t('joinCouple.title')}
             </Heading>
             <Body size="md" className="text-textMid dark:text-darkTextMid text-center mb-2">
-              {t.joinCouple.desc}
+              {t('joinCouple.desc')}
             </Body>
             <Body size="sm" className="text-textLight dark:text-darkTextLight text-center mb-6">
-              {t.joinCouple.code}: <Body size="sm" className="font-bold text-primary">{vm.code}</Body>
+              {t('joinCouple.code')}: <Body size="sm" className="font-bold text-primary">{vm.code}</Body>
             </Body>
-            <Button label={t.joinCouple.joinBtn} onPress={vm.handleJoin} variant="primary" />
+            <Button label={t('joinCouple.joinBtn')} onPress={vm.handleJoin} variant="primary" />
           </>
         )}
       </View>

@@ -3,8 +3,7 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import { Caption, Label } from '../../../components/Typography';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutDown } from 'react-native-reanimated';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface ReactionsBarProps {
   presetEmojis: string[];
   reactionCounts: (emoji: string) => number;
@@ -13,6 +12,7 @@ interface ReactionsBarProps {
 }
 
 export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted, onToggle }: ReactionsBarProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const [pickerVisible, setPickerVisible] = useState(false);
 
@@ -69,7 +69,7 @@ export default function ReactionsBar({ presetEmojis, reactionCounts, hasReacted,
       {/* Hint */}
       {activeEmojis.length === 0 ? (
         <Caption className="text-textLight dark:text-darkTextLight mt-1 italic">
-          {t.moments.detail.reactHint ?? 'Tap + to react'}
+          {t('moments.detail.reactHint') ?? 'Tap + to react'}
         </Caption>
       ) : null}
 

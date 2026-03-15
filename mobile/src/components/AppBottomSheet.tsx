@@ -15,8 +15,7 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useAppColors } from '../navigation/theme';
-import t from '../locales/en';
-
+import { useTranslation } from 'react-i18next';
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface AppBottomSheetProps {
@@ -32,8 +31,8 @@ interface AppBottomSheetProps {
   scrollable?: boolean; // false=BottomSheetView+dynamicSizing, true=BottomSheetScrollView+snapPoints
   snapPoints?: string[]; // default ['92%'], only used when scrollable=true
   showHeader?: boolean; // default true
-  cancelLabel?: string; // default t.common.cancel
-  saveLabel?: string; // default t.common.save
+  cancelLabel?: string; // default t('common.cancel')
+  saveLabel?: string; // default t('common.save')
   onSave?: () => void;
   onDismiss?: () => void;
   saveDisabled?: boolean;
@@ -69,6 +68,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     },
     externalRef,
   ) => {
+  const { t } = useTranslation();
     const colors = useAppColors();
     const internalRef = useRef<BottomSheetModal>(null);
 
@@ -107,8 +107,8 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     const handleDismiss = useCallback(() => onDismiss?.(), [onDismiss]);
     const handleCancel = useCallback(() => internalRef.current?.dismiss(), []);
 
-    const cancel = cancelLabel ?? t.common.cancel;
-    const save = saveLabel ?? t.common.save;
+    const cancel = cancelLabel ?? t('common.cancel');
+    const save = saveLabel ?? t('common.save');
     const paddingTop = useMemo(() => {
       return showHeader ? HEADER_HEIGHT : 0;
     }, [showHeader]);

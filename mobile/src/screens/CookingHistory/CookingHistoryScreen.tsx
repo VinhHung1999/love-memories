@@ -13,7 +13,7 @@ import { BookOpen, ChefHat, ChevronRight, Star, Timer } from 'lucide-react-nativ
 import { ArrowLeft } from 'lucide-react-native';
 import HeaderIcon from '../../components/HeaderIcon';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { CookingSession } from '../../types';
 import { useCookingHistoryViewModel } from './useCookingHistoryViewModel';
 import Skeleton from '../../components/Skeleton';
@@ -40,6 +40,7 @@ function SessionCard({
   onPress: () => void;
   delay: number;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const coverPhoto = session.photos[0] ?? session.recipes[0]?.recipe.photos[0];
   const date = new Date(session.completedAt ?? session.createdAt);
@@ -88,7 +89,7 @@ function SessionCard({
             <View className="flex-row items-center gap-1">
               <BookOpen size={12} color={colors.textLight} strokeWidth={1.5} />
               <Caption className="text-textMid dark:text-darkTextMid">
-                {session.recipes.length} {t.whatToEat.history.recipes}
+                {session.recipes.length} {t('whatToEat.history.recipes')}
               </Caption>
             </View>
 
@@ -114,6 +115,7 @@ function SessionCard({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function CookingHistoryScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useCookingHistoryViewModel();
 
@@ -125,7 +127,7 @@ export default function CookingHistoryScreen() {
         <View className="flex-row items-center gap-3">
           <HeaderIcon icon={ArrowLeft} onPress={vm.handleBack} />
           <View className="flex-1">
-            <Heading size="md" className="text-textDark dark:text-darkTextDark">{t.whatToEat.historyTitle}</Heading>
+            <Heading size="md" className="text-textDark dark:text-darkTextDark">{t('whatToEat.historyTitle')}</Heading>
             <Caption className="text-textLight dark:text-darkTextLight">
               {vm.sessions.length} sessions
             </Caption>
@@ -150,8 +152,8 @@ export default function CookingHistoryScreen() {
       ) : vm.sessions.length === 0 ? (
         <View className="flex-1 items-center justify-center pb-20">
           <ChefHat size={48} color={colors.textLight} strokeWidth={1.5} />
-          <Body size="md" className="font-semibold text-textMid dark:text-darkTextMid mt-4">{t.whatToEat.noHistory}</Body>
-          <Body size="sm" className="text-textLight dark:text-darkTextLight mt-1 text-center px-8">{t.whatToEat.noHistorySubtitle}</Body>
+          <Body size="md" className="font-semibold text-textMid dark:text-darkTextMid mt-4">{t('whatToEat.noHistory')}</Body>
+          <Body size="sm" className="text-textLight dark:text-darkTextLight mt-1 text-center px-8">{t('whatToEat.noHistorySubtitle')}</Body>
         </View>
       ) : (
         <ScrollView

@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Bell, X } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { AppNotification } from '../../lib/api';
 import { useNotificationsViewModel } from './useNotificationsViewModel';
 import ScreenHeader from '../../components/ScreenHeader';
@@ -126,13 +126,13 @@ function NotificationRow({
 
 // ── Main Screen ────────────────────────────────────────────────────────────
 
-const GROUP_LABELS: Record<string, string> = {
-  today: t.notifications.today,
-  yesterday: t.notifications.yesterday,
-  earlier: t.notifications.earlier,
-};
-
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
+  const GROUP_LABELS: Record<string, string> = {
+    today: t('notifications.today'),
+    yesterday: t('notifications.yesterday'),
+    earlier: t('notifications.earlier'),
+  };
   const colors = useAppColors();
   const vm = useNotificationsViewModel();
   const navigation = useNavigation();
@@ -142,13 +142,13 @@ export default function NotificationsScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <ScreenHeader
-        title={t.notifications.title}
-        subtitle={t.notifications.subtitle}
+        title={t('notifications.title')}
+        subtitle={t('notifications.subtitle')}
         scrollY={scrollY}
         onBack={navigation.goBack}
         right={vm.hasUnread ? (
           <Pressable onPress={vm.handleMarkAll} className="py-1">
-            <Body size="md" className="font-semibold text-primary">{t.notifications.markAll}</Body>
+            <Body size="md" className="font-semibold text-primary">{t('notifications.markAll')}</Body>
           </Pressable>
         ) : null}
       />
@@ -162,8 +162,8 @@ export default function NotificationsScreen() {
       ) : vm.grouped.length === 0 ? (
         <EmptyState
           icon={Bell}
-          title={t.notifications.emptyTitle}
-          subtitle={t.notifications.emptySubtitle}
+          title={t('notifications.emptyTitle')}
+          subtitle={t('notifications.emptySubtitle')}
         />
       ) : (
         <Animated.ScrollView

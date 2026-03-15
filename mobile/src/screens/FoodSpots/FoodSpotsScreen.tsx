@@ -11,7 +11,7 @@ import { Plus, Star, Utensils } from 'lucide-react-native';
 
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { FoodSpot } from '../../types';
 import { useFoodSpotsViewModel } from './useFoodSpotsViewModel';
 import ListHeader from '../../components/ListHeader';
@@ -143,6 +143,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function FoodSpotsScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useFoodSpotsViewModel();
@@ -150,8 +151,8 @@ export default function FoodSpotsScreen() {
   return (
     <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
-        title={t.foodSpots.title}
-        subtitle={t.foodSpots.subtitle}
+        title={t('foodSpots.title')}
+        subtitle={t('foodSpots.subtitle')}
         onBack={navigation.goBack}
         right={
           <Pressable
@@ -168,7 +169,7 @@ export default function FoodSpotsScreen() {
             className="px-5">
             <View className="flex-row gap-2 py-2 pr-5">
               <TagBadge
-                label={t.foodSpots.allFilter}
+                label={t('foodSpots.allFilter')}
                 active={!vm.activeTag}
                 onPress={() => vm.handleTagPress(null)}
               />
@@ -190,9 +191,9 @@ export default function FoodSpotsScreen() {
       ) : vm.isEmpty ? (
         <EmptyState
           icon={Utensils}
-          title={t.foodSpots.emptyTitle}
-          subtitle={t.foodSpots.emptySubtitle}
-          actionLabel={t.foodSpots.emptyAction}
+          title={t('foodSpots.emptyTitle')}
+          subtitle={t('foodSpots.emptySubtitle')}
+          actionLabel={t('foodSpots.emptyAction')}
           onAction={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
         />
       ) : (

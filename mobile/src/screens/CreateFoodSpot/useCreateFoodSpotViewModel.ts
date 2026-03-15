@@ -5,7 +5,7 @@ import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { foodSpotsApi } from '../../lib/api';
 import type { FoodSpot } from '../../types';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { LocalPhoto } from '../CreateMoment/useCreateMomentViewModel';
 
 // ── Reducer ──────────────────────────────────────────────────────────────────
@@ -96,6 +96,7 @@ interface Props {
 }
 
 export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClose }: Props) {
+  const { t } = useTranslation();
   const isEdit = !!foodSpotId;
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
@@ -121,7 +122,7 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = useCallback((): string | null => {
-    if (!s.name.trim()) return t.foodSpots.errors.nameRequired;
+    if (!s.name.trim()) return t('foodSpots.errors.nameRequired');
     return null;
   }, [s.name]);
 
@@ -167,20 +168,20 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
       onClose();
     },
     onError: (err: Error) =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.foodSpots.errors.saveFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: err.message || t('foodSpots.errors.saveFailed') }),
   });
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSave = () => {
     const error = validate();
-    if (error) { navigation.showAlert({ type: 'error', title: t.common.error, message: error }); return; }
+    if (error) { navigation.showAlert({ type: 'error', title: t('common.error'), message: error }); return; }
     if (saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
   const handleAddPhotoFromLibrary = async () => {
     if (s.photos.length >= 10) {
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.maxPhotos') });
       return;
     }
     const result = await launchImageLibrary({

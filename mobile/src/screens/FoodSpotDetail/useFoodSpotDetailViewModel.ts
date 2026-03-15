@@ -8,11 +8,11 @@ import { Share } from 'react-native';
 
 const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
 import type { FoodSpotPhoto, MomentPhoto } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 type Route = RouteProp<FoodSpotsStackParamList, 'FoodSpotDetail'>;
 
 export function useFoodSpotDetailViewModel() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { foodSpotId } = route.params;
@@ -35,7 +35,7 @@ export function useFoodSpotDetailViewModel() {
       navigation.goBack();
     },
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.foodSpots.errors.deleteFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('foodSpots.errors.deleteFailed') }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -45,9 +45,9 @@ export function useFoodSpotDetailViewModel() {
   const handleDeleteSpot = () => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.foodSpots.detail.deleteTitle,
-      message: t.foodSpots.detail.deleteMessage,
-      confirmLabel: t.foodSpots.detail.deleteConfirm,
+      title: t('foodSpots.detail.deleteTitle'),
+      message: t('foodSpots.detail.deleteMessage'),
+      confirmLabel: t('foodSpots.detail.deleteConfirm'),
       onConfirm: () => deleteMutation.mutate(),
     });
   };

@@ -8,11 +8,11 @@ import { Share } from 'react-native';
 
 const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
 import type { RecipePhoto, MomentPhoto } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 type Route = RouteProp<RecipesStackParamList, 'RecipeDetail'>;
 
 export function useRecipeDetailViewModel() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { recipeId } = route.params;
@@ -35,7 +35,7 @@ export function useRecipeDetailViewModel() {
       navigation.goBack();
     },
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.recipes.errors.deleteFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('recipes.errors.deleteFailed') }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -45,9 +45,9 @@ export function useRecipeDetailViewModel() {
   const handleDelete = () => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.recipes.detail.deleteTitle,
-      message: t.recipes.detail.deleteMessage,
-      confirmLabel: t.recipes.detail.deleteConfirm,
+      title: t('recipes.detail.deleteTitle'),
+      message: t('recipes.detail.deleteMessage'),
+      confirmLabel: t('recipes.detail.deleteConfirm'),
       onConfirm: () => deleteMutation.mutate(),
     });
   };

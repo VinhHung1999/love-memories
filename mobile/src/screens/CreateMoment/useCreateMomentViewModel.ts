@@ -14,8 +14,7 @@ import audioRecorderPlayer, {
 
 import { momentsApi } from '../../lib/api';
 import type { Moment } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 const SPOTIFY_REGEX = /^https:\/\/open\.spotify\.com\/.+/;
 
 export interface LocalPhoto {
@@ -131,6 +130,7 @@ interface Props {
 }
 
 export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto, onClose }: Props) {
+  const { t } = useTranslation();
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
@@ -159,10 +159,10 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = useCallback((): string | null => {
-    if (!s.title.trim()) return t.moments.errors.titleRequired;
-    if (s.title.trim().length > 200) return t.moments.errors.titleTooLong;
+    if (!s.title.trim()) return t('moments.errors.titleRequired');
+    if (s.title.trim().length > 200) return t('moments.errors.titleTooLong');
     if (s.spotifyUrl && !SPOTIFY_REGEX.test(s.spotifyUrl.trim()))
-      return t.moments.errors.spotifyInvalid;
+      return t('moments.errors.spotifyInvalid');
     return null;
   }, [s.title, s.spotifyUrl]);
 
@@ -215,7 +215,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
       onClose();
     },
     onError: (err: Error) =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.moments.errors.saveFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: err.message || t('moments.errors.saveFailed') }),
   });
 
   // ── Handlers ────────────────────────────────────────────────────────────────
@@ -223,14 +223,14 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
 
   const handleSave = () => {
     const error = validate();
-    if (error) { navigation.showAlert({ type: 'error', title: t.common.error, message: error }); return; }
+    if (error) { navigation.showAlert({ type: 'error', title: t('common.error'), message: error }); return; }
     if (saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
   const handleAddPhotoFromLibrary = async () => {
     if (s.photos.length >= 10) {
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.maxPhotos });
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.maxPhotos') });
       return;
     }
     const result = await launchImageLibrary({
@@ -299,7 +299,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
           },
         );
         if (result !== PermissionsAndroid.RESULTS.GRANTED) {
-          navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.micPermissionDenied });
+          navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.micPermissionDenied') });
           return;
         }
       } catch { return; }
@@ -324,7 +324,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
     } catch {
       audioRecorderPlayer.removeRecordBackListener();
       dispatch({ type: 'SET_FIELD', field: 'isRecording', value: false });
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.recordFailed });
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.recordFailed') });
     }
   };
 

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import TagBadge from '../../components/TagBadge';
@@ -38,6 +38,7 @@ interface SpotifyOEmbed {
 }
 
 function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   const { data: meta, isLoading } = useQuery<SpotifyOEmbed>({
@@ -103,7 +104,7 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
           </>
         ) : (
           <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
-            {t.moments.detail.spotifyLink}
+            {t('moments.detail.spotifyLink')}
           </Body>
         )}
         <View className="flex-row items-center gap-1 mt-1">
@@ -174,6 +175,7 @@ function formatDate(dateStr: string): string {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function MomentDetailScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useMomentDetailViewModel();
@@ -250,7 +252,7 @@ export default function MomentDetailScreen() {
                   }
                 >
                   <Caption className="font-semibold text-accent">
-                    {t.moments.detail.mapsLink}
+                    {t('moments.detail.mapsLink')}
                   </Caption>
                 </Pressable>
               ) : null}
@@ -336,7 +338,7 @@ export default function MomentDetailScreen() {
           >
             <Share2 size={16} color={colors.primary} strokeWidth={1.5} />
             <Body size="sm" className="font-semibold text-primary">
-              {t.shareViewer.share}
+              {t('shareViewer.share')}
             </Body>
           </Pressable>
         </View>

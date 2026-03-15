@@ -6,7 +6,7 @@ import { useAuth } from '../../lib/auth';
 import { useAppColors } from '../../navigation/theme';
 import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
 import type { ExpenseStats } from '../../lib/api';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Moment, FoodSpot, CoupleProfile, CookingSession, DatePlan } from '../../types';
 import { Heart, Mail } from 'lucide-react-native';
 // MVP-HIDDEN: v1.1 — eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -20,6 +20,7 @@ export interface RelationshipDuration {
 }
 
 export function useDashboardViewModel() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigation = useNavigation<any>();
   const colors = useAppColors();
@@ -207,7 +208,7 @@ export function useDashboardViewModel() {
   const handleShareInviteCode = useCallback(async () => {
     const code = couple?.inviteCode;
     if (!code) return;
-    const message = t.dashboard.noPartnerBanner.shareMessage.replace('{code}', code);
+    const message = t('dashboard.noPartnerBanner.shareMessage').replace('{code}', code);
     await Share.share({ message }).catch(() => {});
   }, [couple?.inviteCode]);
 
@@ -219,30 +220,30 @@ export function useDashboardViewModel() {
 
   // ── Derived display values ──────────────────────────────────────────────────
 
-  const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
-  const slogan = sloganSetting?.value ?? t.dashboard.defaultSlogan;
+  const headerTitle = couple?.name ?? appNameSetting?.value ?? t('app.name');
+  const slogan = sloganSetting?.value ?? t('dashboard.defaultSlogan');
 
   const quickActions = useMemo(() => [
     {
       icon: Heart,
-      label: t.dashboard.quickActions.moments,
+      label: t('dashboard.quickActions.moments'),
       iconColor: colors.primary,
       bgClass: 'bg-primary/10',
       onPress: () => navigateTo('MomentsTab'),
     },
-    // MVP-HIDDEN: v1.1 — { icon: Utensils, label: t.dashboard.quickActions.food, onPress: navigateToFoodSpots }
-    // MVP-HIDDEN: v1.1 — { icon: ChefHat, label: t.dashboard.quickActions.recipes, onPress: () => navigateTo('RecipesTab') }
-    // MVP-HIDDEN: v1.1 — { icon: Banknote, label: t.dashboard.quickActions.expenses, onPress: navigateToExpenses }
+    // MVP-HIDDEN: v1.1 — { icon: Utensils, label: t('dashboard.quickActions.food'), onPress: navigateToFoodSpots }
+    // MVP-HIDDEN: v1.1 — { icon: ChefHat, label: t('dashboard.quickActions.recipes'), onPress: () => navigateTo('RecipesTab') }
+    // MVP-HIDDEN: v1.1 — { icon: Banknote, label: t('dashboard.quickActions.expenses'), onPress: navigateToExpenses }
     {
       icon: Mail,
-      label: t.dashboard.quickActions.letters,
+      label: t('dashboard.quickActions.letters'),
       iconColor: colors.primary,
       bgClass: 'bg-primary/10',
       onPress: navigateToLetters,
     },
-    // MVP-HIDDEN: v1.1 — { icon: CalendarHeart, label: t.dashboard.quickActions.datePlanner, onPress: navigateToDatePlanner }
-    // MVP-HIDDEN: v1.1 — { icon: Trophy, label: t.dashboard.quickActions.achievements, onPress: navigateToAchievements }
-    // MVP-HIDDEN: v1.1 — { icon: Map, label: t.dashboard.quickActions.map, onPress: navigateToMap }
+    // MVP-HIDDEN: v1.1 — { icon: CalendarHeart, label: t('dashboard.quickActions.datePlanner'), onPress: navigateToDatePlanner }
+    // MVP-HIDDEN: v1.1 — { icon: Trophy, label: t('dashboard.quickActions.achievements'), onPress: navigateToAchievements }
+    // MVP-HIDDEN: v1.1 — { icon: Map, label: t('dashboard.quickActions.map'), onPress: navigateToMap }
   ], [colors, navigateTo, navigateToLetters]);
 
   // ── Return ─────────────────────────────────────────────────────────────────

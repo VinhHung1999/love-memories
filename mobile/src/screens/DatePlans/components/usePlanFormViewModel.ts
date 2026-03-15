@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { datePlansApi } from '../../../lib/api';
 import type { DatePlan } from '../../../types';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export interface StopDraft {
   time: string;
   title: string;
@@ -11,6 +10,7 @@ export interface StopDraft {
 }
 
 export function usePlanFormViewModel(onClose: () => void, initialPlan?: DatePlan) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState(initialPlan?.title ?? '');
   const [date, setDate] = useState(initialPlan?.date?.slice(0, 10) ?? '');
@@ -53,7 +53,7 @@ export function usePlanFormViewModel(onClose: () => void, initialPlan?: DatePlan
       queryClient.invalidateQueries({ queryKey: ['plans'] });
       onClose();
     } catch {
-      setError(t.datePlanner.errors.saveFailed);
+      setError(t('datePlanner.errors.saveFailed'));
     }
     setIsSaving(false);
   };

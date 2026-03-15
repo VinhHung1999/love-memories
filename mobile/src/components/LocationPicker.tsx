@@ -13,7 +13,7 @@ import { LocateFixed, MapPin, XCircle } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
 import FieldLabel from './FieldLabel';
 import { geocodeApi, resolveLocation as resolveLocationApi } from '../lib/api';
-import t from '../locales/en';
+import { useTranslation } from 'react-i18next';
 import { Body } from './Typography';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -49,6 +49,7 @@ export default function LocationPicker({
   onLocationChange,
   label,
 }: LocationPickerProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const [query, setQuery] = useState(location);
   const [results, setResults] = useState<GeoResult[]>([]);
@@ -219,8 +220,8 @@ export default function LocationPicker({
           className="flex-1"
           placeholder={
             isGettingLocation
-              ? t.moments.create.gettingLocation
-              : t.moments.create.addLocation
+              ? t('moments.create.gettingLocation')
+              : t('moments.create.addLocation')
           }
           placeholderTextColor={colors.textLight}
           value={query}

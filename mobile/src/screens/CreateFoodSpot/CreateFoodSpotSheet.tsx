@@ -4,7 +4,7 @@ import { Body, Caption, Label } from '../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Star } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { FoodSpot } from '../../types';
 import { useCreateFoodSpotViewModel } from './useCreateFoodSpotViewModel';
 import AppBottomSheet from '../../components/AppBottomSheet';
@@ -67,6 +67,7 @@ interface Props {
 }
 
 export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose }: Props) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
     <AppBottomSheet
       ref={sheetRef}
       scrollable
-      title={vm.isEdit ? t.foodSpots.create.editTitle : t.foodSpots.create.newTitle}
+      title={vm.isEdit ? t('foodSpots.create.editTitle') : t('foodSpots.create.newTitle')}
       onSave={vm.handleSave}
       isSaving={vm.isSaving}
       onDismiss={onClose}>
@@ -92,7 +93,7 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
 
         {/* ── Photos ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
-          {`📷  ${t.foodSpots.create.photos}`}
+          {`📷  ${t('foodSpots.create.photos')}`}
         </Caption>
         <View className="px-5 mb-4">
           <PhotoPicker
@@ -107,21 +108,21 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
 
         {/* ── Details ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
-          {`✏️  ${t.foodSpots.create.details}`}
+          {`✏️  ${t('foodSpots.create.details')}`}
         </Caption>
         <View className="px-5">
-          <FieldLabel>{`${t.foodSpots.labels.name} *`}</FieldLabel>
+          <FieldLabel>{`${t('foodSpots.labels.name')} *`}</FieldLabel>
           <Input
             bottomSheet
-            placeholder={t.foodSpots.placeholders.name}
+            placeholder={t('foodSpots.placeholders.name')}
             value={vm.name}
             onChangeText={vm.setName}
           />
 
-          <FieldLabel>{t.foodSpots.labels.description}</FieldLabel>
+          <FieldLabel>{t('foodSpots.labels.description')}</FieldLabel>
           <Input
             bottomSheet
-            placeholder={t.foodSpots.placeholders.description}
+            placeholder={t('foodSpots.placeholders.description')}
             value={vm.description}
             onChangeText={vm.setDescription}
             multiline
@@ -129,14 +130,14 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
             textAlignVertical="top"
           />
 
-          <FieldLabel>{t.foodSpots.labels.rating}</FieldLabel>
+          <FieldLabel>{t('foodSpots.labels.rating')}</FieldLabel>
           <StarRatingPicker value={vm.rating} onChange={vm.setRating} />
 
-          <FieldLabel>{t.foodSpots.labels.priceRange}</FieldLabel>
+          <FieldLabel>{t('foodSpots.labels.priceRange')}</FieldLabel>
           <PriceRangePicker value={vm.priceRange} onChange={vm.setPriceRange} />
 
           <LocationPicker
-            label={t.foodSpots.labels.location}
+            label={t('foodSpots.labels.location')}
             location={vm.location}
             latitude={vm.latitude}
             longitude={vm.longitude}
@@ -148,7 +149,7 @@ export default function CreateFoodSpotSheet({ foodSpot: initialFoodSpot, onClose
 
         {/* ── Tags ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
-          {`🏷️  ${t.foodSpots.labels.tags}`}
+          {`🏷️  ${t('foodSpots.labels.tags')}`}
         </Caption>
         <View className="px-5 mb-4">
           <TagInput

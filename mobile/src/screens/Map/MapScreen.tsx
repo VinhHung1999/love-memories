@@ -13,7 +13,7 @@ import { Body, Caption, Heading, Label } from '../../components/Typography';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useMapViewModel } from './useMapViewModel';
 import type { PinTypeFilter } from './useMapViewModel';
 import TagBadge from '../../components/TagBadge';
@@ -24,32 +24,7 @@ import { useAppNavigation } from '@/navigation/useAppNavigation';
 
 // ── Emoji categories ──────────────────────────────────────────────────────────
 
-const EMOJI_CATEGORIES = [
-  {
-    label: t.map.emojiCategoryFood,
-    emojis: ['🍜', '🍕', '☕', '🍣', '🍔', '🍱', '🍷', '🍰', '🥗', '🍲', '🥘', '🍛', '🧁', '🍦', '🍺', '🍵'],
-  },
-  {
-    label: t.map.emojiCategoryPlaces,
-    emojis: ['🏖️', '🏔️', '🏛️', '🌴', '🏡', '🌅', '⛩️', '🗼', '🏰', '🌃', '🎡', '🛶', '🏕️', '⛺', '🌉', '🗺️'],
-  },
-  {
-    label: t.map.emojiCategoryActivities,
-    emojis: ['🎭', '🎪', '🎨', '🎮', '🎯', '🎸', '🚀', '💪', '🎬', '🎤', '🎲', '⚽', '🎻', '🧘', '🏄', '🎳'],
-  },
-  {
-    label: t.map.emojiCategoryNature,
-    emojis: ['🌸', '🌿', '🌊', '🌙', '☀️', '⭐', '🌈', '🦋', '🌻', '🍁', '🐚', '🦜', '🌺', '🍃', '🌾', '🦚'],
-  },
-];
-
 // ── Type filter chips data ─────────────────────────────────────────────────────
-
-const TYPE_FILTERS: { key: PinTypeFilter; label: string; icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }> }[] = [
-  { key: 'all', label: t.map.filterAll, icon: MapPinIcon },
-  { key: 'moment', label: t.map.filterMoments, icon: Heart },
-  { key: 'foodspot', label: t.map.filterFoodSpots, icon: Utensils },
-];
 
 // ── Emoji picker modal ────────────────────────────────────────────────────────
 
@@ -66,6 +41,25 @@ function EmojiPickerModal({
   onClose: () => void;
   isSaving: boolean;
 }) {
+  const { t } = useTranslation();
+  const EMOJI_CATEGORIES = [
+    {
+      label: t('map.emojiCategoryFood'),
+      emojis: ['🍜', '🍕', '☕', '🍣', '🍔', '🍱', '🍷', '🍰', '🥗', '🍲', '🥘', '🍛', '🧁', '🍦', '🍺', '🍵'],
+    },
+    {
+      label: t('map.emojiCategoryPlaces'),
+      emojis: ['🏖️', '🏔️', '🏛️', '🌴', '🏡', '🌅', '⛩️', '🗼', '🏰', '🌃', '🎡', '🛶', '🏕️', '⛺', '🌉', '🗺️'],
+    },
+    {
+      label: t('map.emojiCategoryActivities'),
+      emojis: ['🎭', '🎪', '🎨', '🎮', '🎯', '🎸', '🚀', '💪', '🎬', '🎤', '🎲', '⚽', '🎻', '🧘', '🏄', '🎳'],
+    },
+    {
+      label: t('map.emojiCategoryNature'),
+      emojis: ['🌸', '🌿', '🌊', '🌙', '☀️', '⭐', '🌈', '🦋', '🌻', '🍁', '🐚', '🦜', '🌺', '🍃', '🌾', '🦚'],
+    },
+  ];
   const [activeCategory, setActiveCategory] = useState(0);
   const [customEmoji, setCustomEmoji] = useState('');
 
@@ -77,7 +71,7 @@ function EmojiPickerModal({
           {/* Header */}
           <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
             <Heading size="sm" className="text-textDark dark:text-darkTextDark">
-              {t.map.emojiPickerTitle} "{tagName}"
+              {t('map.emojiPickerTitle')} "{tagName}"
             </Heading>
             <TouchableOpacity onPress={onClose} className="w-7 h-7 items-center justify-center">
               <X size={20} color={colors.textLight} strokeWidth={1.5} />
@@ -120,7 +114,7 @@ function EmojiPickerModal({
             <TextInput
               value={customEmoji}
               onChangeText={setCustomEmoji}
-              placeholder={t.map.emojiPickerCustomPlaceholder}
+              placeholder={t('map.emojiPickerCustomPlaceholder')}
               placeholderTextColor={colors.textLight}
               className="flex-1 border border-border dark:border-darkBorder rounded-xl px-3 py-2.5 text-base text-textDark dark:text-darkTextDark"
               maxLength={2}
@@ -130,7 +124,7 @@ function EmojiPickerModal({
               disabled={!customEmoji.trim() || isSaving}
               className="px-4 py-2.5 rounded-xl"
               style={{ backgroundColor: customEmoji.trim() ? colors.primary : colors.border }}>
-              <Label className="text-white">{t.common.save}</Label>
+              <Label className="text-white">{t('common.save')}</Label>
             </TouchableOpacity>
           </View>
         </View>
@@ -154,6 +148,7 @@ function PinCallout({
   onViewDetails: () => void;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   const isFood = pin.type === 'foodspot';
   return (
     <View className="absolute bottom-6 left-4 right-4 bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden shadow-lg">
@@ -212,7 +207,7 @@ function PinCallout({
             onPress={onViewDetails}
             className="mt-2 px-3 py-1.5 rounded-xl self-start"
             style={{ backgroundColor: isFood ? colors.secondary : colors.primary }}>
-            <Caption className="text-white font-semibold">{t.map.viewDetails}</Caption>
+            <Caption className="text-white font-semibold">{t('map.viewDetails')}</Caption>
           </TouchableOpacity>
         </View>
       </View>
@@ -223,6 +218,12 @@ function PinCallout({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function MapScreen() {
+  const { t } = useTranslation();
+  const TYPE_FILTERS: { key: PinTypeFilter; label: string; icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }> }[] = [
+    { key: 'all', label: t('map.filterAll'), icon: MapPinIcon },
+    { key: 'moment', label: t('map.filterMoments'), icon: Heart },
+    { key: 'foodspot', label: t('map.filterFoodSpots'), icon: Utensils },
+  ];
   const colors = useAppColors();
   const vm = useMapViewModel();
   const navigation = useAppNavigation();
@@ -299,9 +300,9 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <ListHeader
-        title={t.map.title}
+        title={t('map.title')}
         onBack={navigation.goBack}
-        subtitle={t.map.subtitle}
+        subtitle={t('map.subtitle')}
         filterBar={
 <>
 
@@ -332,7 +333,7 @@ export default function MapScreen() {
             className="px-5 pb-3">
             <View className="flex-row gap-2 pr-5">
               <TagBadge
-                label={t.foodSpots.allFilter}
+                label={t('foodSpots.allFilter')}
                 active={!vm.activeTag}
                 onPress={() => vm.handleTagFilter(null)}
               />
