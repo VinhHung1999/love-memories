@@ -43,7 +43,7 @@ const TAB_H       = 60;              // visible tab bar height
 const CAMERA_SIZE = 60;              // floating camera button diameter
 const CUTOUT_R    = 36;              // arc radius (slightly > CAMERA_SIZE/2=32)
 // Total container: camera zone on top + tab bar below — everything in-bounds
-const CONTAINER_H = TAB_H + CAMERA_SIZE;   // 124px
+export const CONTAINER_H = TAB_H + CAMERA_SIZE;   // 120px — exported for scene padding
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
