@@ -35,6 +35,7 @@ import { useRequestNotificationPermission } from '../../hooks/useRequestNotifica
 import { useDashboardTour } from './useDashboardTour';
 import DashboardTourOverlay from './components/DashboardTourOverlay';
 import DatePickerSheet from '../../components/DatePickerSheet';
+import NoPartnerBanner from '../../components/NoPartnerBanner';
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -86,6 +87,14 @@ export default function DashboardScreen() {
               <Animated.View entering={FadeInDown.delay(110).duration(500)}>
                 <DailyQuestionCard />
               </Animated.View>
+
+              {/* ── No-partner banner — shown until partner joins ── */}
+              {vm.hasCouple && !vm.hasPartner ? (
+                <NoPartnerBanner
+                  inviteCode={vm.coupleInviteCode}
+                  onShare={vm.handleShareInviteCode}
+                />
+              ) : null}
 
               {/* ── Recent moments horizontal strip ── */}
               {vm.recentMoments.length > 0 ? (

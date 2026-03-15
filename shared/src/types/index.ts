@@ -37,6 +37,8 @@ export interface CoupleProfile {
   inviteCode: string | null;
   createdAt: string;
   users: { id: string; name: string; email: string; avatar: string | null }[];
+  memberCount?: number;
+  partner?: { name: string; avatar: string | null } | null;
 }
 
 // ---------------------------------------------------------------------------

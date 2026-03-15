@@ -190,6 +190,7 @@ export function useDashboardViewModel() {
   // ── Couple CTA state ────────────────────────────────────────────────────────
 
   const hasCouple = !!user?.coupleId;
+  const hasPartner = (couple?.memberCount ?? couple?.users?.length ?? 0) > 1;
 
   const handleInvitePartner = useCallback(async () => {
     try {
@@ -202,6 +203,13 @@ export function useDashboardViewModel() {
       // dismissed or error — no-op
     }
   }, []);
+
+  const handleShareInviteCode = useCallback(async () => {
+    const code = couple?.inviteCode;
+    if (!code) return;
+    const message = t.dashboard.noPartnerBanner.shareMessage.replace('{code}', code);
+    await Share.share({ message }).catch(() => {});
+  }, [couple?.inviteCode]);
 
   const handleSetAnniversary = useCallback(async (date: Date) => {
     await coupleApi.update({ anniversaryDate: date.toISOString().slice(0, 10) });
@@ -272,6 +280,9 @@ export function useDashboardViewModel() {
     navigateToMonthlyRecap,
     showMonthlyRecapBanner,
     hasCouple,
+    hasPartner,
+    coupleInviteCode: couple?.inviteCode ?? null,
+    handleShareInviteCode,
     showAnniversaryPicker,
     setShowAnniversaryPicker,
     handleInvitePartner,
