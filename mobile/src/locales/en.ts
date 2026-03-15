@@ -939,12 +939,9 @@ const en = {
     },
     invite: {
       title: 'Invite your partner',
-      subtitle: 'Share this code with your partner to connect',
-      inviteCode: 'Your invite code',
-      shareBtn: 'Share invite link',
+      subtitle: 'Connect with your partner after setup',
       continueBtn: 'Continue',
-      skipBtn: 'Skip for now',
-      generating: 'Generating code...',
+      afterSetupNote: 'You can invite your partner once your account is set up. Find the invite code in your Profile after completing setup.',
     },
     celebration: {
       title: "You're connected! 🎉",

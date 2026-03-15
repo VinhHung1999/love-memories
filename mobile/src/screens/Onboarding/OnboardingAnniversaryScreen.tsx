@@ -33,7 +33,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
 export default function OnboardingAnniversaryScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingAnniversary'>>();
-  const { coupleId } = route.params;
+  const { coupleName } = route.params;
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
@@ -42,12 +42,12 @@ export default function OnboardingAnniversaryScreen() {
   };
 
   const handleSkip = () => {
-    navigation.navigate('OnboardingInvite', { coupleId });
+    navigation.navigate('OnboardingInvite', { coupleName });
   };
 
   const handleConfirm = () => {
     navigation.navigate('OnboardingInvite', {
-      coupleId,
+      coupleName,
       anniversaryDate: selectedDate.toISOString(),
     });
   };

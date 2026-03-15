@@ -122,31 +122,31 @@ export default function OnboardingCoupleScreen() {
     if (coupleMode === 'create' && !coupleName.trim()) { showError(t.onboarding.couple.errors.coupleNameRequired); return; }
     if (coupleMode === 'join' && !inviteCode.trim()) { showError(t.onboarding.couple.errors.inviteCodeRequired); return; }
 
+    if (coupleMode === 'create') {
+      // Defer API call to final Avatar step — just carry coupleName through params
+      navigation.navigate('OnboardingAnniversary', { coupleName: coupleName.trim() });
+      return;
+    }
+
     setLoading(true);
     try {
-      if (coupleMode === 'create') {
-        const result = await coupleApi.create(coupleName.trim());
-        await storeTokens(result.accessToken || result.token, result.refreshToken);
-        navigation.navigate('OnboardingAnniversary', { coupleId: result.user.coupleId! });
-      } else {
-        // Validate invite first
-        const validation = await coupleApi.validateInvite(inviteCode.trim());
-        if (!validation.valid) {
-          showError(validation.error);
-          return;
-        }
-        // Show confirm dialog
-        setAlert({
-          visible: true,
-          title: `Join ${validation.coupleName}?`,
-          message: `You will be connected with ${validation.partnerName}.`,
-          type: 'confirm',
-          confirmLabel: t.onboarding.couple.joinConfirmBtn,
-          onConfirm: async () => {
-            await doJoin();
-          },
-        });
+      // Validate invite first
+      const validation = await coupleApi.validateInvite(inviteCode.trim());
+      if (!validation.valid) {
+        showError(validation.error);
+        return;
       }
+      // Show confirm dialog
+      setAlert({
+        visible: true,
+        title: `Join ${validation.coupleName}?`,
+        message: `You will be connected with ${validation.partnerName}.`,
+        type: 'confirm',
+        confirmLabel: t.onboarding.couple.joinConfirmBtn,
+        onConfirm: async () => {
+          await doJoin();
+        },
+      });
     } catch (err) {
       const e = err as Error;
       showError(e.message || t.onboarding.couple.errors.failed);

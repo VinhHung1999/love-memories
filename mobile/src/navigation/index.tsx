@@ -26,10 +26,10 @@ export type AuthStackParamList = {
 
 export type OnboardingStackParamList = {
   OnboardingCouple: undefined;
-  OnboardingAnniversary: { coupleId: string };
-  OnboardingInvite: { coupleId: string; anniversaryDate?: string };
+  OnboardingAnniversary: { coupleName: string };
+  OnboardingInvite: { coupleName: string; anniversaryDate?: string };
   OnboardingCelebration: { coupleId: string; partnerName?: string };
-  OnboardingAvatar: { coupleId: string; anniversaryDate?: string };
+  OnboardingAvatar: { coupleName?: string; coupleId?: string; anniversaryDate?: string };
 };
 
 /** Root stack for authenticated users — 5-tab MainTabs + full-screen stacks */

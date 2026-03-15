@@ -20,7 +20,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useAuth } from '../../lib/auth';
-import { coupleApi, profileApi } from '../../lib/api';
+import { coupleApi, profileApi, storeTokens } from '../../lib/api';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
@@ -186,6 +186,20 @@ export default function OnboardingAvatarScreen() {
     setLoading(true);
     try {
       const data = route.params;
+
+      let finalCoupleId: string;
+
+      if (data.coupleName) {
+        // Create flow — API call deferred here to prevent double-call on back navigation
+        const result = await coupleApi.create(data.coupleName);
+        await storeTokens(result.accessToken || result.token, result.refreshToken);
+        finalCoupleId = result.user.coupleId!;
+      } else {
+        // Join flow — couple already created, coupleId passed through params
+        finalCoupleId = data.coupleId!;
+      }
+
+      // Anniversary + avatar in parallel
       await Promise.all([
         data.anniversaryDate
           ? coupleApi.update({ anniversaryDate: data.anniversaryDate })
@@ -195,10 +209,10 @@ export default function OnboardingAvatarScreen() {
           : Promise.resolve(),
       ]);
 
-      // Show completion animation, then update coupleId → AppNavigator auto-switches
+      // Show completion animation, then set coupleId → AppNavigator auto-switches
       setShowCompletion(true);
       setTimeout(() => {
-        updateUser({ coupleId: route.params.coupleId });
+        updateUser({ coupleId: finalCoupleId });
       }, 1800);
     } catch (err) {
       setLoading(false);
