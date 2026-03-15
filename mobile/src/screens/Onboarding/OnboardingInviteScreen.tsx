@@ -198,20 +198,22 @@ export default function OnboardingInviteScreen() {
     setLoading(true);
     setCodeError(false);
     try {
-      const r = await coupleApi.generateInvite();
-      setInviteCode(r.inviteCode);
+      const { inviteCode: code } = await coupleApi.generateInvite();
+      setInviteCode(code);
       setLoading(false);
+      return; // success — do NOT proceed to retry block
     } catch {
-      // Retry once after 500ms — token may not be persisted to Keychain yet
-      await new Promise<void>(resolve => setTimeout(resolve, 500));
-      try {
-        const r = await coupleApi.generateInvite();
-        setInviteCode(r.inviteCode);
-        setLoading(false);
-      } catch {
-        setLoading(false);
-        setCodeError(true);
-      }
+      // Attempt 1 failed — fall through to retry
+    }
+    // Only reached when attempt 1 threw
+    await new Promise<void>(resolve => setTimeout(resolve, 500));
+    try {
+      const { inviteCode: code } = await coupleApi.generateInvite();
+      setInviteCode(code);
+    } catch {
+      setCodeError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
