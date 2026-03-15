@@ -226,6 +226,7 @@ import PaywallScreen from '../screens/Paywall/PaywallScreen';
 import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
 import ShareViewerScreen from '../screens/ShareViewer/ShareViewerScreen';
 import JoinCoupleScreen from '../screens/JoinCouple/JoinCoupleScreen';
+import { setPendingInviteCode } from '../lib/pendingInvite';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -433,6 +434,19 @@ function AppNavigator() {
 // Deep linking config
 // ---------------------------------------------------------------------------
 
+/** Extract invite code from URL if path matches /invite/:code */
+function extractInviteCode(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const match = parsed.pathname.match(/\/invite\/([^/?#]+)/);
+    return match ? match[1] : null;
+  } catch {
+    // lovescrum:// custom scheme — fall back to string matching
+    const match = url.match(/\/invite\/([^/?#]+)/);
+    return match ? match[1] : null;
+  }
+}
+
 const linking = {
   prefixes: ['https://love-scrum.hungphu.work', 'lovescrum://'],
   config: {
@@ -443,10 +457,18 @@ const linking = {
   },
   async getInitialURL() {
     const url = await Linking.getInitialURL();
+    if (url) {
+      const code = extractInviteCode(url);
+      if (code) setPendingInviteCode(code);
+    }
     return url ?? undefined;
   },
   subscribe(listener: (url: string) => void) {
-    const subscription = Linking.addEventListener('url', ({ url }) => listener(url));
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      const code = extractInviteCode(url);
+      if (code) setPendingInviteCode(code);
+      listener(url);
+    });
     return () => subscription.remove();
   },
 };
