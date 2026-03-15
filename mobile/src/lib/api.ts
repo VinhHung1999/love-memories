@@ -134,6 +134,46 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
 }
 
 // ---------------------------------------------------------------------------
+// Rate-limit error helper
+// ---------------------------------------------------------------------------
+
+export interface RateLimitError extends Error {
+  status: 429;
+  retryAfterSeconds: number;
+}
+
+/**
+ * Call immediately after fetch(), before res.json().
+ * Throws a RateLimitError if status is 429, handling both plain-text and JSON bodies.
+ */
+async function throwIfRateLimited(res: Response): Promise<void> {
+  if (res.status !== 429) return;
+
+  let retryAfterSeconds = 60;
+  let message = 'Too many attempts. Please wait before trying again.';
+
+  // Clone so the body can still be read by the caller if needed
+  const cloned = res.clone();
+  const contentType = res.headers.get('content-type') ?? '';
+  try {
+    if (contentType.includes('application/json')) {
+      const body = await cloned.json();
+      if (typeof body.retryAfterSeconds === 'number') { retryAfterSeconds = body.retryAfterSeconds; }
+      if (body.message || body.error) { message = body.message || body.error; }
+    } else {
+      const text = await cloned.text();
+      if (text) { message = text; }
+      // Extract minutes from patterns like "try again in 15 min"
+      const match = text.match(/(\d+)\s*min/i);
+      if (match) { retryAfterSeconds = parseInt(match[1], 10) * 60; }
+    }
+  } catch { /* ignore parse errors — fall back to defaults */ }
+
+  const err = Object.assign(new Error(message), { status: 429 as const, retryAfterSeconds });
+  throw err;
+}
+
+// ---------------------------------------------------------------------------
 // Auth API
 // ---------------------------------------------------------------------------
 
@@ -144,6 +184,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
+    await throwIfRateLimited(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
     return data;
@@ -171,6 +212,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken }),
     });
+    await throwIfRateLimited(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Google login failed');
     return data;
@@ -185,6 +227,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken, ...opts }),
     });
+    await throwIfRateLimited(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Google signup failed');
     return data;

@@ -80,7 +80,7 @@ export default function LoginScreen() {
               <SpringPressable
                 className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border bg-white mb-1"
                 onPress={vm.handleGoogleSignIn}
-                disabled={vm.loading}>
+                disabled={vm.loading || vm.isRateLimited}>
                 <GoogleGLogo size={20} />
                 <Body size="lg" className="font-semibold text-textDark tracking-[0.1px]">
                   {vm.mode === 'login' ? t.login.continueWithGoogle : t.login.signUpWithGoogle}
@@ -121,6 +121,7 @@ export default function LoginScreen() {
                 label={vm.mode === 'login' ? t.login.signIn : t.login.createAccount}
                 onPress={vm.handleSubmit}
                 loading={vm.loading}
+                disabled={vm.isRateLimited}
               />
 
               <Pressable onPress={vm.toggleMode}>

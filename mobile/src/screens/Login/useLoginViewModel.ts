@@ -1,4 +1,4 @@
-import { useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
   GoogleSignin,
   statusCodes,
@@ -62,6 +62,39 @@ export function useLoginViewModel() {
   // Pending onboarding data — set to navigate to wizard
   const [pendingOnboarding, setPendingOnboarding] = useState<OnboardingData | null>(null);
 
+  // ── Rate-limit countdown ──────────────────────────────────────────────────
+  const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) { clearInterval(retryTimerRef.current); }
+    };
+  }, []);
+
+  const fmtCountdown = (s: number) =>
+    `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+  const startRetryCountdown = useCallback((seconds: number) => {
+    if (retryTimerRef.current) { clearInterval(retryTimerRef.current); }
+    setRetrySeconds(seconds);
+    dispatch({ type: 'SET_ERROR', message: `Too many attempts. Try again in ${fmtCountdown(seconds)}` });
+    retryTimerRef.current = setInterval(() => {
+      setRetrySeconds(prev => {
+        const next = (prev ?? 1) - 1;
+        if (next <= 0) {
+          clearInterval(retryTimerRef.current!);
+          retryTimerRef.current = null;
+          dispatch({ type: 'SET_ERROR', message: '' });
+          return null;
+        }
+        dispatch({ type: 'SET_ERROR', message: `Too many attempts. Try again in ${fmtCountdown(next)}` });
+        return next;
+      });
+    }, 1000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
@@ -84,7 +117,12 @@ export function useLoginViewModel() {
     try {
       await login(s.email.trim(), s.password);
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : t.login.errors.somethingWrong });
+      const e = err as Error & { status?: number; retryAfterSeconds?: number };
+      if (e.status === 429 || e.retryAfterSeconds) {
+        startRetryCountdown(e.retryAfterSeconds ?? 60);
+      } else {
+        dispatch({ type: 'SET_ERROR', message: e.message || t.login.errors.somethingWrong });
+      }
     } finally {
       hideLoading();
     }
@@ -104,10 +142,14 @@ export function useLoginViewModel() {
         setPendingOnboarding({ googleIdToken: idToken, googleProfile: result.googleProfile });
       }
     } catch (err: unknown) {
-      const e = err as { code?: string };
+      const e = err as { code?: string; status?: number; retryAfterSeconds?: number; message?: string };
       if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
       if (e?.code === statusCodes.IN_PROGRESS)        return;
-      dispatch({ type: 'SET_ERROR', message: err instanceof Error ? err.message : t.login.errors.googleSignInFailed });
+      if (e?.status === 429 || e?.retryAfterSeconds) {
+        startRetryCountdown(e.retryAfterSeconds ?? 60);
+      } else {
+        dispatch({ type: 'SET_ERROR', message: e.message || t.login.errors.googleSignInFailed });
+      }
     } finally {
       hideLoading();
     }
@@ -116,6 +158,7 @@ export function useLoginViewModel() {
   return {
     ...s,
     loading: isLoading,
+    isRateLimited: retrySeconds !== null,
     pendingOnboarding,
     clearPendingOnboarding: () => setPendingOnboarding(null),
 
