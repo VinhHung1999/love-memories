@@ -7,7 +7,9 @@ import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, e
 import type { ExpenseStats } from '../../lib/api';
 import t from '../../locales/en';
 import type { Moment, FoodSpot, CoupleProfile, CookingSession, DatePlan } from '../../types';
-import { Heart, Utensils, ChefHat, Banknote, Mail, CalendarHeart, Trophy, Map } from 'lucide-react-native';
+import { Heart, Mail } from 'lucide-react-native';
+// MVP-HIDDEN: v1.1 — eslint-disable-next-line @typescript-eslint/no-unused-vars
+// import { Utensils, ChefHat, Banknote, CalendarHeart, Trophy, Map } from 'lucide-react-native';
 
 export interface RelationshipDuration {
   years: number;
@@ -195,27 +197,9 @@ export function useDashboardViewModel() {
       bgClass: 'bg-primary/10',
       onPress: () => navigateTo('MomentsTab'),
     },
-    {
-      icon: Utensils,
-      label: t.dashboard.quickActions.food,
-      iconColor: colors.secondary,
-      bgClass: 'bg-secondary/10',
-      onPress: navigateToFoodSpots,
-    },
-    {
-      icon: ChefHat,
-      label: t.dashboard.quickActions.recipes,
-      iconColor: colors.primary,
-      bgClass: 'bg-primary/10',
-      onPress: () => navigateTo('RecipesTab'),
-    },
-    {
-      icon: Banknote,
-      label: t.dashboard.quickActions.expenses,
-      iconColor: '#8B5CF6',
-      bgClass: 'bg-violet-100',
-      onPress: navigateToExpenses,
-    },
+    // MVP-HIDDEN: v1.1 — { icon: Utensils, label: t.dashboard.quickActions.food, onPress: navigateToFoodSpots }
+    // MVP-HIDDEN: v1.1 — { icon: ChefHat, label: t.dashboard.quickActions.recipes, onPress: () => navigateTo('RecipesTab') }
+    // MVP-HIDDEN: v1.1 — { icon: Banknote, label: t.dashboard.quickActions.expenses, onPress: navigateToExpenses }
     {
       icon: Mail,
       label: t.dashboard.quickActions.letters,
@@ -223,28 +207,10 @@ export function useDashboardViewModel() {
       bgClass: 'bg-primary/10',
       onPress: navigateToLetters,
     },
-    {
-      icon: CalendarHeart,
-      label: t.dashboard.quickActions.datePlanner,
-      iconColor: colors.secondary,
-      bgClass: 'bg-secondary/10',
-      onPress: navigateToDatePlanner,
-    },
-    {
-      icon: Trophy,
-      label: t.dashboard.quickActions.achievements,
-      iconColor: colors.accent,
-      bgClass: 'bg-accent/10',
-      onPress: navigateToAchievements,
-    },
-    {
-      icon: Map,
-      label: t.dashboard.quickActions.map,
-      iconColor: colors.accent,
-      bgClass: 'bg-accent/10',
-      onPress: navigateToMap,
-    },
-  ], [colors, navigateTo, navigateToFoodSpots, navigateToExpenses, navigateToLetters, navigateToDatePlanner, navigateToAchievements, navigateToMap]);
+    // MVP-HIDDEN: v1.1 — { icon: CalendarHeart, label: t.dashboard.quickActions.datePlanner, onPress: navigateToDatePlanner }
+    // MVP-HIDDEN: v1.1 — { icon: Trophy, label: t.dashboard.quickActions.achievements, onPress: navigateToAchievements }
+    // MVP-HIDDEN: v1.1 — { icon: Map, label: t.dashboard.quickActions.map, onPress: navigateToMap }
+  ], [colors, navigateTo, navigateToLetters]);
 
   // ── Return ─────────────────────────────────────────────────────────────────
 

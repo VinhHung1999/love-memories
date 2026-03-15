@@ -15,10 +15,16 @@ import { DashboardSkeleton } from './components/DashboardSkeleton';
 import { HeroMomentCard } from './components/HeroMomentCard';
 import { SectionHeader } from './components/SectionHeader';
 import { QuickActionButton } from './components/QuickActionButton';
+// MVP-HIDDEN: v1.1 — kept for v1.1 re-enable
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ActiveCookingBanner } from './components/ActiveCookingBanner';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExpenseWidget } from './components/ExpenseWidget';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CompactRecapCard } from './components/CompactRecapCard';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CompactDateCard } from './components/CompactDateCard';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FoodHighlightCard } from './components/FoodHighlightCard';
 import { NotificationBell } from './components/NotificationBell';
 import { DashboardStatsCard } from './components/DashboardStatsCard';
@@ -117,7 +123,7 @@ export default function DashboardScreen() {
                 }
               />
 
-              {/* ── 0b. Stats Overview ── */}
+              {/* ── 0b. Stats Overview — moments only for MVP ── */}
               <DashboardStatsCard
                 duration={vm.relationshipDuration}
                 momentsCount={vm.momentsCount}
@@ -126,70 +132,50 @@ export default function DashboardScreen() {
                 onFoodSpotsPress={vm.navigateToFoodSpots}
               />
 
-              {/* ── 1b. Active Cooking Banner ── */}
-              {vm.activeSession ? (
+              {/* MVP-HIDDEN: v1.1 — Active Cooking Banner */}
+              {/* {vm.activeSession ? (
                 <Animated.View entering={FadeInDown.delay(100).duration(400)}>
                   <ActiveCookingBanner
-                    recipeTitles={vm.activeSession.recipes
-                      .map(r => r.recipe.title)
-                      .join(' + ')}
+                    recipeTitles={vm.activeSession.recipes.map(r => r.recipe.title).join(' + ')}
                     onPress={vm.handleActiveCookingPress}
                   />
                 </Animated.View>
-              ) : null}
+              ) : null} */}
 
-              {/* ── 2b. Expense + Compact cards row ── */}
-              <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+              {/* MVP-HIDDEN: v1.1 — Expense widget + Recap card + Date card */}
+              {/* <Animated.View entering={FadeInDown.delay(120).duration(500)}>
                 <View className="flex-row gap-3">
                   <View className="flex-1">
-                    <ExpenseWidget
-                      stats={vm.expenseStats}
-                      onPress={vm.navigateToExpenses}
-                    />
+                    <ExpenseWidget stats={vm.expenseStats} onPress={vm.navigateToExpenses} />
                   </View>
                   {vm.showMonthlyRecapBanner ? (
                     <CompactRecapCard onPress={vm.navigateToMonthlyRecap} />
                   ) : null}
-                  <CompactDateCard
-                    plans={vm.upcomingPlans}
-                    onPress={vm.navigateToDatePlanner}
-                  />
+                  <CompactDateCard plans={vm.upcomingPlans} onPress={vm.navigateToDatePlanner} />
                 </View>
-              </Animated.View>
+              </Animated.View> */}
 
               {/* ── 3. Quick Actions ── */}
               <Animated.View entering={FadeInDown.delay(140).duration(500)}>
                 <SectionHeader title={t.dashboard.sections.quickActions} />
                 <View className="flex-row gap-3">
-                  {vm.quickActions.slice(0, 4).map((action, idx) => (
-                    <QuickActionButton key={idx} {...action} />
-                  ))}
-                </View>
-                <View className="flex-row gap-3 mt-3">
-                  {vm.quickActions.slice(4, 8).map((action, idx) => (
+                  {vm.quickActions.map((action, idx) => (
                     <QuickActionButton key={idx} {...action} />
                   ))}
                 </View>
               </Animated.View>
 
-              {/* ── 4. Food Highlights ── */}
-              {vm.recentFoodSpots.length > 0 ? (
+              {/* MVP-HIDDEN: v1.1 — Food Highlights */}
+              {/* {vm.recentFoodSpots.length > 0 ? (
                 <Animated.View entering={FadeInDown.delay(220).duration(500)}>
-                  <SectionHeader
-                    title={t.dashboard.sections.foodHighlights}
-                    onSeeAll={vm.handleFoodSpotListPress}
-                  />
+                  <SectionHeader title={t.dashboard.sections.foodHighlights} onSeeAll={vm.handleFoodSpotListPress} />
                   <View className="gap-3">
                     {vm.recentFoodSpots.map(spot => (
-                      <FoodHighlightCard
-                        key={spot.id}
-                        spot={spot}
-                        onPress={() => vm.handleFoodSpotPress(spot.id)}
-                      />
+                      <FoodHighlightCard key={spot.id} spot={spot} onPress={() => vm.handleFoodSpotPress(spot.id)} />
                     ))}
                   </View>
                 </Animated.View>
-              ) : null}
+              ) : null} */}
             </View>
           </Animated.ScrollView>
         )}

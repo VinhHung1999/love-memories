@@ -155,6 +155,8 @@ import MomentDetailScreen from '../screens/MomentDetail/MomentDetailScreen';
 import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
 import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
 import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
+// MVP-HIDDEN: v1.1
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import MapScreen from '../screens/Map/MapScreen';
 import RecipesScreen from '../screens/Recipes/RecipesScreen';
 import RecipeDetailScreen from '../screens/RecipeDetail/RecipeDetailScreen';
@@ -163,6 +165,8 @@ import CookingSessionScreen from '../screens/CookingSession/CookingSessionScreen
 import CookingHistoryScreen from '../screens/CookingHistory/CookingHistoryScreen';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import ExpensesScreen from '../screens/Expenses/ExpensesScreen';
+// MVP-HIDDEN: v1.1
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import AchievementsScreen from '../screens/Achievements/AchievementsScreen';
 import LettersScreen from '../screens/Letters/LettersScreen';
 import LetterReadScreen from '../screens/LetterRead/LetterReadScreen';
@@ -172,6 +176,8 @@ import PlanDetailScreen from '../screens/PlanDetail/PlanDetailScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen';
+// MVP-HIDDEN: v1.1
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
 import PaywallScreen from '../screens/Paywall/PaywallScreen';
 import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
@@ -207,8 +213,10 @@ function MomentsNavigator() {
 
 // ---------------------------------------------------------------------------
 // Food Spots stack navigator (full-screen, no tab bar — accessed via Dashboard/Map)
+// MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function FoodSpotsNavigator() {
   return (
     <FoodSpotsStack.Navigator screenOptions={{ headerShown: false }}>
@@ -226,9 +234,10 @@ function FoodSpotsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Recipes stack navigator (full-screen, no tab bar)
+// Recipes stack navigator (full-screen, no tab bar) // MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RecipesNavigator() {
   return (
     <RecipesStack.Navigator screenOptions={{ headerShown: false }}>
@@ -263,9 +272,10 @@ function NotificationsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Expenses stack navigator (full-screen, no tab bar)
+// Expenses stack navigator (full-screen, no tab bar) // MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ExpensesNavigator() {
   return (
     <ExpensesStack.Navigator screenOptions={{ headerShown: false }}>
@@ -374,9 +384,10 @@ function MainTabNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Date Planner stack navigator (full-screen, no tab bar)
+// Date Planner stack navigator (full-screen, no tab bar) // MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DatePlannerNavigator() {
   return (
     <DatePlannerStack.Navigator screenOptions={{ headerShown: false }}>
@@ -416,18 +427,14 @@ function AppNavigator() {
   return (
     <AppStack.Navigator screenOptions={{ headerShown: false }}>
       <AppStack.Screen name="MainTabs" component={MainTabNavigator} />
-      <AppStack.Screen name="RecipesTab" component={RecipesNavigator} />
-      <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} />
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="RecipesTab" component={RecipesNavigator} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} /> */}
       <AppStack.Screen name="NotificationsTab" component={NotificationsNavigator} />
-      <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} />
-      <AppStack.Screen name="FoodSpotsTab" component={FoodSpotsNavigator} />
-      <AppStack.Screen name="MapTab" component={MapScreen} />
-      <AppStack.Screen name="Achievements" component={AchievementsScreen} />
-      <AppStack.Screen
-        name="MonthlyRecapTab"
-        component={MonthlyRecapScreen}
-        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
-      />
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="FoodSpotsTab" component={FoodSpotsNavigator} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="MapTab" component={MapScreen} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="Achievements" component={AchievementsScreen} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="MonthlyRecapTab" component={MonthlyRecapScreen} options={{ presentation: 'fullScreenModal', animation: 'fade' }} /> */}
       <AppStack.Screen
         name="Paywall"
         component={PaywallScreen}
