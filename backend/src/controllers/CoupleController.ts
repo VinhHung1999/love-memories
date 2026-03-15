@@ -7,7 +7,13 @@ import type { AuthRequest } from '../middleware/auth';
 
 export const getCouple = asyncHandler(async (req: AuthRequest, res: Response) => {
   const couple = await CoupleService.getCouple(req.user!.coupleId!);
-  res.json(couple);
+  const userId = req.user!.userId;
+  const partner = couple.users.find((u) => u.id !== userId) ?? null;
+  res.json({
+    ...couple,
+    memberCount: couple.users.length,
+    partner: partner ? { name: partner.name, avatar: partner.avatar } : null,
+  });
 });
 
 export const update = asyncHandler(async (req: AuthRequest, res: Response) => {
