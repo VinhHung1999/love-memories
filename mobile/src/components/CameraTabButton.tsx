@@ -85,15 +85,14 @@ export default function CameraTabButton(_props: BottomTabBarButtonProps) {
             start={{ x: 0.15, y: 0 }}
             end={{ x: 0.85, y: 1 }}
             style={{
-              width: BUTTON_SIZE,
-              height: BUTTON_SIZE,
-              borderRadius: BUTTON_SIZE / 2,
+              flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              borderWidth: 2.5,
-              borderColor: 'rgba(255,255,255,0.32)',
             }}>
-            <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
+            {/* Explicit wrapper guarantees pixel-perfect center regardless of border/padding */}
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
+            </View>
           </LinearGradient>
         </Pressable>
       </Animated.View>

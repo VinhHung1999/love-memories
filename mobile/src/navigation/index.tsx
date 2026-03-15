@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import { ActivityIndicator, View } from 'react-native';
+// Icons moved to CurvedTabBar — kept here for future use if needed
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
@@ -141,7 +143,9 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import CameraTabButton from '../components/CameraTabButton';
+import CurvedTabBar from '../components/CurvedTabBar';
 import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
 import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
 import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
@@ -343,77 +347,15 @@ function ProfileNavigator() {
 function MainTabNavigator() {
   return (
     <MainTab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: AppTheme.colors.primary,
-        tabBarInactiveTintColor: AppTheme.colors.textMid,
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#F0E6E3',
-          borderTopWidth: 1,
-        },
-        headerShown: false,
-      }}>
-      <MainTab.Screen
-        name="Dashboard"
-        component={DashboardNavigator}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="MomentsTab"
-        component={MomentsNavigator}
-        listeners={({ navigation }) => ({
-          tabPress: e => {
-            e.preventDefault();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            navigation.navigate('MomentsTab', { screen: 'MomentsList' } as any);
-          },
-        })}
-        options={{
-          tabBarLabel: 'Moments',
-          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="CameraTab"
-        component={React.Fragment}
-        options={{
-          tabBarLabel: () => null,
-          tabBarButton: (props) => <CameraTabButton {...props} />,
-        }}
-      />
-      <MainTab.Screen
-        name="LettersTab"
-        component={LettersNavigator}
-        listeners={({ navigation }) => ({
-          tabPress: e => {
-            e.preventDefault();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            navigation.navigate('LettersTab', { screen: 'LettersList' } as any);
-          },
-        })}
-        options={{
-          tabBarLabel: 'Letters',
-          tabBarIcon: ({ color, size }) => <Mail size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="ProfileTab"
-        component={ProfileNavigator}
-        listeners={({ navigation }) => ({
-          tabPress: e => {
-            e.preventDefault();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            navigation.navigate('ProfileTab', { screen: 'ProfileMain' } as any);
-          },
-        })}
-        options={{
-          tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => <CircleUser size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
+      // CurvedTabBar handles all rendering — SVG notch + floating camera button
+      tabBar={(props) => <CurvedTabBar {...props} />}
+      screenOptions={{ headerShown: false }}>
+      <MainTab.Screen name="Dashboard" component={DashboardNavigator} />
+      <MainTab.Screen name="MomentsTab" component={MomentsNavigator} />
+      {/* CameraTab: no component rendered — CurvedTabBar handles the floating button */}
+      <MainTab.Screen name="CameraTab" component={React.Fragment} />
+      <MainTab.Screen name="LettersTab" component={LettersNavigator} />
+      <MainTab.Screen name="ProfileTab" component={ProfileNavigator} />
     </MainTab.Navigator>
   );
 }
