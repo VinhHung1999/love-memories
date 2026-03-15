@@ -25,7 +25,7 @@ type UserAuthShape = {
   email: string;
   name: string;
   avatar: string | null;
-  coupleId: string;
+  coupleId: string | null;
   googleId: string | null;
 };
 
@@ -83,24 +83,23 @@ export async function register(
 ) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new AppError(409, 'Email already registered');
-  if (!inviteCode && !coupleName) {
-    throw new AppError(400, 'Must either create a new couple (coupleName) or join one (inviteCode)');
-  }
 
   const hashed = await hashPassword(password);
 
-  let couple;
+  let coupleId: string | null = null;
   if (inviteCode) {
-    couple = await prisma.couple.findUnique({ where: { inviteCode } });
+    const couple = await prisma.couple.findUnique({ where: { inviteCode } });
     if (!couple) throw new AppError(400, 'Invalid invite code');
-    const memberCount = await prisma.user.count({ where: { coupleId: couple.id } });
-    if (memberCount >= 2) throw new AppError(400, 'This couple already has 2 members');
-  } else {
-    couple = await prisma.couple.create({ data: { name: coupleName!.trim() } });
+    const count = await prisma.user.count({ where: { coupleId: couple.id } });
+    if (count >= 2) throw new AppError(400, 'This couple already has 2 members');
+    coupleId = couple.id;
+  } else if (coupleName) {
+    const couple = await prisma.couple.create({ data: { name: coupleName.trim() } });
+    coupleId = couple.id;
   }
 
   const user = await prisma.user.create({
-    data: { email, password: hashed, name, coupleId: couple.id },
+    data: { email, password: hashed, name, coupleId },
   });
 
   const accessToken = generateAccessToken(user.id, user.coupleId);
@@ -186,10 +185,6 @@ export async function googleComplete(
   inviteCode?: string,
   coupleName?: string,
 ) {
-  if (!inviteCode && !coupleName) {
-    throw new AppError(400, 'Must either create a new couple (coupleName) or join one (inviteCode)');
-  }
-
   const profile = await verifyGoogleToken(idToken);
 
   const existing = await prisma.user.findFirst({
@@ -199,14 +194,16 @@ export async function googleComplete(
     throw new AppError(409, 'Account already exists. Please use the Google login button.');
   }
 
-  let couple;
+  let coupleId: string | null = null;
   if (inviteCode) {
-    couple = await prisma.couple.findUnique({ where: { inviteCode } });
+    const couple = await prisma.couple.findUnique({ where: { inviteCode } });
     if (!couple) throw new AppError(400, 'Invalid invite code');
-    const memberCount = await prisma.user.count({ where: { coupleId: couple.id } });
-    if (memberCount >= 2) throw new AppError(400, 'This couple already has 2 members');
-  } else {
-    couple = await prisma.couple.create({ data: { name: coupleName!.trim() } });
+    const count = await prisma.user.count({ where: { coupleId: couple.id } });
+    if (count >= 2) throw new AppError(400, 'This couple already has 2 members');
+    coupleId = couple.id;
+  } else if (coupleName) {
+    const couple = await prisma.couple.create({ data: { name: coupleName.trim() } });
+    coupleId = couple.id;
   }
 
   const user = await prisma.user.create({
@@ -216,7 +213,7 @@ export async function googleComplete(
       avatar: profile.picture || null,
       googleId: profile.googleId,
       password: null,
-      coupleId: couple.id,
+      coupleId,
     },
   });
 

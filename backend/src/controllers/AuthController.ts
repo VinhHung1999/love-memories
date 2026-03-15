@@ -114,7 +114,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
 export const deleteAccount = [
   validate(deleteAccountSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const { password } = req.body as { password: string };
     await AuthService.deleteAccount(userId, coupleId, password);
     res.status(204).send();

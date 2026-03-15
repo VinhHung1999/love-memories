@@ -7,19 +7,19 @@ type TokenParam = { token: string };
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const body = req.body as { type?: string; targetId?: string };
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const link = await ShareService.create(body.type ?? '', body.targetId ?? '', coupleId);
   res.status(201).json(link);
 });
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const links = await ShareService.list(coupleId);
   res.json(links);
 });
 
 export const revoke = asyncHandler<TokenParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   await ShareService.revoke(req.params.token, coupleId);
   res.json({ message: 'Share link revoked' });
 });

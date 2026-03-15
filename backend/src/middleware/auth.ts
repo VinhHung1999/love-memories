@@ -3,7 +3,7 @@ import { verifyToken } from '../utils/auth';
 import prisma from '../utils/prisma';
 
 export interface AuthRequest extends Request {
-  user?: { userId: string; coupleId: string };
+  user?: { userId: string; coupleId: string | null };
 }
 
 export async function requireAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
@@ -15,8 +15,8 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
   const token = authHeader.slice(7);
   try {
     const payload = verifyToken(token);
-    if (payload.coupleId) {
-      req.user = { userId: payload.userId, coupleId: payload.coupleId };
+    if (payload.coupleId !== undefined) {
+      req.user = { userId: payload.userId, coupleId: payload.coupleId ?? null };
     } else {
       // Legacy token without coupleId — DB fallback
       const user = await prisma.user.findUnique({

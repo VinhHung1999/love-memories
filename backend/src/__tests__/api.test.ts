@@ -146,13 +146,17 @@ describe('Health', () => {
 });
 
 describe('Auth', () => {
-  it('POST /api/auth/register returns 400 without coupleName or inviteCode', async () => {
+  it('POST /api/auth/register succeeds without coupleName or inviteCode (coupleId=null)', async () => {
     const res = await request(app).post('/api/auth/register').send({
       email: 'random@example.com',
       password: 'testpass123',
       name: 'Random',
     });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.coupleId).toBeNull();
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: 'random@example.com' } });
   });
 
   it('POST /api/auth/register — 3rd user joining same inviteCode gets 400', async () => {
@@ -419,7 +423,7 @@ describe('Google OAuth', () => {
     const user = await prisma.user.findUnique({ where: { email: 'googleuser@example.com' } });
     if (user) {
       await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
-      await prisma.couple.delete({ where: { id: user.coupleId } }).catch(() => {});
+      await prisma.couple.delete({ where: { id: user.coupleId ?? undefined } }).catch(() => {});
       await prisma.user.delete({ where: { id: user.id } });
     }
   });

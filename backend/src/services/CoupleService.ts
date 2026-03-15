@@ -42,3 +42,35 @@ export async function generateInvite(coupleId: string) {
   await prisma.couple.update({ where: { id: coupleId }, data: { inviteCode } });
   return { inviteCode };
 }
+
+export async function createCouple(userId: string, name: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
+  if (!user) throw new AppError(404, 'User not found');
+  if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
+
+  const couple = await prisma.couple.create({ data: { name: name.trim() } });
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { coupleId: couple.id },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
+  });
+  return updated;
+}
+
+export async function joinCouple(userId: string, inviteCode: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
+  if (!user) throw new AppError(404, 'User not found');
+  if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
+
+  const couple = await prisma.couple.findUnique({ where: { inviteCode } });
+  if (!couple) throw new AppError(400, 'Invalid invite code');
+  const count = await prisma.user.count({ where: { coupleId: couple.id } });
+  if (count >= 2) throw new AppError(400, 'This couple already has 2 members');
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { coupleId: couple.id },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
+  });
+  return updated;
+}

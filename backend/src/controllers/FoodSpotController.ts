@@ -10,7 +10,7 @@ type IdParam = { id: string };
 type PhotoParam = { id: string; photoId: string };
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const foodSpots = await FoodSpotService.list(coupleId);
   res.json(foodSpots);
 });
@@ -25,13 +25,13 @@ export const getRandom = asyncHandler(async (req: Request, res: Response) => {
     return;
   }
 
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const pick = await FoodSpotService.getRandom(coupleId, lat, lng, radius);
   res.json(pick);
 });
 
 export const getOne = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const foodSpot = await FoodSpotService.getOne(req.params.id, coupleId);
   res.json(foodSpot);
 });
@@ -39,7 +39,7 @@ export const getOne = asyncHandler<IdParam>(async (req, res) => {
 export const create = [
   validate(createFoodSpotSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const foodSpot = await FoodSpotService.create(coupleId, userId, req.body as Record<string, unknown>);
     res.status(201).json(foodSpot);
   }),
@@ -48,20 +48,20 @@ export const create = [
 export const update = [
   validate(updateFoodSpotSchema),
   asyncHandler<IdParam>(async (req, res) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const foodSpot = await FoodSpotService.update(req.params.id, coupleId, req.body as Record<string, unknown>);
     res.json(foodSpot);
   }),
 ];
 
 export const remove = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   await FoodSpotService.remove(req.params.id, coupleId);
   res.json({ message: 'Food spot deleted' });
 });
 
 export const uploadPhotos = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const files = req.files as Express.Multer.File[];
   const photos = await FoodSpotService.uploadPhotos(req.params.id, coupleId, files);
   res.status(201).json(photos);
@@ -69,7 +69,7 @@ export const uploadPhotos = asyncHandler<IdParam>(async (req, res) => {
 
 export const deletePhoto = asyncHandler(
   async (req: Request<PhotoParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     await FoodSpotService.deletePhoto(req.params.photoId, coupleId);
     res.json({ message: 'Photo deleted' });
   },

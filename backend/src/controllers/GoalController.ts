@@ -4,7 +4,7 @@ import * as GoalService from '../services/GoalService';
 import type { AuthRequest } from '../middleware/auth';
 
 export const backlog = asyncHandler(async (req: AuthRequest, res: Response) => {
-  res.json(await GoalService.backlog(req.user!.coupleId));
+  res.json(await GoalService.backlog(req.user!.coupleId!));
 });
 
 export const listBySprint = asyncHandler(async (req: Request<{ sprintId: string }>, res: Response) => {
@@ -12,32 +12,32 @@ export const listBySprint = asyncHandler(async (req: Request<{ sprintId: string 
 });
 
 export const create = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const goal = await GoalService.create(req.user!.coupleId, req.body);
+  const goal = await GoalService.create(req.user!.coupleId!, req.body);
   res.status(201).json(goal);
 });
 
 export const createInSprint = asyncHandler(async (req: AuthRequest & Request<{ sprintId: string }>, res: Response) => {
-  const goal = await GoalService.create(req.user!.coupleId, req.body, req.params.sprintId);
+  const goal = await GoalService.create(req.user!.coupleId!, req.body, req.params.sprintId);
   res.status(201).json(goal);
 });
 
 export const reorder = asyncHandler(async (req: AuthRequest, res: Response) => {
-  res.json(await GoalService.reorder(req.user!.coupleId, req.body));
+  res.json(await GoalService.reorder(req.user!.coupleId!, req.body));
 });
 
 export const update = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  res.json(await GoalService.update(req.params.id, req.user!.coupleId, req.body));
+  res.json(await GoalService.update(req.params.id, req.user!.coupleId!, req.body));
 });
 
 export const updateStatus = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  res.json(await GoalService.updateStatus(req.params.id, req.user!.coupleId, req.body));
+  res.json(await GoalService.updateStatus(req.params.id, req.user!.coupleId!, req.body));
 });
 
 export const assign = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  res.json(await GoalService.assign(req.params.id, req.user!.coupleId, req.body));
+  res.json(await GoalService.assign(req.params.id, req.user!.coupleId!, req.body));
 });
 
 export const remove = asyncHandler(async (req: AuthRequest & Request<{ id: string }>, res: Response) => {
-  await GoalService.remove(req.params.id, req.user!.coupleId);
+  await GoalService.remove(req.params.id, req.user!.coupleId!);
   res.json({ message: 'Goal deleted' });
 });
