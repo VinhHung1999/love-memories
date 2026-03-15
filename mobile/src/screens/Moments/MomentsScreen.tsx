@@ -232,40 +232,38 @@ function MomentMiniCard({ moment, onPress }: { moment: Moment; onPress: () => vo
 
 function TimelineDayGroup({
   group,
-  isLast,
   onMomentPress,
 }: {
   group: { dateStr: string; label: string; moments: Moment[] };
-  isLast: boolean;
+  isLast?: boolean;
   onMomentPress: (id: string) => void;
 }) {
   const colors = useAppColors();
 
   return (
     <View className="flex-row py-3" style={{ paddingLeft: 16 }}>
-      {/* Left: vertical spine + date label + dot */}
-      <View style={{ width: TIMELINE_LEFT_W }} className="flex-row items-start">
-        {/* Spine line — aligned with dot on the right */}
+      {/* Left: vertical spine + dot + date label */}
+      <View style={{ width: TIMELINE_LEFT_W }} className="items-center">
+        {/* Spine: stops at dot (height = marginTop(2) + dot height(10)) */}
         <View
           style={{
             position: 'absolute',
             top: 0,
-            bottom: isLast ? '55%' : 0,
-            right: 4,
+            left: TIMELINE_LEFT_W / 2 - 1,
             width: 1,
+            height: 12,
             backgroundColor: colors.border,
           }}
         />
-        {/* Date label — left side, right-aligned text */}
-        <Caption className="text-textLight font-body text-right"
-          style={{ letterSpacing: 0.3, flex: 1, marginTop: 3, paddingRight: 4 }}>
-          {group.label}
-        </Caption>
-        {/* Dot — right side, spine passes through center */}
+        {/* Dot */}
         <View
           className="rounded-full"
           style={{ width: 10, height: 10, backgroundColor: colors.primary, marginTop: 2, zIndex: 1 }}
         />
+        {/* Date — below dot, not crossed by spine */}
+        <Caption className="text-textLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
+          {group.label}
+        </Caption>
       </View>
 
       {/* Right: horizontal moment card row */}
