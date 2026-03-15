@@ -6,6 +6,8 @@ import {
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
+import { coupleApi } from '../../lib/api';
+import { getPendingInviteCode } from '../../lib/pendingInvite';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -57,6 +59,24 @@ export function useLoginViewModel() {
   const { login, loginWithGoogle, beginEmailOnboarding, completeOnboarding, beginGoogleOnboarding } = useAuth();
   const { showLoading, hideLoading, isLoading } = useLoading();
   const [s, dispatch] = useReducer(reducer, initialState);
+
+  // ── Invite banner ─────────────────────────────────────────────────────────
+  const [inviteBanner, setInviteBanner] = useState<{
+    partnerName: string;
+    coupleName: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const code = getPendingInviteCode();
+    if (!code) return;
+    coupleApi.validateInvite(code).then(result => {
+      if (result.valid) {
+        setInviteBanner({ partnerName: result.partnerName, coupleName: result.coupleName });
+      }
+    }).catch(() => {});
+  }, []);
+
+  const dismissInviteBanner = () => setInviteBanner(null);
 
   // ── Rate-limit countdown ──────────────────────────────────────────────────
   const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
@@ -173,6 +193,9 @@ export function useLoginViewModel() {
     setPassword:        (v: string) => dispatch({ type: 'SET_PASSWORD',         value: v }),
     setConfirmPassword: (v: string) => dispatch({ type: 'SET_CONFIRM_PASSWORD', value: v }),
     setName:            (v: string) => dispatch({ type: 'SET_NAME',             value: v }),
+
+    inviteBanner,
+    dismissInviteBanner,
 
     handleSubmit,
     handleGoogleSignIn,

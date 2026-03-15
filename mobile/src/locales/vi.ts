@@ -62,6 +62,12 @@ const vi: LocaleStrings = {
       googleSignupFailed: 'Đăng ký Google thất bại',
       passwordMismatch: 'Mật khẩu không khớp',
     },
+
+    inviteBanner: {
+      title: 'Bạn được mời!',
+      subtitle: '{{partnerName}} từ {{coupleName}} đang chờ bạn',
+      dismiss: 'Bỏ qua',
+    },
   },
 
   profile: {

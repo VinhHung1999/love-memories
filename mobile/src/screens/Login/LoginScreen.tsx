@@ -8,7 +8,7 @@ import {
   StatusBar,
   View,
 } from 'react-native';
-import { Body, Heading, Label } from '../../components/Typography';
+import { Body, Caption, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import Input from '../../components/Input';
@@ -21,6 +21,48 @@ import GoogleGLogo from '../../components/GoogleGLogo';
 import DecoBlobs from './components/DecoBlobs';
 import { useLoginViewModel } from './useLoginViewModel';
 import { useAppColors } from '../../navigation/theme';
+import Reanimated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
+import { Heart, X } from 'lucide-react-native';
+
+// ── Invite Banner ─────────────────────────────────────────────────────────────
+function InviteBanner({
+  partnerName,
+  coupleName,
+  onDismiss,
+}: {
+  partnerName: string;
+  coupleName: string;
+  onDismiss: () => void;
+}) {
+  const { t } = useTranslation();
+  const colors = useAppColors();
+  return (
+    <Reanimated.View
+      entering={FadeInDown.springify().damping(16).stiffness(120)}
+      exiting={FadeOutUp.duration(220)}
+      className="mx-4 mb-4 rounded-2xl overflow-hidden"
+      style={{ borderWidth: 1, borderColor: colors.primary + '30', backgroundColor: colors.primaryLighter }}>
+      <View className="flex-row items-center px-4 py-3 gap-3">
+        <View
+          className="w-9 h-9 rounded-xl items-center justify-center"
+          style={{ backgroundColor: colors.primary + '18' }}>
+          <Heart size={16} color={colors.primary} fill={colors.primary} strokeWidth={0} />
+        </View>
+        <View className="flex-1">
+          <Body size="sm" className="font-semibold text-textDark dark:text-darkTextDark">
+            {t('login.inviteBanner.title')}
+          </Body>
+          <Caption className="text-textMid dark:text-darkTextMid mt-0.5" numberOfLines={1}>
+            {t('login.inviteBanner.subtitle', { partnerName, coupleName })}
+          </Caption>
+        </View>
+        <Pressable onPress={onDismiss} hitSlop={8}>
+          <X size={16} color={colors.textLight} strokeWidth={1.5} />
+        </Pressable>
+      </View>
+    </Reanimated.View>
+  );
+}
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen() {
@@ -51,6 +93,15 @@ export default function LoginScreen() {
     <LinearGradient colors={[colors.primaryLighter, colors.white, '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <DecoBlobs />
+      {vm.inviteBanner && (
+        <View className="absolute top-16 left-0 right-0 z-10">
+          <InviteBanner
+            partnerName={vm.inviteBanner.partnerName}
+            coupleName={vm.inviteBanner.coupleName}
+            onDismiss={vm.dismissInviteBanner}
+          />
+        </View>
+      )}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerClassName="flex-grow justify-center">
           <View className="px-7 py-8">

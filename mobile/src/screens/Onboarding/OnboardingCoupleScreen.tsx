@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StatusBar, View } from 'react-native';
 import { Body, Caption, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
@@ -16,6 +16,7 @@ import Input from '../../components/Input';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import { coupleApi, storeTokens } from '../../lib/api';
+import { clearPendingInviteCode, getPendingInviteCode } from '../../lib/pendingInvite';
 import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 
@@ -117,6 +118,29 @@ export default function OnboardingCoupleScreen() {
   const [loading, setLoading] = useState(false);
 
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
+
+  // ── Auto-join via pending deep-link invite ─────────────────────────────────
+  useEffect(() => {
+    const code = getPendingInviteCode();
+    if (!code) return;
+    setLoading(true);
+    (async () => {
+      try {
+        const result = await coupleApi.join(code);
+        await storeTokens(result.accessToken || result.token, result.refreshToken);
+        clearPendingInviteCode();
+        navigation.navigate('OnboardingCelebration', {
+          coupleId: result.user.coupleId!,
+          partnerName: result.partnerName,
+        });
+      } catch {
+        clearPendingInviteCode();
+      } finally {
+        setLoading(false);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showError = (message: string) => {
     setAlert({ visible: true, title: t('common.error'), message, type: 'error' });

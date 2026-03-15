@@ -62,6 +62,12 @@ const en = {
       googleSignupFailed: 'Google signup failed',
       passwordMismatch: 'Passwords do not match',
     },
+
+    inviteBanner: {
+      title: "You've been invited!",
+      subtitle: '{{partnerName}} from {{coupleName}} is waiting for you',
+      dismiss: 'Dismiss',
+    },
   },
 
   profile: {
