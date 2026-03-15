@@ -31,8 +31,8 @@ export const createCouple = asyncHandler(async (req: AuthRequest, res: Response)
 
 export const joinCouple = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { inviteCode } = req.body;
-  const user = await CoupleService.joinCouple(req.user!.userId, inviteCode);
+  const { partnerName, ...user } = await CoupleService.joinCouple(req.user!.userId, inviteCode);
   const accessToken = generateAccessToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  res.json(buildAuthResponse(user, accessToken, refreshToken));
+  res.json({ ...buildAuthResponse(user, accessToken, refreshToken), partnerName });
 });

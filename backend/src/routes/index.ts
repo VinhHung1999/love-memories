@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
+import { requireCouple } from '../middleware/requireCouple';
 import { momentRoutes } from './moments';
 import { foodSpotRoutes } from './foodspots';
 import { mapRoutes } from './map';
@@ -37,30 +38,32 @@ router.use('/geocode', geocodeRoutes);
 // Security: endpoint validates URL must start with CDN_BASE_URL (our own CDN only).
 router.use('/proxy-audio', proxyAudioRoute);
 
-// Protected routes
+// Protected routes — requireCouple ensures user has completed onboarding
+const rc = [requireAuth, requireCouple];
 router.use('/proxy-image', requireAuth, proxyImageRoute);
-router.use('/moments', requireAuth, momentRoutes);
-router.use('/foodspots', requireAuth, foodSpotRoutes);
-router.use('/map', requireAuth, mapRoutes);
-router.use('/sprints', requireAuth, sprintRoutes);
-router.use('/goals', requireAuth, goalRoutes);
-router.use('/settings', requireAuth, settingsRoutes);
-router.use('/tags', requireAuth, tagRoutes);
-router.use('/recipes', requireAuth, recipeRoutes);
-router.use('/cooking-sessions', requireAuth, cookingSessionRoutes);
-router.use('/ai', requireAuth, aiRoutes);
-router.use('/achievements', requireAuth, achievementRoutes);
-router.use('/profile', requireAuth, profileRoutes);
-router.use('/notifications', requireAuth, notificationRoutes);
-router.use('/push', requireAuth, pushRoutes);
-router.use('/date-wishes', requireAuth, dateWishRoutes);
-router.use('/date-plans', requireAuth, datePlanRoutes);
-router.use('/love-letters', requireAuth, loveLetterRoutes);
-router.use('/recap', requireAuth, recapRoutes);
-router.use('/expenses', requireAuth, expenseRoutes);
+router.use('/moments', ...rc, momentRoutes);
+router.use('/foodspots', ...rc, foodSpotRoutes);
+router.use('/map', ...rc, mapRoutes);
+router.use('/sprints', ...rc, sprintRoutes);
+router.use('/goals', ...rc, goalRoutes);
+router.use('/settings', ...rc, settingsRoutes);
+router.use('/tags', ...rc, tagRoutes);
+router.use('/recipes', ...rc, recipeRoutes);
+router.use('/cooking-sessions', ...rc, cookingSessionRoutes);
+router.use('/ai', ...rc, aiRoutes);
+router.use('/achievements', ...rc, achievementRoutes);
+router.use('/profile', ...rc, profileRoutes);
+router.use('/notifications', ...rc, notificationRoutes);
+router.use('/push', ...rc, pushRoutes);
+router.use('/date-wishes', ...rc, dateWishRoutes);
+router.use('/date-plans', ...rc, datePlanRoutes);
+router.use('/love-letters', ...rc, loveLetterRoutes);
+router.use('/recap', ...rc, recapRoutes);
+router.use('/expenses', ...rc, expenseRoutes);
+// /couple: requireAuth only — create/join routes need access before couple is set
 router.use('/couple', requireAuth, coupleRoutes);
 router.use('/share', shareRoutes);
 router.use('/subscription', subscriptionRoutes);
-router.use('/daily-questions', requireAuth, dailyQuestionRoutes);
+router.use('/daily-questions', ...rc, dailyQuestionRoutes);
 
 export default router;
