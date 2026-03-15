@@ -976,7 +976,8 @@ const en = {
       shareMessage: 'Join me on Love Memories! Use invite code: {code}',
       completing: 'Setting everything up...',
       errors: {
-        failedToGenerate: 'Failed to generate invite code',
+        failedToGenerate: 'Could not generate code',
+        retry: 'Tap to retry',
       },
     },
     celebration: {

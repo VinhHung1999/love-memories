@@ -189,17 +189,34 @@ export default function OnboardingInviteScreen() {
   const { updateUser } = useAuth();
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [codeError, setCodeError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
 
-  useEffect(() => {
-    coupleApi.generateInvite()
-      .then(r => { setInviteCode(r.inviteCode); setLoading(false); })
-      .catch(() => {
+  const loadCode = async () => {
+    setLoading(true);
+    setCodeError(false);
+    try {
+      const r = await coupleApi.generateInvite();
+      setInviteCode(r.inviteCode);
+      setLoading(false);
+    } catch {
+      // Retry once after 500ms — token may not be persisted to Keychain yet
+      await new Promise<void>(resolve => setTimeout(resolve, 500));
+      try {
+        const r = await coupleApi.generateInvite();
+        setInviteCode(r.inviteCode);
         setLoading(false);
-        setAlert({ visible: true, title: t.common.error, message: t.onboarding.invite.errors.failedToGenerate, type: 'error' });
-      });
+      } catch {
+        setLoading(false);
+        setCodeError(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadCode();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -284,6 +301,15 @@ export default function OnboardingInviteScreen() {
                   <Body size="lg" style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 5 }}>
                     {t.onboarding.invite.generatingCode}
                   </Body>
+                ) : codeError ? (
+                  <Pressable onPress={loadCode} style={{ alignItems: 'center', gap: 4 }}>
+                    <Body size="sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                      {t.onboarding.invite.errors.failedToGenerate}
+                    </Body>
+                    <Caption style={{ color: '#fff', fontWeight: '700', textDecorationLine: 'underline' }}>
+                      {t.onboarding.invite.errors.retry}
+                    </Caption>
+                  </Pressable>
                 ) : (
                   <Heading
                     size="xl"
