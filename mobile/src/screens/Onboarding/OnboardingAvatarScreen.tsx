@@ -188,12 +188,14 @@ export default function OnboardingAvatarScreen() {
       const data = route.params;
 
       let finalCoupleId: string;
+      let inviteCodeFromCreate: string | undefined;
 
       if (data.coupleName) {
         // Create flow — API call deferred here to prevent double-call on back navigation
         const result = await coupleApi.create(data.coupleName);
         await storeTokens(result.accessToken || result.token, result.refreshToken);
         finalCoupleId = result.user.coupleId!;
+        inviteCodeFromCreate = result.inviteCode;;
       } else {
         // Join flow — couple already created, coupleId passed through params
         finalCoupleId = data.coupleId!;
@@ -212,7 +214,11 @@ export default function OnboardingAvatarScreen() {
       if (data.coupleName) {
         // Create flow → navigate to Invite screen with real coupleId
         setLoading(false);
-        navigation.navigate('OnboardingInvite', { coupleId: finalCoupleId, anniversaryDate: data.anniversaryDate });
+        navigation.navigate('OnboardingInvite', {
+          coupleId: finalCoupleId,
+          anniversaryDate: data.anniversaryDate,
+          inviteCode: inviteCodeFromCreate,
+        });
       } else {
         // Join flow → show completion animation, then enter app
         setShowCompletion(true);

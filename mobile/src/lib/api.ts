@@ -284,7 +284,7 @@ export const coupleApi = {
     return res.json();
   },
 
-  create: async (name: string): Promise<AuthResponse> => {
+  create: async (name: string): Promise<AuthResponse & { inviteCode?: string }> => {
     const res = await apiFetch('/api/couple', {
       method: 'POST',
       body: JSON.stringify({ name }),

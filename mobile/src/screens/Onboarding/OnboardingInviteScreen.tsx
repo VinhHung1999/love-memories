@@ -19,7 +19,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useAuth } from '../../lib/auth';
-import { coupleApi } from '../../lib/api';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
@@ -187,47 +186,22 @@ export default function OnboardingInviteScreen() {
   const { coupleId } = route.params;
 
   const { updateUser } = useAuth();
-  // Single state object — 1 setState = 1 render, eliminates loading/code race
-  const [codeState, setCodeState] = useState<{ code: string | null; loading: boolean; error: boolean }>(
-    { code: null, loading: true, error: false },
-  );
+  // Invite code comes from the couple creation response — no separate API call needed
+  const inviteCode = route.params.inviteCode ?? null;
   const [copied, setCopied] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [alert, setAlert] = useState<AlertConfig>({ visible: false, title: '' });
 
-  const loadCode = async () => {
-    setCodeState({ code: null, loading: true, error: false });
-    try {
-      const { inviteCode } = await coupleApi.generateInvite();
-      setCodeState({ code: inviteCode, loading: false, error: false });
-      return;
-    } catch {
-      // Attempt 1 failed — retry after 500ms
-    }
-    await new Promise<void>(resolve => setTimeout(resolve, 500));
-    try {
-      const { inviteCode } = await coupleApi.generateInvite();
-      setCodeState({ code: inviteCode, loading: false, error: false });
-    } catch {
-      setCodeState({ code: null, loading: false, error: true });
-    }
-  };
-
-  useEffect(() => {
-    loadCode();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleCopy = () => {
-    if (!codeState.code) return;
-    Clipboard.setString(codeState.code);
+    if (!inviteCode) return;
+    Clipboard.setString(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2200);
   };
 
   const handleShare = async () => {
-    if (!codeState.code) return;
-    const message = t.onboarding.invite.shareMessage.replace('{code}', codeState.code);
+    if (!inviteCode) return;
+    const message = t.onboarding.invite.shareMessage.replace('{code}', inviteCode);
     await Share.share({ message });
   };
 
@@ -273,7 +247,7 @@ export default function OnboardingInviteScreen() {
           {/* Invite code card — tap to copy */}
           <Pressable
             onPress={handleCopy}
-            disabled={!codeState.code}
+            disabled={!inviteCode}
             className="w-full"
             style={{ marginTop: 4 }}>
             <View
@@ -295,26 +269,17 @@ export default function OnboardingInviteScreen() {
                   {t.onboarding.invite.codeLabel}
                 </Caption>
 
-                {codeState.loading ? (
-                  <Body size="lg" style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 5 }}>
-                    {t.onboarding.invite.generatingCode}
-                  </Body>
-                ) : codeState.error ? (
-                  <Pressable onPress={loadCode} style={{ alignItems: 'center', gap: 4 }}>
-                    <Body size="sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                      {t.onboarding.invite.errors.failedToGenerate}
-                    </Body>
-                    <Caption style={{ color: '#fff', fontWeight: '700', textDecorationLine: 'underline' }}>
-                      {t.onboarding.invite.errors.retry}
-                    </Caption>
-                  </Pressable>
-                ) : (
+                {inviteCode ? (
                   <Heading
                     size="xl"
                     style={{ color: '#fff', fontSize: 34, letterSpacing: 10, fontVariant: ['tabular-nums'] }}
                     numberOfLines={1}>
-                    {codeState.code!}
+                    {inviteCode}
                   </Heading>
+                ) : (
+                  <Body size="lg" style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 5 }}>
+                    {t.onboarding.invite.generatingCode}
+                  </Body>
                 )}
 
                 {/* Copy feedback */}
@@ -345,9 +310,9 @@ export default function OnboardingInviteScreen() {
           {/* Primary — Share Invite Link */}
           <SpringPressable
             onPress={handleShare}
-            disabled={!codeState.code}
+            disabled={!inviteCode}
             className="w-full h-14 rounded-2xl flex-row items-center justify-center gap-2"
-            style={{ backgroundColor: codeState.code ? '#E8788A' : '#E8788A80' }}>
+            style={{ backgroundColor: inviteCode ? '#E8788A' : '#E8788A80' }}>
             <Send size={18} color="#fff" strokeWidth={1.8} />
             <Body size="lg" style={{ color: '#fff', fontWeight: '700', letterSpacing: 0.4 }}>
               {t.onboarding.invite.shareBtn}

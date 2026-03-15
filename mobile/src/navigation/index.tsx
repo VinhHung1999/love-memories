@@ -29,7 +29,7 @@ export type AuthStackParamList = {
 export type OnboardingStackParamList = {
   OnboardingCouple: undefined;
   OnboardingAnniversary: { coupleName: string };
-  OnboardingInvite: { coupleId: string; anniversaryDate?: string };
+  OnboardingInvite: { coupleId: string; anniversaryDate?: string; inviteCode?: string };
   OnboardingCelebration: { coupleId: string; partnerName?: string };
   OnboardingAvatar: { coupleName?: string; coupleId?: string; anniversaryDate?: string };
 };
