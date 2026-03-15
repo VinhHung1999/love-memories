@@ -29,7 +29,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
 import { launchCamera } from 'react-native-image-picker';
 import CreateMomentSheet from '../screens/CreateMoment/CreateMomentSheet';
 import { Caption } from './Typography';
@@ -39,15 +38,15 @@ const { width: W } = Dimensions.get('window');
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
-const TAB_H       = 60;              // visible tab bar height
+const TAB_H = 60;              // visible tab bar height
 export const CAMERA_SIZE = 60;              // floating camera button diameter
-const CUTOUT_R    = 36;              // arc radius (slightly > CAMERA_SIZE/2=32)
+const CUTOUT_R = 36;              // arc radius (slightly > CAMERA_SIZE/2=32)
 // Total container: camera zone on top + tab bar below — everything in-bounds
 export const CONTAINER_H = TAB_H + CAMERA_SIZE;   // 120px — exported for scene padding
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
-const ACTIVE_COLOR   = '#E8788A';
+const ACTIVE_COLOR = '#E8788A';
 const INACTIVE_COLOR = '#A898AD';
 
 // ── SVG Path ──────────────────────────────────────────────────────────────────
@@ -72,30 +71,29 @@ function buildArcPath(h: number): string {
 // ── Tab Config ────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { name: 'Dashboard',  label: 'Home',    Icon: Home },
+  { name: 'Dashboard', label: 'Home', Icon: Home },
   { name: 'MomentsTab', label: 'Moments', Icon: Heart },
-  { name: 'CameraTab',  label: '',        Icon: null },   // spacer slot
+  { name: 'CameraTab', label: '', Icon: null },   // spacer slot
   { name: 'LettersTab', label: 'Letters', Icon: Mail },
   { name: 'ProfileTab', label: 'Profile', Icon: CircleUser },
 ] as const;
 
 // ── Floating Camera Button ────────────────────────────────────────────────────
 
-function CameraFloatButton() {
-  const navigation = useNavigation<any>();
+function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navigation'] }) {
   const scale = useSharedValue(1);
 
   useEffect(() => {
     scale.value = withRepeat(
       withSequence(
         withTiming(1.04, { duration: 1000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(1.0,  { duration: 1000, easing: Easing.inOut(Easing.sin) }),
-        withTiming(1.0,  { duration: 1000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.0, { duration: 1000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.0, { duration: 1000, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
       false,
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animStyle = useAnimatedStyle(() => ({
@@ -104,6 +102,7 @@ function CameraFloatButton() {
 
   const handlePress = async () => {
     const result = await launchCamera({ mediaType: 'photo', saveToPhotos: false });
+    console.log("result" + JSON.stringify(result, null, 2))
     if (result.didCancel || !result.assets?.[0]) return;
     const photo = result.assets[0];
     navigation.navigate('MomentsTab', {
@@ -143,8 +142,8 @@ function CameraFloatButton() {
           colors={['#F4A0B0', '#E8788A']}
           start={{ x: 0.15, y: 0 }}
           end={{ x: 0.85, y: 1 }}
-          style={{width: "100%", height: "100%",  borderRadius: CAMERA_SIZE / 2,}}>
-          <View style={{ flex: 1,  alignItems: 'center', justifyContent: 'center' }}>
+          style={{ width: "100%", height: "100%", borderRadius: CAMERA_SIZE / 2, }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
           </View>
         </LinearGradient>
@@ -262,8 +261,8 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
           // Attach measurable ref for tour spotlight
           const tourRef =
             tab.name === 'MomentsTab' ? tabBarRefs.momentsTab :
-            tab.name === 'LettersTab' ? tabBarRefs.lettersTab :
-            undefined;
+              tab.name === 'LettersTab' ? tabBarRefs.lettersTab :
+                undefined;
 
           return (
             <Pressable
@@ -309,7 +308,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
           zIndex: 100,
           elevation: 100,
         }}>
-        <CameraFloatButton />
+        <CameraFloatButton navigation={navigation} />
       </View>
 
     </View>
