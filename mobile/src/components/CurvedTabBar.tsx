@@ -35,15 +35,11 @@ const TAB_H      = 60;   // standard iOS tab bar height
 const CAMERA_SIZE = 64;  // floating camera button diameter
 const CUTOUT_R   = 36;   // arc radius — slightly larger than camera radius (32)
 
-// Camera button overflows above the arc notch by (CAMERA_SIZE/2 - CUTOUT_R) + some clearance.
-// Root container height = TAB_H + CAMERA_SIZE/2 so the button has room to render.
-const CONTAINER_H = TAB_H + CAMERA_SIZE / 2;
-
 // ── Colors ────────────────────────────────────────────────────────────────────
 
 const ACTIVE_COLOR   = '#E8788A';
 const INACTIVE_COLOR = '#A898AD';
-const BAR_FILL       = '#FFFAFA';
+const BAR_FILL       = '#FFFFFF';
 
 // ── SVG Path Builder ──────────────────────────────────────────────────────────
 // Flat top with a perfect semicircle notch at center.
@@ -163,9 +159,8 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         position: 'absolute',
         bottom: 0,
         width: W,
-        // Container taller than bar so camera button can overflow upward
-        height: CONTAINER_H + bottomPad,
-        overflow: 'visible',
+        height: TAB_H + 40,   // extra 40px headroom so camera button overflow is not clipped
+        overflow: 'visible',  // CRITICAL — must NOT be 'hidden'
       }}>
 
       {/* ── SVG background with arc notch — sits at the bottom of container ── */}
@@ -289,16 +284,16 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         })}
       </View>
 
-      {/* ── Camera button — floats above arc notch, zIndex above SVG ── */}
+      {/* ── Camera button — negative top = floats ABOVE container top edge ── */}
       <View
         style={{
           position: 'absolute',
-          // bottom = TAB_H - CAMERA_SIZE/2 so button center sits at the bar top edge
-          // (half above bar = inside notch arc, half below = inside bar)
-          bottom: TAB_H - CAMERA_SIZE / 2 + bottomPad,
-          alignSelf: 'center',
+          // Negative top pushes button above the container's top edge.
+          // With overflow:'visible' on parent this renders above the tab bar.
+          top: -(CAMERA_SIZE / 2) + 8,
           left: W / 2 - CAMERA_SIZE / 2,
-          zIndex: 10,
+          zIndex: 100,
+          elevation: 100,
         }}>
         <CameraFloatButton />
       </View>
