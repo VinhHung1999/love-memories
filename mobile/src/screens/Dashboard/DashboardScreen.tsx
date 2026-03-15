@@ -34,6 +34,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRequestNotificationPermission } from '../../hooks/useRequestNotificationPermission';
 import { useDashboardTour } from './useDashboardTour';
 import DashboardTourOverlay from './components/DashboardTourOverlay';
+import DatePickerSheet from '../../components/DatePickerSheet';
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -121,6 +122,9 @@ export default function DashboardScreen() {
                 partnerInitials={
                   vm.partner?.name?.charAt(0).toUpperCase() ?? '?'
                 }
+                hasCouple={vm.hasCouple}
+                onInvitePartner={vm.handleInvitePartner}
+                onSetAnniversary={() => vm.setShowAnniversaryPicker(true)}
               />
 
               {/* ── 0b. Stats Overview — moments only for MVP ── */}
@@ -194,6 +198,15 @@ export default function DashboardScreen() {
           step={tour.tourStep}
           onAdvance={tour.advanceTour}
           onDismiss={tour.dismissTour}
+        />
+      )}
+      {vm.showAnniversaryPicker && (
+        <DatePickerSheet
+          value={new Date()}
+          onChange={vm.handleSetAnniversary}
+          label={t.dashboard.setAnniversary.title}
+          maximumDate={new Date()}
+          onClose={() => vm.setShowAnniversaryPicker(false)}
         />
       )}
     </>

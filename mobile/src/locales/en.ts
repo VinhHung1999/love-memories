@@ -187,6 +187,18 @@ const en = {
     addFirstMemory: 'Tap to add your first memory',
     noFoodYet: 'No food spots yet',
     defaultSlogan: 'Our little world, beautifully organized',
+    invitePartner: {
+      title: 'Invite your partner',
+      subtitle: 'Share an invite code to connect your accounts',
+      button: 'Send Invite',
+      modalTitle: 'Your Invite Code',
+      modalMessage: 'Share this code with your partner. It expires after they join.',
+    },
+    setAnniversary: {
+      title: 'Set your anniversary',
+      subtitle: 'Mark the day your love story began',
+      button: 'Set Date',
+    },
   },
 
   moments: {

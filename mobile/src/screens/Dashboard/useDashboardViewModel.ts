@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Share } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
 import { useAppColors } from '../../navigation/theme';
 import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
@@ -22,6 +23,8 @@ export function useDashboardViewModel() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
   const colors = useAppColors();
+  const queryClient = useQueryClient();
+  const [showAnniversaryPicker, setShowAnniversaryPicker] = useState(false);
 
   // ── Data queries ────────────────────────────────────────────────────────────
 
@@ -184,6 +187,28 @@ export function useDashboardViewModel() {
   // Show monthly recap banner on days 1-3 of each month
   const showMonthlyRecapBanner = now.getDate() <= 3;
 
+  // ── Couple CTA state ────────────────────────────────────────────────────────
+
+  const hasCouple = !!user?.coupleId;
+
+  const handleInvitePartner = useCallback(async () => {
+    try {
+      const { inviteCode } = await coupleApi.generateInvite();
+      await Share.share({
+        message: `Join me on Love Memories! Use invite code: ${inviteCode}`,
+        title: 'Love Memories Invite',
+      });
+    } catch {
+      // dismissed or error — no-op
+    }
+  }, []);
+
+  const handleSetAnniversary = useCallback(async (date: Date) => {
+    await coupleApi.update({ anniversaryDate: date.toISOString().slice(0, 10) });
+    queryClient.invalidateQueries({ queryKey: ['couple'] });
+    setShowAnniversaryPicker(false);
+  }, [queryClient]);
+
   // ── Derived display values ──────────────────────────────────────────────────
 
   const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
@@ -246,5 +271,10 @@ export function useDashboardViewModel() {
     navigateToDailyQuestions,
     navigateToMonthlyRecap,
     showMonthlyRecapBanner,
+    hasCouple,
+    showAnniversaryPicker,
+    setShowAnniversaryPicker,
+    handleInvitePartner,
+    handleSetAnniversary,
   };
 }
