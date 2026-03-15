@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import { ActivityIndicator, View } from 'react-native';
-import { CircleUser, Heart, Home, Mail, MessageCircleHeart } from 'lucide-react-native';
+import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -46,11 +46,17 @@ export type AppStackParamList = {
   Paywall: { trigger: 'limit' | 'browse'; blockedFeature?: string } | undefined;
 };
 
+/** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
+export type DashboardStackParamList = {
+  DashboardHome: undefined;
+  DailyQuestions: undefined;
+};
+
 /** Only the 5 visible bottom tabs */
 export type MainTabParamList = {
   Dashboard: undefined;
   MomentsTab: undefined;
-  DailyQuestionsTab: undefined;
+  CameraTab: undefined;
   LettersTab: undefined;
   ProfileTab: undefined;
 };
@@ -119,6 +125,7 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
+const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
 const RecipesStack = createNativeStackNavigator<RecipesStackParamList>();
@@ -134,6 +141,7 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
+import CameraTabButton from '../components/CameraTabButton';
 import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
 import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
 import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
@@ -157,6 +165,19 @@ function OnboardingNavigator() {
       <OnboardingStack.Screen name="OnboardingCelebration" component={OnboardingCelebrationScreen} />
       <OnboardingStack.Screen name="OnboardingAvatar" component={OnboardingAvatarScreen} />
     </OnboardingStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard stack navigator (Home + Daily Q&A)
+// ---------------------------------------------------------------------------
+
+function DashboardNavigator() {
+  return (
+    <DashboardStack.Navigator screenOptions={{ headerShown: false }}>
+      <DashboardStack.Screen name="DashboardHome" component={DashboardScreen} />
+      <DashboardStack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
+    </DashboardStack.Navigator>
   );
 }
 
@@ -334,7 +355,7 @@ function MainTabNavigator() {
       }}>
       <MainTab.Screen
         name="Dashboard"
-        component={DashboardScreen}
+        component={DashboardNavigator}
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.5} />,
@@ -356,11 +377,11 @@ function MainTabNavigator() {
         }}
       />
       <MainTab.Screen
-        name="DailyQuestionsTab"
-        component={DailyQuestionsScreen}
+        name="CameraTab"
+        component={React.Fragment}
         options={{
-          tabBarLabel: 'Daily Q&A',
-          tabBarIcon: ({ color, size }) => <MessageCircleHeart size={size} color={color} strokeWidth={1.5} />,
+          tabBarLabel: () => null,
+          tabBarButton: (props) => <CameraTabButton {...props} />,
         }}
       />
       <MainTab.Screen

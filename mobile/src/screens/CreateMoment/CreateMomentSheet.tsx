@@ -17,10 +17,11 @@ import PhotoPicker from './components/PhotoPicker';
 
 interface Props {
   moment?: Moment;
+  initialPhoto?: { uri: string; mimeType?: string };
   onClose: () => void;
 }
 
-export default function CreateMomentSheet({ moment: initialMoment, onClose }: Props) {
+export default function CreateMomentSheet({ moment: initialMoment, initialPhoto, onClose }: Props) {
   const sheetRef = useRef<BottomSheetModal>(null);
   const { showBottomSheet } = useAppNavigation();
 
@@ -31,6 +32,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
   const vm = useCreateMomentViewModel({
     momentId: initialMoment?.id ?? null,
     initialMoment,
+    initialPhoto,
     onClose,
   });
 
