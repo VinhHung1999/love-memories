@@ -328,7 +328,7 @@ export default function ExpensesScreen() {
             </View>
             <Pressable onPress={vm.nextMonth} disabled={vm.isCurrentMonth}
               className="w-9 h-9 items-center justify-center rounded-xl"
-              style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : '#fff' }}>
+              style={{ opacity: vm.isCurrentMonth ? 0.3 : 1, backgroundColor: vm.isCurrentMonth ? undefined : colors.bgCard }}>
               <ChevronRight size={18} color={colors.textMid} strokeWidth={1.5} />
             </Pressable>
           </View>

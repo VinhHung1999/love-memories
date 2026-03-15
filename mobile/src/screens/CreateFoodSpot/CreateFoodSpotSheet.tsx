@@ -49,7 +49,7 @@ function PriceRangePicker({ value, onChange }: { value: number; onChange: (v: nu
             onPress={() => onChange(i)}
             className="px-3 py-1.5 rounded-xl border"
             style={{ backgroundColor: active ? colors.secondary : 'transparent', borderColor: active ? colors.secondary : colors.border }}>
-            <Label style={{ color: active ? '#fff' : colors.textMid }}>
+            <Label style={{ color: active ? colors.white : colors.textMid }}>
               {'$'.repeat(i)}
             </Label>
           </Pressable>

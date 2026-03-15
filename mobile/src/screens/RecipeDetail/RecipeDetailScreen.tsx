@@ -78,8 +78,8 @@ function IngredientRow({
       <View
         className="w-5 h-5 rounded-md border-2 items-center justify-center"
         style={{
-          backgroundColor: checked ? '#22c55e' : 'transparent',
-          borderColor: checked ? '#22c55e' : colors.border,
+          backgroundColor: checked ? colors.success : 'transparent',
+          borderColor: checked ? colors.success : colors.border,
         }}
       >
         {checked ? <Check size={11} strokeWidth={1.5} /> : null}
@@ -131,7 +131,7 @@ function StepRow({
       {/* Step number circle */}
       <View
         className="w-7 h-7 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
-        style={{ backgroundColor: done ? '#22c55e' : colors.primaryMuted }}
+        style={{ backgroundColor: done ? colors.success : colors.primaryMuted }}
       >
         {done ? (
           <Check size={13} strokeWidth={1.5} />

@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import SpringPressable from '../../../components/SpringPressable';
 import type { SpotlightRect, TourStepDef } from '../useDashboardTour';
+import { useAppColors } from '../../../navigation/theme';
 
 const SCREEN_W = Dimensions.get('window').width;
 const SCREEN_H = Dimensions.get('window').height;
@@ -66,6 +67,7 @@ function TooltipCard({
   onNext: () => void;
   onSkip: () => void;
 }) {
+  const colors = useAppColors();
   const CARD_W = SCREEN_W - 48;
   const spotCenterX = rect.x + rect.width / 2;
   const spotBottom  = rect.y + rect.height + SPOT_PAD;
@@ -84,7 +86,7 @@ function TooltipCard({
         left,
         top,
         width: CARD_W,
-        backgroundColor: '#fff',
+        backgroundColor: colors.bgCard,
         borderRadius: 20,
         padding: 18,
         shadowColor: '#000',
@@ -111,8 +113,8 @@ function TooltipCard({
         <SpringPressable
           onPress={onNext}
           className="px-5 h-9 rounded-xl items-center justify-center"
-          style={{ backgroundColor: '#E8788A' }}>
-          <Label className="font-semibold" style={{ color: '#fff', fontSize: 13 }}>
+          style={{ backgroundColor: colors.primary }}>
+          <Label className="font-semibold" style={{ color: colors.white, fontSize: 13 }}>
             {step < total - 1 ? 'Next →' : 'Got it!'}
           </Label>
         </SpringPressable>

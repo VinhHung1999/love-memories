@@ -34,7 +34,7 @@ function RecipePickCard({
     <Pressable
       onPress={onPress}
       className="flex-row items-center gap-3 p-3 rounded-2xl mb-2 border"
-      style={{ backgroundColor: selected ? colors.primary + '14' : '#fff', borderColor: selected ? colors.primary + '66' : colors.border + '80' }}>
+      style={{ backgroundColor: selected ? colors.primary + '14' : colors.bgCard, borderColor: selected ? colors.primary + '66' : colors.border + '80' }}>
 
       {/* Thumbnail */}
       <View className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">

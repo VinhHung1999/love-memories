@@ -22,6 +22,7 @@ import { useAuth } from '../../lib/auth';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import t from '../../locales/en';
+import { useAppColors } from '../../navigation/theme';
 
 
 // ── Sparkle Particles ─────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ const SPARKLE_CONFIG = [
 ];
 
 function SparkleParticle({ tx, ty, size, delay }: { tx: number; ty: number; size: number; delay: number }) {
+  const colors = useAppColors();
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -66,7 +68,7 @@ function SparkleParticle({ tx, ty, size, delay }: { tx: number; ty: number; size
     width: size,
     height: size,
     borderRadius: size / 2,
-    backgroundColor: '#E8788A',
+    backgroundColor: colors.primary,
     transform: [{ translateX: x.value }, { translateY: y.value }, { scale: scale.value }],
     opacity: opacity.value,
   }));
@@ -77,6 +79,7 @@ function SparkleParticle({ tx, ty, size, delay }: { tx: number; ty: number; size
 // ── Hero Heart ────────────────────────────────────────────────────────────────
 
 function HeroHeart() {
+  const colors = useAppColors();
   const glowScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.4);
   const heartScale = useSharedValue(0);
@@ -115,11 +118,11 @@ function HeroHeart() {
       <Animated.View style={[glowStyle, {
         position: 'absolute',
         width: 120, height: 120, borderRadius: 60,
-        backgroundColor: '#E8788A',
+        backgroundColor: colors.primary,
       }]} />
       {/* Heart */}
       <Animated.View style={heartStyle}>
-        <Heart size={56} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+        <Heart size={56} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
     </View>
   );
@@ -128,6 +131,7 @@ function HeroHeart() {
 // ── Completion Overlay ────────────────────────────────────────────────────────
 
 function CompletionOverlay() {
+  const colors = useAppColors();
   const textScale = useSharedValue(0.8);
   const heartScale = useSharedValue(1);
 
@@ -160,7 +164,7 @@ function CompletionOverlay() {
         zIndex: 100,
       }}>
       <Animated.View style={heartStyle} className="mb-4">
-        <Heart size={64} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+        <Heart size={64} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
       <Animated.View style={textStyle} className="items-center">
         <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26 }}>
@@ -171,9 +175,9 @@ function CompletionOverlay() {
         </Body>
       </Animated.View>
       <Animated.View entering={FadeInDown.delay(600).duration(400)} className="mt-6 flex-row items-center gap-2">
-        <Sparkles size={16} color="#E8788A" strokeWidth={1.5} />
+        <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
         <Caption className="text-primary">{t.onboarding.invite.completing}</Caption>
-        <Sparkles size={16} color="#E8788A" strokeWidth={1.5} />
+        <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
       </Animated.View>
     </Animated.View>
   );
@@ -182,6 +186,7 @@ function CompletionOverlay() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingInviteScreen() {
+  const colors = useAppColors();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingInvite'>>();
   const { coupleId } = route.params;
 
@@ -212,7 +217,7 @@ export default function OnboardingInviteScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF0F3', '#FFF8F6', '#FFFFFF']}
+      colors={[colors.primaryLighter, colors.baseBg, colors.white]}
       start={{ x: 0.2, y: 0 }}
       end={{ x: 0.8, y: 1 }}
       style={{ flex: 1 }}>
@@ -253,14 +258,14 @@ export default function OnboardingInviteScreen() {
             <View
               className="w-full rounded-3xl overflow-hidden"
               style={{
-                shadowColor: '#E8788A',
+                shadowColor: colors.primary,
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.16,
                 shadowRadius: 18,
                 elevation: 6,
               }}>
               <LinearGradient
-                colors={['#E8788A', '#F09AAA', '#F4B8C4']}
+                colors={[colors.primary, '#F09AAA', '#F4B8C4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 >
@@ -296,7 +301,7 @@ export default function OnboardingInviteScreen() {
                   </Caption>
                 </View>
                   </View>
-               
+
 
               </LinearGradient>
             </View>
@@ -312,7 +317,7 @@ export default function OnboardingInviteScreen() {
             onPress={handleShare}
             disabled={!inviteCode}
             className="w-full h-14 rounded-2xl flex-row items-center justify-center gap-2"
-            style={{ backgroundColor: inviteCode ? '#E8788A' : '#E8788A80' }}>
+            style={{ backgroundColor: inviteCode ? colors.primary : colors.primaryShadow }}>
             <Send size={18} color="#fff" strokeWidth={1.8} />
             <Body size="lg" style={{ color: '#fff', fontWeight: '700', letterSpacing: 0.4 }}>
               {t.onboarding.invite.shareBtn}

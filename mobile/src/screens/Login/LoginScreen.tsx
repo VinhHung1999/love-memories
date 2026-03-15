@@ -20,9 +20,11 @@ import HeartLogo from './components/HeartLogo';
 import GoogleGLogo from '../../components/GoogleGLogo';
 import DecoBlobs from './components/DecoBlobs';
 import { useLoginViewModel } from './useLoginViewModel';
+import { useAppColors } from '../../navigation/theme';
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen() {
+  const colors = useAppColors();
   const vm = useLoginViewModel();
 
   const logoAnim = useRef(new Animated.Value(0)).current;
@@ -45,7 +47,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={['#FFF0F3', '#FFFFFF', '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
+    <LinearGradient colors={[colors.primaryLighter, colors.white, '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <DecoBlobs />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">

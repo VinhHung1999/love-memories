@@ -17,10 +17,12 @@ import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
 import { coupleApi, storeTokens } from '../../lib/api';
 import t from '../../locales/en';
+import { useAppColors } from '../../navigation/theme';
 
 type CoupleMode = 'create' | 'join';
 
 function ProgressDots({ step, total }: { step: number; total: number }) {
+  const colors = useAppColors();
   return (
     <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: total }).map((_, i) => (
@@ -30,7 +32,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
           style={{
             width: i === step ? 20 : 8,
             height: 8,
-            backgroundColor: i === step ? '#E8788A' : '#E8788A40',
+            backgroundColor: i === step ? colors.primary : colors.primary + '40',
           }}
         />
       ))}
@@ -53,6 +55,7 @@ function OptionCard({
   label: string;
   subtitle: string;
 }) {
+  const colors = useAppColors();
   const scale = useSharedValue(1);
   const handlePress = () => {
     scale.value = withSpring(0.95, { damping: 8, stiffness: 300 }, () => {
@@ -71,26 +74,26 @@ function OptionCard({
       <Pressable
         onPress={handlePress}
         style={{
-          backgroundColor: selected ? '#FFF0F3' : '#fff',
+          backgroundColor: selected ? colors.primaryLighter : '#fff',
           borderRadius: 16,
           borderWidth: 2,
-          borderColor: selected ? '#E8788A' : '#F0E6E3',
+          borderColor: selected ? colors.primary : '#F0E6E3',
           padding: 16,
           alignItems: 'center',
           gap: 8,
-          shadowColor: selected ? '#E8788A' : 'transparent',
+          shadowColor: selected ? colors.primary : 'transparent',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: selected ? 0.15 : 0,
           shadowRadius: 8,
         }}>
         <View
           className="w-12 h-12 rounded-2xl items-center justify-center"
-          style={{ backgroundColor: selected ? '#E8788A15' : '#F5F5F5' }}>
+          style={{ backgroundColor: selected ? colors.primaryMuted : colors.gray100 }}>
           {icon}
         </View>
         <Label
           className="text-center font-semibold"
-          style={{ color: selected ? '#E8788A' : '#1A1624', fontSize: 13 }}>
+          style={{ color: selected ? colors.primary : colors.textDark, fontSize: 13 }}>
           {label}
         </Label>
         <Caption className="text-center text-textLight" style={{ lineHeight: 16 }}>
@@ -104,6 +107,7 @@ function OptionCard({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingCoupleScreen() {
+  const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
 
   const [coupleMode, setCoupleMode] = useState<CoupleMode | null>(null);
@@ -171,7 +175,7 @@ export default function OnboardingCoupleScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF0F3', '#FFF8F6', '#FFFFFF']}
+      colors={[colors.primaryLighter, colors.baseBg, colors.white]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{ flex: 1 }}>
@@ -202,14 +206,14 @@ export default function OnboardingCoupleScreen() {
             <OptionCard
               selected={coupleMode === 'create'}
               onPress={() => { setCoupleMode('create'); }}
-              icon={<Heart size={22} color={coupleMode === 'create' ? '#E8788A' : '#A898AD'} strokeWidth={1.5} />}
+              icon={<Heart size={22} color={coupleMode === 'create' ? colors.primary : '#A898AD'} strokeWidth={1.5} />}
               label={t.onboarding.couple.createLabel}
               subtitle={t.onboarding.couple.createSubtitle}
             />
             <OptionCard
               selected={coupleMode === 'join'}
               onPress={() => { setCoupleMode('join'); }}
-              icon={<Link size={22} color={coupleMode === 'join' ? '#E8788A' : '#A898AD'} strokeWidth={1.5} />}
+              icon={<Link size={22} color={coupleMode === 'join' ? colors.primary : '#A898AD'} strokeWidth={1.5} />}
               label={t.onboarding.couple.joinLabel}
               subtitle={t.onboarding.couple.joinSubtitle}
             />
@@ -245,7 +249,7 @@ export default function OnboardingCoupleScreen() {
               onPress={handleContinue}
               disabled={loading}
               className="w-full h-14 rounded-2xl items-center justify-center"
-              style={{ backgroundColor: loading ? '#E8788A80' : '#E8788A' }}>
+              style={{ backgroundColor: loading ? colors.primaryShadow : colors.primary }}>
               <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
                 {t.onboarding.couple.continueBtn}  →
               </Body>

@@ -53,7 +53,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
         <View className="items-center mb-5">
           <View
             className="w-14 h-14 rounded-full items-center justify-center mb-3"
-            style={{ backgroundColor: 'rgba(239,68,68,0.10)' }}>
+            style={{ backgroundColor: colors.errorBg }}>
             <AlertCircle size={28} color={colors.errorColor} strokeWidth={1.5} />
           </View>
           <Heading size="md" className="text-textDark text-center">
@@ -67,7 +67,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
         {/* Warning text */}
         <View
           className="rounded-2xl px-4 py-3 mb-5"
-          style={{ backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)' }}>
+          style={{ backgroundColor: colors.errorBg, borderWidth: 1, borderColor: colors.errorColor + '30' }}>
           <Body size="sm" className="text-textMid leading-relaxed">
             {t.profile.deleteAccount.warning}
           </Body>

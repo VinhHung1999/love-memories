@@ -49,7 +49,7 @@ export default function WishesScreen() {
                     }}>
                     <Caption
                       className="font-semibold"
-                      style={{ color: vm.statusFilter === f.key ? '#fff' : colors.textMid }}>
+                      style={{ color: vm.statusFilter === f.key ? colors.white : colors.textMid }}>
                       {f.label}
                     </Caption>
                   </Pressable>
@@ -67,7 +67,7 @@ export default function WishesScreen() {
                   }}>
                   <Caption
                     className="font-semibold"
-                    style={{ color: !vm.categoryFilter ? '#fff' : colors.textMid }}>
+                    style={{ color: !vm.categoryFilter ? colors.white : colors.textMid }}>
                     {t.datePlanner.allFilter}
                   </Caption>
                 </Pressable>
@@ -82,7 +82,7 @@ export default function WishesScreen() {
                     <Caption>{cat.emoji}</Caption>
                     <Caption
                       className="font-medium"
-                      style={{ color: vm.categoryFilter === cat.key ? '#fff' : colors.textMid }}>
+                      style={{ color: vm.categoryFilter === cat.key ? colors.white : colors.textMid }}>
                       {cat.label}
                     </Caption>
                   </Pressable>

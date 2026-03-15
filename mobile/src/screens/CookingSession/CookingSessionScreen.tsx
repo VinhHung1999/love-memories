@@ -35,13 +35,13 @@ function PhaseBar({ status }: { status: string }) {
           <React.Fragment key={phase}>
             <View
               className="w-7 h-7 rounded-full items-center justify-center"
-              style={{ backgroundColor: done ? '#22c55e' : active ? colors.primary : '#f3f4f6' }}>
+              style={{ backgroundColor: done ? colors.success : active ? colors.primary : colors.gray100 }}>
               {done
                 ? <Check size={14} color="#fff" strokeWidth={1.5} />
                 : (() => { const PhaseIcon = PHASE_ICONS[idx]; return PhaseIcon ? <PhaseIcon size={14} color={done || active ? '#fff' : colors.textLight} strokeWidth={1.5} /> : null; })()}
             </View>
             {idx < PHASES.length - 1 ? (
-              <View className="flex-1 h-0.5 mx-0.5" style={{ backgroundColor: idx < currentIdx ? '#22c55e' : '#e5e7eb' }} />
+              <View className="flex-1 h-0.5 mx-0.5" style={{ backgroundColor: idx < currentIdx ? colors.success : colors.gray100 }} />
             ) : null}
           </React.Fragment>
         );
@@ -99,7 +99,7 @@ function ShoppingPhase({
               style={{ borderBottomWidth: idx < session.items.length - 1 ? 1 : 0, borderBottomColor: colors.border + '4D' }}>
               <View
                 className="w-5 h-5 rounded-md border-2 items-center justify-center"
-                style={{ backgroundColor: item.checked ? '#22c55e' : 'transparent', borderColor: item.checked ? '#22c55e' : colors.border }}>
+                style={{ backgroundColor: item.checked ? colors.success : 'transparent', borderColor: item.checked ? colors.success : colors.border }}>
                 {item.checked ? <Check size={11} strokeWidth={1.5} /> : null}
               </View>
               <Body
@@ -122,7 +122,7 @@ function ShoppingPhase({
           onPress={onAdvance}
           disabled={!allChecked || isAdvancing}
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
-          style={{ backgroundColor: allChecked ? colors.primary : '#ccc' }}>
+          style={{ backgroundColor: allChecked ? colors.primary : colors.gray100 }}>
           <ChefHat size={14} strokeWidth={1.5} />
           <Label className="text-white">
             {allChecked ? t.whatToEat.shopping.startCooking : t.whatToEat.shopping.subtitle}
@@ -196,7 +196,7 @@ function StepCountdown({ durationSeconds }: { durationSeconds: number }) {
         : <Timer size={12} color={isRunning ? colors.primary : colors.textLight} strokeWidth={1.5} />}
       <Caption
         className="font-semibold"
-        style={{ color: isDone ? '#16a34a' : isRunning ? colors.primary : colors.textLight }}>
+        style={{ color: isDone ? colors.success : isRunning ? colors.primary : colors.textLight }}>
         {isDone ? 'Done!' : display}
       </Caption>
     </Pressable>
@@ -299,7 +299,7 @@ function CookingPhase({
                     style={{ borderBottomWidth: idx < stepsForRecipe.length - 1 ? 1 : 0, borderBottomColor: colors.border + '4D' }}>
                     <View
                       className="w-6 h-6 rounded-full items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ backgroundColor: step.checked ? '#22c55e' : colors.primaryMuted }}>
+                      style={{ backgroundColor: step.checked ? colors.success : colors.primaryMuted }}>
                       {step.checked ? (
                         <Check size={12} strokeWidth={1.5} />
                       ) : (
@@ -334,7 +334,7 @@ function CookingPhase({
           onPress={onAdvance}
           disabled={!allChecked || isAdvancing}
           className="rounded-2xl py-2.5 flex-row items-center justify-center gap-1.5"
-          style={{ backgroundColor: allChecked ? colors.primary : '#ccc' }}>
+          style={{ backgroundColor: allChecked ? colors.primary : colors.gray100 }}>
           <Camera size={14} strokeWidth={1.5} />
           <Label className="text-white">{t.whatToEat.cooking.takePhoto}</Label>
         </Pressable>

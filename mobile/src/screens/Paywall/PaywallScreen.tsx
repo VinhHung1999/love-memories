@@ -212,7 +212,7 @@ function FeatureTable() {
               {row.plusIsCheck ? (
                 <View
                   className="w-5 h-5 rounded-full items-center justify-center"
-                  style={{ backgroundColor: '#FFF0F2' }}
+                  style={{ backgroundColor: colors.primaryMuted }}
                 >
                   <Check size={11} color={colors.primary} strokeWidth={2.5} />
                 </View>
@@ -244,7 +244,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
   const vm = usePaywallViewModel(() => navigation.goBack());
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: '#FFF8F6' }}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.baseBg }}>
       {/* ── Top bar ── */}
       <View className="flex-row items-center px-4 pt-2 pb-1">
         <Pressable
@@ -272,7 +272,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
           <Animated.View entering={FadeInDown.delay(0).springify().damping(18)}>
             <View
               className="flex-row items-center gap-2 rounded-2xl px-4 py-3 mb-4 mt-2"
-              style={{ backgroundColor: '#FFF0F2', borderWidth: 1, borderColor: colors.primaryLighter }}
+              style={{ backgroundColor: colors.primaryMuted, borderWidth: 1, borderColor: colors.primaryLighter }}
             >
               <Caption style={{ color: colors.primary }}>
                 {t.paywall.limitBanner}{' '}
@@ -354,7 +354,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
       {/* ── Fixed bottom CTA bar ── */}
       <View
         className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3"
-        style={{ backgroundColor: '#FFF8F6', borderTopWidth: 1, borderColor: colors.border }}
+        style={{ backgroundColor: colors.baseBg, borderTopWidth: 1, borderColor: colors.border }}
       >
         <Pressable
           onPress={vm.handlePurchase}

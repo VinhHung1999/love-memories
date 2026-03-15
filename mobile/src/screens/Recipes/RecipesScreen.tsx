@@ -151,8 +151,8 @@ function FilterChip({
     <Pressable
       onPress={onPress}
       className="px-3 py-1.5 rounded-xl border"
-      style={{ backgroundColor: active ? colors.primary : '#fff', borderColor: active ? colors.primary : colors.border }}>
-      <Caption className="font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+      style={{ backgroundColor: active ? colors.primary : colors.bgCard, borderColor: active ? colors.primary : colors.border }}>
+      <Caption className="font-semibold" style={{ color: active ? colors.white : colors.textMid }}>
         {label}
       </Caption>
     </Pressable>

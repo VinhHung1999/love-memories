@@ -94,7 +94,7 @@ function EmojiPickerModal({
                   className="px-3 py-1.5 rounded-xl border"
                   style={{ backgroundColor: i === activeCategory ? colors.primary : 'transparent', borderColor: i === activeCategory ? colors.primary : colors.border }}>
                   <Label
-                    style={{ color: i === activeCategory ? '#fff' : colors.textMid }}>
+                    style={{ color: i === activeCategory ? colors.white : colors.textMid }}>
                     {cat.label}
                   </Label>
                 </Pressable>
@@ -315,8 +315,8 @@ export default function MapScreen() {
                 onPress={() => vm.handleTypeFilter(f.key)}
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border"
                 style={{ backgroundColor: active ? colors.primary : 'transparent', borderColor: active ? colors.primary : colors.border }}>
-                <f.icon size={13} color={active ? '#fff' : colors.textMid} strokeWidth={1.5} />
-                <Label style={{ color: active ? '#fff' : colors.textMid }}>
+                <f.icon size={13} color={active ? colors.white : colors.textMid} strokeWidth={1.5} />
+                <Label style={{ color: active ? colors.white : colors.textMid }}>
                   {f.label}
                 </Label>
               </Pressable>
