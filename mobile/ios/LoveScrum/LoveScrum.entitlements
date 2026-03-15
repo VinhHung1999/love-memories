@@ -7,6 +7,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:love-scrum.hungphu.work</string>
+		<string>applinks:dev-love-scrum.hungphu.work</string>
 	</array>
 </dict>
 </plist>

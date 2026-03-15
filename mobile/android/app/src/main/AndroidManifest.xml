@@ -48,6 +48,26 @@
                 android:host="love-scrum.hungphu.work"
                 android:pathPrefix="/invite/" />
         </intent-filter>
+        <!-- Dev App Links: share tokens -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data
+                android:scheme="https"
+                android:host="dev-love-scrum.hungphu.work"
+                android:pathPrefix="/share/" />
+        </intent-filter>
+        <!-- Dev App Links: invite codes -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data
+                android:scheme="https"
+                android:host="dev-love-scrum.hungphu.work"
+                android:pathPrefix="/invite/" />
+        </intent-filter>
       </activity>
     </application>
 </manifest>
