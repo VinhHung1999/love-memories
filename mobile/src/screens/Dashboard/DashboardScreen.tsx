@@ -15,10 +15,16 @@ import { DashboardSkeleton } from './components/DashboardSkeleton';
 import { HeroMomentCard } from './components/HeroMomentCard';
 import { SectionHeader } from './components/SectionHeader';
 import { QuickActionButton } from './components/QuickActionButton';
+// MVP-HIDDEN: v1.1 — kept for v1.1 re-enable
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ActiveCookingBanner } from './components/ActiveCookingBanner';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExpenseWidget } from './components/ExpenseWidget';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CompactRecapCard } from './components/CompactRecapCard';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CompactDateCard } from './components/CompactDateCard';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FoodHighlightCard } from './components/FoodHighlightCard';
 import { NotificationBell } from './components/NotificationBell';
 import { DashboardStatsCard } from './components/DashboardStatsCard';
@@ -26,6 +32,10 @@ import { RelationshipTimer } from './components/RelationshipTimer';
 import OverlayHeader from '@/components/OverlayHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRequestNotificationPermission } from '../../hooks/useRequestNotificationPermission';
+import { useDashboardTour } from './useDashboardTour';
+import DashboardTourOverlay from './components/DashboardTourOverlay';
+import DatePickerSheet from '../../components/DatePickerSheet';
+import NoPartnerBanner from '../../components/NoPartnerBanner';
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -33,6 +43,7 @@ export default function DashboardScreen() {
   useRequestNotificationPermission();
   const vm = useDashboardViewModel();
   const colors = useAppColors();
+  const tour = useDashboardTour();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler(e => {
     scrollY.value = e.contentOffset.y;
@@ -57,6 +68,7 @@ export default function DashboardScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    paddingTop: 10
                   }}
                 >
                   {/* ── Title ── */}
@@ -65,7 +77,7 @@ export default function DashboardScreen() {
                   </Heading>
                 </View>
                 {vm.slogan ? (
-                  <Cursive className="text-[11px] text-textLight">
+                  <Cursive className="text-[11px] text-textLight mt-2">
                     {vm.slogan}
                   </Cursive>
                 ) : null}
@@ -75,6 +87,14 @@ export default function DashboardScreen() {
               <Animated.View entering={FadeInDown.delay(110).duration(500)}>
                 <DailyQuestionCard />
               </Animated.View>
+
+              {/* ── No-partner banner — shown until partner joins ── */}
+              {vm.hasCouple && !vm.hasPartner ? (
+                <NoPartnerBanner
+                  inviteCode={vm.coupleInviteCode}
+                  onShare={vm.handleShareInviteCode}
+                />
+              ) : null}
 
               {/* ── Recent moments horizontal strip ── */}
               {vm.recentMoments.length > 0 ? (
@@ -102,18 +122,23 @@ export default function DashboardScreen() {
                 </Pressable>
               )}
 
-              {/* ── 0. Relationship Timer ── */}
-              <RelationshipTimer
-                duration={vm.relationshipDuration}
-                userAvatar={vm.user?.avatar}
-                userInitials={vm.user?.name?.charAt(0).toUpperCase() ?? '?'}
-                partnerAvatar={vm.partner?.avatar}
-                partnerInitials={
-                  vm.partner?.name?.charAt(0).toUpperCase() ?? '?'
-                }
-              />
+              {/* ── 0. Relationship Timer — ref for tour spotlight ── */}
+              <View ref={tour.timerRef}>
+                <RelationshipTimer
+                  duration={vm.relationshipDuration}
+                  userAvatar={vm.user?.avatar}
+                  userInitials={vm.user?.name?.charAt(0).toUpperCase() ?? '?'}
+                  partnerAvatar={vm.partner?.avatar}
+                  partnerInitials={
+                    vm.partner?.name?.charAt(0).toUpperCase() ?? '?'
+                  }
+                  hasCouple={vm.hasCouple}
+                  onInvitePartner={vm.handleInvitePartner}
+                  onSetAnniversary={() => vm.setShowAnniversaryPicker(true)}
+                />
+              </View>
 
-              {/* ── 0b. Stats Overview ── */}
+              {/* ── 0b. Stats Overview — moments only for MVP ── */}
               <DashboardStatsCard
                 duration={vm.relationshipDuration}
                 momentsCount={vm.momentsCount}
@@ -122,70 +147,50 @@ export default function DashboardScreen() {
                 onFoodSpotsPress={vm.navigateToFoodSpots}
               />
 
-              {/* ── 1b. Active Cooking Banner ── */}
-              {vm.activeSession ? (
+              {/* MVP-HIDDEN: v1.1 — Active Cooking Banner */}
+              {/* {vm.activeSession ? (
                 <Animated.View entering={FadeInDown.delay(100).duration(400)}>
                   <ActiveCookingBanner
-                    recipeTitles={vm.activeSession.recipes
-                      .map(r => r.recipe.title)
-                      .join(' + ')}
+                    recipeTitles={vm.activeSession.recipes.map(r => r.recipe.title).join(' + ')}
                     onPress={vm.handleActiveCookingPress}
                   />
                 </Animated.View>
-              ) : null}
+              ) : null} */}
 
-              {/* ── 2b. Expense + Compact cards row ── */}
-              <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+              {/* MVP-HIDDEN: v1.1 — Expense widget + Recap card + Date card */}
+              {/* <Animated.View entering={FadeInDown.delay(120).duration(500)}>
                 <View className="flex-row gap-3">
                   <View className="flex-1">
-                    <ExpenseWidget
-                      stats={vm.expenseStats}
-                      onPress={vm.navigateToExpenses}
-                    />
+                    <ExpenseWidget stats={vm.expenseStats} onPress={vm.navigateToExpenses} />
                   </View>
                   {vm.showMonthlyRecapBanner ? (
                     <CompactRecapCard onPress={vm.navigateToMonthlyRecap} />
                   ) : null}
-                  <CompactDateCard
-                    plans={vm.upcomingPlans}
-                    onPress={vm.navigateToDatePlanner}
-                  />
+                  <CompactDateCard plans={vm.upcomingPlans} onPress={vm.navigateToDatePlanner} />
                 </View>
-              </Animated.View>
+              </Animated.View> */}
 
               {/* ── 3. Quick Actions ── */}
               <Animated.View entering={FadeInDown.delay(140).duration(500)}>
                 <SectionHeader title={t.dashboard.sections.quickActions} />
                 <View className="flex-row gap-3">
-                  {vm.quickActions.slice(0, 4).map((action, idx) => (
-                    <QuickActionButton key={idx} {...action} />
-                  ))}
-                </View>
-                <View className="flex-row gap-3 mt-3">
-                  {vm.quickActions.slice(4, 8).map((action, idx) => (
+                  {vm.quickActions.map((action, idx) => (
                     <QuickActionButton key={idx} {...action} />
                   ))}
                 </View>
               </Animated.View>
 
-              {/* ── 4. Food Highlights ── */}
-              {vm.recentFoodSpots.length > 0 ? (
+              {/* MVP-HIDDEN: v1.1 — Food Highlights */}
+              {/* {vm.recentFoodSpots.length > 0 ? (
                 <Animated.View entering={FadeInDown.delay(220).duration(500)}>
-                  <SectionHeader
-                    title={t.dashboard.sections.foodHighlights}
-                    onSeeAll={vm.handleFoodSpotListPress}
-                  />
+                  <SectionHeader title={t.dashboard.sections.foodHighlights} onSeeAll={vm.handleFoodSpotListPress} />
                   <View className="gap-3">
                     {vm.recentFoodSpots.map(spot => (
-                      <FoodHighlightCard
-                        key={spot.id}
-                        spot={spot}
-                        onPress={() => vm.handleFoodSpotPress(spot.id)}
-                      />
+                      <FoodHighlightCard key={spot.id} spot={spot} onPress={() => vm.handleFoodSpotPress(spot.id)} />
                     ))}
                   </View>
                 </Animated.View>
-              ) : null}
+              ) : null} */}
             </View>
           </Animated.ScrollView>
         )}
@@ -193,10 +198,29 @@ export default function DashboardScreen() {
       <OverlayHeader
         scrollY={scrollY}
         title={vm.headerTitle}
+        fadeStart={20}
+        fadeEnd={50}
         right={() => {
           return <NotificationBell onPress={vm.navigateToNotifications} />;
         }}
       />
+      {tour.tourStep !== null && tour.steps.length > 0 && (
+        <DashboardTourOverlay
+          step={tour.tourStep}
+          steps={tour.steps}
+          onAdvance={tour.advanceTour}
+          onDismiss={tour.dismissTour}
+        />
+      )}
+      {vm.showAnniversaryPicker && (
+        <DatePickerSheet
+          value={new Date()}
+          onChange={vm.handleSetAnniversary}
+          label={t.dashboard.setAnniversary.title}
+          maximumDate={new Date()}
+          onClose={() => vm.setShowAnniversaryPicker(false)}
+        />
+      )}
     </>
   );
 }

@@ -52,11 +52,11 @@ export default function DatePickerSheet({
         <DateTimePicker
           value={tempDate}
           mode="date"
-          display="spinner"
+          display="inline"
           onChange={handleChange}
           maximumDate={maximumDate}
           minimumDate={minimumDate}
-          style={{ height: 200, width: '100%' }}
+          style={{ height: 340, width: '100%' }}
         />
       </View>
     </AppBottomSheet>

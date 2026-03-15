@@ -42,6 +42,7 @@ export default function PlanFormSheet({
         <View className="mb-4">
           <FieldLabel>{t.datePlanner.planTitleLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.title}
             onChangeText={vm.setTitle}
             placeholder={t.datePlanner.planTitlePlaceholder}
@@ -52,6 +53,7 @@ export default function PlanFormSheet({
         <View className="mb-4">
           <FieldLabel>{t.datePlanner.planDateLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.date}
             onChangeText={vm.setDate}
             placeholder="YYYY-MM-DD"
@@ -63,6 +65,7 @@ export default function PlanFormSheet({
         <View className="mb-4">
           <FieldLabel>{t.datePlanner.planNotesLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.notes}
             onChangeText={vm.setNotes}
             placeholder={t.datePlanner.planNotesPlaceholder}
@@ -95,6 +98,7 @@ export default function PlanFormSheet({
                 <View className="flex-row gap-2">
                   <View className="flex-1">
                     <Input
+                      bottomSheet
                       value={stop.time}
                       onChangeText={v => vm.updateStop(idx, 'time', v)}
                       placeholder={t.datePlanner.stopTimePlaceholder}
@@ -108,11 +112,13 @@ export default function PlanFormSheet({
                   </Pressable>
                 </View>
                 <Input
+                  bottomSheet
                   value={stop.title}
                   onChangeText={v => vm.updateStop(idx, 'title', v)}
                   placeholder={t.datePlanner.stopTitlePlaceholder}
                 />
                 <Input
+                  bottomSheet
                   value={stop.notes}
                   onChangeText={v => vm.updateStop(idx, 'notes', v)}
                   placeholder={t.datePlanner.stopNotesPlaceholder}

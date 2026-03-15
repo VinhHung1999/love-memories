@@ -216,7 +216,7 @@ export default function LocationPicker({
         )}
 
         <TextInput
-          className="flex-1 text-base text-textDark"
+          className="flex-1"
           placeholder={
             isGettingLocation
               ? t.moments.create.gettingLocation

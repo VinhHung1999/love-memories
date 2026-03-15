@@ -177,11 +177,11 @@ function MonthCalendar({
                     {day}
                   </Caption>
                 </View>
-                {/* Moment dot */}
+                {/* Moment heart indicator */}
                 {hasM ? (
-                  <View className="w-1 h-1 rounded-full bg-primary mt-0.5" />
+                  <Heart size={7} color={colors.primary} fill={colors.primary} strokeWidth={0} style={{ marginTop: 2 }} />
                 ) : (
-                  <View className="w-1 h-1 mt-0.5" />
+                  <View style={{ width: 7, height: 7, marginTop: 2 }} />
                 )}
               </Pressable>
             );
@@ -232,11 +232,10 @@ function MomentMiniCard({ moment, onPress }: { moment: Moment; onPress: () => vo
 
 function TimelineDayGroup({
   group,
-  isLast,
   onMomentPress,
 }: {
   group: { dateStr: string; label: string; moments: Moment[] };
-  isLast: boolean;
+  isLast?: boolean;
   onMomentPress: (id: string) => void;
 }) {
   const colors = useAppColors();
@@ -245,23 +244,23 @@ function TimelineDayGroup({
     <View className="flex-row py-3" style={{ paddingLeft: 16 }}>
       {/* Left: vertical spine + dot + date label */}
       <View style={{ width: TIMELINE_LEFT_W }} className="items-center">
-        {/* Spine line */}
+        {/* Spine: extends full height minus date label area (bottom:18 clears Caption ~14px + mt-1 4px) */}
         <View
           style={{
             position: 'absolute',
             top: 0,
-            bottom: isLast ? '55%' : 0,
+            bottom: 18,
             left: TIMELINE_LEFT_W / 2 - 1,
             width: 1,
             backgroundColor: colors.border,
           }}
         />
-        {/* Filled dot */}
+        {/* Dot */}
         <View
           className="rounded-full"
           style={{ width: 10, height: 10, backgroundColor: colors.primary, marginTop: 2, zIndex: 1 }}
         />
-        {/* Date */}
+        {/* Date — below dot, not crossed by spine */}
         <Caption className="text-textLight font-body mt-1 text-center" style={{ letterSpacing: 0.3 }}>
           {group.label}
         </Caption>
@@ -351,7 +350,7 @@ export default function MomentsScreen() {
 
           {/* Timeline or empty */}
           {vm.isEmpty ? (
-            <View className="pt-10 pb-[100px]">
+            <View style={{flex: 1}}>
               <EmptyState
                 icon={Heart}
                 title={t.moments.emptyTitle}

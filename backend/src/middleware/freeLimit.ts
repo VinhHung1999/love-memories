@@ -14,7 +14,7 @@ const resourceCounters: Record<CountableResource, (coupleId: string) => Promise<
 
 export function checkFreeLimit(resource: CountableResource) {
   return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
-    const { coupleId } = req.user!;
+    const { coupleId } = req.user! as { userId: string; coupleId: string };
 
     const active = await isSubscriptionActive(coupleId);
     if (active) {
@@ -47,7 +47,7 @@ export function checkPremiumAccess(module: string) {
       return;
     }
 
-    const { coupleId } = req.user!;
+    const { coupleId } = req.user! as { userId: string; coupleId: string };
     const active = await isSubscriptionActive(coupleId);
 
     if (!active) {

@@ -10,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import { Body, Caption, Heading, Label } from '../../components/Typography';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, LocateFixed, MapPin as MapPinIcon, Utensils, X } from 'lucide-react-native';
 import Mapbox from '@rnmapbox/maps';
 import { useAppColors } from '../../navigation/theme';
@@ -19,6 +18,8 @@ import { useMapViewModel } from './useMapViewModel';
 import type { PinTypeFilter } from './useMapViewModel';
 import TagBadge from '../../components/TagBadge';
 import type { MapPin, TagMetadata } from '../../types';
+import ListHeader from '@/components/ListHeader';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 // Mapbox token initialized in App.tsx before NavigationContainer mounts
 
 // ── Emoji categories ──────────────────────────────────────────────────────────
@@ -224,6 +225,7 @@ function PinCallout({
 export default function MapScreen() {
   const colors = useAppColors();
   const vm = useMapViewModel();
+  const navigation = useAppNavigation();
   const cameraRef = useRef<any>(null);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
   const hasInitialFitRef = useRef(false);
@@ -296,12 +298,12 @@ export default function MapScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <SafeAreaView edges={['top']} className="bg-white">
-        {/* Header */}
-        <View className="px-5 pt-3 pb-2">
-          <Heading size="xl" className="text-textDark">{t.map.title}</Heading>
-          <Body size="sm" className="text-textLight mt-0.5">{t.map.subtitle}</Body>
-        </View>
+      <ListHeader
+        title={t.map.title}
+        onBack={navigation.goBack}
+        subtitle={t.map.subtitle}
+        filterBar={
+<>
 
         {/* Type filter chips */}
         <View className="px-5 pb-3 flex-row gap-2">
@@ -349,7 +351,13 @@ export default function MapScreen() {
             </View>
           </ScrollView>
         ) : null}
-      </SafeAreaView>
+
+</>
+      
+        }
+        />
+
+ 
 
       {/* Map + overlays */}
       <View className="flex-1">
@@ -362,7 +370,7 @@ export default function MapScreen() {
           />
           <Mapbox.UserLocation
             visible
-            animated
+            animated={false}
             onUpdate={location => {
               setUserCoords([location.coords.longitude, location.coords.latitude]);
             }}

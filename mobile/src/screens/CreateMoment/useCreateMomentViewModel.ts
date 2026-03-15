@@ -60,7 +60,7 @@ type FormAction =
   | { type: 'INCREMENT_UPLOAD' }
   | { type: 'RESET' };
 
-function makeInitialState(): FormState {
+function makeInitialState(initialPhoto?: { uri: string; mimeType?: string }): FormState {
   return {
     title: '',
     caption: '',
@@ -72,7 +72,9 @@ function makeInitialState(): FormState {
     tags: [],
     spotifyUrl: '',
     showDatePicker: false,
-    photos: [],
+    photos: initialPhoto
+      ? [{ uri: initialPhoto.uri, mimeType: initialPhoto.mimeType ?? 'image/jpeg', uploaded: false }]
+      : [],
     isRecording: false,
     recordedAudioPath: null,
     recordingDuration: 0,
@@ -124,15 +126,16 @@ function formReducer(state: FormState, action: FormAction): FormState {
 interface Props {
   momentId?: string | null;
   initialMoment?: Moment;
+  initialPhoto?: { uri: string; mimeType?: string };
   onClose: () => void;
 }
 
-export function useCreateMomentViewModel({ momentId, initialMoment, onClose }: Props) {
+export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto, onClose }: Props) {
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
 
-  const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
+  const [s, dispatch] = useReducer(formReducer, initialPhoto, makeInitialState);
   const { startUpload, incrementUpload } = useUploadProgress();
 
   // Ref holds latest handleStopRecording to avoid stale closure in RecordBackListener

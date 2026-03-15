@@ -1,13 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Share } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
 import { useAppColors } from '../../navigation/theme';
 import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
 import type { ExpenseStats } from '../../lib/api';
 import t from '../../locales/en';
 import type { Moment, FoodSpot, CoupleProfile, CookingSession, DatePlan } from '../../types';
-import { Heart, Utensils, ChefHat, Banknote, Mail, CalendarHeart, Trophy, Map } from 'lucide-react-native';
+import { Heart, Mail } from 'lucide-react-native';
+// MVP-HIDDEN: v1.1 — eslint-disable-next-line @typescript-eslint/no-unused-vars
+// import { Utensils, ChefHat, Banknote, CalendarHeart, Trophy, Map } from 'lucide-react-native';
 
 export interface RelationshipDuration {
   years: number;
@@ -20,6 +23,8 @@ export function useDashboardViewModel() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
   const colors = useAppColors();
+  const queryClient = useQueryClient();
+  const [showAnniversaryPicker, setShowAnniversaryPicker] = useState(false);
 
   // ── Data queries ────────────────────────────────────────────────────────────
 
@@ -182,6 +187,36 @@ export function useDashboardViewModel() {
   // Show monthly recap banner on days 1-3 of each month
   const showMonthlyRecapBanner = now.getDate() <= 3;
 
+  // ── Couple CTA state ────────────────────────────────────────────────────────
+
+  const hasCouple = !!user?.coupleId;
+  const hasPartner = (couple?.memberCount ?? couple?.users?.length ?? 0) > 1;
+
+  const handleInvitePartner = useCallback(async () => {
+    try {
+      const { inviteCode } = await coupleApi.generateInvite();
+      await Share.share({
+        message: `Join me on Love Memories! Use invite code: ${inviteCode}`,
+        title: 'Love Memories Invite',
+      });
+    } catch {
+      // dismissed or error — no-op
+    }
+  }, []);
+
+  const handleShareInviteCode = useCallback(async () => {
+    const code = couple?.inviteCode;
+    if (!code) return;
+    const message = t.dashboard.noPartnerBanner.shareMessage.replace('{code}', code);
+    await Share.share({ message }).catch(() => {});
+  }, [couple?.inviteCode]);
+
+  const handleSetAnniversary = useCallback(async (date: Date) => {
+    await coupleApi.update({ anniversaryDate: date.toISOString().slice(0, 10) });
+    queryClient.invalidateQueries({ queryKey: ['couple'] });
+    setShowAnniversaryPicker(false);
+  }, [queryClient]);
+
   // ── Derived display values ──────────────────────────────────────────────────
 
   const headerTitle = couple?.name ?? appNameSetting?.value ?? t.app.name;
@@ -195,27 +230,9 @@ export function useDashboardViewModel() {
       bgClass: 'bg-primary/10',
       onPress: () => navigateTo('MomentsTab'),
     },
-    {
-      icon: Utensils,
-      label: t.dashboard.quickActions.food,
-      iconColor: colors.secondary,
-      bgClass: 'bg-secondary/10',
-      onPress: navigateToFoodSpots,
-    },
-    {
-      icon: ChefHat,
-      label: t.dashboard.quickActions.recipes,
-      iconColor: colors.primary,
-      bgClass: 'bg-primary/10',
-      onPress: () => navigateTo('RecipesTab'),
-    },
-    {
-      icon: Banknote,
-      label: t.dashboard.quickActions.expenses,
-      iconColor: '#8B5CF6',
-      bgClass: 'bg-violet-100',
-      onPress: navigateToExpenses,
-    },
+    // MVP-HIDDEN: v1.1 — { icon: Utensils, label: t.dashboard.quickActions.food, onPress: navigateToFoodSpots }
+    // MVP-HIDDEN: v1.1 — { icon: ChefHat, label: t.dashboard.quickActions.recipes, onPress: () => navigateTo('RecipesTab') }
+    // MVP-HIDDEN: v1.1 — { icon: Banknote, label: t.dashboard.quickActions.expenses, onPress: navigateToExpenses }
     {
       icon: Mail,
       label: t.dashboard.quickActions.letters,
@@ -223,28 +240,10 @@ export function useDashboardViewModel() {
       bgClass: 'bg-primary/10',
       onPress: navigateToLetters,
     },
-    {
-      icon: CalendarHeart,
-      label: t.dashboard.quickActions.datePlanner,
-      iconColor: colors.secondary,
-      bgClass: 'bg-secondary/10',
-      onPress: navigateToDatePlanner,
-    },
-    {
-      icon: Trophy,
-      label: t.dashboard.quickActions.achievements,
-      iconColor: colors.accent,
-      bgClass: 'bg-accent/10',
-      onPress: navigateToAchievements,
-    },
-    {
-      icon: Map,
-      label: t.dashboard.quickActions.map,
-      iconColor: colors.accent,
-      bgClass: 'bg-accent/10',
-      onPress: navigateToMap,
-    },
-  ], [colors, navigateTo, navigateToFoodSpots, navigateToExpenses, navigateToLetters, navigateToDatePlanner, navigateToAchievements, navigateToMap]);
+    // MVP-HIDDEN: v1.1 — { icon: CalendarHeart, label: t.dashboard.quickActions.datePlanner, onPress: navigateToDatePlanner }
+    // MVP-HIDDEN: v1.1 — { icon: Trophy, label: t.dashboard.quickActions.achievements, onPress: navigateToAchievements }
+    // MVP-HIDDEN: v1.1 — { icon: Map, label: t.dashboard.quickActions.map, onPress: navigateToMap }
+  ], [colors, navigateTo, navigateToLetters]);
 
   // ── Return ─────────────────────────────────────────────────────────────────
 
@@ -280,5 +279,13 @@ export function useDashboardViewModel() {
     navigateToDailyQuestions,
     navigateToMonthlyRecap,
     showMonthlyRecapBanner,
+    hasCouple,
+    hasPartner,
+    coupleInviteCode: couple?.inviteCode ?? null,
+    handleShareInviteCode,
+    showAnniversaryPicker,
+    setShowAnniversaryPicker,
+    handleInvitePartner,
+    handleSetAnniversary,
   };
 }

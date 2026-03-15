@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Text, View } from 'react-native';
 import { Caption } from '../../components/Typography';
-import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useQueryClient } from '@tanstack/react-query';
 import { expensesApi } from '../../lib/api';
 import { useAppColors } from '../../navigation/theme';
@@ -10,6 +10,7 @@ import FieldLabel from '../../components/FieldLabel';
 import t from '../../locales/en';
 import { EXPENSE_CATEGORIES, formatVND } from './expensesConstants';
 import type { ExpenseCategory } from '../../lib/api';
+import Input from '@/components/Input';
 
 interface BudgetLimitsSheetProps {
   onClose: () => void;
@@ -98,7 +99,7 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
                   </Caption>
                 )}
               </View>
-              <BottomSheetTextInput
+              <Input
                 className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-textDark border border-border/60"
                 value={draft[cat.key] ?? ''}
                 onChangeText={v => setDraft(prev => ({ ...prev, [cat.key]: v }))}

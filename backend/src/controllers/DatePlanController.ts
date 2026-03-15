@@ -10,31 +10,31 @@ type PlanStopParam = { id: string; stopId: string };
 type PlanSpotParam = { id: string; stopId: string; spotId: string };
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const plans = await DatePlanService.list(coupleId);
   res.json(plans);
 });
 
 export const getOne = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const plan = await DatePlanService.getOne(req.params.id, coupleId);
   res.json(plan);
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const plan = await DatePlanService.create(coupleId, userId, req.body);
   res.status(201).json(plan);
 });
 
 export const update = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const plan = await DatePlanService.update(req.params.id, coupleId, req.body as Parameters<typeof DatePlanService.update>[2]);
   res.json(plan);
 });
 
 export const updateStatus = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const { status } = req.body as { status: string };
   const plan = await DatePlanService.updateStatus(req.params.id, coupleId, status);
   res.json(plan);
@@ -42,7 +42,7 @@ export const updateStatus = asyncHandler<IdParam>(async (req, res) => {
 
 export const linkMoment = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const { momentId } = req.body as { momentId: string | null };
     const stop = await DatePlanService.linkMoment(req.params.stopId, coupleId, momentId);
     res.json(stop);
@@ -51,7 +51,7 @@ export const linkMoment = asyncHandler(
 
 export const linkFoodSpot = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const { foodSpotId } = req.body as { foodSpotId: string | null };
     const stop = await DatePlanService.linkFoodSpot(req.params.stopId, coupleId, foodSpotId);
     res.json(stop);
@@ -60,7 +60,7 @@ export const linkFoodSpot = asyncHandler(
 
 export const updateStopCost = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const { cost } = req.body as { cost: number | null };
     const stop = await DatePlanService.updateStopCost(req.params.stopId, coupleId, cost);
     res.json(stop);
@@ -69,7 +69,7 @@ export const updateStopCost = asyncHandler(
 
 export const markStopDone = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const plan = await DatePlanService.markStopDone(req.params.id, req.params.stopId, coupleId);
     res.json(plan);
   },
@@ -77,7 +77,7 @@ export const markStopDone = asyncHandler(
 
 export const addSpot = asyncHandler(
   async (req: Request<PlanStopParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const spot = await DatePlanService.addSpot(req.params.stopId, coupleId, req.body);
     res.status(201).json(spot);
   },
@@ -85,14 +85,14 @@ export const addSpot = asyncHandler(
 
 export const deleteSpot = asyncHandler(
   async (req: Request<PlanSpotParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user!;
+    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     await DatePlanService.deleteSpot(req.params.spotId, coupleId);
     res.status(204).send();
   },
 );
 
 export const remove = asyncHandler<IdParam>(async (req, res) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   await DatePlanService.remove(req.params.id, coupleId);
   res.status(204).send();
 });

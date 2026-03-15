@@ -17,10 +17,11 @@ import PhotoPicker from './components/PhotoPicker';
 
 interface Props {
   moment?: Moment;
+  initialPhoto?: { uri: string; mimeType?: string };
   onClose: () => void;
 }
 
-export default function CreateMomentSheet({ moment: initialMoment, onClose }: Props) {
+export default function CreateMomentSheet({ moment: initialMoment, initialPhoto, onClose }: Props) {
   const sheetRef = useRef<BottomSheetModal>(null);
   const { showBottomSheet } = useAppNavigation();
 
@@ -31,6 +32,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
   const vm = useCreateMomentViewModel({
     momentId: initialMoment?.id ?? null,
     initialMoment,
+    initialPhoto,
     onClose,
   });
 
@@ -67,14 +69,15 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="px-5">
           <FieldLabel>{`${t.moments.labels.title} *`}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.moments.placeholders.title}
             value={vm.title}
             onChangeText={vm.setTitle}
-            maxLength={200}
           />
 
           <FieldLabel>{t.moments.labels.caption}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.moments.placeholders.caption}
             value={vm.caption}
             onChangeText={vm.setCaption}
@@ -125,6 +128,7 @@ export default function CreateMomentSheet({ moment: initialMoment, onClose }: Pr
         <View className="px-5">
           <FieldLabel>{t.moments.labels.spotifyUrl}</FieldLabel>
           <Input
+            bottomSheet
             placeholder={t.moments.placeholders.spotifyUrl}
             value={vm.spotifyUrl}
             onChangeText={vm.setSpotifyUrl}

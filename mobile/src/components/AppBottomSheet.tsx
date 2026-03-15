@@ -121,7 +121,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         enablePanDownToClose
         onDismiss={handleDismiss}
         backdropComponent={renderBackdrop}
-        keyboardBehavior="extend"
+        keyboardBehavior={scrollable ? 'extend' : 'interactive'}
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
         handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}

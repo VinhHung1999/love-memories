@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Love Memories needs access to save photos to your library.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -35,6 +37,10 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Love Scrum uses your location to tag this moment with a place name.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Love Memories needs camera access to take photos for your moments.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Love Memories needs access to your photo library to select photos for moments.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Love Scrum uses your microphone to record voice memos for moments.</string>
 	<key>RCTNewArchEnabled</key>
@@ -71,5 +77,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>MBXAccessToken</key>
+	<string>$(MAPBOX_ACCESS_TOKEN)</string>
 </dict>
 </plist>

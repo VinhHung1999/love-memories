@@ -64,6 +64,7 @@ export default function ComposeLetterSheet({
         <View className="mb-4">
           <FieldLabel>{t.loveLetters.titleLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.title}
             onChangeText={vm.setTitle}
             placeholder={t.loveLetters.titlePlaceholder}
@@ -75,6 +76,7 @@ export default function ComposeLetterSheet({
         <View className="mb-4">
           <FieldLabel>{t.loveLetters.contentLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.content}
             onChangeText={vm.setContent}
             placeholder={t.loveLetters.contentPlaceholder}

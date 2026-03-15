@@ -20,7 +20,7 @@ export function generateToken(userId: string, coupleId: string): string {
 }
 
 /** Short-lived access token (15 min) */
-export function generateAccessToken(userId: string, coupleId: string): string {
+export function generateAccessToken(userId: string, coupleId: string | null): string {
   return jwt.sign({ userId, coupleId, type: 'access' }, JWT_SECRET, { expiresIn: '15m' });
 }
 

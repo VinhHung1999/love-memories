@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import { ActivityIndicator, View } from 'react-native';
-import { CircleUser, Heart, Home, Mail, MessageCircleHeart } from 'lucide-react-native';
+// Icons moved to CurvedTabBar — kept here for future use if needed
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -24,6 +26,14 @@ export type AuthStackParamList = {
   Login: undefined;
 };
 
+export type OnboardingStackParamList = {
+  OnboardingCouple: undefined;
+  OnboardingAnniversary: { coupleName: string };
+  OnboardingInvite: { coupleId: string; anniversaryDate?: string; inviteCode?: string };
+  OnboardingCelebration: { coupleId: string; partnerName?: string };
+  OnboardingAvatar: { coupleName?: string; coupleId?: string; anniversaryDate?: string };
+};
+
 /** Root stack for authenticated users — 5-tab MainTabs + full-screen stacks */
 export type AppStackParamList = {
   MainTabs: undefined;
@@ -38,11 +48,17 @@ export type AppStackParamList = {
   Paywall: { trigger: 'limit' | 'browse'; blockedFeature?: string } | undefined;
 };
 
+/** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
+export type DashboardStackParamList = {
+  DashboardHome: undefined;
+  DailyQuestions: undefined;
+};
+
 /** Only the 5 visible bottom tabs */
 export type MainTabParamList = {
   Dashboard: undefined;
   MomentsTab: undefined;
-  DailyQuestionsTab: undefined;
+  CameraTab: undefined;
   LettersTab: undefined;
   ProfileTab: undefined;
 };
@@ -108,8 +124,10 @@ export type LettersStackParamList = {
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const MainTab = createBottomTabNavigator<MainTabParamList>();
+const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
 const MomentsStack = createNativeStackNavigator<MomentsStackParamList>();
 const FoodSpotsStack = createNativeStackNavigator<FoodSpotsStackParamList>();
 const RecipesStack = createNativeStackNavigator<RecipesStackParamList>();
@@ -123,11 +141,47 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 // Auth stack (unauthenticated)
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import CameraTabButton from '../components/CameraTabButton';
+import CurvedTabBar, { CAMERA_SIZE, CONTAINER_H } from '../components/CurvedTabBar';
+import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
+import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
+import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
+import OnboardingInviteScreen from '../screens/Onboarding/OnboardingInviteScreen';
+import OnboardingCelebrationScreen from '../screens/Onboarding/OnboardingCelebrationScreen';
+
 function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
     </AuthStack.Navigator>
+  );
+}
+
+function OnboardingNavigator() {
+  return (
+    <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+      <OnboardingStack.Screen name="OnboardingCouple" component={OnboardingCoupleScreen} />
+      <OnboardingStack.Screen name="OnboardingAnniversary" component={OnboardingAnniversaryScreen} />
+      <OnboardingStack.Screen name="OnboardingCelebration" component={OnboardingCelebrationScreen} />
+      <OnboardingStack.Screen name="OnboardingAvatar" component={OnboardingAvatarScreen} />
+      <OnboardingStack.Screen name="OnboardingInvite" component={OnboardingInviteScreen} />
+    </OnboardingStack.Navigator>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard stack navigator (Home + Daily Q&A)
+// ---------------------------------------------------------------------------
+
+function DashboardNavigator() {
+  return (
+    <DashboardStack.Navigator screenOptions={{ headerShown: false }}>
+      <DashboardStack.Screen name="DashboardHome" component={DashboardScreen} />
+      <DashboardStack.Screen name="DailyQuestions" component={DailyQuestionsScreen} />
+    </DashboardStack.Navigator>
   );
 }
 
@@ -140,6 +194,8 @@ import MomentDetailScreen from '../screens/MomentDetail/MomentDetailScreen';
 import PhotoGalleryScreen from '../screens/PhotoGallery/PhotoGalleryScreen';
 import FoodSpotsScreen from '../screens/FoodSpots/FoodSpotsScreen';
 import FoodSpotDetailScreen from '../screens/FoodSpotDetail/FoodSpotDetailScreen';
+// MVP-HIDDEN: v1.1
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import MapScreen from '../screens/Map/MapScreen';
 import RecipesScreen from '../screens/Recipes/RecipesScreen';
 import RecipeDetailScreen from '../screens/RecipeDetail/RecipeDetailScreen';
@@ -148,6 +204,8 @@ import CookingSessionScreen from '../screens/CookingSession/CookingSessionScreen
 import CookingHistoryScreen from '../screens/CookingHistory/CookingHistoryScreen';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import ExpensesScreen from '../screens/Expenses/ExpensesScreen';
+// MVP-HIDDEN: v1.1
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import AchievementsScreen from '../screens/Achievements/AchievementsScreen';
 import LettersScreen from '../screens/Letters/LettersScreen';
 import LetterReadScreen from '../screens/LetterRead/LetterReadScreen';
@@ -157,6 +215,8 @@ import PlanDetailScreen from '../screens/PlanDetail/PlanDetailScreen';
 import BottomSheetRoute from '../screens/BottomSheetRoute';
 import AlertRoute from '../screens/AlertRoute';
 import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen';
+// MVP-HIDDEN: v1.1
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
 import PaywallScreen from '../screens/Paywall/PaywallScreen';
 import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
@@ -192,8 +252,10 @@ function MomentsNavigator() {
 
 // ---------------------------------------------------------------------------
 // Food Spots stack navigator (full-screen, no tab bar — accessed via Dashboard/Map)
+// MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function FoodSpotsNavigator() {
   return (
     <FoodSpotsStack.Navigator screenOptions={{ headerShown: false }}>
@@ -211,9 +273,10 @@ function FoodSpotsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Recipes stack navigator (full-screen, no tab bar)
+// Recipes stack navigator (full-screen, no tab bar) // MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RecipesNavigator() {
   return (
     <RecipesStack.Navigator screenOptions={{ headerShown: false }}>
@@ -248,9 +311,10 @@ function NotificationsNavigator() {
 }
 
 // ---------------------------------------------------------------------------
-// Expenses stack navigator (full-screen, no tab bar)
+// Expenses stack navigator (full-screen, no tab bar) // MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ExpensesNavigator() {
   return (
     <ExpensesStack.Navigator screenOptions={{ headerShown: false }}>
@@ -283,64 +347,24 @@ function ProfileNavigator() {
 function MainTabNavigator() {
   return (
     <MainTab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: AppTheme.colors.primary,
-        tabBarInactiveTintColor: AppTheme.colors.textMid,
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#F0E6E3',
-          borderTopWidth: 1,
-        },
-        headerShown: false,
-      }}>
-      <MainTab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="MomentsTab"
-        component={MomentsNavigator}
-        options={{
-          tabBarLabel: 'Moments',
-          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="DailyQuestionsTab"
-        component={DailyQuestionsScreen}
-        options={{
-          tabBarLabel: 'Daily Q&A',
-          tabBarIcon: ({ color, size }) => <MessageCircleHeart size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="LettersTab"
-        component={LettersNavigator}
-        options={{
-          tabBarLabel: 'Letters',
-          tabBarIcon: ({ color, size }) => <Mail size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
-      <MainTab.Screen
-        name="ProfileTab"
-        component={ProfileNavigator}
-        options={{
-          tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }) => <CircleUser size={size} color={color} strokeWidth={1.5} />,
-        }}
-      />
+      // CurvedTabBar handles all rendering — SVG notch + floating camera button
+      tabBar={(props) => <CurvedTabBar {...props} />}
+      screenOptions={{ headerShown: false, sceneStyle: { paddingBottom: CONTAINER_H -  CAMERA_SIZE / 2} }}>
+      <MainTab.Screen name="Dashboard" component={DashboardNavigator} />
+      <MainTab.Screen name="MomentsTab" component={MomentsNavigator} />
+      {/* CameraTab: no component rendered — CurvedTabBar handles the floating button */}
+      <MainTab.Screen name="CameraTab" component={React.Fragment} />
+      <MainTab.Screen name="LettersTab" component={LettersNavigator} />
+      <MainTab.Screen name="ProfileTab" component={ProfileNavigator} />
     </MainTab.Navigator>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Date Planner stack navigator (full-screen, no tab bar)
+// Date Planner stack navigator (full-screen, no tab bar) // MVP-HIDDEN: v1.1
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DatePlannerNavigator() {
   return (
     <DatePlannerStack.Navigator screenOptions={{ headerShown: false }}>
@@ -380,18 +404,14 @@ function AppNavigator() {
   return (
     <AppStack.Navigator screenOptions={{ headerShown: false }}>
       <AppStack.Screen name="MainTabs" component={MainTabNavigator} />
-      <AppStack.Screen name="RecipesTab" component={RecipesNavigator} />
-      <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} />
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="RecipesTab" component={RecipesNavigator} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="ExpensesTab" component={ExpensesNavigator} /> */}
       <AppStack.Screen name="NotificationsTab" component={NotificationsNavigator} />
-      <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} />
-      <AppStack.Screen name="FoodSpotsTab" component={FoodSpotsNavigator} />
-      <AppStack.Screen name="MapTab" component={MapScreen} />
-      <AppStack.Screen name="Achievements" component={AchievementsScreen} />
-      <AppStack.Screen
-        name="MonthlyRecapTab"
-        component={MonthlyRecapScreen}
-        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
-      />
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="DatePlannerTab" component={DatePlannerNavigator} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="FoodSpotsTab" component={FoodSpotsNavigator} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="MapTab" component={MapScreen} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="Achievements" component={AchievementsScreen} /> */}
+      {/* MVP-HIDDEN: v1.1 — <AppStack.Screen name="MonthlyRecapTab" component={MonthlyRecapScreen} options={{ presentation: 'fullScreenModal', animation: 'fade' }} /> */}
       <AppStack.Screen
         name="Paywall"
         component={PaywallScreen}
@@ -406,7 +426,7 @@ function AppNavigator() {
 // ---------------------------------------------------------------------------
 
 export default function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -421,7 +441,11 @@ export default function RootNavigator() {
     <NavigationContainer theme={AppTheme as any}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
-        {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+        {!isAuthenticated
+          ? <AuthNavigator />
+          : !user?.coupleId
+            ? <OnboardingNavigator />
+            : <AppNavigator />}
         {/* Global overlays — inside NavigationContainer for useAppColors() access */}
         {isAuthenticated ? <LetterOverlay /> : null}
         <LoadingOverlay />

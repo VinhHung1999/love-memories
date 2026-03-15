@@ -37,7 +37,7 @@ export const getOne = asyncHandler<IdParam>(async (req, res) => {
 export const create = [
   validate(createLetterSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const letter = await LoveLetterService.create(userId, coupleId, req.body);
     res.status(201).json(letter);
   }),
@@ -46,7 +46,7 @@ export const create = [
 export const update = [
   validate(updateLetterSchema),
   asyncHandler<IdParam>(async (req, res) => {
-    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     const letter = await LoveLetterService.update(
       req.params.id,
       userId,
@@ -58,25 +58,25 @@ export const update = [
 ];
 
 export const send = asyncHandler<IdParam>(async (req, res) => {
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const letter = await LoveLetterService.send(req.params.id, userId, coupleId);
   res.json(letter);
 });
 
 export const markRead = asyncHandler<IdParam>(async (req, res) => {
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const result = await LoveLetterService.markRead(req.params.id, userId, coupleId);
   res.json(result);
 });
 
 export const remove = asyncHandler<IdParam>(async (req, res) => {
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   await LoveLetterService.remove(req.params.id, userId, coupleId);
   res.status(204).end();
 });
 
 export const uploadPhotos = asyncHandler<IdParam>(async (req, res) => {
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const files = req.files as Express.Multer.File[];
   const photos = await LoveLetterService.uploadPhotos(req.params.id, userId, coupleId, files);
   res.status(201).json(photos);
@@ -84,14 +84,14 @@ export const uploadPhotos = asyncHandler<IdParam>(async (req, res) => {
 
 export const deletePhoto = asyncHandler(
   async (req: Request<PhotoParam & ParamsDictionary>, res: Response) => {
-    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     await LoveLetterService.deletePhoto(req.params.id, userId, coupleId, req.params.photoId);
     res.status(204).end();
   },
 );
 
 export const uploadAudio = asyncHandler<IdParam>(async (req, res) => {
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const file = req.file;
   if (!file) { res.status(400).json({ error: 'No audio file uploaded' }); return; }
   const body = req.body as { duration?: string };
@@ -102,7 +102,7 @@ export const uploadAudio = asyncHandler<IdParam>(async (req, res) => {
 
 export const deleteAudio = asyncHandler(
   async (req: Request<AudioParam & ParamsDictionary>, res: Response) => {
-    const { userId, coupleId } = (req as AuthRequest).user!;
+    const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
     await LoveLetterService.deleteAudio(req.params.id, userId, coupleId, req.params.audioId);
     res.status(204).end();
   },

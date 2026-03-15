@@ -24,6 +24,10 @@ interface AuthContextValue {
   linkGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<AuthUser>) => void;
+  // Onboarding: register/googleComplete WITHOUT setUser — caller does extra APIs then calls completeOnboarding
+  beginEmailOnboarding: (email: string, password: string, name: string) => Promise<AuthUser>;
+  beginGoogleOnboarding: (idToken: string) => Promise<AuthUser>;
+  completeOnboarding: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -122,6 +126,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [updateUser],
   );
 
+  const beginEmailOnboarding = useCallback(
+    async (email: string, password: string, name: string) => {
+      const data = await authApi.register(email, password, name);
+      await storeTokens(data.accessToken || data.token, data.refreshToken);
+      return data.user as AuthUser;
+    },
+    [],
+  );
+
+  const beginGoogleOnboarding = useCallback(
+    async (idToken: string) => {
+      const data = await authApi.googleComplete(idToken, {});
+      await storeTokens(data.accessToken || data.token, data.refreshToken);
+      return data.user as AuthUser;
+    },
+    [],
+  );
+
+  const completeOnboarding = useCallback((user: AuthUser) => {
+    setUser(user);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -135,6 +161,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         linkGoogle,
         logout,
         updateUser,
+        beginEmailOnboarding,
+        beginGoogleOnboarding,
+        completeOnboarding,
       }}>
       {children}
     </AuthContext.Provider>

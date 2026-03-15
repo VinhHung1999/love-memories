@@ -1,12 +1,16 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
+  PermissionsAndroid,
+  Platform,
   StatusBar,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Label } from '../../components/Typography';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -19,7 +23,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Download, X } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { MomentsStackParamList } from '../../navigation';
@@ -122,6 +126,36 @@ export default function PhotoGalleryScreen() {
 
   const handleClose = useCallback(() => navigation.goBack(), [navigation]);
 
+  const handleSave = useCallback(async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
+      }
+      const currentPhoto = photos[currentIndex];
+      await CameraRoll.saveAsset(currentPhoto.url, { type: 'photo' });
+      Alert.alert('Saved', 'Photo saved to your library.');
+    } catch {
+      Alert.alert('Error', 'Could not save photo.');
+    }
+  }, [currentIndex, photos]);
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex - 1, animated: true });
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex]);
+
+  const handleNext = useCallback(() => {
+    if (currentIndex < photos.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [currentIndex, photos.length]);
+
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
       if (viewableItems[0]?.index != null) {
@@ -169,21 +203,62 @@ export default function PhotoGalleryScreen() {
           {/* Close */}
           <TouchableOpacity
             onPress={handleClose}
-            className="w-10 h-10 rounded-full items-center justify-center bg-white/12">
-            <X size={22} strokeWidth={1.5} />
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+            <X size={22} color="#fff" strokeWidth={1.5} />
           </TouchableOpacity>
 
           {/* Counter */}
-          <View className="bg-white/12 rounded-full px-[14px] py-[6px]">
+          <View className="rounded-full px-[14px] py-[6px]" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
             <Label className="text-white/85">
               {currentIndex + 1} / {photos.length}
             </Label>
           </View>
 
-          {/* Share placeholder */}
-          <View className="w-10" />
+          {/* Save to library */}
+          <TouchableOpacity
+            onPress={handleSave}
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)', width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+            <Download size={20} color="#fff" strokeWidth={1.5} />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
+
+      {/* Prev / Next navigation buttons */}
+      {photos.length > 1 && (
+        <View
+          className="absolute inset-y-0 inset-x-4 flex-row items-center justify-between z-10"
+          pointerEvents="box-none">
+          <TouchableOpacity
+            onPress={handlePrev}
+            disabled={currentIndex === 0}
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.45)',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: currentIndex === 0 ? 0.3 : 1,
+            }}>
+            <ChevronLeft size={22} color="#fff" strokeWidth={1.5} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleNext}
+            disabled={currentIndex === photos.length - 1}
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.45)',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: currentIndex === photos.length - 1 ? 0.3 : 1,
+            }}>
+            <ChevronRight size={22} color="#fff" strokeWidth={1.5} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Dot indicators */}
       {photos.length > 1 && photos.length <= 10 ? (

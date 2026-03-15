@@ -1,10 +1,11 @@
 import React, { ReactNode } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Heading, Label } from './Typography';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { useAppColors } from '../navigation/theme';
@@ -27,6 +28,7 @@ interface DetailScreenLayoutProps {
   onBack: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onHeroPress?: () => void;
   /** Screen-specific body — rendered inside the white rounded-t-3xl content card */
   children: ReactNode;
 }
@@ -52,9 +54,10 @@ export default function DetailScreenLayout({
   coverImageUri,
   fallbackGradient,
   onBack,
-  icon: Icon = Heart, 
+  icon: Icon = Heart,
   onEdit,
   onDelete,
+  onHeroPress,
   children,
 }: DetailScreenLayoutProps) {
   const colors = useAppColors();
@@ -63,13 +66,24 @@ export default function DetailScreenLayout({
     scrollY.value = e.contentOffset.y;
   });
 
+  const heroStyle = useAnimatedStyle(() => {
+    const offset = Math.min(0, scrollY.value);
+    return {
+      position: 'absolute',
+      top: offset,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    };
+  });
+
   const gradient: [string, string] = fallbackGradient ?? [
     colors.primary + '22',
     colors.primary + '08',
   ];
 
   // ScrollView background: dark behind cover (upward over-scroll), white below content
-  const scrollBg = coverImageUri ? '#1A1624' : gradient[0];
+  const scrollBg = coverImageUri ? 'white' : gradient[0];
 
   return (
     <View className="flex-1 bg-white">
@@ -80,9 +94,10 @@ export default function DetailScreenLayout({
         style={{ backgroundColor: scrollBg, flexGrow: 1 }}
       >
         {/* ── Full-bleed cover (280px) ── */}
+        <Pressable onPress={onHeroPress} disabled={!onHeroPress}>
         <View style={{ height: 280 }}>
           {coverImageUri ? (
-            <>
+            <Animated.View style={heroStyle}>
               {/* Photo */}
               <FastImage
                 source={{
@@ -103,7 +118,7 @@ export default function DetailScreenLayout({
                 locations={[0, 0.3, 0.55, 1]}
                 style={FILL}
               />
-            </>
+            </Animated.View>
           ) : (
             /* Gradient fallback when no photo */
             <>
@@ -155,20 +170,10 @@ export default function DetailScreenLayout({
             </Heading>
           </View>
         </View>
+        </Pressable>
 
         {/* ── Content card (slides up 24px over cover, rounded top corners) ── */}
-        <View className="bg-white rounded-t-3xl -mt-6" style={{height: "100%"}}>
-          {/* Drag pill — bottom-sheet affordance */}
-          <View className="items-center pt-3 pb-1">
-            <View
-              style={{
-                width: 36,
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: '#F0E6E3',
-              }}
-            />
-          </View>
+        <View className="bg-white rounded-t-3xl -mt-6" >
           {children}
         </View>
       </Animated.ScrollView>

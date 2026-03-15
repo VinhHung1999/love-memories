@@ -42,6 +42,7 @@ export default function WishFormSheet({
         <View className="mb-4">
           <FieldLabel>{t.datePlanner.wishTitleLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.title}
             onChangeText={vm.setTitle}
             placeholder={t.datePlanner.wishTitlePlaceholder}
@@ -53,6 +54,7 @@ export default function WishFormSheet({
         <View className="mb-4">
           <FieldLabel>{t.datePlanner.wishDescriptionLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.description}
             onChangeText={vm.setDescription}
             placeholder={t.datePlanner.wishDescriptionPlaceholder}
@@ -91,6 +93,7 @@ export default function WishFormSheet({
         <View className="mb-4">
           <FieldLabel>{t.datePlanner.wishUrlLabel}</FieldLabel>
           <Input
+            bottomSheet
             value={vm.url}
             onChangeText={vm.setUrl}
             placeholder={t.datePlanner.wishUrlPlaceholder}

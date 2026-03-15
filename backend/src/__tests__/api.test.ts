@@ -3,6 +3,12 @@ import app from '../index';
 import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
 
+// Mock CDN so file upload tests don't hit real CDN
+jest.mock('../utils/cdn', () => ({
+  uploadToCdn: jest.fn().mockResolvedValue({ filename: 'test-file.jpg', url: 'https://cdn.example.com/test-file.jpg' }),
+  deleteFromCdn: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock google-auth-library so Google token tests don't require real tokens
 // Mock nodemailer so email tests don't require SMTP
 jest.mock('nodemailer', () => ({
@@ -146,13 +152,17 @@ describe('Health', () => {
 });
 
 describe('Auth', () => {
-  it('POST /api/auth/register returns 400 without coupleName or inviteCode', async () => {
+  it('POST /api/auth/register succeeds without coupleName or inviteCode (coupleId=null)', async () => {
     const res = await request(app).post('/api/auth/register').send({
       email: 'random@example.com',
       password: 'testpass123',
       name: 'Random',
     });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.coupleId).toBeNull();
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: 'random@example.com' } });
   });
 
   it('POST /api/auth/register — 3rd user joining same inviteCode gets 400', async () => {
@@ -372,6 +382,18 @@ describe('Email Verification', () => {
 });
 
 describe('Google OAuth', () => {
+  // Clean up googleuser@example.com before and after to prevent test pollution
+  const cleanupGoogleUser = async () => {
+    const user = await prisma.user.findUnique({ where: { email: 'googleuser@example.com' } });
+    if (user) {
+      await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+      if (user.coupleId) await prisma.couple.delete({ where: { id: user.coupleId } }).catch(() => {});
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  };
+  beforeAll(cleanupGoogleUser);
+  afterAll(cleanupGoogleUser);
+
   it('POST /api/auth/google returns 400 without idToken', async () => {
     const res = await request(app).post('/api/auth/google').send({});
     expect(res.status).toBe(400);
@@ -401,9 +423,13 @@ describe('Google OAuth', () => {
     await prisma.user.update({ where: { email: 'test@lovescrum.test' }, data: { googleId: null } });
   });
 
-  it('POST /api/auth/google/complete returns 400 without couple info', async () => {
+  it('POST /api/auth/google/complete creates user with coupleId=null when no couple info provided', async () => {
     const res = await request(app).post('/api/auth/google/complete').send({ idToken: 'valid-google-token' });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.coupleId).toBeNull();
+    // Cleanup so next test can re-create the same google user
+    await cleanupGoogleUser();
   });
 
   it('POST /api/auth/google/complete creates user with couple', async () => {
@@ -419,7 +445,7 @@ describe('Google OAuth', () => {
     const user = await prisma.user.findUnique({ where: { email: 'googleuser@example.com' } });
     if (user) {
       await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
-      await prisma.couple.delete({ where: { id: user.coupleId } }).catch(() => {});
+      await prisma.couple.delete({ where: { id: user.coupleId ?? undefined } }).catch(() => {});
       await prisma.user.delete({ where: { id: user.id } });
     }
   });
@@ -1497,6 +1523,54 @@ describe('Couple Profile', () => {
 
   it('GET /api/couple returns 401 without auth', async () => {
     const res = await request(app).get('/api/couple');
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /api/couple/validate-invite returns valid=true for valid code with partnerName', async () => {
+    // Create a joinable couple with exactly 1 member
+    const joinable = await prisma.couple.create({ data: { name: 'Joinable Couple', inviteCode: 'JOINTEST' } });
+    await prisma.user.create({ data: { email: 'solo@test.com', password: 'x', name: 'Solo User', coupleId: joinable.id } });
+    const res = await request(app).get('/api/couple/validate-invite?code=JOINTEST').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(true);
+    expect(res.body.coupleName).toBe('Joinable Couple');
+    expect(res.body.partnerName).toBe('Solo User');
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: 'solo@test.com' } });
+    await prisma.couple.delete({ where: { id: joinable.id } });
+  });
+
+  it('GET /api/couple/validate-invite returns valid=false for unknown code', async () => {
+    const res = await request(app).get('/api/couple/validate-invite?code=BADCODE').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(false);
+    expect(res.body.error).toBe('Invalid invite code');
+  });
+
+  it('GET /api/couple/validate-invite returns valid=false for full couple', async () => {
+    const fullCouple = await prisma.couple.create({ data: { inviteCode: 'FULLTEST' } });
+    await prisma.user.createMany({
+      data: [
+        { email: 'full1@test.com', password: 'x', name: 'Full 1', coupleId: fullCouple.id },
+        { email: 'full2@test.com', password: 'x', name: 'Full 2', coupleId: fullCouple.id },
+      ],
+    });
+    const res = await request(app).get('/api/couple/validate-invite?code=FULLTEST').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(false);
+    expect(res.body.error).toBe('This couple is already full');
+    // Cleanup
+    await prisma.user.deleteMany({ where: { email: { in: ['full1@test.com', 'full2@test.com'] } } });
+    await prisma.couple.delete({ where: { id: fullCouple.id } });
+  });
+
+  it('GET /api/couple/validate-invite returns 400 without code param', async () => {
+    const res = await request(app).get('/api/couple/validate-invite').set(auth());
+    expect(res.status).toBe(400);
+  });
+
+  it('GET /api/couple/validate-invite returns 401 without auth', async () => {
+    const res = await request(app).get('/api/couple/validate-invite?code=ANYCODE');
     expect(res.status).toBe(401);
   });
 });

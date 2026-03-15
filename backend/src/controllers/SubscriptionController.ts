@@ -4,7 +4,7 @@ import type { AuthRequest } from '../middleware/auth';
 import * as SubscriptionService from '../services/SubscriptionService';
 
 export const getStatus = asyncHandler(async (req: Request, res: Response) => {
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   const status = await SubscriptionService.getStatus(coupleId);
   res.json(status);
 });

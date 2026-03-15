@@ -49,6 +49,7 @@ export default function EditNameSheet({ user, onClose }: Props) {
       <View className="px-5 pb-10">
         <FieldLabel>{t.profile.labels.name}</FieldLabel>
         <Input
+          bottomSheet
           value={nameInput}
           onChangeText={setNameInput}
           placeholder={t.login.placeholders.name}

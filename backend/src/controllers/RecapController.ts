@@ -14,7 +14,7 @@ export const weekly = asyncHandler(async (req: Request, res: Response) => {
     }
   }
 
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   try {
     const data = await RecapService.getWeekly(weekStr, userId, coupleId);
     res.json(data);
@@ -36,7 +36,7 @@ export const monthly = asyncHandler(async (req: Request, res: Response) => {
     }
   }
 
-  const { userId, coupleId } = (req as AuthRequest).user!;
+  const { userId, coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   try {
     const data = await RecapService.getMonthly(monthStr, userId, coupleId);
     res.json(data);
@@ -48,7 +48,7 @@ export const monthly = asyncHandler(async (req: Request, res: Response) => {
 
 export const monthlyCaption = asyncHandler(async (req: Request, res: Response) => {
   const monthStr = req.query.month as string | undefined;
-  const { coupleId } = (req as AuthRequest).user!;
+  const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
   try {
     const data = await RecapService.getMonthlyCaption(monthStr, coupleId);
     res.json(data);

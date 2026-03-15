@@ -42,3 +42,55 @@ export async function generateInvite(coupleId: string) {
   await prisma.couple.update({ where: { id: coupleId }, data: { inviteCode } });
   return { inviteCode };
 }
+
+export async function validateInvite(code: string) {
+  const couple = await prisma.couple.findUnique({ where: { inviteCode: code } });
+  if (!couple) return { valid: false, error: 'Invalid invite code' };
+
+  const [count, partner] = await Promise.all([
+    prisma.user.count({ where: { coupleId: couple.id } }),
+    prisma.user.findFirst({ where: { coupleId: couple.id }, select: { name: true } }),
+  ]);
+
+  if (count >= 2) return { valid: false, error: 'This couple is already full' };
+  return { valid: true, coupleName: couple.name, partnerName: partner?.name ?? '' };
+}
+
+export async function createCouple(userId: string, name: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
+  if (!user) throw new AppError(404, 'User not found');
+  if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
+
+  const inviteCode = crypto.randomBytes(4).toString('hex');
+  const couple = await prisma.couple.create({ data: { name: name.trim(), inviteCode } });
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { coupleId: couple.id },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
+  });
+  return { ...updated, inviteCode: couple.inviteCode };
+}
+
+export async function joinCouple(userId: string, inviteCode: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
+  if (!user) throw new AppError(404, 'User not found');
+  if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
+
+  const couple = await prisma.couple.findUnique({ where: { inviteCode } });
+  if (!couple) throw new AppError(400, 'Invalid invite code');
+  const count = await prisma.user.count({ where: { coupleId: couple.id } });
+  if (count >= 2) throw new AppError(400, 'This couple already has 2 members');
+
+  const [updated, partner] = await Promise.all([
+    prisma.user.update({
+      where: { id: userId },
+      data: { coupleId: couple.id },
+      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
+    }),
+    prisma.user.findFirst({
+      where: { coupleId: couple.id, id: { not: userId } },
+      select: { name: true },
+    }),
+  ]);
+  return { ...updated, partnerName: partner?.name ?? null };
+}
