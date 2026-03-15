@@ -122,19 +122,21 @@ export default function DashboardScreen() {
                 </Pressable>
               )}
 
-              {/* ── 0. Relationship Timer ── */}
-              <RelationshipTimer
-                duration={vm.relationshipDuration}
-                userAvatar={vm.user?.avatar}
-                userInitials={vm.user?.name?.charAt(0).toUpperCase() ?? '?'}
-                partnerAvatar={vm.partner?.avatar}
-                partnerInitials={
-                  vm.partner?.name?.charAt(0).toUpperCase() ?? '?'
-                }
-                hasCouple={vm.hasCouple}
-                onInvitePartner={vm.handleInvitePartner}
-                onSetAnniversary={() => vm.setShowAnniversaryPicker(true)}
-              />
+              {/* ── 0. Relationship Timer — ref for tour spotlight ── */}
+              <View ref={tour.timerRef}>
+                <RelationshipTimer
+                  duration={vm.relationshipDuration}
+                  userAvatar={vm.user?.avatar}
+                  userInitials={vm.user?.name?.charAt(0).toUpperCase() ?? '?'}
+                  partnerAvatar={vm.partner?.avatar}
+                  partnerInitials={
+                    vm.partner?.name?.charAt(0).toUpperCase() ?? '?'
+                  }
+                  hasCouple={vm.hasCouple}
+                  onInvitePartner={vm.handleInvitePartner}
+                  onSetAnniversary={() => vm.setShowAnniversaryPicker(true)}
+                />
+              </View>
 
               {/* ── 0b. Stats Overview — moments only for MVP ── */}
               <DashboardStatsCard
@@ -202,9 +204,10 @@ export default function DashboardScreen() {
           return <NotificationBell onPress={vm.navigateToNotifications} />;
         }}
       />
-      {tour.tourStep !== null && (
+      {tour.tourStep !== null && tour.steps.length > 0 && (
         <DashboardTourOverlay
           step={tour.tourStep}
+          steps={tour.steps}
           onAdvance={tour.advanceTour}
           onDismiss={tour.dismissTour}
         />

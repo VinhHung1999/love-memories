@@ -207,6 +207,24 @@ const en = {
       subtitle: 'Mark the day your love story began',
       button: 'Set Date',
     },
+    tour: {
+      moments: {
+        title: 'Our Moments',
+        body: 'Capture your memories — photos, places, feelings',
+      },
+      camera: {
+        title: 'Quick Capture',
+        body: 'Quick capture — snap a photo instantly',
+      },
+      letters: {
+        title: 'Love Letters',
+        body: 'Write letters that arrive in the future',
+      },
+      timer: {
+        title: 'Your Heartbeat',
+        body: 'Your heartbeat counter — every day counts',
+      },
+    },
   },
 
   moments: {

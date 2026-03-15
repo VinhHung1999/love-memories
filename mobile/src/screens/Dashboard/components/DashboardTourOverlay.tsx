@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Dimensions, Pressable, View } from 'react-native';
 import { Body, Caption, Label } from '../../../components/Typography';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -10,79 +9,23 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import SpringPressable from '../../../components/SpringPressable';
-
-// ── Tour step definitions ──────────────────────────────────────────────────────
+import type { SpotlightRect, TourStepDef } from '../useDashboardTour';
 
 const SCREEN_W = Dimensions.get('window').width;
 const SCREEN_H = Dimensions.get('window').height;
 
-// Tab icon width ≈ screen / 5 (5 tabs)
-const TAB_W = SCREEN_W / 5;
-const TAB_H = 60;
-
-interface StepDef {
-  title: string;
-  body: string;
-  // Center of the spotlight
-  cx: () => number;
-  cy: (bottomInset: number) => number;
-  spotW: number;
-  spotH: number;
-  tooltipAbove: boolean; // tooltip above or below spotlight
-}
-
-const STEPS: StepDef[] = [
-  {
-    title: 'Our Moments',
-    body: 'Capture your memories — photos, places, feelings',
-    cx: () => TAB_W * 1.5,
-    cy: (inset) => SCREEN_H - inset - TAB_H / 2,
-    spotW: TAB_W - 8,
-    spotH: TAB_H - 8,
-    tooltipAbove: true,
-  },
-  {
-    title: 'Daily Q&A',
-    body: 'A question a day builds your story together',
-    cx: () => TAB_W * 2.5,
-    cy: (inset) => SCREEN_H - inset - TAB_H / 2,
-    spotW: TAB_W - 8,
-    spotH: TAB_H - 8,
-    tooltipAbove: true,
-  },
-  {
-    title: 'Love Letters',
-    body: 'Write letters that arrive in the future',
-    cx: () => TAB_W * 3.5,
-    cy: (inset) => SCREEN_H - inset - TAB_H / 2,
-    spotW: TAB_W - 8,
-    spotH: TAB_H - 8,
-    tooltipAbove: true,
-  },
-  {
-    title: 'Your Heartbeat',
-    body: 'Your heartbeat counter — every day counts',
-    cx: () => SCREEN_W / 2,
-    cy: () => SCREEN_H * 0.48,
-    spotW: SCREEN_W - 48,
-    spotH: 110,
-    tooltipAbove: false,
-  },
-];
+// Padding around the measured rect for the spotlight border
+const SPOT_PAD = 8;
 
 // ── Spotlight box ─────────────────────────────────────────────────────────────
 
-function SpotlightBox({
-  cx, cy, w, h,
-}: {
-  cx: number; cy: number; w: number; h: number;
-}) {
-  const glowOpacity = useSharedValue(0.6);
+function SpotlightBox({ rect }: { rect: SpotlightRect }) {
+  const glowOpacity = useSharedValue(0.5);
 
   useEffect(() => {
-    glowOpacity.value = withTiming(1, { duration: 300 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cx, cy]);
+    glowOpacity.value = withTiming(1, { duration: 280 });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rect.x, rect.y]);
 
   const glowStyle = useAnimatedStyle(() => ({
     borderColor: `rgba(232,120,138,${glowOpacity.value})`,
@@ -94,10 +37,10 @@ function SpotlightBox({
         glowStyle,
         {
           position: 'absolute',
-          left: cx - w / 2,
-          top: cy - h / 2,
-          width: w,
-          height: h,
+          left:   rect.x - SPOT_PAD,
+          top:    rect.y - SPOT_PAD,
+          width:  rect.width  + SPOT_PAD * 2,
+          height: rect.height + SPOT_PAD * 2,
           borderRadius: 14,
           borderWidth: 2.5,
           shadowColor: '#E8788A',
@@ -113,24 +56,26 @@ function SpotlightBox({
 // ── Tooltip card ──────────────────────────────────────────────────────────────
 
 function TooltipCard({
-  title, body, step, total, onNext, onSkip, above, cx, cy, spotH,
+  step, total, title, body, rect, onNext, onSkip,
 }: {
-  title: string;
-  body: string;
   step: number;
   total: number;
+  title: string;
+  body: string;
+  rect: SpotlightRect;
   onNext: () => void;
   onSkip: () => void;
-  above: boolean;
-  cx: number;
-  cy: number;
-  spotH: number;
 }) {
   const CARD_W = SCREEN_W - 48;
-  const left = Math.max(24, Math.min(cx - CARD_W / 2, SCREEN_W - CARD_W - 24));
-  const top = above
-    ? cy - spotH / 2 - 130  // above spotlight
-    : cy + spotH / 2 + 16;  // below spotlight
+  const spotCenterX = rect.x + rect.width / 2;
+  const spotBottom  = rect.y + rect.height + SPOT_PAD;
+  const spotTop     = rect.y - SPOT_PAD;
+
+  // Auto position above when spotlight is in lower half of screen
+  const above = rect.y > SCREEN_H * 0.5;
+
+  const left = Math.max(24, Math.min(spotCenterX - CARD_W / 2, SCREEN_W - CARD_W - 24));
+  const top  = above ? spotTop - 140 : spotBottom + 16;
 
   return (
     <View
@@ -148,7 +93,6 @@ function TooltipCard({
         shadowRadius: 20,
         elevation: 10,
       }}>
-      {/* Step count */}
       <Caption className="text-primary mb-1" style={{ fontWeight: '600' }}>
         {step + 1} / {total}
       </Caption>
@@ -181,15 +125,15 @@ function TooltipCard({
 
 interface Props {
   step: number;
+  steps: TourStepDef[];
   onAdvance: () => void;
   onDismiss: () => void;
 }
 
-export default function DashboardTourOverlay({ step, onAdvance, onDismiss }: Props) {
-  const insets = useSafeAreaInsets();
-  const def = STEPS[step];
-  const cx = def.cx();
-  const cy = def.cy(insets.bottom);
+export default function DashboardTourOverlay({ step, steps, onAdvance, onDismiss }: Props) {
+  if (!steps[step]) return null;
+
+  const current = steps[step];
 
   return (
     <Animated.View
@@ -204,21 +148,16 @@ export default function DashboardTourOverlay({ step, onAdvance, onDismiss }: Pro
       {/* Tap backdrop to dismiss */}
       <Pressable style={{ flex: 1 }} onPress={onDismiss} />
 
-      {/* Spotlight highlight */}
-      <SpotlightBox cx={cx} cy={cy} w={def.spotW} h={def.spotH} />
+      <SpotlightBox rect={current.rect} />
 
-      {/* Tooltip card */}
       <TooltipCard
-        title={def.title}
-        body={def.body}
         step={step}
-        total={STEPS.length}
-        onNext={step < STEPS.length - 1 ? onAdvance : onDismiss}
+        total={steps.length}
+        title={current.title}
+        body={current.body}
+        rect={current.rect}
+        onNext={step < steps.length - 1 ? onAdvance : onDismiss}
         onSkip={onDismiss}
-        above={def.tooltipAbove}
-        cx={cx}
-        cy={cy}
-        spotH={def.spotH}
       />
     </Animated.View>
   );

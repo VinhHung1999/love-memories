@@ -33,6 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import { launchCamera } from 'react-native-image-picker';
 import CreateMomentSheet from '../screens/CreateMoment/CreateMomentSheet';
 import { Caption } from './Typography';
+import { tabBarRefs } from '../lib/tabBarRefs';
 
 const { width: W } = Dimensions.get('window');
 
@@ -259,9 +260,16 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
             }
           };
 
+          // Attach measurable ref for tour spotlight
+          const tourRef =
+            tab.name === 'MomentsTab' ? tabBarRefs.momentsTab :
+            tab.name === 'LettersTab' ? tabBarRefs.lettersTab :
+            undefined;
+
           return (
             <Pressable
               key={tab.name}
+              ref={tourRef}
               onPress={onPress}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
@@ -294,6 +302,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
       {/* Container top = y=0, SVG starts at y=CAMERA_SIZE=64              */}
       {/* Camera occupies y=0..64, centered over arc notch                 */}
       <View
+        ref={tabBarRefs.cameraButton}
         style={{
           position: 'absolute',
           top: -5,
