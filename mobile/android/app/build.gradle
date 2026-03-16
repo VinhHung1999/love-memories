@@ -89,7 +89,7 @@ android {
 
     namespace "com.lovescrum"
     defaultConfig {
-        applicationId "com.lovescrum"
+        applicationId "com.hungphu.lovememories"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
