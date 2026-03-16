@@ -16,6 +16,7 @@ import Geolocation from '@react-native-community/geolocation';
 import { momentsApi, geocodeApi } from '../../lib/api';
 import type { Moment } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { useFeatureGate } from '../../hooks/useFeatureGate';
 
 export interface LocalPhoto {
   uri: string;
@@ -134,6 +135,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
   const isEdit = !!momentId;
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
+  const { canCreate } = useFeatureGate();
 
   const [s, dispatch] = useReducer(formReducer, initialPhoto, makeInitialState);
   const { startUpload, incrementUpload } = useUploadProgress();
@@ -264,6 +266,8 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
     const error = validate();
     if (error) { navigation.showAlert({ type: 'error', title: t('common.error'), message: error }); return; }
     if (saveMutation.isPending) return;
+    // Layer 1: pre-flight free tier limit check (skip for edits)
+    if (!isEdit && !canCreate('moments')) return;
     saveMutation.mutate();
   };
 

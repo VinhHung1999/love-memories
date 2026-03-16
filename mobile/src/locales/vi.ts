@@ -122,6 +122,18 @@ const vi: LocaleStrings = {
       vietnamese: 'Tiếng Việt',
     },
 
+    subscription: {
+      title: '✨ Gói đăng ký',
+      planFree: 'Miễn phí',
+      planPlus: 'Love Memories Plus',
+      upgrade: 'Nâng cấp lên Plus',
+      restore: 'Khôi phục gói mua',
+      restoring: 'Đang khôi phục...',
+      restoreSuccess: 'Đã khôi phục gói mua!',
+      restoreFailed: 'Không tìm thấy gói mua nào.',
+      expiresAt: 'Hết hạn {{date}}',
+    },
+
     deleteAccount: {
       title: 'Xóa tài khoản',
       subtitle: 'Hành động này không thể hoàn tác',

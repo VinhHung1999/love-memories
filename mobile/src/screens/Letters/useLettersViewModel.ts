@@ -6,6 +6,7 @@ import type { LettersStackParamList } from '../../navigation';
 import { loveLettersApi } from '../../lib/api';
 import { useTranslation } from 'react-i18next';
 import type { AlertParams } from '../../navigation/useAppNavigation';
+import { useFeatureGate } from '../../hooks/useFeatureGate';
 
 export type LettersTab = 'inbox' | 'sent';
 type Nav = NativeStackNavigationProp<LettersStackParamList>;
@@ -14,6 +15,7 @@ export function useLettersViewModel() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const queryClient = useQueryClient();
+  const { requireModule } = useFeatureGate();
   const [activeTab, setActiveTab] = useState<LettersTab>('inbox');
 
   const { data: received = [], isLoading: loadingReceived, isRefetching: refetchingReceived } = useQuery({
@@ -43,6 +45,9 @@ export function useLettersViewModel() {
     queryClient.invalidateQueries({ queryKey: ['letters'] });
   };
 
+  /** Layer 1 module guard — call before opening compose sheet */
+  const handleCompose = (): boolean => requireModule('love-letters');
+
   const handleDelete = (id: string) => deleteMutation.mutate(id);
 
   const handleDeleteWithConfirm = (id: string, showAlert: (p: AlertParams) => void) => {
@@ -69,6 +74,7 @@ export function useLettersViewModel() {
     handleRefresh,
     handleDelete,
     handleDeleteWithConfirm,
+    handleCompose,
     handleBack: () => navigation.goBack(),
   };
 }

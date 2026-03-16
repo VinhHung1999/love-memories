@@ -122,6 +122,18 @@ const en = {
       vietnamese: 'Tiếng Việt',
     },
 
+    subscription: {
+      title: '✨ Subscription',
+      planFree: 'Free',
+      planPlus: 'Love Memories Plus',
+      upgrade: 'Upgrade to Plus',
+      restore: 'Restore Purchases',
+      restoring: 'Restoring...',
+      restoreSuccess: 'Purchases restored!',
+      restoreFailed: 'No active purchases found.',
+      expiresAt: 'Expires {{date}}',
+    },
+
     deleteAccount: {
       title: 'Delete Account',
       subtitle: 'This action cannot be undone',

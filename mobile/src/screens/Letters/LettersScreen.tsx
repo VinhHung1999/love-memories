@@ -71,7 +71,7 @@ export default function LettersScreen() {
           title={vm.activeTab === 'inbox' ? t('loveLetters.emptyInboxTitle') : t('loveLetters.emptySentTitle')}
           subtitle={vm.activeTab === 'inbox' ? t('loveLetters.emptyInboxSubtitle') : t('loveLetters.emptySentSubtitle')}
           actionLabel={t('loveLetters.compose')}
-          onAction={() => navigation.showBottomSheet(ComposeLetterSheet)}
+          onAction={() => { if (vm.handleCompose()) navigation.showBottomSheet(ComposeLetterSheet); }}
         />
       ) : (
         <Animated.FlatList
@@ -102,7 +102,7 @@ export default function LettersScreen() {
       )}
 
       {/* FAB */}
-      <FAB onPress={() => navigation.showBottomSheet(ComposeLetterSheet)} icon={PenLine}/>
+      <FAB onPress={() => { if (vm.handleCompose()) navigation.showBottomSheet(ComposeLetterSheet); }} icon={PenLine}/>
     </View>
   );
 }

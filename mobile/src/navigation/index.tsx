@@ -47,7 +47,7 @@ export type AppStackParamList = {
   MapTab: undefined;
   Achievements: undefined;
   MonthlyRecapTab: { month?: string } | undefined;
-  Paywall: { trigger: 'limit' | 'browse'; blockedFeature?: string } | undefined;
+  Paywall: { trigger: 'limit' | 'locked_module' | 'browse'; blockedFeature?: string } | undefined;
   ShareViewer: { token: string };
   JoinCouple: { code: string };
 };

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { expensesApi, type Expense, type ExpenseCategory } from '../../lib/api';
+import { useFeatureGate } from '../../hooks/useFeatureGate';
 
 function todayString(): string {
   const d = new Date();
@@ -13,6 +14,7 @@ export function useAddExpenseViewModel(
 ) {
   const queryClient = useQueryClient();
   const isEditing = editingExpense !== null;
+  const { canCreate } = useFeatureGate();
 
   const [amount, setAmountRaw] = useState(editingExpense ? String(editingExpense.amount) : '');
   const [description, setDescription] = useState(editingExpense?.description ?? '');
@@ -55,6 +57,8 @@ export function useAddExpenseViewModel(
 
   const handleSave = useCallback(() => {
     if (!isValid) return;
+    // Layer 1: pre-flight free tier limit check (skip for edits)
+    if (!isEditing && !canCreate('expenses')) return;
     const data = {
       amount: amountNumber,
       description: description.trim(),
@@ -67,7 +71,7 @@ export function useAddExpenseViewModel(
     } else {
       createMutation.mutate(data);
     }
-  }, [isValid, amountNumber, description, category, date, note, isEditing, editingExpense, createMutation, updateMutation]);
+  }, [isValid, isEditing, canCreate, amountNumber, description, category, date, note, editingExpense, createMutation, updateMutation]);
 
   return {
     isEditing,

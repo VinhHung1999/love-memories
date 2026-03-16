@@ -6,6 +6,7 @@ import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { foodSpotsApi } from '../../lib/api';
 import type { FoodSpot } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { useFeatureGate } from '../../hooks/useFeatureGate';
 import type { LocalPhoto } from '../CreateMoment/useCreateMomentViewModel';
 
 // ── Reducer ──────────────────────────────────────────────────────────────────
@@ -100,6 +101,7 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
   const isEdit = !!foodSpotId;
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
+  const { canCreate } = useFeatureGate();
 
   const [s, dispatch] = useReducer(formReducer, undefined, makeInitialState);
   const { startUpload, incrementUpload } = useUploadProgress();
@@ -176,6 +178,8 @@ export function useCreateFoodSpotViewModel({ foodSpotId, initialFoodSpot, onClos
     const error = validate();
     if (error) { navigation.showAlert({ type: 'error', title: t('common.error'), message: error }); return; }
     if (saveMutation.isPending) return;
+    // Layer 1: pre-flight free tier limit check (skip for edits)
+    if (!isEdit && !canCreate('foodspots')) return;
     saveMutation.mutate();
   };
 

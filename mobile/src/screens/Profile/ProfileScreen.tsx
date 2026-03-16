@@ -22,6 +22,7 @@ import HeaderIcon from '../../components/HeaderIcon';
 import { Card, CardTitle } from '../../components/Card';
 import AvatarCircle from '../../components/AvatarCircle';
 import Skeleton from '../../components/Skeleton';
+import LinearGradient from 'react-native-linear-gradient';
 
 // ── Reusable row inside a card ────────────────────────────────────────────────
 function InfoRow({
@@ -266,6 +267,70 @@ export default function ProfileScreen() {
                 </Pressable>
               )}
             </View>
+          </Card>
+
+          {/* ── Subscription card ── */}
+          <Card>
+            <CardTitle>{t('profile.subscription.title')}</CardTitle>
+            {vm.isPremium ? (
+              <View className="py-3">
+                <View className="flex-row items-center gap-2 mb-1">
+                  <LinearGradient
+                    colors={[colors.primary, colors.secondary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}
+                  >
+                    <Caption className="font-bold" style={{ color: '#FFFFFF' }}>PLUS</Caption>
+                  </LinearGradient>
+                  <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
+                    {t('profile.subscription.planPlus')}
+                  </Body>
+                </View>
+                {vm.subscriptionStatus?.expiresAt ? (
+                  <Caption className="text-textLight dark:text-darkTextLight">
+                    {t('profile.subscription.expiresAt', {
+                      date: new Date(vm.subscriptionStatus.expiresAt).toLocaleDateString(),
+                    })}
+                  </Caption>
+                ) : null}
+              </View>
+            ) : (
+              <View className="py-3 gap-3">
+                <View className="flex-row items-center gap-2">
+                  <View
+                    className="rounded-full px-2.5 py-0.5"
+                    style={{ backgroundColor: colors.border }}
+                  >
+                    <Caption className="font-medium" style={{ color: colors.textMid }}>FREE</Caption>
+                  </View>
+                  <Body size="md" className="text-textMid dark:text-darkTextMid">
+                    {t('profile.subscription.planFree')}
+                  </Body>
+                </View>
+                <Pressable onPress={vm.handleUpgrade}>
+                  <LinearGradient
+                    colors={[colors.primary, colors.secondary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ borderRadius: 14, paddingVertical: 12, alignItems: 'center' }}
+                  >
+                    <Body size="md" className="font-semibold" style={{ color: '#FFFFFF' }}>
+                      {t('profile.subscription.upgrade')}
+                    </Body>
+                  </LinearGradient>
+                </Pressable>
+              </View>
+            )}
+            <Pressable
+              onPress={vm.handleRestorePurchases}
+              disabled={vm.isRestoring}
+              className="pt-1 pb-2 items-center"
+            >
+              <Caption style={{ color: colors.textLight }}>
+                {vm.isRestoring ? t('profile.subscription.restoring') : t('profile.subscription.restore')}
+              </Caption>
+            </Pressable>
           </Card>
 
           {/* ── Google account card ── */}

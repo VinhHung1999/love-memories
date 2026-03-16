@@ -14,9 +14,13 @@ import { coupleApi, profileApi, settingsApi } from '../../lib/api';
 import { useTranslation } from 'react-i18next';
 import { setAppLanguage, type AppLanguage } from '../../lib/i18n';
 import i18n from '../../lib/i18n';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import { restorePurchases } from '../../lib/purchasesService';
 
 export function useProfileViewModel() {
   const { t } = useTranslation();
+  const { isPremium, plan, status, refresh: refreshSubscription } = useSubscription();
+  const [isRestoring, setIsRestoring] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<AppLanguage>(
     (i18n.language === 'vi' ? 'vi' : 'en') as AppLanguage,
   );
@@ -107,6 +111,30 @@ export function useProfileViewModel() {
     }
   };
 
+  const handleUpgrade = () => {
+    navigation.navigate('Paywall', { trigger: 'browse' });
+  };
+
+  const handleRestorePurchases = async () => {
+    setIsRestoring(true);
+    try {
+      const info = await restorePurchases();
+      const hasPlus = !!info.entitlements.active.plus;
+      await refreshSubscription();
+      navigation.showAlert({
+        type: 'info',
+        title: hasPlus ? t('common.success') : t('common.info'),
+        message: hasPlus
+          ? t('profile.subscription.restoreSuccess')
+          : t('profile.subscription.restoreFailed'),
+      });
+    } catch {
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('profile.subscription.restoreFailed') });
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const handleLogout = () => {
     navigation.showAlert({
       type: 'destructive',
@@ -165,6 +193,14 @@ export function useProfileViewModel() {
     // language
     currentLanguage,
     handleSetLanguage,
+
+    // subscription
+    isPremium,
+    plan,
+    subscriptionStatus: status,
+    isRestoring,
+    handleUpgrade,
+    handleRestorePurchases,
 
     // actions
     handleUploadAvatar,

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { launchImageLibrary } from 'react-native-image-picker';
 import audioRecorderPlayer, {
@@ -23,6 +24,7 @@ interface PendingPhoto {
 
 export function useComposeLetterViewModel(onClose: () => void, initialLetter?: LoveLetter) {
   const { t } = useTranslation();
+  const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
   const { startUpload, incrementUpload } = useUploadProgress();
   const stopRecordingRef = useRef<(() => void) | null>(null);
@@ -123,18 +125,21 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
 
       onClose();
     } catch (err: any) {
-      setError(
-        err?.message?.includes('PREMIUM')
-          ? t('loveLetters.errors.premiumRequired')
-          : shouldSend
-          ? t('loveLetters.errors.sendFailed')
-          : t('loveLetters.errors.saveFailed'),
-      );
+      if (err?.message?.includes('PREMIUM')) {
+        // Layer 2 fallback: navigate Paywall — never show inline error for subscription blocks
+        navigation.navigate('Paywall', { trigger: 'locked_module', blockedFeature: 'love-letters' });
+      } else {
+        setError(
+          shouldSend
+            ? t('loveLetters.errors.sendFailed')
+            : t('loveLetters.errors.saveFailed'),
+        );
+      }
     } finally {
       setIsSaving(false);
       setIsSending(false);
     }
-  }, [draftId, title, content, mood, isValid, scheduleMode, scheduledAt, pendingPhotos, recordedAudioPath, queryClient, onClose, startUpload, incrementUpload, t]);
+  }, [draftId, title, content, mood, isValid, scheduleMode, scheduledAt, pendingPhotos, recordedAudioPath, queryClient, onClose, startUpload, incrementUpload, t, navigation]);
 
   const saveDraft = useCallback(() => executeFlow(false), [executeFlow]);
   const sendNow = useCallback(() => executeFlow(true), [executeFlow]);
