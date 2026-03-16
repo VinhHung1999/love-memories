@@ -74,3 +74,7 @@ yarn-error.log
 !.yarn/sdks
 !.yarn/versions
 src/config/tokens.ts
+
+# Environment files with secrets — copy .env.example and fill in real values
+.env.dev
+.env.prod
