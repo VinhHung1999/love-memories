@@ -44,10 +44,19 @@
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 12 | **MOBILE: i18n library setup** — Install `i18next` + `react-i18next`. Create `src/lib/i18n.ts` config with `en` + `vi` resources. Language detection from device locale (`react-native-localize`). Fallback = `en`. Persist user choice to AsyncStorage | M | TODO | MOBILE |
-| 13 | **MOBILE: Vietnamese translations** — Create `src/locales/vi.ts` mirroring `en.ts` structure (~1011 lines). Translate all strings to Vietnamese. Tự nhiên, không máy móc | L | TODO | MOBILE |
-| 14 | **MOBILE: Migrate all screens to `useTranslation()`** — Replace all `import t from '@/locales/en'` with `const { t } = useTranslation()`. Update all `t.xxx.yyy` to `t('xxx.yyy')`. This is a large migration across ~30+ screen files | L | TODO | MOBILE |
-| 15 | **MOBILE: Language picker in Profile** — Add "Language" option in ProfileScreen settings. Show current language (English / Tiếng Việt). Tap → select. Restart not required (i18next re-renders) | S | TODO | MOBILE |
+| 12 | **MOBILE: i18n library setup** | M | DONE | MOBILE |
+| 13 | **MOBILE: Vietnamese translations** (1035 lines) | L | DONE | MOBILE |
+| 14 | **MOBILE: Migrate 88 screens to useTranslation()** | L | DONE | MOBILE |
+| 15 | **MOBILE: Language picker in Profile** | S | DONE | MOBILE |
+
+### 4. Invite Link → Onboarding Flow
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 16 | **BE: Public validate-invite + partnerAvatar** | S | DONE | BE |
+| 17 | **MOBILE: Pending invite store** | S | DONE | MOBILE |
+| 18 | **MOBILE: Login Screen invite banner** | M | DONE | MOBILE |
+| 19 | **MOBILE: Auto-join in onboarding** | M | DONE | MOBILE |
 
 ### Acceptance Criteria
 
@@ -59,6 +68,11 @@
 - [ ] Vietnamese translations complete for all ~1011 strings
 - [ ] Language switch instant (no app restart)
 - [ ] Language choice persists across app restarts
+- [ ] Invite link flow: tap link → Login Screen shows inviter avatar + couple name
+- [ ] Register from invite → skip Couple Mode → auto join → Celebration → Avatar → app
+- [ ] Login from invite (no couple) → auto join → Avatar → app
+- [ ] Login from invite (has couple) → ignore invite → app directly
+- [ ] Invalid invite code → clear, show normal Login Screen
 - [ ] Lint + build pass (iOS + Android)
 - [ ] No regressions in functionality
 
