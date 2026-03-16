@@ -4,7 +4,7 @@ import { Body, Caption, Label } from '../../../components/Typography';
 import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { PlusCircle, Timer, XCircle } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Recipe } from '../../../types';
 import { useCreateRecipeViewModel } from './useCreateRecipeViewModel';
 import AppBottomSheet from '../../../components/AppBottomSheet';
@@ -42,6 +42,7 @@ function IngredientInputRow({
   onChangePrice: (v: string) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   return (
     <View className="flex-row items-center gap-2 mb-2">
@@ -49,19 +50,19 @@ function IngredientInputRow({
         <BottomSheetTextInput
           value={ingredient}
           onChangeText={onChangeIngredient}
-          placeholder={t.recipes.create.ingredientPlaceholder}
+          placeholder={t('recipes.create.ingredientPlaceholder')}
           placeholderTextColor={colors.textLight}
-          className="bg-inputBg border border-border rounded-xl px-3 h-[42px] text-sm text-textDark"
+          className="bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-xl px-3 h-[42px] text-sm text-textDark dark:text-darkTextDark"
         />
       </View>
       <View className="w-[80px]">
         <BottomSheetTextInput
           value={price}
           onChangeText={onChangePrice}
-          placeholder={t.recipes.create.pricePlaceholder}
+          placeholder={t('recipes.create.pricePlaceholder')}
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
-          className="bg-inputBg border border-border rounded-xl px-3 h-[42px] text-sm text-textDark"
+          className="bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-xl px-3 h-[42px] text-sm text-textDark dark:text-darkTextDark"
         />
       </View>
       <Pressable onPress={onRemove} hitSlop={8}>
@@ -88,6 +89,7 @@ function StepInputRow({
   onChangeDuration: (v: string) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   // Parse stored seconds into local min/sec display state
@@ -110,11 +112,11 @@ function StepInputRow({
         <BottomSheetTextInput
           value={content}
           onChangeText={onChangeContent}
-          placeholder={t.recipes.create.stepPlaceholder}
+          placeholder={t('recipes.create.stepPlaceholder')}
           placeholderTextColor={colors.textLight}
           multiline
           textAlignVertical="top"
-          className="flex-1 bg-inputBg border border-border rounded-xl px-3 py-2.5 text-sm text-textDark min-h-[42px]"
+          className="flex-1 bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-xl px-3 py-2.5 text-sm text-textDark dark:text-darkTextDark min-h-[42px]"
         />
         <Pressable onPress={onRemove} hitSlop={8} className="mt-[10px]">
           <XCircle size={20} color={colors.textLight} strokeWidth={1.5} />
@@ -130,9 +132,9 @@ function StepInputRow({
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
           maxLength={2}
-          className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
+          className="w-10 bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-lg px-2 h-7 text-xs text-textDark dark:text-darkTextDark text-center"
         />
-        <Body size="sm" className="text-textLight">min</Body>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight">min</Body>
         <BottomSheetTextInput
           value={secs}
           onChangeText={v => { setSecs(v); commit(mins, v); }}
@@ -140,9 +142,9 @@ function StepInputRow({
           placeholderTextColor={colors.textLight}
           keyboardType="numeric"
           maxLength={2}
-          className="w-10 bg-inputBg border border-border rounded-lg px-2 h-7 text-xs text-textDark text-center"
+          className="w-10 bg-inputBg dark:bg-darkInputBg border border-border dark:border-darkBorder rounded-lg px-2 h-7 text-xs text-textDark dark:text-darkTextDark text-center"
         />
-        <Body size="sm" className="text-textLight">sec</Body>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight">sec</Body>
       </View>
     </View>
   );
@@ -156,6 +158,7 @@ interface Props {
 }
 
 export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Props) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const colors = useAppColors();
 
@@ -169,7 +172,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
     <AppBottomSheet
       ref={sheetRef}
       scrollable
-      title={vm.isEdit ? t.recipes.create.editTitle : t.recipes.create.newTitle}
+      title={vm.isEdit ? t('recipes.create.editTitle') : t('recipes.create.newTitle')}
       onSave={vm.handleSave}
       isSaving={vm.isSaving}
       onDismiss={onClose}>
@@ -177,7 +180,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
       <View className="pb-[60px] pt-2">
 
         {/* ── Photos ── */}
-        <SectionHeader icon="📷" label={t.recipes.create.photos} />
+        <SectionHeader icon="📷" label={t('recipes.create.photos')} />
         <View className="px-5 mb-4">
           <PhotoPicker
             photos={vm.photos}
@@ -190,21 +193,21 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
         <Divider />
 
         {/* ── Basic details ── */}
-        <SectionHeader icon="✏️" label={t.recipes.create.details} />
+        <SectionHeader icon="✏️" label={t('recipes.create.details')} />
         <View className="px-5">
-          <FieldLabel>{`${t.recipes.labels.title} *`}</FieldLabel>
+          <FieldLabel>{`${t('recipes.labels.title')} *`}</FieldLabel>
           <Input
             bottomSheet
-            placeholder={t.recipes.placeholders.title}
+            placeholder={t('recipes.placeholders.title')}
             value={vm.title}
             onChangeText={vm.setTitle}
             maxLength={200}
           />
 
-          <FieldLabel>{t.recipes.labels.description}</FieldLabel>
+          <FieldLabel>{t('recipes.labels.description')}</FieldLabel>
           <Input
             bottomSheet
-            placeholder={t.recipes.placeholders.description}
+            placeholder={t('recipes.placeholders.description')}
             value={vm.description}
             onChangeText={vm.setDescription}
             multiline
@@ -216,7 +219,7 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
         <Divider />
 
         {/* ── Ingredients ── */}
-        <SectionHeader icon="🛒" label={t.recipes.create.ingredientsSection} />
+        <SectionHeader icon="🛒" label={t('recipes.create.ingredientsSection')} />
         <View className="px-5">
           {vm.ingredients.map((row, idx) => (
             <IngredientInputRow
@@ -232,14 +235,14 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
             onPress={vm.addIngredient}
             className="flex-row items-center gap-2 py-2 mt-1">
             <PlusCircle size={18} color={colors.primary} strokeWidth={1.5} />
-            <Label className="text-primary">{t.recipes.create.addIngredient}</Label>
+            <Label className="text-primary">{t('recipes.create.addIngredient')}</Label>
           </Pressable>
         </View>
 
         <Divider />
 
         {/* ── Steps ── */}
-        <SectionHeader icon="👨‍🍳" label={t.recipes.create.stepsSection} />
+        <SectionHeader icon="👨‍🍳" label={t('recipes.create.stepsSection')} />
         <View className="px-5">
           {vm.steps.map((row, idx) => (
             <StepInputRow
@@ -256,14 +259,14 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
             onPress={vm.addStep}
             className="flex-row items-center gap-2 py-2 mt-1">
             <PlusCircle size={18} color={colors.primary} strokeWidth={1.5} />
-            <Label className="text-primary">{t.recipes.create.addStep}</Label>
+            <Label className="text-primary">{t('recipes.create.addStep')}</Label>
           </Pressable>
         </View>
 
         <Divider />
 
         {/* ── Tags ── */}
-        <SectionHeader icon="🏷️" label={t.recipes.labels.tags} />
+        <SectionHeader icon="🏷️" label={t('recipes.labels.tags')} />
         <View className="px-5 mb-4">
           <TagInput
             tags={vm.tags}
@@ -277,11 +280,11 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
         <Divider />
 
         {/* ── Notes + Tutorial ── */}
-        <SectionHeader icon="📝" label={t.recipes.labels.notes} />
+        <SectionHeader icon="📝" label={t('recipes.labels.notes')} />
         <View className="px-5">
           <Input
             bottomSheet
-            placeholder={t.recipes.placeholders.notes}
+            placeholder={t('recipes.placeholders.notes')}
             value={vm.notes}
             onChangeText={vm.setNotes}
             multiline
@@ -289,10 +292,10 @@ export default function CreateRecipeSheet({ recipe: initialRecipe, onClose }: Pr
             textAlignVertical="top"
           />
 
-          <FieldLabel>{t.recipes.labels.tutorialUrl}</FieldLabel>
+          <FieldLabel>{t('recipes.labels.tutorialUrl')}</FieldLabel>
           <Input
             bottomSheet
-            placeholder={t.recipes.placeholders.tutorialUrl}
+            placeholder={t('recipes.placeholders.tutorialUrl')}
             value={vm.tutorialUrl}
             onChangeText={vm.setTutorialUrl}
             autoCapitalize="none"

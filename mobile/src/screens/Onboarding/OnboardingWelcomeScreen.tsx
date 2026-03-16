@@ -19,11 +19,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import SpringPressable from '../../components/SpringPressable';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
+import { useAppColors } from '../../navigation/theme';
 
 // ── Progress Dots ─────────────────────────────────────────────────────────────
 
 function ProgressDots({ step, total }: { step: number; total: number }) {
+  const colors = useAppColors();
   return (
     <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: total }).map((_, i) => (
@@ -33,7 +35,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
           style={{
             width: i === step ? 20 : 8,
             height: 8,
-            backgroundColor: i === step ? '#E8788A' : '#E8788A40',
+            backgroundColor: i === step ? colors.primary : colors.primary + '40',
           }}
         />
       ))}
@@ -48,6 +50,7 @@ function FloatingHeart({
 }: {
   x: number; y: number; size: number; delay: number; opacity: number;
 }) {
+  const colors = useAppColors();
   const translateY = useSharedValue(0);
   const rotate = useSharedValue(0);
 
@@ -90,7 +93,7 @@ function FloatingHeart({
 
   return (
     <Animated.View style={animStyle}>
-      <Heart size={size} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+      <Heart size={size} color={colors.primary} fill={colors.primary} strokeWidth={0} />
     </Animated.View>
   );
 }
@@ -98,6 +101,7 @@ function FloatingHeart({
 // ── Pulsing Center Heart ──────────────────────────────────────────────────────
 
 function PulsingHeart() {
+  const colors = useAppColors();
   const scale = useSharedValue(1);
   const outerScale = useSharedValue(0.8);
   const outerOpacity = useSharedValue(0.3);
@@ -139,14 +143,14 @@ function PulsingHeart() {
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: '#E8788A',
+    borderColor: colors.primary,
   }));
 
   return (
     <View className="items-center justify-center" style={{ width: 120, height: 120 }}>
       <Animated.View style={ringStyle} />
       <Animated.View style={heartStyle}>
-        <Heart size={72} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+        <Heart size={72} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
     </View>
   );
@@ -155,6 +159,8 @@ function PulsingHeart() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingWelcomeScreen() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingCouple'>>();
@@ -179,7 +185,7 @@ export default function OnboardingWelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF0F3', '#FFF8F6', '#FFF5EE']}
+      colors={[colors.primaryLighter, colors.baseBg, '#FFF5EE']}
       start={{ x: 0.3, y: 0 }}
       end={{ x: 0.7, y: 1 }}
       style={{ flex: 1 }}>
@@ -213,12 +219,12 @@ export default function OnboardingWelcomeScreen() {
         <Animated.View entering={FadeInDown.delay(400).duration(500)} className="items-center mb-10">
           <Heading
             size="xl"
-            className="text-textDark text-center leading-tight mb-3"
+            className="text-textDark dark:text-darkTextDark text-center leading-tight mb-3"
             style={{ fontSize: 30, lineHeight: 38 }}>
-            {t.onboarding.welcome.title}
+            {t('onboarding.welcome.title')}
           </Heading>
-          <Body size="md" className="text-textMid text-center" style={{ lineHeight: 22 }}>
-            {t.onboarding.welcome.subtitle}
+          <Body size="md" className="text-textMid dark:text-darkTextMid text-center" style={{ lineHeight: 22 }}>
+            {t('onboarding.welcome.subtitle')}
           </Body>
         </Animated.View>
 
@@ -227,9 +233,9 @@ export default function OnboardingWelcomeScreen() {
           <SpringPressable
             onPress={handleStart}
             className="w-full h-14 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: '#E8788A' }}>
+            style={{ backgroundColor: colors.primary }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-              {t.onboarding.welcome.cta}  →
+              {t('onboarding.welcome.cta')}  →
             </Body>
           </SpringPressable>
         </Animated.View>

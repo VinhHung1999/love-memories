@@ -31,7 +31,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Heart, Mail, ChevronRight } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import type { LoveLetter } from '../../types';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useLetterOverlayViewModel } from './useLetterOverlayViewModel';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
@@ -46,6 +46,7 @@ interface LetterCardProps {
 
 function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
   const colors = useAppColors();
+  const { t } = useTranslation();
   const contentOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(24);
 
@@ -101,7 +102,7 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
                   letterSpacing: 0.3,
                 }}
               >
-                {isRead ? '✓ Letter read' : t.letterOverlay.tapToOpen}
+                {isRead ? '✓ Letter read' : t('letterOverlay.tapToOpen')}
               </Text>
             </LinearGradient>
           </View>
@@ -118,7 +119,7 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
               </View>
               <View>
                 <Caption className="tracking-[0.5px]" style={{ color: colors.textLight }}>
-                  {t.letterOverlay.from.toUpperCase()}
+                  {t('letterOverlay.from').toUpperCase()}
                 </Caption>
                 <Label className="font-semibold" style={{ color: colors.textDark }}>
                   {senderName}
@@ -195,6 +196,7 @@ function PaginationDots({ total, current }: { total: number; current: number }) 
 // ── Main overlay ───────────────────────────────────────────────────────────
 
 export default function LetterOverlay() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useLetterOverlayViewModel();
   const flatListRef = useRef<FlatList>(null);
@@ -205,8 +207,8 @@ export default function LetterOverlay() {
   const letters = vm.unreadLetters;
   const unreadCount = letters.length;
   const title = unreadCount === 1
-    ? t.letterOverlay.title
-    : t.letterOverlay.titlePlural.replace('{count}', String(unreadCount));
+    ? t('letterOverlay.title')
+    : t('letterOverlay.titlePlural').replace('{count}', String(unreadCount));
 
   function handleOpenLetter(letter: LoveLetter) {
     vm.markRead(letter.id);
@@ -287,11 +289,11 @@ export default function LetterOverlay() {
           <View className="items-center mt-4 px-8">
             {vm.allRead ? (
               <Label className="font-semibold" style={{ color: colors.success }}>
-                {t.letterOverlay.readAll}
+                {t('letterOverlay.readAll')}
               </Label>
             ) : (
               <Caption className="text-center" style={{ color: colors.textLight }}>
-                {t.letterOverlay.swipeHint}
+                {t('letterOverlay.swipeHint')}
               </Caption>
             )}
           </View>
@@ -316,7 +318,7 @@ export default function LetterOverlay() {
                 }}
               >
                 <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
-                  {t.letterOverlay.dismiss}
+                  {t('letterOverlay.dismiss')}
                 </Text>
                 <ChevronRight size={16} color="#FFFFFF" strokeWidth={2.5} />
               </LinearGradient>

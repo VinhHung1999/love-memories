@@ -86,7 +86,7 @@ export default function DetailScreenLayout({
   const scrollBg = coverImageUri ? 'white' : gradient[0];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white dark:bg-darkBgCard">
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -173,7 +173,7 @@ export default function DetailScreenLayout({
         </Pressable>
 
         {/* ── Content card (slides up 24px over cover, rounded top corners) ── */}
-        <View className="bg-white rounded-t-3xl -mt-6" >
+        <View className="bg-white dark:bg-darkBgCard rounded-t-3xl -mt-6" >
           {children}
         </View>
       </Animated.ScrollView>

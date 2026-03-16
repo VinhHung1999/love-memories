@@ -1298,6 +1298,29 @@ export const subscriptionApi = {
 
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Share API
+// ---------------------------------------------------------------------------
+
+export const shareApi = {
+  create: async (type: string, targetId: string): Promise<{ token: string }> => {
+    const res = await apiFetch('/api/share', {
+      method: 'POST',
+      body: JSON.stringify({ type, targetId }),
+    });
+    if (!res.ok) throw new Error('Failed to create share link');
+    return res.json();
+  },
+
+  getToken: async (token: string): Promise<any> => {
+    const res = await fetch(`${API_BASE}/api/share/${encodeURIComponent(token)}`);
+    if (!res.ok) throw new Error('Share link not found');
+    return res.json();
+  },
+};
+
+// ---------------------------------------------------------------------------
+
 export const settingsApi = {
   get: async (key: string): Promise<{ key: string; value: string | null }> => {
     const res = await apiFetch(`/api/settings/${encodeURIComponent(key)}`);

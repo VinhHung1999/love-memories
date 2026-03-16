@@ -5,12 +5,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { DatePlannerStackParamList } from '../../navigation';
 import { datePlansApi } from '../../lib/api';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 type Nav = NativeStackNavigationProp<DatePlannerStackParamList>;
 type Route = RouteProp<DatePlannerStackParamList, 'PlanDetail'>;
 
 export function usePlanDetailViewModel() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const queryClient = useQueryClient();
@@ -46,10 +46,10 @@ export function usePlanDetailViewModel() {
 
   const handleDeleteWithConfirm = (showAlert: (params: any) => void) => {
     showAlert({
-      title: t.datePlanner.deletePlan,
-      message: t.datePlanner.deletePlanConfirm,
+      title: t('datePlanner.deletePlan'),
+      message: t('datePlanner.deletePlanConfirm'),
       type: 'destructive',
-      confirmLabel: t.common.delete,
+      confirmLabel: t('common.delete'),
       onConfirm: () => deleteMutation.mutate(),
     });
   };

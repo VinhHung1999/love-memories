@@ -4,7 +4,7 @@ import { Caption } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Plus, X } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import AppBottomSheet from '../../../components/AppBottomSheet';
 import Input from '../../../components/Input';
 import FieldLabel from '../../../components/FieldLabel';
@@ -19,6 +19,7 @@ export default function PlanFormSheet({
   onClose: () => void;
   initialPlan?: DatePlan;
 }) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const colors = useAppColors();
   const vm = usePlanFormViewModel(onClose, initialPlan);
@@ -29,7 +30,7 @@ export default function PlanFormSheet({
     <AppBottomSheet
       ref={sheetRef}
       scrollable
-      title={initialPlan ? t.datePlanner.editPlan : t.datePlanner.createPlan}
+      title={initialPlan ? t('datePlanner.editPlan') : t('datePlanner.createPlan')}
       onSave={vm.save}
       isSaving={vm.isSaving}
       saveDisabled={!vm.isValid || vm.isSaving}
@@ -40,18 +41,18 @@ export default function PlanFormSheet({
 
         {/* Title */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.planTitleLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.planTitleLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.title}
             onChangeText={vm.setTitle}
-            placeholder={t.datePlanner.planTitlePlaceholder}
+            placeholder={t('datePlanner.planTitlePlaceholder')}
           />
         </View>
 
         {/* Date */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.planDateLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.planDateLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.date}
@@ -63,12 +64,12 @@ export default function PlanFormSheet({
 
         {/* Notes */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.planNotesLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.planNotesLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.notes}
             onChangeText={vm.setNotes}
-            placeholder={t.datePlanner.planNotesPlaceholder}
+            placeholder={t('datePlanner.planNotesPlaceholder')}
             multiline
             numberOfLines={2}
             style={{ minHeight: 60, textAlignVertical: 'top' }}
@@ -78,14 +79,14 @@ export default function PlanFormSheet({
         {/* Stops */}
         <View className="mb-6">
           <View className="flex-row items-center justify-between mb-2">
-            <FieldLabel>{t.datePlanner.stopsLabel}</FieldLabel>
+            <FieldLabel>{t('datePlanner.stopsLabel')}</FieldLabel>
             <Pressable
               onPress={vm.addStop}
               className="flex-row items-center gap-1 px-2 py-1 rounded-lg"
               style={{ backgroundColor: colors.primaryMuted }}>
               <Plus size={14} color={colors.primary} strokeWidth={1.5} />
               <Caption className="font-semibold" style={{ color: colors.primary }}>
-                {t.datePlanner.addStop}
+                {t('datePlanner.addStop')}
               </Caption>
             </Pressable>
           </View>
@@ -101,13 +102,13 @@ export default function PlanFormSheet({
                       bottomSheet
                       value={stop.time}
                       onChangeText={v => vm.updateStop(idx, 'time', v)}
-                      placeholder={t.datePlanner.stopTimePlaceholder}
+                      placeholder={t('datePlanner.stopTimePlaceholder')}
                       keyboardType="numbers-and-punctuation"
                     />
                   </View>
                   <Pressable
                     onPress={() => vm.removeStop(idx)}
-                    className="w-10 h-10 rounded-xl items-center justify-center bg-white">
+                    className="w-10 h-10 rounded-xl items-center justify-center bg-white dark:bg-darkBgCard">
                     <X size={16} color={colors.textLight} strokeWidth={1.5} />
                   </Pressable>
                 </View>
@@ -115,13 +116,13 @@ export default function PlanFormSheet({
                   bottomSheet
                   value={stop.title}
                   onChangeText={v => vm.updateStop(idx, 'title', v)}
-                  placeholder={t.datePlanner.stopTitlePlaceholder}
+                  placeholder={t('datePlanner.stopTitlePlaceholder')}
                 />
                 <Input
                   bottomSheet
                   value={stop.notes}
                   onChangeText={v => vm.updateStop(idx, 'notes', v)}
-                  placeholder={t.datePlanner.stopNotesPlaceholder}
+                  placeholder={t('datePlanner.stopNotesPlaceholder')}
                   multiline
                   numberOfLines={2}
                   style={{ minHeight: 50, textAlignVertical: 'top' }}

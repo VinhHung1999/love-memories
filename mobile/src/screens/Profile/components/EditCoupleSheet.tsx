@@ -10,8 +10,7 @@ import AppBottomSheet from '../../../components/AppBottomSheet';
 import DatePickerField from '../../../components/DatePickerField';
 import FieldLabel from '../../../components/FieldLabel';
 import Input from '../../../components/Input';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface Props {
   couple: CoupleProfile | null;
   slogan?: string | null;
@@ -19,6 +18,7 @@ interface Props {
 }
 
 export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
@@ -46,20 +46,20 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
       onClose();
     },
     onError: (err: Error) =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: err.message }),
   });
 
   return (
     <AppBottomSheet
       ref={sheetRef}
-      title={t.profile.editCouple}
+      title={t('profile.editCouple')}
       onSave={() => mutation.mutate()}
       isSaving={mutation.isPending}
       onDismiss={onClose}>
       <View className="px-5 pt-4 pb-10">
 
         {/* Couple name */}
-        <FieldLabel>{t.profile.labels.coupleName}</FieldLabel>
+        <FieldLabel>{t('profile.labels.coupleName')}</FieldLabel>
         <Input
           bottomSheet
           value={coupleNameInput}
@@ -69,18 +69,18 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         />
 
         {/* Slogan */}
-        <FieldLabel>{t.profile.labels.slogan}</FieldLabel>
+        <FieldLabel>{t('profile.labels.slogan')}</FieldLabel>
         <Input
           bottomSheet
           value={sloganInput}
           onChangeText={setSloganInput}
-          placeholder={t.profile.placeholders.slogan}
+          placeholder={t('profile.placeholders.slogan')}
           autoCapitalize="sentences"
         />
 
         {/* Anniversary date */}
         <DatePickerField
-          label={t.profile.labels.anniversary}
+          label={t('profile.labels.anniversary')}
           value={anniversaryDate ?? new Date()}
           onChange={setAnniversaryDate}
           maximumDate={new Date()}
@@ -90,7 +90,7 @@ export default function EditCoupleSheet({ couple, slogan, onClose }: Props) {
         {/* Clear anniversary */}
         {anniversaryDate ? (
           <Pressable onPress={() => setAnniversaryDate(null)} className="mb-2 -mt-1">
-            <Caption className="text-textLight text-center">Clear anniversary date</Caption>
+            <Caption className="text-textLight dark:text-darkTextLight text-center">Clear anniversary date</Caption>
           </Pressable>
         ) : null}
 

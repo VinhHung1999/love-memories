@@ -6,11 +6,11 @@ import type { RecipesStackParamList } from '../../navigation';
 import { recipesApi, cookingSessionsApi } from '../../lib/api';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { Recipe } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 type Nav = NativeStackNavigationProp<RecipesStackParamList>;
 
 export function useWhatToEatViewModel() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const appNavigation = useAppNavigation();
   const queryClient = useQueryClient();
@@ -58,7 +58,7 @@ export function useWhatToEatViewModel() {
       navigation.navigate('CookingSession', { sessionId: session.id });
     },
     onError: (err: Error) =>
-      appNavigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.whatToEat.errors.createFailed }),
+      appNavigation.showAlert({ type: 'error', title: t('common.error'), message: err.message || t('whatToEat.errors.createFailed') }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────

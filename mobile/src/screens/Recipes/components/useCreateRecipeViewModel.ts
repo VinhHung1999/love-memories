@@ -5,7 +5,7 @@ import { useAppNavigation } from '../../../navigation/useAppNavigation';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { recipesApi } from '../../../lib/api';
 import type { Recipe } from '../../../types';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { LocalPhoto } from '../../CreateMoment/useCreateMomentViewModel';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -136,6 +136,7 @@ interface Props {
 }
 
 export function useCreateRecipeViewModel({ recipe: initialRecipe, onClose }: Props) {
+  const { t } = useTranslation();
   const isEdit = !!initialRecipe;
   const queryClient = useQueryClient();
   const navigation = useAppNavigation();
@@ -152,9 +153,9 @@ export function useCreateRecipeViewModel({ recipe: initialRecipe, onClose }: Pro
   }, [initialRecipe?.id]);
 
   const validate = useCallback((): string | null => {
-    if (!s.title.trim()) return t.recipes.errors.titleRequired;
+    if (!s.title.trim()) return t('recipes.errors.titleRequired');
     return null;
-  }, [s.title]);
+  }, [s.title, t]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -198,13 +199,13 @@ export function useCreateRecipeViewModel({ recipe: initialRecipe, onClose }: Pro
       onClose();
     },
     onError: (err: Error) =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: err.message || t.recipes.errors.saveFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: err.message || t('recipes.errors.saveFailed') }),
   });
 
   const handleSave = () => {
     const error = validate();
     if (error) {
-      navigation.showAlert({ type: 'error', title: t.common.error, message: error });
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: error });
       return;
     }
     if (saveMutation.isPending) return;

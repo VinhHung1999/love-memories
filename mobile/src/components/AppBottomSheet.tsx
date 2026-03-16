@@ -15,8 +15,7 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useAppColors } from '../navigation/theme';
-import t from '../locales/en';
-
+import { useTranslation } from 'react-i18next';
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface AppBottomSheetProps {
@@ -32,8 +31,8 @@ interface AppBottomSheetProps {
   scrollable?: boolean; // false=BottomSheetView+dynamicSizing, true=BottomSheetScrollView+snapPoints
   snapPoints?: string[]; // default ['92%'], only used when scrollable=true
   showHeader?: boolean; // default true
-  cancelLabel?: string; // default t.common.cancel
-  saveLabel?: string; // default t.common.save
+  cancelLabel?: string; // default t('common.cancel')
+  saveLabel?: string; // default t('common.save')
   onSave?: () => void;
   onDismiss?: () => void;
   saveDisabled?: boolean;
@@ -69,6 +68,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     },
     externalRef,
   ) => {
+  const { t } = useTranslation();
     const colors = useAppColors();
     const internalRef = useRef<BottomSheetModal>(null);
 
@@ -107,8 +107,8 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     const handleDismiss = useCallback(() => onDismiss?.(), [onDismiss]);
     const handleCancel = useCallback(() => internalRef.current?.dismiss(), []);
 
-    const cancel = cancelLabel ?? t.common.cancel;
-    const save = saveLabel ?? t.common.save;
+    const cancel = cancelLabel ?? t('common.cancel');
+    const save = saveLabel ?? t('common.save');
     const paddingTop = useMemo(() => {
       return showHeader ? HEADER_HEIGHT : 0;
     }, [showHeader]);
@@ -131,14 +131,14 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         {showHeader && (
           icon ? (
             /* Icon + title + subtitle style — row layout (no Cancel/Save) */
-            <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border">
+            <View className="flex-row items-center gap-4 px-5 py-4 border-b border-border dark:border-darkBorder">
               <View className="w-12 h-12 rounded-2xl items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primaryMuted }}>
                 {icon && React.createElement(icon, { size: 24, color: colors.primary, strokeWidth: 1.5 })}
               </View>
               <View className="flex-1">
-                <Heading size="sm" className="text-textDark">{title}</Heading>
+                <Heading size="sm" className="text-textDark dark:text-darkTextDark">{title}</Heading>
                 {subtitle ? (
-                  <Body className="text-textMid mt-0.5">{subtitle}</Body>
+                  <Body className="text-textMid dark:text-darkTextMid mt-0.5">{subtitle}</Body>
                 ) : null}
               </View>
               {actionLabel ? (
@@ -159,11 +159,11 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
             </View>
           ) : (
             /* Classic Cancel / Title / Save style */
-            <View className="flex-row items-center px-5 py-3 border-b border-border">
+            <View className="flex-row items-center px-5 py-3 border-b border-border dark:border-darkBorder">
               <Pressable onPress={handleCancel} className="w-[60px]">
-                <Body className="text-textMid">{cancel}</Body>
+                <Body className="text-textMid dark:text-darkTextMid">{cancel}</Body>
               </Pressable>
-              <Label className="flex-1 text-center font-semibold text-textDark">
+              <Label className="flex-1 text-center font-semibold text-textDark dark:text-darkTextDark">
                 {title}
               </Label>
               <Pressable

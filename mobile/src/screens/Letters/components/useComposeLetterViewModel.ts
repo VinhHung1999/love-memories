@@ -11,8 +11,7 @@ import audioRecorderPlayer, {
 import { loveLettersApi } from '../../../lib/api';
 import { useUploadProgress } from '../../../contexts/UploadProgressContext';
 import type { LoveLetter } from '../../../types';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 export const MOODS = ['love', 'happy', 'miss', 'grateful', 'playful', 'romantic'] as const;
 export type Mood = typeof MOODS[number];
 
@@ -23,6 +22,7 @@ interface PendingPhoto {
 }
 
 export function useComposeLetterViewModel(onClose: () => void, initialLetter?: LoveLetter) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { startUpload, incrementUpload } = useUploadProgress();
   const stopRecordingRef = useRef<(() => void) | null>(null);
@@ -125,16 +125,16 @@ export function useComposeLetterViewModel(onClose: () => void, initialLetter?: L
     } catch (err: any) {
       setError(
         err?.message?.includes('PREMIUM')
-          ? t.loveLetters.errors.premiumRequired
+          ? t('loveLetters.errors.premiumRequired')
           : shouldSend
-          ? t.loveLetters.errors.sendFailed
-          : t.loveLetters.errors.saveFailed,
+          ? t('loveLetters.errors.sendFailed')
+          : t('loveLetters.errors.saveFailed'),
       );
     } finally {
       setIsSaving(false);
       setIsSending(false);
     }
-  }, [draftId, title, content, mood, isValid, scheduleMode, scheduledAt, pendingPhotos, recordedAudioPath, queryClient, onClose, startUpload, incrementUpload]);
+  }, [draftId, title, content, mood, isValid, scheduleMode, scheduledAt, pendingPhotos, recordedAudioPath, queryClient, onClose, startUpload, incrementUpload, t]);
 
   const saveDraft = useCallback(() => executeFlow(false), [executeFlow]);
   const sendNow = useCallback(() => executeFlow(true), [executeFlow]);

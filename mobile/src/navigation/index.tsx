@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,9 +11,10 @@ import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { useColorScheme } from 'react-native';
 import { useAuth } from '../lib/auth';
 import { LoginScreen, DashboardScreen, ProfileScreen } from '../screens';
-import { AppTheme } from './theme';
+import { AppTheme, DarkAppTheme } from './theme';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import UploadProgressFloat from '../components/UploadProgressFloat';
 import type { BottomSheetParams, AlertParams } from './useAppNavigation';
@@ -46,6 +48,8 @@ export type AppStackParamList = {
   Achievements: undefined;
   MonthlyRecapTab: { month?: string } | undefined;
   Paywall: { trigger: 'limit' | 'browse'; blockedFeature?: string } | undefined;
+  ShareViewer: { token: string };
+  JoinCouple: { code: string };
 };
 
 /** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
@@ -220,6 +224,9 @@ import DailyQuestionsScreen from '../screens/DailyQuestions/DailyQuestionsScreen
 import MonthlyRecapScreen from '../screens/MonthlyRecap/MonthlyRecapScreen';
 import PaywallScreen from '../screens/Paywall/PaywallScreen';
 import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
+import ShareViewerScreen from '../screens/ShareViewer/ShareViewerScreen';
+import JoinCoupleScreen from '../screens/JoinCouple/JoinCoupleScreen';
+import { setPendingInviteCode } from '../lib/pendingInvite';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -417,9 +424,54 @@ function AppNavigator() {
         component={PaywallScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
       />
+      <AppStack.Screen name="ShareViewer" component={ShareViewerScreen} />
+      <AppStack.Screen name="JoinCouple" component={JoinCoupleScreen} />
     </AppStack.Navigator>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Deep linking config
+// ---------------------------------------------------------------------------
+
+/** Extract invite code from URL if path matches /invite/:code */
+function extractInviteCode(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const match = parsed.pathname.match(/\/invite\/([^/?#]+)/);
+    return match ? match[1] : null;
+  } catch {
+    // lovescrum:// custom scheme — fall back to string matching
+    const match = url.match(/\/invite\/([^/?#]+)/);
+    return match ? match[1] : null;
+  }
+}
+
+const linking = {
+  prefixes: ['https://love-scrum.hungphu.work', 'https://dev-love-scrum.hungphu.work', 'lovescrum://'],
+  config: {
+    screens: {
+      ShareViewer: 'share/:token',
+      JoinCouple: 'invite/:code',
+    },
+  },
+  async getInitialURL() {
+    const url = await Linking.getInitialURL();
+    if (url) {
+      const code = extractInviteCode(url);
+      if (code) setPendingInviteCode(code);
+    }
+    return url ?? undefined;
+  },
+  subscribe(listener: (url: string) => void) {
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      const code = extractInviteCode(url);
+      if (code) setPendingInviteCode(code);
+      listener(url);
+    });
+    return () => subscription.remove();
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Root navigator — switches based on auth state
@@ -427,18 +479,20 @@ function AppNavigator() {
 
 export default function RootNavigator() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const colorScheme = useColorScheme();
+  const navTheme = colorScheme === 'dark' ? DarkAppTheme : AppTheme;
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color={AppTheme.colors.primary} />
+      <View className="flex-1 items-center justify-center bg-white dark:bg-darkBgCard">
+        <ActivityIndicator size="large" color={navTheme.colors.primary} />
       </View>
     );
   }
 
 
   return (
-    <NavigationContainer theme={AppTheme as any}>
+    <NavigationContainer theme={navTheme as any} linking={linking}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
         {!isAuthenticated

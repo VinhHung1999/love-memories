@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Bell, X } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { AppNotification } from '../../lib/api';
 import { useNotificationsViewModel } from './useNotificationsViewModel';
 import ScreenHeader from '../../components/ScreenHeader';
@@ -56,7 +56,7 @@ function relativeTime(dateStr: string): string {
 
 function NotificationSkeleton() {
   return (
-    <View className="bg-white mx-4 mb-2 rounded-2xl px-4 py-3.5 flex-row items-start gap-3">
+    <View className="bg-white dark:bg-darkBgCard mx-4 mb-2 rounded-2xl px-4 py-3.5 flex-row items-start gap-3">
       <Skeleton className="w-9 h-9 rounded-2xl" />
       <View className="flex-1">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -88,7 +88,7 @@ function NotificationRow({
         {/* Left unread accent bar */}
         {!item.read && <View className="w-[3px] bg-primary self-stretch" />}
 
-        <View className={`flex-1 flex-row items-start gap-3 px-4 py-3.5 bg-white`}>
+        <View className={`flex-1 flex-row items-start gap-3 px-4 py-3.5 bg-white dark:bg-darkBgCard`}>
           {/* Emoji badge */}
           <View className="w-9 h-9 rounded-2xl bg-primary/10 items-center justify-center flex-shrink-0 mt-0.5">
             <Text className="text-base">{getEmoji(item.type)}</Text>
@@ -103,10 +103,10 @@ function NotificationRow({
               numberOfLines={2}>
               {item.title}
             </Body>
-            <Body size="sm" className="text-textMid mt-0.5 leading-relaxed" numberOfLines={2}>
+            <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5 leading-relaxed" numberOfLines={2}>
               {item.message}
             </Body>
-            <Caption className="text-textLight mt-1.5 font-medium">
+            <Caption className="text-textLight dark:text-darkTextLight mt-1.5 font-medium">
               {relativeTime(item.createdAt)}
             </Caption>
           </View>
@@ -126,13 +126,13 @@ function NotificationRow({
 
 // ── Main Screen ────────────────────────────────────────────────────────────
 
-const GROUP_LABELS: Record<string, string> = {
-  today: t.notifications.today,
-  yesterday: t.notifications.yesterday,
-  earlier: t.notifications.earlier,
-};
-
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
+  const GROUP_LABELS: Record<string, string> = {
+    today: t('notifications.today'),
+    yesterday: t('notifications.yesterday'),
+    earlier: t('notifications.earlier'),
+  };
   const colors = useAppColors();
   const vm = useNotificationsViewModel();
   const navigation = useNavigation();
@@ -142,13 +142,13 @@ export default function NotificationsScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <ScreenHeader
-        title={t.notifications.title}
-        subtitle={t.notifications.subtitle}
+        title={t('notifications.title')}
+        subtitle={t('notifications.subtitle')}
         scrollY={scrollY}
         onBack={navigation.goBack}
         right={vm.hasUnread ? (
           <Pressable onPress={vm.handleMarkAll} className="py-1">
-            <Body size="md" className="font-semibold text-primary">{t.notifications.markAll}</Body>
+            <Body size="md" className="font-semibold text-primary">{t('notifications.markAll')}</Body>
           </Pressable>
         ) : null}
       />
@@ -162,8 +162,8 @@ export default function NotificationsScreen() {
       ) : vm.grouped.length === 0 ? (
         <EmptyState
           icon={Bell}
-          title={t.notifications.emptyTitle}
-          subtitle={t.notifications.emptySubtitle}
+          title={t('notifications.emptyTitle')}
+          subtitle={t('notifications.emptySubtitle')}
         />
       ) : (
         <Animated.ScrollView
@@ -181,7 +181,7 @@ export default function NotificationsScreen() {
           <View key={vm.grouped.map(g => g.items.map(i => i.id).join(',')).join('|')} className="pt-4 pb-[100px]">
             {vm.grouped.map(group => (
               <View key={group.label}>
-                <Caption className="font-bold text-textLight tracking-[1px] uppercase px-5 pt-4 pb-2">
+                <Caption className="font-bold text-textLight dark:text-darkTextLight tracking-[1px] uppercase px-5 pt-4 pb-2">
                   {GROUP_LABELS[group.label] ?? group.label}
                 </Caption>
                 {group.items.map(item => (

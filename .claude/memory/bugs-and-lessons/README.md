@@ -2,6 +2,10 @@
 
 ## Resolved Bugs
 
+### Express master-router auth scope (Sprint 52 — validate-invite)
+- **Cause:** `router.use('/couple', requireAuth, coupleRoutes)` applies `requireAuth` to ALL sub-routes — removing it inside `couple.ts` has no effect
+- **Fix:** Mount the public route explicitly in the parent `routes/index.ts` BEFORE the auth-gated block: `router.get('/couple/validate-invite', handler)`
+
 ### React Hooks after early return (Sprint 49 — OverlayHeader migration)
 - **Cause:** `useSharedValue`/`useAnimatedScrollHandler` declared after `if (isLoading) return` guard in 4 detail screens
 - **Fix:** Always declare ALL hooks before any early returns, even if the value is only used after the guard

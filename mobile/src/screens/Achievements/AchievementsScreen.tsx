@@ -5,7 +5,7 @@ import Animated, { FadeInDown, useAnimatedScrollHandler, useSharedValue } from '
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList<Achievement, SectionListData<Achievement>>);
 import { CheckCircle, ChefHat, Clock, Flag, Heart, Lock, Star, Utensils } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useAchievementsViewModel } from './useAchievementsViewModel';
 import type { AchievementGroup } from './useAchievementsViewModel';
 import type { Achievement } from '../../types';
@@ -23,6 +23,7 @@ const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?:
 };
 
 function AchievementRow({ item }: { item: Achievement }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   return (
     <View
@@ -34,11 +35,11 @@ function AchievementRow({ item }: { item: Achievement }) {
         <Text className="text-2xl">{item.icon}</Text>
       </View>
       <View className="flex-1">
-        <Label className="text-textDark">{item.title}</Label>
-        <Body size="sm" className="text-textLight mt-0.5" numberOfLines={2}>{item.description}</Body>
+        <Label className="text-textDark dark:text-darkTextDark">{item.title}</Label>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5" numberOfLines={2}>{item.description}</Body>
         {item.unlocked && item.unlockedAt ? (
           <Caption className="mt-1" style={{ color: colors.accent }}>
-            {t.achievements.unlockedOn} {new Date(item.unlockedAt).toLocaleDateString()}
+            {t('achievements.unlockedOn')} {new Date(item.unlockedAt).toLocaleDateString()}
           </Caption>
         ) : null}
       </View>
@@ -56,6 +57,7 @@ function SectionSeparator() {
 }
 
 export default function AchievementsScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useAchievementsViewModel();
   const scrollY = useSharedValue(0);
@@ -66,13 +68,13 @@ export default function AchievementsScreen() {
   return (
     <View className="flex-1 bg-background">
       <ListHeader
-        title={t.achievements.title}
-        subtitle={t.achievements.subtitle}
+        title={t('achievements.title')}
+        subtitle={t('achievements.subtitle')}
         onBack={vm.handleBack}
         filterBar={vm.totalCount > 0 && !vm.isLoading ? (
           <View className="px-5 pb-3 pt-1">
-            <Body size="sm" className="text-textMid mb-1.5">
-              {t.achievements.progress
+            <Body size="sm" className="text-textMid dark:text-darkTextMid mb-1.5">
+              {t('achievements.progress')
                 .replace('{unlocked}', String(vm.unlockedCount))
                 .replace('{total}', String(vm.totalCount))}
             </Body>
@@ -104,7 +106,7 @@ export default function AchievementsScreen() {
                 className="flex-row items-center gap-2 px-4 py-2.5"
                 style={{ backgroundColor: colors.background }}>
                 {(() => { const CatIcon = CATEGORY_ICON[group.category] ?? Star; return <CatIcon size={14} color={colors.primary} strokeWidth={1.5} />; })()}
-                <Caption className="font-bold text-textMid uppercase tracking-wider">
+                <Caption className="font-bold text-textMid dark:text-darkTextMid uppercase tracking-wider">
                   {group.label}
                 </Caption>
                 <Caption className="ml-auto">

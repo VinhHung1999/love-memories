@@ -7,7 +7,7 @@ import { Caption } from './Typography';
 /**
  * Styled TextInput — NativeWind for static styles, inline object for focus state.
  *
- * Blur  → border-border (light gray) — always visible
+ * Blur  → border-border dark:border-darkBorder (light gray) — always visible
  * Focus → primary-tinted border + white background
  *
  * Pass `bottomSheet` prop when used inside a BottomSheet to enable keyboard avoiding.
@@ -40,9 +40,10 @@ export default function Input({ bottomSheet, ...props }: InputProps) {
         placeholderTextColor={colors.textLight}
         onFocus={e => { setFocused(true); props.onFocus?.(e); }}
         onBlur={e  => { setFocused(false); props.onBlur?.(e); }}
-        className={`${props.multiline ? 'min-h-[72px] py-3' : 'h-[50px]'} rounded-2xl border-[1.5px] border-border px-[18px]`}
+        className={`${props.multiline ? 'min-h-[72px] py-3' : 'h-[50px]'} rounded-2xl border-[1.5px] border-border dark:border-darkBorder px-[18px]`}
         style={[
           { backgroundColor: focused ? colors.inputFocusBg : colors.inputBg },
+          { color: colors.textDark },
           focused && { borderColor: colors.inputBorderFocus },
           props.style,
         ]}

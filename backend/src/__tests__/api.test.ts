@@ -151,6 +151,37 @@ describe('Health', () => {
   });
 });
 
+describe('Well-Known', () => {
+  it('GET /.well-known/apple-app-site-association returns JSON with applinks', async () => {
+    const res = await request(app).get('/.well-known/apple-app-site-association');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/application\/json/);
+    expect(res.body).toHaveProperty('applinks');
+    expect(res.body.applinks).toHaveProperty('apps');
+    expect(res.body.applinks).toHaveProperty('details');
+    const detail = res.body.applinks.details[0];
+    expect(detail.appIDs).toEqual(expect.arrayContaining([expect.stringMatching(/^TEAMID\./)]) );
+    expect(detail.components).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ '/': '/share/*' }),
+        expect.objectContaining({ '/': '/invite/*' }),
+      ])
+    );
+  });
+
+  it('GET /.well-known/assetlinks.json returns JSON with android_app target', async () => {
+    const res = await request(app).get('/.well-known/assetlinks.json');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/application\/json/);
+    expect(Array.isArray(res.body)).toBe(true);
+    const entry = res.body[0];
+    expect(entry.relation).toEqual(['delegate_permission/common.handle_all_urls']);
+    expect(entry.target.namespace).toBe('android_app');
+    expect(entry.target).toHaveProperty('package_name');
+    expect(Array.isArray(entry.target.sha256_cert_fingerprints)).toBe(true);
+  });
+});
+
 describe('Auth', () => {
   it('POST /api/auth/register succeeds without coupleName or inviteCode (coupleId=null)', async () => {
     const res = await request(app).post('/api/auth/register').send({
@@ -1526,28 +1557,29 @@ describe('Couple Profile', () => {
     expect(res.status).toBe(401);
   });
 
-  it('GET /api/couple/validate-invite returns valid=true for valid code with partnerName', async () => {
+  it('GET /api/couple/validate-invite returns valid=true with partnerName + partnerAvatar (no auth required)', async () => {
     // Create a joinable couple with exactly 1 member
     const joinable = await prisma.couple.create({ data: { name: 'Joinable Couple', inviteCode: 'JOINTEST' } });
     await prisma.user.create({ data: { email: 'solo@test.com', password: 'x', name: 'Solo User', coupleId: joinable.id } });
-    const res = await request(app).get('/api/couple/validate-invite?code=JOINTEST').set(auth());
+    const res = await request(app).get('/api/couple/validate-invite?code=JOINTEST');
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(true);
     expect(res.body.coupleName).toBe('Joinable Couple');
     expect(res.body.partnerName).toBe('Solo User');
+    expect('partnerAvatar' in res.body).toBe(true);
     // Cleanup
     await prisma.user.deleteMany({ where: { email: 'solo@test.com' } });
     await prisma.couple.delete({ where: { id: joinable.id } });
   });
 
-  it('GET /api/couple/validate-invite returns valid=false for unknown code', async () => {
-    const res = await request(app).get('/api/couple/validate-invite?code=BADCODE').set(auth());
+  it('GET /api/couple/validate-invite returns valid=false for unknown code (no auth required)', async () => {
+    const res = await request(app).get('/api/couple/validate-invite?code=BADCODE');
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(false);
     expect(res.body.error).toBe('Invalid invite code');
   });
 
-  it('GET /api/couple/validate-invite returns valid=false for full couple', async () => {
+  it('GET /api/couple/validate-invite returns valid=false for full couple (no auth required)', async () => {
     const fullCouple = await prisma.couple.create({ data: { inviteCode: 'FULLTEST' } });
     await prisma.user.createMany({
       data: [
@@ -1555,7 +1587,7 @@ describe('Couple Profile', () => {
         { email: 'full2@test.com', password: 'x', name: 'Full 2', coupleId: fullCouple.id },
       ],
     });
-    const res = await request(app).get('/api/couple/validate-invite?code=FULLTEST').set(auth());
+    const res = await request(app).get('/api/couple/validate-invite?code=FULLTEST');
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(false);
     expect(res.body.error).toBe('This couple is already full');
@@ -1564,14 +1596,15 @@ describe('Couple Profile', () => {
     await prisma.couple.delete({ where: { id: fullCouple.id } });
   });
 
-  it('GET /api/couple/validate-invite returns 400 without code param', async () => {
-    const res = await request(app).get('/api/couple/validate-invite').set(auth());
+  it('GET /api/couple/validate-invite returns 400 without code param (no auth required)', async () => {
+    const res = await request(app).get('/api/couple/validate-invite');
     expect(res.status).toBe(400);
   });
 
-  it('GET /api/couple/validate-invite returns 401 without auth', async () => {
+  it('GET /api/couple/validate-invite is public — returns 200 without auth token', async () => {
     const res = await request(app).get('/api/couple/validate-invite?code=ANYCODE');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    expect(res.body.valid).toBe(false); // ANYCODE doesn't exist — valid=false, but NOT 401
   });
 });
 

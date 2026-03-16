@@ -11,7 +11,7 @@ import { Plus, Star, Utensils } from 'lucide-react-native';
 
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { FoodSpot } from '../../types';
 import { useFoodSpotsViewModel } from './useFoodSpotsViewModel';
 import ListHeader from '../../components/ListHeader';
@@ -24,7 +24,7 @@ import CreateFoodSpotSheet from '../CreateFoodSpot/CreateFoodSpotSheet';
 
 function FoodSpotCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3">
+    <View className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[130px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -72,7 +72,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden border border-borderSoft mb-3">
+      className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden border border-borderSoft dark:border-darkBorder mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full min-h-[110px]">
@@ -111,7 +111,7 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 
       {/* Body */}
       <View className="px-3 pt-2 pb-3">
-        <Label className="text-textDark leading-snug mb-1.5" numberOfLines={2}>
+        <Label className="text-textDark dark:text-darkTextDark leading-snug mb-1.5" numberOfLines={2}>
           {spot.name}
         </Label>
 
@@ -143,15 +143,16 @@ function FoodSpotCard({ spot, onPress }: { spot: FoodSpot; onPress: () => void }
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function FoodSpotsScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useFoodSpotsViewModel();
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
-        title={t.foodSpots.title}
-        subtitle={t.foodSpots.subtitle}
+        title={t('foodSpots.title')}
+        subtitle={t('foodSpots.subtitle')}
         onBack={navigation.goBack}
         right={
           <Pressable
@@ -168,7 +169,7 @@ export default function FoodSpotsScreen() {
             className="px-5">
             <View className="flex-row gap-2 py-2 pr-5">
               <TagBadge
-                label={t.foodSpots.allFilter}
+                label={t('foodSpots.allFilter')}
                 active={!vm.activeTag}
                 onPress={() => vm.handleTagPress(null)}
               />
@@ -190,9 +191,9 @@ export default function FoodSpotsScreen() {
       ) : vm.isEmpty ? (
         <EmptyState
           icon={Utensils}
-          title={t.foodSpots.emptyTitle}
-          subtitle={t.foodSpots.emptySubtitle}
-          actionLabel={t.foodSpots.emptyAction}
+          title={t('foodSpots.emptyTitle')}
+          subtitle={t('foodSpots.emptySubtitle')}
+          actionLabel={t('foodSpots.emptyAction')}
           onAction={() => navigation.showBottomSheet(CreateFoodSpotSheet)}
         />
       ) : (

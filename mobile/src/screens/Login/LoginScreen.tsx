@@ -8,9 +8,9 @@ import {
   StatusBar,
   View,
 } from 'react-native';
-import { Body, Heading, Label } from '../../components/Typography';
+import { Body, Caption, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import SpringPressable from '../../components/SpringPressable';
@@ -20,9 +20,54 @@ import HeartLogo from './components/HeartLogo';
 import GoogleGLogo from '../../components/GoogleGLogo';
 import DecoBlobs from './components/DecoBlobs';
 import { useLoginViewModel } from './useLoginViewModel';
+import { useAppColors } from '../../navigation/theme';
+import Reanimated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
+import { Heart, X } from 'lucide-react-native';
+
+// ── Invite Banner ─────────────────────────────────────────────────────────────
+function InviteBanner({
+  partnerName,
+  coupleName,
+  onDismiss,
+}: {
+  partnerName: string;
+  coupleName: string;
+  onDismiss: () => void;
+}) {
+  const { t } = useTranslation();
+  const colors = useAppColors();
+  return (
+    <Reanimated.View
+      entering={FadeInDown.springify().damping(16).stiffness(120)}
+      exiting={FadeOutUp.duration(220)}
+      className="mx-4 mb-4 rounded-2xl overflow-hidden"
+      style={{ borderWidth: 1, borderColor: colors.primary + '30', backgroundColor: colors.primaryLighter }}>
+      <View className="flex-row items-center px-4 py-3 gap-3">
+        <View
+          className="w-9 h-9 rounded-xl items-center justify-center"
+          style={{ backgroundColor: colors.primary + '18' }}>
+          <Heart size={16} color={colors.primary} fill={colors.primary} strokeWidth={0} />
+        </View>
+        <View className="flex-1">
+          <Body size="sm" className="font-semibold text-textDark dark:text-darkTextDark">
+            {t('login.inviteBanner.title')}
+          </Body>
+          <Caption className="text-textMid dark:text-darkTextMid mt-0.5" numberOfLines={1}>
+            {t('login.inviteBanner.subtitle', { partnerName, coupleName })}
+          </Caption>
+        </View>
+        <Pressable onPress={onDismiss} hitSlop={8}>
+          <X size={16} color={colors.textLight} strokeWidth={1.5} />
+        </Pressable>
+      </View>
+    </Reanimated.View>
+  );
+}
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function LoginScreen() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const vm = useLoginViewModel();
 
   const logoAnim = useRef(new Animated.Value(0)).current;
@@ -45,9 +90,18 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={['#FFF0F3', '#FFFFFF', '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
+    <LinearGradient colors={[colors.primaryLighter, colors.white, '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <DecoBlobs />
+      {vm.inviteBanner && (
+        <View className="absolute top-16 left-0 right-0 z-10">
+          <InviteBanner
+            partnerName={vm.inviteBanner.partnerName}
+            coupleName={vm.inviteBanner.coupleName}
+            onDismiss={vm.dismissInviteBanner}
+          />
+        </View>
+      )}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerClassName="flex-grow justify-center">
           <View className="px-7 py-8">
@@ -55,58 +109,58 @@ export default function LoginScreen() {
             {/* ── Logo / hero ── */}
             <Animated.View className="items-center pb-5" style={logoStyle}>
               <HeartLogo />
-              <Heading size="lg" className="text-textDark tracking-[0.3px]">{t.app.name}</Heading>
+              <Heading size="lg" className="text-textDark dark:text-darkTextDark tracking-[0.3px]">{t('app.name')}</Heading>
             </Animated.View>
 
             {/* ── Form ── */}
             <Animated.View className="w-full" style={formStyle}>
-              <Heading size="lg" className="text-textDark mb-4 tracking-[0.2px]">
-                {vm.mode === 'login' ? t.login.welcomeBack : t.login.createAccount}
+              <Heading size="lg" className="text-textDark dark:text-darkTextDark mb-4 tracking-[0.2px]">
+                {vm.mode === 'login' ? t('login.welcomeBack') : t('login.createAccount')}
               </Heading>
 
               {/* Google button */}
               <SpringPressable
-                className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border bg-white mb-1"
+                className="flex-row items-center justify-center gap-[10px] h-[50px] rounded-2xl border-[1.5px] border-border dark:border-darkBorder bg-white dark:bg-darkBgCard mb-1"
                 onPress={vm.handleGoogleSignIn}
                 disabled={vm.loading}>
                 <GoogleGLogo size={20} />
-                <Body size="lg" className="font-semibold text-textDark tracking-[0.1px]">
-                  {vm.mode === 'login' ? t.login.continueWithGoogle : t.login.signUpWithGoogle}
+                <Body size="lg" className="font-semibold text-textDark dark:text-darkTextDark tracking-[0.1px]">
+                  {vm.mode === 'login' ? t('login.continueWithGoogle') : t('login.signUpWithGoogle')}
                 </Body>
               </SpringPressable>
 
               {/* Divider */}
               <View className="flex-row items-center gap-3 mt-[14px] mb-[14px]">
                 <View className="flex-1 h-[1px] bg-textMid/15" />
-                <Body size="sm" className="text-textLight">{t.login.or}</Body>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('login.or')}</Body>
                 <View className="flex-1 h-[1px] bg-textMid/15" />
               </View>
 
               {/* Register-only: name */}
               {vm.mode === 'register' && (
                 <>
-                  <FieldLabel>{t.login.labels.name}</FieldLabel>
-                  <Input placeholder={t.login.placeholders.name} value={vm.name} onChangeText={vm.setName} autoCapitalize="words" />
+                  <FieldLabel>{t('login.labels.name')}</FieldLabel>
+                  <Input placeholder={t('login.placeholders.name')} value={vm.name} onChangeText={vm.setName} autoCapitalize="words" />
                 </>
               )}
 
-              <FieldLabel>{t.login.labels.email}</FieldLabel>
-              <Input placeholder={t.login.placeholders.email} value={vm.email} onChangeText={vm.setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+              <FieldLabel>{t('login.labels.email')}</FieldLabel>
+              <Input placeholder={t('login.placeholders.email')} value={vm.email} onChangeText={vm.setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
 
-              <FieldLabel>{t.login.labels.password}</FieldLabel>
-              <Input placeholder={t.login.placeholders.password} value={vm.password} onChangeText={vm.setPassword} secureTextEntry autoComplete={vm.mode === 'login' ? 'password' : 'new-password'} />
+              <FieldLabel>{t('login.labels.password')}</FieldLabel>
+              <Input placeholder={t('login.placeholders.password')} value={vm.password} onChangeText={vm.setPassword} secureTextEntry autoComplete={vm.mode === 'login' ? 'password' : 'new-password'} />
 
               {vm.mode === 'register' && (
                 <>
-                  <FieldLabel>{t.login.labels.confirmPassword}</FieldLabel>
-                  <Input placeholder={t.login.placeholders.confirmPassword} value={vm.confirmPassword} onChangeText={vm.setConfirmPassword} secureTextEntry autoComplete="new-password" />
+                  <FieldLabel>{t('login.labels.confirmPassword')}</FieldLabel>
+                  <Input placeholder={t('login.placeholders.confirmPassword')} value={vm.confirmPassword} onChangeText={vm.setConfirmPassword} secureTextEntry autoComplete="new-password" />
                 </>
               )}
 
               {!!vm.error && <ErrorBox message={vm.error} />}
 
               <Button
-                label={vm.mode === 'login' ? t.login.signIn : t.login.createAccount}
+                label={vm.mode === 'login' ? t('login.signIn') : t('login.createAccount')}
                 onPress={vm.handleSubmit}
                 loading={vm.loading}
                 disabled={vm.isRateLimited}
@@ -114,7 +168,7 @@ export default function LoginScreen() {
 
               <Pressable onPress={vm.toggleMode}>
                 <Label className="text-center text-primary">
-                  {vm.mode === 'login' ? t.login.noAccount : t.login.hasAccount}
+                  {vm.mode === 'login' ? t('login.noAccount') : t('login.hasAccount')}
                 </Label>
               </Pressable>
             </Animated.View>

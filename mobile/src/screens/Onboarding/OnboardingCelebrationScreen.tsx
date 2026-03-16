@@ -18,7 +18,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import SpringPressable from '../../components/SpringPressable';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
+import { useAppColors } from '../../navigation/theme';
 
 // Reuse confetti pattern from Avatar screen
 const CONFETTI_PIECES = [
@@ -62,6 +63,8 @@ function ConfettiParticle({ tx, ty, color, size, delay }: { tx: number; ty: numb
 }
 
 export default function OnboardingCelebrationScreen() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingCelebration'>>();
   const { coupleId, partnerName } = route.params;
@@ -92,11 +95,11 @@ export default function OnboardingCelebrationScreen() {
   }, []);
 
   const subtitle = partnerName
-    ? t.onboarding.celebration.subtitle.replace('{name}', partnerName)
-    : t.onboarding.celebration.subtitleNoName;
+    ? t('onboarding.celebration.subtitle').replace('{name}', partnerName)
+    : t('onboarding.celebration.subtitleNoName');
 
   return (
-    <LinearGradient colors={['#FFF0F3', '#FFF8F6', '#FFFFFF']} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={{ flex: 1 }}>
+    <LinearGradient colors={[colors.primaryLighter, colors.baseBg, colors.white]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={{ flex: 1 }}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <View className="flex-1 px-6 pt-16 pb-10 items-center justify-center">
 
@@ -109,12 +112,12 @@ export default function OnboardingCelebrationScreen() {
 
         {/* Heart */}
         <Animated.View entering={FadeIn.duration(400)} style={heartStyle} className="mb-6">
-          <Heart size={72} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+          <Heart size={72} color={colors.primary} fill={colors.primary} strokeWidth={0} />
         </Animated.View>
 
         {/* Text */}
         <Animated.View entering={FadeInDown.delay(300).duration(400)} className="items-center gap-3 mb-12">
-          <Heading size="xl" className="text-textDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
             {subtitle}
           </Heading>
         </Animated.View>
@@ -124,9 +127,9 @@ export default function OnboardingCelebrationScreen() {
           <SpringPressable
             onPress={handleContinue}
             className="w-full h-14 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: '#E8788A' }}>
+            style={{ backgroundColor: colors.primary }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-              {t.onboarding.celebration.continueBtn}
+              {t('onboarding.celebration.continueBtn')}
             </Body>
           </SpringPressable>
         </Animated.View>

@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 50
-**Goal:** Subscription Flow + Love Letter Overlay + Privacy Policy
+**Sprint:** 52
+**Goal:** Universal Links + Dark/Light Mode + Vietnamese i18n
 
 ---
 
@@ -9,23 +9,84 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | Sprint 50 spec sent to TL | 2026-03-13 |
-| TL   | IDLE   | Awaiting sprint assignment | 2026-03-13 |
-| WEB  | IDLE   | Awaiting tasks | 2026-03-13 |
-| BE   | IDLE   | — | 2026-03-13 |
-| MOBILE | IDLE | Awaiting tasks | 2026-03-13 |
+| PO   | ACTIVE | Sprint 52 spec sent to TL | 2026-03-16 |
+| TL   | IDLE   | Awaiting sprint assignment | 2026-03-16 |
+| WEB  | IDLE   | Awaiting tasks | 2026-03-16 |
+| BE   | IDLE   | — | 2026-03-16 |
+| MOBILE | IDLE | Awaiting tasks | 2026-03-16 |
 
 ---
 
-## Sprint 50 Tasks
+## Sprint 52 Tasks
+
+### 1. Universal Links (iOS + Android)
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 1 | Privacy Policy + Terms of Service — generate content + create static web pages hosted on domain. Include: data collected, usage, third-party services, contact info. Link from app settings | M | TODO | WEB |
-| 2 | RevenueCat SDK — install `react-native-purchases`, init on app launch. API key placeholder (Boss provides later). Configure entitlements: "plus" with 3 products (monthly $3.99/49K VND, annual $29.99/399K VND, lifetime $79.99/999K VND) | M | TODO | MOBILE |
-| 3 | SubscriptionContext + useSubscription() hook — fetch `/api/subscription/status` on app launch, cache plan status, expose `isPremium`, `plan`, `limits`. Refresh on app foreground | M | TODO | MOBILE |
-| 4 | Paywall screen — triggered when hitting free limit or tapping locked module. Show 3 tiers with pricing, feature comparison, restore purchases button. Use frontend-design skill | L | TODO | MOBILE |
-| 5 | Love Letter Overlay — on app open, if unread letters exist (GET /api/love-letters/unread-count > 0), show full-screen overlay. Swipeable list of unread letters. Tap letter → envelope open animation (flap rotateX 0→180° + letter content slideUp). Shows full letter content on overlay. Auto marks as READ via API. Must read all letters before dismiss. Use frontend-design skill | L | TODO | MOBILE |
+| 1 | **BE: AASA + assetlinks hosting** | S | DONE | BE |
+| 2 | **MOBILE: iOS Associated Domains** | S | DONE | MOBILE |
+| 3 | **MOBILE: Android App Links** | S | DONE | MOBILE |
+| 4 | **MOBILE: Deep link routing** | M | DONE | MOBILE |
+| 5 | **MOBILE: Share feature update** | S | DONE | MOBILE |
+
+### 2. Dark Mode / Light Mode
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 6 | **MOBILE: Hardcoded color audit + cleanup** | M | DONE | MOBILE |
+| 7 | **MOBILE: DarkAppTheme** | M | DONE | MOBILE |
+| 8 | **MOBILE: ThemeContext (system-only)** | S | DONE | MOBILE |
+| 9 | **MOBILE: NativeWind dark class** | M | DONE | MOBILE |
+| 10 | **MOBILE: Screen-by-screen dark mode** (87 files) | L | DONE | MOBILE |
+| 11 | **MOBILE: E2E dark mode verification** | S | DONE | MOBILE |
+
+### 3. Vietnamese Language (i18n)
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 12 | **MOBILE: i18n library setup** | M | DONE | MOBILE |
+| 13 | **MOBILE: Vietnamese translations** (1035 lines) | L | DONE | MOBILE |
+| 14 | **MOBILE: Migrate 88 screens to useTranslation()** | L | DONE | MOBILE |
+| 15 | **MOBILE: Language picker in Profile** | S | DONE | MOBILE |
+
+### 4. Invite Link → Onboarding Flow
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 16 | **BE: Public validate-invite + partnerAvatar** | S | DONE | BE |
+| 17 | **MOBILE: Pending invite store** | S | DONE | MOBILE |
+| 18 | **MOBILE: Login Screen invite banner** | M | DONE | MOBILE |
+| 19 | **MOBILE: Auto-join in onboarding** | M | DONE | MOBILE |
+
+### Acceptance Criteria
+
+- [ ] Universal links work: tap `love-scrum.hungphu.work/share/xxx` → opens app (if installed) or web (if not)
+- [ ] AASA + assetlinks served correctly from backend
+- [ ] Dark mode: all screens readable, no white-on-white or dark-on-dark text
+- [ ] Theme toggle persists across app restarts
+- [ ] System theme follows OS dark/light setting
+- [ ] Vietnamese translations complete for all ~1011 strings
+- [ ] Language switch instant (no app restart)
+- [ ] Language choice persists across app restarts
+- [ ] Invite link flow: tap link → Login Screen shows inviter avatar + couple name
+- [ ] Register from invite → skip Couple Mode → auto join → Celebration → Avatar → app
+- [ ] Login from invite (no couple) → auto join → Avatar → app
+- [ ] Login from invite (has couple) → ignore invite → app directly
+- [ ] Invalid invite code → clear, show normal Login Screen
+- [ ] Lint + build pass (iOS + Android)
+- [ ] No regressions in functionality
+
+---
+
+## Sprint 50 Tasks (DEPLOYED)
+
+| # | Task | Status |
+|---|------|--------|
+| 1 | Privacy Policy + Terms of Service | DONE |
+| 2 | RevenueCat SDK | DONE |
+| 3 | SubscriptionContext + useSubscription() | DONE |
+| 4 | Paywall screen | DONE |
+| 5 | Love Letter Overlay | DONE |
 
 ---
 
@@ -127,6 +188,8 @@ _Sprint 46 — RN Monthly Recap Stories + Daily Questions (BE+RN+PWA) + Error Bo
 _Sprint 47 — BottomTab Refactor (PWA + RN) + Push Notifications (Daily Q&A) + Delete Account UI: DEPLOYED_
 _Sprint 48 — App Bug Fixes (Dashboard, Moments, Daily Q&A, Love Letters, Delete Account RN) + Design System + Be Vietnam Pro font: DEPLOYED_
 _Sprint 49 — RN Mobile UI Revamp (Design System, Header Refactor, DetailScreenLayout, Moments Calendar+Timeline, RelationshipTimer): MERGED TO MAIN_
+_Sprint 50 — Subscription Flow + Love Letter Overlay + Privacy Policy: DEPLOYED_
+_Sprint 51 — Onboarding v2, CurvedTabBar Camera, Input Limits, Dashboard Tour v2, requireCouple middleware: DEPLOYED_
 
 ---
 

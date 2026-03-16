@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Body, Caption } from '../../components/Typography';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { usePlanDetailViewModel } from './usePlanDetailViewModel';
 import StopCard from './components/StopCard';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
@@ -15,6 +15,7 @@ function formatDate(iso: string): string {
 }
 
 export default function PlanDetailScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = usePlanDetailViewModel();
@@ -31,9 +32,9 @@ export default function PlanDetailScreen() {
   const doneCount = plan.stops.filter(s => s.done).length;
 
   const statusLabel =
-    plan.status === 'active' ? t.datePlanner.statusActive :
-    plan.status === 'completed' ? t.datePlanner.statusCompleted :
-    t.datePlanner.statusPlanned;
+    plan.status === 'active' ? t('datePlanner.statusActive') :
+    plan.status === 'completed' ? t('datePlanner.statusCompleted') :
+    t('datePlanner.statusPlanned');
 
   const statusBg =
     plan.status === 'active' ? colors.primary :
@@ -64,8 +65,8 @@ export default function PlanDetailScreen() {
             </View>
           </View>
           {plan.stops.length > 0 ? (
-            <Body size="sm" className="text-textMid">
-              {t.datePlanner.stopsProgress
+            <Body size="sm" className="text-textMid dark:text-darkTextMid">
+              {t('datePlanner.stopsProgress')
                 .replace('{done}', String(doneCount))
                 .replace('{total}', String(plan.stops.length))}
             </Body>
@@ -75,7 +76,7 @@ export default function PlanDetailScreen() {
         {/* Stops timeline */}
         {vm.sortedStops.length === 0 ? (
           <View className="items-center py-12 gap-2">
-            <Body size="md" className="text-textLight">{t.datePlanner.noStops}</Body>
+            <Body size="md" className="text-textLight dark:text-darkTextLight">{t('datePlanner.noStops')}</Body>
           </View>
         ) : (
           vm.sortedStops.map((stop, idx) => (

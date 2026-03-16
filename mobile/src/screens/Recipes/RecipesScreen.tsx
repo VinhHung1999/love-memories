@@ -13,7 +13,7 @@ import FastImage from 'react-native-fast-image';
 import { Bot, Check, ChefHat, FilterX, List, Plus } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Recipe } from '../../types';
 import { useRecipesViewModel, type RecipeFilter } from './useRecipesViewModel';
 import ListHeader from '../../components/ListHeader';
@@ -29,7 +29,7 @@ import { FAB } from '@/components/FAB';
 
 function RecipeCardSkeleton() {
   return (
-    <View className="bg-white rounded-3xl overflow-hidden mb-3">
+    <View className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden mb-3">
       <Skeleton className="w-full h-[140px]" />
       <View className="px-3 pt-2 pb-3">
         <Skeleton className="w-3/4 h-3.5 rounded-md mb-1.5" />
@@ -65,13 +65,14 @@ function RecipesLoadingSkeleton() {
 // ── Recipe Card ───────────────────────────────────────────────────────────────
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const coverPhoto = recipe.photos[0];
 
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl overflow-hidden mb-3">
+      className="bg-white dark:bg-darkBgCard rounded-3xl overflow-hidden mb-3">
 
       {/* Photo / placeholder */}
       <View className="w-full">
@@ -91,10 +92,10 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         {recipe.cooked ? (
           <View className="absolute top-2 right-2 bg-green-500 rounded-xl px-2 py-0.5 flex-row items-center gap-1">
             <Check size={9} strokeWidth={1.5} />
-            <Caption className="font-bold text-white">{t.recipes.detail.cookedBadge}</Caption>
+            <Caption className="font-bold text-white">{t('recipes.detail.cookedBadge')}</Caption>
           </View>
         ) : (
-          <View className="absolute top-2 right-2 bg-white/80 rounded-xl px-2 py-0.5">
+          <View className="absolute top-2 right-2 bg-white/80 dark:bg-darkBgCard/80 rounded-xl px-2 py-0.5">
             <Caption className="font-semibold text-primary">To Try</Caption>
           </View>
         )}
@@ -112,13 +113,13 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
       <View className="px-3 pt-2 pb-3">
         <Body
           size="md"
-          className="font-semibold text-textDark leading-snug mb-1.5"
+          className="font-semibold text-textDark dark:text-darkTextDark leading-snug mb-1.5"
           numberOfLines={2}>
           {recipe.title}
         </Body>
 
         {recipe.description ? (
-          <Caption className="text-textMid mb-1.5" numberOfLines={1}>
+          <Caption className="text-textMid dark:text-darkTextMid mb-1.5" numberOfLines={1}>
             {recipe.description}
           </Caption>
         ) : null}
@@ -151,8 +152,8 @@ function FilterChip({
     <Pressable
       onPress={onPress}
       className="px-3 py-1.5 rounded-xl border"
-      style={{ backgroundColor: active ? colors.primary : '#fff', borderColor: active ? colors.primary : colors.border }}>
-      <Caption className="font-semibold" style={{ color: active ? '#fff' : colors.textMid }}>
+      style={{ backgroundColor: active ? colors.primary : colors.bgCard, borderColor: active ? colors.primary : colors.border }}>
+      <Caption className="font-semibold" style={{ color: active ? colors.white : colors.textMid }}>
         {label}
       </Caption>
     </Pressable>
@@ -162,21 +163,22 @@ function FilterChip({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function RecipesScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useRecipesViewModel();
 
   const filterOptions: { key: RecipeFilter; label: string }[] = [
-    { key: 'all', label: t.recipes.allFilter },
-    { key: 'cooked', label: t.recipes.cookedFilter },
-    { key: 'uncooked', label: t.recipes.uncookedFilter },
+    { key: 'all', label: t('recipes.allFilter') },
+    { key: 'cooked', label: t('recipes.cookedFilter') },
+    { key: 'uncooked', label: t('recipes.uncookedFilter') },
   ];
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ListHeader
-        title={t.recipes.title}
-        subtitle={t.recipes.subtitle}
+        title={t('recipes.title')}
+        subtitle={t('recipes.subtitle')}
         onBack={() => navigation.goBack()}
         right={
           <HeaderIcon
@@ -208,16 +210,16 @@ export default function RecipesScreen() {
       ) : vm.isEmpty && vm.totalCount === 0 ? (
         <EmptyState
           icon={ChefHat}
-          title={t.recipes.emptyTitle}
-          subtitle={t.recipes.emptySubtitle}
-          actionLabel={t.recipes.emptyAction}
+          title={t('recipes.emptyTitle')}
+          subtitle={t('recipes.emptySubtitle')}
+          actionLabel={t('recipes.emptyAction')}
           onAction={() => navigation.showBottomSheet(CreateRecipeSheet)}
         />
       ) : vm.isEmpty ? (
         // Filtered empty
         <View className="flex-1 items-center justify-center pb-20">
           <FilterX size={36} color={colors.textLight} strokeWidth={1.5} />
-          <Body size="md" className="text-textMid mt-3">No recipes match this filter</Body>
+          <Body size="md" className="text-textMid dark:text-darkTextMid mt-3">No recipes match this filter</Body>
         </View>
       ) : (
         <ScrollView
@@ -260,7 +262,7 @@ export default function RecipesScreen() {
       {/* FAB — AI recipe */}
       <Pressable
         onPress={() => navigation.showBottomSheet(AIRecipeSheet)}
-        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center bg-white border-2 border-primary/30">
+        className="absolute bottom-8 right-[82px] w-12 h-12 rounded-full items-center justify-center bg-white dark:bg-darkBgCard border-2 border-primary/30">
         <Bot size={22} color={colors.primary} strokeWidth={1.5} />
       </Pressable>
 

@@ -5,25 +5,26 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { DatePlannerStackParamList } from '../../navigation';
 import { dateWishesApi } from '../../lib/api';
 import type { DateWish } from '../../types';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { AlertParams } from '../../navigation/useAppNavigation';
 
 export type WishStatusFilter = 'all' | 'pending' | 'done';
 
 type Nav = NativeStackNavigationProp<DatePlannerStackParamList>;
 
-export const WISH_CATEGORIES = [
-  { key: 'food', emoji: '🍽️', label: t.datePlanner.categoryLabels.food },
-  { key: 'entertainment', emoji: '🎭', label: t.datePlanner.categoryLabels.entertainment },
-  { key: 'adventure', emoji: '🏕️', label: t.datePlanner.categoryLabels.adventure },
-  { key: 'romance', emoji: '💕', label: t.datePlanner.categoryLabels.romance },
-  { key: 'travel', emoji: '✈️', label: t.datePlanner.categoryLabels.travel },
-  { key: 'culture', emoji: '🎨', label: t.datePlanner.categoryLabels.culture },
-  { key: 'wellness', emoji: '🧘', label: t.datePlanner.categoryLabels.wellness },
-  { key: 'other', emoji: '⭐', label: t.datePlanner.categoryLabels.other },
-];
-
 export function useWishesViewModel() {
+  const { t } = useTranslation();
+
+  const wishCategories = useMemo(() => [
+    { key: 'food', emoji: '🍽️', label: t('datePlanner.categoryLabels.food') },
+    { key: 'entertainment', emoji: '🎭', label: t('datePlanner.categoryLabels.entertainment') },
+    { key: 'adventure', emoji: '🏕️', label: t('datePlanner.categoryLabels.adventure') },
+    { key: 'romance', emoji: '💕', label: t('datePlanner.categoryLabels.romance') },
+    { key: 'travel', emoji: '✈️', label: t('datePlanner.categoryLabels.travel') },
+    { key: 'culture', emoji: '🎨', label: t('datePlanner.categoryLabels.culture') },
+    { key: 'wellness', emoji: '🧘', label: t('datePlanner.categoryLabels.wellness') },
+    { key: 'other', emoji: '⭐', label: t('datePlanner.categoryLabels.other') },
+  ], [t]);
   const navigation = useNavigation<Nav>();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<WishStatusFilter>('all');
@@ -55,6 +56,7 @@ export function useWishesViewModel() {
 
   return {
     wishes: filtered,
+    wishCategories,
     isLoading,
     isRefetching,
     isEmpty: filtered.length === 0,
@@ -67,14 +69,29 @@ export function useWishesViewModel() {
     handleDelete: (id: string) => deleteMutation.mutate(id),
     handleDeleteWithConfirm: (id: string, showAlert: (p: AlertParams) => void) => {
       showAlert({
-        title: t.datePlanner.deleteWish,
-        message: t.datePlanner.deleteWishConfirm,
+        title: t('datePlanner.deleteWish'),
+        message: t('datePlanner.deleteWishConfirm'),
         type: 'destructive',
-        confirmLabel: t.common.delete,
+        confirmLabel: t('common.delete'),
         onConfirm: () => deleteMutation.mutate(id),
       });
     },
     handleNavigatePlans: () => navigation.navigate('PlansList'),
     handleBack: () => navigation.goBack(),
   };
+}
+
+/** Standalone hook for components that need wish categories without the full VM */
+export function useWishCategories() {
+  const { t } = useTranslation();
+  return useMemo(() => [
+    { key: 'food', emoji: '🍽️', label: t('datePlanner.categoryLabels.food') },
+    { key: 'entertainment', emoji: '🎭', label: t('datePlanner.categoryLabels.entertainment') },
+    { key: 'adventure', emoji: '🏕️', label: t('datePlanner.categoryLabels.adventure') },
+    { key: 'romance', emoji: '💕', label: t('datePlanner.categoryLabels.romance') },
+    { key: 'travel', emoji: '✈️', label: t('datePlanner.categoryLabels.travel') },
+    { key: 'culture', emoji: '🎨', label: t('datePlanner.categoryLabels.culture') },
+    { key: 'wellness', emoji: '🧘', label: t('datePlanner.categoryLabels.wellness') },
+    { key: 'other', emoji: '⭐', label: t('datePlanner.categoryLabels.other') },
+  ], [t]);
 }

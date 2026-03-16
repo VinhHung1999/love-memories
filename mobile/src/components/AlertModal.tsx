@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { AlertCircle, HelpCircle, Info, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../navigation/theme';
-import t from '../locales/en';
+import { useTranslation } from 'react-i18next';
 import { Body, Heading, Label } from './Typography';
 
 // ── AlertConfig — exported for ViewModel alert state ─────────────────────────
@@ -46,6 +46,7 @@ export default function AlertModal({
   onCancel,
   onDismiss,
 }: AlertModalProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const icon = ICON_CONFIG[type];
   const isDestructive = type === 'destructive';
@@ -62,7 +63,7 @@ export default function AlertModal({
         className="flex-1 bg-black/40 items-center justify-center px-8"
         onPress={handleBackdropPress}>
         {/* Card — absorbs tap to prevent backdrop dismiss */}
-        <Pressable className="bg-white rounded-3xl w-full p-6" onPress={() => {}}>
+        <Pressable className="bg-white dark:bg-darkBgCard rounded-3xl w-full p-6" onPress={() => {}}>
 
           {/* Icon */}
           <View
@@ -72,11 +73,11 @@ export default function AlertModal({
           </View>
 
           {/* Title */}
-          <Heading size="md" className="text-textDark text-center mb-2">{title}</Heading>
+          <Heading size="md" className="text-textDark dark:text-darkTextDark text-center mb-2">{title}</Heading>
 
           {/* Message */}
           {message ? (
-            <Body className="text-textMid text-center mb-6 leading-relaxed">{message}</Body>
+            <Body className="text-textMid dark:text-darkTextMid text-center mb-6 leading-relaxed">{message}</Body>
           ) : (
             <View className="mb-4" />
           )}
@@ -86,9 +87,9 @@ export default function AlertModal({
             {hasCancel && (
               <Pressable
                 onPress={handleCancel}
-                className="flex-1 py-3 rounded-2xl border border-border items-center">
-                <Label className="font-semibold text-textMid">
-                  {cancelLabel ?? t.common.cancel}
+                className="flex-1 py-3 rounded-2xl border border-border dark:border-darkBorder items-center">
+                <Label className="font-semibold text-textMid dark:text-darkTextMid">
+                  {cancelLabel ?? t('common.cancel')}
                 </Label>
               </Pressable>
             )}
@@ -97,7 +98,7 @@ export default function AlertModal({
               className="py-3 rounded-2xl items-center"
               style={{ flex: hasCancel ? 1 : undefined, width: hasCancel ? undefined : '100%', backgroundColor: isDestructive ? colors.errorColor : colors.primary }}>
               <Label className="font-semibold" style={{ color: '#FFFFFF' }}>
-                {confirmLabel ?? t.common.ok}
+                {confirmLabel ?? t('common.ok')}
               </Label>
             </Pressable>
           </View>

@@ -23,11 +23,13 @@ import { useAuth } from '../../lib/auth';
 import { coupleApi, profileApi, storeTokens } from '../../lib/api';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
+import { useAppColors } from '../../navigation/theme';
 
 // ── Progress Dots ─────────────────────────────────────────────────────────────
 
 function ProgressDots({ step, total }: { step: number; total: number }) {
+  const colors = useAppColors();
   return (
     <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: total }).map((_, i) => (
@@ -37,7 +39,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
           style={{
             width: i === step ? 20 : 8,
             height: 8,
-            backgroundColor: i === step ? '#E8788A' : '#E8788A40',
+            backgroundColor: i === step ? colors.primary : colors.primary + '40',
           }}
         />
       ))}
@@ -94,6 +96,8 @@ function ConfettiParticle({ tx, ty, color, size, delay }: { tx: number; ty: numb
 // ── Completion Overlay ────────────────────────────────────────────────────────
 
 function CompletionOverlay() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const textScale = useSharedValue(0.8);
 
   React.useEffect(() => {
@@ -138,22 +142,22 @@ function CompletionOverlay() {
       </View>
 
       <Animated.View style={heartStyle} className="mb-4">
-        <Heart size={64} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+        <Heart size={64} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
 
       <Animated.View style={textStyle} className="items-center">
-        <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26 }}>
-          {t.onboarding.avatar.doneTitle}
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26 }}>
+          {t('onboarding.avatar.doneTitle')}
         </Heading>
-        <Body size="md" className="text-textMid text-center">
-          {t.onboarding.avatar.doneSubtitle}
+        <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
+          {t('onboarding.avatar.doneSubtitle')}
         </Body>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(600).duration(400)} className="mt-6 flex-row items-center gap-2">
-        <Sparkles size={16} color="#E8788A" strokeWidth={1.5} />
-        <Caption className="text-primary">{t.onboarding.avatar.completing}</Caption>
-        <Sparkles size={16} color="#E8788A" strokeWidth={1.5} />
+        <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
+        <Caption className="text-primary">{t('onboarding.avatar.completing')}</Caption>
+        <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
       </Animated.View>
     </Animated.View>
   );
@@ -162,6 +166,8 @@ function CompletionOverlay() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingAvatarScreen() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingAvatar'>>();
 
@@ -230,8 +236,8 @@ export default function OnboardingAvatarScreen() {
       setLoading(false);
       setAlert({
         visible: true,
-        title: t.common.error,
-        message: err instanceof Error ? err.message : t.onboarding.avatar.errors.setupFailed,
+        title: t('common.error'),
+        message: err instanceof Error ? err.message : t('onboarding.avatar.errors.setupFailed'),
         type: 'error',
       });
     }
@@ -239,7 +245,7 @@ export default function OnboardingAvatarScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF0F3', '#FFF8F6', '#FFFFFF']}
+      colors={[colors.primaryLighter, colors.baseBg, colors.white]}
       start={{ x: 0.2, y: 0 }}
       end={{ x: 0.8, y: 1 }}
       style={{ flex: 1 }}>
@@ -253,8 +259,8 @@ export default function OnboardingAvatarScreen() {
             onPress={() => navigation.goBack()}
             disabled={loading}
             className="w-10 h-10 rounded-full items-center justify-center"
-            style={{ backgroundColor: '#E8788A15' }}>
-            <ChevronLeft size={20} color="#E8788A" strokeWidth={2} />
+            style={{ backgroundColor: colors.primaryMuted }}>
+            <ChevronLeft size={20} color={colors.primary} strokeWidth={2} />
           </Pressable>
           <ProgressDots step={3} total={4} />
           <View className="w-10" />
@@ -262,11 +268,11 @@ export default function OnboardingAvatarScreen() {
 
         {/* Heading */}
         <Animated.View entering={FadeInDown.delay(150).duration(400)} className="items-center mb-8">
-          <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26, lineHeight: 34 }}>
-            {t.onboarding.avatar.title}
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26, lineHeight: 34 }}>
+            {t('onboarding.avatar.title')}
           </Heading>
-          <Body size="md" className="text-textMid text-center">{t.onboarding.avatar.subtitle}</Body>
-          <Caption className="text-textLight text-center mt-1">{t.onboarding.avatar.optional}</Caption>
+          <Body size="md" className="text-textMid dark:text-darkTextMid text-center">{t('onboarding.avatar.subtitle')}</Body>
+          <Caption className="text-textLight dark:text-darkTextLight text-center mt-1">{t('onboarding.avatar.optional')}</Caption>
         </Animated.View>
 
         {/* Avatar circle */}
@@ -277,22 +283,22 @@ export default function OnboardingAvatarScreen() {
               style={{
                 width: 120,
                 height: 120,
-                backgroundColor: '#E8788A15',
+                backgroundColor: colors.primaryMuted,
                 borderWidth: 2,
-                borderColor: avatarUri ? '#E8788A' : '#F0E6E3',
+                borderColor: avatarUri ? colors.primary : '#F0E6E3',
                 borderStyle: 'dashed',
               }}>
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} style={{ width: 120, height: 120 }} />
               ) : (
-                <Camera size={36} color="#E8788A" strokeWidth={1.5} />
+                <Camera size={36} color={colors.primary} strokeWidth={1.5} />
               )}
             </View>
             {/* Camera badge overlay */}
             {avatarUri ? (
               <View
                 className="absolute bottom-0 right-0 w-8 h-8 rounded-full items-center justify-center border-2 border-white"
-                style={{ backgroundColor: '#E8788A' }}>
+                style={{ backgroundColor: colors.primary }}>
                 <Camera size={14} color="#fff" strokeWidth={1.5} />
               </View>
             ) : null}
@@ -300,7 +306,7 @@ export default function OnboardingAvatarScreen() {
 
           <Pressable onPress={handlePickPhoto} disabled={loading} className="mt-4">
             <Body size="sm" className="text-primary font-semibold">
-              {avatarUri ? t.onboarding.avatar.changePhoto : t.onboarding.avatar.addPhoto}
+              {avatarUri ? t('onboarding.avatar.changePhoto') : t('onboarding.avatar.addPhoto')}
             </Body>
           </Pressable>
         </Animated.View>
@@ -311,19 +317,19 @@ export default function OnboardingAvatarScreen() {
             onPress={handleFinish}
             disabled={loading}
             className="w-full h-14 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: loading ? '#E8788A80' : '#E8788A' }}>
+            style={{ backgroundColor: loading ? colors.primaryShadow : colors.primary }}>
             <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
               {loading
-              ? t.onboarding.avatar.completing
+              ? t('onboarding.avatar.completing')
               : route.params?.coupleName
-                ? t.onboarding.avatar.createCoupleBtn
-                : t.onboarding.avatar.finishBtn}
+                ? t('onboarding.avatar.createCoupleBtn')
+                : t('onboarding.avatar.finishBtn')}
             </Body>
           </SpringPressable>
 
           {!loading && (
             <Pressable onPress={handleFinish} className="items-center py-3">
-              <Body size="sm" className="text-textLight">{t.onboarding.avatar.skipBtn}</Body>
+              <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('onboarding.avatar.skipBtn')}</Body>
             </Pressable>
           )}
         </Animated.View>

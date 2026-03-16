@@ -10,14 +10,14 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Copy, Send, UserPlus } from 'lucide-react-native';
 import { Body, Caption, Heading } from './Typography';
 import SpringPressable from './SpringPressable';
-import t from '../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface Props {
   inviteCode: string | null;
   onShare: () => Promise<void>;
 }
 
 export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -54,10 +54,10 @@ export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
               </View>
               <View className="flex-1">
                 <Heading size="sm" style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
-                  {t.dashboard.noPartnerBanner.headline}
+                  {t('dashboard.noPartnerBanner.headline')}
                 </Heading>
                 <Caption style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 16, marginTop: 2 }} numberOfLines={2}>
-                  {t.dashboard.noPartnerBanner.subline}
+                  {t('dashboard.noPartnerBanner.subline')}
                 </Caption>
               </View>
             </View>
@@ -68,12 +68,12 @@ export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
               style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
               <View className="flex-1 px-4 py-3">
                 <Caption style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 3 }}>
-                  {t.dashboard.noPartnerBanner.codeLabel}
+                  {t('dashboard.noPartnerBanner.codeLabel')}
                 </Caption>
                 <Body
                   size="lg"
                   style={{ color: '#fff', fontWeight: '700', letterSpacing: 5, fontSize: 20, fontVariant: ['tabular-nums'] }}>
-                  {inviteCode ?? t.dashboard.noPartnerBanner.generatingCode}
+                  {inviteCode ?? t('dashboard.noPartnerBanner.generatingCode')}
                 </Body>
               </View>
               <Pressable
@@ -83,7 +83,7 @@ export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
                 style={{ borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.2)' }}>
                 <Copy size={16} color={copied ? '#fff' : 'rgba(255,255,255,0.75)'} strokeWidth={2} />
                 <Caption style={{ color: copied ? '#fff' : 'rgba(255,255,255,0.7)', fontSize: 9 }}>
-                  {copied ? t.onboarding.invite.copied : t.onboarding.invite.copyHint}
+                  {copied ? t('onboarding.invite.copied') : t('onboarding.invite.copyHint')}
                 </Caption>
               </Pressable>
             </View>
@@ -96,7 +96,7 @@ export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
               style={{ backgroundColor: 'rgba(255,255,255,0.22)' }}>
               <Send size={15} color="#fff" strokeWidth={1.8} />
               <Body size="sm" style={{ color: '#fff', fontWeight: '600', letterSpacing: 0.3 }}>
-                {t.dashboard.noPartnerBanner.shareBtn}
+                {t('dashboard.noPartnerBanner.shareBtn')}
               </Body>
             </SpringPressable>
           </View>

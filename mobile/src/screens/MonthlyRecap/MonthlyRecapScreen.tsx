@@ -22,7 +22,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import FastImage from 'react-native-fast-image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { Heading, Body, Label } from '../../components/Typography';
 import {
   useMonthlyRecapViewModel,
@@ -138,6 +138,7 @@ function PhotoStrip({ photos }: { photos: string[] }) {
 // ── SlideContent ──────────────────────────────────────────────────────────────
 
 function SlideContent({ slide, month }: { slide: SlideData; month: string }) {
+  const { t } = useTranslation();
   const isIntro = slide.type === 'intro';
   const isOutro = slide.type === 'outro';
 
@@ -158,14 +159,14 @@ function SlideContent({ slide, month }: { slide: SlideData; month: string }) {
             marginBottom: 8,
             textAlign: 'center',
           }}>
-          {isIntro ? formatMonthDisplay(month) : t.monthlyRecap.slideOutroTitle}
+          {isIntro ? formatMonthDisplay(month) : t('monthlyRecap.slideOutroTitle')}
         </Reanimated.Text>
         <Reanimated.Text
           entering={FadeIn.delay(400).duration(500)}
           style={{ fontSize: 16, color: 'rgba(255,255,255,0.80)', textAlign: 'center', lineHeight: 24 }}>
           {isIntro
-            ? (slide.caption ?? t.monthlyRecap.yourMonthTogether)
-            : (slide.caption ?? t.monthlyRecap.slideOutroSubtitle)}
+            ? (slide.caption ?? t('monthlyRecap.yourMonthTogether'))
+            : (slide.caption ?? t('monthlyRecap.slideOutroSubtitle'))}
         </Reanimated.Text>
       </View>
     );
@@ -280,6 +281,7 @@ function ProgressBar({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function MonthlyRecapScreen({ route }: { route?: { params?: { month?: string } } }) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const initialMonth = route?.params?.month;
   const vm = useMonthlyRecapViewModel(initialMonth);
@@ -361,10 +363,10 @@ export default function MonthlyRecapScreen({ route }: { route?: { params?: { mon
           </Pressable>
           <Text style={{ fontSize: 72, marginBottom: 16 }}>💤</Text>
           <Heading style={{ fontSize: 24, color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>
-            {t.monthlyRecap.emptyTitle}
+            {t('monthlyRecap.emptyTitle')}
           </Heading>
           <Body style={{ fontSize: 14, color: 'rgba(255,255,255,0.70)', textAlign: 'center' }}>
-            {t.monthlyRecap.emptySubtitle}
+            {t('monthlyRecap.emptySubtitle')}
           </Body>
         </LinearGradient>
       )}

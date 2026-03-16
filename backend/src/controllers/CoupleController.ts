@@ -1,4 +1,4 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler';
 import * as CoupleService from '../services/CoupleService';
 import { createRefreshToken, buildAuthResponse } from '../services/AuthService';
@@ -27,7 +27,7 @@ export const generateInvite = asyncHandler(async (req: AuthRequest, res: Respons
   res.json(result);
 });
 
-export const validateInvite = asyncHandler(async (req: AuthRequest, res: Response) => {
+export const validateInvite = asyncHandler(async (req: Request, res: Response) => {
   const code = req.query.code as string;
   if (!code) {
     res.status(400).json({ valid: false, error: 'Missing invite code' });

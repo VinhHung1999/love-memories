@@ -4,7 +4,7 @@ import { Caption } from '../../../components/Typography';
 import { Heart, Plus } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import SpringPressable from '../../../components/SpringPressable';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 type CoupleMode = 'create' | 'join' | null;
 
 export default function CoupleModeSelector({
@@ -14,6 +14,7 @@ export default function CoupleModeSelector({
   value: CoupleMode;
   onChange: (v: CoupleMode) => void;
 }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   return (
@@ -30,7 +31,7 @@ export default function CoupleModeSelector({
                 ? <Plus size={20} color={active ? colors.primary : colors.textLight} strokeWidth={1.5} />
                 : <Heart size={20} color={active ? colors.primary : colors.textLight} strokeWidth={1.5} />}
               <Caption style={{ color: active ? colors.primary : colors.textLight, fontWeight: active ? '600' : '500' }}>
-                {opt === 'create' ? t.login.couple.createNew : t.login.couple.joinExisting}
+                {opt === 'create' ? t('login.couple.createNew') : t('login.couple.joinExisting')}
               </Caption>
             </SpringPressable>
           </View>

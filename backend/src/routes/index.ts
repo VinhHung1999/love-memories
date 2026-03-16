@@ -60,6 +60,9 @@ router.use('/date-plans', ...rc, datePlanRoutes);
 router.use('/love-letters', ...rc, loveLetterRoutes);
 router.use('/recap', ...rc, recapRoutes);
 router.use('/expenses', ...rc, expenseRoutes);
+// /couple/validate-invite is public — needed during onboarding before user has auth token
+import { validateInvite } from '../controllers/CoupleController';
+router.get('/couple/validate-invite', validateInvite);
 // /couple: requireAuth only — create/join routes need access before couple is set
 router.use('/couple', requireAuth, coupleRoutes);
 router.use('/share', shareRoutes);

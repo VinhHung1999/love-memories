@@ -27,9 +27,9 @@ export default function EmptyState({
           <IconComponent size={36} color={colors.primary} strokeWidth={1.5} />
         </View>
       )}
-      <Heading size="lg" className="text-textDark text-center mb-2">{title}</Heading>
+      <Heading size="lg" className="text-textDark dark:text-darkTextDark text-center mb-2">{title}</Heading>
       {subtitle && (
-        <Body className="text-textMid text-center mb-6 leading-relaxed">{subtitle}</Body>
+        <Body className="text-textMid dark:text-darkTextMid text-center mb-6 leading-relaxed">{subtitle}</Body>
       )}
       {actionLabel && onAction && (
         <Pressable onPress={onAction} className="px-6 py-3 rounded-2xl bg-primary">

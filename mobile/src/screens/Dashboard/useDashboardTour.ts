@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tabBarRefs } from '../../lib/tabBarRefs';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 const TOUR_KEY = '@love-scrum:tour_dashboard_v2_done';
 
 export interface SpotlightRect {
@@ -28,6 +27,7 @@ function measureRef(ref: React.RefObject<View | null>): Promise<SpotlightRect> {
 }
 
 export function useDashboardTour() {
+  const { t } = useTranslation();
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [steps, setSteps] = useState<TourStepDef[]>([]);
 
@@ -48,23 +48,23 @@ export function useDashboardTour() {
 
           setSteps([
             {
-              title: t.dashboard.tour.moments.title,
-              body: t.dashboard.tour.moments.body,
+              title: t('dashboard.tour.moments.title'),
+              body: t('dashboard.tour.moments.body'),
               rect: moments,
             },
             {
-              title: t.dashboard.tour.camera.title,
-              body: t.dashboard.tour.camera.body,
+              title: t('dashboard.tour.camera.title'),
+              body: t('dashboard.tour.camera.body'),
               rect: camera,
             },
             {
-              title: t.dashboard.tour.letters.title,
-              body: t.dashboard.tour.letters.body,
+              title: t('dashboard.tour.letters.title'),
+              body: t('dashboard.tour.letters.body'),
               rect: letters,
             },
             {
-              title: t.dashboard.tour.timer.title,
-              body: t.dashboard.tour.timer.body,
+              title: t('dashboard.tour.timer.title'),
+              body: t('dashboard.tour.timer.body'),
               rect: timer_,
             },
           ]);

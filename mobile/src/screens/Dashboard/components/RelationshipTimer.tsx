@@ -17,8 +17,7 @@ import { Body, Caption, Label } from '../../../components/Typography';
 import AvatarCircle from '../../../components/AvatarCircle';
 import { useAppColors } from '../../../navigation/theme';
 import SpringPressable from '../../../components/SpringPressable';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 // Pale rose ring color around avatars
 const AVATAR_RING = '#F9D0D8';
 
@@ -118,6 +117,7 @@ export function RelationshipTimer({
   onInvitePartner,
   onSetAnniversary,
 }: RelationshipTimerProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const heartScale = useSharedValue(1);
   const ecgOffset = useSharedValue(0);
@@ -168,22 +168,22 @@ export function RelationshipTimer({
   if (!hasCouple) {
     return (
       <Animated.View entering={FadeIn.duration(600)}>
-        <View className="bg-white rounded-3xl border border-borderSoft px-5 py-5">
+        <View className="bg-white dark:bg-darkBgCard rounded-3xl border border-borderSoft dark:border-darkBorder px-5 py-5">
           <View className="items-center gap-3">
             <Heart size={32} color={colors.primary} strokeWidth={1.5} />
             <View className="items-center gap-1">
-              <Label className="text-textDark font-semibold text-center">
-                {t.dashboard.invitePartner.title}
+              <Label className="text-textDark dark:text-darkTextDark font-semibold text-center">
+                {t('dashboard.invitePartner.title')}
               </Label>
-              <Caption className="text-textLight text-center">
-                {t.dashboard.invitePartner.subtitle}
+              <Caption className="text-textLight dark:text-darkTextLight text-center">
+                {t('dashboard.invitePartner.subtitle')}
               </Caption>
             </View>
             <SpringPressable
               onPress={onInvitePartner ?? (() => {})}
               className="rounded-2xl bg-primary px-6 py-3 items-center">
               <Body size="sm" className="font-semibold" style={{ color: '#fff' }}>
-                {t.dashboard.invitePartner.button}
+                {t('dashboard.invitePartner.button')}
               </Body>
             </SpringPressable>
           </View>
@@ -197,22 +197,22 @@ export function RelationshipTimer({
   if (!duration) {
     return (
       <Animated.View entering={FadeIn.duration(600)}>
-        <View className="bg-white rounded-3xl border border-borderSoft px-5 py-5">
+        <View className="bg-white dark:bg-darkBgCard rounded-3xl border border-borderSoft dark:border-darkBorder px-5 py-5">
           <View className="items-center gap-3">
             <CalendarHeart size={32} color={colors.primary} strokeWidth={1.5} />
             <View className="items-center gap-1">
-              <Label className="text-textDark font-semibold text-center">
-                {t.dashboard.setAnniversary.title}
+              <Label className="text-textDark dark:text-darkTextDark font-semibold text-center">
+                {t('dashboard.setAnniversary.title')}
               </Label>
-              <Caption className="text-textLight text-center">
-                {t.dashboard.setAnniversary.subtitle}
+              <Caption className="text-textLight dark:text-darkTextLight text-center">
+                {t('dashboard.setAnniversary.subtitle')}
               </Caption>
             </View>
             <SpringPressable
               onPress={onSetAnniversary ?? (() => {})}
               className="rounded-2xl bg-primary px-6 py-3 items-center">
               <Body size="sm" className="font-semibold" style={{ color: '#fff' }}>
-                {t.dashboard.setAnniversary.button}
+                {t('dashboard.setAnniversary.button')}
               </Body>
             </SpringPressable>
           </View>
@@ -222,12 +222,12 @@ export function RelationshipTimer({
   }
 
   const daysLabel = duration.years >= 1
-    ? `${duration.years} ${t.dashboard.couple.yearUnit} · ${duration.totalDays} ${t.dashboard.couple.daysUnit} ${t.dashboard.couple.together}`
-    : `${duration.totalDays} ${t.dashboard.couple.daysUnit} ${t.dashboard.couple.together}`;
+    ? `${duration.years} ${t('dashboard.couple.yearUnit')} · ${duration.totalDays} ${t('dashboard.couple.daysUnit')} ${t('dashboard.couple.together')}`
+    : `${duration.totalDays} ${t('dashboard.couple.daysUnit')} ${t('dashboard.couple.together')}`;
 
   return (
     <Animated.View entering={FadeIn.duration(600)}>
-      <View className="bg-white rounded-3xl border border-borderSoft px-5 py-4">
+      <View className="bg-white dark:bg-darkBgCard rounded-3xl border border-borderSoft dark:border-darkBorder px-5 py-4">
 
         {/* Avatar row */}
         <View className="flex-row items-center justify-center gap-2">
@@ -259,7 +259,7 @@ export function RelationshipTimer({
         </View>
 
         {/* Days count */}
-        <Body size="sm" className="text-center text-textMid font-body mt-3">
+        <Body size="sm" className="text-center text-textMid dark:text-darkTextMid font-body mt-3">
           {daysLabel}
         </Body>
 

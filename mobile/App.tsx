@@ -1,5 +1,5 @@
-import React from 'react';
-import { StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StatusBar, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import Mapbox from '@rnmapbox/maps';
 import { warmupConnection } from './src/lib/api';
 import { initPurchases } from './src/lib/purchasesService';
 import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
+import { initI18n } from './src/lib/i18n';
 import RootNavigator from './src/navigation';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import './src/global.css';
@@ -40,11 +41,25 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const [i18nReady, setI18nReady] = useState(false);
+
+  useEffect(() => {
+    initI18n().then(() => setI18nReady(true));
+  }, []);
+
+  if (!i18nReady) {
+    return null;
+  }
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
+      {/* NativeWind dark-mode root — 'dark' class activates dark: variants */}
+      <View className={isDark ? 'dark flex-1' : 'flex-1'}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-            <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
             <UploadProgressProvider>
               <LoadingProvider>
                 <AuthProvider>
@@ -58,6 +73,7 @@ export default function App() {
             </UploadProgressProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
+      </View>
     </GestureHandlerRootView>
   );
 }

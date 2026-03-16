@@ -21,7 +21,8 @@ import Animated, {
 import { useAuth } from '../../lib/auth';
 import SpringPressable from '../../components/SpringPressable';
 import AlertModal, { AlertConfig } from '../../components/AlertModal';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
+import { useAppColors } from '../../navigation/theme';
 
 
 // ── Sparkle Particles ─────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ const SPARKLE_CONFIG = [
 ];
 
 function SparkleParticle({ tx, ty, size, delay }: { tx: number; ty: number; size: number; delay: number }) {
+  const colors = useAppColors();
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -66,7 +68,7 @@ function SparkleParticle({ tx, ty, size, delay }: { tx: number; ty: number; size
     width: size,
     height: size,
     borderRadius: size / 2,
-    backgroundColor: '#E8788A',
+    backgroundColor: colors.primary,
     transform: [{ translateX: x.value }, { translateY: y.value }, { scale: scale.value }],
     opacity: opacity.value,
   }));
@@ -77,6 +79,7 @@ function SparkleParticle({ tx, ty, size, delay }: { tx: number; ty: number; size
 // ── Hero Heart ────────────────────────────────────────────────────────────────
 
 function HeroHeart() {
+  const colors = useAppColors();
   const glowScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.4);
   const heartScale = useSharedValue(0);
@@ -115,11 +118,11 @@ function HeroHeart() {
       <Animated.View style={[glowStyle, {
         position: 'absolute',
         width: 120, height: 120, borderRadius: 60,
-        backgroundColor: '#E8788A',
+        backgroundColor: colors.primary,
       }]} />
       {/* Heart */}
       <Animated.View style={heartStyle}>
-        <Heart size={56} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+        <Heart size={56} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
     </View>
   );
@@ -128,6 +131,8 @@ function HeroHeart() {
 // ── Completion Overlay ────────────────────────────────────────────────────────
 
 function CompletionOverlay() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const textScale = useSharedValue(0.8);
   const heartScale = useSharedValue(1);
 
@@ -160,20 +165,20 @@ function CompletionOverlay() {
         zIndex: 100,
       }}>
       <Animated.View style={heartStyle} className="mb-4">
-        <Heart size={64} color="#E8788A" fill="#E8788A" strokeWidth={0} />
+        <Heart size={64} color={colors.primary} fill={colors.primary} strokeWidth={0} />
       </Animated.View>
       <Animated.View style={textStyle} className="items-center">
-        <Heading size="xl" className="text-textDark text-center mb-2" style={{ fontSize: 26 }}>
-          {t.onboarding.avatar.doneTitle}
+        <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center mb-2" style={{ fontSize: 26 }}>
+          {t('onboarding.avatar.doneTitle')}
         </Heading>
-        <Body size="md" className="text-textMid text-center">
-          {t.onboarding.avatar.doneSubtitle}
+        <Body size="md" className="text-textMid dark:text-darkTextMid text-center">
+          {t('onboarding.avatar.doneSubtitle')}
         </Body>
       </Animated.View>
       <Animated.View entering={FadeInDown.delay(600).duration(400)} className="mt-6 flex-row items-center gap-2">
-        <Sparkles size={16} color="#E8788A" strokeWidth={1.5} />
-        <Caption className="text-primary">{t.onboarding.invite.completing}</Caption>
-        <Sparkles size={16} color="#E8788A" strokeWidth={1.5} />
+        <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
+        <Caption className="text-primary">{t('onboarding.invite.completing')}</Caption>
+        <Sparkles size={16} color={colors.primary} strokeWidth={1.5} />
       </Animated.View>
     </Animated.View>
   );
@@ -182,6 +187,8 @@ function CompletionOverlay() {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function OnboardingInviteScreen() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingInvite'>>();
   const { coupleId } = route.params;
 
@@ -201,7 +208,7 @@ export default function OnboardingInviteScreen() {
 
   const handleShare = async () => {
     if (!inviteCode) return;
-    const message = t.onboarding.invite.shareMessage.replace('{code}', inviteCode);
+    const message = t('onboarding.invite.shareMessage').replace('{code}', inviteCode);
     await Share.share({ message });
   };
 
@@ -212,7 +219,7 @@ export default function OnboardingInviteScreen() {
 
   return (
     <LinearGradient
-      colors={['#FFF0F3', '#FFF8F6', '#FFFFFF']}
+      colors={[colors.primaryLighter, colors.baseBg, colors.white]}
       start={{ x: 0.2, y: 0 }}
       end={{ x: 0.8, y: 1 }}
       style={{ flex: 1 }}>
@@ -235,12 +242,12 @@ export default function OnboardingInviteScreen() {
           <View className="items-center gap-2">
             <Heading
               size="xl"
-              className="text-textDark text-center"
+              className="text-textDark dark:text-darkTextDark text-center"
               style={{ fontSize: 27, lineHeight: 36 }}>
               Your couple is ready! 💕
             </Heading>
-            <Body size="md" className="text-textMid text-center" style={{ lineHeight: 22 }}>
-              {t.onboarding.invite.subtitle}
+            <Body size="md" className="text-textMid dark:text-darkTextMid text-center" style={{ lineHeight: 22 }}>
+              {t('onboarding.invite.subtitle')}
             </Body>
           </View>
 
@@ -253,20 +260,20 @@ export default function OnboardingInviteScreen() {
             <View
               className="w-full rounded-3xl overflow-hidden"
               style={{
-                shadowColor: '#E8788A',
+                shadowColor: colors.primary,
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.16,
                 shadowRadius: 18,
                 elevation: 6,
               }}>
               <LinearGradient
-                colors={['#E8788A', '#F09AAA', '#F4B8C4']}
+                colors={[colors.primary, '#F09AAA', '#F4B8C4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 >
                   <View style={{ paddingHorizontal: 24, paddingVertical: 28, alignItems: 'center', gap: 12 }}>
                   <Caption style={{ color: 'rgba(255,255,255,0.75)', letterSpacing: 2.5, textTransform: 'uppercase', fontSize: 10, fontWeight: '700' }}>
-                  {t.onboarding.invite.codeLabel}
+                  {t('onboarding.invite.codeLabel')}
                 </Caption>
 
                 {inviteCode ? (
@@ -278,7 +285,7 @@ export default function OnboardingInviteScreen() {
                   </Heading>
                 ) : (
                   <Body size="lg" style={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 5 }}>
-                    {t.onboarding.invite.generatingCode}
+                    {t('onboarding.invite.generatingCode')}
                   </Body>
                 )}
 
@@ -292,11 +299,11 @@ export default function OnboardingInviteScreen() {
                     ? <CheckCircle size={13} color="rgba(255,255,255,0.95)" strokeWidth={2} />
                     : <Copy size={13} color="rgba(255,255,255,0.85)" strokeWidth={2} />}
                   <Caption style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, fontWeight: '600' }}>
-                    {copied ? t.onboarding.invite.copied : t.onboarding.invite.copyHint}
+                    {copied ? t('onboarding.invite.copied') : t('onboarding.invite.copyHint')}
                   </Caption>
                 </View>
                   </View>
-               
+
 
               </LinearGradient>
             </View>
@@ -312,17 +319,17 @@ export default function OnboardingInviteScreen() {
             onPress={handleShare}
             disabled={!inviteCode}
             className="w-full h-14 rounded-2xl flex-row items-center justify-center gap-2"
-            style={{ backgroundColor: inviteCode ? '#E8788A' : '#E8788A80' }}>
+            style={{ backgroundColor: inviteCode ? colors.primary : colors.primaryShadow }}>
             <Send size={18} color="#fff" strokeWidth={1.8} />
             <Body size="lg" style={{ color: '#fff', fontWeight: '700', letterSpacing: 0.4 }}>
-              {t.onboarding.invite.shareBtn}
+              {t('onboarding.invite.shareBtn')}
             </Body>
           </SpringPressable>
 
           {/* Ghost — Done */}
           <Pressable onPress={handleDone} className="items-center py-3">
-            <Body size="md" className="text-textMid" style={{ fontWeight: '500' }}>
-              {t.onboarding.invite.doneBtn}
+            <Body size="md" className="text-textMid dark:text-darkTextMid" style={{ fontWeight: '500' }}>
+              {t('onboarding.invite.doneBtn')}
             </Body>
           </Pressable>
 

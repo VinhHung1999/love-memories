@@ -41,9 +41,9 @@ export default function DatePickerField({
       {label ? <FieldLabel>{label}</FieldLabel> : null}
       <Pressable
         onPress={handleOpen}
-        className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border px-[18px] py-[13px] bg-inputBg">
+        className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border dark:border-darkBorder px-[18px] py-[13px] bg-inputBg dark:bg-darkInputBg">
         <Calendar size={18} color={colors.textLight} strokeWidth={1.5} />
-        <Body size="lg" className="text-textDark flex-1">
+        <Body size="lg" className="text-textDark dark:text-darkTextDark flex-1">
           {value.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </Body>
         <ChevronRight size={16} color={colors.textLight} strokeWidth={1.5} />

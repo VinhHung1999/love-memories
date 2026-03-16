@@ -15,10 +15,11 @@ import {
   Heart,
   MapPin,
   Music2,
+  Share2,
 } from 'lucide-react-native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useMomentDetailViewModel } from './useMomentDetailViewModel';
 import Skeleton from '../../components/Skeleton';
 import TagBadge from '../../components/TagBadge';
@@ -37,6 +38,7 @@ interface SpotifyOEmbed {
 }
 
 function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   const { data: meta, isLoading } = useQuery<SpotifyOEmbed>({
@@ -88,21 +90,21 @@ function SpotifyTrackCard({ spotifyUrl }: { spotifyUrl: string }) {
       {/* Track info */}
       <View className="flex-1">
         {isLoading ? (
-          <Body size="sm" className="text-textLight">Loading track info...</Body>
+          <Body size="sm" className="text-textLight dark:text-darkTextLight">Loading track info...</Body>
         ) : meta ? (
           <>
-            <Body size="md" className="font-bold text-textDark" numberOfLines={1}>
+            <Body size="md" className="font-bold text-textDark dark:text-darkTextDark" numberOfLines={1}>
               {meta.title}
             </Body>
             {meta.author_name ? (
-              <Body size="sm" className="text-textMid mt-0.5" numberOfLines={1}>
+              <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5" numberOfLines={1}>
                 {meta.author_name}
               </Body>
             ) : null}
           </>
         ) : (
-          <Body size="md" className="font-semibold text-textDark">
-            {t.moments.detail.spotifyLink}
+          <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
+            {t('moments.detail.spotifyLink')}
           </Body>
         )}
         <View className="flex-row items-center gap-1 mt-1">
@@ -173,6 +175,7 @@ function formatDate(dateStr: string): string {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function MomentDetailScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useMomentDetailViewModel();
@@ -229,7 +232,7 @@ export default function MomentDetailScreen() {
         <View className="mx-4 mt-3 mb-2">
 
           {/* Meta: date */}
-          <Caption className="text-textLight mb-2">
+          <Caption className="text-textLight dark:text-darkTextLight mb-2">
             📅 {formatDate(moment.date)}
           </Caption>
 
@@ -237,7 +240,7 @@ export default function MomentDetailScreen() {
           {moment.location ? (
             <View className="flex-row items-center gap-1.5 mb-3">
               <MapPin size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textLight flex-1" numberOfLines={1}>
+              <Caption className="text-textLight dark:text-darkTextLight flex-1" numberOfLines={1}>
                 {moment.location}
               </Caption>
               {moment.latitude && moment.longitude ? (
@@ -249,7 +252,7 @@ export default function MomentDetailScreen() {
                   }
                 >
                   <Caption className="font-semibold text-accent">
-                    {t.moments.detail.mapsLink}
+                    {t('moments.detail.mapsLink')}
                   </Caption>
                 </Pressable>
               ) : null}
@@ -257,13 +260,13 @@ export default function MomentDetailScreen() {
           ) : null}
 
           {/* Title */}
-          <Heading size="lg" className="leading-tight tracking-tight mb-2 text-textDark">
+          <Heading size="lg" className="leading-tight tracking-tight mb-2 text-textDark dark:text-darkTextDark">
             {moment.title}
           </Heading>
 
           {/* Caption */}
           {moment.caption ? (
-            <Body size="md" className="text-textMid italic leading-relaxed mb-3">
+            <Body size="md" className="text-textMid dark:text-darkTextMid italic leading-relaxed mb-3">
               "{moment.caption}"
             </Body>
           ) : null}
@@ -324,6 +327,20 @@ export default function MomentDetailScreen() {
             onSubmit={vm.handleAddComment}
             onDelete={vm.handleDeleteComment}
           />
+        </View>
+
+        {/* ── Share ── */}
+        <View className="mx-4 mb-4">
+          <Pressable
+            onPress={vm.handleShare}
+            className="flex-row items-center justify-center gap-2 rounded-2xl py-3"
+            style={{ backgroundColor: colors.primaryMuted }}
+          >
+            <Share2 size={16} color={colors.primary} strokeWidth={1.5} />
+            <Body size="sm" className="font-semibold text-primary">
+              {t('shareViewer.share')}
+            </Body>
+          </Pressable>
         </View>
 
         {/* Bottom spacer */}

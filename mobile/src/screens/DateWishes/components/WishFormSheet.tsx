@@ -3,13 +3,13 @@ import { TouchableOpacity, View } from 'react-native';
 import { Caption } from '../../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import AppBottomSheet from '../../../components/AppBottomSheet';
 import Input from '../../../components/Input';
 import FieldLabel from '../../../components/FieldLabel';
 import ErrorBox from '../../../components/ErrorBox';
 import { useWishFormViewModel } from './useWishFormViewModel';
-import { WISH_CATEGORIES } from '../useWishesViewModel';
+import { useWishCategories } from '../useWishesViewModel';
 import type { DateWish } from '../../../types';
 
 export default function WishFormSheet({
@@ -19,6 +19,8 @@ export default function WishFormSheet({
   onClose: () => void;
   initialWish?: DateWish;
 }) {
+  const { t } = useTranslation();
+  const wishCategories = useWishCategories();
   const sheetRef = useRef<BottomSheetModal>(null);
   const colors = useAppColors();
   const vm = useWishFormViewModel(onClose, initialWish);
@@ -29,7 +31,7 @@ export default function WishFormSheet({
     <AppBottomSheet
       ref={sheetRef}
       scrollable
-      title={initialWish ? t.datePlanner.editWish : t.datePlanner.addWish}
+      title={initialWish ? t('datePlanner.editWish') : t('datePlanner.addWish')}
       onSave={vm.save}
       isSaving={vm.isSaving}
       saveDisabled={!vm.isValid || vm.isSaving}
@@ -40,24 +42,24 @@ export default function WishFormSheet({
 
         {/* Title */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.wishTitleLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.wishTitleLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.title}
             onChangeText={vm.setTitle}
-            placeholder={t.datePlanner.wishTitlePlaceholder}
+            placeholder={t('datePlanner.wishTitlePlaceholder')}
             returnKeyType="next"
           />
         </View>
 
         {/* Description */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.wishDescriptionLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.wishDescriptionLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.description}
             onChangeText={vm.setDescription}
-            placeholder={t.datePlanner.wishDescriptionPlaceholder}
+            placeholder={t('datePlanner.wishDescriptionPlaceholder')}
             multiline
             numberOfLines={3}
             style={{ minHeight: 80, textAlignVertical: 'top' }}
@@ -66,9 +68,9 @@ export default function WishFormSheet({
 
         {/* Category */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.wishCategoryLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.wishCategoryLabel')}</FieldLabel>
           <View className="flex-row flex-wrap gap-2 mt-1">
-            {WISH_CATEGORIES.map(cat => (
+            {wishCategories.map(cat => (
               <TouchableOpacity
                 key={cat.key}
                 onPress={() => vm.setCategory(cat.key)}
@@ -91,12 +93,12 @@ export default function WishFormSheet({
 
         {/* URL */}
         <View className="mb-4">
-          <FieldLabel>{t.datePlanner.wishUrlLabel}</FieldLabel>
+          <FieldLabel>{t('datePlanner.wishUrlLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.url}
             onChangeText={vm.setUrl}
-            placeholder={t.datePlanner.wishUrlPlaceholder}
+            placeholder={t('datePlanner.wishUrlPlaceholder')}
             keyboardType="url"
             autoCapitalize="none"
           />

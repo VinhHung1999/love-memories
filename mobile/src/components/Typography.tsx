@@ -23,7 +23,7 @@ const headingSizeClass: Record<NonNullable<HeadingProps['size']>, string> = {
 };
 
 export function Heading({ size = 'md', children, className, numberOfLines, onPress, style }: HeadingProps) {
-  const base = `font-heading text-textDark ${headingSizeClass[size]}`;
+  const base = `font-heading text-textDark dark:text-darkTextDark ${headingSizeClass[size]}`;
   const text = (
     <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
@@ -46,7 +46,7 @@ const bodySizeClass: Record<NonNullable<BodyProps['size']>, string> = {
 };
 
 export function Body({ size = 'md', children, className, numberOfLines, onPress, style }: BodyProps) {
-  const base = `font-body text-textDark ${bodySizeClass[size]}`;
+  const base = `font-body text-textDark dark:text-darkTextDark ${bodySizeClass[size]}`;
   const text = (
     <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
@@ -58,7 +58,7 @@ export function Body({ size = 'md', children, className, numberOfLines, onPress,
 
 // ── Caption — BeVietnamPro-Light, 11px, textLight ─────────────────────────────
 export function Caption({ children, className, numberOfLines, onPress, style }: TypographyProps) {
-  const base = 'font-bodyLight text-[11px] text-textLight';
+  const base = 'font-bodyLight text-[11px] text-textLight dark:text-darkTextLight';
   const text = (
     <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
@@ -70,7 +70,7 @@ export function Caption({ children, className, numberOfLines, onPress, style }: 
 
 // ── Label — BeVietnamPro-Medium, 13px ─────────────────────────────────────────
 export function Label({ children, className, numberOfLines, onPress, style }: TypographyProps) {
-  const base = 'font-bodyMedium text-[13px] text-textDark';
+  const base = 'font-bodyMedium text-[13px] text-textDark dark:text-darkTextDark';
   const text = (
     <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}
@@ -82,7 +82,7 @@ export function Label({ children, className, numberOfLines, onPress, style }: Ty
 
 // ── Cursive — Borel-Regular, decorative ───────────────────────────────────────
 export function Cursive({ children, className, numberOfLines, onPress, style }: TypographyProps) {
-  const base = 'font-cursive text-textDark';
+  const base = 'font-cursive text-textDark dark:text-darkTextDark';
   const text = (
     <Text className={`${base}${className ? ` ${className}` : ''}`} numberOfLines={numberOfLines} style={style}>
       {children}

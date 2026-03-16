@@ -6,7 +6,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import FastImage from 'react-native-fast-image';
 import { Check, Clock, ImagePlus, Mail, Mic, Trash2, X } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import AppBottomSheet from '../../../components/AppBottomSheet';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
@@ -38,6 +38,7 @@ export default function ComposeLetterSheet({
   onClose: () => void;
   initialLetter?: LoveLetter;
 }) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const colors = useAppColors();
   const vm = useComposeLetterViewModel(onClose, initialLetter);
@@ -48,10 +49,10 @@ export default function ComposeLetterSheet({
     <AppBottomSheet
       ref={sheetRef}
       scrollable
-      title={initialLetter ? t.loveLetters.editTitle : t.loveLetters.composeTitle}
+      title={initialLetter ? t('loveLetters.editTitle') : t('loveLetters.composeTitle')}
       icon={Mail}
-      subtitle={initialLetter ? t.loveLetters.editSubtitle : t.loveLetters.composeSubtitle}
-      actionLabel={t.loveLetters.sendNow}
+      subtitle={initialLetter ? t('loveLetters.editSubtitle') : t('loveLetters.composeSubtitle')}
+      actionLabel={t('loveLetters.sendNow')}
       onAction={vm.sendNow}
       actionLoading={vm.isSending}
       actionDisabled={!vm.isValid || vm.isSaving || vm.isSending}
@@ -62,24 +63,24 @@ export default function ComposeLetterSheet({
 
         {/* Title */}
         <View className="mb-4">
-          <FieldLabel>{t.loveLetters.titleLabel}</FieldLabel>
+          <FieldLabel>{t('loveLetters.titleLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.title}
             onChangeText={vm.setTitle}
-            placeholder={t.loveLetters.titlePlaceholder}
+            placeholder={t('loveLetters.titlePlaceholder')}
             returnKeyType="next"
           />
         </View>
 
         {/* Content */}
         <View className="mb-4">
-          <FieldLabel>{t.loveLetters.contentLabel}</FieldLabel>
+          <FieldLabel>{t('loveLetters.contentLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={vm.content}
             onChangeText={vm.setContent}
-            placeholder={t.loveLetters.contentPlaceholder}
+            placeholder={t('loveLetters.contentPlaceholder')}
             multiline
             numberOfLines={8}
             style={{ minHeight: 160, textAlignVertical: 'top' }}
@@ -88,7 +89,7 @@ export default function ComposeLetterSheet({
 
         {/* ── Photos section ── */}
         <View className="mb-4">
-          <FieldLabel>{t.loveLetters.photosLabel}</FieldLabel>
+          <FieldLabel>{t('loveLetters.photosLabel')}</FieldLabel>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row gap-2 mt-1">
               {vm.pendingPhotos.map(photo => (
@@ -122,7 +123,7 @@ export default function ComposeLetterSheet({
 
         {/* ── Voice memo section ── */}
         <View className="mb-4">
-          <FieldLabel>{t.loveLetters.voiceMemoLabel}</FieldLabel>
+          <FieldLabel>{t('loveLetters.voiceMemoLabel')}</FieldLabel>
           {vm.recordedAudioPath ? (
             /* Recorded — show playback controls */
             <View className="flex-row items-center gap-3 p-3 rounded-2xl bg-accent/10 border border-accent/20 mt-1">
@@ -130,8 +131,8 @@ export default function ComposeLetterSheet({
                 <Check size={18} strokeWidth={1.5} />
               </View>
               <View className="flex-1">
-                <Label className="text-textDark">Voice memo recorded</Label>
-                <Body size="sm" className="text-textLight mt-0.5">
+                <Label className="text-textDark dark:text-darkTextDark">Voice memo recorded</Label>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">
                   {formatSecs(vm.recordingDuration)} · m4a
                 </Body>
               </View>
@@ -152,19 +153,19 @@ export default function ComposeLetterSheet({
                 className="w-10 h-10 rounded-full items-center justify-center"
                 style={{ backgroundColor: vm.isRecording ? colors.primary : colors.accent }}>
                 {vm.isRecording ? (
-                  <View className="w-3.5 h-3.5 rounded bg-white" />
+                  <View className="w-3.5 h-3.5 rounded bg-white dark:bg-darkBgCard" />
                 ) : (
                   <Mic size={18} strokeWidth={1.5} />
                 )}
               </View>
               <View className="flex-1">
-                <Label className="text-textDark">
-                  {vm.isRecording ? t.loveLetters.recording : t.loveLetters.recordMemo}
+                <Label className="text-textDark dark:text-darkTextDark">
+                  {vm.isRecording ? t('loveLetters.recording') : t('loveLetters.recordMemo')}
                 </Label>
-                <Body size="sm" className="text-textLight mt-0.5">
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">
                   {vm.isRecording
-                    ? `${formatSecs(vm.recordingDuration)} · ${t.loveLetters.stopRecording}`
-                    : t.loveLetters.recordHint}
+                    ? `${formatSecs(vm.recordingDuration)} · ${t('loveLetters.stopRecording')}`
+                    : t('loveLetters.recordHint')}
                 </Body>
               </View>
               {vm.isRecording ? (
@@ -176,7 +177,7 @@ export default function ComposeLetterSheet({
 
         {/* Mood picker */}
         <View className="mb-4">
-          <FieldLabel>{t.loveLetters.moodLabel}</FieldLabel>
+          <FieldLabel>{t('loveLetters.moodLabel')}</FieldLabel>
           <View className="flex-row gap-2 flex-wrap mt-1">
             {MOODS.map(m => (
               <TouchableOpacity
@@ -203,26 +204,26 @@ export default function ComposeLetterSheet({
         <View className="mb-6">
           <Pressable
             onPress={vm.toggleScheduleMode}
-            className="flex-row items-center gap-3 p-4 rounded-2xl border border-border/50 bg-gray-50">
+            className="flex-row items-center gap-3 p-4 rounded-2xl border border-border dark:border-darkBorder/50 bg-gray-50">
             <Clock size={20} color={vm.scheduleMode ? colors.primary : colors.textLight} strokeWidth={1.5} />
             <View className="flex-1">
               <Label
                 style={{ color: vm.scheduleMode ? colors.primary : colors.textDark }}>
-                {t.loveLetters.scheduleLabel}
+                {t('loveLetters.scheduleLabel')}
               </Label>
               {vm.scheduleMode && vm.scheduledAt ? (
-                <Body size="sm" className="text-textMid mt-0.5">
+                <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5">
                   {formatScheduledAt(vm.scheduledAt)}
                 </Body>
               ) : (
-                <Body size="sm" className="text-textLight mt-0.5">Tap to set delivery time</Body>
+                <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5">Tap to set delivery time</Body>
               )}
             </View>
             <View
               className="w-10 h-6 rounded-full"
               style={{ backgroundColor: vm.scheduleMode ? colors.primary : colors.gray100 }}>
               <View
-                className="absolute top-1 w-4 h-4 rounded-full bg-white"
+                className="absolute top-1 w-4 h-4 rounded-full bg-white dark:bg-darkBgCard"
                 style={{ left: vm.scheduleMode ? 22 : 2 }}
               />
             </View>
@@ -253,7 +254,7 @@ export default function ComposeLetterSheet({
 
         {/* Actions */}
         <Button
-          label={t.loveLetters.saveDraft}
+          label={t('loveLetters.saveDraft')}
           loading={vm.isSaving}
           onPress={vm.saveDraft}
           variant="outline"

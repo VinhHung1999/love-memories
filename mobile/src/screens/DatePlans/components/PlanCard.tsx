@@ -3,14 +3,14 @@ import { Pressable, View } from 'react-native';
 import { Caption, Label } from '../../../components/Typography';
 import { useAppColors } from '../../../navigation/theme';
 import type { DatePlan } from '../../../types';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: () => void }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const doneStops = plan.stops.filter(s => s.done).length;
   const totalStops = plan.stops.length;
@@ -27,14 +27,14 @@ export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: (
     colors.textMid;
 
   const statusLabel =
-    plan.status === 'active' ? t.datePlanner.statusActive :
-    plan.status === 'completed' ? t.datePlanner.statusCompleted :
-    t.datePlanner.statusPlanned;
+    plan.status === 'active' ? t('datePlanner.statusActive') :
+    plan.status === 'completed' ? t('datePlanner.statusCompleted') :
+    t('datePlanner.statusPlanned');
 
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-3xl px-4 py-4 mb-3">
+      className="bg-white dark:bg-darkBgCard rounded-3xl px-4 py-4 mb-3">
       {/* Top row: date badge + status */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="rounded-xl px-2.5 py-1" style={{ backgroundColor: colors.primaryMuted }}>
@@ -50,13 +50,13 @@ export default function PlanCard({ plan, onPress }: { plan: DatePlan; onPress: (
       </View>
 
       {/* Title */}
-      <Label className="text-textDark mb-1">{plan.title}</Label>
+      <Label className="text-textDark dark:text-darkTextDark mb-1">{plan.title}</Label>
 
       {/* Stops progress */}
       {totalStops > 0 ? (
         <View className="gap-1.5">
-          <Caption className="text-textLight">
-            {t.datePlanner.stopsProgress
+          <Caption className="text-textLight dark:text-darkTextLight">
+            {t('datePlanner.stopsProgress')
               .replace('{done}', String(doneStops))
               .replace('{total}', String(totalStops))}
           </Caption>

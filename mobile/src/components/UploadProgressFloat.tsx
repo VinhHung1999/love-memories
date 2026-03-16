@@ -11,7 +11,7 @@ import { CheckCircle, CloudUpload, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUploadProgress } from '../contexts/UploadProgressContext';
 import { useAppColors } from '../navigation/theme';
-import t from '../locales/en';
+import { useTranslation } from 'react-i18next';
 import { Label } from './Typography';
 
 type Phase = 'hidden' | 'uploading' | 'complete';
@@ -20,6 +20,7 @@ const TAB_BAR_HEIGHT = 56;
 const COMPLETE_LINGER_MS = 1500;
 
 export default function UploadProgressFloat() {
+  const { t } = useTranslation();
   const { upload, clearUpload } = useUploadProgress();
   const colors = useAppColors();
   const insets = useSafeAreaInsets();
@@ -115,7 +116,7 @@ export default function UploadProgressFloat() {
         {/* shadow-lg via style — NativeWind shadow className inconsistent across platforms */}
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <View
-          className="bg-white rounded-2xl px-4 py-3 gap-2"
+          className="bg-white dark:bg-darkBgCard rounded-2xl px-4 py-3 gap-2"
           style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
@@ -130,10 +131,10 @@ export default function UploadProgressFloat() {
                 ? <CheckCircle size={16} color="#22c55e" strokeWidth={1.5} />
                 : <CloudUpload size={16} color={colors.primary} strokeWidth={1.5} />}
             </View>
-            <Label className="flex-1 text-textDark">
+            <Label className="flex-1 text-textDark dark:text-darkTextDark">
               {isComplete
-                ? t.common.uploadComplete
-                : `${t.common.uploading} ${done}/${total} ${noun}...`}
+                ? t('common.uploadComplete')
+                : `${t('common.uploading')} ${done}/${total} ${noun}...`}
             </Label>
             <Pressable onPress={dismiss} className="p-1">
               <X size={14} color={colors.textLight} strokeWidth={1.5} />

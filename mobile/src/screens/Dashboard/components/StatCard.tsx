@@ -29,12 +29,12 @@ export function StatCard({
         <IconComponent size={15} color={iconColor} strokeWidth={1.5} />
 
         {/* Count */}
-        <Heading size="lg" className="text-textDark leading-none mt-1">
+        <Heading size="lg" className="text-textDark dark:text-darkTextDark leading-none mt-1">
           {displayCount}
         </Heading>
 
         {/* Label */}
-        <Caption className="font-semibold text-textMid tracking-[1px] uppercase mt-0.5" style={{ fontSize: 9 }}>
+        <Caption className="font-semibold text-textMid dark:text-darkTextMid tracking-[1px] uppercase mt-0.5" style={{ fontSize: 9 }}>
           {label}
         </Caption>
 

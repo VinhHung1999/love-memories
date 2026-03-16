@@ -5,7 +5,7 @@ import { BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import {  } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { Expense, ExpenseCategory } from '../../lib/api';
 import { useAddExpenseViewModel } from './useAddExpenseViewModel';
 import AppBottomSheet from '../../components/AppBottomSheet';
@@ -19,6 +19,7 @@ interface AddExpenseSheetProps {
 }
 
 export default function AddExpenseSheet({ editingExpense = null, onClose }: AddExpenseSheetProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const { showBottomSheet } = useAppNavigation();
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -33,7 +34,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
   return (
     <AppBottomSheet
       ref={sheetRef}
-      title={vm.isEditing ? t.expenses.edit : t.expenses.add}
+      title={vm.isEditing ? t('expenses.edit') : t('expenses.add')}
       scrollable
       snapPoints={['92%']}
       onSave={vm.handleSave}
@@ -42,12 +43,12 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
       onDismiss={onClose}
     >
       {/* ── Amount Hero ── */}
-      <View className="items-center px-5 py-6 border-b border-border/40">
-        <Caption className="font-bold text-textLight tracking-[1px] uppercase mb-3">
-          {t.expenses.labels.amount}
+      <View className="items-center px-5 py-6 border-b border-border dark:border-darkBorder/40">
+        <Caption className="font-bold text-textLight dark:text-darkTextLight tracking-[1px] uppercase mb-3">
+          {t('expenses.labels.amount')}
         </Caption>
         <View className="flex-row items-baseline gap-1">
-          <Heading size="lg" className="text-textMid">₫</Heading>
+          <Heading size="lg" className="text-textMid dark:text-darkTextMid">₫</Heading>
           <BottomSheetTextInput
             value={vm.amount}
             onChangeText={vm.handleAmountChange}
@@ -67,7 +68,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
 
       <View className="px-5 pt-4 pb-8">
         {/* ── Category Grid ── */}
-        <FieldLabel>{t.expenses.labels.category}</FieldLabel>
+        <FieldLabel>{t('expenses.labels.category')}</FieldLabel>
         <View className="flex-row flex-wrap gap-2 mb-4">
           {EXPENSE_CATS.map(cat => {
             const isSelected = vm.category === cat.key;
@@ -76,7 +77,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
                 key={cat.key}
                 onPress={() => vm.setCategory(cat.key)}
                 className="items-center gap-1 rounded-2xl px-3 py-2.5 border"
-                style={{ minWidth: '22%', backgroundColor: isSelected ? colors.primary + '1A' : '#fff', borderColor: isSelected ? colors.primary + '4D' : colors.border + '99' }}>
+                style={{ minWidth: '22%', backgroundColor: isSelected ? colors.primary + '1A' : colors.bgCard, borderColor: isSelected ? colors.primary + '4D' : colors.border + '99' }}>
                 <Text className="text-2xl">{cat.emoji}</Text>
                 <Caption className="font-semibold" style={{ color: isSelected ? colors.primary : colors.textMid }}>
                   {cat.label}
@@ -87,11 +88,11 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
         </View>
 
         {/* ── Description ── */}
-        <FieldLabel>{t.expenses.labels.description}</FieldLabel>
+        <FieldLabel>{t('expenses.labels.description')}</FieldLabel>
         <BottomSheetTextInput
           value={vm.description}
           onChangeText={vm.setDescription}
-          placeholder={t.expenses.placeholders.description}
+          placeholder={t('expenses.placeholders.description')}
           placeholderTextColor={colors.textLight}
           returnKeyType="next"
           style={{
@@ -108,7 +109,7 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
         />
 
         {/* ── Date ── */}
-        <FieldLabel>{t.expenses.labels.date}</FieldLabel>
+        <FieldLabel>{t('expenses.labels.date')}</FieldLabel>
         <DatePickerField
           value={new Date(vm.date + 'T00:00:00')}
           onChange={(d) => vm.setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)}
@@ -116,11 +117,11 @@ export default function AddExpenseSheet({ editingExpense = null, onClose }: AddE
         />
 
         {/* ── Note ── */}
-        <FieldLabel>{t.expenses.labels.note}</FieldLabel>
+        <FieldLabel>{t('expenses.labels.note')}</FieldLabel>
         <BottomSheetTextInput
           value={vm.note}
           onChangeText={vm.setNote}
-          placeholder={t.expenses.placeholders.note}
+          placeholder={t('expenses.placeholders.note')}
           placeholderTextColor={colors.textLight}
           multiline
           style={{

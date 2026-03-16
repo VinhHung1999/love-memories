@@ -62,6 +62,12 @@ const en = {
       googleSignupFailed: 'Google signup failed',
       passwordMismatch: 'Passwords do not match',
     },
+
+    inviteBanner: {
+      title: "You've been invited!",
+      subtitle: '{{partnerName}} from {{coupleName}} is waiting for you',
+      dismiss: 'Dismiss',
+    },
   },
 
   profile: {
@@ -108,6 +114,12 @@ const en = {
 
     placeholders: {
       slogan: "Your couple's motto...",
+    },
+
+    language: {
+      title: '🌐 Language',
+      english: 'English',
+      vietnamese: 'Tiếng Việt',
     },
 
     deleteAccount: {
@@ -990,6 +1002,26 @@ const en = {
     },
   },
 
+  shareViewer: {
+    title: 'Shared Memory',
+    notFound: 'Link not found',
+    notFoundDesc: 'This share link may have expired or been revoked.',
+    sharedVia: 'Shared via Love Memories',
+    share: 'Share',
+  },
+
+  joinCouple: {
+    title: 'Join Partner',
+    desc: 'You\'ve been invited to connect with your partner.',
+    code: 'Invite code',
+    joinBtn: 'Accept Invitation',
+    joining: 'Connecting you with your partner...',
+    successTitle: 'Connected! 🎉',
+    successDesc: 'You and your partner are now connected.',
+    errorTitle: 'Could not join',
+    tryAgain: 'Try Again',
+  },
+
   common: {
     error: 'Error',
     success: 'Success',
@@ -1006,6 +1038,7 @@ const en = {
   },
 } as const;
 
-export type LocaleStrings = typeof en;
+type DeepPartialStrings<T> = T extends string ? string : { [K in keyof T]: DeepPartialStrings<T[K]> };
+export type LocaleStrings = DeepPartialStrings<typeof en>;
 
 export default en;

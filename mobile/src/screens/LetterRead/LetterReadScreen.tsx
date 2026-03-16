@@ -10,7 +10,7 @@ import { useAppColors } from '../../navigation/theme';
 import { useLetterReadViewModel } from './useLetterReadViewModel';
 import ScreenHeader from '../../components/ScreenHeader';
 import VoiceMemoSection from '../MomentDetail/components/VoiceMemoSection';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { MomentAudio } from '../../types';
 
 const MOOD_EMOJI: Record<string, string> = {
@@ -18,6 +18,7 @@ const MOOD_EMOJI: Record<string, string> = {
 };
 
 export default function LetterReadScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useLetterReadViewModel();
   const scrollY = useSharedValue(0);
@@ -55,16 +56,16 @@ export default function LetterReadScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48 }}>
 
         {/* Paper card */}
-        <View className="bg-white rounded-3xl p-6 mb-4">
-          <Heading size="lg" className="text-textDark mb-4">{letter.title}</Heading>
+        <View className="bg-white dark:bg-darkBgCard rounded-3xl p-6 mb-4">
+          <Heading size="lg" className="text-textDark dark:text-darkTextDark mb-4">{letter.title}</Heading>
           <Body size="md" className="leading-7">{letter.content}</Body>
         </View>
 
         {/* Photos */}
         {letter.photos && letter.photos.length > 0 ? (
           <View className="mb-4">
-            <Caption className="font-bold text-textLight uppercase tracking-wider mb-2 px-1">
-              {t.loveLetters.photosLabel}
+            <Caption className="font-bold text-textLight dark:text-darkTextLight uppercase tracking-wider mb-2 px-1">
+              {t('loveLetters.photosLabel')}
             </Caption>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
               <View className="flex-row gap-2 px-1">

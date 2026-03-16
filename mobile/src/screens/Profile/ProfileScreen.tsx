@@ -7,10 +7,11 @@ import {
 import { Body, Caption } from '../../components/Typography';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { CalendarHeart, Check, CheckCircle, Copy, Heart, Pencil, Plus, QrCode, RefreshCw } from 'lucide-react-native';
+import type { AppLanguage } from '../../lib/i18n';
 import { useAppColors } from '../../navigation/theme';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAuth } from '../../lib/auth';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useProfileViewModel } from './useProfileViewModel';
 import EditNameSheet from './components/EditNameSheet';
 import EditCoupleSheet from './components/EditCoupleSheet';
@@ -39,9 +40,9 @@ function InfoRow({
   const colors = useAppColors();
   const inner = (
     <View className="flex-row items-center justify-between py-[14px]" style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '80' }}>
-      <Body size="md" className="text-textMid flex-1">{label}</Body>
+      <Body size="md" className="text-textMid dark:text-darkTextMid flex-1">{label}</Body>
       <View className="flex-row items-center gap-2">
-        <Body size="md" className="font-medium text-textDark">{value}</Body>
+        <Body size="md" className="font-medium text-textDark dark:text-darkTextDark">{value}</Body>
         {icon && React.createElement(icon, { size: 14, color: colors.textLight, strokeWidth: 1.5 })}
       </View>
     </View>
@@ -50,8 +51,46 @@ function InfoRow({
   return inner;
 }
 
+// ── Language option row ───────────────────────────────────────────────────────
+function LanguageOption({
+  lang,
+  label,
+  flag,
+  isSelected,
+  onPress,
+  isLast,
+}: {
+  lang: AppLanguage;
+  label: string;
+  flag: string;
+  isSelected: boolean;
+  onPress: (lang: AppLanguage) => void;
+  isLast?: boolean;
+}) {
+  const colors = useAppColors();
+  return (
+    <Pressable
+      onPress={() => onPress(lang)}
+      className="flex-row items-center justify-between py-[14px]"
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: colors.border + '80' }}>
+      <View className="flex-row items-center gap-3">
+        <Body size="lg">{flag}</Body>
+        <Body size="md" className="text-textDark dark:text-darkTextDark font-medium">{label}</Body>
+      </View>
+      {isSelected && (
+        <View
+          className="w-6 h-6 rounded-full items-center justify-center"
+          style={{ backgroundColor: colors.primary }}>
+          <Check size={13} color="#fff" strokeWidth={2.5} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const { logout } = useAuth();
@@ -76,12 +115,12 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-baseBg">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
 
       <ScreenHeader
         scrollY={scrollY}
-        title={vm.user?.name ?? t.profile.title}
-        subtitle={t.profile.title.toUpperCase()}
+        title={vm.user?.name ?? t('profile.title')}
+        subtitle={t('profile.title').toUpperCase()}
         right={<HeaderIcon icon={Pencil} onPress={handleOpenEditName} />}
       />
 
@@ -100,7 +139,7 @@ export default function ProfileScreen() {
             onPress={vm.handleUploadAvatar}
             showCameraBadge
           />
-          <Body size="sm" className="text-textMid mt-1">{vm.user?.email}</Body>
+          <Body size="sm" className="text-textMid dark:text-darkTextMid mt-1">{vm.user?.email}</Body>
           {vm.couple?.name ? (
             <View className="mt-2 flex-row items-center gap-1.5 bg-primary/[10%] rounded-full px-3 py-1">
               <Heart size={10} color={colors.primary} strokeWidth={1.5} />
@@ -110,11 +149,11 @@ export default function ProfileScreen() {
           {vm.anniversaryDisplay ? (
             <View className="mt-1.5 flex-row items-center gap-1">
               <CalendarHeart size={11} color={colors.textLight} strokeWidth={1.5} />
-              <Caption className="text-textMid">Since {vm.anniversaryDisplay}</Caption>
+              <Caption className="text-textMid dark:text-darkTextMid">Since {vm.anniversaryDisplay}</Caption>
             </View>
           ) : null}
           {vm.slogan ? (
-            <Caption className="text-textLight italic mt-1.5 text-center" numberOfLines={1}>
+            <Caption className="text-textLight dark:text-darkTextLight italic mt-1.5 text-center" numberOfLines={1}>
               {vm.slogan}
             </Caption>
           ) : null}
@@ -133,7 +172,7 @@ export default function ProfileScreen() {
             </Card>
           ) : vm.partner ? (
             <Card>
-              <CardTitle>{t.profile.couple.partner}</CardTitle>
+              <CardTitle>{t('profile.couple.partner')}</CardTitle>
               <View className="flex-row items-center gap-3 py-3">
                 <AvatarCircle
                   uri={vm.partner.avatar}
@@ -141,8 +180,8 @@ export default function ProfileScreen() {
                   size={44}
                 />
                 <View className="flex-1">
-                  <Body size="md" className="font-semibold text-textDark">{vm.partner.name}</Body>
-                  <Body size="sm" className="text-textMid mt-0.5">{vm.partner.email}</Body>
+                  <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">{vm.partner.name}</Body>
+                  <Body size="sm" className="text-textMid dark:text-darkTextMid mt-0.5">{vm.partner.email}</Body>
                 </View>
                 <View className="w-2 h-2 rounded-full bg-green-400" />
               </View>
@@ -160,18 +199,18 @@ export default function ProfileScreen() {
             </Card>
           ) : (
             <Card>
-              <CardTitle action={{ label: t.profile.edit, onPress: handleOpenEditCouple }}>
-                {t.profile.couple.title}
+              <CardTitle action={{ label: t('profile.edit'), onPress: handleOpenEditCouple }}>
+                {t('profile.couple.title')}
               </CardTitle>
               <InfoRow
-                label={t.profile.couple.name}
+                label={t('profile.couple.name')}
                 value={vm.couple?.name ?? '—'}
                 icon={vm.couple?.name ? undefined : Plus}
                 onPress={handleOpenEditCouple}
               />
               <InfoRow
-                label={t.profile.couple.anniversary}
-                value={vm.anniversaryDisplay ?? t.profile.couple.noAnniversary}
+                label={t('profile.couple.anniversary')}
+                value={vm.anniversaryDisplay ?? t('profile.couple.noAnniversary')}
                 icon={CalendarHeart}
                 isLast
                 onPress={handleOpenEditCouple}
@@ -181,13 +220,13 @@ export default function ProfileScreen() {
 
           {/* ── Invite code card ── */}
           <Card>
-            <CardTitle>{t.profile.couple.inviteCode}</CardTitle>
+            <CardTitle>{t('profile.couple.inviteCode')}</CardTitle>
             <View className="py-3">
               {vm.couple?.inviteCode ? (
                 <>
                   <View className="flex-row items-center gap-3">
-                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-3 border border-border/50">
-                      <Body size="md" className="font-mono tracking-[3px] text-textDark text-center">
+                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-3 border border-border dark:border-darkBorder/50">
+                      <Body size="md" className="font-mono tracking-[3px] text-textDark dark:text-darkTextDark text-center">
                         {vm.couple.inviteCode}
                       </Body>
                     </View>
@@ -200,7 +239,7 @@ export default function ProfileScreen() {
                         : <Copy size={17} color={colors.primary} strokeWidth={1.5} />}
                     </Pressable>
                   </View>
-                  <Caption className="text-textLight mt-2">{t.profile.couple.shareHint}</Caption>
+                  <Caption className="text-textLight dark:text-darkTextLight mt-2">{t('profile.couple.shareHint')}</Caption>
                   <Pressable
                     onPress={vm.generateInvite}
                     disabled={vm.isInviteGenerating}
@@ -209,7 +248,7 @@ export default function ProfileScreen() {
                       ? <Skeleton className="w-24 h-3.5 rounded-full" />
                       : <>
                           <RefreshCw size={13} color={colors.textLight} strokeWidth={1.5} />
-                          <Caption className="text-textLight">{t.profile.couple.generateInvite}</Caption>
+                          <Caption className="text-textLight dark:text-darkTextLight">{t('profile.couple.generateInvite')}</Caption>
                         </>}
                   </Pressable>
                 </>
@@ -222,7 +261,7 @@ export default function ProfileScreen() {
                     ? <Skeleton className="w-32 h-4 rounded-full" />
                     : <>
                         <QrCode size={16} color={colors.primary} strokeWidth={1.5} />
-                        <Body size="md" className="font-medium text-primary">{t.profile.couple.generateInvite}</Body>
+                        <Body size="md" className="font-medium text-primary">{t('profile.couple.generateInvite')}</Body>
                       </>}
                 </Pressable>
               )}
@@ -231,20 +270,20 @@ export default function ProfileScreen() {
 
           {/* ── Google account card ── */}
           <Card>
-            <CardTitle>{t.profile.google.title}</CardTitle>
+            <CardTitle>{t('profile.google.title')}</CardTitle>
             {vm.user?.googleId ? (
               <View className="flex-row items-center gap-2 py-3">
                 <CheckCircle size={16} color={colors.success} strokeWidth={1.5} />
-                <Body size="md" className="text-success font-medium">{t.profile.google.linked}</Body>
+                <Body size="md" className="text-success font-medium">{t('profile.google.linked')}</Body>
               </View>
             ) : (
               <View className="py-3">
-                <Body size="sm" className="text-textMid mb-3">{t.profile.google.linkHint}</Body>
+                <Body size="sm" className="text-textMid dark:text-darkTextMid mb-3">{t('profile.google.linkHint')}</Body>
                 <Pressable
                   onPress={vm.handleLinkGoogle}
-                  className="border border-border rounded-2xl py-2.5 flex-row items-center justify-center gap-2">
+                  className="border border-border dark:border-darkBorder rounded-2xl py-2.5 flex-row items-center justify-center gap-2">
                   <GoogleGLogo size={18} />
-                  <Body size="md" className="font-semibold text-textDark">{t.profile.google.linkButton}</Body>
+                  <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">{t('profile.google.linkButton')}</Body>
                 </Pressable>
               </View>
             )}
@@ -252,32 +291,52 @@ export default function ProfileScreen() {
 
           {/* ── Legal ── */}
           <Card>
-            <CardTitle>{t.legal.title}</CardTitle>
+            <CardTitle>{t('legal.title')}</CardTitle>
             <Pressable
               onPress={() => Linking.openURL('https://love-scrum.hungphu.work/privacy-policy')}
               className="flex-row items-center py-3 border-b"
               style={{ borderColor: colors.border }}
             >
-              <Body size="sm" className="flex-1" style={{ color: colors.textDark }}>{t.legal.privacyPolicy}</Body>
+              <Body size="sm" className="flex-1" style={{ color: colors.textDark }}>{t('legal.privacyPolicy')}</Body>
               <Body size="sm" style={{ color: colors.textLight }}>›</Body>
             </Pressable>
             <Pressable
               onPress={() => Linking.openURL('https://love-scrum.hungphu.work/terms-of-service')}
               className="flex-row items-center py-3"
             >
-              <Body size="sm" className="flex-1" style={{ color: colors.textDark }}>{t.legal.termsOfService}</Body>
+              <Body size="sm" className="flex-1" style={{ color: colors.textDark }}>{t('legal.termsOfService')}</Body>
               <Body size="sm" style={{ color: colors.textLight }}>›</Body>
             </Pressable>
           </Card>
 
+          {/* ── Language ── */}
+          <Card>
+            <CardTitle>{t('profile.language.title')}</CardTitle>
+            <LanguageOption
+              lang="en"
+              label={t('profile.language.english')}
+              flag="🇬🇧"
+              isSelected={vm.currentLanguage === 'en'}
+              onPress={vm.handleSetLanguage}
+            />
+            <LanguageOption
+              lang="vi"
+              label={t('profile.language.vietnamese')}
+              flag="🇻🇳"
+              isSelected={vm.currentLanguage === 'vi'}
+              onPress={vm.handleSetLanguage}
+              isLast
+            />
+          </Card>
+
           {/* ── Log Out ── */}
           <Pressable onPress={vm.handleLogout} className="mt-2 items-center py-4 mx-4">
-            <Body size="md" className="text-red-400 font-semibold">{t.profile.logout}</Body>
+            <Body size="md" className="text-red-400 font-semibold">{t('profile.logout')}</Body>
           </Pressable>
 
           {/* ── Delete Account ── */}
           <Pressable onPress={handleOpenDeleteAccount} className="mb-10 items-center py-2 mx-4">
-            <Body size="sm" className="text-textLight">{t.profile.deleteAccount.title}</Body>
+            <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('profile.deleteAccount.title')}</Body>
           </Pressable>
 
       </Animated.ScrollView>

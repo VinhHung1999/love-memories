@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { Caption, Label } from '../../../components/Typography';
 import { Pause, Play } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { MomentAudio } from '../../../types';
 
 interface VoiceMemoSectionProps {
@@ -46,14 +46,15 @@ export default function VoiceMemoSection({
   onPlay,
   onStop,
 }: VoiceMemoSectionProps) {
+  const { t } = useTranslation();
   if (audios.length === 0) return null;
 
   return (
     <View className="mb-4">
       <View className="flex-row items-center gap-2 mb-2">
         <View className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <Caption className="text-textLight tracking-[1px] uppercase">
-          {t.moments.detail.voiceMemo}
+        <Caption className="text-textLight dark:text-darkTextLight tracking-[1px] uppercase">
+          {t('moments.detail.voiceMemo')}
         </Caption>
       </View>
       {audios.map(audio => {
@@ -77,7 +78,7 @@ export default function VoiceMemoSection({
             </View>
 
             {/* Duration */}
-            <Label className="text-textMid">
+            <Label className="text-textMid dark:text-darkTextMid">
               {duration > 0 ? formatDuration(duration) : '--:--'}
             </Label>
           </Pressable>

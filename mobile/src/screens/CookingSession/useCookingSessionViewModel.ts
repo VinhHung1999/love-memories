@@ -9,11 +9,11 @@ import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { useAuth } from '../../lib/auth';
 import type { CookingSessionStatus } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 type Route = RouteProp<RecipesStackParamList, 'CookingSession'>;
 
 export function useCookingSessionViewModel() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { sessionId } = route.params;
@@ -76,7 +76,7 @@ export function useCookingSessionViewModel() {
       queryClient.invalidateQueries({ queryKey: ['cooking-session-active'] });
     },
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.whatToEat.errors.updateFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('whatToEat.errors.updateFailed') }),
   });
 
   // ── Toggle item ────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export function useCookingSessionViewModel() {
       cookingSessionsApi.toggleItem(sessionId, itemId, checked),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cooking-session', sessionId] }),
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.whatToEat.errors.toggleFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('whatToEat.errors.toggleFailed') }),
   });
 
   // ── Toggle step ────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ export function useCookingSessionViewModel() {
       cookingSessionsApi.toggleStep(sessionId, stepId, checked, user?.name),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cooking-session', sessionId] }),
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.whatToEat.errors.toggleFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('whatToEat.errors.toggleFailed') }),
   });
 
   // ── Rate mutation ──────────────────────────────────────────────────────────
@@ -110,7 +110,7 @@ export function useCookingSessionViewModel() {
       navigation.goBack();
     },
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.whatToEat.errors.updateFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('whatToEat.errors.updateFailed') }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -175,15 +175,15 @@ export function useCookingSessionViewModel() {
       navigation.goBack();
     },
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.whatToEat.errors.abandonFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('whatToEat.errors.abandonFailed') }),
   });
 
   const handleAbandon = () => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.whatToEat.abandonTitle,
-      message: t.whatToEat.abandonConfirm,
-      confirmLabel: t.common.delete,
+      title: t('whatToEat.abandonTitle'),
+      message: t('whatToEat.abandonConfirm'),
+      confirmLabel: t('common.delete'),
       onConfirm: () => abandonMutation.mutate(),
     });
   };

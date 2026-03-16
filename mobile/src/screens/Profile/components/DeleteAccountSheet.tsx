@@ -10,14 +10,14 @@ import FieldLabel from '../../../components/FieldLabel';
 import ErrorBox from '../../../components/ErrorBox';
 import { useAppColors } from '../../../navigation/theme';
 import { profileApi } from '../../../lib/api';
-import t from '../../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface DeleteAccountSheetProps {
   onClose: () => void;
   onDeleted: () => void;
 }
 
 export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccountSheetProps) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const colors = useAppColors();
   const [password, setPassword] = useState('');
@@ -34,7 +34,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
       await profileApi.deleteAccount(password.trim());
       onDeleted();
     } catch {
-      setError(t.profile.deleteAccount.failed);
+      setError(t('profile.deleteAccount.failed'));
     } finally {
       setIsDeleting(false);
     }
@@ -53,23 +53,23 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
         <View className="items-center mb-5">
           <View
             className="w-14 h-14 rounded-full items-center justify-center mb-3"
-            style={{ backgroundColor: 'rgba(239,68,68,0.10)' }}>
+            style={{ backgroundColor: colors.errorBg }}>
             <AlertCircle size={28} color={colors.errorColor} strokeWidth={1.5} />
           </View>
-          <Heading size="md" className="text-textDark text-center">
-            {t.profile.deleteAccount.title}
+          <Heading size="md" className="text-textDark dark:text-darkTextDark text-center">
+            {t('profile.deleteAccount.title')}
           </Heading>
           <Caption className="text-error font-semibold mt-0.5">
-            {t.profile.deleteAccount.subtitle}
+            {t('profile.deleteAccount.subtitle')}
           </Caption>
         </View>
 
         {/* Warning text */}
         <View
           className="rounded-2xl px-4 py-3 mb-5"
-          style={{ backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)' }}>
-          <Body size="sm" className="text-textMid leading-relaxed">
-            {t.profile.deleteAccount.warning}
+          style={{ backgroundColor: colors.errorBg, borderWidth: 1, borderColor: colors.errorColor + '30' }}>
+          <Body size="sm" className="text-textMid dark:text-darkTextMid leading-relaxed">
+            {t('profile.deleteAccount.warning')}
           </Body>
         </View>
 
@@ -77,12 +77,12 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
 
         {/* Password field */}
         <View className="mb-6">
-          <FieldLabel>{t.profile.deleteAccount.passwordLabel}</FieldLabel>
+          <FieldLabel>{t('profile.deleteAccount.passwordLabel')}</FieldLabel>
           <Input
             bottomSheet
             value={password}
             onChangeText={setPassword}
-            placeholder={t.profile.deleteAccount.passwordPlaceholder}
+            placeholder={t('profile.deleteAccount.passwordPlaceholder')}
             secureTextEntry
             returnKeyType="done"
             onSubmitEditing={handleDelete}
@@ -91,7 +91,7 @@ export default function DeleteAccountSheet({ onClose, onDeleted }: DeleteAccount
 
         {/* Confirm button */}
         <Button
-          label={isDeleting ? t.profile.deleteAccount.deleting : t.profile.deleteAccount.confirmButton}
+          label={isDeleting ? t('profile.deleteAccount.deleting') : t('profile.deleteAccount.confirmButton')}
           onPress={handleDelete}
           disabled={!password.trim() || isDeleting}
           variant="outline"

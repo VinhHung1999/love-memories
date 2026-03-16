@@ -19,7 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
 import { useAppColors } from '../../navigation/theme';
 import { dailyQuestionsApi } from '../../lib/api';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { DailyQuestionToday } from '../../types';
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
@@ -31,6 +31,7 @@ const CATEGORY_ICON: Record<string, React.ComponentType<{ size?: number; color?:
 };
 
 export default function DailyQuestionCard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const colors = useAppColors();
   const navigation = useNavigation<any>();
@@ -50,16 +51,16 @@ export default function DailyQuestionCard() {
     return (
       <Animated.View entering={FadeInDown.delay(160).duration(500)}>
         <View
-          className="rounded-3xl border border-borderSoft px-4 py-3"
+          className="rounded-3xl border border-borderSoft dark:border-darkBorder px-4 py-3"
           style={{ opacity: 0.5 }}>
           <View className="flex-row items-center gap-1.5">
             <MessageCircle size={12} color={colors.textLight} strokeWidth={1.5} />
             <Caption style={{ color: colors.textLight, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', fontSize: 10 }}>
-              {t.dailyQuestions.cardTitle}
+              {t('dailyQuestions.cardTitle')}
             </Caption>
           </View>
           <Body size="sm" style={{ color: colors.textLight, marginTop: 4 }}>
-            {t.dailyQuestions.noQuestion}
+            {t('dailyQuestions.noQuestion')}
           </Body>
         </View>
       </Animated.View>
@@ -77,14 +78,14 @@ export default function DailyQuestionCard() {
       <Animated.View entering={FadeInDown.delay(160).duration(500)}>
         <Pressable
           onPress={() => navigation.navigate('DailyQuestions')}
-          className="rounded-3xl overflow-hidden border border-borderSoft px-4 py-3"
+          className="rounded-3xl overflow-hidden border border-borderSoft dark:border-darkBorder px-4 py-3"
           style={{ backgroundColor: colors.primaryMuted }}>
 
           {/* Header */}
           <View className="flex-row items-center gap-1.5 mb-2">
             <CategoryIcon size={12} color={colors.primary} strokeWidth={1.5} />
             <Caption style={{ color: colors.primary, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', fontSize: 10 }}>
-              {t.dailyQuestions.cardTitle}
+              {t('dailyQuestions.cardTitle')}
             </Caption>
             <View style={{ flex: 1 }} />
             <View className="flex-row items-center gap-0.5 rounded-full px-2 py-0.5" style={{ backgroundColor: colors.primary + '22' }}>
@@ -97,13 +98,13 @@ export default function DailyQuestionCard() {
           <View style={{ gap: 8 }}>
             <View>
               <Caption style={{ color: colors.primary, fontWeight: '700', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 1 }}>
-                {t.dailyQuestions.myAnswer}
+                {t('dailyQuestions.myAnswer')}
               </Caption>
               <Body size="sm" style={{ color: colors.textDark }} numberOfLines={2}>{myAnswer}</Body>
             </View>
             <View>
               <Caption style={{ color: colors.primary, fontWeight: '700', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 1 }}>
-                {t.dailyQuestions.partnerAnswer.replace('{name}', partnerName ?? 'Partner')}
+                {t('dailyQuestions.partnerAnswer').replace('{name}', partnerName ?? 'Partner')}
               </Caption>
               <Body size="sm" style={{ color: colors.textDark }} numberOfLines={2}>{partnerAnswer}</Body>
             </View>
@@ -118,20 +119,20 @@ export default function DailyQuestionCard() {
     <Animated.View entering={FadeInDown.delay(160).duration(500)}>
       <Pressable
         onPress={() => navigation.navigate('DailyQuestions')}
-        className="rounded-3xl overflow-hidden border border-borderSoft px-4 py-3"
+        className="rounded-3xl overflow-hidden border border-borderSoft dark:border-darkBorder px-4 py-3"
         style={{ backgroundColor: colors.primary }}>
 
         {/* Header */}
         <View className="flex-row items-center gap-1.5 mb-2">
           <CategoryIcon size={12} color="#fff" strokeWidth={1.5} />
           <Caption style={{ color: 'rgba(255,255,255,0.75)', fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', fontSize: 10 }}>
-            {t.dailyQuestions.cardTitle}
+            {t('dailyQuestions.cardTitle')}
           </Caption>
           <View style={{ flex: 1 }} />
           {hasAnswered && (
-            <View className="flex-row items-center gap-0.5 bg-white/20 rounded-full px-2 py-0.5">
+            <View className="flex-row items-center gap-0.5 bg-white/20 dark:bg-darkBgCard/20 rounded-full px-2 py-0.5">
               <Check size={9} strokeWidth={1.5} color="#fff" />
-              <Caption style={{ fontWeight: '700', color: '#fff', fontSize: 10, marginLeft: 2 }}>{t.dailyQuestions.answered}</Caption>
+              <Caption style={{ fontWeight: '700', color: '#fff', fontSize: 10, marginLeft: 2 }}>{t('dailyQuestions.answered')}</Caption>
             </View>
           )}
         </View>
@@ -144,7 +145,7 @@ export default function DailyQuestionCard() {
             </Body>
             <View style={{ flexDirection: 'row' }}>
               <View style={{ backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 5 }}>
-                <Caption style={{ fontWeight: '700', color: '#fff', fontSize: 12 }}>{t.dailyQuestions.answerNow} →</Caption>
+                <Caption style={{ fontWeight: '700', color: '#fff', fontSize: 12 }}>{t('dailyQuestions.answerNow')} →</Caption>
               </View>
             </View>
           </>
@@ -157,7 +158,7 @@ export default function DailyQuestionCard() {
               {myAnswer}
             </Body>
             <Caption style={{ color: 'rgba(255,255,255,0.6)' }}>
-              {t.dailyQuestions.waitingForPartner.replace('{name}', partnerName ?? 'partner')}
+              {t('dailyQuestions.waitingForPartner').replace('{name}', partnerName ?? 'partner')}
             </Caption>
           </>
         )}

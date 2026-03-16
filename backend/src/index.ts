@@ -75,6 +75,40 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Public: Apple App Site Association (Universal Links)
+app.get('/.well-known/apple-app-site-association', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json({
+    applinks: {
+      apps: [],
+      details: [
+        {
+          appIDs: ['TEAMID.com.bundle.id'],
+          components: [
+            { '/': '/share/*' },
+            { '/': '/invite/*' },
+          ],
+        },
+      ],
+    },
+  });
+});
+
+// Public: Android App Links (Digital Asset Links)
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json([
+    {
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: 'com.bundle.id',
+        sha256_cert_fingerprints: ['PLACEHOLDER_SHA256_CERT_FINGERPRINT'],
+      },
+    },
+  ]);
+});
+
 app.use('/api', apiRouter);
 
 // Global error handler — must be registered LAST

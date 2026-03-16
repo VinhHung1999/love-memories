@@ -5,17 +5,20 @@ import type { RouteProp } from '@react-navigation/native';
 import audioPlayer, { type PlayBackType } from 'react-native-audio-recorder-player';
 import type { MomentsStackParamList } from '../../navigation';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { momentsApi } from '../../lib/api';
+import { momentsApi, shareApi } from '../../lib/api';
+import { Share } from 'react-native';
+
+const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
 import { useAuth } from '../../lib/auth';
 import type { MomentPhoto } from '../../types';
-import t from '../../locales/en';
-
+import { useTranslation } from 'react-i18next';
 type Route = RouteProp<MomentsStackParamList, 'MomentDetail'>;
 
 const PRESET_EMOJIS = ['❤️', '😂', '😍', '🥺', '🔥', '👏', '😢', '🎉'];
 
 
 export function useMomentDetailViewModel() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { momentId } = route.params;
@@ -56,7 +59,7 @@ export function useMomentDetailViewModel() {
     mutationFn: (emoji: string) =>
       momentsApi.toggleReaction(momentId, { emoji, author: user?.name ?? 'Unknown' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['moment', momentId] }),
-    onError: () => navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.reactionFailed }),
+    onError: () => navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.reactionFailed') }),
   });
 
   const commentMutation = useMutation({
@@ -66,7 +69,7 @@ export function useMomentDetailViewModel() {
       queryClient.invalidateQueries({ queryKey: ['moment', momentId] });
       setCommentText('');
     },
-    onError: () => navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.commentFailed }),
+    onError: () => navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.commentFailed') }),
   });
 
   const deleteCommentMutation = useMutation({
@@ -80,12 +83,23 @@ export function useMomentDetailViewModel() {
       queryClient.invalidateQueries({ queryKey: ['moments'] });
       navigation.goBack();
     },
-    onError: () => navigation.showAlert({ type: 'error', title: t.common.error, message: t.moments.errors.deleteFailed }),
+    onError: () => navigation.showAlert({ type: 'error', title: t('common.error'), message: t('moments.errors.deleteFailed') }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleBack = () => navigation.goBack();
+
+  const handleShare = async () => {
+    if (!momentId) return;
+    try {
+      const { token } = await shareApi.create('moment', momentId);
+      const url = `${APP_BASE_URL}/share/${token}`;
+      await Share.share({ url, message: url });
+    } catch {
+      // Share cancelled or failed — no-op
+    }
+  };
 
   // Edit is handled imperatively via the sheet ref in the screen (MVVM: view owns the ref)
   // Kept as no-op so callers don't break — screens call sheetRef.current?.present() directly
@@ -109,9 +123,9 @@ export function useMomentDetailViewModel() {
   const handleDeleteComment = (commentId: string) => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.moments.detail.deleteCommentTitle,
-      message: t.moments.detail.deleteCommentMessage,
-      confirmLabel: t.moments.detail.deleteCommentConfirm,
+      title: t('moments.detail.deleteCommentTitle'),
+      message: t('moments.detail.deleteCommentMessage'),
+      confirmLabel: t('moments.detail.deleteCommentConfirm'),
       onConfirm: () => deleteCommentMutation.mutate(commentId),
     });
   };
@@ -119,9 +133,9 @@ export function useMomentDetailViewModel() {
   const handleDeleteMoment = () => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.moments.detail.deleteTitle,
-      message: t.moments.detail.deleteMessage,
-      confirmLabel: t.moments.detail.deleteConfirm,
+      title: t('moments.detail.deleteTitle'),
+      message: t('moments.detail.deleteMessage'),
+      confirmLabel: t('moments.detail.deleteConfirm'),
       onConfirm: () => deleteMomentMutation.mutate(),
     });
   };
@@ -185,5 +199,6 @@ export function useMomentDetailViewModel() {
     handleDeleteMoment,
     handlePlayAudio,
     handleStopAudio,
+    handleShare,
   };
 }

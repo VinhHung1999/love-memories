@@ -7,7 +7,7 @@ import { expensesApi } from '../../lib/api';
 import { useAppColors } from '../../navigation/theme';
 import AppBottomSheet from '../../components/AppBottomSheet';
 import FieldLabel from '../../components/FieldLabel';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { EXPENSE_CATEGORIES, formatVND } from './expensesConstants';
 import type { ExpenseCategory } from '../../lib/api';
 import Input from '@/components/Input';
@@ -21,6 +21,7 @@ const CATS = EXPENSE_CATEGORIES.filter(c => c.key !== 'all') as {
 }[];
 
 export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const colors = useAppColors();
@@ -74,7 +75,7 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
   return (
     <AppBottomSheet
       ref={sheetRef}
-      title={t.expenses.budget.title}
+      title={t('expenses.budget.title')}
       scrollable
       snapPoints={['75%']}
       onSave={handleSave}
@@ -83,27 +84,27 @@ export default function BudgetLimitsSheet({ onClose }: BudgetLimitsSheetProps) {
       onDismiss={onClose}
     >
       <View className="px-5 pt-4 pb-8">
-        <Caption className="text-textMid mb-5">{t.expenses.budget.hint}</Caption>
+        <Caption className="text-textMid dark:text-darkTextMid mb-5">{t('expenses.budget.hint')}</Caption>
 
         {CATS.map((cat, idx) => {
           const currentLimit = cachedLimits[cat.key] ?? null;
 
           return (
-            <View key={cat.key} className={`pb-4 ${idx < CATS.length - 1 ? 'border-b border-border/40 mb-4' : ''}`}>
+            <View key={cat.key} className={`pb-4 ${idx < CATS.length - 1 ? 'border-b border-border dark:border-darkBorder/40 mb-4' : ''}`}>
               <View className="flex-row items-center gap-2 mb-2">
                 <Text className="text-lg">{cat.emoji}</Text>
                 <FieldLabel>{cat.label}</FieldLabel>
                 {currentLimit != null && (
-                  <Caption className="ml-auto text-textMid">
+                  <Caption className="ml-auto text-textMid dark:text-darkTextMid">
                     now: {formatVND(currentLimit)}
                   </Caption>
                 )}
               </View>
               <Input
-                className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-textDark border border-border/60"
+                className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-textDark dark:text-darkTextDark border border-border dark:border-darkBorder/60"
                 value={draft[cat.key] ?? ''}
                 onChangeText={v => setDraft(prev => ({ ...prev, [cat.key]: v }))}
-                placeholder={t.expenses.budget.noLimit}
+                placeholder={t('expenses.budget.noLimit')}
                 placeholderTextColor={colors.textLight}
                 keyboardType="numeric"
               />

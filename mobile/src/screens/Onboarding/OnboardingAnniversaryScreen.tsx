@@ -10,9 +10,11 @@ import { ChevronLeft, Heart } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import SpringPressable from '../../components/SpringPressable';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
+import { useAppColors } from '../../navigation/theme';
 
 function ProgressDots({ step, total }: { step: number; total: number }) {
+  const colors = useAppColors();
   return (
     <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: total }).map((_, i) => (
@@ -22,7 +24,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
           style={{
             width: i === step ? 20 : 8,
             height: 8,
-            backgroundColor: i === step ? '#E8788A' : '#E8788A40',
+            backgroundColor: i === step ? colors.primary : colors.primary + '40',
           }}
         />
       ))}
@@ -31,6 +33,8 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
 }
 
 export default function OnboardingAnniversaryScreen() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const route = useRoute<RouteProp<OnboardingStackParamList, 'OnboardingAnniversary'>>();
   const { coupleName } = route.params;
@@ -67,7 +71,7 @@ export default function OnboardingAnniversaryScreen() {
           <Pressable
             onPress={() => navigation.goBack()}
             className="w-10 h-10 rounded-full items-center justify-center"
-            style={{ backgroundColor: '#E8788A15' }}>
+            style={{ backgroundColor: colors.primaryMuted }}>
             <ChevronLeft size={20} color="#E8788A" strokeWidth={2} />
           </Pressable>
           <ProgressDots step={1} total={4} />
@@ -78,18 +82,18 @@ export default function OnboardingAnniversaryScreen() {
         <Animated.View entering={FadeInDown.delay(150).duration(400)} className="items-center mb-6">
           <View
             className="w-20 h-20 rounded-3xl items-center justify-center"
-            style={{ backgroundColor: '#E8788A15' }}>
+            style={{ backgroundColor: colors.primaryMuted }}>
             <Heart size={40} color="#E8788A" fill="#E8788A" strokeWidth={0} />
           </View>
         </Animated.View>
 
         {/* Heading */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)} className="items-center mb-2">
-          <Heading size="xl" className="text-textDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
-            {t.onboarding.anniversary.title}
+          <Heading size="xl" className="text-textDark dark:text-darkTextDark text-center" style={{ fontSize: 26, lineHeight: 34 }}>
+            {t('onboarding.anniversary.title')}
           </Heading>
-          <Caption className="text-textMid text-center mt-2" style={{ lineHeight: 18 }}>
-            {t.onboarding.anniversary.subtitle}
+          <Caption className="text-textMid dark:text-darkTextMid text-center mt-2" style={{ lineHeight: 18 }}>
+            {t('onboarding.anniversary.subtitle')}
           </Caption>
         </Animated.View>
 
@@ -111,14 +115,14 @@ export default function OnboardingAnniversaryScreen() {
           <SpringPressable
             onPress={handleConfirm}
             className="w-full h-14 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: '#E8788A' }}>
-            <Body size="lg" className="font-semibold" style={{ color: '#fff', letterSpacing: 0.3 }}>
-              {t.onboarding.anniversary.confirmBtn}
+            style={{ backgroundColor: colors.primary }}>
+            <Body size="lg" className="font-semibold" style={{ color: colors.white, letterSpacing: 0.3 }}>
+              {t('onboarding.anniversary.confirmBtn')}
             </Body>
           </SpringPressable>
 
           <Pressable onPress={handleSkip} className="items-center py-3">
-            <Body size="sm" className="text-textLight">{t.onboarding.anniversary.skipBtn}</Body>
+            <Body size="sm" className="text-textLight dark:text-darkTextLight">{t('onboarding.anniversary.skipBtn')}</Body>
           </Pressable>
         </Animated.View>
 

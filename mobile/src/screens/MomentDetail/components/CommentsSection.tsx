@@ -3,7 +3,7 @@ import { Pressable, TextInput, TouchableOpacity, View } from 'react-native';
 import { Body, Caption } from '../../../components/Typography';
 import { Send, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
-import t from '../../../locales/en';
+import { useTranslation } from 'react-i18next';
 import type { MomentComment } from '../../../types';
 import AvatarCircle from '../../../components/AvatarCircle';
 
@@ -51,15 +51,15 @@ function CommentItem({
       {/* Bubble */}
       <View className="flex-1 rounded-tl-none rounded-2xl px-3 py-2 bg-textDark/4">
         <View className="flex-row items-center justify-between mb-0.5">
-          <Caption className="font-semibold text-textDark">{comment.author}</Caption>
+          <Caption className="font-semibold text-textDark dark:text-darkTextDark">{comment.author}</Caption>
           {isOwn ? (
             <Pressable onPress={onDelete} hitSlop={8}>
               <Trash2 size={12} color={colors.textLight} strokeWidth={1.5} />
             </Pressable>
           ) : null}
         </View>
-        <Body size="sm" className="text-textMid leading-relaxed">{comment.content}</Body>
-        <Caption className="text-textLight mt-1">{timeAgo(comment.createdAt)}</Caption>
+        <Body size="sm" className="text-textMid dark:text-darkTextMid leading-relaxed">{comment.content}</Body>
+        <Caption className="text-textLight dark:text-darkTextLight mt-1">{timeAgo(comment.createdAt)}</Caption>
       </View>
     </View>
   );
@@ -74,12 +74,13 @@ export default function CommentsSection({
   onSubmit,
   onDelete,
 }: CommentsSectionProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
 
   return (
     <View className="mb-4">
       {comments.length === 0 ? (
-        <Body size="sm" className="text-textLight italic mb-3">{t.moments.detail.noComments}</Body>
+        <Body size="sm" className="text-textLight dark:text-darkTextLight italic mb-3">{t('moments.detail.noComments')}</Body>
       ) : (
         comments.map(comment => (
           <CommentItem
@@ -94,8 +95,8 @@ export default function CommentsSection({
       {/* Input */}
       <View className="flex-row items-center gap-2 mt-1 p-2 rounded-2xl bg-textDark/4">
         <TextInput
-          className="flex-1 text-[13px] text-textDark px-2 min-h-[36px] max-h-[80px]"
-          placeholder={t.moments.detail.addComment}
+          className="flex-1 text-[13px] text-textDark dark:text-darkTextDark px-2 min-h-[36px] max-h-[80px]"
+          placeholder={t('moments.detail.addComment')}
           placeholderTextColor={colors.textLight}
           value={commentText}
           onChangeText={onChangeText}

@@ -4,7 +4,7 @@ import { Body, Caption, Label } from '../../../components/Typography';
 import { Check, CheckCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import type { DateWish } from '../../../types';
-import { WISH_CATEGORIES } from '../useWishesViewModel';
+import { useWishCategories } from '../useWishesViewModel';
 
 export default function WishCard({
   wish,
@@ -18,12 +18,13 @@ export default function WishCard({
   onDelete: () => void;
 }) {
   const colors = useAppColors();
-  const cat = WISH_CATEGORIES.find(c => c.key === wish.category);
+  const wishCategories = useWishCategories();
+  const cat = wishCategories.find(c => c.key === wish.category);
   const emoji = cat?.emoji ?? '⭐';
 
   return (
     <View
-      className="bg-white rounded-3xl px-4 py-3.5 mb-3"
+      className="bg-white dark:bg-darkBgCard rounded-3xl px-4 py-3.5 mb-3"
       style={{ opacity: wish.done ? 0.6 : 1 }}>
       <View className="flex-row items-center gap-3">
         {/* Category emoji */}
@@ -49,7 +50,7 @@ export default function WishCard({
             ) : null}
           </View>
           {wish.description ? (
-            <Body size="sm" className="text-textLight mt-0.5" numberOfLines={2}>
+            <Body size="sm" className="text-textLight dark:text-darkTextLight mt-0.5" numberOfLines={2}>
               {wish.description}
             </Body>
           ) : null}
@@ -57,7 +58,7 @@ export default function WishCard({
             <View className="flex-row flex-wrap gap-1 mt-1.5">
               {wish.tags.slice(0, 3).map(tag => (
                 <View key={tag} className="rounded-full px-2 py-0.5 bg-gray-100">
-                  <Caption className="text-textMid">{tag}</Caption>
+                  <Caption className="text-textMid dark:text-darkTextMid">{tag}</Caption>
                 </View>
               ))}
             </View>

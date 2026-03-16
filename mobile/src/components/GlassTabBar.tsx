@@ -22,7 +22,7 @@ export default function GlassTabBar<T extends string = string>({ tabs, activeTab
   const colors = useAppColors();
 
   return (
-    <View className="bg-white px-4 py-2">
+    <View className="bg-white dark:bg-darkBgCard px-4 py-2">
       {/* Inner tray — subtle grey container that pills sit inside */}
       <View
         className="flex-row rounded-xl overflow-hidden"

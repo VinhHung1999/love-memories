@@ -4,8 +4,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Calendar } from 'lucide-react-native';
 import AppBottomSheet from './AppBottomSheet';
-import t from '../locales/en';
-
+import { useTranslation } from 'react-i18next';
 interface Props {
   value: Date;
   onChange: (date: Date) => void;
@@ -23,6 +22,7 @@ export default function DatePickerSheet({
   minimumDate,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const [tempDate, setTempDate] = useState(value);
 
@@ -42,9 +42,9 @@ export default function DatePickerSheet({
   return (
     <AppBottomSheet
       ref={sheetRef}
-      title={label ?? t.common.selectDate}
+      title={label ?? t('common.selectDate')}
       icon={Calendar}
-      actionLabel={t.common.done}
+      actionLabel={t('common.done')}
       onAction={handleConfirm}
       onDismiss={onClose}
     >

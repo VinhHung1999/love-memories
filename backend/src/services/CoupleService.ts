@@ -49,11 +49,11 @@ export async function validateInvite(code: string) {
 
   const [count, partner] = await Promise.all([
     prisma.user.count({ where: { coupleId: couple.id } }),
-    prisma.user.findFirst({ where: { coupleId: couple.id }, select: { name: true } }),
+    prisma.user.findFirst({ where: { coupleId: couple.id }, select: { name: true, avatar: true } }),
   ]);
 
   if (count >= 2) return { valid: false, error: 'This couple is already full' };
-  return { valid: true, coupleName: couple.name, partnerName: partner?.name ?? '' };
+  return { valid: true, coupleName: couple.name, partnerName: partner?.name ?? '', partnerAvatar: partner?.avatar ?? null };
 }
 
 export async function createCouple(userId: string, name: string) {

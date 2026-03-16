@@ -5,8 +5,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CalendarHeart, Heart, Plus } from 'lucide-react-native';
  // used in FAB
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
-import { useWishesViewModel, WISH_CATEGORIES } from './useWishesViewModel';
+import { useTranslation } from 'react-i18next';
+import { useWishesViewModel } from './useWishesViewModel';
 import WishCard from './components/WishCard';
 import WishFormSheet from './components/WishFormSheet';
 import ListHeader from '../../components/ListHeader';
@@ -16,22 +16,22 @@ import { useAppNavigation } from '../../navigation/useAppNavigation';
 import type { DateWish } from '../../types';
 import { FAB } from '@/components/FAB';
 
-const STATUS_FILTERS = [
-  { key: 'all', label: t.datePlanner.allFilter },
-  { key: 'pending', label: `⏳ ${t.datePlanner.pendingFilter}` },
-  { key: 'done', label: `✅ ${t.datePlanner.doneFilter}` },
-] as const;
-
 export default function WishesScreen() {
+  const { t } = useTranslation();
+  const STATUS_FILTERS = [
+    { key: 'all', label: t('datePlanner.allFilter') },
+    { key: 'pending', label: `⏳ ${t('datePlanner.pendingFilter')}` },
+    { key: 'done', label: `✅ ${t('datePlanner.doneFilter')}` },
+  ] as const;
   const colors = useAppColors();
   const navigation = useAppNavigation();
   const vm = useWishesViewModel();
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1">
       <ListHeader
-        title={t.datePlanner.wishesTitle}
-        subtitle={t.datePlanner.wishesSubtitle}
+        title={t('datePlanner.wishesTitle')}
+        subtitle={t('datePlanner.wishesSubtitle')}
         onBack={vm.handleBack}
         right={<HeaderIcon icon={CalendarHeart} onPress={vm.handleNavigatePlans} />}
         filterBar={
@@ -49,7 +49,7 @@ export default function WishesScreen() {
                     }}>
                     <Caption
                       className="font-semibold"
-                      style={{ color: vm.statusFilter === f.key ? '#fff' : colors.textMid }}>
+                      style={{ color: vm.statusFilter === f.key ? colors.white : colors.textMid }}>
                       {f.label}
                     </Caption>
                   </Pressable>
@@ -67,11 +67,11 @@ export default function WishesScreen() {
                   }}>
                   <Caption
                     className="font-semibold"
-                    style={{ color: !vm.categoryFilter ? '#fff' : colors.textMid }}>
-                    {t.datePlanner.allFilter}
+                    style={{ color: !vm.categoryFilter ? colors.white : colors.textMid }}>
+                    {t('datePlanner.allFilter')}
                   </Caption>
                 </Pressable>
-                {WISH_CATEGORIES.map(cat => (
+                {vm.wishCategories.map(cat => (
                   <Pressable
                     key={cat.key}
                     onPress={() => vm.setCategoryFilter(cat.key)}
@@ -82,7 +82,7 @@ export default function WishesScreen() {
                     <Caption>{cat.emoji}</Caption>
                     <Caption
                       className="font-medium"
-                      style={{ color: vm.categoryFilter === cat.key ? '#fff' : colors.textMid }}>
+                      style={{ color: vm.categoryFilter === cat.key ? colors.white : colors.textMid }}>
                       {cat.label}
                     </Caption>
                   </Pressable>
@@ -96,9 +96,9 @@ export default function WishesScreen() {
       {vm.isEmpty && !vm.isLoading ? (
         <EmptyState
           icon={Heart}
-          title={t.datePlanner.wishEmptyTitle}
-          subtitle={t.datePlanner.wishEmptySubtitle}
-          actionLabel={t.datePlanner.wishEmptyAction}
+          title={t('datePlanner.wishEmptyTitle')}
+          subtitle={t('datePlanner.wishEmptySubtitle')}
+          actionLabel={t('datePlanner.wishEmptyAction')}
           onAction={() => navigation.showBottomSheet(WishFormSheet)}
         />
       ) : (

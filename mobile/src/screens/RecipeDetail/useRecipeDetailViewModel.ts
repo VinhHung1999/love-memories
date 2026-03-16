@@ -3,13 +3,16 @@ import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { RecipesStackParamList } from '../../navigation';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { recipesApi } from '../../lib/api';
-import type { RecipePhoto, MomentPhoto } from '../../types';
-import t from '../../locales/en';
+import { recipesApi, shareApi } from '../../lib/api';
+import { Share } from 'react-native';
 
+const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
+import type { RecipePhoto, MomentPhoto } from '../../types';
+import { useTranslation } from 'react-i18next';
 type Route = RouteProp<RecipesStackParamList, 'RecipeDetail'>;
 
 export function useRecipeDetailViewModel() {
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
   const route = useRoute<Route>();
   const { recipeId } = route.params;
@@ -32,7 +35,7 @@ export function useRecipeDetailViewModel() {
       navigation.goBack();
     },
     onError: () =>
-      navigation.showAlert({ type: 'error', title: t.common.error, message: t.recipes.errors.deleteFailed }),
+      navigation.showAlert({ type: 'error', title: t('common.error'), message: t('recipes.errors.deleteFailed') }),
   });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -42,9 +45,9 @@ export function useRecipeDetailViewModel() {
   const handleDelete = () => {
     navigation.showAlert({
       type: 'destructive',
-      title: t.recipes.detail.deleteTitle,
-      message: t.recipes.detail.deleteMessage,
-      confirmLabel: t.recipes.detail.deleteConfirm,
+      title: t('recipes.detail.deleteTitle'),
+      message: t('recipes.detail.deleteMessage'),
+      confirmLabel: t('recipes.detail.deleteConfirm'),
       onConfirm: () => deleteMutation.mutate(),
     });
   };
@@ -60,6 +63,17 @@ export function useRecipeDetailViewModel() {
     navigation.navigate('WhatToEat');
   };
 
+  const handleShare = async () => {
+    if (!recipeId) return;
+    try {
+      const { token } = await shareApi.create('recipe', recipeId);
+      const url = `${APP_BASE_URL}/share/${token}`;
+      await Share.share({ url, message: url });
+    } catch {
+      // Share cancelled or failed — no-op
+    }
+  };
+
   return {
     recipe,
     isLoading,
@@ -68,5 +82,6 @@ export function useRecipeDetailViewModel() {
     handleDelete,
     handleOpenGallery,
     handleCookThis,
+    handleShare,
   };
 }

@@ -15,7 +15,7 @@ import Animated, {
 import { ChevronDown, ChevronUp, Clock, Heart, HelpCircle, MessageCircle, Send, Smile, Star, Telescope, User, Users, WifiOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
-import t from '../../locales/en';
+import { useTranslation } from 'react-i18next';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
 import ListHeader from '../../components/ListHeader';
 import GlassTabBar from '../../components/GlassTabBar';
@@ -38,9 +38,9 @@ function getCategoryMeta(cat: string) {
 // ── CategoryBadge ─────────────────────────────────────────────────────────────
 
 function CategoryBadge({ category }: { category: string }) {
+  const { t } = useTranslation();
   const meta = getCategoryMeta(category);
-  const label = t.dailyQuestions.categories[category as keyof typeof t.dailyQuestions.categories]
-    ?? category;
+  const label = t(`dailyQuestions.categories.${category}`) || category;
   return (
     <View
       className="flex-row items-center gap-1.5 rounded-full px-3 py-1 self-start"
@@ -70,7 +70,7 @@ function AnswerCard({
   return (
     <Animated.View entering={FadeInDown.delay(delay).duration(500)} className="flex-1">
       <View
-        className="rounded-2xl bg-white px-4 py-4 flex-1"
+        className="rounded-2xl bg-white dark:bg-darkBgCard px-4 py-4 flex-1"
         style={{
           borderLeftWidth: 3,
           borderLeftColor: isPartner ? colors.accent : colors.primary,
@@ -85,7 +85,7 @@ function AnswerCard({
             {label}
           </Caption>
         </View>
-        <Body size="md" className="text-textDark leading-relaxed">{answer}</Body>
+        <Body size="md" className="text-textDark dark:text-darkTextDark leading-relaxed">{answer}</Body>
       </View>
     </Animated.View>
   );
@@ -94,6 +94,7 @@ function AnswerCard({
 // ── WaitingCard ───────────────────────────────────────────────────────────────
 
 function WaitingCard({ partnerName }: { partnerName: string | null }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const name = partnerName ?? 'your partner';
   return (
@@ -107,8 +108,8 @@ function WaitingCard({ partnerName }: { partnerName: string | null }) {
           borderStyle: 'dashed',
         }}>
         <Clock size={20} color={colors.textLight} strokeWidth={1.5} />
-        <Body size="sm" className="text-textLight text-center mt-2 leading-relaxed">
-          {t.dailyQuestions.waitingForPartner.replace('{name}', name)}
+        <Body size="sm" className="text-textLight dark:text-darkTextLight text-center mt-2 leading-relaxed">
+          {t('dailyQuestions.waitingForPartner').replace('{name}', name)}
         </Body>
       </View>
     </Animated.View>
@@ -130,6 +131,7 @@ function TodayView({
   onScroll: ReturnType<typeof useAnimatedScrollHandler>;
 }) {
   const colors = useAppColors();
+  const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);
 
   if (!todayData) return null;
@@ -160,7 +162,7 @@ function TodayView({
               <meta.icon size={14} color="#fff" strokeWidth={1.5} />
             </View>
             <Caption className="font-bold text-white/70 tracking-widest uppercase">
-              {t.dailyQuestions.questionLabel}
+              {t('dailyQuestions.questionLabel')}
             </Caption>
           </View>
 
@@ -183,7 +185,7 @@ function TodayView({
         <Animated.View entering={FadeInDown.delay(120).duration(450)} className="gap-3">
           <TextInput
             ref={inputRef}
-            className="bg-white rounded-2xl px-4 py-3.5 text-sm text-textDark"
+            className="bg-white dark:bg-darkBgCard rounded-2xl px-4 py-3.5 text-sm text-textDark dark:text-darkTextDark"
             style={{
               borderWidth: 1,
               borderColor: 'rgba(232,120,138,0.20)',
@@ -192,7 +194,7 @@ function TodayView({
               fontSize: 14,
             }}
             multiline
-            placeholder={t.dailyQuestions.answerPlaceholder}
+            placeholder={t('dailyQuestions.answerPlaceholder')}
             placeholderTextColor={colors.textLight}
             value={answerText}
             onChangeText={setAnswerText}
@@ -200,7 +202,7 @@ function TodayView({
           />
 
           {/* Character count */}
-          <Caption className="text-textLight text-right">
+          <Caption className="text-textLight dark:text-darkTextLight text-right">
             {answerText.length}/500
           </Caption>
 
@@ -223,25 +225,25 @@ function TodayView({
               <Send size={16} strokeWidth={1.5} color='white'/>
             )}
             <Label className="text-white font-bold">
-              {isSubmitting ? t.dailyQuestions.submitting : t.dailyQuestions.submitAnswer}
+              {isSubmitting ? t('dailyQuestions.submitting') : t('dailyQuestions.submitAnswer')}
             </Label>
           </Pressable>
         </Animated.View>
       ) : (
         /* ── Both answers revealed ── */
         <Animated.View entering={FadeIn.duration(400)} className="gap-3">
-          <Caption className="text-textLight font-semibold uppercase tracking-wider px-1">
-            {partnerAnswer ? t.dailyQuestions.bothAnswered : t.dailyQuestions.answered}
+          <Caption className="text-textLight dark:text-darkTextLight font-semibold uppercase tracking-wider px-1">
+            {partnerAnswer ? t('dailyQuestions.bothAnswered') : t('dailyQuestions.answered')}
           </Caption>
           <View className="flex-row gap-3">
             <AnswerCard
-              label={t.dailyQuestions.myAnswer}
+              label={t('dailyQuestions.myAnswer')}
               answer={myAnswer!}
               delay={0}
             />
             {partnerAnswer ? (
               <AnswerCard
-                label={t.dailyQuestions.partnerAnswer.replace('{name}', partnerName ?? '♥')}
+                label={t('dailyQuestions.partnerAnswer').replace('{name}', partnerName ?? '♥')}
                 answer={partnerAnswer}
                 isPartner
                 delay={120}
@@ -253,8 +255,8 @@ function TodayView({
 
           {/* Hint if waiting */}
           {!partnerAnswer ? (
-            <Caption className="text-textLight text-center italic">
-              {t.dailyQuestions.waitingHint}
+            <Caption className="text-textLight dark:text-darkTextLight text-center italic">
+              {t('dailyQuestions.waitingHint')}
             </Caption>
           ) : null}
         </Animated.View>
@@ -266,6 +268,7 @@ function TodayView({
 // ── HistoryItem ───────────────────────────────────────────────────────────────
 
 function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const [expanded, setExpanded] = React.useState(false);
 
@@ -279,7 +282,7 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
   return (
     <Pressable
       onPress={() => setExpanded(e => !e)}
-      className="bg-white rounded-2xl overflow-hidden"
+      className="bg-white dark:bg-darkBgCard rounded-2xl overflow-hidden"
       style={{ borderWidth: 1, borderColor: 'rgba(226,220,232,0.6)' }}>
 
       {/* Header */}
@@ -287,13 +290,13 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1 gap-2">
             <CategoryBadge category={item.question.category} />
-            <Body size="md" className="font-semibold text-textDark leading-snug">
+            <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark leading-snug">
               {item.question.text}
             </Body>
           </View>
           <View className="items-end gap-1.5">
             {date ? (
-              <Caption className="text-textLight font-medium">{date}</Caption>
+              <Caption className="text-textLight dark:text-darkTextLight font-medium">{date}</Caption>
             ) : null}
             {expanded
               ? <ChevronUp size={16} color={colors.textLight} strokeWidth={1.5} />
@@ -327,17 +330,17 @@ function HistoryItemCard({ item }: { item: DailyQuestionHistoryItem }) {
           {item.myAnswer ? (
             <View>
               <Caption className="font-bold text-primary uppercase tracking-wider mb-1.5">
-                {t.dailyQuestions.myAnswer}
+                {t('dailyQuestions.myAnswer')}
               </Caption>
-              <Body size="md" className="text-textMid leading-relaxed">{item.myAnswer}</Body>
+              <Body size="md" className="text-textMid dark:text-darkTextMid leading-relaxed">{item.myAnswer}</Body>
             </View>
           ) : null}
           {item.partnerAnswer ? (
             <View>
               <Caption className="font-bold text-accent uppercase tracking-wider mb-1.5">
-                {t.dailyQuestions.partnerAnswer.replace('{name}', item.partnerName ?? '♥')}
+                {t('dailyQuestions.partnerAnswer').replace('{name}', item.partnerName ?? '♥')}
               </Caption>
-              <Body size="md" className="text-textMid leading-relaxed">{item.partnerAnswer}</Body>
+              <Body size="md" className="text-textMid dark:text-darkTextMid leading-relaxed">{item.partnerAnswer}</Body>
             </View>
           ) : null}
         </Animated.View>
@@ -359,6 +362,7 @@ function HistoryView({
   'historyItems' | 'historyLoading' | 'historyPage' | 'loadNextPage'
 > & { onScroll: ReturnType<typeof useAnimatedScrollHandler> }) {
   const colors = useAppColors();
+  const { t } = useTranslation();
 
   if (historyLoading && historyPage === 1) {
     return (
@@ -374,11 +378,11 @@ function HistoryView({
         <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
           <HelpCircle size={28} color={colors.primary} strokeWidth={1.5} />
         </View>
-        <Heading size="sm" className="text-textDark text-center">
-          {t.dailyQuestions.noHistory}
+        <Heading size="sm" className="text-textDark dark:text-darkTextDark text-center">
+          {t('dailyQuestions.noHistory')}
         </Heading>
-        <Body size="md" className="text-textLight text-center leading-relaxed">
-          {t.dailyQuestions.noHistorySubtitle}
+        <Body size="md" className="text-textLight dark:text-darkTextLight text-center leading-relaxed">
+          {t('dailyQuestions.noHistorySubtitle')}
         </Body>
       </View>
     );
@@ -407,6 +411,7 @@ function HistoryView({
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DailyQuestionsScreen() {
+  const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useDailyQuestionsViewModel();
   const navigation = useNavigation<any>();
@@ -414,14 +419,14 @@ export default function DailyQuestionsScreen() {
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   const tabs = [
-    { key: 'today' as const, label: t.dailyQuestions.todayTab },
-    { key: 'history' as const, label: t.dailyQuestions.historyTab },
+    { key: 'today' as const, label: t('dailyQuestions.todayTab') },
+    { key: 'history' as const, label: t('dailyQuestions.historyTab') },
   ];
 
   return (
     <View className="flex-1 bg-background">
       <ListHeader
-        title={t.dailyQuestions.cardTitle}
+        title={t('dailyQuestions.cardTitle')}
         subtitle="DAILY Q&A"
         onBack={() => navigation.goBack()}
         filterBar={
@@ -443,8 +448,8 @@ export default function DailyQuestionsScreen() {
           ) : vm.todayError ? (
             <View className="flex-1 items-center justify-center gap-3 px-8">
               <WifiOff size={28} color={colors.textLight} strokeWidth={1.5} />
-              <Body size="sm" className="text-textLight text-center">
-                {t.dailyQuestions.errors.fetchFailed}
+              <Body size="sm" className="text-textLight dark:text-darkTextLight text-center">
+                {t('dailyQuestions.errors.fetchFailed')}
               </Body>
               <Pressable onPress={() => vm.refetchToday()} className="px-6 py-2.5 rounded-full bg-primary/10">
                 <Body size="sm" className="font-semibold text-primary">Try again</Body>
