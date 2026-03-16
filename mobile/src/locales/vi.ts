@@ -297,6 +297,7 @@ const vi: LocaleStrings = {
       location: 'Địa điểm',
       tags: 'Nhãn',
       spotifyUrl: 'Link Spotify',
+      detectingLocation: 'Đang xác định vị trí...',
     },
 
     placeholders: {

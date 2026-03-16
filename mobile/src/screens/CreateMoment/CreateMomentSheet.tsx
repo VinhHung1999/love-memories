@@ -1,13 +1,15 @@
 import React, { useCallback, useRef, useEffect } from 'react';
-import { View } from 'react-native';
-import { Caption } from '../../components/Typography';
+import { ActivityIndicator, View } from 'react-native';
+import { Caption, Body } from '../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import type { Moment } from '../../types';
 import { useCreateMomentViewModel } from './useCreateMomentViewModel';
 import AppBottomSheet from '../../components/AppBottomSheet';
 import Input from '../../components/Input';
+import LocationPicker from '../../components/LocationPicker';
 import PhotoPicker from './components/PhotoPicker';
+import { useAppColors } from '../../navigation/theme';
 
 interface Props {
   moment?: Moment;
@@ -17,6 +19,7 @@ interface Props {
 
 export default function CreateMomentSheet({ moment: initialMoment, initialPhoto, onClose }: Props) {
   const { t } = useTranslation();
+  const colors = useAppColors();
   const sheetRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -76,6 +79,28 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
             numberOfLines={4}
             textAlignVertical="top"
           />
+        </View>
+
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
+
+        {/* ── Location (auto-filled) ── */}
+        <View className="px-5 mb-4">
+          {vm.isLocating ? (
+            <View className="flex-row items-center gap-2 py-2">
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Body className="text-textLight dark:text-darkTextLight text-sm">
+                {t('moments.labels.detectingLocation')}
+              </Body>
+            </View>
+          ) : (
+            <LocationPicker
+              location={vm.location}
+              latitude={vm.latitude}
+              longitude={vm.longitude}
+              onLocationChange={vm.handleLocationChange}
+              label={t('moments.labels.location')}
+            />
+          )}
         </View>
 
       </View>

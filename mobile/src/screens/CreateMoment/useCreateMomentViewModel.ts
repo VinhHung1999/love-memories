@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useReducer } from 'react';
+import { useCallback, useEffect, useRef, useReducer, useState } from 'react';
 import { useUploadProgress } from '../../contexts/UploadProgressContext';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,8 +11,9 @@ import audioRecorderPlayer, {
   type RecordBackType,
   type PlayBackType,
 } from 'react-native-audio-recorder-player';
+import Geolocation from '@react-native-community/geolocation';
 
-import { momentsApi } from '../../lib/api';
+import { momentsApi, geocodeApi } from '../../lib/api';
 import type { Moment } from '../../types';
 import { useTranslation } from 'react-i18next';
 
@@ -136,9 +137,48 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
 
   const [s, dispatch] = useReducer(formReducer, initialPhoto, makeInitialState);
   const { startUpload, incrementUpload } = useUploadProgress();
+  const [isLocating, setIsLocating] = useState(false);
 
   // Ref holds latest handleStopRecording to avoid stale closure in RecordBackListener
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
+
+  // ── Auto-fill location on mount (new moments only, permission must already be granted) ──
+  useEffect(() => {
+    if (isEdit) return; // don't overwrite existing location on edit
+    const autoDetect = async () => {
+      // Check permission without requesting (don't interrupt user flow)
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (!granted) return;
+      }
+      setIsLocating(true);
+      Geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const { latitude: lat, longitude: lng } = pos.coords;
+            const result = await geocodeApi.reverse(lat, lng);
+            const feature = result.features?.[0];
+            if (feature?.place_name) {
+              const clean = feature.place_name.replace(/,\s*\d{5,6}(?=\s*,|\s*$)/g, '').trim();
+              dispatch({ type: 'SET_FIELD', field: 'location', value: clean });
+              dispatch({ type: 'SET_FIELD', field: 'latitude', value: lat });
+              dispatch({ type: 'SET_FIELD', field: 'longitude', value: lng });
+            }
+          } catch {
+            // reverse geocode failed — leave empty
+          } finally {
+            setIsLocating(false);
+          }
+        },
+        () => setIsLocating(false), // location fetch failed — silent
+        { timeout: 8000, maximumAge: 60000 },
+      );
+    };
+    autoDetect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Load existing data if editing ───────────────────────────────────────────
   const { data: existingMoment } = useQuery({
@@ -373,6 +413,7 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
     isEdit,
     title: s.title, caption: s.caption, date: s.date,
     location: s.location, latitude: s.latitude, longitude: s.longitude,
+    isLocating,
     tagInput: s.tagInput, tags: s.tags, spotifyUrl: s.spotifyUrl,
     photos: s.photos,
     isRecording: s.isRecording, recordedAudioPath: s.recordedAudioPath,

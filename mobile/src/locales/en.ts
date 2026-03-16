@@ -297,6 +297,7 @@ const en = {
       location: 'Location',
       tags: 'Tags',
       spotifyUrl: 'Spotify URL',
+      detectingLocation: 'Detecting location...',
     },
 
     placeholders: {
