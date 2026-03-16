@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
 import { Body, Heading } from './Typography';
+import { useAppColors } from '../navigation/theme';
 
 interface ListHeaderProps {
   title: string;
@@ -15,13 +16,14 @@ interface ListHeaderProps {
 
 export default function ListHeader({ title, subtitle, onBack, right, filterBar }: ListHeaderProps) {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
 
   return (
     <View
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.bgCard,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0E6E3',
+        borderBottomColor: colors.borderSoft,
         shadowColor: '#E8788A',
         shadowOpacity: 0.06,
         shadowOffset: { width: 0, height: 1 },

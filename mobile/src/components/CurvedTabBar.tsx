@@ -33,6 +33,7 @@ import { launchCamera } from 'react-native-image-picker';
 import CreateMomentSheet from '../screens/CreateMoment/CreateMomentSheet';
 import { Caption } from './Typography';
 import { tabBarRefs } from '../lib/tabBarRefs';
+import { useAppColors } from '../navigation/theme';
 
 const { width: W } = Dimensions.get('window');
 
@@ -156,6 +157,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
 
 export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const bottomPad = Math.max(insets.bottom, 8);
   const barHeight = TAB_H + bottomPad;
   const svgPath = buildArcPath(barHeight);
@@ -177,7 +179,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         height={barHeight}
         style={{ position: 'absolute', bottom: 0, left: 0 }}>
         {/* Stroke gives subtle top-edge shadow line without an extra layer */}
-        <Path d={svgPath} fill="#FFFFFF" stroke="#F0E6E3" strokeWidth={1} />
+        <Path d={svgPath} fill={colors.bgCard} stroke={colors.borderSoft} strokeWidth={1} />
       </Svg>
 
       {/* iOS bar shadow */}

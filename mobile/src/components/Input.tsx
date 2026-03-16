@@ -43,6 +43,7 @@ export default function Input({ bottomSheet, ...props }: InputProps) {
         className={`${props.multiline ? 'min-h-[72px] py-3' : 'h-[50px]'} rounded-2xl border-[1.5px] border-border dark:border-darkBorder px-[18px]`}
         style={[
           { backgroundColor: focused ? colors.inputFocusBg : colors.inputBg },
+          { color: colors.textDark },
           focused && { borderColor: colors.inputBorderFocus },
           props.style,
         ]}

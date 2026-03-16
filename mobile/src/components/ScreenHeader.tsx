@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
 import { Body, Heading } from './Typography';
+import { useAppColors } from '../navigation/theme';
 
 interface ScreenHeaderProps {
   title: string;
@@ -32,6 +33,10 @@ export default function ScreenHeader({
   fadeEnd = 200,
 }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
+  // Capture outside worklet — hooks cannot be called inside useAnimatedStyle
+  const baseBg = colors.baseBg;
+  const borderSoft = colors.borderSoft;
 
   // Opacity: 0→1 over first 50px of scroll. When no scrollY → always opaque.
   const bgStyle = useAnimatedStyle(() => {
@@ -40,9 +45,11 @@ export default function ScreenHeader({
       1,
     );
     return {
-      backgroundColor: `rgba(255,255,255,${progress})`,
+      backgroundColor: baseBg === '#121212'
+        ? `rgba(18,18,18,${progress})`
+        : `rgba(255,248,246,${progress})`,
       borderBottomWidth: progress > 0.1 ? 1 : 0,
-      borderBottomColor: '#F0E6E3',
+      borderBottomColor: borderSoft,
     };
   });
 
