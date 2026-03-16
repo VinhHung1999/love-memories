@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "809962554442",
+    "project_id": "love-memories-dev",
+    "storage_bucket": "love-memories-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:809962554442:android:028cf707099b05811952b3",
+        "android_client_info": {
+          "package_name": "com.hungphu.lovememories.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAenw4JkQWIpM0Qi8-LIILVWChbAJCQmfY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
