@@ -10,10 +10,13 @@ import { Body, Heading, Label } from './Typography';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
+  BottomSheetFooter,
+  BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetScrollView,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '../navigation/theme';
 import { useTranslation } from 'react-i18next';
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -70,6 +73,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
   ) => {
   const { t } = useTranslation();
     const colors = useAppColors();
+    const insets = useSafeAreaInsets();
     const internalRef = useRef<BottomSheetModal>(null);
 
     // Proxy methods so parent ref lazy-reads internalRef at call time,
@@ -113,6 +117,43 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
       return showHeader ? HEADER_HEIGHT : 0;
     }, [showHeader]);
 
+    // Sticky footer for scrollable sheets with onSave — always visible above keyboard
+    const renderFooter = useCallback(
+      (props: BottomSheetFooterProps) => (
+        <BottomSheetFooter {...props} bottomInset={insets.bottom}>
+          <View
+            style={{
+              backgroundColor: colors.bgCard,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+              paddingHorizontal: 20,
+              paddingVertical: 12,
+            }}>
+            <Pressable
+              onPress={onSave}
+              disabled={saveDisabled || isSaving}
+              style={{
+                backgroundColor: saveDisabled || isSaving ? colors.textLight : colors.primary,
+                borderRadius: 16,
+                height: 48,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Label style={{ color: '#fff', fontWeight: '600' }}>{save}</Label>
+              )}
+            </Pressable>
+          </View>
+        </BottomSheetFooter>
+      ),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [onSave, saveDisabled, isSaving, save, colors.bgCard, colors.border, colors.primary, colors.textLight, insets.bottom],
+    );
+
+    const useFooter = scrollable && !!onSave;
+
     return (
       <BottomSheetModal
         ref={internalRef}
@@ -121,11 +162,12 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         enablePanDownToClose
         onDismiss={handleDismiss}
         backdropComponent={renderBackdrop}
+        footerComponent={useFooter ? renderFooter : undefined}
         keyboardBehavior={scrollable ? 'extend' : 'interactive'}
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
         handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
-        backgroundStyle={{ backgroundColor: '#ffffff' }}
+        backgroundStyle={{ backgroundColor: colors.bgCard }}
       >
         {/* Header */}
         {showHeader && (
@@ -166,19 +208,24 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
               <Label className="flex-1 text-center font-semibold text-textDark dark:text-darkTextDark">
                 {title}
               </Label>
-              <Pressable
-                onPress={onSave}
-                disabled={saveDisabled || isSaving}
-                className="w-[60px] items-end"
-              >
-                {isSaving ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <Label className="font-semibold" style={{ color: saveDisabled ? colors.textLight : colors.primary }}>
-                    {save}
-                  </Label>
-                )}
-              </Pressable>
+              {/* Save in header only for non-scrollable sheets; scrollable sheets use sticky footer */}
+              {useFooter ? (
+                <View className="w-[60px]" />
+              ) : (
+                <Pressable
+                  onPress={onSave}
+                  disabled={saveDisabled || isSaving}
+                  className="w-[60px] items-end"
+                >
+                  {isSaving ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Label className="font-semibold" style={{ color: saveDisabled ? colors.textLight : colors.primary }}>
+                      {save}
+                    </Label>
+                  )}
+                </Pressable>
+              )}
             </View>
           )
         )}

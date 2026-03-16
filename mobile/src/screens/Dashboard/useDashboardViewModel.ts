@@ -196,19 +196,17 @@ export function useDashboardViewModel() {
   const handleInvitePartner = useCallback(async () => {
     try {
       const { inviteCode } = await coupleApi.generateInvite();
-      await Share.share({
-        message: `Join me on Love Memories! Use invite code: ${inviteCode}`,
-        title: 'Love Memories Invite',
-      });
+      const message = t('dashboard.invitePartner.shareMessage', { code: inviteCode });
+      await Share.share({ message, title: t('app.name') });
     } catch {
       // dismissed or error — no-op
     }
-  }, []);
+  }, [t]);
 
   const handleShareInviteCode = useCallback(async () => {
     const code = couple?.inviteCode;
     if (!code) return;
-    const message = t('dashboard.noPartnerBanner.shareMessage').replace('{code}', code);
+    const message = t('dashboard.noPartnerBanner.shareMessage', { code });
     await Share.share({ message }).catch(() => {});
   }, [couple?.inviteCode, t]);
 

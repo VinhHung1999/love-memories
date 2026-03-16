@@ -15,7 +15,6 @@ import audioRecorderPlayer, {
 import { momentsApi } from '../../lib/api';
 import type { Moment } from '../../types';
 import { useTranslation } from 'react-i18next';
-const SPOTIFY_REGEX = /^https:\/\/open\.spotify\.com\/.+/;
 
 export interface LocalPhoto {
   uri: string;
@@ -159,18 +158,18 @@ export function useCreateMomentViewModel({ momentId, initialMoment, initialPhoto
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = useCallback((): string | null => {
-    if (!s.title.trim()) return t('moments.errors.titleRequired');
-    if (s.title.trim().length > 200) return t('moments.errors.titleTooLong');
-    if (s.spotifyUrl && !SPOTIFY_REGEX.test(s.spotifyUrl.trim()))
-      return t('moments.errors.spotifyInvalid');
-    return null;
-  }, [s.title, s.spotifyUrl, t]);
+    return null; // title auto-generated, no required fields
+  }, []);
 
   // ── Save mutation ───────────────────────────────────────────────────────────
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Auto-generate title from date if not set (edit mode preserves existing title)
+      const autoTitle = s.title.trim() || new Date(s.date).toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+      });
       const payload = {
-        title: s.title.trim(),
+        title: autoTitle,
         caption: s.caption.trim() || undefined,
         date: s.date.toISOString(),
         location: s.location.trim() || undefined,

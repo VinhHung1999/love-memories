@@ -208,7 +208,7 @@ export default function OnboardingInviteScreen() {
 
   const handleShare = async () => {
     if (!inviteCode) return;
-    const message = t('onboarding.invite.shareMessage').replace('{code}', inviteCode);
+    const message = t('onboarding.invite.shareMessage', { code: inviteCode });
     await Share.share({ message });
   };
 
