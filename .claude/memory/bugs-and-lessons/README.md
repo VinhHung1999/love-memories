@@ -2,6 +2,20 @@
 
 ## Resolved Bugs
 
+### Xcode 26.3 crashes on PreActions ShellScriptExecutionAction in .xcscheme (Sprint 53)
+- **Cause:** Xcode 26.3 throws `NSInternalInconsistencyException / DVTInvalidExtension` when parsing `ShellScriptExecutionAction` inside scheme `<PreActions>` blocks
+- **Fix:** Remove PreActions from all `.xcscheme` files. Move env-copy logic to a `PBXShellScriptBuildPhase` in `project.pbxproj` (runs before Sources). Set `ENVFILE` variable per build configuration via xcconfig files.
+- **Key takeaway:** Never use PreActions shell scripts in xcscheme for Xcode 26.3+. Build Phase scripts are the correct approach for pre-build env setup with react-native-config.
+
+### git filter-repo removes remote (Sprint 53 — .env secret cleanup)
+- **Cause:** `git filter-repo` intentionally removes all remotes after rewriting history (safety measure)
+- **Fix:** After running filter-repo, always re-add remote: `git remote add origin git@github.com:...`
+- **Note:** Required force-push on feature branch after history rewrite to pass GitHub secret scanning
+
+### Mapbox token in .env files blocks GitHub push (Sprint 53)
+- **Cause:** Committed real `pk.*` Mapbox token in `.env.dev`/`.env.prod` — GitHub secret scanning blocks push
+- **Fix:** Add `.env.dev`/`.env.prod` to `.gitignore` before committing; use placeholder in `.env.example`; clean history with `python3 -m git_filter_repo --path <file> --invert-paths --force`
+
 ### Express master-router auth scope (Sprint 52 — validate-invite)
 - **Cause:** `router.use('/couple', requireAuth, coupleRoutes)` applies `requireAuth` to ALL sub-routes — removing it inside `couple.ts` has no effect
 - **Fix:** Mount the public route explicitly in the parent `routes/index.ts` BEFORE the auth-gated block: `router.get('/couple/validate-invite', handler)`
@@ -24,6 +38,16 @@
 - **Cause:** `$RNMapboxMapsImpl = 'maplibre'` removed in @rnmapbox/maps v10; only `'mapbox'` valid
 - **Fix:** Set `$RNMapboxMapsImpl = 'mapbox'` + add `use_modular_headers!` (FirebaseCoreInternal/GoogleUtilities module conflict with Mapbox dynamic frameworks)
 - Keep pre_install/post_install `$RNMapboxMaps` hooks in Podfile
+
+### useComposeLetterViewModel PREMIUM error must navigate Paywall (Sprint 53)
+- **Cause:** `catch` block called `setError(t('loveLetters.errors.premiumRequired'))` — showed inline error instead of Paywall
+- **Fix:** Check `err?.message?.includes('PREMIUM')` → `navigation.navigate('Paywall', { trigger: 'locked_module', blockedFeature: 'love-letters' })`. Add `navigation` to useCallback deps array.
+- **Rule:** Any subscription error (PREMIUM_REQUIRED / FREE_LIMIT_REACHED) must navigate Paywall — never show inline error message
+
+### Android namespace vs applicationId (Sprint 53)
+- `namespace` in build.gradle = Kotlin source package used for R class generation — must match `.kt` file `package` declarations
+- `applicationId` in productFlavors = actual app bundle ID on device — can differ from namespace
+- **Do not rename namespace** without refactoring all Kotlin source files — just update `defaultConfig.applicationId`
 
 ## Lessons Learned
 
@@ -226,3 +250,8 @@ from `backend/` before reloading PM2. Skipping this caused a 500 error on all wr
 - `Skill: frontend-design` only loads guidelines — it does NOT produce a design artifact
 - Correct usage: `Agent(subagent_type=ui-ux-designer, prompt="design spec for X")` → waits for full spec document → implement from that output
 - Lesson: "invoking the skill" means getting a concrete design output, not just reading its instructions
+
+### Xcode 26.3 crashes on ShellScriptExecutionAction PreActions in .xcscheme (Sprint 53)
+- **Cause:** `ShellScriptExecutionAction` inside scheme `<PreActions>` triggers `NSInternalInconsistencyException / DVTInvalidExtension` crash in Xcode 26.3
+- **Fix:** Remove PreActions entirely. Move env file copy + `BuildXCConfig.rb` call to a `PBXShellScriptBuildPhase` (Build Phase, runs before Sources). Set `ENVFILE` variable per build configuration via xcconfig files.
+- **Pattern:** `ios/xcconfig/{Dev,Prod}.{debug,release}.xcconfig` each `#include` the corresponding Pods xcconfig + `#include? "../tmp.xcconfig"` for react-native-config. Schemes have zero shell execution — they just select build configurations.

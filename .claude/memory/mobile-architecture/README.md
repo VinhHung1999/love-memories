@@ -65,6 +65,23 @@ interface CollapsibleHeaderProps {
 | MomentDetailScreen | Hero photo pattern | NOT CollapsibleHeader — different UX pattern |
 | LoginScreen | No header | Auth flow |
 
+## Subscription Enforcement Pattern (Sprint 53)
+
+### useFeatureGate hook (`src/hooks/useFeatureGate.ts`)
+- **Layer 1 pre-flight:** `canCreate(feature)` checks `SubscriptionContext.limits` before mutate; navigates `Paywall { trigger: 'limit' }` if exceeded
+- **Module guard:** `requireModule(module)` navigates `Paywall { trigger: 'locked_module' }` for premium-only modules; call before opening compose/create sheet
+- **Rule:** NEVER use `setError()`/`Alert` for subscription blocks — always navigate Paywall
+
+### Paywall navigation params
+- `trigger: 'limit' | 'locked_module' | 'browse'` — extend when adding new trigger types
+- `blockedFeature?: string` — display name shown in Paywall limit banner
+
+### react-native-config env separation (Sprint 53)
+- `src/config/env.ts` — single typed re-export of all `Config.*` values with `__DEV__` fallbacks
+- iOS: `LoveScrum Dev.xcscheme` copies `.env.dev`; `LoveScrum.xcscheme` copies `.env.prod` via Build PreAction
+- Android: `productFlavors { dev, prod }` + `envConfigFiles` map to `.env.dev`/`.env.prod`
+- **Never import `Config` directly in screens** — always use `src/config/env.ts`
+
 ## Create/Edit Forms Pattern
 - **Use navigation push (full screen)** instead of BottomSheet modals for Create/Edit forms
 - Route params: `{ momentId?: string }` — undefined = create, has ID = edit

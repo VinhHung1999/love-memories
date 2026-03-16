@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 52
-**Goal:** Universal Links + Dark/Light Mode + Vietnamese i18n
+**Sprint:** 53
+**Goal:** Hoàn thiện MVP + Phân chia môi trường Dev/Prod
 
 ---
 
@@ -9,131 +9,85 @@
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | ACTIVE | Sprint 52 spec sent to TL | 2026-03-16 |
-| TL   | IDLE   | Awaiting sprint assignment | 2026-03-16 |
-| WEB  | IDLE   | Awaiting tasks | 2026-03-16 |
+| PO   | ACTIVE | Sprint 53 QA APPROVED — ready for dev deploy | 2026-03-16 |
+| TL   | DONE   | All 4 phases approved | 2026-03-16 |
+| WEB  | IDLE   | — | 2026-03-16 |
 | BE   | IDLE   | — | 2026-03-16 |
-| MOBILE | IDLE | Awaiting tasks | 2026-03-16 |
+| MOBILE | DONE  | Sprint 53 fully complete — Xcode crash fix approved | 2026-03-16 |
 
 ---
 
-## Sprint 52 Tasks
+## Sprint 53 Tasks
 
-### 1. Universal Links (iOS + Android)
-
-| # | Task | Effort | Status | Assignee |
-|---|------|--------|--------|----------|
-| 1 | **BE: AASA + assetlinks hosting** | S | DONE | BE |
-| 2 | **MOBILE: iOS Associated Domains** | S | DONE | MOBILE |
-| 3 | **MOBILE: Android App Links** | S | DONE | MOBILE |
-| 4 | **MOBILE: Deep link routing** | M | DONE | MOBILE |
-| 5 | **MOBILE: Share feature update** | S | DONE | MOBILE |
-
-### 2. Dark Mode / Light Mode
+### Phase 1: Bug Fixes & UX (DONE — pushed to sprint_53)
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 6 | **MOBILE: Hardcoded color audit + cleanup** | M | DONE | MOBILE |
-| 7 | **MOBILE: DarkAppTheme** | M | DONE | MOBILE |
-| 8 | **MOBILE: ThemeContext (system-only)** | S | DONE | MOBILE |
-| 9 | **MOBILE: NativeWind dark class** | M | DONE | MOBILE |
-| 10 | **MOBILE: Screen-by-screen dark mode** (87 files) | L | DONE | MOBILE |
-| 11 | **MOBILE: E2E dark mode verification** | S | DONE | MOBILE |
+| 1 | **MOBILE: react-native-config setup** — `.env.dev` + `.env.prod` with `API_URL`, `GOOGLE_CLIENT_ID`, `REVENUECAT_API_KEY`, `MAPBOX_ACCESS_TOKEN`, `APP_BASE_URL`. Replace `__DEV__` / hardcoded values | M | DONE | MOBILE |
+| 11 | **MOBILE: Camera BottomSheet — dismiss on save success** | S | DONE | MOBILE |
+| 12 | **MOBILE: AppBottomSheet — sticky bottom primary button** (toàn app) | M | DONE | MOBILE |
+| 13a | **MOBILE: Create Moment — remove memo field** | S | DONE | MOBILE |
+| 13b | **MOBILE: Create Moment — auto-fill location** if permission granted | S | DONE | MOBILE |
+| 16 | **MOBILE: Share invite → universal link** with `Config.APP_BASE_URL` + fix hardcoded English in handleInvitePartner | S | DONE | MOBILE |
 
-### 3. Vietnamese Language (i18n)
-
-| # | Task | Effort | Status | Assignee |
-|---|------|--------|--------|----------|
-| 12 | **MOBILE: i18n library setup** | M | DONE | MOBILE |
-| 13 | **MOBILE: Vietnamese translations** (1035 lines) | L | DONE | MOBILE |
-| 14 | **MOBILE: Migrate 88 screens to useTranslation()** | L | DONE | MOBILE |
-| 15 | **MOBILE: Language picker in Profile** | S | DONE | MOBILE |
-
-### 4. Invite Link → Onboarding Flow
+### Phase 2: Env Separation — iOS schemes + Android flavors + Firebase (IN PROGRESS)
 
 | # | Task | Effort | Status | Assignee |
 |---|------|--------|--------|----------|
-| 16 | **BE: Public validate-invite + partnerAvatar** | S | DONE | BE |
-| 17 | **MOBILE: Pending invite store** | S | DONE | MOBILE |
-| 18 | **MOBILE: Login Screen invite banner** | M | DONE | MOBILE |
-| 19 | **MOBILE: Auto-join in onboarding** | M | DONE | MOBILE |
+| 2 | **MOBILE: iOS build schemes** — `LoveScrum-Dev` (bundle ID `.dev`) + `LoveScrum-Prod`. Each selects correct `GoogleService-Info.plist` | M | TODO | MOBILE |
+| 3 | **MOBILE: Android build flavors** — `dev` + `prod` productFlavors, separate `google-services.json` | M | TODO | MOBILE |
+| 4 | **MOBILE: Separate Firebase projects** — `love-memories-dev` for dev builds | M | TODO | MOBILE |
+| 5 | **MOBILE: App display name per env** — Dev shows "Love Memories (Dev)" + different icon | S | TODO | MOBILE |
+
+### Phase 3: Subscription Enforcement — Wire Paywall into App
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 6 | **MOBILE: `useFeatureGate` hook** — `canCreate(feature)` + `isModuleLocked(module)`. Auto-navigate to PaywallScreen | M | TODO | MOBILE |
+| 7 | **MOBILE: Free tier limit checks on create flows** — Moments (10), FoodSpots (10), Expenses (10), Sprints (1). Also handle 403 FREE_LIMIT_REACHED from API | L | TODO | MOBILE |
+| 8 | **MOBILE: Lock premium modules** — Recipes, Love Letters, Date Planner, Photo Booth, Achievements, What to Eat, Monthly Recap. Tap → Paywall. Also handle 403 PREMIUM_REQUIRED from API (currently only Love Letters catches it, just shows text) | M | TODO | MOBILE |
+| 9 | **MOBILE: Plus badge in Profile** — Premium: "Love Memories Plus" badge + plan details. Free: upgrade button | S | TODO | MOBILE |
+| 10 | **MOBILE: Restore purchases flow** — Wire in Profile + Paywall. RevenueCat `restorePurchases()` + refresh context | S | TODO | MOBILE |
+
+### Phase 4: App Store Readiness
+
+| # | Task | Effort | Status | Assignee |
+|---|------|--------|--------|----------|
+| 14 | **MOBILE: iOS Privacy manifest** — `PrivacyInfo.xcprivacy` | S | TODO | MOBILE |
+| 15 | **MOBILE: Package name alignment** — Android `com.lovescrum` → `com.hungphu.lovememories` | S | TODO | MOBILE |
 
 ### Acceptance Criteria
 
-- [ ] Universal links work: tap `love-scrum.hungphu.work/share/xxx` → opens app (if installed) or web (if not)
-- [ ] AASA + assetlinks served correctly from backend
-- [ ] Dark mode: all screens readable, no white-on-white or dark-on-dark text
-- [ ] Theme toggle persists across app restarts
-- [ ] System theme follows OS dark/light setting
-- [ ] Vietnamese translations complete for all ~1011 strings
-- [ ] Language switch instant (no app restart)
-- [ ] Language choice persists across app restarts
-- [ ] Invite link flow: tap link → Login Screen shows inviter avatar + couple name
-- [ ] Register from invite → skip Couple Mode → auto join → Celebration → Avatar → app
-- [ ] Login from invite (no couple) → auto join → Avatar → app
-- [ ] Login from invite (has couple) → ignore invite → app directly
-- [ ] Invalid invite code → clear, show normal Login Screen
-- [ ] Lint + build pass (iOS + Android)
+- [ ] `npm run ios:dev` builds Dev app, `npm run ios:prod` builds Prod app
+- [ ] Dev + Prod apps coexist on same device (different bundle IDs)
+- [ ] Dev app shows "(Dev)" in name, connects to dev API
+- [ ] Prod app connects to prod API
+- [ ] All API keys loaded from `.env.*` files, zero hardcoded values
+- [ ] Firebase: dev project for dev builds, prod project for prod builds
+- [ ] Share invite gửi kèm universal link URL (env-aware)
+- [ ] Camera bottomsheet dismisses after save success
+- [ ] All AppBottomSheet instances have sticky bottom primary button
+- [ ] Create Moment: no memo field, auto-fill location if permitted
+- [ ] Free user hits limit → Paywall appears (all 7 endpoints handled)
+- [ ] Free user taps locked module → Paywall (all 8 modules)
+- [ ] Premium user has no limits, all modules accessible
+- [ ] Profile shows Plus badge / Free + upgrade button
+- [ ] Restore purchases works end-to-end
+- [ ] `PrivacyInfo.xcprivacy` present and valid
+- [ ] Android + iOS bundle IDs aligned: `com.hungphu.lovememories`
+- [ ] Lint + build pass (both schemes/flavors)
 - [ ] No regressions in functionality
 
 ---
 
-## Sprint 50 Tasks (DEPLOYED)
+## Sprint 52 Tasks (MERGED TO MAIN)
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | Privacy Policy + Terms of Service | DONE |
-| 2 | RevenueCat SDK | DONE |
-| 3 | SubscriptionContext + useSubscription() | DONE |
-| 4 | Paywall screen | DONE |
-| 5 | Love Letter Overlay | DONE |
-
----
-
-## Sprint 49 Tasks
-
-### Phase 1: Design System Foundation
-
-| # | Task | Effort | Status | Assignee |
-|---|------|--------|--------|----------|
-| 1 | Align color palette to web: primary `#E8788A`, secondary `#F4A261`, accent `#7EC8B5`, bg `#FFF8F6`, text `#2D2D2D`, textLight `#6B7280`, border `#F0E6E3`. Update `tailwind.config.js` + `theme.ts` | S | TODO | MOBILE |
-| 2 | Switch icon library: `react-native-vector-icons/MaterialCommunityIcons` → `lucide-react-native`. Update ALL icons across every screen + bottom tab bar. Use exact same icons as web (Lucide) | M | TODO | MOBILE |
-| 3 | Tone down CollapsibleHeader: remove FloatingHearts, replace heavy gradients with flat or single soft tint (`#FFF0ED` → `#FFF8F6`), clean minimal style like web | M | TODO | MOBILE |
-| 4 | Standardize card system: clean white bg + shadow-sm + subtle border. Remove gradient cards. Match web's `rounded-2xl` + `ring-1 ring-black/5` pattern | S | TODO | MOBILE |
-
-### Phase 2: Screen-by-Screen Revamp
-
-| # | Task | Effort | Status | Assignee |
-|---|------|--------|--------|----------|
-| 5 | Dashboard: clean bento layout, remove heavy gradients, web-style quick actions with Lucide icons | L | TODO | MOBILE |
-| 6 | Moments: card style — rounded-3xl, subtle shadow, no gradient overlays, match web MomentCard | M | TODO | MOBILE |
-| 7 | Love Letters: soft rose tones, clean list, match web letter card style | M | TODO | MOBILE |
-| 8 | Daily Questions: clean card style, softened header | S | TODO | MOBILE |
-| 9 | Profile: update colors + icons to new palette (already benchmark — minimal changes) | S | TODO | MOBILE |
-| 10 | All other screens (Recipes, FoodSpots, Expenses, DatePlanner, Achievements): apply new design system | L | TODO | MOBILE |
-| 11 | Bottom Tab Bar: Lucide icons, match web nav icon set, soft active tint | S | TODO | MOBILE |
-
-### Phase 3: Header Refactor (Priority — do first)
-
-| # | Task | Effort | Status | Assignee |
-|---|------|--------|--------|----------|
-| 12 | Refactor CollapsibleHeader into 3 simple components: **ScreenHeader** (simple title + back + right action), **ListHeader** (title + subtitle + add button + filter tabs + back), **HeroHeader** (cover image + title + back + actions). NO scrollY prop — keep it simple. Each component max 4-5 props, no render props | L | DONE | MOBILE |
-| 13 | Migrate all 17 screens to use new headers: Simple screens (Notifications, PlanList, LetterRead) → ScreenHeader. List screens (Moments, FoodSpots, Recipes, Expenses, Letters, DailyQ, Wishes, Achievements) → ListHeader. Detail screens (MomentDetail, RecipeDetail, FoodSpotDetail, PlanDetail) → HeroHeader. Dashboard + Profile keep custom. Delete old CollapsibleHeader | L | DONE | MOBILE |
-| 14 | Dashboard RelationshipTimer redesign: 2 avatars (user + partner) each side, animated pulsing heart in center, days count below. Use frontend-design skill. Gentle soothing style | M | DONE | MOBILE |
-| 15 | Moments screen redesign: Calendar (monthly, dot indicators on days with moments, tap day → scroll) + Timeline (vertical progress line, grouped by day newest first, horizontal moment cards per day). Use frontend-design skill | L | DONE | MOBILE |
-| 16 | GlassTabBar invisible tabs fix (white-on-white after Phase 3 header change) + ListHeader scroll-driven bg tint (#FFF→#FFF0F2 over 0-40px). Apply to DailyQ + Letters screens | S | DONE | MOBILE |
-| 17 | RelationshipTimer avatar shimmer: dual opacity+scale pulse (1.0→0.55, 1.0→1.06), 2400ms cycle, half-phase 1200ms stagger between left/right avatars | S | DONE | MOBILE |
-
-### Acceptance Criteria
-
-- [ ] All colors match web palette exactly (no more `#FF6B6B`, `#2D1B3D`)
-- [ ] All icons are Lucide (no MaterialCommunityIcons remaining)
-- [ ] No FloatingHearts animation on headers
-- [ ] No heavy multi-color gradients on cards/headers
-- [ ] Cards use clean white + subtle shadow consistently
-- [ ] Overall feel: gentle, soothing, elegant — matches web PWA
-- [ ] Lint + build pass
-- [ ] No regressions in functionality
+| 1-5 | Universal Links (iOS + Android) | ALL DONE |
+| 6-11 | Dark Mode / Light Mode | ALL DONE |
+| 12-15 | Vietnamese Language (i18n) | ALL DONE |
+| 16-19 | Invite Link → Onboarding Flow | ALL DONE |
 
 ---
 
@@ -146,21 +100,28 @@
 | B16 | RN: Monthly Recap | P2 |
 | B17 | App Store: iOS signing (bundle ID, certs, provisioning profiles) | P0 |
 | B18 | App Store: iOS GoogleService-Info.plist + APNS push cert | P0 |
-| B19 | App Store: iOS Privacy manifest (PrivacyInfo.xcprivacy) | P0 |
+| ~~B19~~ | ~~iOS Privacy manifest~~ | **Sprint 53** |
 | B20 | Play Store: Android release keystore + signing config | P0 |
-| B21 | Both: Privacy Policy + Terms of Service pages | P0 |
+| ~~B21~~ | ~~Privacy Policy + Terms of Service~~ | **Sprint 50** |
 | B22 | Both: App Store icons (1024x1024 iOS) + splash screen design | P1 |
 | B23 | Both: App Store metadata (screenshots, descriptions, categories) | P1 |
 | B24 | Both: EAS Build or Fastlane setup for build automation | P1 |
 | B25 | Play Store: Data safety form | P1 |
-| B26 | RN Subscription: Install RevenueCat SDK + configure | P0 |
-| B27 | RN Subscription: SubscriptionContext + useSubscription() hook | P0 |
-| B28 | RN Subscription: Paywall screen (triggered at free limit / locked module) | P0 |
-| B29 | RN Subscription: Client-side free tier checks across all screens | P1 |
-| B30 | RN Subscription: Lock premium module navigation | P1 |
-| B31 | RN Subscription: Restore purchases + Plus badge in Profile | P1 |
-| B32 | RN: Dev/Prod environment separation — iOS build schemes (Dev/Prod) + Android build flavors + react-native-config (.env.dev/.env.prod) + separate Firebase projects (2x GoogleService-Info.plist, 2x google-services.json) + RevenueCat sandbox/prod keys + Google OAuth client IDs | P1 |
-| B33 | RN: Typography system refactor — Create shared Typography components (Heading, Body, Caption, Label, etc.) to replace raw `<Text>` + className everywhere. Centralize font family, size, weight, color presets. Migrate ALL screens to use Typography components instead of raw Text. Ensures consistent font usage (Be Vietnam Pro) + Borel for special cases (slogan) | P1 |
+| ~~B26~~ | ~~RevenueCat SDK~~ | **Sprint 50** |
+| ~~B27~~ | ~~SubscriptionContext + useSubscription()~~ | **Sprint 50** |
+| ~~B28~~ | ~~Paywall screen~~ | **Sprint 50** |
+| ~~B29~~ | ~~Client-side free tier checks~~ | **Sprint 53** |
+| ~~B30~~ | ~~Lock premium module navigation~~ | **Sprint 53** |
+| ~~B31~~ | ~~Restore purchases + Plus badge~~ | **Sprint 53** |
+| ~~B32~~ | ~~Dev/Prod environment separation~~ | **Sprint 53** |
+| B33 | RN: Typography system refactor | P1 |
+| B34 | Daily Q&A: Streak tracking — đếm ngày liên tục cả 2 trả lời, hiển thị Dashboard, reset khi miss. BE cron + MOBILE UI | P0 |
+| B35 | Daily Q&A: Compatibility Score — tính % tương đồng câu trả lời, chia theo category. Cần design format câu hỏi (multiple choice?) | P1 |
+| B36 | **Rename → Memoura**: MOBILE display name (iOS bundle, Android app name, splash), slogan 'Two people. One story.' | P1 |
+| B37 | **Rename → Memoura**: WEB PWA (manifest.json, index.html, sw.js, useAppName.ts, Dashboard, ShareViewerPage, MorePage) | P1 |
+| B38 | **Rename → Memoura**: BE AASA/assetlinks + Cloudflare Tunnel for memoura.app domain | P1 |
+| B39 | **Rename → Memoura**: i18n update all 'Love Memories' references in en.ts + vi.ts (WEB + MOBILE) | P1 |
+| B40 | **Rename → Memoura**: App Store metadata — title 'Memoura — Couples App', subtitle 'Memories, Goals & Milestones' | P1 |
 
 ---
 
@@ -190,6 +151,8 @@ _Sprint 48 — App Bug Fixes (Dashboard, Moments, Daily Q&A, Love Letters, Delet
 _Sprint 49 — RN Mobile UI Revamp (Design System, Header Refactor, DetailScreenLayout, Moments Calendar+Timeline, RelationshipTimer): MERGED TO MAIN_
 _Sprint 50 — Subscription Flow + Love Letter Overlay + Privacy Policy: DEPLOYED_
 _Sprint 51 — Onboarding v2, CurvedTabBar Camera, Input Limits, Dashboard Tour v2, requireCouple middleware: DEPLOYED_
+_Sprint 52 — Universal Links, Dark Mode, Vietnamese i18n, Invite Link Flow: MERGED TO MAIN_
+_Sprint 53 — MVP Completion (Env Separation, Subscription Enforcement, Bug Fixes, App Store Prep, Xcode 26.3 crash fix): DONE — awaiting Boss review_
 
 ---
 
@@ -199,3 +162,5 @@ _Sprint 51 — Onboarding v2, CurvedTabBar Camera, Input Limits, Dashboard Tour 
 1. DEV implements -> PO reviews on sprint branch
 2. PO deploys to dev environment for Boss review
 3. Boss approves -> merge to main -> production
+
+**Note:** `.env.dev` + `.env.prod` are gitignored. Boss needs to copy `mobile/.env.example` → `.env.dev` + `.env.prod` and fill in real API keys on local machine.

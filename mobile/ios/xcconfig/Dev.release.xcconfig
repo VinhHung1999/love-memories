@@ -1,4 +1,4 @@
-#include "../Pods/Target Support Files/Pods-LoveScrum/Pods-LoveScrum.release.xcconfig"
+#include "../Pods/Target Support Files/Pods-LoveScrum/Pods-LoveScrum.dev release.xcconfig"
 #include? "../tmp.xcconfig"
 
 ENVFILE = .env.dev
