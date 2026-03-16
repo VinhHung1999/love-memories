@@ -8,15 +8,6 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-# Map custom build configurations to CocoaPods debug/release
-project 'LoveScrum', {
-  'Debug'        => :debug,
-  'Release'      => :release,
-  'Dev Debug'    => :debug,
-  'Dev Release'  => :release,
-  'Prod Debug'   => :debug,
-  'Prod Release' => :release,
-}
 
 # Required for FirebaseCoreInternal → GoogleUtilities when Mapbox uses dynamic frameworks
 use_modular_headers!

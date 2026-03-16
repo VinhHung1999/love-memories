@@ -1,6 +1,0 @@
-#include "../Pods/Target Support Files/Pods-LoveScrum/Pods-LoveScrum.prod debug.xcconfig"
-#include? "../tmp.xcconfig"
-
-ENVFILE = .env.prod
-PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.lovememories
-APP_DISPLAY_NAME = Love Memories
