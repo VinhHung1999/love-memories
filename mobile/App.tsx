@@ -11,7 +11,7 @@ import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
 import Mapbox from '@rnmapbox/maps';
 import { warmupConnection } from './src/lib/api';
 import { initPurchases } from './src/lib/purchasesService';
-import { MAPBOX_ACCESS_TOKEN } from './src/config/tokens';
+import { MAPBOX_ACCESS_TOKEN, GOOGLE_CLIENT_ID } from './src/config/env';
 import { initI18n } from './src/lib/i18n';
 import RootNavigator from './src/navigation';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -30,7 +30,7 @@ Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
 // webClientId = your Google OAuth Web Client ID (same GOOGLE_CLIENT_ID used on backend).
 // Set this in a .env file or native env config before building.
 GoogleSignin.configure({
-  webClientId: '', // TODO: replace with actual GOOGLE_CLIENT_ID
+  webClientId: GOOGLE_CLIENT_ID,
   offlineAccess: false,
 });
 

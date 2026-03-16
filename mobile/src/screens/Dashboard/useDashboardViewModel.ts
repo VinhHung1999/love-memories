@@ -7,6 +7,7 @@ import { useAppColors } from '../../navigation/theme';
 import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
 import type { ExpenseStats } from '../../lib/api';
 import { useTranslation } from 'react-i18next';
+import { APP_BASE_URL } from '../../config/env';
 import type { Moment, FoodSpot, CoupleProfile, CookingSession, DatePlan } from '../../types';
 import { Heart, Mail } from 'lucide-react-native';
 // MVP-HIDDEN: v1.1 — eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -196,7 +197,8 @@ export function useDashboardViewModel() {
   const handleInvitePartner = useCallback(async () => {
     try {
       const { inviteCode } = await coupleApi.generateInvite();
-      const message = t('dashboard.invitePartner.shareMessage', { code: inviteCode });
+      const url = `${APP_BASE_URL}/invite/${inviteCode}`;
+      const message = t('dashboard.invitePartner.shareMessage', { url });
       await Share.share({ message, title: t('app.name') });
     } catch {
       // dismissed or error — no-op
@@ -206,7 +208,8 @@ export function useDashboardViewModel() {
   const handleShareInviteCode = useCallback(async () => {
     const code = couple?.inviteCode;
     if (!code) return;
-    const message = t('dashboard.noPartnerBanner.shareMessage', { code });
+    const url = `${APP_BASE_URL}/invite/${code}`;
+    const message = t('dashboard.noPartnerBanner.shareMessage', { url });
     await Share.share({ message }).catch(() => {});
   }, [couple?.inviteCode, t]);
 

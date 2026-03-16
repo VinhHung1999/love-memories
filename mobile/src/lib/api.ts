@@ -1,13 +1,12 @@
 import * as Keychain from 'react-native-keychain';
 import { AuthResponse, CoupleProfile } from '../types';
+import { API_URL } from '../config/env';
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 
-const API_BASE = __DEV__
-  ? 'https://dev-love-scrum-api.hungphu.work'
-  : 'https://love-scrum-api.hungphu.work';
+const API_BASE = API_URL;
 
 const KEYCHAIN_SERVICE = 'love-scrum';
 

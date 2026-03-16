@@ -205,14 +205,14 @@ const vi: LocaleStrings = {
       button: 'Gửi lời mời',
       modalTitle: 'Mã mời của bạn',
       modalMessage: 'Chia sẻ mã này với người yêu. Mã sẽ hết hạn sau khi họ tham gia.',
-      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 https://love-scrum.hungphu.work/invite/{{code}}',
+      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 {{url}}',
     },
     noPartnerBanner: {
       headline: 'Mời người yêu của bạn',
       subline: 'Bạn đã sẵn sàng — chia sẻ mã bên dưới để người yêu tham gia',
       codeLabel: 'Mã mời',
       shareBtn: 'Chia sẻ',
-      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 https://love-scrum.hungphu.work/invite/{{code}}',
+      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 {{url}}',
       generatingCode: 'Đang tạo...',
     },
     setAnniversary: {
@@ -988,7 +988,7 @@ const vi: LocaleStrings = {
       generatingCode: 'Đang tạo mã của bạn...',
       copyHint: 'Nhấn để sao chép',
       copied: 'Đã sao chép!',
-      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 https://love-scrum.hungphu.work/invite/{{code}}',
+      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 {{url}}',
       completing: 'Đang thiết lập tất cả...',
       errors: {
         failedToGenerate: 'Không thể tạo mã',

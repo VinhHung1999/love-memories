@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Clipboard, Pressable, Share, StatusBar, View } from 'react-native';
 import { Body, Caption, Heading } from '../../components/Typography';
+import { APP_BASE_URL } from '../../config/env';
 import LinearGradient from 'react-native-linear-gradient';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -208,7 +209,8 @@ export default function OnboardingInviteScreen() {
 
   const handleShare = async () => {
     if (!inviteCode) return;
-    const message = t('onboarding.invite.shareMessage', { code: inviteCode });
+    const url = `${APP_BASE_URL}/invite/${inviteCode}`;
+    const message = t('onboarding.invite.shareMessage', { url });
     await Share.share({ message });
   };
 

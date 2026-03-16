@@ -205,14 +205,14 @@ const en = {
       button: 'Send Invite',
       modalTitle: 'Your Invite Code',
       modalMessage: 'Share this code with your partner. It expires after they join.',
-      shareMessage: 'Join me on Love Memories! 💕 https://love-scrum.hungphu.work/invite/{{code}}',
+      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
     },
     noPartnerBanner: {
       headline: 'Invite your partner',
       subline: "You're all set — share the code below so your partner can join",
       codeLabel: 'Invite code',
       shareBtn: 'Share',
-      shareMessage: 'Join me on Love Memories! 💕 https://love-scrum.hungphu.work/invite/{{code}}',
+      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
       generatingCode: 'Generating...',
     },
     setAnniversary: {
@@ -988,7 +988,7 @@ const en = {
       generatingCode: 'Generating your code...',
       copyHint: 'Tap to copy',
       copied: 'Copied!',
-      shareMessage: 'Join me on Love Memories! 💕 https://love-scrum.hungphu.work/invite/{{code}}',
+      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
       completing: 'Setting everything up...',
       errors: {
         failedToGenerate: 'Could not generate code',

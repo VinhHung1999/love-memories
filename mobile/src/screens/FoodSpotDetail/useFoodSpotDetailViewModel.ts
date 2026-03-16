@@ -5,8 +5,7 @@ import type { FoodSpotsStackParamList } from '../../navigation';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { foodSpotsApi, shareApi } from '../../lib/api';
 import { Share } from 'react-native';
-
-const APP_BASE_URL = __DEV__ ? 'https://dev-love-scrum.hungphu.work' : 'https://love-scrum.hungphu.work';
+import { APP_BASE_URL } from '../../config/env';
 import type { FoodSpotPhoto, MomentPhoto } from '../../types';
 import { useTranslation } from 'react-i18next';
 type Route = RouteProp<FoodSpotsStackParamList, 'FoodSpotDetail'>;
