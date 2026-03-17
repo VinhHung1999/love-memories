@@ -90,7 +90,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={[colors.primaryLighter, colors.white, '#FFF5EE']} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
+    <LinearGradient colors={[colors.primaryLighter, colors.baseBg, colors.bgCard]} start={{ x: 0.8, y: 0 }} end={{ x: 0.2, y: 1 }} style={{flex: 1}}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <DecoBlobs />
       {vm.inviteBanner && (
