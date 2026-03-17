@@ -26,7 +26,7 @@ export default function GlassTabBar<T extends string = string>({ tabs, activeTab
       {/* Inner tray — subtle grey container that pills sit inside */}
       <View
         className="flex-row rounded-xl overflow-hidden"
-        style={{ backgroundColor: '#F3F4F6', padding: 3, borderRadius: 12 }}>
+        style={{ backgroundColor: colors.gray100, padding: 3, borderRadius: 12 }}>
         {tabs.map(tab => {
           const isActive = activeTab === tab.key;
           return (
