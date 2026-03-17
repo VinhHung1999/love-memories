@@ -297,6 +297,11 @@ export function useDashboardViewModel() {
     showMonthlyRecapBanner,
     currentStreak: streakData?.currentStreak ?? 0,
     longestStreak: streakData?.longestStreak ?? 0,
+    answeredToday: (() => {
+      const last = (streakData as any)?.lastAnsweredAt ?? (streakData as any)?.lastAnsweredDate ?? null;
+      if (!last) return false;
+      return new Date(last).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+    })(),
     unreadLettersCount: unreadLettersData?.count ?? 0,
     hasCouple,
     hasPartner,

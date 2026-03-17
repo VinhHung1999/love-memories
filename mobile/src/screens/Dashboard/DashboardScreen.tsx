@@ -155,6 +155,7 @@ export default function DashboardScreen() {
                 <StreakWidget
                   currentStreak={vm.currentStreak}
                   longestStreak={vm.longestStreak}
+                  answeredToday={vm.answeredToday}
                   onPress={vm.navigateToDailyQuestions}
                 />
               </Animated.View>
