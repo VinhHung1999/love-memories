@@ -408,6 +408,60 @@ function HistoryView({
   );
 }
 
+// ── StreakBanner ──────────────────────────────────────────────────────────────
+
+function StreakBanner({
+  currentStreak,
+  longestStreak,
+  lastAnsweredAt,
+}: {
+  currentStreak: number;
+  longestStreak: number;
+  lastAnsweredAt: string | null;
+}) {
+  const { t } = useTranslation();
+
+  // Detect if streak is about to break (last answered yesterday, not yet answered today)
+  const lastDate = lastAnsweredAt ? new Date(lastAnsweredAt).toISOString().slice(0, 10) : null;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const isAboutToBreak = lastDate === yesterday && currentStreak > 0;
+
+  if (currentStreak === 0 && !isAboutToBreak) return null;
+
+  return (
+    <View
+      className="mx-4 mb-3 rounded-2xl px-4 py-3 flex-row items-center gap-3"
+      style={{
+        backgroundColor: isAboutToBreak
+          ? 'rgba(245,158,11,0.12)'
+          : 'rgba(255,107,107,0.10)',
+        borderWidth: 1,
+        borderColor: isAboutToBreak
+          ? 'rgba(245,158,11,0.25)'
+          : 'rgba(255,107,107,0.20)',
+      }}
+    >
+      <Body size="lg">🔥</Body>
+      <View className="flex-1">
+        <Body
+          size="sm"
+          className="font-semibold"
+          style={{ color: isAboutToBreak ? '#D97706' : '#FF4444' }}
+        >
+          {isAboutToBreak
+            ? t('dailyQuestions.streakBanner.breakWarning')
+            : t('dailyQuestions.streakBanner.current', { n: currentStreak })}
+        </Body>
+        {longestStreak > 0 && !isAboutToBreak ? (
+          <Caption className="text-textLight dark:text-darkTextLight mt-0.5">
+            {t('dailyQuestions.streakBanner.longest', { n: longestStreak })}
+          </Caption>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function DailyQuestionsScreen() {
@@ -436,6 +490,11 @@ export default function DailyQuestionsScreen() {
             onTabPress={vm.setActiveTab}
           />
         }
+      />
+      <StreakBanner
+        currentStreak={vm.currentStreak}
+        longestStreak={vm.longestStreak}
+        lastAnsweredAt={vm.lastAnsweredAt}
       />
 
       {/* ── Content ── */}

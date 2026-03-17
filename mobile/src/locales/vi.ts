@@ -227,6 +227,20 @@ const vi: LocaleStrings = {
       shareMessage: 'Tham gia Memoura cùng mình nhé! 💕 {{url}}',
       generatingCode: 'Đang tạo...',
     },
+    streak: {
+      daysInARow: '{n} ngày liên tiếp',
+      oneDay: '1 ngày liên tiếp',
+      motivate: 'Trả lời câu hỏi hôm nay!',
+      milestone7: '🔥 7 ngày liên tiếp! Tuyệt vời!',
+      milestone30: '🏆 30 ngày vững mạnh! Kinh ngạc!',
+      milestone100: '💎 100 ngày liên tiếp! Huyền thoại!',
+      longestStreak: 'Kỷ lục: {n} ngày',
+    },
+    unreadLetters: {
+      one: 'Bạn có 1 thư chưa đọc 💌',
+      many: 'Bạn có {n} thư chưa đọc 💌',
+      readNow: 'Đọc ngay',
+    },
     setAnniversary: {
       title: 'Đặt ngày kỷ niệm',
       subtitle: 'Đánh dấu ngày tình yêu của các bạn bắt đầu',
@@ -859,6 +873,11 @@ const vi: LocaleStrings = {
       fetchFailed: 'Tải câu hỏi thất bại',
       submitFailed: 'Gửi câu trả lời thất bại',
       alreadyAnswered: 'Bạn đã trả lời câu hỏi này rồi',
+    },
+    streakBanner: {
+      current: '{n} ngày liên tiếp 🔥',
+      longest: 'Kỷ lục: {n} ngày',
+      breakWarning: 'Trả lời hôm nay để giữ chuỗi! ⚡',
     },
   },
 

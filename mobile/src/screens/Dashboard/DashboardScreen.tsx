@@ -29,6 +29,8 @@ import { FoodHighlightCard } from './components/FoodHighlightCard';
 import { NotificationBell } from './components/NotificationBell';
 import { DashboardStatsCard } from './components/DashboardStatsCard';
 import { RelationshipTimer } from './components/RelationshipTimer';
+import { StreakWidget } from './components/StreakWidget';
+import { UnreadLetterCard } from './components/UnreadLetterCard';
 import OverlayHeader from '@/components/OverlayHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRequestNotificationPermission } from '../../hooks/useRequestNotificationPermission';
@@ -147,6 +149,25 @@ export default function DashboardScreen() {
                 onMomentsPress={() => vm.navigateTo('MomentsTab')}
                 onFoodSpotsPress={vm.navigateToFoodSpots}
               />
+
+              {/* ── Streak Widget ── */}
+              <Animated.View entering={FadeInDown.delay(130).duration(500)}>
+                <StreakWidget
+                  currentStreak={vm.currentStreak}
+                  longestStreak={vm.longestStreak}
+                  onPress={vm.navigateToDailyQuestions}
+                />
+              </Animated.View>
+
+              {/* ── Unread Letter Card ── */}
+              {vm.unreadLettersCount > 0 ? (
+                <Animated.View entering={FadeInDown.delay(135).duration(500)}>
+                  <UnreadLetterCard
+                    count={vm.unreadLettersCount}
+                    onPress={vm.navigateToLetters}
+                  />
+                </Animated.View>
+              ) : null}
 
               {/* MVP-HIDDEN: v1.1 — Active Cooking Banner */}
               {/* {vm.activeSession ? (

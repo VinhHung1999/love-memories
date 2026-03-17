@@ -31,6 +31,15 @@ export function useDailyQuestionsViewModel() {
     staleTime: 60_000,
   });
 
+  // ── Streak ─────────────────────────────────────────────────────────────────
+
+  const { data: streakData } = useQuery({
+    queryKey: ['daily-questions-streak'],
+    queryFn: dailyQuestionsApi.streak,
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
   // ── History ────────────────────────────────────────────────────────────────
 
   const {
@@ -109,6 +118,11 @@ export function useDailyQuestionsViewModel() {
     historyTotalPages: historyData?.totalPages ?? 1,
     refetchHistory,
     loadNextPage,
+
+    // Streak
+    currentStreak: streakData?.currentStreak ?? 0,
+    longestStreak: streakData?.longestStreak ?? 0,
+    lastAnsweredAt: streakData?.lastAnsweredAt ?? null,
 
     // Actions
     submitAnswer,

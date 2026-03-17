@@ -227,6 +227,20 @@ const en = {
       shareMessage: 'Join me on Memoura! 💕 {{url}}',
       generatingCode: 'Generating...',
     },
+    streak: {
+      daysInARow: '{n} days in a row',
+      oneDay: '1 day in a row',
+      motivate: "Answer today's question!",
+      milestone7: '🔥 7-day streak! Keep it up!',
+      milestone30: '🏆 30 days strong! Incredible!',
+      milestone100: '💎 100-day streak! Legendary!',
+      longestStreak: 'Best: {n} days',
+    },
+    unreadLetters: {
+      one: 'You have 1 unread letter 💌',
+      many: 'You have {n} unread letters 💌',
+      readNow: 'Read now',
+    },
     setAnniversary: {
       title: 'Set your anniversary',
       subtitle: 'Mark the day your love story began',
@@ -859,6 +873,11 @@ const en = {
       fetchFailed: 'Failed to load question',
       submitFailed: 'Failed to submit answer',
       alreadyAnswered: 'You already answered this question',
+    },
+    streakBanner: {
+      current: '{n}-day streak 🔥',
+      longest: 'Best: {n} days',
+      breakWarning: "Answer today to keep your streak alive! ⚡",
     },
   },
 
