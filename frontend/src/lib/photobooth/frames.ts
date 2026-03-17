@@ -77,7 +77,7 @@ async function polaroidRender(
   ctx.font = `italic 54px "Playfair Display", Georgia, serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText((_options?.appName ?? 'Love Memories') + ' ♥', W / 2, 1100);
+  ctx.fillText((_options?.appName ?? 'Memoura') + ' ♥', W / 2, 1100);
 
   // Subtle drop shadow border
   ctx.strokeStyle = '#eee';
@@ -517,7 +517,7 @@ async function minimalRender(
   ctx.fillStyle = PRIMARY + '99';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'bottom';
-  ctx.fillText((_options?.appName ?? 'Love Memories') + ' ♥', W - outer - 16, H - outer - 16);
+  ctx.fillText((_options?.appName ?? 'Memoura') + ' ♥', W - outer - 16, H - outer - 16);
 
   drawStickers(ctx, stickers, W, H);
   return canvas;
@@ -575,7 +575,7 @@ async function letterRender(
   ctx.fillStyle = 'rgba(232,120,138,0.5)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText((_options?.appName ?? 'Love Memories').toUpperCase(), W - 160, 120);
+  ctx.fillText((_options?.appName ?? 'Memoura').toUpperCase(), W - 160, 120);
   ctx.fillText('✦ ✦ ✦', W - 160, 148);
 
   // Stamp area
@@ -645,7 +645,7 @@ async function letterRender(
 
 const STRIP_W = 600;
 
-function drawWatermark(ctx: CanvasRenderingContext2D, cw: number, ch: number, color: string, appName = 'Love Memories'): void {
+function drawWatermark(ctx: CanvasRenderingContext2D, cw: number, ch: number, color: string, appName = 'Memoura'): void {
   ctx.save();
   ctx.font = 'italic 18px "Playfair Display", Georgia, serif';
   ctx.fillStyle = color;

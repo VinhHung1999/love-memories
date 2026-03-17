@@ -88,7 +88,7 @@ export default function MorePage() {
         anniversaryDate: coupleAnniversaryInput || null,
       });
       // Sync couple name → app name + save slogan
-      await settingsApi.set('app_name', name || 'Love Memories');
+      await settingsApi.set('app_name', name || 'Memoura');
       await settingsApi.set('app_slogan', appSloganInput.trim() || 'Our little world, beautifully organized');
     },
     onSuccess: () => {

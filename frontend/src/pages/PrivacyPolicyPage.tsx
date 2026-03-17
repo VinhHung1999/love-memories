@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <p className="text-sm text-text leading-relaxed">
-          Love Memories ("the App") is a personal couples application designed to help you and your partner
+          Memoura ("the App") is a personal couples application designed to help you and your partner
           preserve memories, track shared experiences, and stay connected. This Privacy Policy explains what
           data we collect, how we use it, and your rights regarding your information.
         </p>
@@ -198,7 +198,7 @@ export default function PrivacyPolicyPage() {
               For any privacy-related questions, data requests, or concerns, please contact us at:
             </p>
             <div className="bg-primary/5 rounded-xl p-4">
-              <p className="text-sm font-medium text-text">Love Memories App</p>
+              <p className="text-sm font-medium text-text">Memoura App</p>
               <p className="text-sm text-primary mt-1">privacy@love-memories.app</p>
               <p className="text-sm text-text-light mt-1">
                 We aim to respond to all privacy inquiries within 5 business days.
@@ -211,7 +211,7 @@ export default function PrivacyPolicyPage() {
         <div className="text-center pt-4 pb-8">
           <div className="flex items-center justify-center gap-1.5 text-text-light/50 text-xs">
             <Heart className="w-3 h-3 text-primary/40" />
-            <span>Love Memories — Made with love</span>
+            <span>Memoura — Made with love</span>
             <Heart className="w-3 h-3 text-primary/40" />
           </div>
         </div>

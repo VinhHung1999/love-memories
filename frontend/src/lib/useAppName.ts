@@ -5,7 +5,7 @@ import { settingsApi } from './api';
  * Shared hook — returns the custom app name from settings.
  * React Query deduplicates: only one fetch per staleTime window regardless of
  * how many components call this hook simultaneously.
- * Falls back to 'Love Memories' when not set or when unauthenticated.
+ * Falls back to 'Memoura' when not set or when unauthenticated.
  */
 export function useAppName(): string {
   const { data } = useQuery({
@@ -14,5 +14,5 @@ export function useAppName(): string {
     staleTime: 30_000,
     retry: false,
   });
-  return data?.value || 'Love Memories';
+  return data?.value || 'Memoura';
 }
