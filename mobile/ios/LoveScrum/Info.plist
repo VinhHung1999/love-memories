@@ -79,5 +79,16 @@
 	<false/>
 	<key>MBXAccessToken</key>
 	<string>$(MAPBOX_ACCESS_TOKEN)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1066031301719-21en01r14oftto9br7d1m3p2rvhvl5j6</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

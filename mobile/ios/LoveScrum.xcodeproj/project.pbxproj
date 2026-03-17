@@ -367,7 +367,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.lovememories;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.memoura.dev;
 				PRODUCT_NAME = LoveScrum;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -401,7 +401,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.lovememories;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.memoura;
 				PRODUCT_NAME = LoveScrum;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
