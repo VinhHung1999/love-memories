@@ -228,22 +228,22 @@ const vi: LocaleStrings = {
       generatingCode: 'Đang tạo...',
     },
     streak: {
-      daysInARow: '{n} ngày liên tiếp',
+      daysInARow: '{{n}} ngày liên tiếp',
       oneDay: '1 ngày liên tiếp',
       days: 'ngày',
       motivateZero: 'Bắt đầu chuỗi đầu tiên hôm nay',
       motivateLow: 'Đừng bỏ lỡ hôm nay',
-      motivateKeep: 'Đừng để mất chuỗi {n} ngày!',
+      motivateKeep: 'Đừng để mất chuỗi {{n}} ngày!',
       answerBtn: 'Trả lời',
       donePill: 'Xong rồi',
       milestone7: '7 ngày liên tiếp — một tuần! 🔥',
       milestone30: '30 ngày yêu thương 🏆',
       milestone100: '100 ngày — huyền thoại 💎',
-      longestStreak: 'Kỷ lục: {n} ngày',
+      longestStreak: 'Kỷ lục: {{n}} ngày',
     },
     unreadLetters: {
       one: 'Bạn có 1 thư chưa đọc 💌',
-      many: 'Bạn có {n} thư chưa đọc 💌',
+      many: 'Bạn có {{n}} thư chưa đọc 💌',
       readNow: 'Đọc ngay',
     },
     setAnniversary: {
@@ -880,8 +880,8 @@ const vi: LocaleStrings = {
       alreadyAnswered: 'Bạn đã trả lời câu hỏi này rồi',
     },
     streakBanner: {
-      current: '{n} ngày liên tiếp 🔥',
-      longest: 'Kỷ lục: {n} ngày',
+      current: '{{n}} ngày liên tiếp 🔥',
+      longest: 'Kỷ lục: {{n}} ngày',
       breakWarning: 'Trả lời hôm nay để giữ chuỗi! ⚡',
     },
   },
@@ -955,12 +955,12 @@ const vi: LocaleStrings = {
   },
 
   letterOverlay: {
-    title: '{name} đã viết thư cho bạn',
-    titlePlural: 'Bạn có {count} thư chưa đọc',
+    title: '{{name}} đã viết thư cho bạn',
+    titlePlural: 'Bạn có {{count}} thư chưa đọc',
     from: 'TỪ',
     readNow: 'Đọc ngay',
     readLater: 'Để sau',
-    moreLetters: '+{n} thư nữa',
+    moreLetters: '+{{n}} thư nữa',
     dateLabel: 'Nhận lúc',
   },
 

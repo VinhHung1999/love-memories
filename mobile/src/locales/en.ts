@@ -228,22 +228,22 @@ const en = {
       generatingCode: 'Generating...',
     },
     streak: {
-      daysInARow: '{n} days in a row',
+      daysInARow: '{{n}} days in a row',
       oneDay: '1 day in a row',
       days: 'days',
       motivateZero: 'Start your first streak today',
       motivateLow: "Don't let today slip by",
-      motivateKeep: "Don't break your {n}-day streak!",
+      motivateKeep: "Don't break your {{n}}-day streak!",
       answerBtn: 'Answer',
       donePill: 'Done today',
       milestone7: '7-day streak — one week! 🔥',
       milestone30: '30 days of love 🏆',
       milestone100: '100 days — legendary 💎',
-      longestStreak: 'Best: {n} days',
+      longestStreak: 'Best: {{n}} days',
     },
     unreadLetters: {
       one: 'You have 1 unread letter 💌',
-      many: 'You have {n} unread letters 💌',
+      many: 'You have {{n}} unread letters 💌',
       readNow: 'Read now',
     },
     setAnniversary: {
@@ -880,8 +880,8 @@ const en = {
       alreadyAnswered: 'You already answered this question',
     },
     streakBanner: {
-      current: '{n}-day streak 🔥',
-      longest: 'Best: {n} days',
+      current: '{{n}}-day streak 🔥',
+      longest: 'Best: {{n}} days',
       breakWarning: "Answer today to keep your streak alive! ⚡",
     },
   },
@@ -955,12 +955,12 @@ const en = {
   },
 
   letterOverlay: {
-    title: '{name} wrote you a letter',
-    titlePlural: 'You have {count} unread letters',
+    title: '{{name}} wrote you a letter',
+    titlePlural: 'You have {{count}} unread letters',
     from: 'FROM',
     readNow: 'Read now',
     readLater: 'Later',
-    moreLetters: '+{n} more',
+    moreLetters: '+{{n}} more',
     dateLabel: 'Received',
   },
 
