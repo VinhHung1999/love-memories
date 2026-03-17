@@ -1,9 +1,19 @@
 import cron from 'node-cron';
 import prisma from '../utils/prisma';
 import { createNotification } from '../utils/notifications';
-import { getTodayQuestionId } from './DailyQuestionService';
+import { getTodayQuestionId, updateStreaksForAllCouples } from './DailyQuestionService';
 
 export function registerCrons(): void {
+  // Midnight daily: update Daily Q&A streaks for all couples
+  cron.schedule('0 0 * * *', async () => {
+    try {
+      await updateStreaksForAllCouples();
+      console.log('[cron] daily_question_streak updated for all couples');
+    } catch (err) {
+      console.error('[cron] daily_question_streak error:', err);
+    }
+  }, { timezone: 'Asia/Ho_Chi_Minh' });
+
   // Every minute: deliver SCHEDULED love letters where scheduledAt <= now
   cron.schedule('* * * * *', async () => {
     try {

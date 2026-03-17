@@ -18,6 +18,12 @@ export const submitAnswer = asyncHandler(async (req: AuthRequest & Request<{ id:
   res.status(201).json(result);
 });
 
+export const getStreak = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { coupleId } = req.user! as { userId: string; coupleId: string };
+  const result = await DailyQuestionService.getStreak(coupleId);
+  res.json(result);
+});
+
 export const getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { userId, coupleId } = req.user! as { userId: string; coupleId: string };
   const parsed = historyQuerySchema.safeParse(req.query);

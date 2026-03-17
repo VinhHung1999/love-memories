@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import prisma from '../utils/prisma';
 import { AppError } from '../types/errors';
 import { createNotification, getPartnerUserId } from '../utils/notifications';
@@ -116,6 +117,91 @@ export async function getTodayQuestionId(coupleId: string): Promise<string | nul
     select: { id: true },
   });
   return questions[0]?.id ?? null;
+}
+
+/**
+ * Get or initialize the streak record for a couple.
+ */
+export async function getStreak(coupleId: string) {
+  const streak = await prisma.dailyQuestionStreak.findUnique({
+    where: { coupleId },
+  });
+  if (!streak) {
+    return { currentStreak: 0, longestStreak: 0, lastAnsweredDate: null };
+  }
+  return {
+    currentStreak: streak.currentStreak,
+    longestStreak: streak.longestStreak,
+    lastAnsweredDate: streak.lastAnsweredDate,
+  };
+}
+
+/**
+ * Called by cron at midnight: checks if both partners answered yesterday's question.
+ * Increments or resets streak accordingly.
+ */
+export async function updateStreaksForAllCouples(): Promise<void> {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const yesterdayNumber = Math.floor(Date.now() / msPerDay) - 1;
+
+  const couples = await prisma.couple.findMany({
+    include: { users: { select: { id: true } } },
+  });
+
+  for (const couple of couples) {
+    if (couple.users.length < 2) continue;
+
+    // Get yesterday's question for this couple
+    const total = await prisma.dailyQuestion.count();
+    if (total === 0) continue;
+    const key = `${couple.id}-${yesterdayNumber}`;
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      const char = key.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
+    }
+    const index = Math.abs(hash) % total;
+    const questions = await prisma.dailyQuestion.findMany({
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      skip: index,
+      take: 1,
+      select: { id: true },
+    });
+    const questionId = questions[0]?.id;
+    if (!questionId) continue;
+
+    // Check if both partners answered yesterday's question
+    const responses = await prisma.dailyQuestionResponse.findMany({
+      where: { questionId, coupleId: couple.id },
+      select: { userId: true },
+    });
+    const answeredIds = new Set(responses.map((r) => r.userId));
+    const bothAnswered = couple.users.every((u) => answeredIds.has(u.id));
+
+    // Calculate yesterday date for lastAnsweredDate
+    const yesterday = new Date(yesterdayNumber * msPerDay);
+
+    const existing = await prisma.dailyQuestionStreak.findUnique({ where: { coupleId: couple.id } });
+    const newCurrent = bothAnswered ? (existing?.currentStreak ?? 0) + 1 : 0;
+    const newLongest = Math.max(existing?.longestStreak ?? 0, newCurrent);
+
+    await prisma.dailyQuestionStreak.upsert({
+      where: { coupleId: couple.id },
+      create: {
+        id: crypto.randomUUID(),
+        coupleId: couple.id,
+        currentStreak: newCurrent,
+        longestStreak: newLongest,
+        lastAnsweredDate: bothAnswered ? yesterday : null,
+      },
+      update: {
+        currentStreak: newCurrent,
+        longestStreak: newLongest,
+        lastAnsweredDate: bothAnswered ? yesterday : undefined,
+      },
+    });
+  }
 }
 
 export async function getHistory(coupleId: string, userId: string, page: number, limit: number) {
