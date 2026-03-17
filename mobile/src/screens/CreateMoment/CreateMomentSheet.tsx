@@ -65,6 +65,21 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
 
         <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
 
+        {/* ── Title ── */}
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
+          {`✨  ${t('moments.labels.title')}`}
+        </Caption>
+        <View className="px-5 mb-4">
+          <Input
+            bottomSheet
+            placeholder={t('moments.placeholders.title')}
+            value={vm.title}
+            onChangeText={vm.setTitle}
+          />
+        </View>
+
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
+
         {/* ── Caption ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
           {`✏️  ${t('moments.labels.caption')}`}
@@ -101,6 +116,24 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
               label={t('moments.labels.location')}
             />
           )}
+        </View>
+
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
+
+        {/* ── Spotify URL ── */}
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
+          {`🎵  ${t('moments.labels.spotifyUrl')}`}
+        </Caption>
+        <View className="px-5 mb-4">
+          <Input
+            bottomSheet
+            placeholder={t('moments.placeholders.spotifyUrl')}
+            value={vm.spotifyUrl}
+            onChangeText={vm.setSpotifyUrl}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+          />
         </View>
 
       </View>

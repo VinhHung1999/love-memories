@@ -226,7 +226,7 @@ export default function ProfileScreen() {
               {vm.couple?.inviteCode ? (
                 <>
                   <View className="flex-row items-center gap-3">
-                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-3 border border-border dark:border-darkBorder/50">
+                    <View className="flex-1 rounded-xl px-4 py-3 border border-border dark:border-darkBorder/50" style={{ backgroundColor: colors.gray100 }}>
                       <Body size="md" className="font-mono tracking-[3px] text-textDark dark:text-darkTextDark text-center">
                         {vm.couple.inviteCode}
                       </Body>
@@ -308,12 +308,12 @@ export default function ProfileScreen() {
                     {t('profile.subscription.planFree')}
                   </Body>
                 </View>
-                <Pressable onPress={vm.handleUpgrade}>
+                <Pressable onPress={vm.handleUpgrade} style={{ width: '100%' }}>
                   <LinearGradient
                     colors={[colors.primary, colors.secondary]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={{ borderRadius: 14, paddingVertical: 12, alignItems: 'center' }}
+                    style={{ borderRadius: 14, paddingVertical: 12, alignItems: 'center', width: '100%' }}
                   >
                     <Body size="md" className="font-semibold" style={{ color: '#FFFFFF' }}>
                       {t('profile.subscription.upgrade')}

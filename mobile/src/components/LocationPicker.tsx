@@ -224,6 +224,7 @@ export default function LocationPicker({
               : t('moments.create.addLocation')
           }
           placeholderTextColor={colors.textLight}
+          style={{ color: colors.textDark }}
           value={query}
           onChangeText={handleQueryChange}
           editable={!isBusy}

@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { Heading, Body, Caption, Label } from '../../components/Typography';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   FadeInDown,
@@ -73,7 +73,7 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
         <View
           className="rounded-2xl overflow-hidden"
           style={{
-            backgroundColor: isSelected ? '#FFF0F2' : '#FFFFFF',
+            backgroundColor: isSelected ? colors.primaryMuted : colors.bgCard,
             borderWidth: isSelected ? 2 : 1,
             borderColor: isSelected ? colors.primary : colors.border,
             // 4pt left accent bar via shadow workaround — use borderLeftWidth
@@ -188,7 +188,7 @@ function FeatureTable() {
             key={row.feature}
             className="flex-row items-center"
             style={{
-              backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FDFAF9',
+              backgroundColor: i % 2 === 0 ? colors.bgCard : colors.baseBg,
               borderTopWidth: 1,
               borderColor: colors.border,
             }}
@@ -243,9 +243,10 @@ export default function PaywallScreen({ navigation, route }: Props) {
   const blockedFeature = route.params?.blockedFeature;
 
   const vm = usePaywallViewModel(() => navigation.goBack());
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.baseBg }}>
+    <View className="flex-1" style={{ backgroundColor: colors.baseBg, paddingTop: insets.top }}>
       {/* ── Top bar ── */}
       <View className="flex-row items-center px-4 pt-2 pb-1">
         <Pressable
@@ -298,7 +299,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
             </View>
             <View
               className="w-16 h-16 rounded-full items-center justify-center z-10"
-              style={{ backgroundColor: colors.primaryMuted, borderWidth: 3, borderColor: '#FFF8F6' }}
+              style={{ backgroundColor: colors.primaryMuted, borderWidth: 3, borderColor: colors.baseBg }}
             >
               <Heart size={30} color={colors.primary} strokeWidth={0} fill={colors.primary} />
             </View>
@@ -354,12 +355,13 @@ export default function PaywallScreen({ navigation, route }: Props) {
 
       {/* ── Fixed bottom CTA bar ── */}
       <View
-        className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-3"
-        style={{ backgroundColor: colors.baseBg, borderTopWidth: 1, borderColor: colors.border }}
+        className="absolute bottom-0 left-0 right-0 px-5 pt-3"
+        style={{ backgroundColor: colors.baseBg, borderTopWidth: 1, borderColor: colors.border, paddingBottom: Math.max(insets.bottom, 16) }}
       >
         <Pressable
           onPress={vm.handlePurchase}
           disabled={vm.isPurchasing || vm.isRestoring}
+          style={{ width: '100%' }}
         >
           <LinearGradient
             colors={[colors.primary, colors.secondary]}
@@ -369,6 +371,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
               borderRadius: 16,
               paddingVertical: 16,
               alignItems: 'center',
+              width: '100%',
               shadowColor: 'rgba(232,120,138,0.35)',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 1,
@@ -386,6 +389,6 @@ export default function PaywallScreen({ navigation, route }: Props) {
           </LinearGradient>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

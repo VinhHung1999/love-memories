@@ -8,6 +8,7 @@ import { Body, Heading } from './Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react-native';
 import HeaderIcon from './HeaderIcon';
+import { useAppColors } from '../navigation/theme';
 
 interface OverlayHeaderProps {
   onBack?: () => void;
@@ -35,17 +36,25 @@ export default function OverlayHeader({
   right,
 }: OverlayHeaderProps) {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
 
-  // Header bg fades from transparent → white over fadeStart→fadeEnd (linear, scroll-coupled)
+  // Parse baseBg hex → RGB components outside worklet (worklets can't call hooks)
+  const baseBgHex = colors.baseBg;
+  const bgR = parseInt(baseBgHex.slice(1, 3), 16);
+  const bgG = parseInt(baseBgHex.slice(3, 5), 16);
+  const bgB = parseInt(baseBgHex.slice(5, 7), 16);
+  const borderCol = colors.border;
+
+  // Header bg fades from transparent → baseBg over fadeStart→fadeEnd (linear, scroll-coupled)
   const bgStyle = useAnimatedStyle(() => {
     const progress = Math.min(
       Math.max((scrollY.value - fadeStart) / (fadeEnd - fadeStart), 0),
       1,
     );
     return {
-      backgroundColor: `rgba(255,255,255,${progress})`,
+      backgroundColor: `rgba(${bgR},${bgG},${bgB},${progress})`,
       borderBottomWidth: progress > 0.1 ? 1 : 0,
-      borderBottomColor: '#F0E6E3',
+      borderBottomColor: borderCol,
     };
   });
 
