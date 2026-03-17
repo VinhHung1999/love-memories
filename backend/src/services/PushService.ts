@@ -3,7 +3,7 @@ import prisma from '../utils/prisma';
 
 // Configure VAPID
 webpush.setVapidDetails(
-  process.env.VAPID_EMAIL || 'mailto:admin@love-scrum.hungphu.work',
+  process.env.VAPID_EMAIL || 'mailto:admin@memoura.app',
   process.env.VAPID_PUBLIC_KEY || '',
   process.env.VAPID_PRIVATE_KEY || '',
 );

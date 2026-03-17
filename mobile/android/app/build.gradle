@@ -120,12 +120,12 @@ android {
         dev {
             dimension "env"
             applicationId "com.hungphu.lovememories.dev"
-            resValue "string", "app_name", "Love Memories (Dev)"
+            resValue "string", "app_name", "Memoura (Dev)"
         }
         prod {
             dimension "env"
             applicationId "com.hungphu.lovememories"
-            resValue "string", "app_name", "Love Memories"
+            resValue "string", "app_name", "Memoura"
         }
     }
 }

@@ -18,6 +18,8 @@ const PORT = process.env.PORT || 5005;
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'https://love-scrum.hungphu.work',
   'https://dev-love-scrum.hungphu.work',
+  'https://memoura.app',
+  'https://dev.memoura.app',
 ];
 app.use(cors({
   origin: (origin, callback) => {

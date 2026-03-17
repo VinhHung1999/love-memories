@@ -6,7 +6,7 @@
  */
 const en = {
   app: {
-    name: 'Love Memories',
+    name: 'Memoura',
   },
 
   login: {
@@ -125,7 +125,7 @@ const en = {
     subscription: {
       title: '✨ Subscription',
       planFree: 'Free',
-      planPlus: 'Love Memories Plus',
+      planPlus: 'Memoura Plus',
       upgrade: 'Upgrade to Plus',
       restore: 'Restore Purchases',
       restoring: 'Restoring...',
@@ -154,7 +154,7 @@ const en = {
   },
 
   dashboard: {
-    title: 'Love Memories',
+    title: 'Memoura',
     subtitle: 'Dashboard',
     headerSubtitle: 'HOME ♥',
     couple: {
@@ -217,14 +217,14 @@ const en = {
       button: 'Send Invite',
       modalTitle: 'Your Invite Code',
       modalMessage: 'Share this code with your partner. It expires after they join.',
-      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
+      shareMessage: 'Join me on Memoura! 💕 {{url}}',
     },
     noPartnerBanner: {
       headline: 'Invite your partner',
       subline: "You're all set — share the code below so your partner can join",
       codeLabel: 'Invite code',
       shareBtn: 'Share',
-      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
+      shareMessage: 'Join me on Memoura! 💕 {{url}}',
       generatingCode: 'Generating...',
     },
     setAnniversary: {
@@ -863,7 +863,7 @@ const en = {
   },
 
   paywall: {
-    title: 'Love Memories Plus',
+    title: 'Memoura Plus',
     headline: 'Unlock Your Full\nLove Story',
     subtitle: 'Everything you need to capture,\ncherish, and grow together.',
     limitBanner: "You've reached your free limit for",
@@ -950,7 +950,7 @@ const en = {
   onboarding: {
     welcome: {
       title: 'Your love story\nbegins here',
-      subtitle: 'Capture moments, write letters,\ngrow together ♥',
+      subtitle: 'Two people. One story.',
       cta: "Let's Start",
     },
     couple: {
@@ -987,7 +987,7 @@ const en = {
       skipBtn: 'Skip',
       completing: 'Setting up your love story...',
       doneTitle: "You're all set!",
-      doneSubtitle: 'Welcome to Love Memories ♥',
+      doneSubtitle: 'Welcome to Memoura ♥',
       errors: {
         setupFailed: 'Setup failed. Please try again.',
       },
@@ -1001,7 +1001,7 @@ const en = {
       generatingCode: 'Generating your code...',
       copyHint: 'Tap to copy',
       copied: 'Copied!',
-      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
+      shareMessage: 'Join me on Memoura! 💕 {{url}}',
       completing: 'Setting everything up...',
       errors: {
         failedToGenerate: 'Could not generate code',
@@ -1020,7 +1020,7 @@ const en = {
     title: 'Shared Memory',
     notFound: 'Link not found',
     notFoundDesc: 'This share link may have expired or been revoked.',
-    sharedVia: 'Shared via Love Memories',
+    sharedVia: 'Shared via Memoura',
     share: 'Share',
   },
 
