@@ -9,7 +9,12 @@ import {
 import { deleteFromCdn } from '../utils/cdn';
 import { AppError } from '../types/errors';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// Accept comma-separated list of allowed Google Client IDs (supports multiple during domain migration)
+const GOOGLE_ALLOWED_CLIENT_IDS = (process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
+const googleClient = new OAuth2Client(GOOGLE_ALLOWED_CLIENT_IDS[0]);
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
@@ -59,7 +64,7 @@ export async function verifyGoogleToken(idToken: string): Promise<GoogleProfile>
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: GOOGLE_ALLOWED_CLIENT_IDS,
     });
     const payload = ticket.getPayload();
     if (!payload?.sub || !payload.email) throw new Error('Invalid Google token');
