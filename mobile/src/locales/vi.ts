@@ -950,14 +950,13 @@ const vi: LocaleStrings = {
   },
 
   letterOverlay: {
-    title: 'Bạn có một lá thư',
-    titlePlural: 'Bạn có {count} lá thư',
-    from: 'Từ',
-    tapToOpen: 'Nhấn để mở',
-    swipeHint: 'Đọc hết thư để tiếp tục',
-    dismiss: 'Vào ứng dụng',
-    readAll: 'Đã đọc hết thư!',
-    markingRead: 'Đang đánh dấu đã đọc…',
+    title: '{name} đã viết thư cho bạn',
+    titlePlural: 'Bạn có {count} thư chưa đọc',
+    from: 'TỪ',
+    readNow: 'Đọc ngay',
+    readLater: 'Để sau',
+    moreLetters: '+{n} thư nữa',
+    dateLabel: 'Nhận lúc',
   },
 
   legal: {

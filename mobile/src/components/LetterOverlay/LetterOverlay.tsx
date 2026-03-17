@@ -1,327 +1,309 @@
 /**
  * LetterOverlay
  *
- * Full-screen overlay shown on app open when unread love letters exist.
- * - Swipeable list of letters (FlatList with pagingEnabled)
- * - Tap letter card → envelope flap opens (rotateX 0→180°) + content slides up
- * - Auto marks letter as READ via PATCH /api/love-letters/:id/mark-read
- * - Dismiss only available after all letters are read
+ * Full-screen overlay shown once per session when unread love letters exist.
+ * - Envelope card slides up from bottom (spring)
+ * - Wax seal pops in after card settles
+ * - Letter preview body reveals after seal
+ * - "Đọc ngay" navigates to LettersTab; "Để sau" dismisses (UnreadLetterCard stays on Dashboard)
+ * - 1x per session via hasFetched ref in ViewModel
  */
 
-import React, { useRef, useState } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  type ListRenderItemInfo,
-} from 'react-native';
-import { Caption, Label } from '../Typography';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect } from 'react';
+import { Pressable, View } from 'react-native';
+import { Body, Caption, Cursive, Heading, Label } from '../Typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
-  FadeIn,
-  FadeOut,
+  Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSpring,
+  withTiming,
+  runOnJS,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import { Heart, Mail, ChevronRight } from 'lucide-react-native';
+import { Heart } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
-import type { LoveLetter } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { useLetterOverlayViewModel } from './useLetterOverlayViewModel';
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
-// ── Envelope animation card ────────────────────────────────────────────────
-
-interface LetterCardProps {
-  letter: LoveLetter;
-  isRead: boolean;
-  onOpen: () => void;
+function formatDate(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('default', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
-  const colors = useAppColors();
-  const { t } = useTranslation();
-  const contentOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(24);
+// ── Main overlay ─────────────────────────────────────────────────────────────
 
-  function handlePress() {
-    if (isRead) return;
-    // Letter content slides up + fades in
-    contentOpacity.value = withSpring(1, { mass: 0.6, stiffness: 180, damping: 20 });
-    contentTranslateY.value = withSpring(0, { mass: 0.6, stiffness: 180, damping: 20 });
-    onOpen();
+export default function LetterOverlay() {
+  const { t } = useTranslation();
+  const colors = useAppColors();
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const vm = useLetterOverlayViewModel();
+
+  // ── Shared values ──────────────────────────────────────────────────────────
+  const scrimOpacity  = useSharedValue(0);
+  const cardTranslateY = useSharedValue(140);
+  const cardOpacity   = useSharedValue(0);
+  const sealScale     = useSharedValue(0.2);
+  const sealOpacity   = useSharedValue(0);
+  const bodyTranslateY = useSharedValue(20);
+  const bodyOpacity   = useSharedValue(0);
+  const ctaTranslateY = useSharedValue(12);
+  const ctaOpacity    = useSharedValue(0);
+
+  // ── Enter animation (5-phase sequence) ────────────────────────────────────
+  useEffect(() => {
+    if (!vm.visible) return;
+
+    // Phase 1 — scrim (t=0)
+    scrimOpacity.value = withTiming(1, { duration: 350, easing: Easing.out(Easing.quad) });
+
+    // Phase 2 — card slides up (t=100ms)
+    cardTranslateY.value = withDelay(100, withSpring(0, { mass: 0.8, stiffness: 160, damping: 18 }));
+    cardOpacity.value    = withDelay(100, withTiming(1, { duration: 280 }));
+
+    // Phase 3 — seal pops in (t=350ms)
+    sealScale.value  = withDelay(350, withSpring(1, { mass: 0.5, stiffness: 300, damping: 14 }));
+    sealOpacity.value = withDelay(350, withTiming(1, { duration: 150 }));
+
+    // Phase 4 — body reveals (t=450ms)
+    bodyTranslateY.value = withDelay(450, withSpring(0, { mass: 0.6, stiffness: 180, damping: 20 }));
+    bodyOpacity.value    = withDelay(450, withTiming(1, { duration: 280 }));
+
+    // Phase 5 — CTAs appear (t=600ms)
+    ctaTranslateY.value = withDelay(600, withSpring(0, { mass: 0.5, stiffness: 200, damping: 22 }));
+    ctaOpacity.value    = withDelay(600, withTiming(1, { duration: 250 }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vm.visible]);
+
+  // ── Exit animation ─────────────────────────────────────────────────────────
+  function animateOut(onDone: () => void) {
+    const ease = Easing.in(Easing.quad);
+    cardTranslateY.value = withTiming(80,  { duration: 260, easing: ease });
+    cardOpacity.value    = withTiming(0,   { duration: 260, easing: ease });
+    scrimOpacity.value   = withTiming(0,   { duration: 300, easing: ease }, () => {
+      runOnJS(onDone)();
+    });
   }
 
-  const contentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-    transform: [{ translateY: contentTranslateY.value }],
+  function handleDismiss() {
+    animateOut(() => vm.dismiss());
+  }
+
+  function handleReadNow() {
+    const letterId = vm.readNow();
+    animateOut(() => {
+      navigation.navigate('LettersTab');
+    });
+    void letterId; // used by ViewModel to mark read
+  }
+
+  // ── Animated styles ────────────────────────────────────────────────────────
+  const scrimStyle     = useAnimatedStyle(() => ({ opacity: scrimOpacity.value }));
+  const cardStyle      = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [{ translateY: cardTranslateY.value }],
+  }));
+  const sealStyle      = useAnimatedStyle(() => ({
+    opacity: sealOpacity.value,
+    transform: [{ scale: sealScale.value }],
+  }));
+  const bodyStyle      = useAnimatedStyle(() => ({
+    opacity: bodyOpacity.value,
+    transform: [{ translateY: bodyTranslateY.value }],
+  }));
+  const ctaStyle       = useAnimatedStyle(() => ({
+    opacity: ctaOpacity.value,
+    transform: [{ translateY: ctaTranslateY.value }],
   }));
 
-  const senderName = letter.sender?.name ?? 'Your partner';
+  if (!vm.visible || !vm.firstLetter) return null;
+
+  const letter     = vm.firstLetter;
+  const senderName = letter.sender?.name ?? t('loveLetters.unknownSender', { defaultValue: 'Your partner' });
+  const date       = formatDate(letter.deliveredAt ?? letter.createdAt);
+  const title      = vm.unreadCount === 1
+    ? t('letterOverlay.title', { name: senderName })
+    : t('letterOverlay.titlePlural', { count: vm.unreadCount });
 
   return (
-    <View
-      className="items-center justify-center px-6"
-      style={{ width: SCREEN_W }}
+    <Animated.View
+      className="absolute inset-0"
+      style={[{ zIndex: 9999 }, scrimStyle]}
+      pointerEvents="box-none"
     >
-      <Pressable onPress={handlePress} disabled={isRead} className="w-full" style={{ maxWidth: 360 }}>
-        {/* Envelope body */}
-        <View
-          className="w-full rounded-3xl overflow-hidden"
-          style={{
-            backgroundColor: '#FFFFFF',
-            shadowColor: 'rgba(232,120,138,0.3)',
-            shadowOffset: { width: 0, height: 12 },
-            shadowOpacity: 1,
-            shadowRadius: 32,
-            elevation: 12,
-          }}
-        >
-          {/* Envelope flap */}
-          <View>
-            <LinearGradient
-              colors={[colors.primary, colors.primaryLight]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={{ paddingVertical: 28, paddingHorizontal: 24, alignItems: 'center' }}>
-                <Mail size={36} color="rgba(255,255,255,0.9)" strokeWidth={1.5} />
-                <Text
-                  style={{
-                    color: '#FFFFFF',
-                    fontSize: 13,
-                    fontWeight: '600',
-                    marginTop: 10,
-                    opacity: 0.9,
-                    letterSpacing: 0.3,
-                  }}
-                >
-                  {isRead ? '✓ Letter read' : t('letterOverlay.tapToOpen')}
-                </Text>
-              </View>
-            </LinearGradient>
-          </View>
+      {/* Dim scrim — tap outside dismisses */}
+      <Pressable
+        className="absolute inset-0"
+        style={{ backgroundColor: 'rgba(26,22,36,0.55)' }}
+        onPress={handleDismiss}
+      />
 
-          {/* Letter content */}
-          <View style={{ paddingHorizontal: 24, paddingBottom: 28 }}>
-            {/* Sender info */}
-            <View className="flex-row items-center gap-2 pt-5 pb-4 border-b" style={{ borderColor: colors.border }}>
+      {/* Card stage — anchored to bottom */}
+      <View
+        className="absolute left-0 right-0 justify-end"
+        style={{ bottom: 0, paddingBottom: Math.max(insets.bottom, 24) + 8 }}
+        pointerEvents="box-none"
+      >
+        {/* ── Envelope card ── */}
+        <Animated.View
+          className="mx-5 rounded-[28px] bg-white overflow-hidden"
+          style={[
+            cardStyle,
+            {
+              shadowColor: 'rgba(232,120,138,0.28)',
+              shadowOffset: { width: 0, height: 20 },
+              shadowOpacity: 1,
+              shadowRadius: 48,
+              elevation: 20,
+            },
+          ]}
+        >
+          {/* ── Envelope flap ── */}
+          <LinearGradient
+            colors={[colors.primaryLighter, colors.primaryLight]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
+          >
+            <View className="h-[140px] items-center justify-center">
+              {/* Fold crease line */}
               <View
-                className="w-8 h-8 rounded-full items-center justify-center"
+                className="absolute bottom-0 left-0 right-0 h-px"
+                style={{ backgroundColor: 'rgba(232,120,138,0.18)' }}
+              />
+            </View>
+          </LinearGradient>
+
+          {/* ── Wax seal — straddles flap / body boundary ── */}
+          <Animated.View
+            className="absolute self-center"
+            style={[
+              sealStyle,
+              { top: 140 - 24 }, // half above fold
+            ]}
+          >
+            <View
+              className="w-12 h-12 rounded-full items-center justify-center"
+              style={{ backgroundColor: colors.primary }}
+            >
+              <Heart size={20} color="#fff" fill="#fff" strokeWidth={0} />
+            </View>
+          </Animated.View>
+
+          {/* ── Letter body ── */}
+          <Animated.View className="px-6 pt-10 pb-6" style={bodyStyle}>
+            {/* Sender row */}
+            <View
+              className="flex-row items-center gap-3 pb-4"
+              style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
+            >
+              {/* Avatar circle */}
+              <View
+                className="w-9 h-9 rounded-full items-center justify-center"
                 style={{ backgroundColor: colors.primaryMuted }}
               >
-                <Heart size={14} color={colors.primary} fill={colors.primary} strokeWidth={0} />
+                <Label className="font-bold" style={{ color: colors.primary }}>
+                  {(letter.sender?.name ?? '?').charAt(0).toUpperCase()}
+                </Label>
               </View>
-              <View>
-                <Caption className="tracking-[0.5px]" style={{ color: colors.textLight }}>
-                  {t('letterOverlay.from').toUpperCase()}
+
+              {/* Name */}
+              <View className="flex-1">
+                <Caption className="uppercase tracking-widest" style={{ color: colors.textLight }}>
+                  {t('letterOverlay.from')}
                 </Caption>
                 <Label className="font-semibold" style={{ color: colors.textDark }}>
                   {senderName}
                 </Label>
               </View>
-            </View>
 
-            {/* Title */}
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: '700',
-                color: colors.textDark,
-                marginTop: 16,
-                marginBottom: 12,
-                letterSpacing: -0.3,
-              }}
-            >
-              {letter.title}
-            </Text>
-
-            {/* Content — slides up after tap */}
-            <Animated.View style={contentStyle}>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={{ maxHeight: SCREEN_H * 0.28 }}
-              >
-                <Text style={{ fontSize: 15, color: colors.textMid, lineHeight: 24 }}>
-                  {letter.content}
-                </Text>
-              </ScrollView>
-
-              {/* Mood tag */}
-              {letter.mood ? (
+              {/* Extra letters badge */}
+              {vm.extraCount > 0 ? (
                 <View
-                  className="self-start rounded-full px-3 py-1 mt-4"
+                  className="rounded-full px-2.5 py-1"
                   style={{ backgroundColor: colors.primaryMuted }}
                 >
-                  <Caption className="font-medium" style={{ color: colors.primary }}>
-                    {letter.mood}
+                  <Caption className="font-semibold" style={{ color: colors.primary }}>
+                    {t('letterOverlay.moreLetters', { n: vm.extraCount })}
                   </Caption>
                 </View>
               ) : null}
-            </Animated.View>
-          </View>
-        </View>
-      </Pressable>
-    </View>
-  );
-}
-
-// ── Pagination dots ─────────────────────────────────────────────────────────
-
-function PaginationDots({ total, current }: { total: number; current: number }) {
-  const colors = useAppColors();
-  if (total <= 1) return null;
-  return (
-    <View className="flex-row items-center justify-center gap-2 mt-5">
-      {Array.from({ length: total }).map((_, i) => (
-        <View
-          key={i}
-          style={{
-            width: i === current ? 20 : 6,
-            height: 6,
-            borderRadius: 3,
-            backgroundColor: i === current ? colors.primary : colors.primaryLighter,
-          }}
-        />
-      ))}
-    </View>
-  );
-}
-
-// ── Main overlay ───────────────────────────────────────────────────────────
-
-export default function LetterOverlay() {
-  const { t } = useTranslation();
-  const colors = useAppColors();
-  const vm = useLetterOverlayViewModel();
-  const flatListRef = useRef<FlatList>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  if (!vm.visible || !vm.unreadLetters) return null;
-
-  const letters = vm.unreadLetters;
-  const unreadCount = letters.length;
-  const title = unreadCount === 1
-    ? t('letterOverlay.title')
-    : t('letterOverlay.titlePlural').replace('{count}', String(unreadCount));
-
-  function handleOpenLetter(letter: LoveLetter) {
-    vm.markRead(letter.id);
-  }
-
-  function renderItem({ item }: ListRenderItemInfo<LoveLetter>) {
-    return (
-      <LetterCard
-        letter={item}
-        isRead={vm.readIds.has(item.id)}
-        onOpen={() => handleOpenLetter(item)}
-      />
-    );
-  }
-
-  return (
-    <Animated.View
-      entering={FadeIn.duration(400)}
-      exiting={FadeOut.duration(300)}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 9999,
-      }}
-    >
-      <LinearGradient
-        colors={['#FFF0F4', '#FFF8F6', '#FFF8F6']}
-        style={{ flex: 1 }}
-      >
-        <SafeAreaView className="flex-1">
-          {/* Header */}
-          <View className="items-center pt-4 pb-2 px-6">
-            <View
-              className="flex-row items-center gap-2 rounded-full px-4 py-2 mb-3"
-              style={{ backgroundColor: colors.primaryMuted }}
-            >
-              <Mail size={14} color={colors.primary} strokeWidth={1.5} />
-              <Caption className="font-semibold tracking-[0.3px]" style={{ color: colors.primary }}>
-                {title}
-              </Caption>
             </View>
-            <Text
-              style={{
-                fontSize: 24,
-                fontWeight: '700',
-                color: colors.textDark,
-                textAlign: 'center',
-                letterSpacing: -0.3,
-              }}
+
+            {/* Date */}
+            {date ? (
+              <Caption className="mt-3 mb-1" style={{ color: colors.textLight }}>{date}</Caption>
+            ) : null}
+
+            {/* Title */}
+            <Cursive className="mt-1 mb-3 text-[18px]" style={{ color: colors.textDark }}>
+              {letter.title}
+            </Cursive>
+
+            {/* Snippet */}
+            <Body
+              size="md"
+              className="leading-relaxed"
+              style={{ color: colors.textMid }}
+              numberOfLines={4}
             >
-              {unreadCount === 1 ? 'Someone wrote\nyou a letter 💌' : 'Love letters\nawaiting you 💌'}
-            </Text>
-          </View>
+              {vm.snippet}
+            </Body>
 
-          {/* Swipeable letter list */}
-          <FlatList
-            ref={flatListRef}
-            data={letters}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ alignItems: 'center', paddingVertical: 20 }}
-            onMomentumScrollEnd={e => {
-              const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
-              setCurrentIndex(idx);
-            }}
-            style={{ flexGrow: 0 }}
-          />
-
-          <PaginationDots total={letters.length} current={currentIndex} />
-
-          {/* Hint text */}
-          <View className="items-center mt-4 px-8">
-            {vm.allRead ? (
-              <Label className="font-semibold" style={{ color: colors.success }}>
-                {t('letterOverlay.readAll')}
-              </Label>
-            ) : (
-              <Caption className="text-center" style={{ color: colors.textLight }}>
-                {t('letterOverlay.swipeHint')}
-              </Caption>
-            )}
-          </View>
-
-          {/* Dismiss CTA — only available after all read */}
-          <View className="px-6 mt-4">
-            <Pressable
-              onPress={vm.allRead ? vm.dismiss : undefined}
-              style={{ opacity: vm.allRead ? 1 : 0.4 }}
-            >
-              <LinearGradient
-                colors={vm.allRead ? [colors.primary, colors.secondary] : ['#D0D0D0', '#C0C0C0']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 16 }}
+            {/* Mood tag */}
+            {letter.mood ? (
+              <View
+                className="self-start rounded-full px-3 py-1 mt-3"
+                style={{ backgroundColor: colors.primaryMuted }}
               >
-                <View style={{ paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
-                    {t('letterOverlay.dismiss')}
-                  </Text>
-                  <ChevronRight size={16} color="#FFFFFF" strokeWidth={2.5} />
-                </View>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
+                <Caption className="font-medium" style={{ color: colors.primary }}>
+                  {letter.mood}
+                </Caption>
+              </View>
+            ) : null}
+          </Animated.View>
+        </Animated.View>
+
+        {/* ── CTAs ── */}
+        <Animated.View className="mx-5 mt-3 gap-2.5" style={ctaStyle}>
+          {/* Primary — Read now */}
+          <Pressable onPress={handleReadNow} style={{ width: '100%' }}>
+            <LinearGradient
+              colors={[colors.primary, colors.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ borderRadius: 16 }}
+            >
+              <View className="py-4 items-center justify-center">
+                <Heading size="sm" className="text-white">
+                  {t('letterOverlay.readNow')}
+                </Heading>
+              </View>
+            </LinearGradient>
+          </Pressable>
+
+          {/* Secondary — Later */}
+          <Pressable onPress={handleDismiss} className="py-3.5 items-center justify-center">
+            <Body size="md" className="font-semibold" style={{ color: colors.textMid }}>
+              {t('letterOverlay.readLater')}
+            </Body>
+          </Pressable>
+        </Animated.View>
+
+        {/* Bottom header caption */}
+        <View className="items-center mt-2 mx-5">
+          <Caption className="text-center" style={{ color: 'rgba(255,255,255,0.70)' }}>
+            {title}
+          </Caption>
+        </View>
+      </View>
     </Animated.View>
   );
 }

@@ -950,14 +950,13 @@ const en = {
   },
 
   letterOverlay: {
-    title: 'You have a letter',
-    titlePlural: 'You have {count} letters',
-    from: 'From',
-    tapToOpen: 'Tap to open',
-    swipeHint: 'Read all letters to continue',
-    dismiss: 'Continue to app',
-    readAll: 'All letters read!',
-    markingRead: 'Marking as read…',
+    title: '{name} wrote you a letter',
+    titlePlural: 'You have {count} unread letters',
+    from: 'FROM',
+    readNow: 'Read now',
+    readLater: 'Later',
+    moreLetters: '+{n} more',
+    dateLabel: 'Received',
   },
 
   legal: {
