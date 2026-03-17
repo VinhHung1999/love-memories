@@ -13,7 +13,7 @@
 | TL   | DONE   | All 4 phases approved | 2026-03-16 |
 | WEB  | IDLE   | — | 2026-03-16 |
 | BE   | IDLE   | — | 2026-03-16 |
-| MOBILE | DONE  | Sprint 53 fully complete — Xcode crash fix approved | 2026-03-16 |
+| MOBILE | DONE  | Sprint 53 — GlassTabBar dark mode fix (bfac45f) | 2026-03-17 |
 
 ---
 
@@ -26,7 +26,7 @@
 | 1 | **MOBILE: react-native-config setup** — `.env.dev` + `.env.prod` with `API_URL`, `GOOGLE_CLIENT_ID`, `REVENUECAT_API_KEY`, `MAPBOX_ACCESS_TOKEN`, `APP_BASE_URL`. Replace `__DEV__` / hardcoded values | M | DONE | MOBILE |
 | 11 | **MOBILE: Camera BottomSheet — dismiss on save success** | S | DONE | MOBILE |
 | 12 | **MOBILE: AppBottomSheet — sticky bottom primary button** (toàn app) | M | DONE | MOBILE |
-| 13a | **MOBILE: Create Moment — remove memo field** | S | DONE | MOBILE |
+| 13a | **MOBILE: Create Moment — remove memo field** (giữ Title + Spotify URL per Boss) | S | DONE | MOBILE |
 | 13b | **MOBILE: Create Moment — auto-fill location** if permission granted | S | DONE | MOBILE |
 | 16 | **MOBILE: Share invite → universal link** with `Config.APP_BASE_URL` + fix hardcoded English in handleInvitePartner | S | DONE | MOBILE |
 
@@ -96,7 +96,7 @@
 | # | Feature | Priority |
 |---|---------|----------|
 | B8 | RN Love Letters: Use common BottomSheet component (S48 leftover) | P3 |
-| B14 | RN: Photo Booth | P2 |
+| B14 | RN: Photo Booth — camera + filters + branded watermark ("Made with Memoura ❤️") + save to gallery + share + optionally attach to Moment | P0 |
 | B16 | RN: Monthly Recap | P2 |
 | B17 | App Store: iOS signing (bundle ID, certs, provisioning profiles) | P0 |
 | B18 | App Store: iOS GoogleService-Info.plist + APNS push cert | P0 |
@@ -152,7 +152,7 @@ _Sprint 49 — RN Mobile UI Revamp (Design System, Header Refactor, DetailScreen
 _Sprint 50 — Subscription Flow + Love Letter Overlay + Privacy Policy: DEPLOYED_
 _Sprint 51 — Onboarding v2, CurvedTabBar Camera, Input Limits, Dashboard Tour v2, requireCouple middleware: DEPLOYED_
 _Sprint 52 — Universal Links, Dark Mode, Vietnamese i18n, Invite Link Flow: MERGED TO MAIN_
-_Sprint 53 — MVP Completion (Env Separation, Subscription Enforcement, Bug Fixes, App Store Prep, Xcode 26.3 crash fix): DONE — awaiting Boss review_
+_Sprint 53 — MVP Completion (Subscription Enforcement, Bug Fixes, App Store Prep, react-native-config, Xcode crash fix): STABLE — awaiting Boss review_
 
 ---
 
