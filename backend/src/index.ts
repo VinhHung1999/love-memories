@@ -12,6 +12,7 @@ import { validateEnv } from './utils/validateEnv';
 validateEnv();
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Cloudflare Tunnel)
 const PORT = process.env.PORT || 5005;
 
 // Task 3: CORS whitelist
