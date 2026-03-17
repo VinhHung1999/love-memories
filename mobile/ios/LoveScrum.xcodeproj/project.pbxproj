@@ -280,11 +280,11 @@
 			buildActionMask = 2147483647;
 			files = (
 			);
+			alwaysOutOfDate = 1;
 			inputPaths = (
 			);
 			name = "Setup react-native-config env";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/tmp.xcconfig",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
