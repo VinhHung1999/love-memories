@@ -82,8 +82,8 @@ export default function DetailScreenLayout({
     colors.primary + '08',
   ];
 
-  // ScrollView background: dark behind cover (upward over-scroll), white below content
-  const scrollBg = coverImageUri ? 'white' : gradient[0];
+  // ScrollView background: dark behind cover (upward over-scroll), card bg below content
+  const scrollBg = coverImageUri ? colors.bgCard : gradient[0];
 
   return (
     <View className="flex-1 bg-white dark:bg-darkBgCard">
@@ -160,7 +160,7 @@ export default function DetailScreenLayout({
               size="lg"
               style={{
                 fontSize: 26,
-                color: coverImageUri ? '#FFFFFF' : '#2D2D2D',
+                color: coverImageUri ? '#FFFFFF' : colors.textDark,
                 lineHeight: 33,
                 letterSpacing: -0.3,
               }}
