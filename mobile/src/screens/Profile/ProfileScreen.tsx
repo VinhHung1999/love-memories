@@ -279,9 +279,11 @@ export default function ProfileScreen() {
                     colors={[colors.primary, colors.secondary]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}
+                    style={{ borderRadius: 99 }}
                   >
-                    <Caption className="font-bold" style={{ color: '#FFFFFF' }}>PLUS</Caption>
+                    <View style={{ paddingHorizontal: 10, paddingVertical: 3 }}>
+                      <Caption className="font-bold" style={{ color: '#FFFFFF' }}>PLUS</Caption>
+                    </View>
                   </LinearGradient>
                   <Body size="md" className="font-semibold text-textDark dark:text-darkTextDark">
                     {t('profile.subscription.planPlus')}
@@ -313,11 +315,13 @@ export default function ProfileScreen() {
                     colors={[colors.primary, colors.secondary]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={{ borderRadius: 14, paddingVertical: 12, alignItems: 'center', width: '100%' }}
+                    style={{ borderRadius: 14 }}
                   >
-                    <Body size="md" className="font-semibold" style={{ color: '#FFFFFF' }}>
-                      {t('profile.subscription.upgrade')}
-                    </Body>
+                    <View style={{ paddingVertical: 12, alignItems: 'center', width: '100%' }}>
+                      <Body size="md" className="font-semibold" style={{ color: '#FFFFFF' }}>
+                        {t('profile.subscription.upgrade')}
+                      </Body>
+                    </View>
                   </LinearGradient>
                 </Pressable>
               </View>

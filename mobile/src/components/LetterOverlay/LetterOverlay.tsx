@@ -89,21 +89,22 @@ function LetterCard({ letter, isRead, onOpen }: LetterCardProps) {
               colors={[colors.primary, colors.primaryLight]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={{ paddingVertical: 28, paddingHorizontal: 24, alignItems: 'center' }}
             >
-              <Mail size={36} color="rgba(255,255,255,0.9)" strokeWidth={1.5} />
-              <Text
-                style={{
-                  color: '#FFFFFF',
-                  fontSize: 13,
-                  fontWeight: '600',
-                  marginTop: 10,
-                  opacity: 0.9,
-                  letterSpacing: 0.3,
-                }}
-              >
-                {isRead ? '✓ Letter read' : t('letterOverlay.tapToOpen')}
-              </Text>
+              <View style={{ paddingVertical: 28, paddingHorizontal: 24, alignItems: 'center' }}>
+                <Mail size={36} color="rgba(255,255,255,0.9)" strokeWidth={1.5} />
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontSize: 13,
+                    fontWeight: '600',
+                    marginTop: 10,
+                    opacity: 0.9,
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  {isRead ? '✓ Letter read' : t('letterOverlay.tapToOpen')}
+                </Text>
+              </View>
             </LinearGradient>
           </View>
 
@@ -308,19 +309,14 @@ export default function LetterOverlay() {
                 colors={vm.allRead ? [colors.primary, colors.secondary] : ['#D0D0D0', '#C0C0C0']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{
-                  borderRadius: 16,
-                  paddingVertical: 15,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                }}
+                style={{ borderRadius: 16 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
-                  {t('letterOverlay.dismiss')}
-                </Text>
-                <ChevronRight size={16} color="#FFFFFF" strokeWidth={2.5} />
+                <View style={{ paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
+                    {t('letterOverlay.dismiss')}
+                  </Text>
+                  <ChevronRight size={16} color="#FFFFFF" strokeWidth={2.5} />
+                </View>
               </LinearGradient>
             </Pressable>
           </View>

@@ -84,13 +84,8 @@ export default function CameraTabButton(_props: BottomTabBarButtonProps) {
             colors={['#F4A0B0', '#E8788A']}
             start={{ x: 0.15, y: 0 }}
             end={{ x: 0.85, y: 1 }}
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            {/* Explicit wrapper guarantees pixel-perfect center regardless of border/padding */}
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            style={{ flex: 1 }}>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
             </View>
           </LinearGradient>

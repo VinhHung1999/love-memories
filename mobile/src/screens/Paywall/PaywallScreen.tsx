@@ -60,11 +60,13 @@ function PricingCard({ plan, isSelected, index, onPress }: PricingCardProps) {
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 }}
+            style={{ borderRadius: 99 }}
           >
-            <Caption className="font-bold" style={{ color: '#FFFFFF', letterSpacing: 0.8 }}>
-              {t('paywall.bestValue')}
-            </Caption>
+            <View style={{ paddingHorizontal: 10, paddingVertical: 3 }}>
+              <Caption className="font-bold" style={{ color: '#FFFFFF', letterSpacing: 0.8 }}>
+                {t('paywall.bestValue')}
+              </Caption>
+            </View>
           </LinearGradient>
         </View>
       ) : null}
@@ -369,9 +371,6 @@ export default function PaywallScreen({ navigation, route }: Props) {
             end={{ x: 1, y: 0 }}
             style={{
               borderRadius: 16,
-              paddingVertical: 16,
-              alignItems: 'center',
-              width: '100%',
               shadowColor: 'rgba(232,120,138,0.35)',
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 1,
@@ -379,13 +378,15 @@ export default function PaywallScreen({ navigation, route }: Props) {
               elevation: 8,
             }}
           >
-            {vm.isPurchasing ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Label className="font-bold" style={{ color: '#FFFFFF', fontSize: 16, letterSpacing: 0.3 }}>
-                {t('paywall.cta')}
-              </Label>
-            )}
+            <View style={{ paddingVertical: 16, alignItems: 'center', width: '100%' }}>
+              {vm.isPurchasing ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Label className="font-bold" style={{ color: '#FFFFFF', fontSize: 16, letterSpacing: 0.3 }}>
+                  {t('paywall.cta')}
+                </Label>
+              )}
+            </View>
           </LinearGradient>
         </Pressable>
       </View>
