@@ -3,8 +3,8 @@ import type { AuthUser, GoogleProfile } from '@shared/types';
 
 export type { AuthUser, GoogleProfile };
 
-const TOKEN_KEY = 'love-scrum-token';
-const REFRESH_TOKEN_KEY = 'love-scrum-refresh-token';
+const TOKEN_KEY = 'memoura-token';
+const REFRESH_TOKEN_KEY = 'memoura-refresh-token';
 const API = '/api';
 
 interface AuthContextValue {

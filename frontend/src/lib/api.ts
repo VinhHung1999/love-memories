@@ -2,8 +2,8 @@ import type { Moment, MomentComment, MomentReaction, FoodSpot, MapPin, Sprint, G
 import { uploadWithProgress } from './uploadWithProgress';
 
 const API = '/api';
-const TOKEN_KEY = 'love-scrum-token';
-const REFRESH_TOKEN_KEY = 'love-scrum-refresh-token';
+const TOKEN_KEY = 'memoura-token';
+const REFRESH_TOKEN_KEY = 'memoura-refresh-token';
 
 /** Proxy a CDN audio URL through our backend to bypass CORS and fix content-type */
 export function proxyAudioUrl(cdnUrl: string): string {

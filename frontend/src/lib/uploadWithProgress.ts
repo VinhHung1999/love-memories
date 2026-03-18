@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'love-scrum-token';
+const TOKEN_KEY = 'memoura-token';
 
 export function uploadWithProgress(
   url: string,

@@ -5,7 +5,7 @@ export function createCanvas(width: number, height: number): HTMLCanvasElement {
   return canvas;
 }
 
-const TOKEN_KEY = 'love-scrum-token';
+const TOKEN_KEY = 'memoura-token';
 
 export async function loadImage(url: string): Promise<HTMLImageElement> {
   // data: URLs (from camera capture) load directly — no fetch needed
