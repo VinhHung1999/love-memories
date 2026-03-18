@@ -884,6 +884,12 @@ const vi: LocaleStrings = {
       longest: 'Kỷ lục: {{n}} ngày',
       breakWarning: 'Trả lời hôm nay để giữ chuỗi! ⚡',
     },
+    streakRow: {
+      noStreak: 'Có câu hỏi mới — bắt đầu chuỗi ngày nào! ✨',
+      urgent: 'Đừng để mất 🔥{{n}} ngày liên tiếp — trả lời nào!',
+      waiting: 'Xong rồi! Nhắc {{partner}} trả lời để giữ streak 🔥',
+      completed: '🎉 {{n}} ngày liên tiếp! Hai bạn thật ăn ý!',
+    },
   },
 
   paywall: {

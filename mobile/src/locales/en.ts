@@ -884,6 +884,12 @@ const en = {
       longest: 'Best: {{n}} days',
       breakWarning: "Answer today to keep your streak alive! ⚡",
     },
+    streakRow: {
+      noStreak: 'A new question awaits — start your streak today! ✨',
+      urgent: "Don't break your 🔥{{n}}-day streak — answer today!",
+      waiting: "You're done! Nudge {{partner}} to keep the streak 🔥",
+      completed: '🎉 {{n}}-day streak! You two are in sync!',
+    },
   },
 
   paywall: {

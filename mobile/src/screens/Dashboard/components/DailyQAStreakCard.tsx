@@ -17,6 +17,7 @@ import {
   Star,
   Telescope,
 } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../../lib/auth';
@@ -41,6 +42,102 @@ interface DailyQAStreakCardProps {
   answeredToday: boolean;
   completedToday: boolean;
 }
+
+// ── StreakRow — 4-state bottom strip ─────────────────────────────────────────
+
+function StreakRow({
+  currentStreak,
+  answeredToday,
+  completedToday,
+  partnerName,
+  dividerColor = 'rgba(0,0,0,0.06)',
+}: {
+  currentStreak: number;
+  answeredToday: boolean;
+  completedToday: boolean;
+  partnerName?: string | null;
+  dividerColor?: string;
+}) {
+  const { t } = useTranslation();
+  const colors = useAppColors();
+
+  let text: string;
+  let textColor: string;
+
+  if (completedToday) {
+    // State 4: both answered — celebration
+    text = t('dailyQuestions.streakRow.completed', { n: currentStreak });
+    textColor = '#059669';
+  } else if (answeredToday) {
+    // State 3: I answered, waiting for partner
+    text = t('dailyQuestions.streakRow.waiting', { partner: partnerName ?? '♥' });
+    textColor = '#D97706';
+  } else if (currentStreak > 0) {
+    // State 2: streak at risk — urgent
+    text = t('dailyQuestions.streakRow.urgent', { n: currentStreak });
+    textColor = '#FFFFFF';
+  } else {
+    // State 1: no streak yet
+    text = t('dailyQuestions.streakRow.noStreak');
+    textColor = colors.textMid;
+  }
+
+  const isGradient2 = !completedToday && !answeredToday && currentStreak > 0;
+  const isGradient4 = completedToday;
+  const isSolid3    = !completedToday && answeredToday;
+  const isSolid1    = !completedToday && !answeredToday && currentStreak === 0;
+
+  const solidBg = isSolid3 ? '#FEF3C7' : isSolid1 ? colors.primaryLighter : undefined;
+
+  const rowContent = (
+    <Body
+      size="sm"
+      style={{ color: textColor, fontWeight: '700', fontSize: 14, textAlign: 'center' }}
+      numberOfLines={2}
+    >
+      {text}
+    </Body>
+  );
+
+  return (
+    <>
+      <View style={{ height: 1, backgroundColor: dividerColor, marginHorizontal: -16, marginTop: 12 }} />
+      {isGradient2 ? (
+        <LinearGradient
+          colors={['#F59E0B', '#FBBF24']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ marginHorizontal: -16, marginBottom: -12, paddingHorizontal: 16, paddingVertical: 10 }}
+        >
+          {rowContent}
+        </LinearGradient>
+      ) : isGradient4 ? (
+        <LinearGradient
+          colors={['#D1FAE5', '#A7F3D0']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ marginHorizontal: -16, marginBottom: -12, paddingHorizontal: 16, paddingVertical: 10 }}
+        >
+          {rowContent}
+        </LinearGradient>
+      ) : (
+        <View
+          style={{
+            marginHorizontal: -16,
+            marginBottom: -12,
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            backgroundColor: solidBg,
+          }}
+        >
+          {rowContent}
+        </View>
+      )}
+    </>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export default function DailyQAStreakCard({
   currentStreak,
@@ -104,7 +201,7 @@ export default function DailyQAStreakCard({
     return (
       <Animated.View entering={FadeInDown.delay(160).duration(500)}>
         <View
-          className="rounded-3xl border border-borderSoft dark:border-darkBorder px-4 py-3"
+          className="rounded-3xl border border-borderSoft dark:border-darkBorder px-4 py-3 overflow-hidden"
           style={{ opacity: 0.5 }}>
           <View className="flex-row items-center gap-1.5">
             <MessageCircle size={12} color={colors.textLight} strokeWidth={1.5} />
@@ -117,6 +214,11 @@ export default function DailyQAStreakCard({
           <Body size="sm" style={{ color: colors.textLight, marginTop: 4 }}>
             {t('dailyQuestions.noQuestion')}
           </Body>
+          <StreakRow
+            currentStreak={currentStreak}
+            answeredToday={answeredToday}
+            completedToday={completedToday}
+          />
         </View>
       </Animated.View>
     );
@@ -166,6 +268,13 @@ export default function DailyQAStreakCard({
               <Body size="sm" style={{ color: colors.textDark }} numberOfLines={2}>{partnerAnswer}</Body>
             </View>
           </View>
+
+          <StreakRow
+            currentStreak={currentStreak}
+            answeredToday={answeredToday}
+            completedToday={completedToday}
+            partnerName={partnerName}
+          />
         </Pressable>
       </Animated.View>
     );
@@ -242,6 +351,14 @@ export default function DailyQAStreakCard({
             </Caption>
           </>
         )}
+
+        <StreakRow
+          currentStreak={currentStreak}
+          answeredToday={answeredToday}
+          completedToday={completedToday}
+          partnerName={partnerName}
+          dividerColor="rgba(255,255,255,0.20)"
+        />
       </Pressable>
     </Animated.View>
   );
