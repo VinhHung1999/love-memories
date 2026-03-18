@@ -361,18 +361,43 @@ function TodayView({
   const meta = getCategoryMeta(question.category);
 
   return (
-    <View className="flex-1">
-      {/* ── Input bar — above scroll, shown only when not answered ── */}
-      {!hasAnswered ? (
+    <Animated.ScrollView
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      contentContainerClassName="px-4 pb-8 gap-5"
+      onScroll={onScroll}
+      scrollEventThrottle={16}
+    >
+      {/* ── Question card ── */}
+      <Animated.View entering={FadeInDown.delay(50).duration(500)}>
         <View
-          style={{
-            backgroundColor: colors.bgCard,
-            borderBottomWidth: 1,
-            borderBottomColor: 'rgba(0,0,0,0.06)',
-            paddingHorizontal: 12,
-            paddingTop: 8,
-          }}
-        >
+          className="rounded-3xl overflow-hidden px-5 pt-5 pb-6"
+          style={{ backgroundColor: colors.primary }}>
+          <View className="flex-row items-center gap-2 mb-4">
+            <View
+              className="w-7 h-7 rounded-xl items-center justify-center"
+              style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
+              <meta.icon size={14} color="#fff" strokeWidth={1.5} />
+            </View>
+            <Caption className="font-bold text-white/70 tracking-widest uppercase">
+              {t('dailyQuestions.questionLabel')}
+            </Caption>
+          </View>
+          <Heading size="lg" className="text-white leading-snug">
+            {question.text}
+          </Heading>
+          {question.textVi ? (
+            <Body size="md" className="text-white/65 mt-2 italic leading-relaxed">
+              {question.textVi}
+            </Body>
+          ) : null}
+        </View>
+      </Animated.View>
+
+      {/* ── Input — shown directly below question card, hidden after answered ── */}
+      {!hasAnswered ? (
+        <View>
           {submitError ? (
             <Caption className="text-center mb-1" style={{ color: colors.errorColor }}>
               {submitError}
@@ -388,66 +413,31 @@ function TodayView({
         </View>
       ) : null}
 
-      <Animated.ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerClassName="px-4 pb-8 gap-5"
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-      >
-        {/* ── Question card ── */}
-        <Animated.View entering={FadeInDown.delay(50).duration(500)}>
-          <View
-            className="rounded-3xl overflow-hidden px-5 pt-5 pb-6"
-            style={{ backgroundColor: colors.primary }}>
-            <View className="flex-row items-center gap-2 mb-4">
-              <View
-                className="w-7 h-7 rounded-xl items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
-                <meta.icon size={14} color="#fff" strokeWidth={1.5} />
-              </View>
-              <Caption className="font-bold text-white/70 tracking-widest uppercase">
-                {t('dailyQuestions.questionLabel')}
-              </Caption>
-            </View>
-            <Heading size="lg" className="text-white leading-snug">
-              {question.text}
-            </Heading>
-            {question.textVi ? (
-              <Body size="md" className="text-white/65 mt-2 italic leading-relaxed">
-                {question.textVi}
-              </Body>
-            ) : null}
-          </View>
-        </Animated.View>
-
-        {/* ── Answer chat bubbles (after answered) ── */}
-        {hasAnswered ? (
-          <Animated.View entering={FadeIn.duration(300)} className="gap-3">
-            <Caption className="text-textLight dark:text-darkTextLight font-semibold uppercase tracking-wider px-1">
-              {partnerAnswer
-                ? t('dailyQuestions.bothAnswered')
-                : t('dailyQuestions.answered')}
+      {/* ── Answer chat bubbles (after answered) ── */}
+      {hasAnswered ? (
+        <Animated.View entering={FadeIn.duration(300)} className="gap-3">
+          <Caption className="text-textLight dark:text-darkTextLight font-semibold uppercase tracking-wider px-1">
+            {partnerAnswer
+              ? t('dailyQuestions.bothAnswered')
+              : t('dailyQuestions.answered')}
+          </Caption>
+          <MyAnswerBubble text={myAnswer!} />
+          {partnerAnswer ? (
+            <PartnerAnswerBubble
+              text={partnerAnswer}
+              partnerName={partnerName}
+            />
+          ) : (
+            <TypingDotsBubble partnerName={partnerName} />
+          )}
+          {!partnerAnswer ? (
+            <Caption className="text-textLight dark:text-darkTextLight text-center italic">
+              {t('dailyQuestions.waitingHint')}
             </Caption>
-            <MyAnswerBubble text={myAnswer!} />
-            {partnerAnswer ? (
-              <PartnerAnswerBubble
-                text={partnerAnswer}
-                partnerName={partnerName}
-              />
-            ) : (
-              <TypingDotsBubble partnerName={partnerName} />
-            )}
-            {!partnerAnswer ? (
-              <Caption className="text-textLight dark:text-darkTextLight text-center italic">
-                {t('dailyQuestions.waitingHint')}
-              </Caption>
-            ) : null}
-          </Animated.View>
-        ) : null}
-      </Animated.ScrollView>
-    </View>
+          ) : null}
+        </Animated.View>
+      ) : null}
+    </Animated.ScrollView>
   );
 }
 
