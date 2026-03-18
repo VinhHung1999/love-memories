@@ -78,7 +78,7 @@ export default function DashboardScreen() {
                   </Heading>
                 </View>
                 {vm.slogan ? (
-                  <Cursive className="text-[11px] text-textLight dark:text-darkTextLight mt-2">
+                  <Cursive className="text-[11px] text-textLight dark:text-darkTextMid mt-2">
                     {vm.slogan}
                   </Cursive>
                 ) : null}

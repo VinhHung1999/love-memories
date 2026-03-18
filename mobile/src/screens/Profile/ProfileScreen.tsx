@@ -153,11 +153,7 @@ export default function ProfileScreen() {
               <Caption className="text-textMid dark:text-darkTextMid">Since {vm.anniversaryDisplay}</Caption>
             </View>
           ) : null}
-          {vm.slogan ? (
-            <Caption className="text-textLight dark:text-darkTextLight italic mt-1.5 text-center" numberOfLines={1}>
-              {vm.slogan}
-            </Caption>
-          ) : null}
+
         </View>
 
           {/* ── Partner card ── */}
