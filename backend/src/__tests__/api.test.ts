@@ -2196,7 +2196,7 @@ describe('Subscription', () => {
           type: 'INITIAL_PURCHASE',
           app_user_id: subCoupleId,
           store: 'APP_STORE',
-          product_id: 'love_memories_plus_monthly',
+          product_id: 'memoura_plus_monthly',
         },
       });
     expect(res.status).toBe(200);

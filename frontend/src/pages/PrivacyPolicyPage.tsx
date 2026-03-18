@@ -199,7 +199,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <div className="bg-primary/5 rounded-xl p-4">
               <p className="text-sm font-medium text-text">Memoura App</p>
-              <p className="text-sm text-primary mt-1">privacy@love-memories.app</p>
+              <p className="text-sm text-primary mt-1">privacy@memoura.app</p>
               <p className="text-sm text-text-light mt-1">
                 We aim to respond to all privacy inquiries within 5 business days.
               </p>

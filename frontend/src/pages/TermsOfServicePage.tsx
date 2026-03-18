@@ -254,7 +254,7 @@ export default function TermsOfServicePage() {
             </p>
             <div className="bg-primary/5 rounded-xl p-4">
               <p className="text-sm font-medium text-text">Memoura App</p>
-              <p className="text-sm text-primary mt-1">support@love-memories.app</p>
+              <p className="text-sm text-primary mt-1">support@memoura.app</p>
               <p className="text-sm text-text-light mt-1">
                 We aim to respond to all inquiries within 5 business days.
               </p>
