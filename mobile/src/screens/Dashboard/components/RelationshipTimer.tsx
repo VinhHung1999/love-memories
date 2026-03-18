@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, useColorScheme } from 'react-native';
 import Animated, {
   FadeIn,
   useSharedValue,
@@ -58,13 +58,17 @@ function AvatarWithRing({
   const colors = useAppColors();
   const haloScale   = useSharedValue(1);
   const haloOpacity = useSharedValue(0.6);
+  // Breathing: avatar + rings scale together, 2400ms full cycle
+  const breathScale = useSharedValue(1);
 
   useEffect(() => {
-    const cfg = { duration: 1400, easing: Easing.inOut(Easing.ease) };
+    const haloCfg   = { duration: 1400, easing: Easing.inOut(Easing.ease) };
+    const breathCfg = { duration: 1200, easing: Easing.inOut(Easing.sin) };
+
     haloScale.value = withDelay(
       animDelay,
       withRepeat(
-        withSequence(withTiming(1.10, cfg), withTiming(1.0, cfg)),
+        withSequence(withTiming(1.10, haloCfg), withTiming(1.0, haloCfg)),
         -1,
         false,
       ),
@@ -72,7 +76,16 @@ function AvatarWithRing({
     haloOpacity.value = withDelay(
       animDelay,
       withRepeat(
-        withSequence(withTiming(0.25, cfg), withTiming(0.6, cfg)),
+        withSequence(withTiming(0.25, haloCfg), withTiming(0.6, haloCfg)),
+        -1,
+        false,
+      ),
+    );
+    // Breathing animation — scale 1.0→1.04→1.0, 2400ms cycle (1200ms each half)
+    breathScale.value = withDelay(
+      animDelay,
+      withRepeat(
+        withSequence(withTiming(1.04, breathCfg), withTiming(1.0, breathCfg)),
         -1,
         false,
       ),
@@ -83,6 +96,10 @@ function AvatarWithRing({
   const haloStyle = useAnimatedStyle(() => ({
     transform: [{ scale: haloScale.value }],
     opacity: haloOpacity.value,
+  }));
+
+  const breathStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathScale.value }],
   }));
 
   return (
@@ -100,31 +117,34 @@ function AvatarWithRing({
           },
         ]}
       />
-      {/* Middle rose ring */}
-      <View
-        style={{
-          width: 76,
-          height: 76,
-          borderRadius: 38,
-          backgroundColor: '#F9D0D8',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {/* White separator */}
+      {/* Avatar + rings — breathing scale */}
+      <Animated.View style={breathStyle}>
+        {/* Middle rose ring — uses primaryLighter for dark mode compat */}
         <View
           style={{
-            width: 70,
-            height: 70,
-            borderRadius: 35,
-            backgroundColor: '#FFFFFF',
+            width: 76,
+            height: 76,
+            borderRadius: 38,
+            backgroundColor: colors.primaryLighter,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <AvatarCircle uri={uri} initials={initials} size={66} />
+          {/* White separator — uses bgCard for dark mode compat */}
+          <View
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              backgroundColor: colors.bgCard,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <AvatarCircle uri={uri} initials={initials} size={66} />
+          </View>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -145,6 +165,10 @@ export function RelationshipTimer({
 }: RelationshipTimerProps) {
   const { t } = useTranslation();
   const colors = useAppColors();
+  const colorScheme = useColorScheme();
+  const gradientColors: [string, string, string] = colorScheme === 'dark'
+    ? [colors.bgCard, '#1C1318', colors.primaryLighter]
+    : ['#FFFFFF', '#FFF8F4', '#FFE4EA'];
   const heartScale = useSharedValue(1);
   const ecgOffset  = useSharedValue(0);
   const displayDays = useCountUp(duration?.totalDays ?? 0, 800);
@@ -267,7 +291,7 @@ export function RelationshipTimer({
         }}
       >
         <LinearGradient
-          colors={['#FFFFFF', '#FFF8F4', '#FFE4EA']}
+          colors={gradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{ borderRadius: 28 }}
