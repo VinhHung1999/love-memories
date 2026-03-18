@@ -84,7 +84,7 @@ export default function Dashboard() {
 
   const { data: appNameSetting } = useQuery({ queryKey: ['settings', 'app_name'], queryFn: () => settingsApi.get('app_name') });
   const { data: appSloganSetting } = useQuery({ queryKey: ['settings', 'app_slogan'], queryFn: () => settingsApi.get('app_slogan') });
-  const appName = appNameSetting?.value || 'Love Memories';
+  const appName = appNameSetting?.value || 'Memoura';
   const appSlogan = appSloganSetting?.value || 'Our little world, beautifully organized';
 
   const { data: relDateData } = useQuery({

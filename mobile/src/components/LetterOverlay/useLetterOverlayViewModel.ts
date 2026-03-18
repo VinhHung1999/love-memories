@@ -3,28 +3,32 @@ import { useAuth } from '../../lib/auth';
 import { loveLettersApi } from '../../lib/api';
 import type { LoveLetter } from '../../types';
 
-interface UseLetterOverlayViewModelReturn {
-  /** null while loading, empty array = no unread letters */
-  unreadLetters: LoveLetter[] | null;
-  /** IDs of letters the user has already opened/read in this session */
-  readIds: Set<string>;
-  /** Whether all letters have been opened (overlay can be dismissed) */
-  allRead: boolean;
-  /** Mark a letter as read — calls API + updates local state */
-  markRead: (id: string) => Promise<void>;
-  /** Dismiss the overlay (call only when allRead) */
-  dismiss: () => void;
-  /** Whether the overlay should be visible at all */
-  visible: boolean;
+const SNIPPET_MAX = 120;
+
+function buildSnippet(content: string): string {
+  if (content.length <= SNIPPET_MAX) return content;
+  const cutoff = content.lastIndexOf(' ', SNIPPET_MAX);
+  return content.slice(0, cutoff > 0 ? cutoff : SNIPPET_MAX) + '…';
 }
 
-export function useLetterOverlayViewModel(): UseLetterOverlayViewModelReturn {
+export interface LetterOverlayViewModelReturn {
+  visible: boolean;
+  firstLetter: LoveLetter | null;
+  snippet: string;
+  unreadCount: number;
+  extraCount: number;
+  /** Dismiss overlay without navigating (Để sau) */
+  dismiss: () => void;
+  /** Mark first letter read and return its id (for navigation) */
+  readNow: () => string | null;
+}
+
+export function useLetterOverlayViewModel(): LetterOverlayViewModelReturn {
   const { isAuthenticated } = useAuth();
   const [unreadLetters, setUnreadLetters] = useState<LoveLetter[] | null>(null);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [dismissed, setDismissed] = useState(false);
 
-  // Fetch unread letters once on mount (authenticated only)
+  // Fetch once per session on mount
   const hasFetched = useRef(false);
   useEffect(() => {
     if (!isAuthenticated || hasFetched.current) return;
@@ -39,39 +43,39 @@ export function useLetterOverlayViewModel(): UseLetterOverlayViewModelReturn {
         }
         const letters = await loveLettersApi.received();
         const unread = letters.filter(l => l.status === 'DELIVERED' && !l.readAt);
+        // Sort by deliveredAt descending — show most recent first
+        unread.sort((a, b) =>
+          new Date(b.deliveredAt ?? b.createdAt).getTime() -
+          new Date(a.deliveredAt ?? a.createdAt).getTime(),
+        );
         setUnreadLetters(unread);
       } catch {
-        // On error, don't show overlay
         setUnreadLetters([]);
       }
     })();
   }, [isAuthenticated]);
 
-  const markRead = useCallback(async (id: string) => {
-    if (readIds.has(id)) return;
-    try {
-      await loveLettersApi.markRead(id);
-    } catch {
-      // Mark locally even if API call fails — best effort
+  const dismiss = useCallback(() => setDismissed(true), []);
+
+  const readNow = useCallback((): string | null => {
+    const first = unreadLetters?.[0] ?? null;
+    if (first) {
+      loveLettersApi.markRead(first.id).catch(() => {});
     }
-    setReadIds(prev => {
-      const next = new Set(prev);
-      next.add(id);
-      return next;
-    });
-  }, [readIds]);
-
-  const dismiss = useCallback(() => {
     setDismissed(true);
-  }, []);
+    return first?.id ?? null;
+  }, [unreadLetters]);
 
-  const allRead = unreadLetters !== null &&
-    unreadLetters.length > 0 &&
-    unreadLetters.every(l => readIds.has(l.id));
+  const firstLetter = unreadLetters?.[0] ?? null;
+  const unreadCount = unreadLetters?.length ?? 0;
 
-  const visible = !dismissed &&
-    unreadLetters !== null &&
-    unreadLetters.length > 0;
-
-  return { unreadLetters, readIds, allRead, markRead, dismiss, visible };
+  return {
+    visible: !dismissed && unreadCount > 0,
+    firstLetter,
+    snippet: firstLetter ? buildSnippet(firstLetter.content) : '',
+    unreadCount,
+    extraCount: Math.max(0, unreadCount - 1),
+    dismiss,
+    readNow,
+  };
 }

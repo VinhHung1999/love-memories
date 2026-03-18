@@ -8,7 +8,7 @@ import { API_URL } from '../config/env';
 
 const API_BASE = API_URL;
 
-const KEYCHAIN_SERVICE = 'love-scrum';
+const KEYCHAIN_SERVICE = 'memoura';
 
 // ---------------------------------------------------------------------------
 // Warmup — pre-resolve DNS + TLS on app start so first real API call is fast
@@ -1279,6 +1279,11 @@ export const dailyQuestionsApi = {
   history: async (page = 1, limit = 20): Promise<import('../types').DailyQuestionHistory> => {
     const res = await apiFetch(`/api/daily-questions/history?page=${page}&limit=${limit}`);
     if (!res.ok) throw new Error('Failed to fetch history');
+    return res.json();
+  },
+  streak: async (): Promise<{ currentStreak: number; longestStreak: number; lastAnsweredAt: string | null; completedToday: boolean }> => {
+    const res = await apiFetch('/api/daily-questions/streak');
+    if (!res.ok) throw new Error('Failed to fetch streak');
     return res.json();
   },
 };

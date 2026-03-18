@@ -39,19 +39,48 @@ export function useNotificationsViewModel() {
 
   const handleNotificationPress = useCallback((n: AppNotification) => {
     if (!n.read) markReadMutation.mutate(n.id);
-    if (!n.link) return;
-    // Link routing
-    const momentMatch = n.link.match(/^\/moments\/(.+)$/);
-    const foodSpotMatch = n.link.match(/^\/foodspots\/(.+)$/);
-    const recipeMatch = n.link.match(/^\/recipes\/(.+)$/);
-    if (momentMatch) {
-      navigation.navigate('MomentsTab', { screen: 'MomentDetail', params: { momentId: momentMatch[1] } } as any);
-    } else if (foodSpotMatch) {
-      navigation.navigate('FoodSpotsTab', { screen: 'FoodSpotDetail', params: { foodSpotId: foodSpotMatch[1] } } as any);
-    } else if (recipeMatch) {
-      navigation.navigate('RecipesTab', { screen: 'RecipeDetail', params: { recipeId: recipeMatch[1] } } as any);
-    } else if (n.link === '/what-to-eat') {
-      navigation.navigate('RecipesTab', { screen: 'WhatToEat' } as any);
+
+    // 1. Link-based routing (most specific)
+    if (n.link) {
+      const momentMatch = n.link.match(/^\/moments\/(.+)$/);
+      const letterMatch = n.link.match(/^\/letters\/(.+)$/);
+      if (momentMatch) {
+        navigation.navigate('MomentsTab', { screen: 'MomentDetail', params: { momentId: momentMatch[1] } } as any);
+        return;
+      }
+      if (letterMatch || n.link === '/letters') {
+        navigation.navigate('LettersTab');
+        return;
+      }
+      if (n.link === '/daily-questions') {
+        navigation.navigate('DailyQuestions' as any);
+        return;
+      }
+      if (n.link === '/profile' || n.link.startsWith('/recap')) {
+        navigation.navigate('ProfileTab');
+        return;
+      }
+    }
+
+    // 2. Type-based fallback
+    switch (n.type) {
+      case 'moment':
+        navigation.navigate('MomentsTab');
+        break;
+      case 'letter':
+        navigation.navigate('LettersTab');
+        break;
+      case 'daily_question':
+      case 'reminder':
+        navigation.navigate('DailyQuestions' as any);
+        break;
+      case 'weekly_recap':
+      case 'monthly_recap':
+        navigation.navigate('ProfileTab');
+        break;
+      // goal / recipe / foodspot / achievement / system / cooking → mark read only
+      default:
+        break;
     }
   }, [markReadMutation, navigation]);
 

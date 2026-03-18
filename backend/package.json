@@ -1,5 +1,5 @@
 {
-  "name": "love-scrum-backend",
+  "name": "memoura-backend",
   "version": "1.0.0",
   "scripts": {
     "dev": "dotenv -e .env.development -- tsx watch src/index.ts",

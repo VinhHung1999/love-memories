@@ -448,7 +448,7 @@ function extractInviteCode(url: string): string | null {
 }
 
 const linking = {
-  prefixes: ['https://love-scrum.hungphu.work', 'https://dev-love-scrum.hungphu.work', 'lovescrum://'],
+  prefixes: ['https://memoura.app', 'https://dev.memoura.app', 'lovescrum://'],
   config: {
     screens: {
       ShareViewer: 'share/:token',

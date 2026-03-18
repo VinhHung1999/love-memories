@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import Animated, {
   FadeIn,
   useSharedValue,
@@ -18,16 +18,14 @@ import AvatarCircle from '../../../components/AvatarCircle';
 import { useAppColors } from '../../../navigation/theme';
 import SpringPressable from '../../../components/SpringPressable';
 import { useTranslation } from 'react-i18next';
+
 // Pale rose ring color around avatars
 const AVATAR_RING = '#F9D0D8';
 
 // ECG path: symmetric waveform both sides, heart gap at center (x=38–42)
-// Left:  flat → QRS spike → T wave → flat(→38)
-// Right: flat(42→) → T wave → QRS spike → flat  (mirror of left)
 const ECG_PATH =
   'M 0,20 L 10,20 L 12,14 L 13,6 L 14,28 L 15,20 L 18,20 L 20,14 L 22,20 L 38,20 ' +
   'M 42,20 L 58,20 L 60,14 L 62,20 L 65,20 L 66,28 L 67,6 L 68,14 L 70,20 L 80,20';
-// Approximate total path length (left ≈ 88 + right ≈ 88)
 const ECG_PATH_LENGTH = 180;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,19 +33,18 @@ const AnimatedPath = Animated.createAnimatedComponent(Path) as any;
 
 interface RelationshipTimerProps {
   duration?: { years: number; months: number; days: number; totalDays: number } | null;
-  slogan?: string | null;
   userAvatar?: string | null;
   userInitials?: string;
   partnerAvatar?: string | null;
   partnerInitials?: string;
   hasCouple?: boolean;
+  momentsCount?: number;
   onInvitePartner?: () => void;
   onSetAnniversary?: () => void;
+  onMomentsPress?: () => void;
 }
 
 // ── Avatar with animated shimmer ring ────────────────────────────────────────
-// Per design spec: opacity 1.0→0.55 AND scale 1.0→1.06, 2400ms cycle, ease-in-out
-// Stagger at exactly half-phase (1200ms) for natural out-of-phase breathing
 
 function AvatarWithRing({
   uri,
@@ -104,7 +101,7 @@ function AvatarWithRing({
     </Animated.View>
   );
 }
- 
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function RelationshipTimer({
@@ -114,40 +111,38 @@ export function RelationshipTimer({
   partnerAvatar,
   partnerInitials = '?',
   hasCouple = true,
+  momentsCount = 0,
   onInvitePartner,
   onSetAnniversary,
+  onMomentsPress,
 }: RelationshipTimerProps) {
   const { t } = useTranslation();
   const colors = useAppColors();
   const heartScale = useSharedValue(1);
   const ecgOffset = useSharedValue(0);
 
-  // Heartbeat: two quick beats then a pause (like a real heart: lub-dub ... lub-dub)
+  // Heartbeat: lub-dub pause cycle
   useEffect(() => {
-    const quick = { duration: 150, easing: Easing.inOut(Easing.ease) };
+    const quick   = { duration: 150, easing: Easing.inOut(Easing.ease) };
     const release = { duration: 200, easing: Easing.inOut(Easing.ease) };
-    const pause = { duration: 600, easing: Easing.linear };
+    const pause   = { duration: 600, easing: Easing.linear };
 
     heartScale.value = withRepeat(
       withSequence(
-        // First beat (lub)
         withTiming(1.3, quick),
         withTiming(1.0, release),
-        // Second beat (dub)
         withTiming(1.2, quick),
         withTiming(1.0, release),
-        // Pause before next cycle
         withTiming(1.0, pause),
       ),
       -1,
       false,
     );
 
-    // ECG stroke-dashoffset: 0→length→0 for waveform pulse effect
     ecgOffset.value = withRepeat(
       withSequence(
         withTiming(ECG_PATH_LENGTH, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0,               { duration: 1400, easing: Easing.inOut(Easing.ease) }),
       ),
       -1,
       false,
@@ -163,7 +158,7 @@ export function RelationshipTimer({
     strokeDashoffset: ecgOffset.value,
   }));
 
-  // ── CTA fallback: no couple linked ──────────────────────────────────────────
+  // ── No couple ────────────────────────────────────────────────────────────────
 
   if (!hasCouple) {
     return (
@@ -192,7 +187,7 @@ export function RelationshipTimer({
     );
   }
 
-  // ── CTA fallback: couple linked but no anniversary ───────────────────────────
+  // ── No anniversary set ───────────────────────────────────────────────────────
 
   if (!duration) {
     return (
@@ -231,7 +226,6 @@ export function RelationshipTimer({
 
         {/* Avatar row */}
         <View className="flex-row items-center justify-center gap-2">
-          {/* Left avatar — starts pulsing immediately */}
           <AvatarWithRing uri={userAvatar} initials={userInitials} animDelay={0} />
 
           {/* Connector: ECG heartbeat waveform */}
@@ -246,7 +240,6 @@ export function RelationshipTimer({
                 animatedProps={ecgProps}
               />
             </Svg>
-            {/* Heart centered on path */}
             <Animated.View
               style={[heartStyle, { position: 'absolute' }]}
               className="items-center justify-center">
@@ -254,7 +247,6 @@ export function RelationshipTimer({
             </Animated.View>
           </View>
 
-          {/* Right avatar — half-phase offset (1200ms = 2400ms ÷ 2) */}
           <AvatarWithRing uri={partnerAvatar} initials={partnerInitials} animDelay={1200} />
         </View>
 
@@ -262,6 +254,20 @@ export function RelationshipTimer({
         <Body size="sm" className="text-center text-textMid dark:text-darkTextMid font-body mt-3">
           {daysLabel}
         </Body>
+
+        {/* Moments pill */}
+        {momentsCount > 0 ? (
+          <Pressable
+            onPress={onMomentsPress}
+            className="self-center mt-2 flex-row items-center gap-1 px-3 py-1 rounded-full"
+            style={{ backgroundColor: 'rgba(232,120,138,0.10)' }}
+          >
+            <Heart size={10} color={colors.primary} fill={colors.primary} strokeWidth={0} />
+            <Caption style={{ color: colors.primary, fontWeight: '700', fontSize: 11 }}>
+              {momentsCount} {t('dashboard.stats.moments')}
+            </Caption>
+          </Pressable>
+        ) : null}
 
       </View>
     </Animated.View>

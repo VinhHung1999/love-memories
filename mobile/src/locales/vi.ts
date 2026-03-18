@@ -6,7 +6,7 @@ import type { LocaleStrings } from './en';
 
 const vi: LocaleStrings = {
   app: {
-    name: 'Love Memories',
+    name: 'Memoura',
   },
 
   login: {
@@ -125,7 +125,7 @@ const vi: LocaleStrings = {
     subscription: {
       title: '✨ Gói đăng ký',
       planFree: 'Miễn phí',
-      planPlus: 'Love Memories Plus',
+      planPlus: 'Memoura Plus',
       upgrade: 'Nâng cấp lên Plus',
       restore: 'Khôi phục gói mua',
       restoring: 'Đang khôi phục...',
@@ -154,7 +154,7 @@ const vi: LocaleStrings = {
   },
 
   dashboard: {
-    title: 'Love Memories',
+    title: 'Memoura',
     subtitle: 'Trang Chủ',
     headerSubtitle: 'TRANG CHỦ ♥',
     couple: {
@@ -217,15 +217,34 @@ const vi: LocaleStrings = {
       button: 'Gửi lời mời',
       modalTitle: 'Mã mời của bạn',
       modalMessage: 'Chia sẻ mã này với người yêu. Mã sẽ hết hạn sau khi họ tham gia.',
-      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 {{url}}',
+      shareMessage: 'Tham gia Memoura cùng mình nhé! 💕 {{url}}',
     },
     noPartnerBanner: {
       headline: 'Mời người yêu của bạn',
       subline: 'Bạn đã sẵn sàng — chia sẻ mã bên dưới để người yêu tham gia',
       codeLabel: 'Mã mời',
       shareBtn: 'Chia sẻ',
-      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 {{url}}',
+      shareMessage: 'Tham gia Memoura cùng mình nhé! 💕 {{url}}',
       generatingCode: 'Đang tạo...',
+    },
+    streak: {
+      daysInARow: '{{n}} ngày liên tiếp',
+      oneDay: '1 ngày liên tiếp',
+      days: 'ngày',
+      motivateZero: 'Bắt đầu chuỗi đầu tiên hôm nay',
+      motivateLow: 'Đừng bỏ lỡ hôm nay',
+      motivateKeep: 'Đừng để mất chuỗi {{n}} ngày!',
+      answerBtn: 'Trả lời',
+      donePill: 'Xong rồi',
+      milestone7: '7 ngày liên tiếp — một tuần! 🔥',
+      milestone30: '30 ngày yêu thương 🏆',
+      milestone100: '100 ngày — huyền thoại 💎',
+      longestStreak: 'Kỷ lục: {{n}} ngày',
+    },
+    unreadLetters: {
+      one: 'Bạn có 1 thư chưa đọc 💌',
+      many: 'Bạn có {{n}} thư chưa đọc 💌',
+      readNow: 'Đọc ngay',
     },
     setAnniversary: {
       title: 'Đặt ngày kỷ niệm',
@@ -860,10 +879,21 @@ const vi: LocaleStrings = {
       submitFailed: 'Gửi câu trả lời thất bại',
       alreadyAnswered: 'Bạn đã trả lời câu hỏi này rồi',
     },
+    streakBanner: {
+      current: '{{n}} ngày liên tiếp 🔥',
+      longest: 'Kỷ lục: {{n}} ngày',
+      breakWarning: 'Trả lời hôm nay để giữ chuỗi! ⚡',
+    },
+    streakRow: {
+      noStreak: 'Có câu hỏi mới — bắt đầu chuỗi ngày nào! ✨',
+      urgent: 'Đừng để mất 🔥{{n}} ngày liên tiếp — trả lời nào!',
+      waiting: 'Xong rồi! Nhắc {{partner}} trả lời để giữ streak 🔥',
+      completed: '🎉 {{n}} ngày liên tiếp! Hai bạn thật ăn ý!',
+    },
   },
 
   paywall: {
-    title: 'Love Memories Plus',
+    title: 'Memoura Plus',
     headline: 'Mở Khóa Câu Chuyện\nTình Yêu Trọn Vẹn',
     subtitle: 'Tất cả những gì bạn cần để ghi lại,\ntrân trọng và cùng nhau lớn lên.',
     limitBanner: 'Bạn đã đạt giới hạn miễn phí cho',
@@ -931,14 +961,13 @@ const vi: LocaleStrings = {
   },
 
   letterOverlay: {
-    title: 'Bạn có một lá thư',
-    titlePlural: 'Bạn có {count} lá thư',
-    from: 'Từ',
-    tapToOpen: 'Nhấn để mở',
-    swipeHint: 'Đọc hết thư để tiếp tục',
-    dismiss: 'Vào ứng dụng',
-    readAll: 'Đã đọc hết thư!',
-    markingRead: 'Đang đánh dấu đã đọc…',
+    title: '{{name}} đã viết thư cho bạn',
+    titlePlural: 'Bạn có {{count}} thư chưa đọc',
+    from: 'TỪ',
+    readNow: 'Đọc ngay',
+    readLater: 'Để sau',
+    moreLetters: '+{{n}} thư nữa',
+    dateLabel: 'Nhận lúc',
   },
 
   legal: {
@@ -950,7 +979,7 @@ const vi: LocaleStrings = {
   onboarding: {
     welcome: {
       title: 'Câu chuyện tình yêu\ncủa bạn bắt đầu từ đây',
-      subtitle: 'Ghi lại khoảnh khắc, viết thư tình,\ncùng nhau lớn lên ♥',
+      subtitle: 'Two people. One story.',
       cta: 'Bắt đầu thôi',
     },
     couple: {
@@ -987,7 +1016,7 @@ const vi: LocaleStrings = {
       skipBtn: 'Bỏ qua',
       completing: 'Đang thiết lập câu chuyện tình yêu của bạn...',
       doneTitle: 'Bạn đã sẵn sàng!',
-      doneSubtitle: 'Chào mừng đến với Love Memories ♥',
+      doneSubtitle: 'Chào mừng đến với Memoura ♥',
       errors: {
         setupFailed: 'Thiết lập thất bại. Vui lòng thử lại.',
       },
@@ -1001,7 +1030,7 @@ const vi: LocaleStrings = {
       generatingCode: 'Đang tạo mã của bạn...',
       copyHint: 'Nhấn để sao chép',
       copied: 'Đã sao chép!',
-      shareMessage: 'Tham gia Love Memories cùng mình nhé! 💕 {{url}}',
+      shareMessage: 'Tham gia Memoura cùng mình nhé! 💕 {{url}}',
       completing: 'Đang thiết lập tất cả...',
       errors: {
         failedToGenerate: 'Không thể tạo mã',
@@ -1020,7 +1049,7 @@ const vi: LocaleStrings = {
     title: 'Kỷ Niệm Được Chia Sẻ',
     notFound: 'Không tìm thấy link',
     notFoundDesc: 'Link chia sẻ này có thể đã hết hạn hoặc bị thu hồi.',
-    sharedVia: 'Chia sẻ qua Love Memories',
+    sharedVia: 'Chia sẻ qua Memoura',
     share: 'Chia sẻ',
   },
 

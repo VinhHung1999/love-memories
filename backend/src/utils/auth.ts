@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'love-scrum-jwt-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'memoura-jwt-secret-2026';
 const SALT_ROUNDS = 10;
 
 export async function hashPassword(password: string): Promise<string> {

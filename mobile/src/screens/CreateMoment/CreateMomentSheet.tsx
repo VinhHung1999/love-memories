@@ -9,6 +9,7 @@ import AppBottomSheet from '../../components/AppBottomSheet';
 import Input from '../../components/Input';
 import LocationPicker from '../../components/LocationPicker';
 import PhotoPicker from './components/PhotoPicker';
+import TagInput from './components/TagInput';
 import { useAppColors } from '../../navigation/theme';
 
 interface Props {
@@ -116,6 +117,22 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
               label={t('moments.labels.location')}
             />
           )}
+        </View>
+
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
+
+        {/* ── Tags ── */}
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
+          {`🏷️  ${t('moments.labels.tags')}`}
+        </Caption>
+        <View className="px-5 mb-4">
+          <TagInput
+            tags={vm.tags}
+            tagInput={vm.tagInput}
+            onChangeTagInput={vm.setTagInput}
+            onAddTag={vm.handleAddTag}
+            onRemoveTag={vm.handleRemoveTag}
+          />
         </View>
 
         <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />

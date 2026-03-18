@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
 import { useAppColors } from '../../navigation/theme';
-import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi } from '../../lib/api';
+import { coupleApi, momentsApi, foodSpotsApi, settingsApi, cookingSessionsApi, expensesApi, datePlansApi, dailyQuestionsApi, loveLettersApi } from '../../lib/api';
 import type { ExpenseStats } from '../../lib/api';
 import { useTranslation } from 'react-i18next';
 import { APP_BASE_URL } from '../../config/env';
@@ -81,6 +81,20 @@ export function useDashboardViewModel() {
     queryKey: ['settings', 'app_slogan'],
     queryFn: () => settingsApi.get('app_slogan'),
     enabled: !!user,
+  });
+
+  const { data: streakData } = useQuery({
+    queryKey: ['daily-questions-streak'],
+    queryFn: dailyQuestionsApi.streak,
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  const { data: unreadLettersData } = useQuery({
+    queryKey: ['love-letters-unread-count'],
+    queryFn: loveLettersApi.unreadCount,
+    enabled: !!user,
+    staleTime: 30_000,
   });
 
   // ── Live clock — ticks every second for the relationship timer ──────────────
@@ -281,6 +295,15 @@ export function useDashboardViewModel() {
     navigateToDailyQuestions,
     navigateToMonthlyRecap,
     showMonthlyRecapBanner,
+    currentStreak: streakData?.currentStreak ?? 0,
+    longestStreak: streakData?.longestStreak ?? 0,
+    completedToday: streakData?.completedToday ?? false,
+    answeredToday: (() => {
+      const last = (streakData as any)?.lastAnsweredAt ?? (streakData as any)?.lastAnsweredDate ?? null;
+      if (!last) return false;
+      return new Date(last).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+    })(),
+    unreadLettersCount: unreadLettersData?.count ?? 0,
     hasCouple,
     hasPartner,
     coupleInviteCode: couple?.inviteCode ?? null,

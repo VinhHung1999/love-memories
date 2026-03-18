@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 // ─── Geocode routes (Mapbox forward + reverse geocoding) ──────────────────────
 
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_TOKEN || '';
-const MAPBOX_REFERER = process.env.MAPBOX_REFERER || 'https://love-scrum-api.hungphu.work';
+const MAPBOX_REFERER = process.env.MAPBOX_REFERER || 'https://api.memoura.app';
 
 const geocodeRouter = Router();
 

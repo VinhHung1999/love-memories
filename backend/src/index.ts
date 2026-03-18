@@ -12,12 +12,15 @@ import { validateEnv } from './utils/validateEnv';
 validateEnv();
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Cloudflare Tunnel)
 const PORT = process.env.PORT || 5005;
 
 // Task 3: CORS whitelist
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'https://love-scrum.hungphu.work',
   'https://dev-love-scrum.hungphu.work',
+  'https://memoura.app',
+  'https://dev.memoura.app',
 ];
 app.use(cors({
   origin: (origin, callback) => {
@@ -83,7 +86,7 @@ app.get('/.well-known/apple-app-site-association', (_req, res) => {
       apps: [],
       details: [
         {
-          appIDs: ['TEAMID.com.bundle.id'],
+          appIDs: [process.env.APPLE_TEAM_ID ? `${process.env.APPLE_TEAM_ID}.com.hungphu.memoura` : 'TEAMID.com.hungphu.memoura'],
           components: [
             { '/': '/share/*' },
             { '/': '/invite/*' },
@@ -102,7 +105,7 @@ app.get('/.well-known/assetlinks.json', (_req, res) => {
       relation: ['delegate_permission/common.handle_all_urls'],
       target: {
         namespace: 'android_app',
-        package_name: 'com.bundle.id',
+        package_name: 'com.hungphu.memoura',
         sha256_cert_fingerprints: ['PLACEHOLDER_SHA256_CERT_FINGERPRINT'],
       },
     },

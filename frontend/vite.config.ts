@@ -13,7 +13,7 @@ export default defineConfig({
   },
   server: {
     port: 3338,
-    allowedHosts: ['love-scrum.hungphu.work', 'dev-love-scrum.hungphu.work'],
+    allowedHosts: ['love-scrum.hungphu.work', 'dev-love-scrum.hungphu.work', 'memoura.app', 'dev.memoura.app'],
     proxy: {
       '/api': 'http://localhost:5006',
       '/uploads': 'http://localhost:5006',

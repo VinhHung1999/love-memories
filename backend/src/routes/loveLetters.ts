@@ -8,6 +8,7 @@ const router = Router();
 router.get('/received', LoveLetterController.listReceived);
 router.get('/sent', LoveLetterController.listSent);
 router.get('/unread-count', LoveLetterController.getUnreadCount);
+router.get('/unread/count', LoveLetterController.getUnreadCount);
 router.get('/:id', LoveLetterController.getOne);
 router.post('/', checkPremiumAccess('love-letters'), LoveLetterController.create);
 router.put('/:id', LoveLetterController.update);

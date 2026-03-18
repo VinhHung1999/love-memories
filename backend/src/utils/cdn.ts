@@ -35,15 +35,15 @@ export async function uploadToCdn(
   }
 
   const data = await res.json() as { url: string };
-  // data.url = "/f/love-scrum/images/{filename}"
+  // data.url = "/f/memoura/images/{filename}"
   const filename = data.url.split('/').pop()!;
   const url = `${CDN_BASE_URL}${data.url}`;
   return { filename, url };
 }
 
 export async function deleteFromCdn(fileUrl: string): Promise<void> {
-  // fileUrl = 'https://cdn.../f/love-scrum/images/filename.jpg'
-  // Extract path after /f/ → 'love-scrum/images/filename.jpg'
+  // fileUrl = 'https://cdn.../f/memoura/images/filename.jpg'
+  // Extract path after /f/ → 'memoura/images/filename.jpg'
   const match = fileUrl.match(/\/f\/(.+)/);
   if (!match) return;
   const res = await fetch(`${CDN_BASE_URL}/files/${match[1]}`, {

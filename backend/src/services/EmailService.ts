@@ -24,10 +24,10 @@ function createTransporter() {
 
 function buildVerificationEmail(name: string, verifyUrl: string): { subject: string; html: string } {
   return {
-    subject: 'Verify your Love Memories email',
+    subject: 'Verify your Memoura email',
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-        <h2 style="color: #E8788A;">Love Memories 💕</h2>
+        <h2 style="color: #E8788A;">Memoura 💕</h2>
         <p>Hi ${name},</p>
         <p>Please verify your email address to complete your account setup.</p>
         <a href="${verifyUrl}" style="
@@ -76,7 +76,7 @@ export async function sendVerificationEmail(userId: string, email: string, name:
     return;
   }
 
-  const appUrl = process.env.APP_URL || 'https://love-scrum.hungphu.work';
+  const appUrl = process.env.APP_URL || 'https://memoura.app';
   const verifyUrl = `${appUrl}/verify-email?token=${token}`;
   const { subject, html } = buildVerificationEmail(name, verifyUrl);
 

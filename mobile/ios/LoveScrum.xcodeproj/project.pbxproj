@@ -280,11 +280,11 @@
 			buildActionMask = 2147483647;
 			files = (
 			);
+			alwaysOutOfDate = 1;
 			inputPaths = (
 			);
 			name = "Setup react-native-config env";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/tmp.xcconfig",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -367,8 +367,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.lovememories;
-				PRODUCT_NAME = LoveScrum;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.memoura.dev;
+				PRODUCT_NAME = "Memoura Dev";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -401,8 +401,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.lovememories;
-				PRODUCT_NAME = LoveScrum;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hungphu.memoura;
+				PRODUCT_NAME = Memoura;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;

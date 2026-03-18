@@ -32,7 +32,7 @@ export default function TermsOfServicePage() {
         </div>
 
         <p className="text-sm text-text leading-relaxed">
-          These Terms of Service ("Terms") govern your use of the Love Memories application ("the App").
+          These Terms of Service ("Terms") govern your use of the Memoura application ("the App").
           By creating an account or using the App, you agree to these Terms. Please read them carefully.
         </p>
 
@@ -41,7 +41,7 @@ export default function TermsOfServicePage() {
           <h2 className="font-heading text-lg font-semibold text-text mb-3">1. Service Description</h2>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <p className="text-sm text-text-light leading-relaxed mb-3">
-              Love Memories is a personal couples application that provides:
+              Memoura is a personal couples application that provides:
             </p>
             <ul className="space-y-2">
               {[
@@ -116,7 +116,7 @@ export default function TermsOfServicePage() {
               letters, recipes, and other content you create in the App remain your property.
             </p>
             <p className="text-sm text-text-light leading-relaxed">
-              By uploading content, you grant Love Memories a limited, non-exclusive license to store,
+              By uploading content, you grant Memoura a limited, non-exclusive license to store,
               process, and display that content solely for the purpose of providing the App's features to you
               and your partner. We do not claim ownership of, or any rights to, your content beyond what is
               necessary to operate the App.
@@ -155,7 +155,7 @@ export default function TermsOfServicePage() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-text mb-2">Love Memories Plus</h3>
+              <h3 className="text-sm font-semibold text-text mb-2">Memoura Plus</h3>
               <p className="text-sm text-text-light leading-relaxed">
                 The Plus subscription unlocks unlimited access to all features, higher storage limits,
                 premium Photo Booth frames, and priority support. Subscription terms:
@@ -207,7 +207,7 @@ export default function TermsOfServicePage() {
               availability, data loss prevention, or that all features will function perfectly at all times.
             </p>
             <p className="text-sm text-text-light leading-relaxed">
-              To the maximum extent permitted by law, Love Memories shall not be liable for any indirect,
+              To the maximum extent permitted by law, Memoura shall not be liable for any indirect,
               incidental, or consequential damages arising from your use of the App, including loss of
               data or memories.
             </p>
@@ -253,8 +253,8 @@ export default function TermsOfServicePage() {
               Questions about these Terms or the App? Contact us at:
             </p>
             <div className="bg-primary/5 rounded-xl p-4">
-              <p className="text-sm font-medium text-text">Love Memories App</p>
-              <p className="text-sm text-primary mt-1">support@love-memories.app</p>
+              <p className="text-sm font-medium text-text">Memoura App</p>
+              <p className="text-sm text-primary mt-1">support@memoura.app</p>
               <p className="text-sm text-text-light mt-1">
                 We aim to respond to all inquiries within 5 business days.
               </p>
@@ -266,7 +266,7 @@ export default function TermsOfServicePage() {
         <div className="text-center pt-4 pb-8">
           <div className="flex items-center justify-center gap-1.5 text-text-light/50 text-xs">
             <Heart className="w-3 h-3 text-primary/40" />
-            <span>Love Memories — Made with love</span>
+            <span>Memoura — Made with love</span>
             <Heart className="w-3 h-3 text-primary/40" />
           </div>
         </div>

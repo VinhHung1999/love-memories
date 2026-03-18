@@ -140,7 +140,7 @@ export default function NotificationsScreen() {
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
       <ScreenHeader
         title={t('notifications.title')}
         subtitle={t('notifications.subtitle')}

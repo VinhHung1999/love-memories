@@ -31,6 +31,7 @@ model Couple {
   achievements       Achievement[]
   shareLinks         ShareLink[]
   subscription       Subscription?
+  dailyStreak        DailyQuestionStreak?
 
   @@map("couples")
 }
@@ -652,6 +653,18 @@ model DailyQuestionResponse {
   @@unique([questionId, coupleId, userId])
   @@index([coupleId])
   @@map("daily_question_responses")
+}
+
+model DailyQuestionStreak {
+  id               String    @id @default(uuid())
+  coupleId         String    @unique
+  currentStreak    Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastAnsweredDate DateTime?
+  updatedAt        DateTime  @updatedAt
+  couple           Couple    @relation(fields: [coupleId], references: [id])
+
+  @@map("daily_question_streaks")
 }
 
 model ShareLink {

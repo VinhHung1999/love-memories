@@ -40,7 +40,7 @@ async function registerPush() {
     const reg = await navigator.serviceWorker.register('/sw.js');
     // Fetch VAPID public key
     const res = await fetch('/api/push/vapid-key', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('love-scrum-token')}` },
+      headers: { Authorization: `Bearer ${localStorage.getItem('memoura-token')}` },
     });
     if (!res.ok) return;
     const { publicKey } = await res.json() as { publicKey: string };
@@ -52,7 +52,7 @@ async function registerPush() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('love-scrum-token')}`,
+        Authorization: `Bearer ${localStorage.getItem('memoura-token')}`,
       },
       body: JSON.stringify(sub.toJSON()),
     });

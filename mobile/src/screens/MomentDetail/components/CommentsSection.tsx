@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, TextInput, TouchableOpacity, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Body, Caption } from '../../../components/Typography';
-import { Send, Trash2 } from 'lucide-react-native';
+import { Trash2 } from 'lucide-react-native';
 import { useAppColors } from '../../../navigation/theme';
 import { useTranslation } from 'react-i18next';
 import type { MomentComment } from '../../../types';
 import AvatarCircle from '../../../components/AvatarCircle';
+import CommentInput from '../../../components/CommentInput';
 
 interface CommentsSectionProps {
   comments: MomentComment[];
@@ -93,24 +94,13 @@ export default function CommentsSection({
       )}
 
       {/* Input */}
-      <View className="flex-row items-center gap-2 mt-1 p-2 rounded-2xl bg-textDark/4">
-        <TextInput
-          className="flex-1 text-[13px] text-textDark dark:text-darkTextDark px-2 min-h-[36px] max-h-[80px]"
-          placeholder={t('moments.detail.addComment')}
-          placeholderTextColor={colors.textLight}
-          value={commentText}
-          onChangeText={onChangeText}
-          multiline
-          maxLength={500}
-        />
-        <TouchableOpacity
-          onPress={() => !isSubmitting && onSubmit()}
-          disabled={!commentText.trim() || isSubmitting}
-          className="w-8 h-8 rounded-full items-center justify-center"
-          style={{ backgroundColor: commentText.trim() ? colors.primary : colors.primaryMuted }}>
-          <Send size={14} strokeWidth={1.5} color={colors.primary}/>
-        </TouchableOpacity>
-      </View>
+      <CommentInput
+        value={commentText}
+        onChangeText={onChangeText}
+        onSubmit={onSubmit}
+        isSubmitting={isSubmitting}
+        placeholder={t('moments.detail.addComment')}
+      />
     </View>
   );
 }

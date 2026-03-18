@@ -153,11 +153,7 @@ export default function ProfileScreen() {
               <Caption className="text-textMid dark:text-darkTextMid">Since {vm.anniversaryDisplay}</Caption>
             </View>
           ) : null}
-          {vm.slogan ? (
-            <Caption className="text-textLight dark:text-darkTextLight italic mt-1.5 text-center" numberOfLines={1}>
-              {vm.slogan}
-            </Caption>
-          ) : null}
+
         </View>
 
           {/* ── Partner card ── */}
@@ -362,7 +358,7 @@ export default function ProfileScreen() {
           <Card>
             <CardTitle>{t('legal.title')}</CardTitle>
             <Pressable
-              onPress={() => Linking.openURL('https://love-scrum.hungphu.work/privacy-policy')}
+              onPress={() => Linking.openURL('https://memoura.app/privacy-policy')}
               className="flex-row items-center py-3 border-b"
               style={{ borderColor: colors.border }}
             >
@@ -370,7 +366,7 @@ export default function ProfileScreen() {
               <Body size="sm" style={{ color: colors.textLight }}>›</Body>
             </Pressable>
             <Pressable
-              onPress={() => Linking.openURL('https://love-scrum.hungphu.work/terms-of-service')}
+              onPress={() => Linking.openURL('https://memoura.app/terms-of-service')}
               className="flex-row items-center py-3"
             >
               <Body size="sm" className="flex-1" style={{ color: colors.textDark }}>{t('legal.termsOfService')}</Body>

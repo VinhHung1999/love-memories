@@ -6,7 +6,7 @@
  */
 const en = {
   app: {
-    name: 'Love Memories',
+    name: 'Memoura',
   },
 
   login: {
@@ -125,7 +125,7 @@ const en = {
     subscription: {
       title: '✨ Subscription',
       planFree: 'Free',
-      planPlus: 'Love Memories Plus',
+      planPlus: 'Memoura Plus',
       upgrade: 'Upgrade to Plus',
       restore: 'Restore Purchases',
       restoring: 'Restoring...',
@@ -154,7 +154,7 @@ const en = {
   },
 
   dashboard: {
-    title: 'Love Memories',
+    title: 'Memoura',
     subtitle: 'Dashboard',
     headerSubtitle: 'HOME ♥',
     couple: {
@@ -217,15 +217,34 @@ const en = {
       button: 'Send Invite',
       modalTitle: 'Your Invite Code',
       modalMessage: 'Share this code with your partner. It expires after they join.',
-      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
+      shareMessage: 'Join me on Memoura! 💕 {{url}}',
     },
     noPartnerBanner: {
       headline: 'Invite your partner',
       subline: "You're all set — share the code below so your partner can join",
       codeLabel: 'Invite code',
       shareBtn: 'Share',
-      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
+      shareMessage: 'Join me on Memoura! 💕 {{url}}',
       generatingCode: 'Generating...',
+    },
+    streak: {
+      daysInARow: '{{n}} days in a row',
+      oneDay: '1 day in a row',
+      days: 'days',
+      motivateZero: 'Start your first streak today',
+      motivateLow: "Don't let today slip by",
+      motivateKeep: "Don't break your {{n}}-day streak!",
+      answerBtn: 'Answer',
+      donePill: 'Done today',
+      milestone7: '7-day streak — one week! 🔥',
+      milestone30: '30 days of love 🏆',
+      milestone100: '100 days — legendary 💎',
+      longestStreak: 'Best: {{n}} days',
+    },
+    unreadLetters: {
+      one: 'You have 1 unread letter 💌',
+      many: 'You have {{n}} unread letters 💌',
+      readNow: 'Read now',
     },
     setAnniversary: {
       title: 'Set your anniversary',
@@ -860,10 +879,21 @@ const en = {
       submitFailed: 'Failed to submit answer',
       alreadyAnswered: 'You already answered this question',
     },
+    streakBanner: {
+      current: '{{n}}-day streak 🔥',
+      longest: 'Best: {{n}} days',
+      breakWarning: "Answer today to keep your streak alive! ⚡",
+    },
+    streakRow: {
+      noStreak: 'A new question awaits — start your streak today! ✨',
+      urgent: "Don't break your 🔥{{n}}-day streak — answer today!",
+      waiting: "You're done! Nudge {{partner}} to keep the streak 🔥",
+      completed: '🎉 {{n}}-day streak! You two are in sync!',
+    },
   },
 
   paywall: {
-    title: 'Love Memories Plus',
+    title: 'Memoura Plus',
     headline: 'Unlock Your Full\nLove Story',
     subtitle: 'Everything you need to capture,\ncherish, and grow together.',
     limitBanner: "You've reached your free limit for",
@@ -931,14 +961,13 @@ const en = {
   },
 
   letterOverlay: {
-    title: 'You have a letter',
-    titlePlural: 'You have {count} letters',
-    from: 'From',
-    tapToOpen: 'Tap to open',
-    swipeHint: 'Read all letters to continue',
-    dismiss: 'Continue to app',
-    readAll: 'All letters read!',
-    markingRead: 'Marking as read…',
+    title: '{{name}} wrote you a letter',
+    titlePlural: 'You have {{count}} unread letters',
+    from: 'FROM',
+    readNow: 'Read now',
+    readLater: 'Later',
+    moreLetters: '+{{n}} more',
+    dateLabel: 'Received',
   },
 
   legal: {
@@ -950,7 +979,7 @@ const en = {
   onboarding: {
     welcome: {
       title: 'Your love story\nbegins here',
-      subtitle: 'Capture moments, write letters,\ngrow together ♥',
+      subtitle: 'Two people. One story.',
       cta: "Let's Start",
     },
     couple: {
@@ -987,7 +1016,7 @@ const en = {
       skipBtn: 'Skip',
       completing: 'Setting up your love story...',
       doneTitle: "You're all set!",
-      doneSubtitle: 'Welcome to Love Memories ♥',
+      doneSubtitle: 'Welcome to Memoura ♥',
       errors: {
         setupFailed: 'Setup failed. Please try again.',
       },
@@ -1001,7 +1030,7 @@ const en = {
       generatingCode: 'Generating your code...',
       copyHint: 'Tap to copy',
       copied: 'Copied!',
-      shareMessage: 'Join me on Love Memories! 💕 {{url}}',
+      shareMessage: 'Join me on Memoura! 💕 {{url}}',
       completing: 'Setting everything up...',
       errors: {
         failedToGenerate: 'Could not generate code',
@@ -1020,7 +1049,7 @@ const en = {
     title: 'Shared Memory',
     notFound: 'Link not found',
     notFoundDesc: 'This share link may have expired or been revoked.',
-    sharedVia: 'Shared via Love Memories',
+    sharedVia: 'Shared via Memoura',
     share: 'Share',
   },
 
