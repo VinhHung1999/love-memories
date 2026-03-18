@@ -297,6 +297,7 @@ export function useDashboardViewModel() {
     showMonthlyRecapBanner,
     currentStreak: streakData?.currentStreak ?? 0,
     longestStreak: streakData?.longestStreak ?? 0,
+    completedToday: streakData?.completedToday ?? false,
     answeredToday: (() => {
       const last = (streakData as any)?.lastAnsweredAt ?? (streakData as any)?.lastAnsweredDate ?? null;
       if (!last) return false;

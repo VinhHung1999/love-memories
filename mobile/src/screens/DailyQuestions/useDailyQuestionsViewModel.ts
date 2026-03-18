@@ -123,6 +123,7 @@ export function useDailyQuestionsViewModel() {
     currentStreak: streakData?.currentStreak ?? 0,
     longestStreak: streakData?.longestStreak ?? 0,
     lastAnsweredAt: streakData?.lastAnsweredAt ?? null,
+    completedToday: streakData?.completedToday ?? false,
 
     // Actions
     submitAnswer,

@@ -39,11 +39,13 @@ const CATEGORY_ICON: Record<
 interface DailyQAStreakCardProps {
   currentStreak: number;
   answeredToday: boolean;
+  completedToday: boolean;
 }
 
 export default function DailyQAStreakCard({
   currentStreak,
   answeredToday,
+  completedToday,
 }: DailyQAStreakCardProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -62,10 +64,17 @@ export default function DailyQAStreakCard({
   // ── Streak pill ───────────────────────────────────────────────────────────
 
   const showStreak = currentStreak > 0;
-  const streakPillBg = answeredToday
+  // 3-state pill: both done (teal) → I answered/waiting (amber) → neither (rose)
+  const streakPillBg = completedToday
     ? 'rgba(126,200,181,0.15)'
+    : answeredToday
+    ? 'rgba(245,158,11,0.15)'
     : 'rgba(232,120,138,0.12)';
-  const streakPillColor = answeredToday ? colors.accent : colors.primary;
+  const streakPillColor = completedToday
+    ? colors.accent
+    : answeredToday
+    ? '#F59E0B'
+    : colors.primary;
 
   function StreakPill() {
     if (!showStreak) return null;

@@ -113,6 +113,7 @@ export default function DashboardScreen() {
                 <DailyQAStreakCard
                   currentStreak={vm.currentStreak}
                   answeredToday={vm.answeredToday}
+                  completedToday={vm.completedToday}
                 />
               </Animated.View>
 

@@ -18,8 +18,8 @@ import LinearGradient from 'react-native-linear-gradient';
 interface StreakWidgetProps {
   currentStreak: number;
   longestStreak: number;
-  /** True if the user already answered today's question */
-  answeredToday: boolean;
+  /** True when both users have answered today (streak incremented) */
+  completedToday: boolean;
   onPress: () => void;
 }
 
@@ -36,29 +36,29 @@ function getState1Copy(streak: number, t: (k: string, opts?: Record<string, unkn
   return t('dashboard.streak.motivateKeep', { n: streak });
 }
 
-export function StreakWidget({ currentStreak, longestStreak, answeredToday, onPress }: StreakWidgetProps) {
+export function StreakWidget({ currentStreak, longestStreak, completedToday, onPress }: StreakWidgetProps) {
   const colors = useAppColors();
   const { t } = useTranslation();
 
   // ── Animation values ─────────────────────────────────────────────────────
 
   // Flame: dim+small in State 1, full+breathing in State 2
-  const flameScale   = useSharedValue(answeredToday ? 1 : 0.5);
-  const flameOpacity = useSharedValue(answeredToday ? 1 : 0.4);
+  const flameScale   = useSharedValue(completedToday ? 1 : 0.5);
+  const flameOpacity = useSharedValue(completedToday ? 1 : 0.4);
 
   // State 2 content layers
-  const s2Opacity      = useSharedValue(answeredToday ? 1 : 0);
-  const pillScale      = useSharedValue(answeredToday ? 1 : 0);
-  const pillOpacity    = useSharedValue(answeredToday ? 1 : 0);
-  const bottomOffset   = useSharedValue(answeredToday ? 0 : 12);
-  const bottomOpacity  = useSharedValue(answeredToday ? 1 : 0);
+  const s2Opacity      = useSharedValue(completedToday ? 1 : 0);
+  const pillScale      = useSharedValue(completedToday ? 1 : 0);
+  const pillOpacity    = useSharedValue(completedToday ? 1 : 0);
+  const bottomOffset   = useSharedValue(completedToday ? 0 : 12);
+  const bottomOpacity  = useSharedValue(completedToday ? 1 : 0);
 
   // Count-up display number
-  const [displayCount, setDisplayCount] = useState(answeredToday ? currentStreak : 0);
+  const [displayCount, setDisplayCount] = useState(completedToday ? currentStreak : 0);
 
-  // Track previous answeredToday to detect false→true transition
-  const prevAnswered = useRef(answeredToday);
-  const breathingStarted = useRef(answeredToday);
+  // Track previous completedToday to detect false→true transition
+  const prevAnswered = useRef(completedToday);
+  const breathingStarted = useRef(completedToday);
 
   // ── Start breathing animation (infinite flame pulse) ─────────────────────
   const startBreathing = () => {
@@ -74,11 +74,11 @@ export function StreakWidget({ currentStreak, longestStreak, answeredToday, onPr
 
   // ── Mount: if already answered, start breathing immediately ──────────────
   useEffect(() => {
-    if (answeredToday && !breathingStarted.current) {
+    if (completedToday && !breathingStarted.current) {
       startBreathing();
       breathingStarted.current = true;
     }
-    if (answeredToday && breathingStarted.current && !prevAnswered.current) {
+    if (completedToday && breathingStarted.current && !prevAnswered.current) {
       // fresh transition handled below
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,7 +86,7 @@ export function StreakWidget({ currentStreak, longestStreak, answeredToday, onPr
 
   // ── Detect false → true transition ───────────────────────────────────────
   useEffect(() => {
-    if (answeredToday && !prevAnswered.current) {
+    if (completedToday && !prevAnswered.current) {
       // Phase 2: flame ignition (200ms)
       flameOpacity.value = withDelay(200, withTiming(1, { duration: 300 }));
       flameScale.value   = withDelay(200, withSpring(1.0, { mass: 0.8, stiffness: 200, damping: 12 }, () => {
@@ -120,9 +120,9 @@ export function StreakWidget({ currentStreak, longestStreak, answeredToday, onPr
 
       return () => clearTimeout(timer);
     }
-    prevAnswered.current = answeredToday;
+    prevAnswered.current = completedToday;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answeredToday]);
+  }, [completedToday]);
 
   // ── Animated styles ───────────────────────────────────────────────────────
   const flameStyle = useAnimatedStyle(() => ({
@@ -142,7 +142,7 @@ export function StreakWidget({ currentStreak, longestStreak, answeredToday, onPr
   const milestoneKey = getMilestoneKey(currentStreak);
 
   // ── STATE 1: Not yet answered ─────────────────────────────────────────────
-  if (!answeredToday) {
+  if (!completedToday) {
     return (
       <Pressable onPress={onPress}>
         <View

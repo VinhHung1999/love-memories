@@ -1281,7 +1281,7 @@ export const dailyQuestionsApi = {
     if (!res.ok) throw new Error('Failed to fetch history');
     return res.json();
   },
-  streak: async (): Promise<{ currentStreak: number; longestStreak: number; lastAnsweredAt: string | null }> => {
+  streak: async (): Promise<{ currentStreak: number; longestStreak: number; lastAnsweredAt: string | null; completedToday: boolean }> => {
     const res = await apiFetch('/api/daily-questions/streak');
     if (!res.ok) throw new Error('Failed to fetch streak');
     return res.json();
