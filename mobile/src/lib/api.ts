@@ -8,7 +8,7 @@ import { API_URL } from '../config/env';
 
 const API_BASE = API_URL;
 
-const KEYCHAIN_SERVICE = 'love-scrum';
+const KEYCHAIN_SERVICE = 'memoura';
 
 // ---------------------------------------------------------------------------
 // Warmup — pre-resolve DNS + TLS on app start so first real API call is fast

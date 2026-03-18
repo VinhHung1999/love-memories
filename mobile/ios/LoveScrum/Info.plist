@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Love Memories needs access to save photos to your library.</string>
+	<string>Memoura needs access to save photos to your library.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -36,13 +36,13 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Love Scrum uses your location to tag this moment with a place name.</string>
+	<string>Memoura uses your location to tag this moment with a place name.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Love Memories needs camera access to take photos for your moments.</string>
+	<string>Memoura needs camera access to take photos for your moments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Love Memories needs access to your photo library to select photos for moments.</string>
+	<string>Memoura needs access to your photo library to select photos for moments.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Love Scrum uses your microphone to record voice memos for moments.</string>
+	<string>Memoura uses your microphone to record voice memos for moments.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>

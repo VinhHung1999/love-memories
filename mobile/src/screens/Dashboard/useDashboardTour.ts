@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tabBarRefs } from '../../lib/tabBarRefs';
 import { useTranslation } from 'react-i18next';
-const TOUR_KEY = '@love-scrum:tour_dashboard_v2_done';
+const TOUR_KEY = '@memoura:tour_dashboard_v2_done';
 
 export interface SpotlightRect {
   x: number;
