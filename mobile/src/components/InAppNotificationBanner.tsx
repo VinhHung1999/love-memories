@@ -25,7 +25,7 @@ export default function InAppNotificationBanner({
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
-  // Slide animation
+  // Slide animation — Animated.Value transform requires style prop (exception)
   const translateY = useRef(new Animated.Value(-120)).current;
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -38,7 +38,6 @@ export default function InAppNotificationBanner({
       useNativeDriver: true,
     }).start();
 
-    // Auto-dismiss after 4 seconds
     dismissTimer.current = setTimeout(() => {
       handleDismiss();
     }, 4000);
@@ -70,59 +69,29 @@ export default function InAppNotificationBanner({
 
   return (
     <Animated.View
+      className="absolute left-4 right-4 z-[9999] rounded-2xl shadow-lg bg-bgCard dark:bg-darkBgCard border border-border dark:border-darkBorder"
       style={{
-        position: 'absolute',
+        // top requires dynamic safe-area calc — style exception allowed
         top: insets.top + 8,
-        left: 16,
-        right: 16,
-        zIndex: 9999,
+        // transform requires Animated.Value — style exception allowed
         transform: [{ translateY }],
-        // Shadow
-        shadowColor: '#000',
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 20,
-        borderRadius: 16,
-        backgroundColor: colors.bgCard,
       }}>
       <Pressable onPress={handlePress}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            padding: 14,
-            gap: 10,
-            borderRadius: 16,
-            backgroundColor: colors.bgCard,
-            borderWidth: 1,
-            borderColor: colors.borderSoft,
-          }}>
-          {/* App icon placeholder — pink circle with heart emoji */}
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: colors.primaryMuted,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
+        <View className="flex-row items-center p-[14px] gap-[10px]">
+          {/* App icon — pink circle with mail emoji */}
+          <View className="w-9 h-9 rounded-full items-center justify-center bg-primary/10 shrink-0">
             <Text style={{ fontSize: 18 }}>💌</Text>
           </View>
 
           {/* Text content */}
-          <View style={{ flex: 1, gap: 1 }}>
-            <Label
-              className="text-textDark"
-              style={{ color: colors.textDark, fontFamily: 'BeVietnamPro-SemiBold', fontSize: 13 }}>
+          <View className="flex-1 gap-[2px]">
+            <Label className="text-textDark dark:text-darkTextDark font-semibold text-[13px]">
               {notification.title}
             </Label>
             {notification.body ? (
               <Caption
                 numberOfLines={1}
-                style={{ color: colors.textMid, fontSize: 12 }}>
+                className="text-textMid dark:text-darkTextMid text-[12px]">
                 {notification.body}
               </Caption>
             ) : null}
@@ -135,13 +104,7 @@ export default function InAppNotificationBanner({
               handleDismiss();
             }}
             hitSlop={8}
-            style={{
-              width: 24,
-              height: 24,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
+            className="w-6 h-6 items-center justify-center shrink-0">
             <X size={14} color={colors.textLight} strokeWidth={2} />
           </Pressable>
         </View>

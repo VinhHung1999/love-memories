@@ -189,11 +189,6 @@ export default function LetterOverlay() {
                   ))}
                 </View>
               )}
-              {/* Gradient overlay so the seal blends smoothly */}
-              <View
-                className="absolute bottom-0 left-0 right-0 h-12"
-                style={{ background: 'transparent' }}
-              />
               {/* Fold crease line */}
               <View
                 className="absolute bottom-0 left-0 right-0 h-px"

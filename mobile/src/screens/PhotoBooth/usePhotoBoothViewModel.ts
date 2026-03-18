@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import type { AppStackParamList } from '../../navigation';
+import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 export type FilterType = 'original' | 'grayscale' | 'sepia' | 'warm' | 'cool' | 'rose' | 'vintage' | 'softglow';
 export type FrameType = 'none' | 'polaroid' | 'floral' | 'minimal';
@@ -126,10 +127,13 @@ export function usePhotoBoothViewModel() {
     try {
       const uri = await captureImage();
       if (!uri) throw new Error('capture failed');
-      // Navigate to MomentsTab bottom sheet with the captured photo
-      navigation.navigate('MainTabs');
-      // Note: passing initial photo via navigation params
-      // The CreateMomentSheet integration is handled by the tab navigator
+      (navigation as any).navigate('MomentsTab', {
+        screen: 'BottomSheet',
+        params: {
+          screen: CreateMomentSheet,
+          props: { initialPhoto: { uri, mimeType: 'image/jpeg' } },
+        },
+      });
     } catch {
       // ignore
     } finally {
