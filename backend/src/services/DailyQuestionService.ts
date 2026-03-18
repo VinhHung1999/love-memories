@@ -70,6 +70,40 @@ export async function getToday(coupleId: string, userId: string) {
   };
 }
 
+/**
+ * Update streak immediately when both partners have answered today's question.
+ * Edge case: if lastAnsweredDate is already today, skip (already incremented).
+ */
+async function updateStreakOnBothAnswered(coupleId: string): Promise<void> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const existing = await prisma.dailyQuestionStreak.findUnique({ where: { coupleId } });
+
+  // Already updated today — don't double-increment
+  if (existing?.lastAnsweredDate && existing.lastAnsweredDate >= todayStart) return;
+
+  const newCurrent = (existing?.currentStreak ?? 0) + 1;
+  const newLongest = Math.max(existing?.longestStreak ?? 0, newCurrent);
+  const today = new Date();
+
+  await prisma.dailyQuestionStreak.upsert({
+    where: { coupleId },
+    create: {
+      id: crypto.randomUUID(),
+      coupleId,
+      currentStreak: newCurrent,
+      longestStreak: newLongest,
+      lastAnsweredDate: today,
+    },
+    update: {
+      currentStreak: newCurrent,
+      longestStreak: newLongest,
+      lastAnsweredDate: today,
+    },
+  });
+}
+
 export async function submitAnswer(questionId: string, coupleId: string, userId: string, answer: string) {
   // Verify question exists
   const question = await prisma.dailyQuestion.findUnique({ where: { id: questionId } });
@@ -86,7 +120,7 @@ export async function submitAnswer(questionId: string, coupleId: string, userId:
     include: { question: { select: { id: true, text: true, textVi: true, category: true } } },
   });
 
-  // Task 4 — Notify partner that user has answered, encouraging them to answer too
+  // Notify partner that user has answered, encouraging them to answer too
   const partnerId = await getPartnerUserId(userId, coupleId);
   if (partnerId) {
     createNotification(
@@ -96,6 +130,14 @@ export async function submitAnswer(questionId: string, coupleId: string, userId:
       'Người ấy đã trả lời câu hỏi hôm nay! Xem ngay nào 💕',
       '/daily-questions',
     ).catch(() => {});
+
+    // Realtime streak update: check if partner already answered today's question
+    const partnerResponse = await prisma.dailyQuestionResponse.findUnique({
+      where: { questionId_coupleId_userId: { questionId, coupleId, userId: partnerId } },
+    });
+    if (partnerResponse) {
+      updateStreakOnBothAnswered(coupleId).catch(() => {});
+    }
   }
 
   return response;
@@ -126,13 +168,25 @@ export async function getStreak(coupleId: string) {
   const streak = await prisma.dailyQuestionStreak.findUnique({
     where: { coupleId },
   });
+
+  // Check if both partners answered today's question
+  const todayQuestionId = await getTodayQuestionId(coupleId);
+  let completedToday = false;
+  if (todayQuestionId) {
+    const todayCount = await prisma.dailyQuestionResponse.count({
+      where: { questionId: todayQuestionId, coupleId },
+    });
+    completedToday = todayCount >= 2;
+  }
+
   if (!streak) {
-    return { currentStreak: 0, longestStreak: 0, lastAnsweredDate: null };
+    return { currentStreak: 0, longestStreak: 0, lastAnsweredDate: null, completedToday };
   }
   return {
     currentStreak: streak.currentStreak,
     longestStreak: streak.longestStreak,
     lastAnsweredDate: streak.lastAnsweredDate,
+    completedToday,
   };
 }
 
