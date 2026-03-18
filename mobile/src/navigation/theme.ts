@@ -117,7 +117,7 @@ export const DarkAppTheme = {
     // ── Text ──────────────────────────────────────────────────────────────
     textDark:  '#E5E5E5',
     textMid:   '#B0B0B0',
-    textLight: '#ABABAB',
+    textLight: '#D4D4D4',
 
     // ── Input states ──────────────────────────────────────────────────────
     white:            '#FFFFFF',
