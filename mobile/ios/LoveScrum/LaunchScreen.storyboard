@@ -24,7 +24,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <!-- App name -->
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Love Memories" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="App-nm-lbl">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Memoura" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="App-nm-lbl">
                                 <rect key="frame" x="20" y="346" width="335" height="38"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="28"/>
                                 <color key="textColor" red="0.1765" green="0.1765" blue="0.1765" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
