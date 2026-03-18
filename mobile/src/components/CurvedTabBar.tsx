@@ -14,8 +14,8 @@
  *   Camera sits in the notch arc: the arc's center is at y=CAMERA_SIZE, the
  *   camera button occupies y=0..64, perfectly centered in the cutout.
  */
-import React, { useEffect } from 'react';
-import { Dimensions, Platform, Pressable, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActionSheetIOS, Dimensions, Modal, Platform, Pressable, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -34,6 +34,7 @@ import CreateMomentSheet from '../screens/CreateMoment/CreateMomentSheet';
 import { Caption } from './Typography';
 import { tabBarRefs } from '../lib/tabBarRefs';
 import { useAppColors } from '../navigation/theme';
+import { useUnreadLettersCount } from '../lib/useUnreadLettersCount';
 
 const { width: W } = Dimensions.get('window');
 
@@ -83,6 +84,7 @@ const TABS = [
 
 function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navigation'] }) {
   const scale = useSharedValue(1);
+  const [showAndroidSheet, setShowAndroidSheet] = useState(false);
 
   useEffect(() => {
     scale.value = withRepeat(
@@ -101,9 +103,8 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
     transform: [{ scale: scale.value }],
   }));
 
-  const handlePress = async () => {
+  const launchQuickPhoto = async () => {
     const result = await launchCamera({ mediaType: 'photo', saveToPhotos: false });
-    console.log("result" + JSON.stringify(result, null, 2))
     if (result.didCancel || !result.assets?.[0]) return;
     const photo = result.assets[0];
     navigation.navigate('MomentsTab', {
@@ -115,41 +116,104 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
     });
   };
 
-  return (
-    <Animated.View
-      style={[
+  const launchPhotoBooth = () => {
+    (navigation as any).navigate('PhotoBooth');
+  };
+
+  const handlePress = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
         {
-          width: CAMERA_SIZE,
-          height: CAMERA_SIZE,
-          borderRadius: CAMERA_SIZE / 2,
-          shadowColor: '#E8788A',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 14,
-          elevation: 10,
+          options: ['Cancel', 'Quick Photo', 'Photo Booth'],
+          cancelButtonIndex: 0,
         },
-        animStyle,
-      ]}>
-      <Pressable
-        onPress={handlePress}
-        style={({ pressed }) => ({
-          width: CAMERA_SIZE,
-          height: CAMERA_SIZE,
-          borderRadius: CAMERA_SIZE / 2,
-          overflow: 'hidden',
-          opacity: pressed ? 0.88 : 1,
-        })}>
-        <LinearGradient
-          colors={['#F4A0B0', '#E8788A']}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={{ width: "100%", height: "100%", borderRadius: CAMERA_SIZE / 2, }}>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
+        (buttonIndex) => {
+          if (buttonIndex === 1) launchQuickPhoto();
+          else if (buttonIndex === 2) launchPhotoBooth();
+        },
+      );
+    } else {
+      setShowAndroidSheet(true);
+    }
+  };
+
+  return (
+    <>
+      <Animated.View
+        style={[
+          {
+            width: CAMERA_SIZE,
+            height: CAMERA_SIZE,
+            borderRadius: CAMERA_SIZE / 2,
+            shadowColor: '#E8788A',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.4,
+            shadowRadius: 14,
+            elevation: 10,
+          },
+          animStyle,
+        ]}>
+        <Pressable
+          onPress={handlePress}
+          style={({ pressed }) => ({
+            width: CAMERA_SIZE,
+            height: CAMERA_SIZE,
+            borderRadius: CAMERA_SIZE / 2,
+            overflow: 'hidden',
+            opacity: pressed ? 0.88 : 1,
+          })}>
+          <LinearGradient
+            colors={['#F4A0B0', '#E8788A']}
+            start={{ x: 0.15, y: 0 }}
+            end={{ x: 0.85, y: 1 }}
+            style={{ width: '100%', height: '100%', borderRadius: CAMERA_SIZE / 2 }}>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
+            </View>
+          </LinearGradient>
+        </Pressable>
+      </Animated.View>
+
+      {/* Android Action Sheet */}
+      {Platform.OS === 'android' && (
+        <Modal
+          transparent
+          visible={showAndroidSheet}
+          animationType="slide"
+          onRequestClose={() => setShowAndroidSheet(false)}>
+          <Pressable
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
+            onPress={() => setShowAndroidSheet(false)}
+          />
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              paddingBottom: 32,
+              paddingTop: 12,
+            }}>
+            {/* Handle */}
+            <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0D0D6', alignSelf: 'center', marginBottom: 16 }} />
+            <Pressable
+              onPress={() => { setShowAndroidSheet(false); launchQuickPhoto(); }}
+              style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
+              <Caption style={{ fontSize: 16, color: '#1A1A2E' }}>Quick Photo</Caption>
+            </Pressable>
+            <Pressable
+              onPress={() => { setShowAndroidSheet(false); launchPhotoBooth(); }}
+              style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
+              <Caption style={{ fontSize: 16, color: '#1A1A2E' }}>Photo Booth</Caption>
+            </Pressable>
+            <Pressable
+              onPress={() => setShowAndroidSheet(false)}
+              style={{ paddingHorizontal: 24, paddingVertical: 16 }}>
+              <Caption style={{ fontSize: 16, color: '#A0A0B0' }}>Cancel</Caption>
+            </Pressable>
           </View>
-        </LinearGradient>
-      </Pressable>
-    </Animated.View>
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -158,6 +222,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
 export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const colors = useAppColors();
+  const unreadLettersCount = useUnreadLettersCount();
   const bottomPad = Math.max(insets.bottom, 8);
   const barHeight = TAB_H + bottomPad;
   const svgPath = buildArcPath(barHeight);
@@ -266,6 +331,9 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
               tab.name === 'LettersTab' ? tabBarRefs.lettersTab :
                 undefined;
 
+          const showBadge = tab.name === 'LettersTab' && unreadLettersCount > 0;
+          const badgeLabel = unreadLettersCount > 9 ? '9+' : String(unreadLettersCount);
+
           return (
             <Pressable
               key={tab.name}
@@ -279,11 +347,38 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
                 justifyContent: 'center',
                 gap: 3,
               }}>
-              <Icon
-                size={22}
-                color={color}
-                strokeWidth={isFocused ? 2 : 1.6}
-              />
+              <View style={{ position: 'relative' }}>
+                <Icon
+                  size={22}
+                  color={color}
+                  strokeWidth={isFocused ? 2 : 1.6}
+                />
+                {showBadge && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -6,
+                      minWidth: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      backgroundColor: '#EF4444',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingHorizontal: 3,
+                    }}>
+                    <Caption
+                      style={{
+                        color: '#FFFFFF',
+                        fontSize: 9,
+                        lineHeight: 11,
+                        fontWeight: '700',
+                      }}>
+                      {badgeLabel}
+                    </Caption>
+                  </View>
+                )}
+              </View>
               <Caption
                 style={{
                   color,

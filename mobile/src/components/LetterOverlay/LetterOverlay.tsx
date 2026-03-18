@@ -25,6 +25,7 @@ import Animated, {
 import LinearGradient from 'react-native-linear-gradient';
 import { Heart } from 'lucide-react-native';
 import { useAppColors } from '../../navigation/theme';
+import FastImage from 'react-native-fast-image';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { useLetterOverlayViewModel } from './useLetterOverlayViewModel';
@@ -145,10 +146,10 @@ export default function LetterOverlay() {
         onPress={handleDismiss}
       />
 
-      {/* Card stage — anchored to bottom */}
+      {/* Card stage — vertically centered */}
       <View
-        className="absolute left-0 right-0 justify-end"
-        style={{ bottom: 0, paddingBottom: Math.max(insets.bottom, 24) + 8 }}
+        className="absolute left-0 right-0 top-0 bottom-0 flex-1 justify-center"
+        style={{ paddingVertical: Math.max(insets.top, 20) + 8, paddingBottom: Math.max(insets.bottom, 24) + 8 }}
         pointerEvents="box-none"
       >
         {/* ── Envelope card ── */}
@@ -165,21 +166,56 @@ export default function LetterOverlay() {
             },
           ]}
         >
-          {/* ── Envelope flap ── */}
-          <LinearGradient
-            colors={[colors.primaryLighter, colors.primaryLight]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
-          >
-            <View className="h-[140px] items-center justify-center">
+          {/* ── Envelope flap: photos if available, otherwise gradient ── */}
+          {letter.photos && letter.photos.length > 0 ? (
+            <View
+              className="overflow-hidden"
+              style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28, height: 160 }}>
+              {letter.photos.length === 1 ? (
+                <FastImage
+                  source={{ uri: letter.photos[0].url }}
+                  style={{ width: '100%', height: 160 }}
+                  resizeMode={FastImage.resizeMode.cover}
+                />
+              ) : (
+                <View className="flex-row h-[160px]">
+                  {letter.photos.slice(0, 3).map((photo, idx) => (
+                    <FastImage
+                      key={photo.id}
+                      source={{ uri: photo.url }}
+                      style={{ flex: 1, height: 160, marginLeft: idx > 0 ? 2 : 0 }}
+                      resizeMode={FastImage.resizeMode.cover}
+                    />
+                  ))}
+                </View>
+              )}
+              {/* Gradient overlay so the seal blends smoothly */}
+              <View
+                className="absolute bottom-0 left-0 right-0 h-12"
+                style={{ background: 'transparent' }}
+              />
               {/* Fold crease line */}
               <View
                 className="absolute bottom-0 left-0 right-0 h-px"
                 style={{ backgroundColor: 'rgba(232,120,138,0.18)' }}
               />
             </View>
-          </LinearGradient>
+          ) : (
+            <LinearGradient
+              colors={[colors.primaryLighter, colors.primaryLight]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
+            >
+              <View className="h-[140px] items-center justify-center">
+                {/* Fold crease line */}
+                <View
+                  className="absolute bottom-0 left-0 right-0 h-px"
+                  style={{ backgroundColor: 'rgba(232,120,138,0.18)' }}
+                />
+              </View>
+            </LinearGradient>
+          )}
 
           {/* ── Wax seal — straddles flap / body boundary ── */}
           <Animated.View
@@ -272,7 +308,7 @@ export default function LetterOverlay() {
         </Animated.View>
 
         {/* ── CTAs ── */}
-        <Animated.View className="mx-5 mt-3 gap-2.5" style={ctaStyle}>
+        <Animated.View className="mx-5 mt-4 gap-2.5" style={ctaStyle}>
           {/* Primary — Read now */}
           <Pressable onPress={handleReadNow} style={{ width: '100%' }}>
             <LinearGradient

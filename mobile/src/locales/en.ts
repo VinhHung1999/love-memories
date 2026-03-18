@@ -1065,6 +1065,56 @@ const en = {
     tryAgain: 'Try Again',
   },
 
+  photoBooth: {
+    title: 'Photo Booth',
+    subtitle: '📸 Create magic together',
+    cameraMode: 'Camera',
+    galleryMode: 'Gallery',
+    countdown: '{{n}}',
+    retake: 'Retake',
+    filters: {
+      title: 'Filters',
+      original: 'Original',
+      grayscale: 'B&W',
+      sepia: 'Sepia',
+      warm: 'Warm',
+      cool: 'Cool',
+      rose: 'Rose',
+      vintage: 'Vintage',
+      softglow: 'Soft Glow',
+    },
+    frames: {
+      title: 'Frames',
+      none: 'None',
+      strip: 'Strip',
+      polaroid: 'Polaroid',
+      floral: 'Floral',
+      minimal: 'Minimal',
+    },
+    stickers: {
+      title: 'Stickers',
+      love: 'Love',
+      fun: 'Fun',
+      text: 'Text',
+    },
+    watermark: 'Made with Memoura ❤️',
+    save: 'Save to Gallery',
+    saving: 'Saving...',
+    saved: 'Saved!',
+    share: 'Share',
+    attachToMoment: 'Attach to Moment',
+    errors: {
+      cameraPermission: 'Camera permission required',
+      galleryPermission: 'Gallery permission required',
+      saveFailed: 'Failed to save photo',
+    },
+  },
+
+  inAppNotification: {
+    view: 'View',
+    dismiss: 'Dismiss',
+  },
+
   common: {
     error: 'Error',
     success: 'Success',

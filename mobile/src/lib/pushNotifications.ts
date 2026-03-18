@@ -80,7 +80,8 @@ export async function requestPermission(): Promise<boolean> {
 // Note: Notification — Navigate to the relevant screen based on notification data.
 // The backend sends a `link` field (e.g. "/moments/abc-123") which we parse
 // into React Navigation route params.
-function handleNotificationNavigation(
+// Exported so InAppNotificationBanner can reuse this logic for tap-to-navigate.
+export function handleNotificationNavigation(
   navigation: any,
   data: Record<string, string> | undefined,
 ): void {
@@ -90,6 +91,7 @@ function handleNotificationNavigation(
   const momentMatch = link.match(/^\/moments\/(.+)$/);
   const foodSpotMatch = link.match(/^\/foodspots\/(.+)$/);
   const recipeMatch = link.match(/^\/recipes\/(.+)$/);
+  const letterMatch = link.match(/^\/letters\/(.+)$/);
 
   if (momentMatch) {
     navigation.navigate('MomentsTab', {
@@ -106,6 +108,23 @@ function handleNotificationNavigation(
       screen: 'RecipeDetail',
       params: { recipeId: recipeMatch[1] },
     });
+  } else if (letterMatch) {
+    navigation.navigate('LettersTab', {
+      screen: 'LetterRead',
+      params: { letterId: letterMatch[1] },
+    });
+  } else if (link === '/daily-questions') {
+    navigation.navigate('Dashboard', {
+      screen: 'DailyQuestions',
+    });
+  } else if (link === '/weekly-recap') {
+    navigation.navigate('NotificationsTab');
+  } else if (link === '/monthly-recap') {
+    navigation.navigate('MonthlyRecapTab');
+  } else if (link === '/expenses') {
+    navigation.navigate('ExpensesTab');
+  } else if (link === '/date-planner') {
+    navigation.navigate('DatePlannerTab');
   } else if (link === '/what-to-eat') {
     navigation.navigate('RecipesTab', { screen: 'WhatToEat' });
   } else if (link === '/notifications') {
@@ -118,12 +137,17 @@ function handleNotificationNavigation(
 // Permission + token registration is handled by useRequestNotificationPermission()
 // in DashboardScreen. This hook handles events only:
 // 1. Subscribes to token refresh events (token can change periodically)
-// 2. Listens for foreground notifications (shows an Alert)
+// 2. Listens for foreground notifications (shows in-app banner or Alert fallback)
 // 3. Listens for notification taps when app was in background
 // 4. Checks if app was opened from a killed state by a notification tap
-export function usePushNotifications(): void {
+export function usePushNotifications(
+  showBanner?: (n: { title: string; body?: string; data?: Record<string, string> }) => void,
+): void {
   const navigation = useNavigation<any>();
   const initialized = useRef(false);
+  // Store showBanner in a ref so we always call the latest version without re-running the effect
+  const showBannerRef = useRef(showBanner);
+  useEffect(() => { showBannerRef.current = showBanner; }, [showBanner]);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -139,18 +163,27 @@ export function usePushNotifications(): void {
 
       // Note: Notification — Step 2: Handle foreground notifications.
       // When the app is open and a push arrives, the OS does NOT show a banner.
-      // We show a simple Alert instead so the user knows something happened.
+      // If showBanner callback is provided, show our custom in-app banner.
+      // Otherwise fall back to Alert.
       const unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
         const { title, body } = remoteMessage.notification ?? {};
         if (title) {
-          Alert.alert(title, body ?? '', [
-            { text: 'OK', style: 'cancel' },
-            {
-              text: 'View',
-              onPress: () =>
-                handleNotificationNavigation(navigation, remoteMessage.data as Record<string, string>),
-            },
-          ]);
+          if (showBannerRef.current) {
+            showBannerRef.current({
+              title,
+              body,
+              data: remoteMessage.data as Record<string, string>,
+            });
+          } else {
+            Alert.alert(title, body ?? '', [
+              { text: 'OK', style: 'cancel' },
+              {
+                text: 'View',
+                onPress: () =>
+                  handleNotificationNavigation(navigation, remoteMessage.data as Record<string, string>),
+              },
+            ]);
+          }
         }
       });
 

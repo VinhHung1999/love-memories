@@ -1065,6 +1065,56 @@ const vi: LocaleStrings = {
     tryAgain: 'Thử lại',
   },
 
+  photoBooth: {
+    title: 'Photo Booth',
+    subtitle: '📸 Tạo kỷ niệm cùng nhau',
+    cameraMode: 'Máy ảnh',
+    galleryMode: 'Thư viện',
+    countdown: '{{n}}',
+    retake: 'Chụp lại',
+    filters: {
+      title: 'Bộ lọc',
+      original: 'Gốc',
+      grayscale: 'Đen trắng',
+      sepia: 'Sepia',
+      warm: 'Ấm',
+      cool: 'Lạnh',
+      rose: 'Hồng',
+      vintage: 'Vintage',
+      softglow: 'Ánh sáng mềm',
+    },
+    frames: {
+      title: 'Khung',
+      none: 'Không',
+      strip: 'Dải',
+      polaroid: 'Polaroid',
+      floral: 'Hoa',
+      minimal: 'Tối giản',
+    },
+    stickers: {
+      title: 'Nhãn dán',
+      love: 'Tình yêu',
+      fun: 'Vui nhộn',
+      text: 'Văn bản',
+    },
+    watermark: 'Made with Memoura ❤️',
+    save: 'Lưu vào máy',
+    saving: 'Đang lưu...',
+    saved: 'Đã lưu!',
+    share: 'Chia sẻ',
+    attachToMoment: 'Gắn vào Khoảnh khắc',
+    errors: {
+      cameraPermission: 'Cần quyền truy cập máy ảnh',
+      galleryPermission: 'Cần quyền truy cập thư viện',
+      saveFailed: 'Không thể lưu ảnh',
+    },
+  },
+
+  inAppNotification: {
+    view: 'Xem',
+    dismiss: 'Bỏ qua',
+  },
+
   common: {
     error: 'Lỗi',
     success: 'Thành công',

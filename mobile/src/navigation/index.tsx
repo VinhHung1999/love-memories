@@ -10,6 +10,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
+import { InAppNotificationProvider, useInAppNotification } from '../lib/InAppNotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useColorScheme } from 'react-native';
 import { useAuth } from '../lib/auth';
@@ -50,6 +51,7 @@ export type AppStackParamList = {
   Paywall: { trigger: 'limit' | 'locked_module' | 'browse'; blockedFeature?: string } | undefined;
   ShareViewer: { token: string };
   JoinCouple: { code: string };
+  PhotoBooth: undefined;
 };
 
 /** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
@@ -227,6 +229,7 @@ import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
 import ShareViewerScreen from '../screens/ShareViewer/ShareViewerScreen';
 import JoinCoupleScreen from '../screens/JoinCouple/JoinCoupleScreen';
 import { setPendingInviteCode } from '../lib/pendingInvite';
+import PhotoBoothScreen from '../screens/PhotoBooth/PhotoBoothScreen';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -405,8 +408,9 @@ function LettersNavigator() {
 // ---------------------------------------------------------------------------
 
 function AppNavigator() {
-  // Note: Notification — Initialize push notifications when authenticated user enters main app.
-  usePushNotifications();
+  // Note: Notification — Initialize push notifications with in-app banner support.
+  const { showNotification } = useInAppNotification();
+  usePushNotifications(showNotification);
 
   return (
     <AppStack.Navigator screenOptions={{ headerShown: false }}>
@@ -426,6 +430,11 @@ function AppNavigator() {
       />
       <AppStack.Screen name="ShareViewer" component={ShareViewerScreen} />
       <AppStack.Screen name="JoinCouple" component={JoinCoupleScreen} />
+      <AppStack.Screen
+        name="PhotoBooth"
+        component={PhotoBoothScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
     </AppStack.Navigator>
   );
 }
@@ -495,15 +504,18 @@ export default function RootNavigator() {
     <NavigationContainer theme={navTheme as any} linking={linking}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
-        {!isAuthenticated
-          ? <AuthNavigator />
-          : !user?.coupleId
-            ? <OnboardingNavigator />
-            : <AppNavigator />}
-        {/* Global overlays — inside NavigationContainer for useAppColors() access */}
-        {isAuthenticated ? <LetterOverlay /> : null}
-        <LoadingOverlay />
-        <UploadProgressFloat />
+        {/* InAppNotificationProvider wraps app content so AppNavigator can consume the context */}
+        <InAppNotificationProvider>
+          {!isAuthenticated
+            ? <AuthNavigator />
+            : !user?.coupleId
+              ? <OnboardingNavigator />
+              : <AppNavigator />}
+          {/* Global overlays — inside NavigationContainer for useAppColors() access */}
+          {isAuthenticated ? <LetterOverlay /> : null}
+          <LoadingOverlay />
+          <UploadProgressFloat />
+        </InAppNotificationProvider>
       </BottomSheetModalProvider>
     </NavigationContainer>
   );
