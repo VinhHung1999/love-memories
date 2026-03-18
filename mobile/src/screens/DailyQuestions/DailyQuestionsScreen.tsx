@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Pressable,
-  TextInput,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { Heading, Body, Caption } from '../../components/Typography';
 import Animated, {
@@ -27,12 +24,12 @@ import {
   Heart,
   HelpCircle,
   MessageCircle,
-  Send,
   Smile,
   Star,
   Telescope,
   WifiOff,
 } from 'lucide-react-native';
+import CommentInput from '../../components/CommentInput';
 import { useNavigation } from '@react-navigation/native';
 import { useAppColors } from '../../navigation/theme';
 import { useTranslation } from 'react-i18next';
@@ -74,113 +71,6 @@ function CategoryBadge({ category }: { category: string }) {
   );
 }
 
-// ── ChatInputBar ──────────────────────────────────────────────────────────────
-
-function ChatInputBar({
-  answerText,
-  setAnswerText,
-  submitAnswer,
-  isSubmitting,
-  submitError,
-}: {
-  answerText: string;
-  setAnswerText: (text: string) => void;
-  submitAnswer: () => void;
-  isSubmitting: boolean;
-  submitError: string | null;
-}) {
-  const colors = useAppColors();
-  const { t } = useTranslation();
-  const [isFocused, setIsFocused] = useState(false);
-  const sendScale = useSharedValue(1);
-  const canSubmit = answerText.trim().length > 0 && !isSubmitting;
-
-  const sendStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: sendScale.value }],
-  }));
-
-  const handleSend = () => {
-    if (!canSubmit) return;
-    sendScale.value = withSequence(
-      withTiming(0.88, { duration: 100 }),
-      withSpring(1.0, { damping: 15, stiffness: 300 }),
-    );
-    submitAnswer();
-  };
-
-  return (
-    <View
-      style={{
-        backgroundColor: colors.bgCard,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.06)',
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-      }}
-    >
-      {submitError ? (
-        <Caption
-          className="text-center mb-2"
-          style={{ color: colors.errorColor }}
-        >
-          {submitError}
-        </Caption>
-      ) : null}
-      <View className="flex-row items-end gap-2">
-        <TextInput
-          className="flex-1 text-textDark dark:text-darkTextDark"
-          style={{
-            backgroundColor: colors.baseBg,
-            borderRadius: 22,
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-            borderWidth: 1.5,
-            borderColor: isFocused
-              ? colors.inputBorderFocus
-              : 'rgba(232,120,138,0.18)',
-            fontSize: 15,
-            maxHeight: 96,
-            lineHeight: 22,
-          }}
-          multiline
-          placeholder={t('dailyQuestions.answerPlaceholder')}
-          placeholderTextColor={colors.textLight}
-          value={answerText}
-          onChangeText={setAnswerText}
-          maxLength={500}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-        />
-        <Animated.View style={sendStyle}>
-          <Pressable onPress={handleSend} disabled={!canSubmit}>
-            <LinearGradient
-              colors={
-                canSubmit
-                  ? [colors.primary, colors.primaryLight]
-                  : ['rgba(232,120,138,0.30)', 'rgba(242,165,176,0.30)']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Send size={18} strokeWidth={2} color="#fff" />
-              )}
-            </LinearGradient>
-          </Pressable>
-        </Animated.View>
-      </View>
-    </View>
-  );
-}
 
 // ── MyAnswerBubble ────────────────────────────────────────────────────────────
 
@@ -471,10 +361,33 @@ function TodayView({
   const meta = getCategoryMeta(question.category);
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View className="flex-1">
+      {/* ── Input bar — above scroll, shown only when not answered ── */}
+      {!hasAnswered ? (
+        <View
+          style={{
+            backgroundColor: colors.bgCard,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(0,0,0,0.06)',
+            paddingHorizontal: 12,
+            paddingTop: 8,
+          }}
+        >
+          {submitError ? (
+            <Caption className="text-center mb-1" style={{ color: colors.errorColor }}>
+              {submitError}
+            </Caption>
+          ) : null}
+          <CommentInput
+            value={answerText}
+            onChangeText={setAnswerText}
+            onSubmit={submitAnswer}
+            isSubmitting={isSubmitting}
+            placeholder={t('dailyQuestions.answerPlaceholder')}
+          />
+        </View>
+      ) : null}
+
       <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -534,18 +447,7 @@ function TodayView({
           </Animated.View>
         ) : null}
       </Animated.ScrollView>
-
-      {/* ── Chat input bar — fixed below scroll, shown only when not answered ── */}
-      {!hasAnswered ? (
-        <ChatInputBar
-          answerText={answerText}
-          setAnswerText={setAnswerText}
-          submitAnswer={submitAnswer}
-          isSubmitting={isSubmitting}
-          submitError={submitError}
-        />
-      ) : null}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -715,9 +617,6 @@ export default function DailyQuestionsScreen() {
   const isAboutToBreak = lastDate === yesterday && vm.currentStreak > 0;
   const showStreakBadge = vm.currentStreak > 0 || isAboutToBreak;
 
-  // Float badge higher when chat input bar is visible
-  const inputBarVisible = vm.activeTab === 'today' && !vm.hasAnswered;
-  const badgeBottom = inputBarVisible ? 86 : 28;
 
   return (
     <View className="flex-1 bg-background">
@@ -773,7 +672,7 @@ export default function DailyQuestionsScreen() {
         <FloatingStreakBadge
           streak={vm.currentStreak}
           isAboutToBreak={isAboutToBreak}
-          bottomOffset={badgeBottom}
+          bottomOffset={28}
         />
       ) : null}
     </View>
