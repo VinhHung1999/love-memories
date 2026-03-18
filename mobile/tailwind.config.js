@@ -45,8 +45,8 @@ module.exports = {
         darkBgCard:   '#1E1E1E',
         darkBorder:   '#2C2C2C',
         darkTextDark: '#E5E5E5',
-        darkTextMid:  '#B0B0B0',
-        darkTextLight:'#808080',
+        darkTextMid:  '#E5E5E5',
+        darkTextLight:'#E5E5E5',
         darkInputBg:  'rgba(30,30,30,0.90)',
       },
       fontFamily: {
