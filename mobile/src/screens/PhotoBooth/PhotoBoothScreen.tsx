@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   Dimensions,
   Image,
@@ -87,7 +87,7 @@ function FrameWrapper({ frame, children }: { frame: FrameType; children: React.R
       </View>
     );
   }
-  return <>{children}</>;
+  return <View style={{ flex: 1 }}>{children}</View>;
 }
 
 // ── FilterStrip ───────────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ function SelectCountScreen({ onSelect, onClose }: {
     { count: 8, emoji: '✨', label: t('photoBooth.count.eight') },
   ];
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-background dark:bg-black">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-2 pb-6">
         <Pressable
@@ -274,13 +274,13 @@ function SelectCountScreen({ onSelect, onClose }: {
             key={count}
             onPress={() => onSelect(count)}
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
-            <LinearGradient
-              colors={['rgba(232,120,138,0.18)', 'rgba(244,162,97,0.10)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}>
+            <View style={{ borderRadius: 20, overflow: 'hidden' }}>
+              <LinearGradient
+                colors={['rgba(232,120,138,0.18)', 'rgba(244,162,97,0.10)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}>
               <View
                 style={{
-                  borderRadius: 20,
                   borderWidth: 1,
                   borderColor: 'rgba(232,120,138,0.35)',
                   padding: 24,
@@ -302,7 +302,8 @@ function SelectCountScreen({ onSelect, onClose }: {
                   <Caption style={{ color: '#fff', fontSize: 16 }}>→</Caption>
                 </View>
               </View>
-            </LinearGradient>
+              </LinearGradient>
+            </View>
           </Pressable>
         ))}
       </View>
@@ -325,7 +326,7 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
   const cameraRef = useRef<VisionCameraHandle>(null);
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
-  const [isCapturing, setIsCapturing] = React.useState(false);
+  const isCapturingRef = useRef(false);
   const colors = useAppColors();
   const { t } = useTranslation();
 
@@ -334,29 +335,40 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const takePhoto = async () => {
-    if (!cameraRef.current) return;
-    try {
-      const photo = await cameraRef.current.takePhoto();
-      onPhotoAdded(`file://${photo.path}`);
-    } catch {
-      // ignore
-    } finally {
-      setIsCapturing(false);
-    }
-  };
-
-  const handleShutter = () => {
-    if (isCapturing || countdown !== null) return;
-    setIsCapturing(true);
+  const triggerCapture = useCallback(async () => {
+    if (isCapturingRef.current) return;
+    isCapturingRef.current = true;
     setCountdown(3);
-    setTimeout(() => setCountdown(2), 1000);
-    setTimeout(() => setCountdown(1), 2000);
-    setTimeout(() => {
-      setCountdown(null);
-      takePhoto();
-    }, 3000);
-  };
+    await new Promise<void>(resolve => setTimeout(resolve, 1000));
+    setCountdown(2);
+    await new Promise<void>(resolve => setTimeout(resolve, 1000));
+    setCountdown(1);
+    await new Promise<void>(resolve => setTimeout(resolve, 1000));
+    setCountdown(null);
+    try {
+      if (cameraRef.current) {
+        const photo = await cameraRef.current.takePhoto();
+        onPhotoAdded(`file://${photo.path}`);
+      }
+    } catch { /* ignore */ }
+    isCapturingRef.current = false;
+  }, [onPhotoAdded]);
+
+  // Auto-start on mount
+  React.useEffect(() => {
+    const t = setTimeout(() => triggerCapture(), 600);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-restart after each photo captured
+  React.useEffect(() => {
+    if (capturedCount > 0 && capturedCount < photoCount) {
+      const timer = setTimeout(() => triggerCapture(), 800);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capturedCount]);
 
   if (!hasPermission) {
     return (
@@ -394,7 +406,7 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
         ref={cameraRef}
         style={{ flex: 1 }}
         device={device}
-        isActive={countdown === null}
+        isActive={true}
         photo
       />
 
@@ -450,21 +462,6 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
         </View>
       )}
 
-      {/* Shutter bar */}
-      <SafeAreaView style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-        <View className="items-center pb-8 pt-4">
-          <Pressable onPress={handleShutter} disabled={isCapturing || countdown !== null}>
-            <View style={{
-              width: 76, height: 76, borderRadius: 38,
-              borderWidth: 3, borderColor: '#fff',
-              alignItems: 'center', justifyContent: 'center',
-              opacity: (isCapturing || countdown !== null) ? 0.5 : 1,
-            }}>
-              <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#fff' }} />
-            </View>
-          </Pressable>
-        </View>
-      </SafeAreaView>
     </View>
   );
 }
@@ -523,7 +520,7 @@ export default function PhotoBoothScreen() {
           <ViewShot
             ref={vm.viewShotRef}
             options={{ format: 'jpg', quality: 0.9 }}
-            style={{ width: PHOTO_SIZE, height: PHOTO_SIZE }}>
+            style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, overflow: 'hidden' }}>
             <FrameWrapper frame={vm.selectedFrame}>
               {mainPhoto ? (
                 <Image
