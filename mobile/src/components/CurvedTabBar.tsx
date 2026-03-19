@@ -242,21 +242,24 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
           <Pressable
             onPress={() => collapse(launchQuickPhoto)}
             style={{ alignItems: 'center', gap: 6 }}>
+            {/* Shadow ring — no overflow */}
             <View style={{
               width: ICON_BTN_SIZE, height: ICON_BTN_SIZE,
               borderRadius: ICON_BTN_SIZE / 2,
               shadowColor: '#E8788A', shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
-              overflow: 'hidden',
             }}>
-              <LinearGradient
-                colors={['#F4A0B0', '#E8788A']}
-                start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
-                style={{ width: '100%', height: '100%' }}>
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Camera size={22} color="#fff" strokeWidth={1.8} />
+              {/* Clip ring — overflow here, not on shadow ring */}
+              <View style={{ width: ICON_BTN_SIZE, height: ICON_BTN_SIZE, borderRadius: ICON_BTN_SIZE / 2, overflow: 'hidden' }}>
+                <LinearGradient
+                  colors={['#F4A0B0', '#E8788A']}
+                  start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
+                  style={{ width: '100%', height: '100%' }}>
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Camera size={22} color="#fff" strokeWidth={1.8} />
+                  </View>
+                </LinearGradient>
               </View>
-              </LinearGradient>
             </View>
             <Label style={{ color: '#fff', fontSize: 11, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
               {t('photoBooth.quickLabel')}
@@ -279,21 +282,24 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
           <Pressable
             onPress={() => collapse(launchPhotoBooth)}
             style={{ alignItems: 'center', gap: 6 }}>
+            {/* Shadow ring — no overflow */}
             <View style={{
               width: ICON_BTN_SIZE, height: ICON_BTN_SIZE,
               borderRadius: ICON_BTN_SIZE / 2,
               shadowColor: '#E8788A', shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
-              overflow: 'hidden',
             }}>
-              <LinearGradient
-                colors={['#F4A0B0', '#E8788A']}
-                start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
-                style={{ width: '100%', height: '100%' }}>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                  <LayoutGrid size={22} color="#fff" strokeWidth={1.8} />
-                </View>
-              </LinearGradient>
+              {/* Clip ring — overflow here, not on shadow ring */}
+              <View style={{ width: ICON_BTN_SIZE, height: ICON_BTN_SIZE, borderRadius: ICON_BTN_SIZE / 2, overflow: 'hidden' }}>
+                <LinearGradient
+                  colors={['#F4A0B0', '#E8788A']}
+                  start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
+                  style={{ width: '100%', height: '100%' }}>
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <LayoutGrid size={22} color="#fff" strokeWidth={1.8} />
+                  </View>
+                </LinearGradient>
+              </View>
             </View>
             <Label style={{ color: '#fff', fontSize: 11, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
               {t('photoBooth.boothLabel')}
