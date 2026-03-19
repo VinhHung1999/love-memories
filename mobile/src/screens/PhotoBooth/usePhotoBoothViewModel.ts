@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Alert, Share } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -10,6 +10,8 @@ import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 export type FilterType = 'original' | 'grayscale' | 'sepia' | 'warm' | 'cool' | 'rose' | 'vintage' | 'softglow';
 export type FrameType = 'none' | 'polaroid' | 'floral' | 'minimal';
+export type PhotoBoothMode = 'select_count' | 'camera' | 'edit';
+export type PhotoCount = 4 | 6 | 8;
 
 export interface StickerItem {
   id: string;
@@ -25,8 +27,9 @@ export function usePhotoBoothViewModel() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
 
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [mode, setMode] = useState<'camera' | 'gallery' | 'edit'>('camera');
+  const [mode, setMode] = useState<PhotoBoothMode>('select_count');
+  const [photoCount, setPhotoCount] = useState<PhotoCount>(4);
+  const [photos, setPhotos] = useState<string[]>([]);  // captured photo URIs
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('original');
   const [selectedFrame, setSelectedFrame] = useState<FrameType>('none');
   const [stickers, setStickers] = useState<StickerItem[]>([]);
@@ -38,6 +41,79 @@ export function usePhotoBoothViewModel() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const viewShotRef = useRef<any>(null);
 
+  const capturedCount = photos.length;
+
+  // ── Select count ────────────────────────────────────────────────────────────
+
+  const handleSelectCount = (count: PhotoCount) => {
+    setPhotoCount(count);
+    setPhotos([]);
+    setMode('camera');
+  };
+
+  // ── Add photo (from camera or gallery) ─────────────────────────────────────
+
+  const addPhoto = (uri: string) => {
+    setPhotos(prev => {
+      const next = [...prev, uri];
+      if (next.length >= photoCount) {
+        // All photos captured — advance to edit
+        setMode('edit');
+      }
+      return next;
+    });
+  };
+
+  // ── Countdown helper ────────────────────────────────────────────────────────
+
+  const startCountdown = (onDone: () => void) => {
+    setCountdown(3);
+    setTimeout(() => setCountdown(2), 1000);
+    setTimeout(() => setCountdown(1), 2000);
+    setTimeout(() => { setCountdown(null); onDone(); }, 3000);
+  };
+
+  // ── Gallery picker (secondary option) ──────────────────────────────────────
+
+  const handlePickFromGallery = async () => {
+    const remaining = photoCount - capturedCount;
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: remaining,
+      quality: 0.9,
+    });
+    if (result.assets) {
+      result.assets.forEach(asset => {
+        if (asset.uri) addPhoto(asset.uri);
+      });
+    }
+  };
+
+  // ── Retake ──────────────────────────────────────────────────────────────────
+
+  const handleRetake = () => {
+    setPhotos([]);
+    setMode('camera');
+    setSelectedFilter('original');
+    setSelectedFrame('none');
+    setStickers([]);
+    setActivePanel(null);
+  };
+
+  const handleClose = () => navigation.goBack();
+
+  const handleBackToCount = () => {
+    setPhotos([]);
+    setMode('select_count');
+    setSelectedFilter('original');
+    setSelectedFrame('none');
+    setStickers([]);
+    setCountdown(null);
+    setActivePanel(null);
+  };
+
+  // ── ViewShot capture ────────────────────────────────────────────────────────
+
   const captureImage = async (): Promise<string | null> => {
     if (!viewShotRef.current) return null;
     try {
@@ -48,52 +124,7 @@ export function usePhotoBoothViewModel() {
     }
   };
 
-  const handleLaunchCamera = () => {
-    // Start countdown 3 → 2 → 1 then launch camera
-    setCountdown(3);
-    setTimeout(() => setCountdown(2), 1000);
-    setTimeout(() => setCountdown(1), 2000);
-    setTimeout(async () => {
-      setCountdown(null);
-      const result = await launchCamera({
-        mediaType: 'photo',
-        cameraType: 'back',
-        saveToPhotos: false,
-        quality: 0.9,
-      });
-      if (result.assets && result.assets[0]?.uri) {
-        setPhoto(result.assets[0].uri);
-        setMode('edit');
-        setSelectedFilter('original');
-        setSelectedFrame('none');
-        setStickers([]);
-      }
-    }, 3000);
-  };
-
-  const handleLaunchGallery = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      selectionLimit: 1,
-      quality: 0.9,
-    });
-    if (result.assets && result.assets[0]?.uri) {
-      setPhoto(result.assets[0].uri);
-      setMode('edit');
-      setSelectedFilter('original');
-      setSelectedFrame('none');
-      setStickers([]);
-    }
-  };
-
-  const handleRetake = () => {
-    setPhoto(null);
-    setMode('camera');
-    setSelectedFilter('original');
-    setSelectedFrame('none');
-    setStickers([]);
-    setActivePanel(null);
-  };
+  // ── Save / Share / Attach ───────────────────────────────────────────────────
 
   const handleSaveToGallery = async () => {
     setIsProcessing(true);
@@ -141,9 +172,10 @@ export function usePhotoBoothViewModel() {
     }
   };
 
+  // ── Stickers ────────────────────────────────────────────────────────────────
+
   const addSticker = (content: string) => {
     const id = `sticker-${Date.now()}-${Math.random()}`;
-    // Random position within central area of the photo
     const x = 30 + Math.random() * 200;
     const y = 50 + Math.random() * 150;
     setStickers(prev => [...prev, { id, content, x, y, scale: 1 }]);
@@ -158,8 +190,10 @@ export function usePhotoBoothViewModel() {
   };
 
   return {
-    photo,
     mode,
+    photoCount,
+    photos,
+    capturedCount,
     selectedFilter,
     setSelectedFilter,
     selectedFrame,
@@ -171,9 +205,13 @@ export function usePhotoBoothViewModel() {
     stickerCategory,
     setStickerCategory,
     viewShotRef,
-    handleLaunchCamera,
-    handleLaunchGallery,
+    startCountdown,
+    handleClose,
+    handleSelectCount,
+    addPhoto,
+    handlePickFromGallery,
     handleRetake,
+    handleBackToCount,
     handleSaveToGallery,
     handleShare,
     handleAttachToMoment,

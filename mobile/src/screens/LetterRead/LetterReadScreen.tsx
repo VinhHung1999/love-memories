@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -10,22 +10,17 @@ import {
   View,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { ChevronLeft, X } from 'lucide-react-native';
+import { Mail, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
-import { Body, Caption, Heading, Label } from '../../components/Typography';
+import { Body, Caption, Label } from '../../components/Typography';
 import { useLetterReadViewModel } from './useLetterReadViewModel';
 import VoiceMemoSection from '../MomentDetail/components/VoiceMemoSection';
 import type { MomentAudio } from '../../types';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
+import DetailScreenLayout from '../../components/DetailScreenLayout';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const PHOTO_WIDTH = SCREEN_WIDTH;
-const PHOTO_HEIGHT = PHOTO_WIDTH * 0.75; // 4:3 ratio
 
 const MOOD_EMOJI: Record<string, string> = {
   love: '❤️', happy: '😊', miss: '🥺', grateful: '🙏', playful: '😄', romantic: '🌹',
@@ -49,12 +44,10 @@ function PhotoLightbox({
 }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const insets = useSafeAreaInsets();
-  const flatRef = useRef<FlatList>(null);
 
   return (
     <Modal visible animationType="fade" transparent statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
-        {/* Close button */}
         <TouchableOpacity
           onPress={onClose}
           style={{
@@ -72,9 +65,7 @@ function PhotoLightbox({
           <X size={18} color="#fff" strokeWidth={2} />
         </TouchableOpacity>
 
-        {/* Photo slider */}
         <FlatList
-          ref={flatRef}
           data={photos}
           keyExtractor={item => item.id}
           horizontal
@@ -101,7 +92,6 @@ function PhotoLightbox({
           )}
         />
 
-        {/* Page dots */}
         {photos.length > 1 && (
           <View
             style={{
@@ -136,12 +126,8 @@ function PhotoLightbox({
 export default function LetterReadScreen() {
   const { t } = useTranslation();
   const colors = useAppColors();
-  const insets = useSafeAreaInsets();
   const vm = useLetterReadViewModel();
-  const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
-  const [photoPage, setPhotoPage] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (vm.isLoading || !vm.letter) {
@@ -160,7 +146,6 @@ export default function LetterReadScreen() {
   const audios = (letter.audio ?? []) as unknown as MomentAudio[];
   const photos = letter.photos ?? [];
 
-  // Format date nicely
   const dateStr = letter.createdAt
     ? new Date(letter.createdAt).toLocaleDateString('en-US', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -168,135 +153,54 @@ export default function LetterReadScreen() {
     : '';
 
   return (
-    <View className="flex-1 bg-baseBg dark:bg-darkBaseBg">
-      {/* Custom transparent header */}
-      <View
-        style={{
-          paddingTop: insets.top + 8,
-          paddingHorizontal: 16,
-          paddingBottom: 10,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: 'transparent',
-        }}>
-        {/* Back button */}
-        <Pressable
-          onPress={vm.handleBack}
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 19,
-            backgroundColor: colors.primaryMuted,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <ChevronLeft size={20} color={colors.primary} strokeWidth={2} />
-        </Pressable>
-
-        {/* Title */}
-        <Body size="lg" className="font-bodyMedium text-textDark dark:text-darkTextDark flex-1 text-center mx-4" numberOfLines={1}>
-          {letter.title}
-        </Body>
-
-        {/* Mood emoji badge */}
-        {letter.mood ? (
-          <View
-            style={{
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              borderRadius: 20,
-              backgroundColor: colors.primaryMuted,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-            }}>
-            <Text style={{ fontSize: 14 }}>{moodEmoji}</Text>
-          </View>
-        ) : (
-          <View style={{ width: 38 }} />
-        )}
-      </View>
-
-      <Animated.ScrollView
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-        className="flex-1">
-
-        {/* Hero photo section */}
-        {photos.length > 0 && (
-          <View>
+    <>
+      <DetailScreenLayout
+        title={letter.title}
+        coverSubtitle={senderName}
+        coverImageUri={photos[0]?.url}
+        icon={Mail}
+        onBack={vm.handleBack}
+      >
+        {/* Thumbnail strip for 2+ photos */}
+        {photos.length >= 2 && (
+          <View className="mx-4 mt-4">
             <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
               data={photos}
               keyExtractor={item => item.id}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={e => {
-                const newPage = Math.round(e.nativeEvent.contentOffset.x / PHOTO_WIDTH);
-                setPhotoPage(newPage);
-              }}
+              ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
               renderItem={({ item, index }) => (
-                <Pressable
-                  onPress={() => setLightboxIndex(index)}
-                  style={{ width: PHOTO_WIDTH, height: PHOTO_HEIGHT }}>
+                <Pressable onPress={() => setLightboxIndex(index)}>
                   <FastImage
                     source={{ uri: item.url }}
-                    style={{ width: PHOTO_WIDTH, height: PHOTO_HEIGHT }}
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 12,
+                      borderWidth: index === 0 ? 2 : 0,
+                      borderColor: colors.primary,
+                    }}
                     resizeMode={FastImage.resizeMode.cover}
                   />
                 </Pressable>
               )}
             />
-
-            {/* Page dots */}
-            {photos.length > 1 && (
-              <View className="flex-row justify-center gap-[5px] py-2">
-                {photos.map((_, i) => (
-                  <View
-                    key={i}
-                    style={{
-                      width: i === photoPage ? 14 : 5,
-                      height: 5,
-                      borderRadius: 2.5,
-                      backgroundColor: i === photoPage ? colors.primary : colors.primaryLight,
-                    }}
-                  />
-                ))}
-              </View>
-            )}
           </View>
         )}
 
-        {/* Content card */}
-        <View
-          className="mx-4 mt-4 rounded-3xl bg-white dark:bg-darkBgCard px-6 py-6 mb-4"
-          style={{
-            shadowColor: '#000',
-            shadowOpacity: 0.06,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 2 },
-            elevation: 3,
-          }}>
-          {/* Date caption */}
+        {/* Content */}
+        <View className="mx-4 mt-4 mb-2">
+
+          {/* Date */}
           {dateStr ? (
             <Caption className="uppercase tracking-[1px] text-textLight dark:text-darkTextLight mb-3">
               {dateStr}
             </Caption>
           ) : null}
 
-          {/* Title */}
-          <Heading
-            size="lg"
-            className="text-textDark dark:text-darkTextDark mb-4"
-            style={{ fontFamily: 'BeVietnamPro-Bold', lineHeight: 30 }}>
-            {letter.title}
-          </Heading>
-
           {/* Sender row */}
           <View className="flex-row items-center gap-3 mb-4">
-            {/* Avatar circle */}
             <View
               style={{
                 width: 36, height: 36, borderRadius: 18,
@@ -336,7 +240,7 @@ export default function LetterReadScreen() {
                   backgroundColor: colors.primaryMuted,
                 }}>
                 <Text style={{ fontSize: 12 }}>{moodEmoji}</Text>
-                <Caption className="text-primary" style={{ color: colors.primary, fontSize: 11 }}>
+                <Caption style={{ color: colors.primary, fontSize: 11 }}>
                   {moodLabel}
                 </Caption>
               </View>
@@ -344,9 +248,7 @@ export default function LetterReadScreen() {
           </View>
 
           {/* Divider */}
-          <View
-            style={{ height: 1, backgroundColor: colors.border, marginBottom: 16, opacity: 0.7 }}
-          />
+          <View style={{ height: 1, backgroundColor: colors.border, marginBottom: 16, opacity: 0.7 }} />
 
           {/* Letter body */}
           <Body
@@ -357,7 +259,7 @@ export default function LetterReadScreen() {
           </Body>
         </View>
 
-        {/* Voice memo section */}
+        {/* Voice memo */}
         {audios.length > 0 && (
           <View className="mx-4 mb-4">
             <VoiceMemoSection
@@ -370,9 +272,8 @@ export default function LetterReadScreen() {
           </View>
         )}
 
-        {/* Bottom padding */}
-        <View style={{ height: 96 }} />
-      </Animated.ScrollView>
+        <View className="h-20" />
+      </DetailScreenLayout>
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
@@ -382,6 +283,6 @@ export default function LetterReadScreen() {
           onClose={() => setLightboxIndex(null)}
         />
       )}
-    </View>
+    </>
   );
 }
