@@ -11,7 +11,7 @@ import {
 import ViewShot from 'react-native-view-shot';
 import { Camera as VisionCamera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import type { Camera as VisionCameraHandle } from 'react-native-vision-camera';
-import { Camera, Check, Image as ImageIcon, Paperclip, Share2, SlidersHorizontal, Smile, X } from 'lucide-react-native';
+import { Camera, Check, Image as ImageIcon, Paperclip, RotateCcw, Share2, SlidersHorizontal, Smile, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 import { Body, Caption, Heading, Label } from '../../components/Typography';
@@ -55,6 +55,33 @@ const STICKERS: Record<'love' | 'fun' | 'text', string[]> = {
   fun:  ['😄', '🎉', '✨', '🌈', '🎊', '😂'],
   text: ['You & Me', 'Forever', 'Our Story', '♥ Always', 'Memoura'],
 };
+
+// ── PhotoGrid ─────────────────────────────────────────────────────────────────
+
+function PhotoGrid({ photos, photoCount, size }: { photos: string[]; photoCount: PhotoCount; size: number }) {
+  if (photoCount === 1) {
+    return photos[0]
+      ? <Image source={{ uri: photos[0] }} style={{ width: size, height: size }} resizeMode="cover" />
+      : <View style={{ width: size, height: size, backgroundColor: '#111' }} />;
+  }
+  const cols = 2;
+  const rows = photoCount / cols; // 2 for 4-photo, 3 for 6-photo
+  const cellW = size / cols;
+  const cellH = size / rows;
+  return (
+    <View style={{ width: size, height: size, flexDirection: 'row', flexWrap: 'wrap' }}>
+      {Array.from({ length: photoCount }).map((_, i) => (
+        <View key={i} style={{ width: cellW, height: cellH }}>
+          {photos[i] ? (
+            <Image source={{ uri: photos[i] }} style={{ width: cellW, height: cellH }} resizeMode="cover" />
+          ) : (
+            <View style={{ width: cellW, height: cellH, backgroundColor: '#222' }} />
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
 
 // ── FrameWrapper ──────────────────────────────────────────────────────────────
 
@@ -231,104 +258,21 @@ function StickerPanel({ category, onCategoryChange, onAddSticker }: {
   );
 }
 
-// ── SelectCountScreen ─────────────────────────────────────────────────────────
+// ── CameraScreen — single screen with pill tabs + live preview + Bắt đầu ──────
 
-function SelectCountScreen({ onSelect, onClose }: {
-  onSelect: (count: PhotoCount) => void;
-  onClose: () => void;
+function CameraScreen({ vm }: {
+  vm: ReturnType<typeof usePhotoBoothViewModel>;
 }) {
   const { t } = useTranslation();
   const colors = useAppColors();
-  const options: { count: PhotoCount; emoji: string; label: string }[] = [
-    { count: 4, emoji: '🎞️', label: t('photoBooth.count.four') },
-    { count: 6, emoji: '📷', label: t('photoBooth.count.six') },
-    { count: 8, emoji: '✨', label: t('photoBooth.count.eight') },
-  ];
-  return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-black">
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-2 pb-6">
-        <Pressable
-          onPress={onClose}
-          style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}>
-          <X size={18} color="#fff" strokeWidth={2} />
-        </Pressable>
-        <Heading size="sm" style={{ color: '#fff' }}>{t('photoBooth.title')}</Heading>
-        <View style={{ width: 36 }} />
-      </View>
 
-      {/* Prompt */}
-      <View className="items-center mb-8 px-6">
-        <Body size="lg" style={{ color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginBottom: 4 }}>
-          {t('photoBooth.count.prompt')}
-        </Body>
-        <Caption style={{ color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
-          {t('photoBooth.count.subtitle')}
-        </Caption>
-      </View>
-
-      {/* Count cards */}
-      <View className="flex-1 justify-center px-5 gap-4">
-        {options.map(({ count, emoji, label }) => (
-          <Pressable
-            key={count}
-            onPress={() => onSelect(count)}
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
-            <View style={{ borderRadius: 20, overflow: 'hidden' }}>
-              <LinearGradient
-                colors={['rgba(232,120,138,0.18)', 'rgba(244,162,97,0.10)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}>
-              <View
-                style={{
-                  borderWidth: 1,
-                  borderColor: 'rgba(232,120,138,0.35)',
-                  padding: 24,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 16,
-                }}>
-                <Text style={{ fontSize: 36 }}>{emoji}</Text>
-                <View className="flex-1">
-                  <Heading size="md" style={{ color: '#fff' }}>{count} {t('photoBooth.count.photos')}</Heading>
-                  <Caption style={{ color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{label}</Caption>
-                </View>
-                {/* Arrow */}
-                <View style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  backgroundColor: colors.primary,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Caption style={{ color: '#fff', fontSize: 16 }}>→</Caption>
-                </View>
-              </View>
-              </LinearGradient>
-            </View>
-          </Pressable>
-        ))}
-      </View>
-
-      <View style={{ height: 40 }} />
-    </SafeAreaView>
-  );
-}
-
-// ── WithCountdownCamera ───────────────────────────────────────────────────────
-
-function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGallery, onBack }: {
-  photoCount: PhotoCount;
-  capturedCount: number;
-  onPhotoAdded: (uri: string) => void;
-  onPickGallery: () => void;
-  onBack: () => void;
-}) {
+  const [cameraPosition, setCameraPosition] = React.useState<'back' | 'front'>('front');
   const [countdown, setCountdown] = React.useState<number | null>(null);
   const cameraRef = useRef<VisionCameraHandle>(null);
-  const device = useCameraDevice('back');
-  const { hasPermission, requestPermission } = useCameraPermission();
   const isCapturingRef = useRef(false);
-  const colors = useAppColors();
-  const { t } = useTranslation();
+
+  const device = useCameraDevice(cameraPosition);
+  const { hasPermission, requestPermission } = useCameraPermission();
 
   React.useEffect(() => {
     if (!hasPermission) requestPermission();
@@ -348,27 +292,30 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
     try {
       if (cameraRef.current) {
         const photo = await cameraRef.current.takePhoto();
-        onPhotoAdded(`file://${photo.path}`);
+        vm.addPhoto(`file://${photo.path}`);
       }
     } catch { /* ignore */ }
     isCapturingRef.current = false;
-  }, [onPhotoAdded]);
+  }, [vm]);
 
-  // Auto-start on mount
+  // Start auto-capture when vm.isCapturing becomes true
   React.useEffect(() => {
-    const t = setTimeout(() => triggerCapture(), 600);
-    return () => clearTimeout(t);
+    if (vm.isCapturing && !isCapturingRef.current) {
+      triggerCapture();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [vm.isCapturing]);
 
   // Auto-restart after each photo captured
   React.useEffect(() => {
-    if (capturedCount > 0 && capturedCount < photoCount) {
+    if (vm.isCapturing && vm.capturedCount > 0 && vm.capturedCount < vm.photoCount) {
       const timer = setTimeout(() => triggerCapture(), 800);
       return () => clearTimeout(timer);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [capturedCount]);
+  }, [vm.capturedCount]);
+
+  const COUNTS: PhotoCount[] = [1, 4, 6];
 
   if (!hasPermission) {
     return (
@@ -381,8 +328,8 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
           <LinearGradient
             colors={[colors.primary, colors.secondary]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            >
-            <View style={{ borderRadius: 14, paddingHorizontal: 32, paddingVertical: 14 }}>
+            style={{ borderRadius: 14 }}>
+            <View style={{ paddingHorizontal: 32, paddingVertical: 14 }}>
               <Label style={{ color: '#fff' }}>{t('photoBooth.grantPermission')}</Label>
             </View>
           </LinearGradient>
@@ -401,67 +348,115 @@ function WithCountdownCamera({ photoCount, capturedCount, onPhotoAdded, onPickGa
 
   return (
     <View className="flex-1 bg-black">
-      {/* Live camera preview */}
-      <VisionCamera
-        ref={cameraRef}
-        style={{ flex: 1 }}
-        device={device}
-        isActive={true}
-        photo
-      />
+      {/* TOP: Count selector pills (hidden during capture) */}
+      {!vm.isCapturing && (
+        <SafeAreaView>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+            {/* Close button */}
+            <Pressable
+              onPress={vm.handleClose}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={18} color="#fff" strokeWidth={2} />
+            </Pressable>
 
-      {/* Header overlay */}
-      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-        <View className="flex-row items-center justify-between px-4 pt-2">
-          <Pressable
-            onPress={onBack}
-            style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }}>
-            <X size={18} color="#fff" strokeWidth={2} />
-          </Pressable>
+            {/* Pill tabs */}
+            <View style={{ flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 24, padding: 3, gap: 2 }}>
+              {COUNTS.map(count => {
+                const isActive = count === vm.photoCount;
+                return (
+                  <Pressable
+                    key={count}
+                    onPress={() => vm.handleSetPhotoCount(count)}
+                    style={{
+                      paddingHorizontal: 18, paddingVertical: 7, borderRadius: 20,
+                      backgroundColor: isActive ? colors.primary : 'transparent',
+                    }}>
+                    <Label style={{ color: '#fff', fontSize: 13, fontWeight: isActive ? '700' : '400' }}>
+                      {count}
+                    </Label>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-          <View style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 }}>
-            <Label style={{ color: '#fff', fontSize: 13 }}>
-              {capturedCount} / {photoCount} {t('photoBooth.photos')}
-            </Label>
+            {/* Gallery picker */}
+            <Pressable
+              onPress={vm.handlePickFromGallery}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }}>
+              <ImageIcon size={18} color="#fff" strokeWidth={1.8} />
+            </Pressable>
           </View>
-
-          {/* Gallery picker */}
-          <Pressable
-            onPress={onPickGallery}
-            style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }}>
-            <ImageIcon size={18} color="#fff" strokeWidth={1.8} />
-          </Pressable>
-        </View>
-
-        {/* Progress dots */}
-        <View className="flex-row justify-center gap-2 mt-3">
-          {Array.from({ length: photoCount }).map((_, i) => (
-            <View
-              key={i}
-              style={{
-                width: i < capturedCount ? 20 : 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: i < capturedCount ? colors.primary : 'rgba(255,255,255,0.35)',
-              }}
-            />
-          ))}
-        </View>
-      </SafeAreaView>
-
-      {/* Countdown overlay */}
-      {countdown !== null && (
-        <View style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.55)',
-          alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Text style={{ fontSize: 120, fontWeight: '900', color: colors.primary, fontFamily: 'BeVietnamPro-Bold' }}>
-            {countdown}
-          </Text>
-        </View>
+        </SafeAreaView>
       )}
 
+      {/* MIDDLE: Live camera preview */}
+      <View style={{ flex: 1 }}>
+        <VisionCamera
+          ref={cameraRef}
+          style={{ flex: 1 }}
+          device={device}
+          isActive={true}
+          photo
+        />
+
+        {/* Progress dots (shown during capture) */}
+        {vm.isCapturing && (
+          <View style={{ position: 'absolute', top: 16, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+            {Array.from({ length: vm.photoCount }).map((_, i) => (
+              <View
+                key={i}
+                style={{
+                  width: i < vm.capturedCount ? 20 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: i < vm.capturedCount ? colors.primary : 'rgba(255,255,255,0.35)',
+                }}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Countdown overlay */}
+        {countdown !== null && (
+          <View style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.55)',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Text style={{ fontSize: 120, fontWeight: '900', color: colors.primary, fontFamily: 'BeVietnamPro-Bold' }}>
+              {countdown}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* BOTTOM: Bắt đầu button + flip (hidden during capture) */}
+      {!vm.isCapturing && (
+        <SafeAreaView>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 16, paddingTop: 12, gap: 16 }}>
+            {/* Start button */}
+            <Pressable onPress={vm.handleStartCapture} style={{ flex: 1 }}>
+              <LinearGradient
+                colors={[colors.primary, colors.secondary]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={{ borderRadius: 16 }}>
+                <View style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center' }}>
+                  <Heading size="sm" style={{ color: '#fff' }}>
+                    {t('photoBooth.startCapture')}
+                  </Heading>
+                </View>
+              </LinearGradient>
+            </Pressable>
+
+            {/* Flip camera */}
+            <Pressable
+              onPress={() => setCameraPosition(p => p === 'back' ? 'front' : 'back')}
+              style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' }}>
+              <RotateCcw size={22} color="#fff" strokeWidth={1.8} />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      )}
     </View>
   );
 }
@@ -473,28 +468,13 @@ export default function PhotoBoothScreen() {
   const colors = useAppColors();
   const vm = usePhotoBoothViewModel();
 
-  // ── Select Count Mode ──────────────────────────────────────────────────────
-  if (vm.mode === 'select_count') {
-    return <SelectCountScreen onSelect={vm.handleSelectCount} onClose={vm.handleClose} />;
-  }
-
   // ── Camera Mode ────────────────────────────────────────────────────────────
   if (vm.mode === 'camera') {
-    return (
-      <WithCountdownCamera
-        photoCount={vm.photoCount}
-        capturedCount={vm.capturedCount}
-        onPhotoAdded={vm.addPhoto}
-        onPickGallery={vm.handlePickFromGallery}
-        onBack={vm.handleBackToCount}
-      />
-    );
+    return <CameraScreen vm={vm} />;
   }
 
   // ── Edit Mode ──────────────────────────────────────────────────────────────
   const overlay = FILTER_OVERLAYS[vm.selectedFilter];
-  // Use first photo as main composition image
-  const mainPhoto = vm.photos[0] ?? null;
 
   return (
     <View className="flex-1 bg-black">
@@ -522,15 +502,7 @@ export default function PhotoBoothScreen() {
             options={{ format: 'jpg', quality: 0.9 }}
             style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, overflow: 'hidden' }}>
             <FrameWrapper frame={vm.selectedFrame}>
-              {mainPhoto ? (
-                <Image
-                  source={{ uri: mainPhoto }}
-                  style={{ width: PHOTO_SIZE, height: PHOTO_SIZE }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, backgroundColor: '#111' }} />
-              )}
+              <PhotoGrid photos={vm.photos} photoCount={vm.photoCount} size={PHOTO_SIZE} />
 
               {/* Filter overlay */}
               {overlay.opacity > 0 && (
@@ -609,8 +581,9 @@ export default function PhotoBoothScreen() {
             <Pressable onPress={vm.handleSaveToGallery} disabled={vm.isProcessing} style={{ flex: 1, opacity: vm.isProcessing ? 0.6 : 1 }}>
               <LinearGradient
                 colors={[colors.primary, colors.secondary]}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <View style={{ borderRadius: 14, padding: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={{ borderRadius: 14 }}>
+                <View style={{ padding: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
                   <Check size={16} color="#fff" strokeWidth={2.5} />
                   <Label style={{ color: '#fff', fontSize: 13 }}>{t('photoBooth.save')}</Label>
                 </View>

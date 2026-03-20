@@ -10,8 +10,8 @@ import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 export type FilterType = 'original' | 'grayscale' | 'sepia' | 'warm' | 'cool' | 'rose' | 'vintage' | 'softglow';
 export type FrameType = 'none' | 'polaroid' | 'floral' | 'minimal';
-export type PhotoBoothMode = 'select_count' | 'camera' | 'edit';
-export type PhotoCount = 4 | 6 | 8;
+export type PhotoBoothMode = 'camera' | 'edit';
+export type PhotoCount = 1 | 4 | 6;
 
 export interface StickerItem {
   id: string;
@@ -27,14 +27,14 @@ export function usePhotoBoothViewModel() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
 
-  const [mode, setMode] = useState<PhotoBoothMode>('select_count');
+  const [mode, setMode] = useState<PhotoBoothMode>('camera');
   const [photoCount, setPhotoCount] = useState<PhotoCount>(4);
-  const [photos, setPhotos] = useState<string[]>([]);  // captured photo URIs
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('original');
   const [selectedFrame, setSelectedFrame] = useState<FrameType>('none');
   const [stickers, setStickers] = useState<StickerItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
   const [activePanel, setActivePanel] = useState<'filters' | 'frames' | 'stickers' | null>(null);
   const [stickerCategory, setStickerCategory] = useState<'love' | 'fun' | 'text'>('love');
 
@@ -43,12 +43,18 @@ export function usePhotoBoothViewModel() {
 
   const capturedCount = photos.length;
 
-  // ── Select count ────────────────────────────────────────────────────────────
+  // ── Count selection ──────────────────────────────────────────────────────────
 
-  const handleSelectCount = (count: PhotoCount) => {
+  const handleSetPhotoCount = (count: PhotoCount) => {
     setPhotoCount(count);
     setPhotos([]);
-    setMode('camera');
+    setIsCapturing(false);
+  };
+
+  // ── Start capture ────────────────────────────────────────────────────────────
+
+  const handleStartCapture = () => {
+    setIsCapturing(true);
   };
 
   // ── Add photo (from camera or gallery) ─────────────────────────────────────
@@ -57,20 +63,11 @@ export function usePhotoBoothViewModel() {
     setPhotos(prev => {
       const next = [...prev, uri];
       if (next.length >= photoCount) {
-        // All photos captured — advance to edit
         setMode('edit');
+        setIsCapturing(false);
       }
       return next;
     });
-  };
-
-  // ── Countdown helper ────────────────────────────────────────────────────────
-
-  const startCountdown = (onDone: () => void) => {
-    setCountdown(3);
-    setTimeout(() => setCountdown(2), 1000);
-    setTimeout(() => setCountdown(1), 2000);
-    setTimeout(() => { setCountdown(null); onDone(); }, 3000);
   };
 
   // ── Gallery picker (secondary option) ──────────────────────────────────────
@@ -94,6 +91,7 @@ export function usePhotoBoothViewModel() {
   const handleRetake = () => {
     setPhotos([]);
     setMode('camera');
+    setIsCapturing(false);
     setSelectedFilter('original');
     setSelectedFrame('none');
     setStickers([]);
@@ -101,16 +99,6 @@ export function usePhotoBoothViewModel() {
   };
 
   const handleClose = () => navigation.goBack();
-
-  const handleBackToCount = () => {
-    setPhotos([]);
-    setMode('select_count');
-    setSelectedFilter('original');
-    setSelectedFrame('none');
-    setStickers([]);
-    setCountdown(null);
-    setActivePanel(null);
-  };
 
   // ── ViewShot capture ────────────────────────────────────────────────────────
 
@@ -194,24 +182,23 @@ export function usePhotoBoothViewModel() {
     photoCount,
     photos,
     capturedCount,
+    isCapturing,
     selectedFilter,
     setSelectedFilter,
     selectedFrame,
     setSelectedFrame,
     stickers,
     isProcessing,
-    countdown,
     activePanel,
     stickerCategory,
     setStickerCategory,
     viewShotRef,
-    startCountdown,
     handleClose,
-    handleSelectCount,
+    handleSetPhotoCount,
+    handleStartCapture,
     addPhoto,
     handlePickFromGallery,
     handleRetake,
-    handleBackToCount,
     handleSaveToGallery,
     handleShare,
     handleAttachToMoment,

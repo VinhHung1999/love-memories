@@ -200,8 +200,9 @@ export default function LetterOverlay() {
               colors={[colors.primaryLighter, colors.primaryLight]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
+              style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
             >
-              <View className="h-[140px] items-center justify-center" style={{ borderTopLeftRadius: 28, borderTopRightRadius: 28 }}>
+              <View className="h-[140px] items-center justify-center">
                 {/* Fold crease line */}
                 <View
                   className="absolute bottom-0 left-0 right-0 h-px"
@@ -309,8 +310,9 @@ export default function LetterOverlay() {
               colors={[colors.primary, colors.secondary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
+              style={{ borderRadius: 16 }}
             >
-              <View className="py-4 items-center justify-center" style={{ borderRadius: 16 }}>
+              <View className="py-4 items-center justify-center">
                 <Heading size="sm" className="text-white">
                   {t('letterOverlay.readNow')}
                 </Heading>

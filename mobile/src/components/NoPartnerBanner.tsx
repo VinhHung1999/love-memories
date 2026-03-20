@@ -32,7 +32,6 @@ export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
       <View
         style={{
           borderRadius: 24,
-          overflow: 'hidden',
           shadowColor: '#E8788A',
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.22,
@@ -43,6 +42,7 @@ export default function NoPartnerBanner({ inviteCode, onShare }: Props) {
           colors={['#E8788A', '#F4929E', '#F9B4B4']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
+          style={{ borderRadius: 24 }}
           >
             <View style={{ padding: 20 }}>
             {/* Header row */}

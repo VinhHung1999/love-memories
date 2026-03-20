@@ -208,8 +208,8 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
             colors={['#F4A0B0', '#E8788A']}
             start={{ x: 0.15, y: 0 }}
             end={{ x: 0.85, y: 1 }}
-            style={{ width: '100%', height: '100%' }}>
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: CAMERA_SIZE / 2 }}>
+            style={{ width: '100%', height: '100%', borderRadius: CAMERA_SIZE / 2 }}>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <Camera size={28} color="#FFFFFF" strokeWidth={1.8} />
             </View>
           </LinearGradient>
@@ -254,7 +254,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
                 <LinearGradient
                   colors={['#F4A0B0', '#E8788A']}
                   start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
-                  style={{ width: '100%', height: '100%' }}>
+                  style={{ width: '100%', height: '100%', borderRadius: ICON_BTN_SIZE / 2 }}>
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <Camera size={22} color="#fff" strokeWidth={1.8} />
                   </View>
@@ -294,7 +294,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
                 <LinearGradient
                   colors={['#F4A0B0', '#E8788A']}
                   start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
-                  style={{ width: '100%', height: '100%' }}>
+                  style={{ width: '100%', height: '100%', borderRadius: ICON_BTN_SIZE / 2 }}>
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                     <LayoutGrid size={22} color="#fff" strokeWidth={1.8} />
                   </View>
