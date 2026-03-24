@@ -407,6 +407,10 @@ function LettersNavigator() {
   );
 }
 
+// AppStack modal options — must use transparentModal (not containedTransparentModal)
+// because containedTransparentModal cannot render over a fullScreenModal on iOS.
+const APP_STACK_MODAL_OPTIONS = { animation: 'none', presentation: 'transparentModal' } as const;
+
 // ---------------------------------------------------------------------------
 // App navigator — root stack for authenticated users
 // Recipes / Expenses / Notifications open as full-screen (no tab bar)
@@ -440,8 +444,8 @@ function AppNavigator() {
         component={PhotoBoothScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
       />
-      <AppStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <AppStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
+      <AppStack.Screen name="BottomSheet" component={BottomSheetRoute} options={APP_STACK_MODAL_OPTIONS} />
+      <AppStack.Screen name="Alert" component={AlertRoute} options={APP_STACK_MODAL_OPTIONS} />
     </AppStack.Navigator>
   );
 }
