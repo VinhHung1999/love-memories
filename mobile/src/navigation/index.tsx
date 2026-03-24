@@ -52,6 +52,8 @@ export type AppStackParamList = {
   ShareViewer: { token: string };
   JoinCouple: { code: string };
   PhotoBooth: undefined;
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
 };
 
 /** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
@@ -438,6 +440,8 @@ function AppNavigator() {
         component={PhotoBoothScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
       />
+      <AppStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <AppStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </AppStack.Navigator>
   );
 }

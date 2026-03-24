@@ -176,7 +176,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
 
   // Camera center position from screen bottom (for floating button placement in Modal)
   const bottomPad = Math.max(insets.bottom, 8);
-  const cameraCenterBottom = bottomPad + TAB_H + CAMERA_SIZE / 2;
+  const cameraCenterBottom = TAB_H + bottomPad;
   const floatBtnBottom = cameraCenterBottom + 28; // ~28px above camera center
 
   return (
@@ -432,7 +432,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
       {/* Camera button */}
       <View
         ref={tabBarRefs.cameraButton}
-        style={{ position: 'absolute', top: 0, left: W / 2 - CAMERA_SIZE / 2, zIndex: 100, elevation: 100 }}>
+        style={{ position: 'absolute', top: CAMERA_SIZE / 2, left: W / 2 - CAMERA_SIZE / 2, zIndex: 100, elevation: 100 }}>
         <CameraFloatButton navigation={navigation} />
       </View>
 

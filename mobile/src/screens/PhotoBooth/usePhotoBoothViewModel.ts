@@ -142,16 +142,7 @@ export function usePhotoBoothViewModel() {
     try {
       const uri = await captureImage();
       if (!uri) throw new Error('capture failed');
-      (navigation as any).navigate('MainTabs', {
-        screen: 'MomentsTab',
-        params: {
-          screen: 'BottomSheet',
-          params: {
-            screen: CreateMomentSheet,
-            props: { initialPhoto: { uri, mimeType: 'image/jpeg' } },
-          },
-        },
-      });
+      navigation.showBottomSheet(CreateMomentSheet, { initialPhoto: { uri, mimeType: 'image/jpeg' } });
     } catch {
       // ignore
     } finally {
