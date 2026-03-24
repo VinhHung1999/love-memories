@@ -103,7 +103,8 @@ export function usePhotoBoothViewModel() {
     try {
       const uri: string = await viewShotRef.current.capture();
       return uri;
-    } catch {
+    } catch (err) {
+      console.error('[PhotoBooth] captureImage failed:', err);
       return null;
     }
   };
@@ -142,9 +143,15 @@ export function usePhotoBoothViewModel() {
     try {
       const uri = await captureImage();
       if (!uri) throw new Error('capture failed');
-      navigation.showBottomSheet(CreateMomentSheet, { initialPhoto: { uri, mimeType: 'image/jpeg' } });
-    } catch {
-      // ignore
+      // Replace PhotoBooth (fullScreenModal) with BottomSheet route to avoid
+      // containedTransparentModal-on-top-of-fullScreenModal layering issue on iOS
+      navigation.replace('BottomSheet' as any, {
+        screen: CreateMomentSheet,
+        props: { initialPhoto: { uri, mimeType: 'image/jpeg' } },
+      });
+    } catch (err) {
+      console.error('[PhotoBooth] Save to Memories failed:', err);
+      Alert.alert(t('common.error'), t('photoBooth.errors.saveFailed'));
     } finally {
       setIsProcessing(false);
     }
