@@ -73,30 +73,22 @@ export type MainTabParamList = {
 
 export type NotificationsStackParamList = {
   NotificationsList: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type ExpensesStackParamList = {
   ExpensesList: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type MomentsStackParamList = {
   MomentsList: undefined;
   MomentDetail: { momentId: string };
   PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type FoodSpotsStackParamList = {
   FoodSpotsList: undefined;
   FoodSpotDetail: { foodSpotId: string };
   FoodSpotGallery: { photos: MomentPhoto[]; initialIndex: number };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type RecipesStackParamList = {
@@ -106,29 +98,21 @@ export type RecipesStackParamList = {
   WhatToEat: undefined;
   CookingSession: { sessionId: string };
   CookingHistory: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type ProfileStackParamList = {
   ProfileMain: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type DatePlannerStackParamList = {
   WishesList: undefined;
   PlansList: undefined;
   PlanDetail: { planId: string };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type LettersStackParamList = {
   LettersList: undefined;
   LetterRead: { letterId: string };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -257,8 +241,6 @@ function MomentsNavigator() {
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
-      <MomentsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <MomentsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </MomentsStack.Navigator>
   );
 }
@@ -279,8 +261,6 @@ function FoodSpotsNavigator() {
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
-      <FoodSpotsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <FoodSpotsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </FoodSpotsStack.Navigator>
   );
 }
@@ -303,8 +283,6 @@ function RecipesNavigator() {
       <RecipesStack.Screen name="WhatToEat" component={WhatToEatScreen} />
       <RecipesStack.Screen name="CookingSession" component={CookingSessionScreen} />
       <RecipesStack.Screen name="CookingHistory" component={CookingHistoryScreen} />
-      <RecipesStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <RecipesStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </RecipesStack.Navigator>
   );
 }
@@ -317,8 +295,6 @@ function NotificationsNavigator() {
   return (
     <NotificationsStack.Navigator screenOptions={{ headerShown: false }}>
       <NotificationsStack.Screen name="NotificationsList" component={NotificationsScreen} />
-      <NotificationsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <NotificationsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </NotificationsStack.Navigator>
   );
 }
@@ -332,8 +308,6 @@ function ExpensesNavigator() {
   return (
     <ExpensesStack.Navigator screenOptions={{ headerShown: false }}>
       <ExpensesStack.Screen name="ExpensesList" component={ExpensesScreen} />
-      <ExpensesStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <ExpensesStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </ExpensesStack.Navigator>
   );
 }
@@ -346,8 +320,6 @@ function ProfileNavigator() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
-      <ProfileStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <ProfileStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </ProfileStack.Navigator>
   );
 }
@@ -386,8 +358,6 @@ function DatePlannerNavigator() {
       <DatePlannerStack.Screen name="WishesList" component={WishesScreen} />
       <DatePlannerStack.Screen name="PlansList" component={PlanListScreen} />
       <DatePlannerStack.Screen name="PlanDetail" component={PlanDetailScreen} />
-      <DatePlannerStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <DatePlannerStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </DatePlannerStack.Navigator>
   );
 }
@@ -401,15 +371,9 @@ function LettersNavigator() {
     <LettersStack.Navigator screenOptions={{ headerShown: false }}>
       <LettersStack.Screen name="LettersList" component={LettersScreen} />
       <LettersStack.Screen name="LetterRead" component={LetterReadScreen} />
-      <LettersStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <LettersStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </LettersStack.Navigator>
   );
 }
-
-// AppStack modal options — must use transparentModal (not containedTransparentModal)
-// because containedTransparentModal cannot render over a fullScreenModal on iOS.
-const APP_STACK_MODAL_OPTIONS = { animation: 'none', presentation: 'transparentModal' } as const;
 
 // ---------------------------------------------------------------------------
 // App navigator — root stack for authenticated users
@@ -444,8 +408,8 @@ function AppNavigator() {
         component={PhotoBoothScreen}
         options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
       />
-      <AppStack.Screen name="BottomSheet" component={BottomSheetRoute} options={APP_STACK_MODAL_OPTIONS} />
-      <AppStack.Screen name="Alert" component={AlertRoute} options={APP_STACK_MODAL_OPTIONS} />
+      <AppStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <AppStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </AppStack.Navigator>
   );
 }

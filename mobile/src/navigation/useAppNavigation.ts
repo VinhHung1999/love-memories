@@ -34,11 +34,13 @@ export function useAppNavigation() {
       screen: React.ComponentType<any>,
       props?: Record<string, any>,
     ) => {
-      navigation.push('BottomSheet', { screen, props });
+      // navigate (not push) so it finds the single BottomSheet route in AppStack
+      // regardless of how deeply nested the current screen is
+      navigation.navigate('BottomSheet', { screen, props });
     },
 
     showAlert: (params: AlertParams) => {
-      navigation.push('Alert', params);
+      navigation.navigate('Alert', params);
     },
   });
 }

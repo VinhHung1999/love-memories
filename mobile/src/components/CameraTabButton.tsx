@@ -44,13 +44,11 @@ export default function CameraTabButton(_props: BottomTabBarButtonProps) {
     const result = await launchCamera({ mediaType: 'photo', saveToPhotos: false });
     if (result.didCancel || !result.assets?.[0]) return;
     const photo = result.assets[0];
-    const appStack = navigation.getParent();
-    if (appStack) {
-      appStack.push('BottomSheet', {
-        screen: CreateMomentSheet,
-        props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
-      });
-    }
+    // navigate finds the single BottomSheet route in AppStack automatically
+    navigation.navigate('BottomSheet' as any, {
+      screen: CreateMomentSheet,
+      props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
+    });
   };
 
   return (
