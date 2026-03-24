@@ -615,9 +615,11 @@ export default function PhotoBoothScreen() {
               <LinearGradient
                 colors={[colors.primary, colors.secondary]}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 14, paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
-                <Check size={16} color="#fff" strokeWidth={2.5} />
-                <Label style={{ color: '#fff', fontSize: 13 }}>{t('photoBooth.save')}</Label>
+                style={{ borderRadius: 14 }}>
+                <View style={{ paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+                  <Check size={16} color="#fff" strokeWidth={2.5} />
+                  <Label style={{ color: '#fff', fontSize: 13 }}>{t('photoBooth.save')}</Label>
+                </View>
               </LinearGradient>
             </Pressable>
 

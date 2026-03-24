@@ -88,10 +88,14 @@ export function handleNotificationNavigation(
   if (!data?.link) {
     // Fallback by type when link is absent
     const type = data?.type;
-    if (type === 'letter') { navigation.navigate('LettersTab'); return; }
-    if (type === 'moment') { navigation.navigate('MomentsTab'); return; }
+    if (type === 'letter') {
+      navigation.navigate('MainTabs', { screen: 'LettersTab' }); return;
+    }
+    if (type === 'moment') {
+      navigation.navigate('MainTabs', { screen: 'MomentsTab' }); return;
+    }
     if (type === 'daily_questions' || type === 'reminder') {
-      navigation.navigate('Dashboard', { screen: 'DailyQuestions' }); return;
+      navigation.navigate('MainTabs', { screen: 'Dashboard', params: { screen: 'DailyQuestions' } }); return;
     }
     return;
   }
@@ -103,39 +107,39 @@ export function handleNotificationNavigation(
   const letterMatch = link.match(/^\/letters\/(.+)$/);
 
   if (momentMatch) {
-    navigation.navigate('MomentsTab', {
-      screen: 'MomentDetail',
-      params: { momentId: momentMatch[1] },
+    navigation.navigate('MainTabs', {
+      screen: 'MomentsTab',
+      params: { screen: 'MomentDetail', params: { momentId: momentMatch[1] } },
     });
   } else if (foodSpotMatch) {
-    navigation.navigate('FoodSpotsTab', {
-      screen: 'FoodSpotDetail',
-      params: { foodSpotId: foodSpotMatch[1] },
-    });
+    // MVP-hidden — just open app
+    navigation.navigate('MainTabs');
   } else if (recipeMatch) {
-    navigation.navigate('RecipesTab', {
-      screen: 'RecipeDetail',
-      params: { recipeId: recipeMatch[1] },
-    });
+    // MVP-hidden — just open app
+    navigation.navigate('MainTabs');
   } else if (letterMatch) {
-    navigation.navigate('LettersTab', {
-      screen: 'LetterRead',
-      params: { letterId: letterMatch[1] },
+    navigation.navigate('MainTabs', {
+      screen: 'LettersTab',
+      params: { screen: 'LetterRead', params: { letterId: letterMatch[1] } },
     });
   } else if (link === '/daily-questions') {
-    navigation.navigate('Dashboard', {
-      screen: 'DailyQuestions',
+    navigation.navigate('MainTabs', {
+      screen: 'Dashboard',
+      params: { screen: 'DailyQuestions' },
     });
   } else if (link === '/weekly-recap') {
     navigation.navigate('NotificationsTab');
   } else if (link === '/monthly-recap') {
-    navigation.navigate('MonthlyRecapTab');
+    navigation.navigate('NotificationsTab');
   } else if (link === '/expenses') {
-    navigation.navigate('ExpensesTab');
+    // MVP-hidden — just open app
+    navigation.navigate('MainTabs');
   } else if (link === '/date-planner') {
-    navigation.navigate('DatePlannerTab');
+    // MVP-hidden — just open app
+    navigation.navigate('MainTabs');
   } else if (link === '/what-to-eat') {
-    navigation.navigate('RecipesTab', { screen: 'WhatToEat' });
+    // MVP-hidden — just open app
+    navigation.navigate('MainTabs');
   } else if (link === '/notifications') {
     navigation.navigate('NotificationsTab');
   }
