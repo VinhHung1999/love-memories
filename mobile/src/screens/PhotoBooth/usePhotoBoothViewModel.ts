@@ -212,5 +212,6 @@ export function usePhotoBoothViewModel() {
     removeSticker,
     setStickerPosition,
     togglePanel,
+    handleSaveToMemories: handleAttachToMoment,
   };
 }

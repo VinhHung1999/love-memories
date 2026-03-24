@@ -12,7 +12,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import ViewShot from 'react-native-view-shot';
 import { Camera as VisionCamera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import type { Camera as VisionCameraHandle } from 'react-native-vision-camera';
-import { Camera, Check, Image as ImageIcon, Paperclip, RotateCcw, Share2, SlidersHorizontal, Smile, X } from 'lucide-react-native';
+import { Camera, Check, Download, Image as ImageIcon, RotateCcw, Share2, SlidersHorizontal, Smile, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppColors } from '../../navigation/theme';
 import { Body, Caption, Heading, Label } from '../../components/Typography';
@@ -511,22 +511,43 @@ export default function PhotoBoothScreen() {
 
         {/* Photo composition */}
         <View className="items-center">
-          <ViewShot
-            ref={vm.viewShotRef}
-            options={{ format: 'jpg', quality: 0.9 }}
-            style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, overflow: 'hidden' }}>
-            <FrameWrapper frame={vm.selectedFrame}>
-              <PhotoGrid photos={vm.photos} photoCount={vm.photoCount} size={frameInnerSize} />
+          <View style={{ position: 'relative' }}>
+            {/* Capture layer — everything rendered here goes into the exported image */}
+            <ViewShot
+              ref={vm.viewShotRef}
+              options={{ format: 'jpg', quality: 0.9 }}
+              style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, overflow: 'hidden' }}>
+              <FrameWrapper frame={vm.selectedFrame}>
+                <PhotoGrid photos={vm.photos} photoCount={vm.photoCount} size={frameInnerSize} />
 
-              {/* Filter overlay */}
-              {overlay.opacity > 0 && (
-                <View style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundColor: overlay.color, opacity: overlay.opacity,
-                }} />
-              )}
+                {/* Filter overlay */}
+                {overlay.opacity > 0 && (
+                  <View style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: overlay.color, opacity: overlay.opacity,
+                  }} />
+                )}
 
-              {/* Stickers — draggable via PanGestureHandler */}
+                {/* Sticker emojis — captured in output image, no gesture here */}
+                {vm.stickers.map(sticker => (
+                  <View
+                    key={sticker.id}
+                    style={{ position: 'absolute', left: sticker.x, top: sticker.y, transform: [{ scale: sticker.scale }] }}>
+                    <Text style={{ fontSize: 32 }}>{sticker.content}</Text>
+                  </View>
+                ))}
+
+                {/* Watermark */}
+                <View style={{ position: 'absolute', bottom: 8, right: 10 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, fontFamily: 'BeVietnamPro-Regular' }}>
+                    {t('photoBooth.watermark')}
+                  </Text>
+                </View>
+              </FrameWrapper>
+            </ViewShot>
+
+            {/* Gesture overlay — drag handles + remove buttons, NOT captured in image */}
+            <View style={{ position: 'absolute', top: 0, left: 0, width: PHOTO_SIZE, height: PHOTO_SIZE }} pointerEvents="box-none">
               {vm.stickers.map(sticker => (
                 <PanGestureHandler
                   key={sticker.id}
@@ -545,29 +566,20 @@ export default function PhotoBoothScreen() {
                       );
                     }
                   }}>
-                  <View style={{
-                    position: 'absolute', left: sticker.x, top: sticker.y,
-                    transform: [{ scale: sticker.scale }],
-                    flexDirection: 'row', alignItems: 'center',
-                  }}>
-                    <Text style={{ fontSize: 32 }}>{sticker.content}</Text>
+                  <View style={{ position: 'absolute', left: sticker.x, top: sticker.y }}>
+                    {/* Transparent drag target sized to sticker */}
+                    <View style={{ width: 52, height: 52, backgroundColor: 'transparent' }} />
+                    {/* Remove button — positioned outside drag area so it doesn't conflict */}
                     <Pressable
                       onPress={() => vm.removeSticker(sticker.id)}
-                      style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', marginLeft: 2, marginTop: -12 }}>
+                      style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' }}>
                       <X size={10} color="#fff" strokeWidth={2.5} />
                     </Pressable>
                   </View>
                 </PanGestureHandler>
               ))}
-
-              {/* Watermark */}
-              <View style={{ position: 'absolute', bottom: 8, right: 10 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, fontFamily: 'BeVietnamPro-Regular' }}>
-                  {t('photoBooth.watermark')}
-                </Text>
-              </View>
-            </FrameWrapper>
-          </ViewShot>
+            </View>
+          </View>
         </View>
 
         {/* Panels */}
@@ -610,8 +622,8 @@ export default function PhotoBoothScreen() {
         {/* Bottom action bar */}
         <View className="flex-1 justify-end">
           <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingBottom: 24 }}>
-            {/* Save — gradient fill */}
-            <Pressable onPress={vm.handleSaveToGallery} disabled={vm.isProcessing} style={{ flex: 1, opacity: vm.isProcessing ? 0.6 : 1 }}>
+            {/* Save to Memories — gradient fill */}
+            <Pressable onPress={vm.handleSaveToMemories} disabled={vm.isProcessing} style={{ flex: 1, opacity: vm.isProcessing ? 0.6 : 1 }}>
               <LinearGradient
                 colors={[colors.primary, colors.secondary]}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -630,11 +642,12 @@ export default function PhotoBoothScreen() {
               <Label style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{t('photoBooth.share')}</Label>
             </Pressable>
 
-            {/* Attach — small icon button */}
-            <Pressable onPress={vm.handleAttachToMoment} disabled={vm.isProcessing}
+            {/* Save to Gallery — small icon button */}
+            <Pressable onPress={vm.handleSaveToGallery} disabled={vm.isProcessing}
               style={{ width: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', opacity: vm.isProcessing ? 0.6 : 1 }}>
-              <Paperclip size={18} color="rgba(255,255,255,0.7)" strokeWidth={1.5} />
+              <Download size={18} color="rgba(255,255,255,0.7)" strokeWidth={1.5} />
             </Pressable>
+
           </View>
         </View>
       </SafeAreaView>
