@@ -176,7 +176,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
 
   // Camera center position from screen bottom (for floating button placement in Modal)
   const cameraCenterBottom = insets.bottom + TAB_H + CAMERA_SIZE / 2;
-  const floatBtnBottom = cameraCenterBottom + 56; // ~56px above camera center
+  const floatBtnBottom = cameraCenterBottom + 28; // ~28px above camera center
 
   return (
     <>
@@ -233,7 +233,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
             {
               position: 'absolute',
               bottom: floatBtnBottom,
-              left: W / 2 - ICON_BTN_SIZE - 20,
+              left: W / 2 - ICON_BTN_SIZE - 12,
               alignItems: 'center',
               gap: 6,
             },
@@ -273,7 +273,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
             {
               position: 'absolute',
               bottom: floatBtnBottom,
-              left: W / 2 + 20,
+              left: W / 2 + 12,
               alignItems: 'center',
               gap: 6,
             },

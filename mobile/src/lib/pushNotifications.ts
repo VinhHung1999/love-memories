@@ -85,7 +85,16 @@ export function handleNotificationNavigation(
   navigation: any,
   data: Record<string, string> | undefined,
 ): void {
-  if (!data?.link) return;
+  if (!data?.link) {
+    // Fallback by type when link is absent
+    const type = data?.type;
+    if (type === 'letter') { navigation.navigate('LettersTab'); return; }
+    if (type === 'moment') { navigation.navigate('MomentsTab'); return; }
+    if (type === 'daily_questions' || type === 'reminder') {
+      navigation.navigate('Dashboard', { screen: 'DailyQuestions' }); return;
+    }
+    return;
+  }
 
   const link = data.link;
   const momentMatch = link.match(/^\/moments\/(.+)$/);

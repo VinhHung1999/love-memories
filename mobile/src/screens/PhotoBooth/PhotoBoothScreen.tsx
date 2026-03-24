@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import ViewShot from 'react-native-view-shot';
 import { Camera as VisionCamera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import type { Camera as VisionCameraHandle } from 'react-native-vision-camera';
@@ -399,20 +400,25 @@ function CameraScreen({ vm }: {
           photo
         />
 
-        {/* Progress dots (shown during capture) */}
-        {vm.isCapturing && (
-          <View style={{ position: 'absolute', top: 16, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
-            {Array.from({ length: vm.photoCount }).map((_, i) => (
-              <View
-                key={i}
-                style={{
-                  width: i < vm.capturedCount ? 20 : 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: i < vm.capturedCount ? colors.primary : 'rgba(255,255,255,0.35)',
-                }}
-              />
-            ))}
+        {/* Progress counter — visible whenever at least 1 photo captured */}
+        {vm.capturedCount > 0 && (
+          <View style={{ position: 'absolute', top: 16, left: 0, right: 0, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 }}>
+              {Array.from({ length: vm.photoCount }).map((_, i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: i < vm.capturedCount ? 20 : 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: i < vm.capturedCount ? colors.primary : 'rgba(255,255,255,0.35)',
+                  }}
+                />
+              ))}
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginLeft: 4 }}>
+                {vm.capturedCount}/{vm.photoCount}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -467,6 +473,7 @@ export default function PhotoBoothScreen() {
   const { t } = useTranslation();
   const colors = useAppColors();
   const vm = usePhotoBoothViewModel();
+  const stickerStartPos = useRef<Record<string, { x: number; y: number }>>({});
 
   // ── Camera Mode ────────────────────────────────────────────────────────────
   if (vm.mode === 'camera') {
@@ -475,6 +482,13 @@ export default function PhotoBoothScreen() {
 
   // ── Edit Mode ──────────────────────────────────────────────────────────────
   const overlay = FILTER_OVERLAYS[vm.selectedFilter];
+
+  const frameInnerSize = (() => {
+    if (vm.selectedFrame === 'polaroid') return PHOTO_SIZE - 16; // padding 8 each side
+    if (vm.selectedFrame === 'floral')   return PHOTO_SIZE - 18; // padding 6 + innerPadding 2 + 1px border each side
+    if (vm.selectedFrame === 'minimal')  return PHOTO_SIZE - 4;  // borderWidth 2 each side
+    return PHOTO_SIZE;
+  })();
 
   return (
     <View className="flex-1 bg-black">
@@ -502,7 +516,7 @@ export default function PhotoBoothScreen() {
             options={{ format: 'jpg', quality: 0.9 }}
             style={{ width: PHOTO_SIZE, height: PHOTO_SIZE, overflow: 'hidden' }}>
             <FrameWrapper frame={vm.selectedFrame}>
-              <PhotoGrid photos={vm.photos} photoCount={vm.photoCount} size={PHOTO_SIZE} />
+              <PhotoGrid photos={vm.photos} photoCount={vm.photoCount} size={frameInnerSize} />
 
               {/* Filter overlay */}
               {overlay.opacity > 0 && (
@@ -512,20 +526,38 @@ export default function PhotoBoothScreen() {
                 }} />
               )}
 
-              {/* Stickers */}
+              {/* Stickers — draggable via PanGestureHandler */}
               {vm.stickers.map(sticker => (
-                <View key={sticker.id} style={{
-                  position: 'absolute', left: sticker.x, top: sticker.y,
-                  transform: [{ scale: sticker.scale }],
-                  flexDirection: 'row', alignItems: 'center',
-                }}>
-                  <Text style={{ fontSize: 32 }}>{sticker.content}</Text>
-                  <Pressable
-                    onPress={() => vm.removeSticker(sticker.id)}
-                    style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', marginLeft: 2, marginTop: -12 }}>
-                    <X size={10} color="#fff" strokeWidth={2.5} />
-                  </Pressable>
-                </View>
+                <PanGestureHandler
+                  key={sticker.id}
+                  onHandlerStateChange={(e) => {
+                    if (e.nativeEvent.state === State.BEGAN) {
+                      stickerStartPos.current[sticker.id] = { x: sticker.x, y: sticker.y };
+                    }
+                  }}
+                  onGestureEvent={(e) => {
+                    const start = stickerStartPos.current[sticker.id];
+                    if (start) {
+                      vm.setStickerPosition(
+                        sticker.id,
+                        start.x + e.nativeEvent.translationX,
+                        start.y + e.nativeEvent.translationY,
+                      );
+                    }
+                  }}>
+                  <View style={{
+                    position: 'absolute', left: sticker.x, top: sticker.y,
+                    transform: [{ scale: sticker.scale }],
+                    flexDirection: 'row', alignItems: 'center',
+                  }}>
+                    <Text style={{ fontSize: 32 }}>{sticker.content}</Text>
+                    <Pressable
+                      onPress={() => vm.removeSticker(sticker.id)}
+                      style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', marginLeft: 2, marginTop: -12 }}>
+                      <X size={10} color="#fff" strokeWidth={2.5} />
+                    </Pressable>
+                  </View>
+                </PanGestureHandler>
               ))}
 
               {/* Watermark */}
@@ -576,30 +608,30 @@ export default function PhotoBoothScreen() {
         </View>
 
         {/* Bottom action bar */}
-        <View className="flex-1 justify-end pb-6 px-4">
-          <View className="flex-row gap-3">
+        <View className="flex-1 justify-end">
+          <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingBottom: 24 }}>
+            {/* Save — gradient fill */}
             <Pressable onPress={vm.handleSaveToGallery} disabled={vm.isProcessing} style={{ flex: 1, opacity: vm.isProcessing ? 0.6 : 1 }}>
               <LinearGradient
                 colors={[colors.primary, colors.secondary]}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 14 }}>
-                <View style={{ padding: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
-                  <Check size={16} color="#fff" strokeWidth={2.5} />
-                  <Label style={{ color: '#fff', fontSize: 13 }}>{t('photoBooth.save')}</Label>
-                </View>
+                style={{ borderRadius: 14, paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+                <Check size={16} color="#fff" strokeWidth={2.5} />
+                <Label style={{ color: '#fff', fontSize: 13 }}>{t('photoBooth.save')}</Label>
               </LinearGradient>
             </Pressable>
 
+            {/* Share — outline */}
             <Pressable onPress={vm.handleShare} disabled={vm.isProcessing}
-              style={{ flex: 1, borderRadius: 14, padding: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)', opacity: vm.isProcessing ? 0.6 : 1 }}>
+              style={{ flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', opacity: vm.isProcessing ? 0.6 : 1 }}>
               <Share2 size={16} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
               <Label style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{t('photoBooth.share')}</Label>
             </Pressable>
 
+            {/* Attach — small icon button */}
             <Pressable onPress={vm.handleAttachToMoment} disabled={vm.isProcessing}
-              style={{ flex: 1, borderRadius: 14, padding: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)', opacity: vm.isProcessing ? 0.6 : 1 }}>
-              <Paperclip size={16} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
-              <Label style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{t('photoBooth.attachToMoment')}</Label>
+              style={{ width: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', opacity: vm.isProcessing ? 0.6 : 1 }}>
+              <Paperclip size={18} color="rgba(255,255,255,0.7)" strokeWidth={1.5} />
             </Pressable>
           </View>
         </View>

@@ -173,6 +173,12 @@ export function usePhotoBoothViewModel() {
     setStickers(prev => prev.filter(s => s.id !== id));
   };
 
+  const setStickerPosition = (id: string, x: number, y: number) => {
+    setStickers(prev => prev.map(s =>
+      s.id === id ? { ...s, x, y } : s,
+    ));
+  };
+
   const togglePanel = (panel: 'filters' | 'frames' | 'stickers') => {
     setActivePanel(prev => (prev === panel ? null : panel));
   };
@@ -204,6 +210,7 @@ export function usePhotoBoothViewModel() {
     handleAttachToMoment,
     addSticker,
     removeSticker,
+    setStickerPosition,
     togglePanel,
   };
 }
