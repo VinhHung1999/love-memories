@@ -146,7 +146,7 @@ export function usePhotoBoothViewModel() {
       // Replace PhotoBooth (fullScreenModal) with BottomSheet route to avoid
       // containedTransparentModal-on-top-of-fullScreenModal layering issue on iOS
       navigation.replace('BottomSheet' as any, {
-        screen: CreateMomentSheet,
+        component: CreateMomentSheet,
         props: { initialPhoto: { uri, mimeType: 'image/jpeg' } },
       });
     } catch (err) {

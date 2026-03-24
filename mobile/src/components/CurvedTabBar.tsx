@@ -151,7 +151,7 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
     navigation.navigate('MomentsTab', {
       screen: 'BottomSheet',
       params: {
-        screen: CreateMomentSheet,
+        component: CreateMomentSheet,
         props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
       },
     });

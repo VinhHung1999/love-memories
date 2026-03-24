@@ -46,7 +46,7 @@ export default function CameraTabButton(_props: BottomTabBarButtonProps) {
     const photo = result.assets[0];
     // navigate finds the single BottomSheet route in AppStack automatically
     navigation.navigate('BottomSheet' as any, {
-      screen: CreateMomentSheet,
+      component: CreateMomentSheet,
       props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
     });
   };
