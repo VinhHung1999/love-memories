@@ -127,7 +127,7 @@ export async function create(
       'love_letter',
       `Thư tình mới từ ${senderUser?.name ?? 'người ấy'} 💌`,
       data.title,
-      '/love-letters',
+      `/letters/${letter.id}`,
     ).catch(() => {});
   }
 
@@ -201,7 +201,7 @@ export async function send(id: string, userId: string, coupleId: string) {
     'love_letter',
     `Thư tình mới từ ${senderUser?.name ?? 'người ấy'} 💌`,
     letter.title,
-    '/love-letters',
+    `/letters/${letter.id}`,
   ).catch(() => {});
 
   return updated;
