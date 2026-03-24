@@ -240,7 +240,7 @@ import PhotoBoothScreen from '../screens/PhotoBooth/PhotoBoothScreen';
 
 const MODAL_OPTIONS = {
   animation: 'none',
-  presentation: 'containedTransparentModal',
+  presentation: 'transparentModal',
 } as const;
 
 // ---------------------------------------------------------------------------
