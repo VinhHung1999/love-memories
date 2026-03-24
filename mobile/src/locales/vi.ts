@@ -1111,7 +1111,7 @@ const vi: LocaleStrings = {
       text: 'Văn bản',
     },
     watermark: 'Made with Memoura ❤️',
-    save: 'Lưu vào máy',
+    save: 'Lưu vào Memories',
     saving: 'Đang lưu...',
     saved: 'Đã lưu!',
     share: 'Chia sẻ',

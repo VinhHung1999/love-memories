@@ -25,7 +25,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<string>23</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -36,6 +36,8 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Memoura uses your location to tag this moment with a place name.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Memoura uses your location to tag this moment with a place name.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Memoura needs camera access to take photos for your moments.</string>
@@ -75,6 +77,8 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>MBXAccessToken</key>

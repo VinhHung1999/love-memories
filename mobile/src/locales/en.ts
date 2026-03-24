@@ -1111,7 +1111,7 @@ const en = {
       text: 'Text',
     },
     watermark: 'Made with Memoura ❤️',
-    save: 'Save to Gallery',
+    save: 'Save to Memories',
     saving: 'Saving...',
     saved: 'Saved!',
     share: 'Share',

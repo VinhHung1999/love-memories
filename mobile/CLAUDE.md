@@ -1,85 +1,140 @@
-# Mobile — React Native 0.76 + NativeWind + TypeScript
+# CLAUDE.md
 
-Native mobile app. Shares backend API with web frontend but has independent UI design.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
+
 ```bash
 npm run ios          # Run on iOS simulator
 npm run android      # Run on Android emulator
-npm run start        # Metro bundler
-npm run lint         # tsc --noEmit + ESLint
+npm run start        # Metro bundler only (no simulator)
+npm run lint         # tsc --noEmit + ESLint (run before every commit)
 npm test             # Jest
+npx jest path/to/file.test.ts  # Run single test file
+cd ios && pod install          # After adding native dependencies
 ```
 
-## Structure
-```
-src/
-├── components/           # Shared reusable components
-│   ├── AppBottomSheet    # Shared BottomSheet wrapper (Profile benchmark)
-│   ├── AlertModal        # Modal popup replacing Alert.alert()
-│   ├── CollapsibleHeader # iOS large-title style animated header
-│   ├── Card + CardTitle  # White rounded card container
-│   ├── AvatarCircle      # Image + initials + camera badge
-│   ├── EmptyState        # Icon + title + CTA placeholder
-│   ├── TagBadge          # Tag/chip (filter or display)
-│   ├── Button            # Primary/outline + spring animation
-│   ├── Input             # TextInput with focus state
-│   ├── FieldLabel        # Form field label
-│   ├── ErrorBox          # Error message display
-│   ├── LoadingOverlay    # Full-screen spinner
-│   └── SpringPressable   # Pressable with spring scale
-├── screens/              # MVVM: Screen (View) + ViewModel per folder
-│   ├── Dashboard/        # Home tab
-│   ├── Moments/          # Moments list + tag filter
-│   ├── MomentDetail/     # Full moment view + comments/reactions
-│   ├── CreateMoment/     # BottomSheet form (scrollable)
-│   ├── Profile/          # User profile + edit modals ← DESIGN BENCHMARK
-│   ├── PhotoGallery/     # Full-screen lightbox
-│   └── Login/            # Google OAuth
-├── navigation/
-│   ├── index.tsx         # Stack + BottomTabs, BottomSheetModalProvider
-│   └── theme.ts          # AppTheme + useAppColors() hook
-├── contexts/
-│   └── LoadingContext.tsx # Global loading state
-├── lib/
-│   ├── api.ts            # API client + Keychain token storage
-│   └── auth.tsx          # AuthContext + Google login
-├── locales/
-│   └── en.ts             # i18n strings (single source of truth)
-└── types/
-    └── index.ts          # Re-exports from @shared/types
-```
+## Environment Setup
 
-## Mandatory Rules
-1. **MVVM**: Screen = UI only, ViewModel = logic/state/API
-2. **NativeWind only**: ZERO `style` prop. Exception: Animated transforms, gorhom API
-3. **i18n**: ALL strings from `locales/en.ts`
-4. **Theme**: `useAppColors()` — no hardcoded hex
-5. **Shared components**: Use `components/` — don't duplicate inline
-6. **ProfileScreen = design benchmark**: All screens follow this style
-7. **frontend-design skill**: Must use when building UI
+Config loaded via `react-native-config` from `.env.dev` (debug) or `.env.prod` (release). Copy `.env.example` → `.env.dev` and `.env.prod` and fill in real values. Typed access via `src/config/env.ts` — never read `Config.*` directly, always import from there.
 
-## Navigation
+| Key | Purpose |
+|-----|---------|
+| `API_URL` | Backend base URL (no trailing slash) |
+| `APP_BASE_URL` | Web app URL — universal links, share messages |
+| `GOOGLE_CLIENT_ID` | Google OAuth |
+| `REVENUECAT_API_KEY` | Subscription purchases |
+| `MAPBOX_ACCESS_TOKEN` | Map rendering |
+| `FIREBASE_PROJECT_ID` | Push notifications |
+
+## Architecture
+
+### MVVM Pattern (mandatory)
+
+Every screen = one folder under `src/screens/` containing:
+- `XxxScreen.tsx` — View: renders UI only via `className`, zero logic
+- `useXxxViewModel.ts` — ViewModel: all state, API calls, side effects
+
+Never put business logic in the Screen component.
+
+### Navigation Structure
+
 ```
-NavigationContainer (headerShown: false on ALL navigators)
+NavigationContainer (dark/light theme via useColorScheme)
 └── BottomSheetModalProvider
-    ├── AuthStack → Login
-    └── MainTabs
-        ├── Dashboard
-        ├── MomentsStack → Moments → MomentDetail → PhotoGallery
-        └── Profile
+    ├── AuthNavigator → LoginScreen
+    ├── OnboardingNavigator → OnboardingCouple → Anniversary → Invite → Celebration → Avatar
+    └── AppNavigator (AppStackParamList)
+        ├── MainTabs (CurvedTabBar — SVG notch + floating camera button)
+        │   ├── Dashboard → DashboardHome, DailyQuestions
+        │   ├── MomentsTab → MomentsList, MomentDetail, PhotoGallery
+        │   ├── CameraTab (no screen — CurvedTabBar handles the floating button)
+        │   ├── LettersTab → LettersList, LetterRead
+        │   └── ProfileTab → ProfileMain
+        ├── NotificationsTab (full-screen, no tab bar)
+        ├── Paywall (fullScreenModal, slide_from_bottom)
+        ├── ShareViewer
+        └── JoinCouple
 ```
 
-## Key Libraries
-- `react-native-reanimated` v4.2 — animations (UI thread)
-- `@gorhom/bottom-sheet` v5.2 — bottom sheets
-- `nativewind` — Tailwind CSS for RN
-- `react-native-linear-gradient` — gradient backgrounds
-- `react-native-safe-area-context` — safe area insets
-- `react-native-vector-icons` — MaterialCommunityIcons
+**MVP-HIDDEN screens** (commented out, v1.1): RecipesTab, ExpensesTab, DatePlannerTab, FoodSpotsTab, MapTab, Achievements, MonthlyRecap.
 
-## Design Language
-- Gradient: `#FFE4EA → #FFF0F6 → #FFF5EE`
-- Clean, minimal — no card+shadow overload
-- Text: textDark `#1A1624`, textMid `#5C4E60`, textLight `#A898AD`
-- Primary: `#E8788A` (rose)
+**`headerShown: false` on ALL navigators** — always.
+
+**Modal routes pattern**: Each stack has `BottomSheet` and `Alert` screens using `containedTransparentModal`. Use `useAppNavigation()` (not raw `useNavigation`) — it adds `.showBottomSheet()` and `.showAlert()` convenience methods.
+
+### Auth Flow
+
+`AuthContext` (`src/lib/auth.tsx`) manages auth state. Navigation switches on `isAuthenticated` + `user?.coupleId`:
+- No auth → AuthNavigator
+- Auth but no couple → OnboardingNavigator
+- Auth + couple → AppNavigator
+
+`apiFetch()` in `src/lib/api.ts` auto-refreshes tokens on 401 using a mutex (no concurrent refresh races). Tokens stored in iOS Keychain / Android Keystore via `react-native-keychain` under service `"memoura"`.
+
+### Theme System
+
+Two sources of truth that must stay in sync:
+
+1. **`src/navigation/theme.ts`** — `AppTheme` + `DarkAppTheme`. Import `useAppColors()` for runtime color access. Used in `style` props and anywhere className can't be used (Animated transforms, gorhom API, etc.).
+2. **`tailwind.config.js`** — Same color tokens for `className` usage in NativeWind. Dark mode via `dark:` prefix with `darkMode: 'class'`.
+
+Font family: **Be Vietnam Pro** (all weights). Configured in both files. Access via `font-heading`, `font-body`, `font-bodyMedium` etc. in className or `AppTheme.fonts.*` in style props.
+
+Dark mode colors use `dark:bg-darkBgCard`, `dark:text-darkTextDark` etc.
+
+### Styling Rules
+
+- **NativeWind only** — `className` for everything. ZERO `StyleSheet.create()`, ZERO `style` prop.
+- Only exception: `Animated.Value` transforms/opacity (technically impossible as className), and gorhom BottomSheet API requirements.
+- `contentContainerStyle` on ScrollView → wrap content in `<View className="min-h-full ...">` instead.
+- Shadows → use `shadow-sm` / `shadow-lg` className.
+
+### Key Components
+
+| Component | Purpose |
+|-----------|---------|
+| `AppBottomSheet` | Shared bottom sheet wrapper (forwardRef to `BottomSheetModal`). Props: `scrollable`, `snapPoints`, `onSave`/`onDismiss`, sticky footer button. Always use this, never raw `BottomSheetModal`. |
+| `CurvedTabBar` | Custom tab bar with SVG notch cutout and floating camera FAB. |
+| `DetailScreenLayout` | Standard detail screen layout with back button, scroll content. |
+| `ScreenHeader` | Header with title + optional right action icon. |
+| `AlertModal` | Replaces `Alert.alert()` — navigate to `Alert` route via `useAppNavigation().showAlert()`. |
+| `Typography` | `Heading`, `Body`, `Label` — typed text components with theme colors. |
+| `SpringPressable` | Pressable with spring scale animation via Reanimated. |
+| `UploadProgressFloat` | Floating upload progress indicator (global, always rendered). |
+| `LetterOverlay` | Global love letter overlay (rendered in NavigationContainer). |
+
+### Upload Pattern
+
+**Never block UI with `await` for file uploads.** Use the upload queue pattern — enqueue upload, update optimistically, show progress via `UploadProgressFloat`.
+
+### Subscription / Paywall
+
+`SubscriptionContext` + `useSubscription()` hook. Free tier limits enforced both client-side and via API 403 responses (`FREE_LIMIT_REACHED`, `PREMIUM_REQUIRED`). Navigate to Paywall with trigger reason: `'limit' | 'locked_module' | 'browse'`.
+
+### i18n
+
+All user-facing strings in `src/locales/en.ts`. Use `useTranslation()` hook. Interpolation uses `{{variableName}}` (double braces — single braces render literally).
+
+### Push Notifications
+
+`src/lib/pushNotifications.ts` — FCM via `@react-native-firebase/messaging`. Token registered on login, unregistered on logout. `usePushNotifications()` called inside `AppNavigator`.
+
+## Known Gotchas
+
+- **`BottomSheetTextInput` required** — Inside `@gorhom/bottom-sheet`, use `BottomSheetTextInput` (or `Input` with `bottomSheet` prop) instead of plain `TextInput`. Plain `TextInput` won't trigger keyboard avoiding inside bottom sheets.
+- **`@rnmapbox/maps` + Reanimated v4** — Set `animated={false}` on `<UserLocation>` — the `animated` prop triggers `Animated.Value.addListener()` which conflicts with Reanimated v4.
+- **`BottomSheetModal` on iOS requires `FullWindowOverlay`** — `AppBottomSheet.tsx` uses `containerComponent` with `FullWindowOverlay` from `react-native-screens` (iOS only) to prevent `transparentModal` native screen from intercepting touches.
+- **`useAppColors()` + Reanimated worklets** — Capture `useAppColors()` values in component scope before `useAnimatedStyle`. Never call hooks inside worklets.
+- **Deep links** — Prefixes: `https://memoura.app`, `https://dev.memoura.app`, `lovescrum://`. Invite codes use `setPendingInviteCode()` to persist across navigation state loading.
+- **`react-native-config` values** — Never use `Config.*` directly; always go through `src/config/env.ts`.
+
+## Project Memory
+
+Project memories are stored in `.claude/memory/`. Use `--project-recall` before complex tasks, `--project-store` after meaningful work.
+
+| Topic | Content |
+|-------|---------|
+| [bugs-and-lessons](.claude/memory/bugs-and-lessons/README.md) | RN crashes, gotchas, non-obvious fixes |
+| [design-decisions](.claude/memory/design-decisions/README.md) | UI/UX decisions, color palette, component patterns |
+| [architecture](.claude/memory/architecture/README.md) | Navigation structure, module boundaries, key patterns |
