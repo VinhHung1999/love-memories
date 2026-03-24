@@ -47,10 +47,10 @@ const { width: W } = Dimensions.get('window');
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 
-const TAB_H = 60;
+export const TAB_H = 60;
 export const CAMERA_SIZE = 60;
 const CUTOUT_R = 36;
-export const CONTAINER_H = TAB_H + CAMERA_SIZE;
+export const CONTAINER_H = TAB_H + CAMERA_SIZE; // kept for back-compat; prefer dynamic containerH
 
 const ICON_BTN_SIZE = 48;
 
@@ -175,7 +175,8 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
   }));
 
   // Camera center position from screen bottom (for floating button placement in Modal)
-  const cameraCenterBottom = insets.bottom + TAB_H + CAMERA_SIZE / 2;
+  const bottomPad = Math.max(insets.bottom, 8);
+  const cameraCenterBottom = bottomPad + TAB_H + CAMERA_SIZE / 2;
   const floatBtnBottom = cameraCenterBottom + 28; // ~28px above camera center
 
   return (
@@ -319,6 +320,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
   const unreadLettersCount = useUnreadLettersCount();
   const bottomPad = Math.max(insets.bottom, 8);
   const barHeight = TAB_H + bottomPad;
+  const containerH = CAMERA_SIZE + barHeight;
   const svgPath = buildArcPath(barHeight);
 
   return (
@@ -327,7 +329,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
         position: 'absolute',
         bottom: 0,
         width: W,
-        height: CONTAINER_H,
+        height: containerH,
         overflow: 'visible',
       }}>
 
@@ -430,7 +432,7 @@ export default function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
       {/* Camera button */}
       <View
         ref={tabBarRefs.cameraButton}
-        style={{ position: 'absolute', top: -5, left: W / 2 - CAMERA_SIZE / 2, zIndex: 100, elevation: 100 }}>
+        style={{ position: 'absolute', top: 0, left: W / 2 - CAMERA_SIZE / 2, zIndex: 100, elevation: 100 }}>
         <CameraFloatButton navigation={navigation} />
       </View>
 

@@ -2,10 +2,8 @@ import { useRef, useState } from 'react';
 import { Alert, Share } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
-import type { AppStackParamList } from '../../navigation';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 
 export type FilterType = 'original' | 'grayscale' | 'sepia' | 'warm' | 'cool' | 'rose' | 'vintage' | 'softglow';
@@ -21,11 +19,9 @@ export interface StickerItem {
   scale: number;
 }
 
-type Nav = NativeStackNavigationProp<AppStackParamList>;
-
 export function usePhotoBoothViewModel() {
   const { t } = useTranslation();
-  const navigation = useNavigation<Nav>();
+  const navigation = useAppNavigation();
 
   const [mode, setMode] = useState<PhotoBoothMode>('camera');
   const [photoCount, setPhotoCount] = useState<PhotoCount>(4);
@@ -146,11 +142,14 @@ export function usePhotoBoothViewModel() {
     try {
       const uri = await captureImage();
       if (!uri) throw new Error('capture failed');
-      (navigation as any).navigate('MomentsTab', {
-        screen: 'BottomSheet',
+      (navigation as any).navigate('MainTabs', {
+        screen: 'MomentsTab',
         params: {
-          screen: CreateMomentSheet,
-          props: { initialPhoto: { uri, mimeType: 'image/jpeg' } },
+          screen: 'BottomSheet',
+          params: {
+            screen: CreateMomentSheet,
+            props: { initialPhoto: { uri, mimeType: 'image/jpeg' } },
+          },
         },
       });
     } catch {
