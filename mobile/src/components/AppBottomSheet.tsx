@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Body, Heading, Label } from './Typography';
 import {
   BottomSheetBackdrop,
@@ -16,18 +16,9 @@ import {
   BottomSheetScrollView,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import { FullWindowOverlay } from 'react-native-screens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '../navigation/theme';
 import { useTranslation } from 'react-i18next';
-
-// iOS: BottomSheetModal portal + containedTransparentModal = touch blocked.
-// FullWindowOverlay renders sheet in its own native UIWindow, bypassing this.
-const FullWindowOverlayContainer = ({ children }: { children?: React.ReactNode }) => (
-  <FullWindowOverlay>{children}</FullWindowOverlay>
-);
-const ContainerComponent = Platform.OS === 'ios' ? FullWindowOverlayContainer : undefined;
-
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface AppBottomSheetProps {
@@ -166,7 +157,6 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     return (
       <BottomSheetModal
         ref={internalRef}
-        containerComponent={ContainerComponent}
         enableDynamicSizing={!scrollable}
         snapPoints={scrollable ? snapPoints : undefined}
         enablePanDownToClose
