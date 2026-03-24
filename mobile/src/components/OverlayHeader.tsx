@@ -38,8 +38,8 @@ export default function OverlayHeader({
   const insets = useSafeAreaInsets();
   const colors = useAppColors();
 
-  // Parse baseBg hex → RGB components outside worklet (worklets can't call hooks)
-  const baseBgHex = colors.baseBg;
+  // Parse bgCard hex → RGB components outside worklet (worklets can't call hooks)
+  const baseBgHex = colors.bgCard;
   const bgR = parseInt(baseBgHex.slice(1, 3), 16);
   const bgG = parseInt(baseBgHex.slice(3, 5), 16);
   const bgB = parseInt(baseBgHex.slice(5, 7), 16);
