@@ -2,6 +2,11 @@
 
 ## Resolved Bugs
 
+### iOS native modal dismiss → navigate drop (Sprint 55)
+- **Cause:** Calling `navigation.navigate()` immediately after `launchCamera()` resolves — iOS hasn't finished dismissing UIImagePickerController, so the new modal presentation is silently dropped
+- **Fix:** Wrap `navigate` in `InteractionManager.runAfterInteractions(() => { ... })` to wait for native dismiss to complete
+- **Rule:** Any navigation after a native modal (camera, image picker, share sheet) must use `InteractionManager.runAfterInteractions`
+
 ### React Navigation: AppStack → nested tab requires MainTabs intermediary (Sprint 55)
 - **Cause:** `navigate('LettersTab', ...)` from `NotificationsTab` (AppStack-level screen) silently fails — `LettersTab` is nested inside `MainTabs`, not a direct AppStack child
 - **Fix:** Always route through `navigate('MainTabs', { screen: 'LettersTab', params: { screen: 'LetterRead', params: { letterId } } })`

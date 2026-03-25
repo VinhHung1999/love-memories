@@ -117,6 +117,22 @@ tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 
 ---
 
+## Sprint Retrospective (Phase 4)
+
+After Boss approves and sprint is merged to main, trigger retro for all agents:
+
+1. `tm-send TL "PO [HH:mm]: Sprint merged. All agents run retrospective now."`
+2. Update your own docs:
+   - **Memory** (`.claude/memory/`): Project decisions, process lessons learned
+   - **WHITEBOARD**: Mark sprint as DEPLOYED in Previous Sprints, clean up completed tasks
+   - **PO_PROMPT.md**: Update if process/workflow changed
+   - **CLAUDE.md**: Update project overview, environments, or known gotchas if changed
+   - **Backlog**: Remove completed items, reprioritize remaining
+3. Review doc changes from all agents when TL reports retro complete
+4. Commit all retro updates
+
+---
+
 ## Starting Your Role
 
 1. Read: `docs/tmux/love-scrum-team/workflow.md`

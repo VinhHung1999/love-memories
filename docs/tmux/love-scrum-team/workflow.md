@@ -118,6 +118,70 @@ Boss: APPROVE or REQUEST CHANGES
 
 **CRITICAL: Nothing goes to production without Boss approval.**
 
+### Phase 3.5: TestFlight Build (every sprint)
+
+After Boss approves, PO builds **both** Dev and Prod to TestFlight:
+
+```bash
+cd mobile/ios
+
+# 1. Prod build (scheme: LoveScrum, bundle: com.hungphu.memoura)
+xcodebuild -workspace LoveScrum.xcworkspace -scheme "LoveScrum" \
+  -configuration "Prod Release" -destination "generic/platform=iOS" \
+  -archivePath ./build/LoveScrum.xcarchive archive -allowProvisioningUpdates
+xcodebuild -exportArchive -archivePath ./build/LoveScrum.xcarchive \
+  -exportOptionsPlist ./ExportOptions.plist -exportPath ./build/export \
+  -allowProvisioningUpdates
+
+# 2. Dev build (scheme: LoveScrum Dev, bundle: com.hungphu.memoura.dev)
+xcodebuild -workspace LoveScrum.xcworkspace -scheme "LoveScrum Dev" \
+  -configuration "Dev Release" -destination "generic/platform=iOS" \
+  -archivePath ./build/LoveScrumDev.xcarchive archive -allowProvisioningUpdates
+xcodebuild -exportArchive -archivePath ./build/LoveScrumDev.xcarchive \
+  -exportOptionsPlist ./ExportOptions.plist -exportPath ./build/export-dev \
+  -allowProvisioningUpdates
+```
+
+**Team ID:** `DHGY59PZWW`
+**TestFlight:** Both builds appear on App Store Connect → TestFlight tab for testers.
+
+### Phase 4: Sprint Retrospective — Knowledge Update
+
+**After Boss approves and sprint is merged to main**, every agent MUST update docs to capture what was learned.
+
+```
+PO → TL: "Sprint merged. All agents run /retro now."
+TL → WEB/BE/MOBILE: "Sprint done. Run retrospective updates."
+Each agent updates their own docs (in parallel):
+  1. Update project memory (.claude/memory/) — bugs, lessons, patterns learned
+  2. Update CLAUDE.md — architecture, gotchas, conventions that changed
+  3. Update own role prompt — new tools, patterns, or rules discovered
+  4. Update WHITEBOARD — mark sprint as DEPLOYED in Previous Sprints
+  5. Update auto-memory (MEMORY.md) — new rules, workflow changes, bug patterns
+Each agent → TL: "Retro DONE. Updated [list of files]."
+TL → PO: "All retro updates complete."
+PO: Final review of doc changes, commit.
+  6. PO reviews + updates shared MEMORY.md — remove stale entries, add sprint lessons
+```
+
+**What each role updates:**
+
+| Role | Memory | CLAUDE.md | Prompt | Other |
+|------|--------|-----------|--------|-------|
+| PO | Project decisions, process lessons | Sprint history in WHITEBOARD | `PO_PROMPT.md` if process changed | Backlog cleanup, **MEMORY.md** review (remove stale, add new) |
+| TL | Architecture patterns, code review lessons | Architecture section, Known Gotchas | `TL_PROMPT.md` if review process changed | — |
+| WEB | Frontend bugs, UI patterns | Frontend section (styling, components) | `WEB_PROMPT.md` if stack/patterns changed | — |
+| BE | API patterns, DB lessons | Backend section (routes, DB) | `BE_PROMPT.md` if stack/patterns changed | — |
+| MOBILE | Mobile bugs, RN patterns | `mobile/CLAUDE.md` | `MOBILE_PROMPT.md` if patterns changed | — |
+| CMO | Market insights, competitor changes | Product Context if positioning changed | `CMO_PROMPT.md` if strategy evolved | `docs/market/` |
+
+**Rules:**
+- Only add info that is NOT already derivable from code or git history
+- Keep CLAUDE.md concise — delete outdated info, don't just append
+- Update prompts only if the role's workflow/tools/patterns actually changed
+- Use `--project-store` skill for structured memory storage
+- **MEMORY.md cleanup:** Remove outdated entries, update stale info, add new workflow/bug patterns from this sprint. Keep it under 200 lines (truncated after that).
+
 ---
 
 ## Definition of Done

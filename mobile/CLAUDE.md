@@ -12,6 +12,12 @@ npm run lint         # tsc --noEmit + ESLint (run before every commit)
 npm test             # Jest
 npx jest path/to/file.test.ts  # Run single test file
 cd ios && pod install          # After adding native dependencies
+
+# TestFlight builds
+cd ios && ./build-testflight.sh dev     # Dev only
+cd ios && ./build-testflight.sh prod    # Prod only
+cd ios && ./build-testflight.sh all     # Both (default)
+cd ios && ./build-testflight.sh dev --skip-upload  # Archive only
 ```
 
 ## Environment Setup
