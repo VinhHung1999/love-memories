@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, View } from 'react-native';
+import { InteractionManager, Pressable, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   Easing,
@@ -44,10 +44,12 @@ export default function CameraTabButton(_props: BottomTabBarButtonProps) {
     const result = await launchCamera({ mediaType: 'photo', saveToPhotos: false });
     if (result.didCancel || !result.assets?.[0]) return;
     const photo = result.assets[0];
-    // navigate finds the single BottomSheet route in AppStack automatically
-    navigation.navigate('BottomSheet' as any, {
-      component: CreateMomentSheet,
-      props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
+    // Defer until native UIImagePickerController has fully dismissed on iOS
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('BottomSheet' as any, {
+        component: CreateMomentSheet,
+        props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
+      });
     });
   };
 
