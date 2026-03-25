@@ -10,6 +10,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { CircleUser, Heart, Home, Mail } from 'lucide-react-native';
 // Note: Notification — Import push notification hook for FCM setup
 import { usePushNotifications } from '../lib/pushNotifications';
+import { InAppNotificationProvider, useInAppNotification } from '../lib/InAppNotificationContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useColorScheme } from 'react-native';
 import { useAuth } from '../lib/auth';
@@ -50,6 +51,9 @@ export type AppStackParamList = {
   Paywall: { trigger: 'limit' | 'locked_module' | 'browse'; blockedFeature?: string } | undefined;
   ShareViewer: { token: string };
   JoinCouple: { code: string };
+  PhotoBooth: undefined;
+  BottomSheet: BottomSheetParams;
+  Alert: AlertParams;
 };
 
 /** Dashboard sub-stack — Home + Daily Q&A accessible from card press */
@@ -69,30 +73,22 @@ export type MainTabParamList = {
 
 export type NotificationsStackParamList = {
   NotificationsList: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type ExpensesStackParamList = {
   ExpensesList: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type MomentsStackParamList = {
   MomentsList: undefined;
   MomentDetail: { momentId: string };
   PhotoGallery: { photos: MomentPhoto[]; initialIndex: number };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type FoodSpotsStackParamList = {
   FoodSpotsList: undefined;
   FoodSpotDetail: { foodSpotId: string };
   FoodSpotGallery: { photos: MomentPhoto[]; initialIndex: number };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type RecipesStackParamList = {
@@ -102,29 +98,21 @@ export type RecipesStackParamList = {
   WhatToEat: undefined;
   CookingSession: { sessionId: string };
   CookingHistory: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type ProfileStackParamList = {
   ProfileMain: undefined;
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type DatePlannerStackParamList = {
   WishesList: undefined;
   PlansList: undefined;
   PlanDetail: { planId: string };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 export type LettersStackParamList = {
   LettersList: undefined;
   LetterRead: { letterId: string };
-  BottomSheet: BottomSheetParams;
-  Alert: AlertParams;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -149,7 +137,8 @@ const LettersStack = createNativeStackNavigator<LettersStackParamList>();
 import OnboardingWelcomeScreen from '../screens/Onboarding/OnboardingWelcomeScreen';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import CameraTabButton from '../components/CameraTabButton';
-import CurvedTabBar, { CAMERA_SIZE, CONTAINER_H } from '../components/CurvedTabBar';
+import CurvedTabBar, { TAB_H } from '../components/CurvedTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import OnboardingCoupleScreen from '../screens/Onboarding/OnboardingCoupleScreen';
 import OnboardingAnniversaryScreen from '../screens/Onboarding/OnboardingAnniversaryScreen';
 import OnboardingAvatarScreen from '../screens/Onboarding/OnboardingAvatarScreen';
@@ -227,6 +216,7 @@ import LetterOverlay from '../components/LetterOverlay/LetterOverlay';
 import ShareViewerScreen from '../screens/ShareViewer/ShareViewerScreen';
 import JoinCoupleScreen from '../screens/JoinCouple/JoinCoupleScreen';
 import { setPendingInviteCode } from '../lib/pendingInvite';
+import PhotoBoothScreen from '../screens/PhotoBooth/PhotoBoothScreen';
 
 // ---------------------------------------------------------------------------
 // Shared screen options for modal routes
@@ -251,8 +241,6 @@ function MomentsNavigator() {
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
-      <MomentsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <MomentsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </MomentsStack.Navigator>
   );
 }
@@ -273,8 +261,6 @@ function FoodSpotsNavigator() {
         component={PhotoGalleryScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
       />
-      <FoodSpotsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <FoodSpotsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </FoodSpotsStack.Navigator>
   );
 }
@@ -297,8 +283,6 @@ function RecipesNavigator() {
       <RecipesStack.Screen name="WhatToEat" component={WhatToEatScreen} />
       <RecipesStack.Screen name="CookingSession" component={CookingSessionScreen} />
       <RecipesStack.Screen name="CookingHistory" component={CookingHistoryScreen} />
-      <RecipesStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <RecipesStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </RecipesStack.Navigator>
   );
 }
@@ -311,8 +295,6 @@ function NotificationsNavigator() {
   return (
     <NotificationsStack.Navigator screenOptions={{ headerShown: false }}>
       <NotificationsStack.Screen name="NotificationsList" component={NotificationsScreen} />
-      <NotificationsStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <NotificationsStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </NotificationsStack.Navigator>
   );
 }
@@ -326,8 +308,6 @@ function ExpensesNavigator() {
   return (
     <ExpensesStack.Navigator screenOptions={{ headerShown: false }}>
       <ExpensesStack.Screen name="ExpensesList" component={ExpensesScreen} />
-      <ExpensesStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <ExpensesStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </ExpensesStack.Navigator>
   );
 }
@@ -340,8 +320,6 @@ function ProfileNavigator() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
-      <ProfileStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <ProfileStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </ProfileStack.Navigator>
   );
 }
@@ -352,11 +330,13 @@ function ProfileNavigator() {
 
 
 function MainTabNavigator() {
+  const insets = useSafeAreaInsets();
+  const tabBarH = TAB_H + Math.max(insets.bottom, 8);
   return (
     <MainTab.Navigator
       // CurvedTabBar handles all rendering — SVG notch + floating camera button
       tabBar={(props) => <CurvedTabBar {...props} />}
-      screenOptions={{ headerShown: false, sceneStyle: { paddingBottom: CONTAINER_H -  CAMERA_SIZE / 2} }}>
+      screenOptions={{ headerShown: false, sceneStyle: { paddingBottom: tabBarH } }}>
       <MainTab.Screen name="Dashboard" component={DashboardNavigator} />
       <MainTab.Screen name="MomentsTab" component={MomentsNavigator} />
       {/* CameraTab: no component rendered — CurvedTabBar handles the floating button */}
@@ -378,8 +358,6 @@ function DatePlannerNavigator() {
       <DatePlannerStack.Screen name="WishesList" component={WishesScreen} />
       <DatePlannerStack.Screen name="PlansList" component={PlanListScreen} />
       <DatePlannerStack.Screen name="PlanDetail" component={PlanDetailScreen} />
-      <DatePlannerStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <DatePlannerStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </DatePlannerStack.Navigator>
   );
 }
@@ -393,8 +371,6 @@ function LettersNavigator() {
     <LettersStack.Navigator screenOptions={{ headerShown: false }}>
       <LettersStack.Screen name="LettersList" component={LettersScreen} />
       <LettersStack.Screen name="LetterRead" component={LetterReadScreen} />
-      <LettersStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
-      <LettersStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </LettersStack.Navigator>
   );
 }
@@ -405,8 +381,9 @@ function LettersNavigator() {
 // ---------------------------------------------------------------------------
 
 function AppNavigator() {
-  // Note: Notification — Initialize push notifications when authenticated user enters main app.
-  usePushNotifications();
+  // Note: Notification — Initialize push notifications with in-app banner support.
+  const { showNotification } = useInAppNotification();
+  usePushNotifications(showNotification);
 
   return (
     <AppStack.Navigator screenOptions={{ headerShown: false }}>
@@ -426,6 +403,13 @@ function AppNavigator() {
       />
       <AppStack.Screen name="ShareViewer" component={ShareViewerScreen} />
       <AppStack.Screen name="JoinCouple" component={JoinCoupleScreen} />
+      <AppStack.Screen
+        name="PhotoBooth"
+        component={PhotoBoothScreen}
+        options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+      />
+      <AppStack.Screen name="BottomSheet" component={BottomSheetRoute} options={MODAL_OPTIONS} />
+      <AppStack.Screen name="Alert" component={AlertRoute} options={MODAL_OPTIONS} />
     </AppStack.Navigator>
   );
 }
@@ -495,15 +479,18 @@ export default function RootNavigator() {
     <NavigationContainer theme={navTheme as any} linking={linking}>
       {/* BottomSheetModalProvider inside NavigationContainer so portals have theme access */}
       <BottomSheetModalProvider>
-        {!isAuthenticated
-          ? <AuthNavigator />
-          : !user?.coupleId
-            ? <OnboardingNavigator />
-            : <AppNavigator />}
-        {/* Global overlays — inside NavigationContainer for useAppColors() access */}
-        {isAuthenticated ? <LetterOverlay /> : null}
-        <LoadingOverlay />
-        <UploadProgressFloat />
+        {/* InAppNotificationProvider wraps app content so AppNavigator can consume the context */}
+        <InAppNotificationProvider>
+          {!isAuthenticated
+            ? <AuthNavigator />
+            : !user?.coupleId
+              ? <OnboardingNavigator />
+              : <AppNavigator />}
+          {/* Global overlays — inside NavigationContainer for useAppColors() access */}
+          {isAuthenticated ? <LetterOverlay /> : null}
+          <LoadingOverlay />
+          <UploadProgressFloat />
+        </InAppNotificationProvider>
       </BottomSheetModalProvider>
     </NavigationContainer>
   );

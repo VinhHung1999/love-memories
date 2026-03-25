@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Love Scrum Team - 5-Person Setup (PO + TL + WEB + BE + MOBILE)
-# Creates a tmux session with 5 Claude Code instances
+# Love Scrum Team - 6-Person Setup (PO + TL + WEB + BE + MOBILE + CMO)
+# Creates a tmux session with 6 Claude Code instances
 
 set -e
 
@@ -32,7 +32,8 @@ cd "$PROJECT_ROOT"
 tmux new-session -d -s $SESSION_NAME
 
 # 3. Create 5-pane layout
-# Split into 5 panes: PO | TL | WEB | BE | MOBILE
+# Split into 6 panes: PO | TL | WEB | BE | MOBILE | CMO
+tmux split-window -h -t $SESSION_NAME
 tmux split-window -h -t $SESSION_NAME
 tmux split-window -h -t $SESSION_NAME
 tmux split-window -h -t $SESSION_NAME
@@ -40,7 +41,7 @@ tmux split-window -h -t $SESSION_NAME
 tmux select-layout -t $SESSION_NAME even-horizontal
 
 # 4. Resize for proper pane widths
-tmux resize-window -t $SESSION_NAME -x 750 -y 50
+tmux resize-window -t $SESSION_NAME -x 900 -y 50
 
 # 5. Set pane titles and role names
 tmux select-pane -t $SESSION_NAME:0.0 -T "PO"
@@ -48,12 +49,14 @@ tmux select-pane -t $SESSION_NAME:0.1 -T "TL"
 tmux select-pane -t $SESSION_NAME:0.2 -T "WEB"
 tmux select-pane -t $SESSION_NAME:0.3 -T "BE"
 tmux select-pane -t $SESSION_NAME:0.4 -T "MOBILE"
+tmux select-pane -t $SESSION_NAME:0.5 -T "CMO"
 
 tmux set-option -p -t $SESSION_NAME:0.0 @role_name "PO"
 tmux set-option -p -t $SESSION_NAME:0.1 @role_name "TL"
 tmux set-option -p -t $SESSION_NAME:0.2 @role_name "WEB"
 tmux set-option -p -t $SESSION_NAME:0.3 @role_name "BE"
 tmux set-option -p -t $SESSION_NAME:0.4 @role_name "MOBILE"
+tmux set-option -p -t $SESSION_NAME:0.5 @role_name "CMO"
 
 # 6. Get pane IDs
 echo "Getting pane IDs..."
@@ -63,6 +66,7 @@ TL_PANE=$(echo "$PANE_IDS" | sed -n '2p')
 WEB_PANE=$(echo "$PANE_IDS" | sed -n '3p')
 BE_PANE=$(echo "$PANE_IDS" | sed -n '4p')
 MOBILE_PANE=$(echo "$PANE_IDS" | sed -n '5p')
+CMO_PANE=$(echo "$PANE_IDS" | sed -n '6p')
 
 echo "Pane IDs:"
 echo "  PO     (Pane 0): $PO_PANE"
@@ -70,6 +74,7 @@ echo "  TL     (Pane 1): $TL_PANE"
 echo "  WEB    (Pane 2): $WEB_PANE"
 echo "  BE     (Pane 3): $BE_PANE"
 echo "  MOBILE (Pane 4): $MOBILE_PANE"
+echo "  CMO    (Pane 5): $CMO_PANE"
 
 # 7. Verify tm-send is installed globally
 echo "Verifying tm-send installation..."
@@ -106,6 +111,9 @@ tmux send-keys -t $SESSION_NAME:0.3 "cd $PROJECT_ROOT/backend && claude --model 
 # MOBILE - Sonnet (mobile, cd to mobile/)
 tmux send-keys -t $SESSION_NAME:0.4 "cd $PROJECT_ROOT/mobile && claude --model sonnet" C-m
 
+# CMO - Agent (market research, ASO, brand)
+tmux send-keys -t $SESSION_NAME:0.5 "cd $PROJECT_ROOT && claude --agent CMO" C-m
+
 # 10. Wait for Claude Code to start
 echo "Waiting 25 seconds for Claude Code instances..."
 sleep 25
@@ -135,6 +143,11 @@ sleep 3
 tmux send-keys -t $SESSION_NAME:0.4 "/init-role MOBILE" C-m
 sleep 0.3
 tmux send-keys -t $SESSION_NAME:0.4 C-m
+sleep 3
+
+tmux send-keys -t $SESSION_NAME:0.5 "/init-role CMO" C-m
+sleep 0.3
+tmux send-keys -t $SESSION_NAME:0.5 C-m
 
 # 12. Wait for initialization
 echo "Waiting 20 seconds for role initialization..."
@@ -148,11 +161,11 @@ echo "Session: $SESSION_NAME"
 echo "Project: $PROJECT_ROOT"
 echo ""
 echo "Team:"
-echo "  +--------+--------+--------+--------+--------+"
-echo "  | PO     | TL     | WEB    | BE     | MOBILE |"
-echo "  | Pane 0 | Pane 1 | Pane 2 | Pane 3 | Pane 4 |"
-echo "  | Opus   | Sonnet | Sonnet | Sonnet | Sonnet |"
-echo "  +--------+--------+--------+--------+--------+"
+echo "  +--------+--------+--------+--------+--------+--------+"
+echo "  | PO     | TL     | WEB    | BE     | MOBILE | CMO    |"
+echo "  | Pane 0 | Pane 1 | Pane 2 | Pane 3 | Pane 4 | Pane 5 |"
+echo "  | Opus   | Sonnet | Sonnet | Sonnet | Sonnet | Agent  |"
+echo "  +--------+--------+--------+--------+--------+--------+"
 echo ""
 echo "Communication flow:"
 echo "  Boss → PO → TL → WEB / BE / MOBILE"
@@ -163,6 +176,7 @@ echo "  TL:     $PROJECT_ROOT"
 echo "  WEB:    $PROJECT_ROOT/frontend"
 echo "  BE:     $PROJECT_ROOT/backend"
 echo "  MOBILE: $PROJECT_ROOT/mobile"
+echo "  CMO:    $PROJECT_ROOT"
 echo ""
 echo "Next steps:"
 echo "  1. Attach: tmux attach -t $SESSION_NAME"

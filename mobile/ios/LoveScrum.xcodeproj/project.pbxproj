@@ -27,7 +27,7 @@
 
 /* Begin PBXFileReference section */
 		0C2EA51F34364E17B5C07B67 /* BeVietnamPro-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-Medium.ttf"; path = "../assets/fonts/BeVietnamPro-Medium.ttf"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* LoveScrum.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LoveScrum.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* Memoura Dev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Memoura Dev.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LoveScrum/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LoveScrum/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = LoveScrum/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -43,7 +43,7 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LoveScrum/AppDelegate.swift; sourceTree = "<group>"; };
 		7FE21FC70674EEA56029C105 /* Pods-LoveScrum.prod debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LoveScrum.prod debug.xcconfig"; path = "Target Support Files/Pods-LoveScrum/Pods-LoveScrum.prod debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LoveScrum/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		A7DBC04E2BA84639B9A57E45 /* Borel-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Borel-Regular.ttf"; path = "../assets/fonts/Borel-Regular.ttf"; sourceTree = "<group>"; };
+		A7DBC04E2BA84639B9A57E45 /* Borel-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Borel-Regular.ttf"; path = "../assets/fonts/Borel-Regular.ttf"; sourceTree = "<group>"; };
 		B688A0791BE54CE7B15FE240 /* BeVietnamPro-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-Light.ttf"; path = "../assets/fonts/BeVietnamPro-Light.ttf"; sourceTree = "<group>"; };
 		DECE5E323FB547149E81D0BC /* BeVietnamPro-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BeVietnamPro-Regular.ttf"; path = "../assets/fonts/BeVietnamPro-Regular.ttf"; sourceTree = "<group>"; };
 		E63E7AFD32AAE6109E0B4CCA /* Pods-LoveScrum.dev debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LoveScrum.dev debug.xcconfig"; path = "Target Support Files/Pods-LoveScrum/Pods-LoveScrum.dev debug.xcconfig"; sourceTree = "<group>"; };
@@ -112,7 +112,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* LoveScrum.app */,
+				13B07F961A680F5B00A75B9A /* Memoura Dev.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -170,7 +170,7 @@
 			);
 			name = LoveScrum;
 			productName = LoveScrum;
-			productReference = 13B07F961A680F5B00A75B9A /* LoveScrum.app */;
+			productReference = 13B07F961A680F5B00A75B9A /* Memoura Dev.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -277,10 +277,10 @@
 		};
 		AABB0006000000000000DEF0 /* Setup react-native-config env */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
-			alwaysOutOfDate = 1;
 			inputPaths = (
 			);
 			name = "Setup react-native-config env";
@@ -352,7 +352,7 @@
 				CODE_SIGN_ENTITLEMENTS = LoveScrum/LoveScrum.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = DHGY59PZWW;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = LoveScrum/Info.plist;
@@ -387,7 +387,7 @@
 				CODE_SIGN_ENTITLEMENTS = LoveScrum/LoveScrum.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = DHGY59PZWW;
 				INFOPLIST_FILE = LoveScrum/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;

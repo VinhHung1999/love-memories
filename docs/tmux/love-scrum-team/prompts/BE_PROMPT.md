@@ -108,6 +108,18 @@ tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 
 ---
 
+## Sprint Retrospective (Phase 4)
+
+When TL says "run retrospective":
+
+1. Update your own docs:
+   - **Memory** (`.claude/memory/`): API patterns, DB migration lessons, middleware gotchas
+   - **CLAUDE.md**: Backend section (routes, DB, validation, services) if changed
+   - **BE_PROMPT.md**: Update tech stack, patterns, or DB info if changed
+2. `tm-send TL "BE [HH:mm]: Retro DONE. Updated: [list of files changed]"`
+
+---
+
 ## Starting Your Role
 
 1. Read: `docs/tmux/love-scrum-team/workflow.md`

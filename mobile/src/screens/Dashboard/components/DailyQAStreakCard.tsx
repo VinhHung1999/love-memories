@@ -107,18 +107,18 @@ function StreakRow({
           colors={['#F59E0B', '#FBBF24']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={{ marginHorizontal: -16, marginBottom: -12, paddingHorizontal: 16, paddingVertical: 10 }}
+          style={{ marginHorizontal: -16, marginBottom: -12 }}
         >
-          {rowContent}
+          <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}>{rowContent}</View>
         </LinearGradient>
       ) : isGradient4 ? (
         <LinearGradient
           colors={['#D1FAE5', '#A7F3D0']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={{ marginHorizontal: -16, marginBottom: -12, paddingHorizontal: 16, paddingVertical: 10 }}
+          style={{ marginHorizontal: -16, marginBottom: -12 }}
         >
-          {rowContent}
+          <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}>{rowContent}</View>
         </LinearGradient>
       ) : (
         <View

@@ -76,7 +76,6 @@ export default function CommentsSection({
   onDelete,
 }: CommentsSectionProps) {
   const { t } = useTranslation();
-  const colors = useAppColors();
 
   return (
     <View className="mb-4">

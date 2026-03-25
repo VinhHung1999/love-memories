@@ -28,7 +28,6 @@ import { FoodHighlightCard } from './components/FoodHighlightCard';
 import { NotificationBell } from './components/NotificationBell';
 import { RelationshipTimer } from './components/RelationshipTimer';
 import DailyQAStreakCard from './components/DailyQAStreakCard';
-import { UnreadLetterCard } from './components/UnreadLetterCard';
 import OverlayHeader from '@/components/OverlayHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRequestNotificationPermission } from '../../hooks/useRequestNotificationPermission';
@@ -152,16 +151,6 @@ export default function DashboardScreen() {
                   ))}
                 </View>
               </Animated.View>
-
-              {/* ── 5. Unread Letter Card ── */}
-              {vm.unreadLettersCount > 0 ? (
-                <Animated.View entering={FadeInDown.delay(135).duration(500)}>
-                  <UnreadLetterCard
-                    count={vm.unreadLettersCount}
-                    onPress={vm.navigateToLetters}
-                  />
-                </Animated.View>
-              ) : null}
 
               {/* MVP-HIDDEN: v1.1 — Active Cooking Banner */}
               {/* {vm.activeSession ? (

@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationsApi, type AppNotification } from '../../lib/api';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
+import { handleNotificationNavigation } from '../../lib/pushNotifications';
 
 export function useNotificationsViewModel() {
   const queryClient = useQueryClient();
@@ -39,49 +40,10 @@ export function useNotificationsViewModel() {
 
   const handleNotificationPress = useCallback((n: AppNotification) => {
     if (!n.read) markReadMutation.mutate(n.id);
-
-    // 1. Link-based routing (most specific)
-    if (n.link) {
-      const momentMatch = n.link.match(/^\/moments\/(.+)$/);
-      const letterMatch = n.link.match(/^\/letters\/(.+)$/);
-      if (momentMatch) {
-        navigation.navigate('MomentsTab', { screen: 'MomentDetail', params: { momentId: momentMatch[1] } } as any);
-        return;
-      }
-      if (letterMatch || n.link === '/letters') {
-        navigation.navigate('LettersTab');
-        return;
-      }
-      if (n.link === '/daily-questions') {
-        navigation.navigate('DailyQuestions' as any);
-        return;
-      }
-      if (n.link === '/profile' || n.link.startsWith('/recap')) {
-        navigation.navigate('ProfileTab');
-        return;
-      }
-    }
-
-    // 2. Type-based fallback
-    switch (n.type) {
-      case 'moment':
-        navigation.navigate('MomentsTab');
-        break;
-      case 'letter':
-        navigation.navigate('LettersTab');
-        break;
-      case 'daily_question':
-      case 'reminder':
-        navigation.navigate('DailyQuestions' as any);
-        break;
-      case 'weekly_recap':
-      case 'monthly_recap':
-        navigation.navigate('ProfileTab');
-        break;
-      // goal / recipe / foodspot / achievement / system / cooking → mark read only
-      default:
-        break;
-    }
+    const data: Record<string, string> = {};
+    if (n.link) data.link = n.link;
+    if (n.type) data.type = n.type;
+    handleNotificationNavigation(navigation as any, data);
   }, [markReadMutation, navigation]);
 
   // Group by date label

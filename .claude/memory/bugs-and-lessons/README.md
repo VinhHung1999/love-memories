@@ -2,6 +2,31 @@
 
 ## Resolved Bugs
 
+### iOS native modal dismiss → navigate drop (Sprint 55)
+- **Cause:** Calling `navigation.navigate()` immediately after `launchCamera()` resolves — iOS hasn't finished dismissing UIImagePickerController, so the new modal presentation is silently dropped
+- **Fix:** Wrap `navigate` in `InteractionManager.runAfterInteractions(() => { ... })` to wait for native dismiss to complete
+- **Rule:** Any navigation after a native modal (camera, image picker, share sheet) must use `InteractionManager.runAfterInteractions`
+
+### React Navigation: AppStack → nested tab requires MainTabs intermediary (Sprint 55)
+- **Cause:** `navigate('LettersTab', ...)` from `NotificationsTab` (AppStack-level screen) silently fails — `LettersTab` is nested inside `MainTabs`, not a direct AppStack child
+- **Fix:** Always route through `navigate('MainTabs', { screen: 'LettersTab', params: { screen: 'LetterRead', params: { letterId } } })`
+- **Rule:** Any screen outside `MainTabs` navigating INTO tabs must go through `MainTabs` first
+
+### React Navigation 'screen' param name conflicts with nested navigator syntax (Sprint 55)
+- **Cause:** Passing `{ screen: ComponentRef, props }` to `navigation.navigate('BottomSheet', ...)` — React Navigation treats `screen` as nested navigator syntax (navigate to screen within navigator), causing BottomSheet to silently not render
+- **Fix:** Rename param key to `component` (or any non-reserved name) in BottomSheetParams interface + BottomSheetRoute destructure + all call sites
+- **Rule:** Never use `screen` as a custom param key when navigating — it's a reserved React Navigation keyword
+
+### iOS modal stacking: containedTransparentModal cannot appear over fullScreenModal (Sprint 55)
+- **Cause:** AppStack BottomSheet used `containedTransparentModal` (UIModalPresentationOverCurrentContext) — iOS cannot render this over a `fullScreenModal` (UIModalPresentationFullScreen); sheet pushes to nav state but renders behind, silently invisible
+- **Fix:** AppStack-level BottomSheet/Alert use `presentation: 'transparentModal'` (UIModalPresentationOverFullScreen) which CAN overlay fullScreenModal. Tab-stack registrations keep `containedTransparentModal`.
+- **Rule:** Any modal route that must appear over a fullScreenModal screen needs `transparentModal`, not `containedTransparentModal`
+
+### PanGestureHandler + position:absolute inside ViewShot → duplicate render on first drag (Sprint 55)
+- **Cause:** PanGestureHandler creates a native touch wrapper on gesture start; absolute-positioned child inside ViewShot briefly coexists with the new wrapper → visual duplicate
+- **Fix:** Split into two layers — capture layer (sticker emoji, no gesture, inside ViewShot) + interaction layer (PanGestureHandler + remove button, overlay above ViewShot, not captured)
+- **Pattern:** ViewShot content = capture only; interactive gesture handlers always live outside ViewShot
+
 ### Xcode 26.3 crashes on PreActions ShellScriptExecutionAction in .xcscheme (Sprint 53)
 - **Cause:** Xcode 26.3 throws `NSInternalInconsistencyException / DVTInvalidExtension` when parsing `ShellScriptExecutionAction` inside scheme `<PreActions>` blocks
 - **Fix:** Remove PreActions from all `.xcscheme` files. Move env-copy logic to a `PBXShellScriptBuildPhase` in `project.pbxproj` (runs before Sources). Set `ENVFILE` variable per build configuration via xcconfig files.

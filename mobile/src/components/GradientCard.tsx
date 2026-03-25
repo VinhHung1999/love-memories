@@ -37,7 +37,7 @@ export function GradientCard({
 
   return (
     <Pressable onPress={onPress} style={[{ borderRadius: 24, overflow: 'hidden' }, pressableClassName ? {} : {}, style]}>
-      <LinearGradient colors={colors} start={start} end={end}>
+      <LinearGradient colors={colors} start={start} end={end} style={{ borderRadius: 24 }}>
         {children}
       </LinearGradient>
     </Pressable>

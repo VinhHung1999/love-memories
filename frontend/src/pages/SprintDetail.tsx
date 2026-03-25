@@ -94,7 +94,7 @@ export default function SprintDetail() {
   const progress = sprint.goals.length > 0 ? Math.round((doneCount / sprint.goals.length) * 100) : 0;
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <button onClick={() => navigate('/goals')} className="flex items-center gap-2 text-text-light hover:text-accent mb-4 text-sm">
         <ArrowLeft className="w-4 h-4" /> Back to Goals
       </button>
@@ -168,7 +168,7 @@ export default function SprintDetail() {
 
       {/* Kanban Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid w-full grid-cols-1 md:grid-cols-3 gap-4">
           {columns.map((col) => {
             const colGoals = sprint.goals.filter((g) => g.status === col.id).sort((a, b) => a.order - b.order);
             return (
