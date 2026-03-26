@@ -25,7 +25,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>26</string>
+	<string>37</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -94,7 +94,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.1066031301719-21en01r14oftto9br7d1m3p2rvhvl5j6</string>
+				<string>com.googleusercontent.apps.1066031301719-mll9pttl9b3pucs1fgu88mojievri330</string>
 			</array>
 		</dict>
 	</array>

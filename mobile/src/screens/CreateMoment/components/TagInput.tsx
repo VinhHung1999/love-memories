@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useAppColors } from '../../../navigation/theme';
 import { Label } from '../../../components/Typography';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,7 @@ export default function TagInput({ tags, tagInput, onChangeTagInput, onAddTag, o
           <Text className="text-[10px] text-primary opacity-60">×</Text>
         </Pressable>
       ))}
-      <TextInput
+      <BottomSheetTextInput
         className="text-[13px] text-textDark dark:text-darkTextDark flex-1 min-w-[120px]"
         placeholder={t('moments.create.typeTag')}
         placeholderTextColor={colors.textLight}

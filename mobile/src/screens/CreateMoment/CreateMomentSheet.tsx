@@ -1,8 +1,10 @@
-import React, { useCallback, useRef, useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Caption, Body } from '../../components/Typography';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { Calendar, ChevronDown } from 'lucide-react-native';
 import type { Moment } from '../../types';
 import { useCreateMomentViewModel } from './useCreateMomentViewModel';
 import AppBottomSheet from '../../components/AppBottomSheet';
@@ -11,8 +13,6 @@ import LocationPicker from '../../components/LocationPicker';
 import PhotoPicker from './components/PhotoPicker';
 import TagInput from './components/TagInput';
 import { useAppColors } from '../../navigation/theme';
-import DatePickerField from '../../components/DatePickerField';
-import { useAppNavigation } from '../../navigation/useAppNavigation';
 
 interface Props {
   moment?: Moment;
@@ -23,7 +23,7 @@ interface Props {
 export default function CreateMomentSheet({ moment: initialMoment, initialPhoto, onClose }: Props) {
   const { t } = useTranslation();
   const colors = useAppColors();
-  const { showBottomSheet } = useAppNavigation();
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const sheetRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
       isSaving={vm.isSaving}
       onDismiss={onClose}>
 
-      <View className="pb-[80px] pt-2">
+      <View className="pb-[100px] pt-2">
 
         {/* ── Photos ── */}
         <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
@@ -129,12 +129,38 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
           {`📅  ${t('moments.labels.date')}`}
         </Caption>
         <View className="px-5 mb-4">
-          <DatePickerField
-            value={vm.date}
-            onChange={vm.setDate}
-            maximumDate={new Date()}
-            showBottomSheet={showBottomSheet}
-          />
+          <Pressable
+            onPress={() => setShowDatePicker(prev => !prev)}
+            className="flex-row items-center gap-2 rounded-2xl border-[1.5px] border-border dark:border-darkBorder px-[18px] py-[13px] bg-inputBg dark:bg-darkInputBg">
+            <Calendar size={18} color={colors.textLight} strokeWidth={1.5} />
+            <Body size="lg" className="text-textDark dark:text-darkTextDark flex-1">
+              {vm.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </Body>
+            <ChevronDown
+              size={16}
+              color={colors.textLight}
+              strokeWidth={1.5}
+              style={{ transform: [{ rotate: showDatePicker ? '180deg' : '0deg' }] }}
+            />
+          </Pressable>
+          {showDatePicker && (
+            <View className="mt-2 rounded-2xl overflow-hidden bg-inputBg dark:bg-darkInputBg">
+              <DateTimePicker
+                value={vm.date}
+                mode="date"
+                display="inline"
+                onChange={(_: DateTimePickerEvent, selected?: Date) => {
+                  if (selected) {
+                    vm.setDate(selected);
+                    setShowDatePicker(false);
+                  }
+                }}
+                maximumDate={new Date()}
+                accentColor={colors.primary}
+                style={{ height: 340, width: '100%' }}
+              />
+            </View>
+          )}
         </View>
 
         <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />

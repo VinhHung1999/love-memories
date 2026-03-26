@@ -98,13 +98,24 @@ Before starting ANY task:
 
 ---
 
+## Task Status Updates (CRITICAL — Boss Rule)
+
+**You MUST move cards on the board at every phase transition:**
+
+| When | Action |
+|------|--------|
+| **Start working** | `update_task_status` → `in_progress` |
+| **Submit for review** | `update_task_status` → `in_review` |
+
+**NEVER work on a task without moving it to `in_progress` first.** PO tracks progress via the board.
+
 ## Story Completion
 
 When task complete:
 
 1. Lint, build, and tests passing
 2. Commit with meaningful message
-3. Update task status via `update_task_status` MCP tool
+3. Update task status to `in_review` via `update_task_status` MCP tool
 4. Report to SM:
 
 ```bash

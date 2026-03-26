@@ -176,12 +176,29 @@ SM → TL: Distribute tasks to WEB/BE/MOBILE
 ```
 1. TL writes Technical Spec with Acceptance Criteria
 2. TL distributes tasks to WEB/BE/MOBILE
-3. WEB/BE/MOBILE implement (parallel)
-4. WEB/BE/MOBILE → SM: Report completion
-5. TL reviews code (P0/P1/P2 checklist)
-6. SM monitors progress, removes impediments
-7. PO available for clarifications (through SM)
+3. DEV uses `get_my_tasks` to see assigned tasks
+4. DEV moves task → `in_progress` via `update_task_status` BEFORE starting work
+5. WEB/BE/MOBILE implement (parallel)
+6. DEV moves task → `in_review` via `update_task_status` when submitting for review
+7. WEB/BE/MOBILE → SM: Report completion
+8. TL reviews code (P0/P1/P2 checklist)
+9. TL moves task → `testing` via `update_task_status` after code review approved
+10. SM monitors progress, removes impediments
+11. PO available for clarifications (through SM)
 ```
+
+**CRITICAL: Task Status Updates (Card Movement)**
+
+ALL roles MUST update task status via `update_task_status` MCP tool at each phase transition:
+
+| When | Status | Who |
+|------|--------|-----|
+| Start working on task | `in_progress` | DEV (WEB/BE/MOBILE) |
+| Submit for code review | `in_review` | DEV |
+| Code review approved, ready for QA | `testing` | TL |
+| PO acceptance passed | `done` | PO |
+
+**NEVER leave a task in `todo` while actively working on it.** PO tracks progress via the board — stale cards = no visibility.
 
 **CRITICAL: Technical Spec Required**
 - TL MUST write spec BEFORE devs implement

@@ -131,6 +131,8 @@ Fix P0/P1 before acceptance.
 ```
 
 **If Approved:**
+1. Update task status to `testing` via `update_task_status` MCP tool
+2. Report:
 ```
 TL [HH:mm]: Code review APPROVED. Ready for PO acceptance.
 ```

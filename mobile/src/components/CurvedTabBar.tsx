@@ -120,10 +120,10 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
   const backdropOpacity = useSharedValue(0);
 
   const collapse = (onDone?: () => void) => {
+    setExpanded(false);
     backdropOpacity.value = withTiming(0, { duration: 150 });
     leftScale.value  = withTiming(0, { duration: 120 });
     rightScale.value = withTiming(0, { duration: 120 }, () => {
-      runOnJS(setExpanded)(false);
       if (onDone) runOnJS(onDone)();
     });
     leftY.value  = withTiming(16, { duration: 120 });

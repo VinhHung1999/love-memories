@@ -352,7 +352,7 @@
 				CODE_SIGN_ENTITLEMENTS = LoveScrum/LoveScrum.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = DHGY59PZWW;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = LoveScrum/Info.plist;
@@ -387,7 +387,7 @@
 				CODE_SIGN_ENTITLEMENTS = LoveScrum/LoveScrum.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_TEAM = DHGY59PZWW;
 				INFOPLIST_FILE = LoveScrum/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;

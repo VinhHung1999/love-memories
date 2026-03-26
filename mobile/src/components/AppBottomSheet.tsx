@@ -1,11 +1,13 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Platform, Pressable, TextInput, View } from 'react-native';
 import { Body, Heading, Label } from './Typography';
 import {
   BottomSheetBackdrop,
@@ -14,6 +16,7 @@ import {
   BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetScrollView,
+  BottomSheetScrollViewMethods,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,6 +78,30 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     const colors = useAppColors();
     const insets = useSafeAreaInsets();
     const internalRef = useRef<BottomSheetModal>(null);
+    const scrollRef = useRef<BottomSheetScrollViewMethods>(null);
+    const [kbVisible, setKbVisible] = useState(false);
+
+    useEffect(() => {
+      const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+      const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+      const s1 = Keyboard.addListener(showEvt, (e) => {
+        setKbVisible(true);
+        // Auto-scroll: find focused input and scroll to make it visible above keyboard + footer
+        setTimeout(() => {
+          const focused = (TextInput as any).State?.currentlyFocusedInput?.();
+          if (!focused || !scrollRef.current) return;
+          focused.measureLayout?.(
+            (scrollRef.current as any).getScrollableNode?.(),
+            (_x: number, y: number, _w: number, h: number) => {
+              scrollRef.current?.scrollTo({ y: y - e.endCoordinates.height + h + 80, animated: true });
+            },
+            () => {},
+          );
+        }, 100);
+      });
+      const s2 = Keyboard.addListener(hideEvt, () => setKbVisible(false));
+      return () => { s1.remove(); s2.remove(); };
+    }, []);
 
     // Proxy methods so parent ref lazy-reads internalRef at call time,
     // avoiding the null-on-first-render race with empty deps [].
@@ -120,14 +147,15 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     // Sticky footer for scrollable sheets with onSave — always visible above keyboard
     const renderFooter = useCallback(
       (props: BottomSheetFooterProps) => (
-        <BottomSheetFooter {...props} bottomInset={insets.bottom}>
+        <BottomSheetFooter {...props} bottomInset={0}>
           <View
             style={{
               backgroundColor: colors.bgCard,
               borderTopWidth: 1,
               borderTopColor: colors.border,
               paddingHorizontal: 20,
-              paddingVertical: 12,
+              paddingTop: 12,
+              paddingBottom: Math.max(insets.bottom, 12),
             }}>
             <Pressable
               onPress={onSave}
@@ -153,6 +181,8 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     );
 
     const useFooter = scrollable && !!onSave;
+    // Footer height: paddingTop(12) + button(48) + paddingBottom(max(insets.bottom, 12))
+    const footerHeight = useFooter ? 12 + 48 + Math.max(insets.bottom, 12) : 0;
 
     return (
       <BottomSheetModal
@@ -233,8 +263,11 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         {/* Content */}
         {scrollable ? (
           <BottomSheetScrollView
+            ref={scrollRef}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            enableFooterMarginAdjustment={useFooter}
+            contentContainerStyle={kbVisible && footerHeight ? { paddingBottom: footerHeight } : undefined}
           >
             {children}
           </BottomSheetScrollView>
