@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.lovescrum"
+    namespace "com.hungphu.memoura"
     defaultConfig {
-        applicationId "com.hungphu.lovememories"
+        applicationId "com.hungphu.memoura"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -119,12 +119,12 @@ android {
     productFlavors {
         dev {
             dimension "env"
-            applicationId "com.hungphu.lovememories.dev"
+            applicationId "com.hungphu.memoura.dev"
             resValue "string", "app_name", "Memoura (Dev)"
         }
         prod {
             dimension "env"
-            applicationId "com.hungphu.lovememories"
+            applicationId "com.hungphu.memoura"
             resValue "string", "app_name", "Memoura"
         }
     }

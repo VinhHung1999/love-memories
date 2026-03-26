@@ -6,6 +6,8 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 // dependencyResolutionManagement(PREFER_SETTINGS) which ignores allprojects{} in build.gradle
 dependencyResolutionManagement {
     repositories {
+        // async-storage v3 ships shared_storage as local Maven artifact
+        mavenLocal()
         maven {
             url 'https://api.mapbox.com/downloads/v2/releases/maven'
             authentication {
