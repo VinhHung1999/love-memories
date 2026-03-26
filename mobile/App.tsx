@@ -11,7 +11,7 @@ import { UploadProgressProvider } from './src/contexts/UploadProgressContext';
 import Mapbox from '@rnmapbox/maps';
 import { warmupConnection } from './src/lib/api';
 import { initPurchases } from './src/lib/purchasesService';
-import { MAPBOX_ACCESS_TOKEN, GOOGLE_CLIENT_ID } from './src/config/env';
+import { MAPBOX_ACCESS_TOKEN, GOOGLE_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from './src/config/env';
 import { initI18n } from './src/lib/i18n';
 import RootNavigator from './src/navigation';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -31,6 +31,10 @@ Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
 // Set this in a .env file or native env config before building.
 GoogleSignin.configure({
   webClientId: GOOGLE_CLIENT_ID,
+  // iosClientId triggers native iOS OAuth flow (separate from webClientId).
+  // Reversed client ID URL scheme must match CFBundleURLSchemes in Info.plist.
+  // Boss: set GOOGLE_IOS_CLIENT_ID in .env.dev + .env.prod once iOS OAuth client is created.
+  ...(GOOGLE_IOS_CLIENT_ID ? { iosClientId: GOOGLE_IOS_CLIENT_ID } : {}),
   offlineAccess: false,
 });
 

@@ -17,6 +17,9 @@ export const APP_BASE_URL: string = Config.APP_BASE_URL ?? (__DEV__
 
 export const GOOGLE_CLIENT_ID: string = Config.GOOGLE_CLIENT_ID ?? '';
 
+/** iOS-specific OAuth Client ID — different from webClientId. Used for native Google Sign-In. */
+export const GOOGLE_IOS_CLIENT_ID: string = Config.GOOGLE_IOS_CLIENT_ID ?? '';
+
 export const REVENUECAT_API_KEY: string = Config.REVENUECAT_API_KEY ?? '';
 
 export const MAPBOX_ACCESS_TOKEN: string = Config.MAPBOX_ACCESS_TOKEN ?? '';

@@ -6,7 +6,7 @@ import FirebaseCore
 import FirebaseMessaging
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
@@ -18,6 +18,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     // Firebase MUST be configured before React Native starts
     FirebaseApp.configure()
     Messaging.messaging().delegate = self
+
+    // Request notification permission and set UNUserNotificationCenter delegate
+    UNUserNotificationCenter.current().delegate = self
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
+
+    // Print FCM token on launch (debug aid — confirms Firebase ↔ APNS bridge works)
+    Messaging.messaging().token { token, error in
+      if let error = error {
+        print("[FCM] Error fetching token: \(error)")
+      } else if let token = token {
+        print("[FCM] Token: \(token)")
+      }
+    }
 
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
