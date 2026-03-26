@@ -1,50 +1,56 @@
-# Love Scrum - 5-Person Team (PO + TL + WEB + BE + MOBILE)
+# Love Scrum - 6-Person Scrum Team (PO + SM + TL + WEB + BE + MOBILE)
 
 <context>
-A 5-agent team for the Love Scrum project.
-PO owns product and talks to TL. TL coordinates and assigns tasks to WEB, BE, MOBILE devs.
+A Scrum-based multi-agent team for the Love Scrum project.
+Follows official Scrum Guide 2020 with adaptations for AI agent teams.
 </context>
 
-**Terminology:** "Role" and "agent" are used interchangeably. Each role is a Claude Code AI agent instance.
+**Terminology:** "Role" and "agent" are used interchangeably. Each role is a Claude Code AI agent instance that may lose context between sessions.
+
+---
+
+## Scrum Framework
+
+### Three Pillars
+1. **Transparency** - All work visible on the board (via MCP tools) and commits
+2. **Inspection** - Regular reviews and retrospectives
+3. **Adaptation** - Continuous improvement through prompt updates
+
+### The Two Products
+
+| Product | What | For AI Agent Teams |
+|---------|------|-------------------|
+| **1. Better Software** | The product | Love Scrum app (web + mobile + backend) |
+| **2. Better Team** | Team improvement | **Better Prompts** |
+
+**All roles contribute to Goal #1. SM's primary focus is Goal #2.**
+
+> For AI agents: **improving the team IS improving the prompts.**
 
 ---
 
 ## Team Structure
 
-| Role | Pane | Purpose | Model |
-|------|------|---------|-------|
-| PO | 0 | Product Owner - backlog, priorities, specs, QA | Opus |
-| TL | 1 | Tech Lead - code review, task breakdown, dev coordination | Sonnet |
-| WEB | 2 | Web Frontend Developer - React + Vite + Tailwind | Sonnet |
-| BE | 3 | Backend Developer - Express + Prisma + PostgreSQL | Sonnet |
-| MOBILE | 4 | Mobile Developer - React Native + NativeWind | Sonnet |
-| Boss | Outside | Human user - sprint goals, acceptance | - |
+| Role | Pane | Scrum Category | Model | Purpose |
+|------|------|----------------|-------|---------|
+| PO | 0 | Product Owner | Opus | Backlog, priorities, acceptance, stakeholder liaison |
+| SM | 1 | Scrum Master | Opus | Team effectiveness, process improvement, sprint coordination |
+| TL | 2 | Developer | Opus | Architecture, specs, code review, technical coordination |
+| WEB | 3 | Developer | Sonnet | Web frontend (React + Vite + Tailwind v4) |
+| BE | 4 | Developer | Sonnet | Backend (Express + Prisma + PostgreSQL) |
+| MOBILE | 5 | Developer | Sonnet | Mobile (React Native + NativeWind + MVVM) |
+| Boss | Outside | Stakeholder | - | Sprint goals, feedback, acceptance |
 
 ---
 
-## Key Principle: Chain of Command
+## CRITICAL: Pane Detection (Common Bug)
 
-```
-Boss → PO → TL → WEB / BE / MOBILE
-```
+**NEVER use `tmux display-message -p '#{pane_index}'`** - returns ACTIVE/FOCUSED pane, NOT your pane!
 
-- **Boss** talks ONLY to **PO**
-- **PO** talks ONLY to **TL** (product specs, priorities, review results)
-- **TL** talks to **WEB, BE, MOBILE** (technical tasks, review feedback)
-- **WEB/BE/MOBILE** report ONLY to **TL**
-- **TL** aggregates and reports to **PO**
-
-**No skipping levels.** Devs never talk to PO or Boss directly.
-
----
-
-## CRITICAL: Pane Detection Bug
-
-**NEVER use `tmux display-message -p '#{pane_index}'`** - returns active cursor pane, NOT your pane!
-
-**Always use `$TMUX_PANE`:**
+**Always use `$TMUX_PANE` environment variable:**
 
 ```bash
+# CORRECT
 echo $TMUX_PANE
 tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 ```
@@ -53,134 +59,181 @@ tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 
 ## Communication Protocol
 
-### Use tm-send for ALL Messages
+### Chain of Command
 
-```bash
-# PO → TL
-tm-send TL "PO [HH:mm]: Sprint spec ready. See WHITEBOARD."
-
-# TL → Devs
-tm-send WEB "TL [HH:mm]: Implement dashboard redesign."
-tm-send BE "TL [HH:mm]: Add new API endpoint for recipes."
-tm-send MOBILE "TL [HH:mm]: Build recipe screen with MVVM."
-
-# Devs → TL
-tm-send TL "WEB [HH:mm]: Task done. Tests passing."
-tm-send TL "BE [HH:mm]: API endpoint ready."
-tm-send TL "MOBILE [HH:mm]: Screen done. Lint clean."
-
-# TL → PO
-tm-send PO "TL [HH:mm]: All tasks complete. Ready for review."
-
-# Forbidden - NEVER use raw tmux send-keys
-tmux send-keys -t %16 "message" C-m C-m  # NEVER!
+```
+Boss → PO → SM → TL → WEB / BE / MOBILE
 ```
 
-### Two-Step Response Rule
+- **Boss** talks ONLY to **PO**
+- **PO** talks ONLY to **SM** (backlog, priorities, acceptance)
+- **SM** talks to **TL** (specs, tasks) and ALL devs (process, impediments)
+- **TL** talks to **WEB, BE, MOBILE** (technical tasks, review feedback)
+- **WEB/BE/MOBILE** report to **SM** (completion, blockers) and ask **TL** (technical questions)
+
+**SM is the process hub. TL is the technical hub.**
+
+### TWO-STEP RESPONSE RULE (CRITICAL)
 
 Every task requires TWO responses:
 1. **ACKNOWLEDGE** (immediately): "Received, starting now"
 2. **COMPLETE** (when done): "Task DONE. [Summary]"
+
+### Use tm-send for ALL Messages
+
+```bash
+# Correct
+tm-send SM "BE -> SM: Task complete. Ready for review."
+
+# Forbidden
+tmux send-keys -t %16 "message" C-m C-m  # NEVER!
+```
+
+### Communication Patterns
+
+| From | To | When |
+|------|-----|------|
+| Boss | PO | Sprint goals, priorities, feedback |
+| PO | SM | Backlog updates, priority changes, acceptance |
+| SM | TL | Technical tasks, spec requests |
+| SM | All | Sprint coordination, retrospective |
+| TL | WEB/BE/MOBILE | Technical tasks, review feedback |
+| WEB/BE/MOBILE | SM | Completion, blockers, impediments |
+| WEB/BE/MOBILE | TL | Technical questions |
+| All | SM | Frustration signals, process improvements |
+
+---
+
+## Scrum Events
+
+### Sprint Planning
+1. **PO** presents Sprint Goal and prioritized backlog
+2. **SM** facilitates, adds items via `add_item_to_sprint` MCP tool
+3. **TL** provides technical feasibility input and writes specs
+4. **SM** starts sprint via `start_sprint` MCP tool
+
+### No Daily Scrum
+
+AI teams don't need scheduled check-ins. Developers message SM when they need help.
+
+### Sprint Review
+1. Developers demonstrate completed work
+2. PO accepts/rejects based on Definition of Done
+3. Boss reviews on dev environment
+4. PO updates backlog based on feedback
+
+### Sprint Retrospective (SM's Key Event)
+
+SM uses OWN NOTES (not agent feedback — agents lose context):
+1. Review sm/IMPROVEMENT_BACKLOG.md observations
+2. Pick 1-2 highest impact items
+3. Update prompts only if recurring (2-3 sprints)
+4. Document in sm/RETROSPECTIVE_LOG.md
+
+---
+
+## SM's Improvement Responsibilities
+
+### During Sprint
+- Log issues to sm/IMPROVEMENT_BACKLOG.md (don't stop work)
+- Spot-check active improvement compliance
+
+### At Sprint End
+- Pick 1-2 improvements (focus over completeness)
+- Determine status: Effective / Still monitoring / Not working
+
+### 4 Enforcement Checkpoints
+
+| Checkpoint | When | SM Action |
+|------------|------|-----------|
+| 1. Announce | Sprint Start | Broadcast active improvement to ALL roles |
+| 2. Spot Check | During Sprint | Watch, remind if forgotten, log evidence |
+| 3. Verify | Sprint End | Count compliance vs reminders |
+| 4. Enforce | After 2-3 sprints | Add to prompt if effective |
+
+### Prompt Hygiene
+- Add only after 2-3 sprints of recurring issues
+- Remove when behavior is learned (3+ sprints, no issues)
+- Goal: Prompts should "work themselves out of a job"
 
 ---
 
 ## Sprint Workflow
 
 ### Phase 1: Sprint Planning
+
 ```
-Boss → PO: Sprint Goal / requirements
-PO: Creates spec with acceptance criteria
-PO → TL: Sprint assignment with spec
-TL: Breaks spec into technical tasks for WEB/BE/MOBILE
-TL → WEB/BE/MOBILE: Task assignments
+Boss → PO: Sprint Goal
+PO → SM: Backlog items for Sprint
+SM → TL: Write technical spec
+TL: Spec (max 250 lines, ZERO code samples) → SM
+SM: Adds items to sprint board → starts sprint
+SM → TL: Distribute tasks to WEB/BE/MOBILE
 ```
 
 ### Phase 2: Sprint Execution
+
 ```
-1. WEB/BE/MOBILE acknowledge and start (parallel)
-2. Each dev implements their domain with tests
-3. Dev → TL: Reports completion
-4. TL: Reviews code + runs tests
-5. TL → Dev: Feedback or approval
-6. Loop 3-5 until all tasks approved
-7. TL → PO: Sprint tasks complete
-8. PO: Final QA validation
+1. TL writes Technical Spec with Acceptance Criteria
+2. TL distributes tasks to WEB/BE/MOBILE
+3. WEB/BE/MOBILE implement (parallel)
+4. WEB/BE/MOBILE → SM: Report completion
+5. TL reviews code (P0/P1/P2 checklist)
+6. SM monitors progress, removes impediments
+7. PO available for clarifications (through SM)
 ```
 
-### Phase 3: Sprint Review & Production Approval
+**CRITICAL: Technical Spec Required**
+- TL MUST write spec BEFORE devs implement
+- Maximum 250 lines, ZERO working code samples
+- WHAT to build, not HOW (database schema YES, exact SQL NO)
+
+### Phase 3: Sprint Review
+
 ```
-PO → Boss: Sprint summary with deliverables (on dev environment)
-Boss: Reviews on dev environment, tests functionality
-Boss: APPROVE or REQUEST CHANGES
-  - If APPROVE → PO merges to main and deploys to production
-  - If REQUEST CHANGES → PO → TL → devs fix → re-review
+SM → PO: Sprint tasks complete
+PO: QA validation (run tests, verify acceptance criteria)
+PO → Boss: Present for acceptance on dev environment
+Boss: Reviews, APPROVE or REQUEST CHANGES
+  - If APPROVE → PO merges main + deploys production
+  - If REQUEST CHANGES → PO → SM → TL → devs fix → re-review
 ```
 
 **CRITICAL: Nothing goes to production without Boss approval.**
 
-### Phase 3.5: TestFlight Build (every sprint)
-
-After Boss approves, PO builds **both** Dev and Prod to TestFlight:
-
-```bash
-cd mobile/ios
-
-# 1. Prod build (scheme: LoveScrum, bundle: com.hungphu.memoura)
-xcodebuild -workspace LoveScrum.xcworkspace -scheme "LoveScrum" \
-  -configuration "Prod Release" -destination "generic/platform=iOS" \
-  -archivePath ./build/LoveScrum.xcarchive archive -allowProvisioningUpdates
-xcodebuild -exportArchive -archivePath ./build/LoveScrum.xcarchive \
-  -exportOptionsPlist ./ExportOptions.plist -exportPath ./build/export \
-  -allowProvisioningUpdates
-
-# 2. Dev build (scheme: LoveScrum Dev, bundle: com.hungphu.memoura.dev)
-xcodebuild -workspace LoveScrum.xcworkspace -scheme "LoveScrum Dev" \
-  -configuration "Dev Release" -destination "generic/platform=iOS" \
-  -archivePath ./build/LoveScrumDev.xcarchive archive -allowProvisioningUpdates
-xcodebuild -exportArchive -archivePath ./build/LoveScrumDev.xcarchive \
-  -exportOptionsPlist ./ExportOptions.plist -exportPath ./build/export-dev \
-  -allowProvisioningUpdates
-```
-
-**Team ID:** `DHGY59PZWW`
-**TestFlight:** Both builds appear on App Store Connect → TestFlight tab for testers.
-
-### Phase 4: Sprint Retrospective — Knowledge Update
-
-**After Boss approves and sprint is merged to main**, every agent MUST update docs to capture what was learned.
+### Phase 4: Sprint Retrospective
 
 ```
-PO → TL: "Sprint merged. All agents run /retro now."
-TL → WEB/BE/MOBILE: "Sprint done. Run retrospective updates."
-Each agent updates their own docs (in parallel):
-  1. Update project memory (.claude/memory/) — bugs, lessons, patterns learned
-  2. Update CLAUDE.md — architecture, gotchas, conventions that changed
-  3. Update own role prompt — new tools, patterns, or rules discovered
-  4. Update WHITEBOARD — mark sprint as DEPLOYED in Previous Sprints
-  5. Update auto-memory (MEMORY.md) — new rules, workflow changes, bug patterns
-Each agent → TL: "Retro DONE. Updated [list of files]."
-TL → PO: "All retro updates complete."
-PO: Final review of doc changes, commit.
-  6. PO reviews + updates shared MEMORY.md — remove stale entries, add sprint lessons
+PO → SM: "Sprint merged. Trigger retrospective."
+SM: Runs retro using own observations
+SM → All: Retrospective updates needed
+Each agent updates own docs (parallel)
+SM → PO: "Retro complete."
 ```
 
-**What each role updates:**
+---
 
-| Role | Memory | CLAUDE.md | Prompt | Other |
-|------|--------|-----------|--------|-------|
-| PO | Project decisions, process lessons | Sprint history in WHITEBOARD | `PO_PROMPT.md` if process changed | Backlog cleanup, **MEMORY.md** review (remove stale, add new) |
-| TL | Architecture patterns, code review lessons | Architecture section, Known Gotchas | `TL_PROMPT.md` if review process changed | — |
-| WEB | Frontend bugs, UI patterns | Frontend section (styling, components) | `WEB_PROMPT.md` if stack/patterns changed | — |
-| BE | API patterns, DB lessons | Backend section (routes, DB) | `BE_PROMPT.md` if stack/patterns changed | — |
-| MOBILE | Mobile bugs, RN patterns | `mobile/CLAUDE.md` | `MOBILE_PROMPT.md` if patterns changed | — |
-| CMO | Market insights, competitor changes | Product Context if positioning changed | `CMO_PROMPT.md` if strategy evolved | `docs/market/` |
+## Artifacts
 
-**Rules:**
-- Only add info that is NOT already derivable from code or git history
-- Keep CLAUDE.md concise — delete outdated info, don't just append
-- Update prompts only if the role's workflow/tools/patterns actually changed
-- Use `--project-store` skill for structured memory storage
-- **MEMORY.md cleanup:** Remove outdated entries, update stale info, add new workflow/bug patterns from this sprint. Keep it under 200 lines (truncated after that).
+### Product Backlog (PO owns)
+**Managed via MCP tools:** `list_backlog`, `create_backlog_item`, `update_backlog_item`, `delete_backlog_item`
+
+### Sprint Board (SM owns)
+**Managed via MCP tools:** `get_board`, `add_item_to_sprint`, `remove_item_from_sprint`, `update_task_status`, `add_task_note`
+**Sprint lifecycle:** `create_sprint`, `start_sprint`, `complete_sprint`, `list_sprints`
+
+### Task Assignment
+**Managed via:** `get_my_tasks` MCP tool — each role checks their assigned tasks
+
+### WHITEBOARD (PO maintains)
+**Location:** `docs/tmux/love-scrum-team/WHITEBOARD.md`
+- High-level notes, sprint context, previous sprint history
+- NOT for task tracking (use MCP tools instead)
+
+### SM Workspace
+- `sm/IMPROVEMENT_BACKLOG.md` — Process issues (log during sprint)
+- `sm/RETROSPECTIVE_LOG.md` — Historical lessons
+- `sm/ACTION_ITEMS.md` — Improvement tracking
 
 ---
 
@@ -191,8 +244,23 @@ A task is "Done" when:
 - [ ] Tests pass (backend: jest, frontend: vitest, mobile: jest + lint)
 - [ ] Lint and build pass
 - [ ] TL code review approved
+- [ ] Task status updated via `update_task_status` MCP tool
+- [ ] SM notified of completion
 - [ ] PO acceptance verified
 - [ ] **Boss approved for production** (required before merge to main)
+
+---
+
+## Role Boundaries
+
+| Role | Responsibilities | Does NOT |
+|------|------------------|----------|
+| PO | Backlog, priorities, acceptance | Write code, make technical decisions |
+| SM | Process, improvement, coordination | Write code, make product/technical decisions |
+| TL | Architecture, specs, review | Override PO on priorities |
+| WEB | Web frontend code | Backend/mobile code |
+| BE | Backend code | Frontend/mobile code |
+| MOBILE | Mobile code | Backend/web code |
 
 ---
 
@@ -202,9 +270,8 @@ A task is "Done" when:
 # Sprint branch (dev environment)
 git checkout -b sprint_{N}
 
-# After TL review → merge to sprint branch (dev only)
-git checkout sprint_{N}
-git merge feature_{description}
+# Devs commit directly to sprint branch (Boss rule: no sub-branches)
+git add . && git commit -m "feat: [description]"
 
 # Deploy to dev for Boss review
 # Boss reviews on dev-love-scrum.hungphu.work
@@ -221,7 +288,7 @@ git push origin main
 
 ### Backend (`backend/`)
 ```bash
-npm run dev          # Dev server (port 5005)
+npm run dev          # Dev server (port 5006 dev / 5005 prod)
 npm test             # Jest tests
 npm run lint         # ESLint
 npm run build        # TypeScript compile
@@ -229,7 +296,7 @@ npm run build        # TypeScript compile
 
 ### Frontend (`frontend/`)
 ```bash
-npm run dev          # Vite dev server (port 3337)
+npm run dev          # Vite dev server (port 3338 dev / 3337 prod)
 npm test             # Vitest
 npm run lint         # ESLint
 npm run build        # tsc + vite build
@@ -251,13 +318,23 @@ npm test             # Jest
 ```
 love-scrum-team/
 ├── workflow.md              # This file
-├── WHITEBOARD.md            # Sprint status (PO maintains)
+├── WHITEBOARD.md            # High-level notes & context (PO maintains)
+├── sm/                      # SM's workspace
+│   ├── IMPROVEMENT_BACKLOG.md  # Process issues (log during sprint)
+│   ├── RETROSPECTIVE_LOG.md    # Historical lessons
+│   └── ACTION_ITEMS.md         # Improvement tracking
 └── prompts/
-    ├── PO_PROMPT.md         # Product Owner prompt
-    ├── TL_PROMPT.md         # Tech Lead prompt
-    ├── WEB_PROMPT.md        # Web Frontend Developer prompt
-    ├── BE_PROMPT.md         # Backend Developer prompt
-    └── MOBILE_PROMPT.md     # Mobile Developer prompt
+    ├── PO_PROMPT.md         # Product Owner
+    ├── SM_PROMPT.md         # Scrum Master
+    ├── TL_PROMPT.md         # Tech Lead
+    ├── WEB_PROMPT.md        # Web Frontend Developer
+    ├── BE_PROMPT.md         # Backend Developer
+    ├── MOBILE_PROMPT.md     # Mobile Developer
+    └── CMO_PROMPT.md        # Chief Marketing Officer (on-demand)
+
+# Note: Role→pane mapping is dynamic via tmux @role_name options
+# Note: tm-send is a global tool at ~/.local/bin/tm-send (not project-specific)
+# Note: Backlog & task management via MCP tools (list_backlog, get_board, etc.)
 ```
 
 ---
@@ -271,7 +348,7 @@ Boss operates from a **separate terminal** outside the tmux session.
 - Only send to PO, never directly to other roles
 
 ```bash
-# Send to PO
+# Send to PO (pane 0)
 tmux send-keys -t love_scrum:0.0 "BOSS [HH:MM]: message" C-m
 tmux send-keys -t love_scrum:0.0 C-m
 
@@ -281,3 +358,15 @@ tmux capture-pane -t love_scrum:0.0 -p | tail -50
 # Attach to observe
 tmux attach -t love_scrum
 ```
+
+---
+
+## Process Reminder
+
+**Production deployment requires Boss approval:**
+1. DEV implements → TL reviews → SM coordinates
+2. PO QA validates → deploys to dev
+3. Boss reviews on dev → approves
+4. PO merges main → deploys production
+
+**Note:** `.env.dev` + `.env.prod` are gitignored.

@@ -1,4 +1,4 @@
-package com.lovescrum
+package com.hungphu.memoura
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

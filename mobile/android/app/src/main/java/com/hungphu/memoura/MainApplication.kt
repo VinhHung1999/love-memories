@@ -1,4 +1,4 @@
-package com.lovescrum
+package com.hungphu.memoura
 
 import android.app.Application
 import android.app.NotificationChannel
@@ -34,7 +34,7 @@ class MainApplication : Application(), ReactApplication {
         "Notifications",
         NotificationManager.IMPORTANCE_HIGH
       ).apply {
-        description = "Love Scrum push notifications"
+        description = "Memoura push notifications"
         enableVibration(true)
       }
       val manager = getSystemService(NotificationManager::class.java)
