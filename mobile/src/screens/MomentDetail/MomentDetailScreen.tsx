@@ -25,6 +25,7 @@ import Skeleton from '../../components/Skeleton';
 import TagBadge from '../../components/TagBadge';
 import ReactionsBar from './components/ReactionsBar';
 import VoiceMemoSection from './components/VoiceMemoSection';
+import { formatLocalDate } from '../../lib/dateUtils';
 import CommentsSection from './components/CommentsSection';
 import CreateMomentSheet from '../CreateMoment/CreateMomentSheet';
 import DetailScreenLayout from '../../components/DetailScreenLayout';
@@ -165,11 +166,7 @@ function MomentDetailLoadingSkeleton() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatLocalDate(dateStr);
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────

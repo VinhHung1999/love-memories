@@ -11,6 +11,8 @@ import LocationPicker from '../../components/LocationPicker';
 import PhotoPicker from './components/PhotoPicker';
 import TagInput from './components/TagInput';
 import { useAppColors } from '../../navigation/theme';
+import DatePickerField from '../../components/DatePickerField';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 
 interface Props {
   moment?: Moment;
@@ -21,6 +23,7 @@ interface Props {
 export default function CreateMomentSheet({ moment: initialMoment, initialPhoto, onClose }: Props) {
   const { t } = useTranslation();
   const colors = useAppColors();
+  const { showBottomSheet } = useAppNavigation();
   const sheetRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -117,6 +120,21 @@ export default function CreateMomentSheet({ moment: initialMoment, initialPhoto,
               label={t('moments.labels.location')}
             />
           )}
+        </View>
+
+        <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />
+
+        {/* ── Date ── */}
+        <Caption className="tracking-[0.8px] uppercase px-5 mb-2">
+          {`📅  ${t('moments.labels.date')}`}
+        </Caption>
+        <View className="px-5 mb-4">
+          <DatePickerField
+            value={vm.date}
+            onChange={vm.setDate}
+            maximumDate={new Date()}
+            showBottomSheet={showBottomSheet}
+          />
         </View>
 
         <View className="h-[1px] bg-border/40 dark:bg-darkBorder/40 mx-5 mb-4" />

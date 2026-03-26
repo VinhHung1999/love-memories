@@ -18,7 +18,7 @@
  * Dismiss: tap either icon, tap camera button again, or tap backdrop.
  */
 import React, { useState } from 'react';
-import { Dimensions, Modal, Platform, Pressable, View } from 'react-native';
+import { Dimensions, InteractionManager, Modal, Platform, Pressable, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -148,12 +148,11 @@ function CameraFloatButton({ navigation }: { navigation: BottomTabBarProps['navi
     const result = await launchCamera({ mediaType: 'photo', saveToPhotos: false });
     if (result.didCancel || !result.assets?.[0]) return;
     const photo = result.assets[0];
-    navigation.navigate('MomentsTab', {
-      screen: 'BottomSheet',
-      params: {
+    InteractionManager.runAfterInteractions(() => {
+      (navigation as any).navigate('BottomSheet', {
         component: CreateMomentSheet,
         props: { initialPhoto: { uri: photo.uri!, mimeType: photo.type ?? 'image/jpeg' } },
-      },
+      });
     });
   };
 
