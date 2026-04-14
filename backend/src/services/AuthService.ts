@@ -9,11 +9,13 @@ import {
 import { deleteFromCdn } from '../utils/cdn';
 import { AppError } from '../types/errors';
 
-// Accept comma-separated list of allowed Google Client IDs (supports multiple during domain migration)
-const GOOGLE_ALLOWED_CLIENT_IDS = (process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '')
-  .split(',')
-  .map((id) => id.trim())
-  .filter(Boolean);
+// Build audience list from named platform vars + legacy comma-sep list
+// Token aud differs by platform: iOS=iosClientId, Android=webClientId, Web=webClientId
+const GOOGLE_ALLOWED_CLIENT_IDS = [
+  ...(process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '').split(',').map((id) => id.trim()),
+  process.env.GOOGLE_IOS_CLIENT_ID || '',
+  process.env.GOOGLE_ANDROID_CLIENT_ID || '',
+].filter((id, i, arr) => Boolean(id) && arr.indexOf(id) === i); // unique non-empty
 const googleClient = new OAuth2Client(GOOGLE_ALLOWED_CLIENT_IDS[0]);
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
@@ -62,6 +64,7 @@ export function buildAuthResponse(
 
 export async function verifyGoogleToken(idToken: string): Promise<GoogleProfile> {
   try {
+    console.log('[google-auth] Allowed client IDs:', GOOGLE_ALLOWED_CLIENT_IDS);
     const ticket = await googleClient.verifyIdToken({
       idToken,
       audience: GOOGLE_ALLOWED_CLIENT_IDS,
@@ -74,7 +77,8 @@ export async function verifyGoogleToken(idToken: string): Promise<GoogleProfile>
       name: payload.name || payload.email,
       picture: payload.picture || '',
     };
-  } catch {
+  } catch (err) {
+    console.error('[google-auth] verifyIdToken FAILED:', (err as Error).message);
     throw new Error('Invalid Google token');
   }
 }
