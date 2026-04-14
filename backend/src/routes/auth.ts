@@ -17,4 +17,7 @@ router.post('/google', AuthController.googleAuth);
 router.post('/google/complete', AuthController.googleComplete);
 router.post('/google/link', requireAuth, AuthController.googleLink);
 
+router.post('/apple', AuthController.appleAuth);
+router.post('/apple/complete', AuthController.appleComplete);
+
 export const authRoutes = router;
