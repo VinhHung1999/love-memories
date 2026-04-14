@@ -62,10 +62,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     print("[Push] Failed to register for remote notifications: \(error)")
   }
 
-  // Google Sign-In OAuth callback — required for native iOS sign-in redirect
+  // URL callback chain: Google Sign-In first, then RCTLinkingManager for
+  // custom scheme deep links (lovescrum://). Manual handler disables swizzling,
+  // so both must be chained — returning false here breaks RN Linking entirely.
   func application(_ app: UIApplication, open url: URL,
                    options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-    return GIDSignIn.sharedInstance.handle(url)
+    if GIDSignIn.sharedInstance.handle(url) { return true }
+    return RCTLinkingManager.application(app, open: url, options: options)
   }
 }
 
