@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { authApi, clearStoredTokens, getStoredTokens, setOnUnauthenticated, storeTokens } from './api';
-import { AuthUser, GoogleProfile } from '../types';
+import { AuthUser, GoogleProfile, AppleProfile } from '../types';
 // Note: Notification — Import to unregister FCM token on logout
 import { unregisterPushToken } from './pushNotifications';
 
@@ -22,6 +22,8 @@ interface AuthContextValue {
   loginWithGoogle: (idToken: string) => Promise<{ needsCouple: true; googleProfile: GoogleProfile } | void>;
   completeGoogleSignup: (idToken: string, opts: { inviteCode?: string; coupleName?: string }) => Promise<void>;
   linkGoogle: (idToken: string) => Promise<void>;
+  loginWithApple: (idToken: string, nameHint?: string) => Promise<{ needsCouple: true; appleProfile: AppleProfile } | void>;
+  beginAppleOnboarding: (idToken: string, opts?: { name?: string; inviteCode?: string; coupleName?: string }) => Promise<AuthUser>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<AuthUser>) => void;
   // Onboarding: register/googleComplete WITHOUT setUser — caller does extra APIs then calls completeOnboarding
@@ -135,6 +137,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const loginWithApple = useCallback(async (idToken: string, nameHint?: string) => {
+    const data = await authApi.appleLogin(idToken, nameHint);
+    if (data.needsCouple) {
+      return { needsCouple: true as const, appleProfile: data.appleProfile as AppleProfile };
+    }
+    await storeTokens(data.accessToken || data.token, data.refreshToken);
+    setUser(data.user);
+  }, []);
+
+  const beginAppleOnboarding = useCallback(
+    async (idToken: string, opts: { name?: string; inviteCode?: string; coupleName?: string } = {}) => {
+      const data = await authApi.appleComplete(idToken, opts);
+      await storeTokens(data.accessToken || data.token, data.refreshToken);
+      return data.user as AuthUser;
+    },
+    [],
+  );
+
   const beginGoogleOnboarding = useCallback(
     async (idToken: string) => {
       const data = await authApi.googleComplete(idToken, {});
@@ -159,6 +179,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginWithGoogle,
         completeGoogleSignup,
         linkGoogle,
+        loginWithApple,
+        beginAppleOnboarding,
         logout,
         updateUser,
         beginEmailOnboarding,

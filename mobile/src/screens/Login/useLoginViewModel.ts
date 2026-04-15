@@ -3,6 +3,10 @@ import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
+import appleAuth, {
+  AppleRequestOperation,
+  AppleRequestScope,
+} from '@invertase/react-native-apple-authentication';
 import { useAuth } from '../../lib/auth';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useTranslation } from 'react-i18next';
@@ -56,7 +60,7 @@ function reducer(state: LoginState, action: LoginAction): LoginState {
 // ── ViewModel ──────────────────────────────────────────────────────────────────
 export function useLoginViewModel() {
   const { t } = useTranslation();
-  const { login, loginWithGoogle, beginEmailOnboarding, completeOnboarding, beginGoogleOnboarding } = useAuth();
+  const { login, loginWithGoogle, beginEmailOnboarding, completeOnboarding, beginGoogleOnboarding, loginWithApple, beginAppleOnboarding } = useAuth();
   const { showLoading, hideLoading, isLoading } = useLoading();
   const [s, dispatch] = useReducer(reducer, initialState);
 
@@ -187,6 +191,38 @@ export function useLoginViewModel() {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    dispatch({ type: 'SET_ERROR', message: '' });
+    try {
+      const appleAuthRequest = await appleAuth.performRequest({
+        requestedOperation: AppleRequestOperation.LOGIN,
+        requestedScopes: [AppleRequestScope.EMAIL, AppleRequestScope.FULL_NAME],
+      });
+      const { identityToken, fullName } = appleAuthRequest;
+      if (!identityToken) { dispatch({ type: 'SET_ERROR', message: t('login.errors.appleNoToken') }); return; }
+      const nameHint = fullName?.givenName
+        ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ')
+        : undefined;
+      showLoading();
+      const result = await loginWithApple(identityToken, nameHint);
+      if (result?.needsCouple) {
+        const regUser = await beginAppleOnboarding(identityToken, { name: nameHint });
+        completeOnboarding(regUser);
+      }
+    } catch (err: unknown) {
+      const e = err as { code?: string; status?: number; retryAfterSeconds?: number; message?: string };
+      // User cancelled — silent
+      if (e?.code === '1001') return;
+      if (e?.status === 429 || e?.retryAfterSeconds) {
+        startRetryCountdown(e.retryAfterSeconds ?? 60);
+      } else {
+        dispatch({ type: 'SET_ERROR', message: e.message || t('login.errors.appleSignInFailed') });
+      }
+    } finally {
+      hideLoading();
+    }
+  };
+
   return {
     ...s,
     loading: isLoading,
@@ -202,6 +238,7 @@ export function useLoginViewModel() {
 
     handleSubmit,
     handleGoogleSignIn,
+    handleAppleSignIn,
     toggleMode: () => dispatch({ type: 'TOGGLE_MODE' }),
   };
 }

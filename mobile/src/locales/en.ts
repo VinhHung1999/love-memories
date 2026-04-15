@@ -12,6 +12,8 @@ const en = {
   login: {
     welcomeBack: 'Welcome back',
     createAccount: 'Create account',
+    continueWithApple: 'Continue with Apple',
+    signUpWithApple: 'Sign up with Apple',
     continueWithGoogle: 'Continue with Google',
     signUpWithGoogle: 'Sign up with Google',
     or: 'or',
@@ -60,6 +62,9 @@ const en = {
       somethingWrong: 'Something went wrong',
       googleSignInFailed: 'Google Sign-In failed',
       googleSignupFailed: 'Google signup failed',
+      appleNoToken: 'Apple Sign-In failed: no identity token',
+      appleSignInFailed: 'Apple Sign-In failed',
+      appleSignupFailed: 'Apple signup failed',
       passwordMismatch: 'Passwords do not match',
     },
 

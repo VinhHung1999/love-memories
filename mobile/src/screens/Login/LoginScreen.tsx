@@ -6,8 +6,14 @@ import {
   Pressable,
   ScrollView,
   StatusBar,
+  useColorScheme,
   View,
 } from 'react-native';
+import {
+  AppleButton,
+  AppleButtonStyle,
+  AppleButtonType,
+} from '@invertase/react-native-apple-authentication';
 import { Body, Caption, Heading, Label } from '../../components/Typography';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -69,6 +75,7 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const colors = useAppColors();
   const vm = useLoginViewModel();
+  const isDark = useColorScheme() === 'dark';
 
   const logoAnim = useRef(new Animated.Value(0)).current;
   const formAnim = useRef(new Animated.Value(0)).current;
@@ -117,6 +124,17 @@ export default function LoginScreen() {
               <Heading size="lg" className="text-textDark dark:text-darkTextDark mb-4 tracking-[0.2px]">
                 {vm.mode === 'login' ? t('login.welcomeBack') : t('login.createAccount')}
               </Heading>
+
+              {/* Apple button — iOS only, must be at least as prominent as Google (HIG) */}
+              {Platform.OS === 'ios' && (
+                <AppleButton
+                  buttonStyle={isDark ? AppleButtonStyle.WHITE : AppleButtonStyle.BLACK}
+                  buttonType={AppleButtonType.SIGN_IN}
+                  style={{ width: '100%', height: 50, borderRadius: 16, marginBottom: 8 }}
+                  cornerRadius={16}
+                  onPress={vm.handleAppleSignIn}
+                />
+              )}
 
               {/* Google button */}
               <SpringPressable

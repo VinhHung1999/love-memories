@@ -78,6 +78,20 @@ NavigationContainer (dark/light theme via useColorScheme)
 
 `apiFetch()` in `src/lib/api.ts` auto-refreshes tokens on 401 using a mutex (no concurrent refresh races). Tokens stored in iOS Keychain / Android Keystore via `react-native-keychain` under service `"memoura"`.
 
+**Auth methods in `auth.tsx`:**
+- `login(email, password)` — email/password
+- `loginWithGoogle(idToken)` — Google OAuth, `needsCouple` → onboarding
+- `loginWithApple(idToken, nameHint?)` — Apple Sign-In (iOS only), `needsCouple` → onboarding
+- `beginEmailOnboarding` / `beginGoogleOnboarding` / `beginAppleOnboarding` — register without setting user; caller calls `completeOnboarding(user)` after extra setup
+
+**Apple Sign-In (Sprint 58 — [271]):**
+- Package: `@invertase/react-native-apple-authentication` v2+
+- iOS only (`Platform.OS === 'ios'` guard in LoginScreen)
+- **HIG strict**: Use `AppleButton` component from library (NOT custom). `buttonType: SIGN_IN`, placed ABOVE Google button.
+- Entitlement: `com.apple.developer.applesignin = ["Default"]` in `LoveScrum.entitlements`
+- Apple only sends `email` + `fullName` on FIRST sign-in — pass as `nameHint` to backend
+- Cancel code `1001` is silent (user dismissed sheet)
+
 ### Theme System
 
 Two sources of truth that must stay in sync:
