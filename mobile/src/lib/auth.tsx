@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithApple = useCallback(async (idToken: string, nameHint?: string) => {
     const data = await authApi.appleLogin(idToken, nameHint);
     if (data.needsCouple) {
-      return { needsCouple: true as const, appleProfile: data.appleProfile as AppleProfile };
+      return { needsCouple: true as const, appleProfile: data.appleProfile! };
     }
     await storeTokens(data.accessToken || data.token, data.refreshToken);
     setUser(data.user);

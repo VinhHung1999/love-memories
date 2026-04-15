@@ -4,6 +4,7 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import appleAuth, {
+  AppleError,
   AppleRequestOperation,
   AppleRequestScope,
 } from '@invertase/react-native-apple-authentication';
@@ -212,7 +213,7 @@ export function useLoginViewModel() {
     } catch (err: unknown) {
       const e = err as { code?: string; status?: number; retryAfterSeconds?: number; message?: string };
       // User cancelled — silent
-      if (e?.code === '1001') return;
+      if (e?.code === AppleError.CANCELED) return;
       if (e?.status === 429 || e?.retryAfterSeconds) {
         startRetryCountdown(e.retryAfterSeconds ?? 60);
       } else {

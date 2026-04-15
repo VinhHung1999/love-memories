@@ -236,7 +236,7 @@ export const authApi = {
   appleLogin: async (
     idToken: string,
     nameHint?: string,
-  ): Promise<AuthResponse & { needsCouple?: boolean; appleProfile?: object }> => {
+  ): Promise<AuthResponse & { needsCouple?: boolean; appleProfile?: import('../types').AppleProfile }> => {
     const res = await fetch(`${API_BASE}/api/auth/apple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
