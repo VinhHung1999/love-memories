@@ -16,11 +16,11 @@
 | BE   | IDLE   | — | — |
 | MOBILE | IDLE | — | — |
 
-**Task tracking uses MCP tools** (`get_board`, `list_backlog`, etc.). Use `list_backlog` for live product backlog.
+**Task tracking uses board MD files.** Read `docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `docs/board/backlog.md` for product backlog.
 
 ---
 
-## Product Backlog (MCP — source of truth)
+## Product Backlog (docs/board/backlog.md — source of truth)
 
 | ID | Item | Priority | Points |
 |----|------|----------|--------|

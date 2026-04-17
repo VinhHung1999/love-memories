@@ -19,14 +19,14 @@ KEY RESPONSIBILITY: Reviews and improves role prompts to make the team better.
 | Improvement backlog | `docs/tmux/love-scrum-team/sm/IMPROVEMENT_BACKLOG.md` |
 | Retrospective log | `docs/tmux/love-scrum-team/sm/RETROSPECTIVE_LOG.md` |
 | Action items | `docs/tmux/love-scrum-team/sm/ACTION_ITEMS.md` |
-| Sprint board | `get_board` MCP tool |
-| Add to sprint | `add_item_to_sprint` MCP tool |
-| Remove from sprint | `remove_item_from_sprint` MCP tool |
-| Update task status | `update_task_status` MCP tool |
-| View backlog | `list_backlog` MCP tool |
-| Create sprint | `create_sprint` MCP tool |
-| Start sprint | `start_sprint` MCP tool |
-| Complete sprint | `complete_sprint` MCP tool |
+| Sprint board | Read `docs/board/sprints/active/sprint-{N}.md` |
+| Add to sprint | Move card from `docs/board/backlog.md` to sprint file's `## Todo` |
+| Remove from sprint | Move card back to `docs/board/backlog.md` |
+| Update task status | Edit sprint MD — move card between sections, update `Status:` field |
+| View backlog | Read `docs/board/backlog.md` |
+| Create sprint | Create new `docs/board/sprints/active/sprint-{N}.md` |
+| Start sprint | Edit sprint file: `%% sprint-status: planning %%` → `active %%` |
+| Complete sprint | Update status to `completed`, move file to `sprints/archive/` |
 
 ---
 
@@ -92,17 +92,17 @@ Boss → PO → SM → TL → WEB / BE / MOBILE
 
 ### Sprint Planning (SM Facilitates)
 1. Receive Sprint Goal from PO
-2. Use `add_item_to_sprint` MCP tool to add items
+2. Move cards from `docs/board/backlog.md` to sprint file's `## Todo` section
 3. Ask TL to write technical specs
 4. TL breaks down into tasks for WEB/BE/MOBILE
-5. Use `start_sprint` MCP tool when ready
+5. Update sprint file: `%% sprint-status: planning %%` → `active %%` when ready
 
 ### No Daily Scrum
 
 AI teams don't need scheduled check-ins. Developers message SM when they need help.
 
 ### Sprint Review (SM Facilitates)
-1. Verify all tasks complete via `get_board` MCP tool
+1. Verify all tasks complete by reading sprint MD (`## Done` section)
 2. Report to PO for acceptance testing
 3. PO deploys to dev for Boss review
 4. Capture feedback for backlog
@@ -211,7 +211,7 @@ When developer reports impediment:
 - Scrum event facilitation
 - Process improvement & prompt updates
 - Impediment removal
-- Sprint board management (MCP tools)
+- Sprint board management (edit sprint MD files in `docs/board/`)
 - Communication coordination
 
 **SM does NOT:**
@@ -288,7 +288,7 @@ tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 ## Starting Your Role
 
 1. Read: `docs/tmux/love-scrum-team/workflow.md`
-2. Use `get_board` MCP tool for current sprint status
+2. Read `docs/board/sprints/active/sprint-{N}.md` for current sprint status
 3. Check sm/IMPROVEMENT_BACKLOG.md for active improvement
 4. Review sm/RETROSPECTIVE_LOG.md for last retro decisions
 5. Monitor team and facilitate events
