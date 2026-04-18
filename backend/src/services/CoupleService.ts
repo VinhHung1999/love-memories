@@ -12,12 +12,18 @@ export async function getCouple(coupleId: string) {
   return couple;
 }
 
-export async function update(coupleId: string, name?: string, anniversaryDate?: string | null) {
+export async function update(
+  coupleId: string,
+  name?: string,
+  anniversaryDate?: string | null,
+  color?: string | null,
+) {
   const updateData: Record<string, unknown> = {};
   if (name !== undefined) updateData.name = name;
   if (anniversaryDate !== undefined) {
     updateData.anniversaryDate = anniversaryDate ? new Date(anniversaryDate) : null;
   }
+  if (color !== undefined) updateData.color = color;
 
   const couple = await prisma.couple.update({
     where: { id: coupleId },

@@ -22,7 +22,14 @@ export default function AuthLayout() {
       <Stack.Screen name="pair-join" />
       <Stack.Screen name="personalize" />
       <Stack.Screen name="permissions" />
-      <Stack.Screen name="onboarding-done" />
+      {/* T286: lock onboarding-done so the user can't swipe back into the
+          permissions wizard once they've crossed the commit point. The CTA
+          flips onboardingComplete and replace()s into (tabs); after that
+          the auth gate would yank them right back, which would feel buggy. */}
+      <Stack.Screen
+        name="onboarding-done"
+        options={{ gestureEnabled: false, headerBackVisible: false }}
+      />
     </Stack>
   );
 }

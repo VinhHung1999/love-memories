@@ -12,6 +12,7 @@ model Couple {
   name            String?
   anniversaryDate DateTime?
   inviteCode      String?   @unique
+  color           String?
   createdAt       DateTime  @default(now())
 
   users              User[]

@@ -1627,6 +1627,19 @@ describe('Couple Profile', () => {
     expect(res.body.value).toBe('2020-06-15');
   });
 
+  // Sprint 60 T286 — `color` (palette swatch index "0"–"3" or hex later).
+  it('PUT /api/couple updates color', async () => {
+    const res = await request(app).put('/api/couple').set(auth()).send({ color: '2' });
+    expect(res.status).toBe(200);
+    expect(res.body.color).toBe('2');
+  });
+
+  it('PUT /api/couple clears color when explicit null', async () => {
+    const res = await request(app).put('/api/couple').set(auth()).send({ color: null });
+    expect(res.status).toBe(200);
+    expect(res.body.color).toBeNull();
+  });
+
   it('POST /api/couple/generate-invite generates 8-char code', async () => {
     const res = await request(app).post('/api/couple/generate-invite').set(auth());
     expect(res.status).toBe(200);

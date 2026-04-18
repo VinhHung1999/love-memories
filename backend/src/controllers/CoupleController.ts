@@ -17,8 +17,13 @@ export const getCouple = asyncHandler(async (req: AuthRequest, res: Response) =>
 });
 
 export const update = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { name, anniversaryDate } = req.body;
-  const couple = await CoupleService.update(req.user!.coupleId!, name, anniversaryDate);
+  const { name, anniversaryDate, color } = req.body;
+  const couple = await CoupleService.update(
+    req.user!.coupleId!,
+    name,
+    anniversaryDate,
+    color,
+  );
   res.json(couple);
 });
 

@@ -51,6 +51,23 @@ const config: ExpoConfig = {
         dark: { backgroundColor: '#0B0B0F' },
       },
     ],
+    [
+      'expo-notifications',
+      {
+        // T286 — native APNS perm prompt + foreground-presentation defaults.
+        // Tint colour matches brand primary so iOS uses it for the notification
+        // accent. APNS prompt copy is provided by the OS itself.
+        color: '#E8788A',
+      },
+    ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'Memoura cần quyền truy cập ảnh để em chọn ảnh khi thêm khoảnh khắc.',
+        cameraPermission: 'Memoura cần quyền camera khi em chụp khoảnh khắc.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
