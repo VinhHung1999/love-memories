@@ -46,21 +46,19 @@ assets/
 6. **Prototype > memory rules > DEV judgment.** Always cross-check `docs/design/prototype/memoura-v2/`. Ask PO before deviating.
 7. **`style` prop is banned** even for quick hacks — file an issue, don't work around NativeWind.
 
-## Environments
+## Environment
 
-| Variant | Bundle ID | Scheme | Display name |
-|---|---|---|---|
-| development | `com.hungphu.memoura.dev` | `memoura-dev` | Memoura Dev |
-| production | `com.hungphu.memoura` | `memoura` | Memoura |
+Single flavor. Bundle ID `com.hungphu.memoura`, scheme `memoura`, display name "Memoura", version `2.0.0`. Shares the App Store Connect app with the old `mobile/` track; version bumped to 2.0.0 so rework builds are visibly distinct from mobile/'s 1.0 (40) history on TestFlight.
 
-Switch via `APP_VARIANT` in `.env` (read by `app.config.ts`).
-`EXPO_PUBLIC_*` vars are inlined at runtime; other config goes through `extra` + `expo-constants`.
+Dev flavor dropped in Sprint 59 (f626215) — avoided registering a second App Store Connect app with bundle `com.hungphu.memoura.dev`. Revisit if dev and prod builds need to coexist on one device.
+
+`EXPO_PUBLIC_*` vars are inlined at runtime; other config goes through `extra` + `expo-constants`. Dev vs prod is detected via `__DEV__` in `src/config/env.ts`, not an env var.
 
 ## iOS signing
 
 - Team ID: `DHGY59PZWW`
-- Two App Store Connect apps: one per bundle ID
-- Build path (EAS vs local `xcodebuild`) — TBD, see T279
+- Build path: local `xcodebuild` via `ios/build-testflight.sh` (no EAS).
+- `DEVELOPMENT_TEAM` is injected into the build command so `expo prebuild --clean` can wipe `ios/` without reconfiguring Xcode.
 
 ## Design defaults (locked)
 
