@@ -12,6 +12,8 @@ router.get('/me', requireAuth, AuthController.me);
 router.delete('/account', requireAuth, AuthController.deleteAccount);
 router.post('/send-verification', requireAuth, AuthController.sendVerification);
 router.get('/verify-email', AuthController.verifyEmail);
+router.post('/forgot-password', AuthController.forgotPassword);
+router.post('/reset-password', AuthController.resetPassword);
 
 router.post('/google', AuthController.googleAuth);
 router.post('/google/complete', AuthController.googleComplete);

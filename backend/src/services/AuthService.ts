@@ -428,6 +428,42 @@ export async function appleComplete(
   return buildAuthResponse(user, accessToken, refreshToken);
 }
 
+/**
+ * Always returns void (no enumeration of registered emails).
+ * If the email matches a password-backed account, issues a reset token and emails it.
+ * Google/Apple-only accounts are intentionally skipped — they have no password to reset.
+ */
+export async function forgotPassword(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !user.password) return;
+
+  // Best-effort: rate-limit errors should still propagate (caller maps to 429).
+  const { sendPasswordResetEmail } = await import('./EmailService');
+  await sendPasswordResetEmail(user.id, user.email, user.name);
+}
+
+/**
+ * Verify reset token, set new password, mark token used, revoke all active refresh tokens.
+ * Throws AppError for invalid / expired / already-used tokens.
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const record = await prisma.passwordReset.findUnique({ where: { token } });
+  if (!record) throw new AppError(400, 'Invalid or expired reset token');
+  if (record.usedAt) throw new AppError(400, 'Reset token has already been used');
+  if (record.expiresAt < new Date()) throw new AppError(400, 'Reset token has expired');
+
+  const hashed = await hashPassword(newPassword);
+
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: record.userId }, data: { password: hashed } }),
+    prisma.passwordReset.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
+    prisma.refreshToken.updateMany({
+      where: { userId: record.userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
+}
+
 export async function googleLink(userId: string, idToken: string) {
   const profile = await verifyGoogleToken(idToken);
 

@@ -5,6 +5,8 @@ import { AppError } from '../types/errors';
 
 const VERIFICATION_EXPIRY_HOURS = 24;
 const RATE_LIMIT_PER_HOUR = 3;
+const PASSWORD_RESET_EXPIRY_HOURS = 1;
+const PASSWORD_RESET_RATE_LIMIT_PER_HOUR = 3;
 
 function createTransporter() {
   const host = process.env.SMTP_HOST;
@@ -86,6 +88,71 @@ export async function sendVerificationEmail(userId: string, email: string, name:
     subject,
     html,
   });
+}
+
+function buildPasswordResetEmail(name: string, resetUrl: string): { subject: string; html: string } {
+  return {
+    subject: 'Reset your Memoura password',
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+        <h2 style="color: #E8788A;">Memoura 💕</h2>
+        <p>Hi ${name},</p>
+        <p>We received a request to reset your Memoura password. Tap the button below to choose a new one.</p>
+        <a href="${resetUrl}" style="
+          display: inline-block;
+          background: #E8788A;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: bold;
+          margin: 16px 0;
+        ">Reset Password</a>
+        <p style="color: #888; font-size: 12px;">This link expires in 1 hour. If you didn't ask to reset your password, you can safely ignore this email.</p>
+      </div>
+    `,
+  };
+}
+
+/**
+ * Issue a one-time password reset token for a user.
+ * Returns the raw token so callers can return it to tests; the email is sent best-effort.
+ * Caller is responsible for hiding existence (no-op when user doesn't exist).
+ */
+export async function sendPasswordResetEmail(userId: string, email: string, name: string): Promise<string> {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentCount = await prisma.passwordReset.count({
+    where: { userId, createdAt: { gte: oneHourAgo } },
+  });
+  if (recentCount >= PASSWORD_RESET_RATE_LIMIT_PER_HOUR) {
+    throw new AppError(429, 'Too many password reset requests. Please wait before trying again.');
+  }
+
+  await prisma.passwordReset.deleteMany({ where: { userId, usedAt: null } });
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY_HOURS * 60 * 60 * 1000);
+
+  await prisma.passwordReset.create({ data: { userId, token, expiresAt } });
+
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.log(`[PasswordReset] SMTP not configured. Token for ${email}: ${token}`);
+    return token;
+  }
+
+  const appUrl = process.env.APP_URL || 'https://memoura.app';
+  const resetUrl = `${appUrl}/reset-password?token=${token}`;
+  const { subject, html } = buildPasswordResetEmail(name, resetUrl);
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: email,
+    subject,
+    html,
+  });
+
+  return token;
 }
 
 export async function verifyEmail(token: string): Promise<void> {

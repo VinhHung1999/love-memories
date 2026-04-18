@@ -1,7 +1,15 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { validate } from '../middleware/validate';
-import { registerSchema, loginSchema, deleteAccountSchema, appleAuthSchema, appleCompleteSchema } from '../validators/authSchemas';
+import {
+  registerSchema,
+  loginSchema,
+  deleteAccountSchema,
+  appleAuthSchema,
+  appleCompleteSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '../validators/authSchemas';
 import type { AuthRequest } from '../middleware/auth';
 import * as AuthService from '../services/AuthService';
 import * as EmailService from '../services/EmailService';
@@ -157,6 +165,29 @@ export const appleComplete = [
         throw err;
       }
     }
+  }),
+];
+
+export const forgotPassword = [
+  validate(forgotPasswordSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body as { email: string };
+    // Always 200 — never reveal whether the email is registered (or rate-limited).
+    try {
+      await AuthService.forgotPassword(email);
+    } catch (err) {
+      console.error('[ForgotPassword] suppressed error:', (err as Error).message);
+    }
+    res.json({ ok: true });
+  }),
+];
+
+export const resetPassword = [
+  validate(resetPasswordSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body as { token: string; newPassword: string };
+    await AuthService.resetPassword(token, newPassword);
+    res.json({ ok: true });
   }),
 ];
 

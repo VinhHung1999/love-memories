@@ -227,6 +227,56 @@ Verify email address via token from the verification email link.
 
 ---
 
+### `POST /api/auth/forgot-password` — Public (Sprint 60)
+
+Request a password-reset email. Always returns `200` to avoid leaking whether an
+account exists. Silently no-ops for unknown emails and for accounts that only have
+Google/Apple Sign-In (no password to reset).
+
+**Request:**
+```json
+{ "email": "you@example.com" }
+```
+
+**Response (200) — always:**
+```json
+{ "ok": true }
+```
+
+**Behaviour:**
+- Issues a one-time reset token (random 32-byte hex), 1-hour expiry.
+- Replaces any previously-unused token for the same user (only the newest is valid).
+- Sends the token to the user via SMTP. If SMTP is unconfigured, logs the token to
+  the server console (dev convenience).
+- Rate limit: 3 requests per hour per user — excess requests still respond 200 but
+  do not send email.
+
+**Errors:**
+- `400` missing or malformed `email`.
+
+---
+
+### `POST /api/auth/reset-password` — Public (Sprint 60)
+
+Consume a password-reset token and set a new password. On success, all of the user's
+active refresh tokens are revoked (forces a fresh login on every device).
+
+**Request:**
+```json
+{ "token": "abc123…", "newPassword": "min-6-chars" }
+```
+
+**Response (200):**
+```json
+{ "ok": true }
+```
+
+**Errors:**
+- `400` missing/short fields (`newPassword` must be ≥ 6 chars).
+- `400` token unknown, expired, or already used.
+
+---
+
 ## Subscription (Sprint 45)
 
 ### `GET /api/subscription/status`

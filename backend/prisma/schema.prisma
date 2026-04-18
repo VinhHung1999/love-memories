@@ -57,6 +57,7 @@ model User {
   receivedLetters     LoveLetter[]         @relation("ReceivedLetters")
   refreshTokens       RefreshToken[]
   emailVerifications  EmailVerification[]
+  passwordResets      PasswordReset[]
 
   @@index([coupleId])
   @@map("users")
@@ -73,6 +74,19 @@ model EmailVerification {
 
   @@index([userId])
   @@map("email_verifications")
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_resets")
 }
 
 enum LetterStatus {
