@@ -72,7 +72,6 @@ export function usePairJoinViewModel() {
   const router = useRouter();
   const params = useLocalSearchParams<{ code?: string }>();
   const setSession = useAuthStore((s) => s.setSession);
-  const setOnboardingComplete = useAuthStore((s) => s.setOnboardingComplete);
 
   const [cells, setCells] = useState<string[]>(emptyCells);
   const [partnerName, setPartnerName] = useState<string | null>(null);
@@ -221,11 +220,11 @@ export function usePairJoinViewModel() {
           coupleId: res.user.coupleId,
         },
       });
-      // Joiner skips Personalize/Permissions — the inviter already named the
-      // couple. Flip onboardingComplete and let useAuthGate route to (tabs).
-      // Mirrors spec docs/specs/sprint-60-pairing.md §"Joiner flow".
-      await setOnboardingComplete(true);
-      router.replace('/(tabs)');
+      // Both inviter and joiner walk T286 (Personalize → Permissions →
+      // OnboardingDone) — display name + permissions are per-user, and
+      // OnboardingDone owns the explicit setOnboardingComplete(true) commit.
+      // Spec: docs/specs/sprint-60-pairing.md §"Joiner flow".
+      router.replace('/(auth)/personalize');
     } catch (err) {
       if (err instanceof ApiError) {
         // BE collapses all logical join failures into 400 with distinct
@@ -252,7 +251,7 @@ export function usePairJoinViewModel() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, code, router, setOnboardingComplete, setSession]);
+  }, [canSubmit, code, router, setSession]);
 
   return {
     cells,
