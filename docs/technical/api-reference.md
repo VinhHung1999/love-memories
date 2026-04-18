@@ -397,12 +397,76 @@ All fields optional.
 
 ### `POST /api/couple/generate-invite`
 
-Generate or regenerate 8-character invite code for partner registration.
+Generate or regenerate the 8-character lowercase-hex invite code (`crypto.randomBytes(4).toString('hex')`) for partner registration. Codes do **not** expire server-side; rotation is user-initiated and the previous code becomes invalid the moment a new one is generated.
 
 **Response (200):**
 ```json
-{ "inviteCode": "ABC12345", "expiresAt": "2026-03-15T..." }
+{ "inviteCode": "a3f8d2b1" }
 ```
+
+**Errors:** `401` unauthenticated · `403` no couple yet (call `POST /api/couple` first to create a couple)
+
+---
+
+### `POST /api/couple` — Auth required
+
+Create a couple for the current user. The user must not already belong to a couple. The response includes a fresh access/refresh-token pair (the new JWT carries `coupleId`) and the first auto-generated `inviteCode` (8 lowercase hex chars).
+
+**Request:**
+```json
+{ "name": "Linh & Minh" }
+```
+
+`name` is **optional** as of Sprint 60 T284 — mobile-rework's PairCreate flow creates the couple immediately after signup before the name is collected (Personalize step T286 sets it later via `PUT /api/couple`). When omitted or blank, `Couple.name` is stored as `NULL`.
+
+**Response (201):**
+```json
+{
+  "accessToken": "...",
+  "refreshToken": "...",
+  "user": {
+    "id": "uuid",
+    "email": "linh@memoura.co",
+    "name": "Linh",
+    "avatar": null,
+    "coupleId": "uuid",
+    "googleId": null
+  },
+  "inviteCode": "a3f8d2b1"
+}
+```
+
+**Errors:** `400` user already in a couple · `401` unauthenticated
+
+---
+
+### `POST /api/couple/join` — Auth required
+
+Join an existing couple via its invite code. The user must not already belong to a couple, and the target couple must have fewer than 2 members. Response includes refreshed JWT pair (new token carries `coupleId`) and the partner's display name.
+
+**Request:**
+```json
+{ "inviteCode": "a3f8d2b1" }
+```
+
+**Response (200):**
+```json
+{
+  "accessToken": "...",
+  "refreshToken": "...",
+  "user": {
+    "id": "uuid",
+    "email": "minh@memoura.co",
+    "name": "Minh",
+    "avatar": null,
+    "coupleId": "uuid",
+    "googleId": null
+  },
+  "partnerName": "Linh"
+}
+```
+
+**Errors:** `400` invalid code · `400` user already in a couple · `400` couple already has 2 members · `401` unauthenticated
 
 ---
 

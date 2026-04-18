@@ -139,6 +139,39 @@ const vi = {
         network: 'Mạng đang trục trặc. Em thử lại sau nhé.',
       },
     },
+    pairing: {
+      choice: {
+        title: 'Cho ai nữa?',
+        subtitle: 'Memoura chỉ có hai người',
+        skip: 'Để sau',
+        create: {
+          title: 'Tạo lời mời',
+          subtitle: 'Cho người ta một mã 8 ký tự',
+          icon: '✦',
+        },
+        join: {
+          title: 'Có mã rồi',
+          subtitle: 'Nhập mã từ người ta',
+          icon: '→',
+        },
+        lockNote: 'Mỗi người chỉ ghép với một người. Không có bạn bè, không có theo dõi.',
+      },
+      invite: {
+        title: 'Mã ghép đôi',
+        subtitle: 'Gửi mã này cho người ta nhé',
+        codeLabel: 'mã của em',
+        shareCta: 'Chia sẻ',
+        rotateCta: 'Lấy mã mới?',
+        rotating: 'Đang đổi mã…',
+        waitingTitle: 'Đang đợi người ta…',
+        waitingSubtitle: 'Mình sẽ tự chuyển sang bước tiếp khi người ta vào',
+        shareMessage:
+          'Mình đợi em ở Memoura ✨ Mở link để vào: https://memoura.app/pair?code={{code}} (hoặc nhập mã {{code}} trong app)',
+      },
+      errors: {
+        network: 'Mạng đang trục trặc. Em thử lại nhé.',
+      },
+    },
     intro: {
       next: 'Tiếp',
       finish: 'Vào đây nào',

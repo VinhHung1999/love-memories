@@ -56,13 +56,16 @@ export async function validateInvite(code: string) {
   return { valid: true, coupleName: couple.name, partnerName: partner?.name ?? '', partnerAvatar: partner?.avatar ?? null };
 }
 
-export async function createCouple(userId: string, name: string) {
+export async function createCouple(userId: string, name?: string) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
   if (!user) throw new AppError(404, 'User not found');
   if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
 
   const inviteCode = crypto.randomBytes(4).toString('hex');
-  const couple = await prisma.couple.create({ data: { name: name.trim(), inviteCode } });
+  const trimmedName = name?.trim();
+  const couple = await prisma.couple.create({
+    data: { name: trimmedName && trimmedName.length > 0 ? trimmedName : null, inviteCode },
+  });
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { coupleId: couple.id },

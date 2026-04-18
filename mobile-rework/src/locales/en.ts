@@ -137,6 +137,39 @@ const en: Resources = {
         network: 'Network hiccup. Try again in a bit.',
       },
     },
+    pairing: {
+      choice: {
+        title: 'Who\u2019s with you?',
+        subtitle: 'Memoura is just for two',
+        skip: 'Later',
+        create: {
+          title: 'Create an invite',
+          subtitle: 'Give them an 8-character code',
+          icon: '\u2726',
+        },
+        join: {
+          title: 'I have a code',
+          subtitle: 'Enter the code they sent you',
+          icon: '\u2192',
+        },
+        lockNote: 'Each person pairs with one other. No friends, no followers, no feed.',
+      },
+      invite: {
+        title: 'Your pair code',
+        subtitle: 'Send this to them',
+        codeLabel: 'your code',
+        shareCta: 'Share',
+        rotateCta: 'New code?',
+        rotating: 'Refreshing\u2026',
+        waitingTitle: 'Waiting for them\u2026',
+        waitingSubtitle: 'We\u2019ll move on once they join',
+        shareMessage:
+          'Come find me on Memoura \u2728 Open: https://memoura.app/pair?code={{code}} (or type code {{code}} in the app)',
+      },
+      errors: {
+        network: 'Network hiccup. Try again in a bit.',
+      },
+    },
     intro: {
       next: 'Next',
       finish: 'Let\u2019s go',

@@ -16,6 +16,11 @@ type Tokens = {
 
 type State = Tokens & {
   user: AuthUser | null;
+  // Sprint 60 T284: gates the (auth) → (tabs) transition. Set false on every
+  // setSession() (every fresh login/register starts a brand-new onboarding);
+  // T286 OnboardingDone sets true as the explicit commit. See
+  // docs/specs/sprint-60-pairing.md §"Auth gate — onboardingComplete flag".
+  onboardingComplete: boolean;
   hydrated: boolean;
 };
 
@@ -25,12 +30,15 @@ type Actions = {
   setAccessToken: (accessToken: string) => Promise<void>;
   setUser: (user: AuthUser | null) => void;
   setCoupleId: (coupleId: string | null) => void;
+  setOnboardingComplete: (value: boolean) => Promise<void>;
   clear: () => Promise<void>;
 };
 
 const STORAGE_KEY = '@memoura/auth/v1';
 
-async function persist(state: Pick<State, 'user' | 'accessToken' | 'refreshToken'>) {
+type Persisted = Pick<State, 'user' | 'accessToken' | 'refreshToken' | 'onboardingComplete'>;
+
+async function persist(state: Persisted) {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
@@ -42,6 +50,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
   user: null,
   accessToken: null,
   refreshToken: null,
+  onboardingComplete: false,
   hydrated: false,
 
   hydrate: async () => {
@@ -53,6 +62,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
           user: parsed.user ?? null,
           accessToken: parsed.accessToken ?? null,
           refreshToken: parsed.refreshToken ?? null,
+          onboardingComplete: parsed.onboardingComplete ?? false,
         });
       }
     } catch {
@@ -63,20 +73,20 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
   },
 
   setSession: async ({ user, accessToken, refreshToken }) => {
-    set({ user, accessToken, refreshToken });
-    await persist({ user, accessToken, refreshToken });
+    set({ user, accessToken, refreshToken, onboardingComplete: false });
+    await persist({ user, accessToken, refreshToken, onboardingComplete: false });
   },
 
   setAccessToken: async (accessToken) => {
     set({ accessToken });
-    const { user, refreshToken } = get();
-    await persist({ user, accessToken, refreshToken });
+    const { user, refreshToken, onboardingComplete } = get();
+    await persist({ user, accessToken, refreshToken, onboardingComplete });
   },
 
   setUser: (user) => {
     set({ user });
-    const { accessToken, refreshToken } = get();
-    void persist({ user, accessToken, refreshToken });
+    const { accessToken, refreshToken, onboardingComplete } = get();
+    void persist({ user, accessToken, refreshToken, onboardingComplete });
   },
 
   setCoupleId: (coupleId) => {
@@ -84,12 +94,18 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     if (!current) return;
     const next = { ...current, coupleId };
     set({ user: next });
-    const { accessToken, refreshToken } = get();
-    void persist({ user: next, accessToken, refreshToken });
+    const { accessToken, refreshToken, onboardingComplete } = get();
+    void persist({ user: next, accessToken, refreshToken, onboardingComplete });
+  },
+
+  setOnboardingComplete: async (value) => {
+    set({ onboardingComplete: value });
+    const { user, accessToken, refreshToken } = get();
+    await persist({ user, accessToken, refreshToken, onboardingComplete: value });
   },
 
   clear: async () => {
-    set({ user: null, accessToken: null, refreshToken: null });
+    set({ user: null, accessToken: null, refreshToken: null, onboardingComplete: false });
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
     } catch {
