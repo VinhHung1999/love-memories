@@ -131,10 +131,18 @@ function useAuthGate() {
 // because: (a) launch must stay offline-tolerant, (b) we only care once
 // authed, (c) if offline the user lingers on /(auth)/pair-create and the
 // next probe attempt fixes them when reconnected.
+//
+// Sprint 60 T285 guard: only probe while the user is on a PRE_AUTH_SCREEN
+// (welcome/login/signup/…). The intended trigger is "user just logged back
+// in after reinstall" — that path lands on /(auth)/login. The joiner path
+// (pair-join → setSession with new coupleId) ALSO satisfies the auth+coupleId
+// preconditions but is mid-wizard; without this guard we'd flip the flag and
+// yank them out of /(auth)/personalize before they finish T286.
 function useOnboardingResume() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const coupleId = useAuthStore((s) => s.user?.coupleId ?? null);
   const onboardingComplete = useAuthStore((s) => s.onboardingComplete);
+  const segments = useSegments();
   const probedRef = useRef(false);
 
   useEffect(() => {
@@ -142,6 +150,10 @@ function useOnboardingResume() {
       probedRef.current = false; // arm again if user signs out + back in
       return;
     }
+    const seg = segments as readonly string[];
+    const onPreAuth =
+      seg[0] === '(auth)' && typeof seg[1] === 'string' && PRE_AUTH_SCREENS.includes(seg[1]);
+    if (!onPreAuth) return;
     if (probedRef.current) return;
     probedRef.current = true;
     (async () => {
@@ -155,7 +167,7 @@ function useOnboardingResume() {
         // probedRef stays true so we don't hammer; next state change re-arms.
       }
     })();
-  }, [accessToken, coupleId, onboardingComplete]);
+  }, [accessToken, coupleId, onboardingComplete, segments]);
 }
 
 // Catches `memoura://pair?code=…` and `https://memoura.app/pair?code=…` whether
