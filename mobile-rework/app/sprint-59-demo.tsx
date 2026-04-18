@@ -46,7 +46,7 @@ export default function Sprint59Demo() {
         <View className="px-5 py-6">
           <Text className="font-displayMedium text-3xl text-ink">Sprint 59 — Smoke</Text>
           <Text className="font-body text-sm text-ink-soft mt-1">
-            {env.appVariant} · {env.apiUrl}
+            {env.isDev ? 'dev' : 'prod'} · {env.apiUrl}
           </Text>
         </View>
 

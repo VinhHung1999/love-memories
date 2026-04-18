@@ -1,31 +1,38 @@
 #!/usr/bin/env bash
 # build-testflight.sh — Archive, export & upload mobile-rework to TestFlight.
 #
-# Sprint 59 scope: dev flavor only (`com.hungphu.memoura.dev`, scheme MemouraDev).
-# Boss installs via TestFlight → smoke-tests theme/fonts/i18n/api-health.
+# Single-flavor: bundle ID `com.hungphu.memoura` — same App Store Connect app
+# as the old mobile/ track, but MARKETING_VERSION=2.0.0 (in app.config.ts) so
+# rework builds are distinguishable from the 1.0 (40) mobile/ history on
+# TestFlight. A dedicated dev flavor was scoped out for Sprint 59 to avoid
+# registering a new ASC app.
 #
 # Usage:
-#   ./build-testflight.sh                  # Archive + upload dev
+#   ./build-testflight.sh                  # Archive + upload
 #   ./build-testflight.sh --skip-upload    # Archive only, no upload
 #
-# ── Pre-flight (one-time / after prebuild) ───────────────────────────────────
+# ── Pre-flight (one-time) ───────────────────────────────────────────────────
 # 1. Xcode ▸ Settings ▸ Accounts — sign in with an Apple ID on team DHGY59PZWW.
 #    API key alone is NOT enough for exportArchive — xcodebuild needs an Xcode
 #    session with signing credentials cached locally. (memory: bugs_xcodebuild_export_login)
 # 2. Apple Developer → Distribution cert must be generated from an **RSA 2048**
 #    CSR. Elliptic-curve CSRs will fail upload with an opaque error.
 #    (memory: bugs_apple_csr_rsa2048)
-# 3. App Store Connect app with bundle ID `com.hungphu.memoura.dev` must exist.
+# 3. App Store Connect app with bundle ID `com.hungphu.memoura` exists (shared
+#    with old mobile/).
 # 4. DEVELOPMENT_TEAM is injected into xcodebuild below, so you do NOT need to
 #    touch Xcode's Signing & Capabilities tab. `-allowProvisioningUpdates` asks
 #    Apple for the provisioning profile at build time.
 #
 # ── After `expo prebuild --clean` ────────────────────────────────────────────
 # `prebuild --clean` nukes ios/ and regenerates from app.config.ts. After that:
-#   • Reinstall pods: `cd ios && pod install`.
-#   • This script + ExportOptions.plist survive (prebuild only touches files it
-#     owns). Signing is re-injected each build via DEVELOPMENT_TEAM below, so
-#     there's no Xcode GUI step to redo.
+#   • `cd ios && pod install` (CocoaPods runs automatically after prebuild, but
+#     re-run if you edit Podfile).
+#   • `git checkout HEAD -- mobile-rework/ios/build-testflight.sh
+#     mobile-rework/ios/ExportOptions.plist` — prebuild removes the whole ios/
+#     dir, so these two files need restoring from the last commit.
+#   • Signing is re-injected each build via DEVELOPMENT_TEAM below — no Xcode
+#     GUI setup to redo.
 #
 # ── Rate-limit warning ───────────────────────────────────────────────────────
 # App Store Connect caps ~10 uploads/day per bundle ID. Batch fixes before
@@ -35,12 +42,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SCHEME="MemouraDev"
+SCHEME="Memoura"
 CONFIG="Release"
-WORKSPACE="MemouraDev.xcworkspace"
+WORKSPACE="Memoura.xcworkspace"
 BUILD_DIR="./build"
-ARCHIVE_PATH="$BUILD_DIR/MemouraDev.xcarchive"
-EXPORT_PATH="$BUILD_DIR/export-dev"
+ARCHIVE_PATH="$BUILD_DIR/Memoura.xcarchive"
+EXPORT_PATH="$BUILD_DIR/export"
 EXPORT_PLIST="./ExportOptions.plist"
 TEAM_ID="DHGY59PZWW"
 
@@ -103,7 +110,7 @@ set -e
 echo ""
 echo "════════════════════════════════════════"
 if [[ $EXIT -eq 0 ]]; then
-  echo "  ✅ Memoura Dev build $NEW_BUILD uploaded to TestFlight"
+  echo "  ✅ Memoura build $NEW_BUILD uploaded to TestFlight"
   echo "  Processing takes ~5–15 min before it appears in TestFlight."
 else
   echo "  ❌ Upload failed (exit $EXIT)"

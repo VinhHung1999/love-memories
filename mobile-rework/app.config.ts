@@ -1,17 +1,17 @@
 import type { ExpoConfig } from 'expo/config';
 
-// APP_VARIANT controls bundle IDs + display name so dev and prod builds
-// can live side-by-side on one device.
-const IS_DEV = process.env.APP_VARIANT === 'development';
-
-const bundleId = IS_DEV ? 'com.hungphu.memoura.dev' : 'com.hungphu.memoura';
-const name = IS_DEV ? 'Memoura Dev' : 'Memoura';
-const scheme = IS_DEV ? 'memoura-dev' : 'memoura';
+// Single flavor — bundle ID matches mobile/ so smoke builds upload as a new
+// build of the existing App Store Connect app `com.hungphu.memoura`.
+// Version bumped to 2.0.0 so Boss can distinguish the rework (2.0.0 build 1)
+// from the old mobile/ track (1.0 build 40 at time of fork).
+const bundleId = 'com.hungphu.memoura';
+const name = 'Memoura';
+const scheme = 'memoura';
 
 const config: ExpoConfig = {
   name,
   slug: 'memoura',
-  version: '1.0.0',
+  version: '2.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme,
@@ -56,7 +56,6 @@ const config: ExpoConfig = {
     typedRoutes: true,
   },
   extra: {
-    appVariant: process.env.APP_VARIANT ?? 'production',
     apiUrl: process.env.EXPO_PUBLIC_API_URL,
     appBaseUrl: process.env.EXPO_PUBLIC_APP_BASE_URL,
     eas: {
