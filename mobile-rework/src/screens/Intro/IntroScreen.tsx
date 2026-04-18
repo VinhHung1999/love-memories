@@ -268,7 +268,7 @@ function DailyVisual() {
     <View className="relative w-full h-full">
       <View className="absolute left-1/2 -ml-[135px] top-[24px] w-[270px] rounded-[22px] border border-line shadow-lg overflow-hidden -rotate-[2deg]">
         <LinearGradient
-          colors={[c.accentSoft, '#FFFFFF']}
+          colors={[c.accentSoft, c.bg]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="absolute inset-0"

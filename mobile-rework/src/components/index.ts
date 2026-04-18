@@ -1,6 +1,9 @@
+export { AuthBigBtn } from './AuthBigBtn';
+export { AuthField } from './AuthField';
 export { Avatar } from './Avatar';
 export { Button } from './Button';
 export { Card } from './Card';
+export { DividerWith } from './DividerWith';
 export { LinearGradient } from './Gradient';
 export { Input } from './Input';
 export { SafeScreen } from './SafeScreen';
