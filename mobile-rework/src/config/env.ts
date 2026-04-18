@@ -11,7 +11,7 @@ export const env = {
   apiUrl:
     process.env.EXPO_PUBLIC_API_URL ??
     extra.apiUrl ??
-    'https://love-scrum-api.hungphu.work',
+    'https://api.memoura.app',
   appBaseUrl:
     process.env.EXPO_PUBLIC_APP_BASE_URL ??
     extra.appBaseUrl ??
