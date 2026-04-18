@@ -9,7 +9,9 @@ export const PASSWORD_MIN = 6;
 // Sprint-6 spec §T282 #4: Submit fires /auth/register immediately. JWT is
 // required by /couple/generate-invite + /couple/joinCouple in T284/T285, so
 // register must happen before any pair step. Pair-create is the first screen
-// after success — useAuthGate routes there because the new user has no coupleId.
+// after success — useAuthGate routes there because the new user has
+// onboardingComplete=false (default for fresh accounts) and is still on the
+// pre-auth /(auth)/signup segment.
 
 export const signupSchema = z
   .object({
@@ -126,7 +128,8 @@ export function useSignUpViewModel() {
         },
       });
       // useAuthGate in app/_layout.tsx routes to /(auth)/pair-create because
-      // the brand-new user has no coupleId yet.
+      // the brand-new user has onboardingComplete=false (gate's PRE_AUTH_SCREENS
+      // branch fires once accessToken flips on the /(auth)/signup segment).
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) setFormError({ kind: 'emailTaken' });

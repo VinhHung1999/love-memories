@@ -75,6 +75,19 @@ function RootStack() {
 // During onboarding the user transiently has coupleId=set but pairing isn't
 // done; routing to (tabs) on coupleId would break the resume path. T286
 // OnboardingDone is the explicit commit that flips onboardingComplete=true.
+//
+// PRE_AUTH_SCREENS = the (auth) screens shown BEFORE the user has a session.
+// The remaining (auth) screens (pair-create / pair-invite / pair-join /
+// personalize / permissions / onboarding-done) are pairing/onboarding steps,
+// so we must NOT yank an authed user off them — they need to walk the wizard.
+const PRE_AUTH_SCREENS: readonly string[] = [
+  'welcome',
+  'intro',
+  'signup',
+  'login',
+  'forgot-password',
+];
+
 function useAuthGate() {
   const router = useRouter();
   const segments = useSegments();
@@ -82,13 +95,24 @@ function useAuthGate() {
   const onboardingComplete = useAuthStore((s) => s.onboardingComplete);
 
   useEffect(() => {
-    const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
+    // expo-router types segments as a narrow tuple inferred from the app
+    // tree, so segments[1] trips TS even though it exists at runtime.
+    const seg = segments as readonly string[];
+    const inAuthGroup = seg[0] === '(auth)';
+    const inTabsGroup = seg[0] === '(tabs)';
     const authed = !!accessToken;
+    const screen = seg[1];
+    const onPreAuthScreen =
+      inAuthGroup && typeof screen === 'string' && PRE_AUTH_SCREENS.includes(screen);
 
     if (!authed && !inAuthGroup) {
       router.replace('/(auth)/welcome');
     } else if (authed && !onboardingComplete && inTabsGroup) {
+      router.replace('/(auth)/pair-create');
+    } else if (authed && !onboardingComplete && onPreAuthScreen) {
+      // Just signed in / signed up while still on a pre-auth screen — push
+      // them into the pairing wizard. Without this the user is stuck on
+      // signup/login after setSession because no other branch fires.
       router.replace('/(auth)/pair-create');
     } else if (authed && onboardingComplete && inAuthGroup) {
       router.replace('/(tabs)');

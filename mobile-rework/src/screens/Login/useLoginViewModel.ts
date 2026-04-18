@@ -80,7 +80,10 @@ export function useLoginViewModel() {
         },
       });
       // useAuthGate in app/_layout.tsx routes to (tabs) or (auth)/pair-create
-      // based on coupleId — no manual navigation needed.
+      // based on onboardingComplete — no manual navigation needed.
+      // Returning users with coupleId=set but onboardingComplete=false (e.g.
+      // reinstall) land on pair-create first, then useOnboardingResume probes
+      // /api/couple and flips the flag → gate re-runs → (tabs).
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) setFormError({ kind: 'invalidCredentials' });
