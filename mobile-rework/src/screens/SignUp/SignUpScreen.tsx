@@ -16,16 +16,29 @@ export function SignUpScreen() {
     name,
     email,
     password,
+    confirmPassword,
     showPassword,
+    showConfirmPassword,
     errors,
+    formError,
+    submitting,
     canSubmit,
     setName,
     setEmail,
     setPassword,
+    setConfirmPassword,
     onToggleShow,
+    onToggleShowConfirm,
     onSubmit,
     onSwitchLogin,
   } = useSignUpViewModel();
+  const formErrorText = formError
+    ? formError.kind === 'emailTaken'
+      ? t('onboarding.auth.errors.emailTaken')
+      : formError.kind === 'rateLimited'
+        ? t('onboarding.auth.errors.rateLimited')
+        : t('onboarding.auth.errors.network')
+    : null;
 
   return (
     <View className="flex-1 bg-bg">
@@ -100,8 +113,7 @@ export function SignUpScreen() {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoComplete="password-new"
-                returnKeyType="done"
-                onSubmitEditing={onSubmit}
+                returnKeyType="next"
                 error={
                   errors.password
                     ? t('onboarding.auth.errors.passwordTooShort', { min: PASSWORD_MIN })
@@ -122,14 +134,52 @@ export function SignUpScreen() {
                 }
               />
 
+              <AuthField
+                label={t('onboarding.auth.signup.confirmPasswordLabel')}
+                placeholder={t('onboarding.auth.signup.confirmPasswordPlaceholder')}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                icon="⌂"
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                autoComplete="password-new"
+                returnKeyType="done"
+                onSubmitEditing={onSubmit}
+                error={
+                  errors.confirmPassword
+                    ? t('onboarding.auth.errors.passwordMismatch')
+                    : undefined
+                }
+                trailing={
+                  <Pressable
+                    onPress={onToggleShowConfirm}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                  >
+                    <Text className="font-bodySemibold text-ink-soft text-xs">
+                      {showConfirmPassword
+                        ? t('onboarding.auth.signup.hide')
+                        : t('onboarding.auth.signup.show')}
+                    </Text>
+                  </Pressable>
+                }
+              />
+
               <Text className="mt-1.5 font-body text-ink-mute text-xs leading-[18px]">
                 {t('onboarding.auth.signup.terms')}
               </Text>
+
+              {formErrorText ? (
+                <Text className="mt-3 font-body text-primary-deep text-[13px] text-center">
+                  {formErrorText}
+                </Text>
+              ) : null}
 
               <View className="mt-6">
                 <AuthBigBtn
                   label={t('onboarding.auth.signup.cta')}
                   disabled={!canSubmit}
+                  loading={submitting}
                   onPress={onSubmit}
                 />
               </View>

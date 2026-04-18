@@ -131,9 +131,10 @@ Each ViewModel:
 - Submits via `apiClient.post` (refresh interceptor + status-before-json safety).
 - Maps BE 400/409/429 responses to friendly Vietnamese error copy.
 - On success:
-  - **SignUp** — defers the `register` API per the existing onboarding rule; this
-    sprint's screen captures `{name, email, password}` then routes to
-    `(auth)/personalize` carrying the draft (final API call lives in T285 finish step).
+  - **SignUp** — calls `/auth/register` directly, stores tokens via
+    `useAuthStore.setSession`. `useAuthGate` then routes the brand-new user to
+    `(auth)/pair-create` because they have no `coupleId` yet. (See §Flow below
+    for why register fires here, not at a later step.)
   - **Login** — calls `/auth/login`, stores tokens in `useAuthStore`, navigates to
     `(tabs)/index` (or `(auth)/pair-create` if the user has no `coupleId`).
   - **ForgotPassword** — calls `/auth/forgot-password`, swaps to the "It's on its
@@ -159,3 +160,81 @@ interpolation for any field-validation messages that include limits
 - Deep-link entry into reset-password (T285) — for now the email link points at the
   web PWA's existing reset surface; mobile-only reset can be added once the
   universal-link plumbing lands.
+
+---
+
+## Flow
+
+End-to-end onboarding sequence for the rework app. **The `/auth/register` call
+fires at SignUp submit** — every step after sign-up is JWT-authenticated.
+
+```
+Welcome → Intro → SignUp ──/auth/register──▶ PairChoice
+                                              │
+                              ┌───────────────┼───────────────┐
+                              ▼               ▼               ▼
+                          PairCreate       PairJoin       (Skip "Để sau")
+                       /couple/generate-   /couple/join-          │
+                          invite             Couple                │
+                              │               │                    │
+                              └───────┬───────┘                    │
+                                      ▼                            │
+                                Personalize ◀──────────────────────┘
+                                      │
+                                      ▼
+                                Permissions
+                                      │
+                                      ▼
+                                OnboardingDone → (tabs)/index
+```
+
+### Why register fires at SignUp submit (not later)
+
+Three constraints force the call to happen here:
+
+1. **Pair endpoints need JWT.** Both `POST /api/couple/generate-invite` (T284)
+   and `POST /api/couple/joinCouple` (T285) are behind `requireAuth`. The user
+   must hold an access token before either screen can do anything useful.
+2. **Sprint-6 spec §T282 #4** explicitly stated: "Submit → POST /auth/register
+   via apiClient.post — on success store token + user, navigate /(auth)/pair-
+   create." The first version of this spec said otherwise; that was wrong.
+3. **The "onboarding-API-timing" memory rule does not apply** to this flow.
+   That rule was written for the legacy web onboarding wizard which collected
+   personalize fields before the user had even chosen an email. Here, by the
+   time SignUp submits, name + email + password are all valid — there is no
+   information left to defer.
+
+### Task ownership of the auth-commit moment
+
+| Task | Owns                                                   |
+| ---- | ------------------------------------------------------ |
+| **T282** (this) | The `/auth/register` call itself. SignUp's submit handler is the auth-commit moment. |
+| T284 | PairCreate UI + `/couple/generate-invite` + the "Để sau" skip exit. Inherits JWT from T282. |
+| T285 | PairJoin UI (6-digit OTP + scan QR) + `/couple/joinCouple`. Inherits JWT from T282. |
+| T286 | Personalize + Permissions + OnboardingDone — pure UX/settings, no auth-commit. |
+
+There is no separate "Finish" task that owns a deferred register call. The
+register call is owned by T282 and complete before the user reaches PairChoice.
+
+### Why no in-memory `signupDraftStore`
+
+The earlier WIP version staged `{name, email, password}` in a Zustand store so
+a later step could call `/auth/register`. That store has been removed — once
+register fires at submit, there is nothing to stage. Personalize works against
+the already-authed user via `PATCH /api/profile` (or equivalent) when wired
+up in T286.
+
+### Confirm-password field
+
+The signup form includes a 4-th field `confirmPassword`. Validation rule:
+
+```ts
+signupSchema.refine((d) => d.password === d.confirmPassword, {
+  path: ['confirmPassword'],
+  message: 'passwordMismatch',
+})
+```
+
+Reason: the password input uses `secureTextEntry` + `autoComplete="password-new"`,
+so the user has zero visibility into typos until the next time they log in. A
+mismatched-pair check at submit prevents the lockout.

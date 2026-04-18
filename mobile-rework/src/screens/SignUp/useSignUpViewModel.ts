@@ -1,67 +1,144 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { z } from 'zod';
-import { useSignupDraftStore } from '@/stores/signupDraftStore';
+import { ApiError, apiClient } from '@/lib/apiClient';
+import { useAuthStore } from '@/stores/authStore';
 
 export const PASSWORD_MIN = 6;
 
-// Onboarding-API-timing rule: no /auth/register here. Stage credentials and
-// let T285's Finish step actually call the backend.
-export const signupSchema = z.object({
-  name: z.string().trim().min(1),
-  email: z.string().trim().email(),
-  password: z.string().min(PASSWORD_MIN),
-});
+// Sprint-6 spec §T282 #4: Submit fires /auth/register immediately. JWT is
+// required by /couple/generate-invite + /couple/joinCouple in T284/T285, so
+// register must happen before any pair step. Pair-create is the first screen
+// after success — useAuthGate routes there because the new user has no coupleId.
+
+export const signupSchema = z
+  .object({
+    name: z.string().trim().min(1),
+    email: z.string().trim().email(),
+    password: z.string().min(PASSWORD_MIN),
+    confirmPassword: z.string().min(1),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'passwordMismatch',
+  });
 
 export type SignupFieldErrors = {
   name?: string;
   email?: string;
   password?: string;
+  confirmPassword?: string;
 };
 
-type ErrorKey = 'nameRequired' | 'emailInvalid' | 'passwordTooShort';
+type FormError =
+  | { kind: 'emailTaken' }
+  | { kind: 'rateLimited' }
+  | { kind: 'network' };
 
-function fieldErrorKey(path: string[]): ErrorKey | null {
+type AuthResponse = {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string | null;
+    name: string | null;
+    avatar: string | null;
+    coupleId: string | null;
+  };
+};
+
+function fieldErrorKey(path: PropertyKey[]): keyof SignupFieldErrors | null {
   const f = path[0];
-  if (f === 'name') return 'nameRequired';
-  if (f === 'email') return 'emailInvalid';
-  if (f === 'password') return 'passwordTooShort';
+  if (f === 'name') return 'name';
+  if (f === 'email') return 'email';
+  if (f === 'password') return 'password';
+  if (f === 'confirmPassword') return 'confirmPassword';
   return null;
 }
 
 export function useSignUpViewModel() {
   const router = useRouter();
-  const setDraft = useSignupDraftStore((s) => s.setDraft);
+  const setSession = useAuthStore((s) => s.setSession);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<SignupFieldErrors>({});
+  const [formError, setFormError] = useState<FormError | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const canSubmit =
-    name.trim().length > 0 && email.includes('@') && password.length >= PASSWORD_MIN;
+    name.trim().length > 0 &&
+    email.includes('@') &&
+    password.length >= PASSWORD_MIN &&
+    confirmPassword.length > 0 &&
+    !submitting;
 
   const onToggleShow = useCallback(() => setShowPassword((s) => !s), []);
+  const onToggleShowConfirm = useCallback(() => setShowConfirmPassword((s) => !s), []);
 
-  const onSubmit = useCallback(() => {
-    const parsed = signupSchema.safeParse({ name, email, password });
+  const onSubmit = useCallback(async () => {
+    const parsed = signupSchema.safeParse({ name, email, password, confirmPassword });
     if (!parsed.success) {
       const next: SignupFieldErrors = {};
       for (const issue of parsed.error.issues) {
-        const key = fieldErrorKey(issue.path.map(String));
+        const key = fieldErrorKey(issue.path);
         if (!key) continue;
-        if (key === 'nameRequired' && !next.name) next.name = 'nameRequired';
-        if (key === 'emailInvalid' && !next.email) next.email = 'emailInvalid';
-        if (key === 'passwordTooShort' && !next.password) next.password = 'passwordTooShort';
+        if (key === 'confirmPassword') {
+          if (!next.confirmPassword) next.confirmPassword = 'passwordMismatch';
+        } else if (key === 'name' && !next.name) {
+          next.name = 'nameRequired';
+        } else if (key === 'email' && !next.email) {
+          next.email = 'emailInvalid';
+        } else if (key === 'password' && !next.password) {
+          next.password = 'passwordTooShort';
+        }
       }
       setErrors(next);
+      setFormError(null);
       return;
     }
     setErrors({});
-    setDraft({ name: parsed.data.name, email: parsed.data.email, password: parsed.data.password });
-    router.push('/(auth)/personalize');
-  }, [name, email, password, setDraft, router]);
+    setFormError(null);
+    setSubmitting(true);
+    try {
+      const res = await apiClient.post<AuthResponse>(
+        '/api/auth/register',
+        {
+          name: parsed.data.name,
+          email: parsed.data.email,
+          password: parsed.data.password,
+        },
+        { skipAuth: true },
+      );
+      await setSession({
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken,
+        user: {
+          id: res.user.id,
+          email: res.user.email,
+          name: res.user.name,
+          avatarUrl: res.user.avatar,
+          coupleId: res.user.coupleId,
+        },
+      });
+      // useAuthGate in app/_layout.tsx routes to /(auth)/pair-create because
+      // the brand-new user has no coupleId yet.
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 409) setFormError({ kind: 'emailTaken' });
+        else if (err.status === 429) setFormError({ kind: 'rateLimited' });
+        else setFormError({ kind: 'network' });
+      } else {
+        setFormError({ kind: 'network' });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [name, email, password, confirmPassword, setSession]);
 
   const onSwitchLogin = useCallback(() => {
     router.replace('/(auth)/login');
@@ -71,13 +148,19 @@ export function useSignUpViewModel() {
     name,
     email,
     password,
+    confirmPassword,
     showPassword,
+    showConfirmPassword,
     errors,
+    formError,
+    submitting,
     canSubmit,
     setName,
     setEmail,
     setPassword,
+    setConfirmPassword,
     onToggleShow,
+    onToggleShowConfirm,
     onSubmit,
     onSwitchLogin,
   };
