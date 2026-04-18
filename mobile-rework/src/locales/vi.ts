@@ -1,0 +1,95 @@
+// Ported from docs/design/prototype/memoura-v2/tokens.jsx COPY.vi.
+// Double-brace interpolation per react-i18next convention: {{name}}.
+
+const vi = {
+  common: {
+    cancel: 'Huỷ',
+    save: 'Lưu',
+    done: 'Xong',
+    back: 'Quay lại',
+    continue: 'Tiếp tục',
+    skip: 'Bỏ qua',
+    loading: 'Đang tải…',
+  },
+  tabs: {
+    home: 'Nhà',
+    moments: 'Khoảnh khắc',
+    letters: 'Thư',
+    profile: 'Mình',
+  },
+  home: {
+    greeting: 'Chào {{name}},',
+    greetingTime: 'sáng nay trời đẹp ghê',
+    timerLabel: 'Chúng mình đã bên nhau',
+    units: {
+      y: 'năm',
+      m: 'tháng',
+      d: 'ngày',
+      h: 'giờ',
+      min: 'phút',
+      s: 'giây',
+    },
+    dailyQTitle: 'Hỏi nhau hôm nay',
+    dailyQ: 'Nếu được tặng nhau một buổi chiều bất kỳ, em muốn mình làm gì cùng nhau?',
+    dailyQCta: 'Trả lời',
+    dailyQPartnerPending: '{{partner}} đã trả lời · chạm để mở khoá',
+    dailyQStreak: 'Chuỗi {{days}} ngày',
+    latestFrom: '{{partner}} vừa thêm một khoảnh khắc',
+    latestAgo: '{{n}} giờ trước',
+    recapTitle: 'Tháng {{month}} của mình',
+    recapSub: '{{moments}} khoảnh khắc · {{letters}} lá thư · {{trips}} chuyến đi',
+    recapCta: 'Xem lại',
+    modulesTitle: 'Cùng nhau',
+    modules: {
+      moments: 'Khoảnh khắc',
+      letters: 'Thư tình',
+      dailyQ: 'Hỏi nhau',
+      recap: 'Nhìn lại',
+    },
+    quickAdd: 'Ghi lại ngay',
+  },
+  compose: {
+    title: 'Tạo mới',
+    moment: 'Khoảnh khắc',
+    letter: 'Viết thư',
+    booth: 'Photo Booth',
+  },
+  auth: {
+    welcomeTitle: 'Chào mừng đến Memoura',
+    welcomeSub: 'Nơi giữ lại những điều bé nhỏ của hai đứa.',
+    signIn: 'Đăng nhập',
+    signUp: 'Tạo tài khoản',
+    continueWithApple: 'Tiếp tục với Apple',
+    continueWithGoogle: 'Tiếp tục với Google',
+    email: 'Email',
+    password: 'Mật khẩu',
+    forgot: 'Quên mật khẩu?',
+  },
+  pairing: {
+    title: 'Ghép đôi',
+    yourCode: 'Mã của bạn',
+    enterPartnerCode: 'Nhập mã của đối phương',
+    share: 'Chia sẻ mã',
+    paired: 'Đã ghép đôi với {{partner}}',
+  },
+  profile: {
+    title: 'Mình',
+    theme: 'Giao diện',
+    palette: 'Bảng màu',
+    mode: 'Chế độ',
+    typeSystem: 'Kiểu chữ',
+    density: 'Mật độ',
+    language: 'Ngôn ngữ',
+    signOut: 'Đăng xuất',
+  },
+  settings: {
+    palette: { brand: 'Nhãn hiệu', evolve: 'Evolve' },
+    mode: { system: 'Hệ thống', light: 'Sáng', dark: 'Tối' },
+    type: { sans: 'Sans', serif: 'Sans + Serif', script: 'Sans + Script' },
+    density: { airy: 'Thoáng', compact: 'Gọn' },
+    language: { vi: 'Tiếng Việt', en: 'English' },
+  },
+};
+
+export default vi;
+export type Resources = typeof vi;
