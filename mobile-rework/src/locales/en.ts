@@ -64,6 +64,48 @@ const en: Resources = {
     password: 'Password',
     forgot: 'Forgot password?',
   },
+  onboarding: {
+    welcome: {
+      accent: 'welcome',
+      title: 'Memoura',
+      body: 'A little place for the two of you — for moments, letters, and the small questions of every day.',
+      ctaPrimary: 'Start our little story',
+      ctaSecondary: 'I already have an account',
+      polaroidLabels: {
+        one: 'Đà Lạt · Feb 12',
+        two: 'Morning café',
+        three: 'Anniversary',
+      },
+    },
+    intro: {
+      next: 'Next',
+      finish: 'Let\u2019s go',
+      slides: {
+        moments: {
+          accent: 'small moments',
+          title: 'Keep every\nlittle day',
+          body: 'Every photo, every note — collected in a shared little book. No one else can see.',
+          sticker: 'forever & always',
+        },
+        letters: {
+          accent: 'handwritten notes',
+          title: 'Write letters\nto each other',
+          body: 'When words feel hard, try writing. Scheduled letters, private notes, anniversary reminders.',
+          letterSalutation: 'Dear Minh,',
+          letterSignoff: '— yours, L',
+        },
+        daily: {
+          accent: 'one question a day',
+          title: 'Know each other\na little more',
+          body: 'A small question every morning. You both answer, then read together. No pressure.',
+          today: 'Today',
+          question: 'Your sweetest dream?',
+          placeholder: 'You answer…',
+          streak: '12-day streak',
+        },
+      },
+    },
+  },
   pairing: {
     title: 'Pair up',
     yourCode: 'Your code',

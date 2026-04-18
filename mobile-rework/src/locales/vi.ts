@@ -65,6 +65,48 @@ const vi = {
     password: 'Mật khẩu',
     forgot: 'Quên mật khẩu?',
   },
+  onboarding: {
+    welcome: {
+      accent: 'chào mừng em',
+      title: 'Memoura',
+      body: 'Nơi hai đứa giữ lại khoảnh khắc, thư tay và những câu hỏi nhỏ của mỗi ngày.',
+      ctaPrimary: 'Bắt đầu câu chuyện của mình',
+      ctaSecondary: 'Tôi đã có tài khoản',
+      polaroidLabels: {
+        one: 'Đà Lạt · 12.02',
+        two: 'Cà phê sáng',
+        three: 'Anniversary',
+      },
+    },
+    intro: {
+      next: 'Tiếp',
+      finish: 'Vào đây nào',
+      slides: {
+        moments: {
+          accent: 'khoảnh khắc nhỏ',
+          title: 'Giữ lại\nnhững ngày bên nhau',
+          body: 'Mỗi tấm ảnh, mỗi dòng chữ — gom thành cuốn sổ chung của hai đứa. Không ai khác thấy được.',
+          sticker: 'mãi mãi',
+        },
+        letters: {
+          accent: 'thư viết tay',
+          title: 'Viết thư\ncho nhau nghe',
+          body: 'Khi không biết nói gì, thử viết. Thư hẹn gửi, thư riêng tư, thư cho ngày kỷ niệm.',
+          letterSalutation: 'Gửi Minh,',
+          letterSignoff: '— của em',
+        },
+        daily: {
+          accent: 'mỗi ngày một câu',
+          title: 'Biết nhau hơn\ntừng ngày một',
+          body: 'Một câu hỏi nhỏ mỗi sáng. Cả hai cùng trả lời, rồi cùng đọc. Không deadline, không bắt buộc.',
+          today: 'Hôm nay',
+          question: 'Giấc mơ đẹp nhất của em?',
+          placeholder: 'Em trả lời…',
+          streak: 'Chuỗi 12 ngày',
+        },
+      },
+    },
+  },
   pairing: {
     title: 'Ghép đôi',
     yourCode: 'Mã của bạn',
