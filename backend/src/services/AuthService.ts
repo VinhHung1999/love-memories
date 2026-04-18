@@ -1,4 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
+import appleSignin from 'apple-signin-auth';
 import prisma from '../utils/prisma';
 import {
   hashPassword,
@@ -9,20 +10,34 @@ import {
 import { deleteFromCdn } from '../utils/cdn';
 import { AppError } from '../types/errors';
 
-// Accept comma-separated list of allowed Google Client IDs (supports multiple during domain migration)
-const GOOGLE_ALLOWED_CLIENT_IDS = (process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '')
-  .split(',')
-  .map((id) => id.trim())
-  .filter(Boolean);
+// Build audience list from named platform vars + legacy comma-sep list
+// Token aud differs by platform: iOS=iosClientId, Android=webClientId, Web=webClientId
+const GOOGLE_ALLOWED_CLIENT_IDS = [
+  ...(process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || '').split(',').map((id) => id.trim()),
+  process.env.GOOGLE_IOS_CLIENT_ID || '',
+  process.env.GOOGLE_ANDROID_CLIENT_ID || '',
+].filter((id, i, arr) => Boolean(id) && arr.indexOf(id) === i); // unique non-empty
 const googleClient = new OAuth2Client(GOOGLE_ALLOWED_CLIENT_IDS[0]);
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+
+// Apple: comma-separated bundle IDs (prod + dev), used as audience
+const APPLE_CLIENT_IDS = (process.env.APPLE_CLIENT_IDS || process.env.APPLE_CLIENT_ID || 'com.hungphu.memoura')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
 
 export interface GoogleProfile {
   googleId: string;
   email: string;
   name: string;
   picture: string;
+}
+
+export interface AppleProfile {
+  appleId: string;
+  email: string | null; // null on subsequent logins — Apple only sends on first sign-in
+  name: string | null;
 }
 
 type UserAuthShape = {
@@ -62,6 +77,7 @@ export function buildAuthResponse(
 
 export async function verifyGoogleToken(idToken: string): Promise<GoogleProfile> {
   try {
+    console.log('[google-auth] Allowed client IDs:', GOOGLE_ALLOWED_CLIENT_IDS);
     const ticket = await googleClient.verifyIdToken({
       idToken,
       audience: GOOGLE_ALLOWED_CLIENT_IDS,
@@ -74,7 +90,8 @@ export async function verifyGoogleToken(idToken: string): Promise<GoogleProfile>
       name: payload.name || payload.email,
       picture: payload.picture || '',
     };
-  } catch {
+  } catch (err) {
+    console.error('[google-auth] verifyIdToken FAILED:', (err as Error).message);
     throw new Error('Invalid Google token');
   }
 }
@@ -309,6 +326,106 @@ export async function deleteAccount(userId: string, coupleId: string, password: 
   console.log(
     `[AccountDeletion] userId=${userId} coupleId=${coupleId} isLastMember=${isLastMember} timestamp=${new Date().toISOString()}`,
   );
+}
+
+// B3: verify Apple identity token (signed by Apple's public keys)
+export async function verifyAppleToken(idToken: string): Promise<AppleProfile> {
+  try {
+    console.log('[apple-auth] Verifying token. Allowed audiences:', APPLE_CLIENT_IDS);
+    const payload = await appleSignin.verifyIdToken(idToken, {
+      audience: APPLE_CLIENT_IDS,
+      ignoreExpiration: false,
+    });
+    if (!payload.sub) throw new Error('Invalid Apple token: missing sub');
+    return {
+      appleId: payload.sub,
+      email: payload.email ?? null,
+      name: null, // Apple does not include name in JWT — mobile passes nameHint separately
+    };
+  } catch (err) {
+    console.error('[apple-auth] verifyIdToken FAILED:', (err as Error).message);
+    throw new Error('Invalid Apple token');
+  }
+}
+
+// B4a: apple sign-in — find existing user or return needsCouple
+export async function appleAuth(
+  idToken: string,
+  nameHint?: string,
+): Promise<{ needsCouple: true; appleProfile: AppleProfile } | ReturnType<typeof buildAuthResponse>> {
+  const profile = await verifyAppleToken(idToken);
+
+  let user = await prisma.user.findUnique({ where: { appleId: profile.appleId } });
+
+  // Email-link fallback: if email provided and matches existing account, link appleId
+  if (!user && profile.email) {
+    const byEmail = await prisma.user.findUnique({ where: { email: profile.email } });
+    if (byEmail) {
+      user = await prisma.user.update({
+        where: { id: byEmail.id },
+        data: {
+          appleId: profile.appleId,
+          // Update name only if not set and nameHint provided
+          ...(nameHint && !byEmail.name ? { name: nameHint } : {}),
+        },
+      });
+    }
+  }
+
+  if (!user) {
+    return { needsCouple: true, appleProfile: { ...profile, name: nameHint ?? null } };
+  }
+
+  const accessToken = generateAccessToken(user.id, user.coupleId);
+  const refreshToken = await createRefreshToken(user.id);
+  return buildAuthResponse(user, accessToken, refreshToken);
+}
+
+// B4b: apple complete — onboarding completion (new user, couple setup)
+export async function appleComplete(
+  idToken: string,
+  inviteCode?: string,
+  coupleName?: string,
+  nameHint?: string,
+): Promise<ReturnType<typeof buildAuthResponse>> {
+  const profile = await verifyAppleToken(idToken);
+
+  const existing = await prisma.user.findFirst({
+    where: { OR: [{ appleId: profile.appleId }, ...(profile.email ? [{ email: profile.email }] : [])] },
+  });
+  if (existing) {
+    throw new AppError(409, 'Account already exists. Please use the Apple login button.');
+  }
+
+  let coupleId: string | null = null;
+  if (inviteCode) {
+    const couple = await prisma.couple.findUnique({ where: { inviteCode } });
+    if (!couple) throw new AppError(400, 'Invalid invite code');
+    const count = await prisma.user.count({ where: { coupleId: couple.id } });
+    if (count >= 2) throw new AppError(400, 'This couple already has 2 members');
+    coupleId = couple.id;
+  } else if (coupleName) {
+    const couple = await prisma.couple.create({ data: { name: coupleName.trim() } });
+    coupleId = couple.id;
+  }
+
+  const userName = nameHint || profile.email?.split('@')[0] || 'Apple User';
+  const userEmail = profile.email ?? `${profile.appleId}@privaterelay.appleid.com`;
+
+  const user = await prisma.user.create({
+    data: {
+      email: userEmail,
+      name: userName,
+      avatar: null,
+      appleId: profile.appleId,
+      password: null,
+      coupleId,
+    },
+  });
+
+  const accessToken = generateAccessToken(user.id, user.coupleId);
+  const refreshToken = await createRefreshToken(user.id);
+  return buildAuthResponse(user, accessToken, refreshToken);
 }
 
 export async function googleLink(userId: string, idToken: string) {

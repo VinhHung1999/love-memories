@@ -233,6 +233,36 @@ export const authApi = {
     return data;
   },
 
+  appleLogin: async (
+    idToken: string,
+    nameHint?: string,
+  ): Promise<AuthResponse & { needsCouple?: boolean; appleProfile?: import('../types').AppleProfile }> => {
+    const res = await fetch(`${API_BASE}/api/auth/apple`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, ...(nameHint ? { name: nameHint } : {}) }),
+    });
+    await throwIfRateLimited(res);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Apple login failed');
+    return data;
+  },
+
+  appleComplete: async (
+    idToken: string,
+    opts: { inviteCode?: string; coupleName?: string; name?: string },
+  ): Promise<AuthResponse> => {
+    const res = await fetch(`${API_BASE}/api/auth/apple/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, ...opts }),
+    });
+    await throwIfRateLimited(res);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Apple signup failed');
+    return data;
+  },
+
   googleLink: async (idToken: string): Promise<{ ok: boolean; googleId: string }> => {
     const res = await apiFetch('/api/auth/google/link', {
       method: 'POST',

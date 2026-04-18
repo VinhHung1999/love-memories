@@ -17,6 +17,18 @@ export const deleteAccountSchema = z.object({
   password: z.string(),
 });
 
+export const appleAuthSchema = z.object({
+  idToken: z.string().min(1),
+  name: z.string().optional(), // nameHint — Apple sends fullName only on first sign-in
+});
+
+export const appleCompleteSchema = z.object({
+  idToken: z.string().min(1),
+  name: z.string().optional(),
+  inviteCode: z.string().optional(),
+  coupleName: z.string().optional(),
+});
+
 export const generateRecipeSchema = z.object({
   mode: z.enum(['text', 'youtube', 'url']),
   input: z.string().min(1),

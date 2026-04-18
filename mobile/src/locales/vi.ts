@@ -12,6 +12,8 @@ const vi: LocaleStrings = {
   login: {
     welcomeBack: 'Chào mừng trở lại',
     createAccount: 'Tạo tài khoản',
+    continueWithApple: 'Tiếp tục với Apple',
+    signUpWithApple: 'Đăng ký với Apple',
     continueWithGoogle: 'Tiếp tục với Google',
     signUpWithGoogle: 'Đăng ký với Google',
     or: 'hoặc',
@@ -60,6 +62,9 @@ const vi: LocaleStrings = {
       somethingWrong: 'Đã có lỗi xảy ra',
       googleSignInFailed: 'Đăng nhập Google thất bại',
       googleSignupFailed: 'Đăng ký Google thất bại',
+      appleNoToken: 'Đăng nhập Apple thất bại: không có identity token',
+      appleSignInFailed: 'Đăng nhập Apple thất bại',
+      appleSignupFailed: 'Đăng ký Apple thất bại',
       passwordMismatch: 'Mật khẩu không khớp',
     },
 

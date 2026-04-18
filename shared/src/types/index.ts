@@ -9,6 +9,13 @@ export interface AuthUser {
   avatar?: string | null;
   coupleId?: string;
   googleId?: string | null;
+  appleId?: string | null;
+}
+
+export interface AppleProfile {
+  appleId: string;
+  email?: string | null;
+  name?: string | null;
 }
 
 export interface GoogleProfile {

@@ -55,6 +55,8 @@
 |----|------|-------------|--------|--------|
 | OBS-001 | | | | |
 
+**Note (2026-04-14):** Initial observation about "PO ticket ID mismatch" was a misread by SM. PO clarified: backlog IDs (e.g. [314], [315]) and sprint task IDs (e.g. [270], [271]) are two legitimate ID spaces — `add_item_to_sprint` creates a new task with its own ID. PO uses sprint task ID in sprint comms. Not a process issue. SM should verify ID space (backlog vs sprint task) before flagging as mismatch.
+
 ---
 
 ## Discussed (Reviewed at Retro, Not Selected)

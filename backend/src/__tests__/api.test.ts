@@ -47,6 +47,37 @@ jest.mock('google-auth-library', () => {
   };
 });
 
+// Mock apple-signin-auth so Apple token tests don't call real Apple API
+jest.mock('apple-signin-auth', () => ({
+  verifyIdToken: jest.fn().mockImplementation((idToken: string) => {
+    if (idToken === 'valid-apple-token') {
+      return Promise.resolve({
+        sub: 'apple-uid-123',
+        email: 'appleuser@example.com',
+      });
+    }
+    if (idToken === 'valid-apple-token-noemail') {
+      return Promise.resolve({
+        sub: 'apple-uid-noemail',
+        email: undefined,
+      });
+    }
+    return Promise.reject(new Error('Invalid token'));
+  }),
+  __esModule: true,
+  default: {
+    verifyIdToken: jest.fn().mockImplementation((idToken: string) => {
+      if (idToken === 'valid-apple-token') {
+        return Promise.resolve({ sub: 'apple-uid-123', email: 'appleuser@example.com' });
+      }
+      if (idToken === 'valid-apple-token-noemail') {
+        return Promise.resolve({ sub: 'apple-uid-noemail', email: undefined });
+      }
+      return Promise.reject(new Error('Invalid token'));
+    }),
+  },
+}));
+
 let token: string;
 let partnerToken: string;
 let testCoupleId: string;
@@ -489,6 +520,63 @@ describe('Google OAuth', () => {
   it('POST /api/auth/google/link returns 401 without auth', async () => {
     const res = await request(app).post('/api/auth/google/link').send({ idToken: 'valid-google-token' });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('Apple Sign-In', () => {
+  const cleanupAppleUser = async () => {
+    const user = await prisma.user.findUnique({ where: { email: 'appleuser@example.com' } });
+    if (user) {
+      await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+      if (user.coupleId) await prisma.couple.delete({ where: { id: user.coupleId } }).catch(() => {});
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+    // Also clean up no-email apple user (email derived from appleId)
+    await prisma.user.deleteMany({ where: { appleId: 'apple-uid-noemail' } });
+  };
+  beforeAll(cleanupAppleUser);
+  afterAll(cleanupAppleUser);
+
+  it('POST /api/auth/apple returns 400 without idToken', async () => {
+    const res = await request(app).post('/api/auth/apple').send({});
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /api/auth/apple returns 401 for invalid token', async () => {
+    const res = await request(app).post('/api/auth/apple').send({ idToken: 'bad-apple-token' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/auth/apple returns needsCouple for new Apple user', async () => {
+    const res = await request(app).post('/api/auth/apple').send({ idToken: 'valid-apple-token', name: 'Apple User' });
+    expect(res.status).toBe(200);
+    expect(res.body.needsCouple).toBe(true);
+    expect(res.body.appleProfile.appleId).toBe('apple-uid-123');
+    expect(res.body.appleProfile.email).toBe('appleuser@example.com');
+  });
+
+  it('POST /api/auth/apple/complete creates user with couple', async () => {
+    const res = await request(app).post('/api/auth/apple/complete').send({
+      idToken: 'valid-apple-token',
+      name: 'Apple User',
+      coupleName: 'Test Apple Couple',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.email).toBe('appleuser@example.com');
+    // Cleanup
+    await cleanupAppleUser();
+  });
+
+  it('POST /api/auth/apple/complete handles hide-email (privaterelay) when email missing', async () => {
+    const res = await request(app).post('/api/auth/apple/complete').send({
+      idToken: 'valid-apple-token-noemail',
+      name: 'No Email User',
+      coupleName: 'No Email Couple',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeTruthy();
+    expect(res.body.user.email).toContain('privaterelay.appleid.com');
   });
 });
 

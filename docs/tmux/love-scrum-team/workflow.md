@@ -89,6 +89,18 @@ tm-send SM "BE -> SM: Task complete. Ready for review."
 tmux send-keys -t %16 "message" C-m C-m  # NEVER!
 ```
 
+### Telegram Reply Rule
+
+When Boss sends a message with prefix `[via Telegram]`, PO MUST reply using `notify_boss` MCP tool (NOT `tm-send`). Boss is on Telegram — `notify_boss` routes the response back to Telegram.
+
+```bash
+# Boss sends: [via Telegram] BOSS: Đóng sprint
+# PO replies via MCP:
+notify_boss(message='Sprint đã đóng', urgency='normal')
+
+# Do NOT use tm-send for Telegram messages — Boss won't see it
+```
+
 ### Communication Patterns
 
 | From | To | When |
@@ -108,9 +120,9 @@ tmux send-keys -t %16 "message" C-m C-m  # NEVER!
 
 ### Sprint Planning
 1. **PO** presents Sprint Goal and prioritized backlog
-2. **SM** facilitates, adds items via `add_item_to_sprint` MCP tool
+2. **SM** facilitates, moves cards from `backlog.md` to sprint `## Todo` section
 3. **TL** provides technical feasibility input and writes specs
-4. **SM** starts sprint via `start_sprint` MCP tool
+4. **SM** updates sprint file: `%% sprint-status: planning %%` → `active %%`
 
 ### No Daily Scrum
 
@@ -167,7 +179,7 @@ Boss → PO: Sprint Goal
 PO → SM: Backlog items for Sprint
 SM → TL: Write technical spec
 TL: Spec (max 250 lines, ZERO code samples) → SM
-SM: Adds items to sprint board → starts sprint
+SM: Adds items to sprint board (edit sprint MD file) → starts sprint (update sprint-status metadata)
 SM → TL: Distribute tasks to WEB/BE/MOBILE
 ```
 
@@ -176,27 +188,27 @@ SM → TL: Distribute tasks to WEB/BE/MOBILE
 ```
 1. TL writes Technical Spec with Acceptance Criteria
 2. TL distributes tasks to WEB/BE/MOBILE
-3. DEV uses `get_my_tasks` to see assigned tasks
-4. DEV moves task → `in_progress` via `update_task_status` BEFORE starting work
+3. DEV reads sprint MD, finds cards where Assignee: MYROLE
+4. DEV moves card → ## In Progress section, updates Status: in_progress BEFORE starting work
 5. WEB/BE/MOBILE implement (parallel)
-6. DEV moves task → `in_review` via `update_task_status` when submitting for review
+6. DEV moves card → ## In Review section, updates Status: in_review when submitting for review
 7. WEB/BE/MOBILE → SM: Report completion
 8. TL reviews code (P0/P1/P2 checklist)
-9. TL moves task → `testing` via `update_task_status` after code review approved
+9. TL moves card → ## Testing section, updates Status: testing after code review approved
 10. SM monitors progress, removes impediments
 11. PO available for clarifications (through SM)
 ```
 
 **CRITICAL: Task Status Updates (Card Movement)**
 
-ALL roles MUST update task status via `update_task_status` MCP tool at each phase transition:
+ALL roles MUST update task status by editing the sprint MD file at each phase transition:
 
 | When | Status | Who |
 |------|--------|-----|
-| Start working on task | `in_progress` | DEV (WEB/BE/MOBILE) |
-| Submit for code review | `in_review` | DEV |
-| Code review approved, ready for QA | `testing` | TL |
-| PO acceptance passed | `done` | PO |
+| Start working on task | Move card to `## In Progress`, update `Status: in_progress` | DEV (WEB/BE/MOBILE) |
+| Submit for code review | Move card to `## In Review`, update `Status: in_review` | DEV |
+| Code review approved, ready for QA | Move card to `## Testing`, update `Status: testing` | TL |
+| PO acceptance passed | Move card to `## Done`, change `- [ ]` → `- [x]`, update `Status: done` | PO |
 
 **NEVER leave a task in `todo` while actively working on it.** PO tracks progress via the board — stale cards = no visibility.
 
@@ -211,12 +223,14 @@ ALL roles MUST update task status via `update_task_status` MCP tool at each phas
 SM → PO: Sprint tasks complete
 PO: QA validation (run tests, verify acceptance criteria)
 PO → Boss: Present for acceptance on dev environment
+PO: notify_boss(urgency=high, message='Sprint X done, cần Boss review để đóng sprint')
 Boss: Reviews, APPROVE or REQUEST CHANGES
-  - If APPROVE → PO merges main + deploys production
+  - If APPROVE → PO completes sprint (update sprint-status in MD, move file to archive) → merges main + deploys production
   - If REQUEST CHANGES → PO → SM → TL → devs fix → re-review
 ```
 
-**CRITICAL: Nothing goes to production without Boss approval.**
+**CRITICAL: PO MUST call `notify_boss` MCP tool before completing sprint. NEVER complete the sprint without Boss confirmation.**
+**Nothing goes to production without Boss approval.**
 
 ### Phase 4: Sprint Retrospective
 
@@ -233,19 +247,43 @@ SM → PO: "Retro complete."
 ## Artifacts
 
 ### Product Backlog (PO owns)
-**Managed via MCP tools:** `list_backlog`, `create_backlog_item`, `update_backlog_item`, `delete_backlog_item`
+**Managed by editing:** `docs/board/backlog.md` — add/edit cards under P0/P1/P2/P3 sections
 
 ### Sprint Board (SM owns)
-**Managed via MCP tools:** `get_board`, `add_item_to_sprint`, `remove_item_from_sprint`, `update_task_status`, `add_task_note`
-**Sprint lifecycle:** `create_sprint`, `start_sprint`, `complete_sprint`, `list_sprints`
+**Managed by editing:** `docs/board/sprints/active/sprint-{N}.md` — move cards between `## Todo` / `## In Progress` / `## In Review` / `## Testing` / `## Done` sections, update `Status:` field
+**Sprint lifecycle:**
+- Create sprint: Create new `docs/board/sprints/active/sprint-{N}.md` with Obsidian Kanban format
+- Start sprint: Update `%% sprint-status: planning %%` → `active %%` in sprint MD
+- Complete sprint: Update status to `completed`, add `%% completed: ... %%`, move file to `sprints/archive/`
+- List sprints: `ls docs/board/sprints/active/` and `ls docs/board/sprints/archive/`
 
 ### Task Assignment
-**Managed via:** `get_my_tasks` MCP tool — each role checks their assigned tasks
+Read sprint MD, find cards where `**Assignee:** MYROLE`
+
+### Board File Structure
+
+```
+docs/board/
+  backlog.md                     — product backlog (P0/P1/P2/P3 sections)
+  sprints/active/sprint-{N}.md   — active sprint kanban
+  sprints/archive/sprint-{N}.md  — completed sprints
+```
+
+### Card Format
+
+```
+- [ ] **[SPRINT_ITEM_ID]** Title
+      **Priority:** P1 · **Points:** 3 · **Assignee:** DEV · **Status:** todo · **Backlog-ID:** 123
+      **Description:**
+      Description text...
+      **Notes:**
+      2026-04-17 ROLE: note text
+```
 
 ### WHITEBOARD (PO maintains)
 **Location:** `docs/tmux/love-scrum-team/WHITEBOARD.md`
 - High-level notes, sprint context, previous sprint history
-- NOT for task tracking (use MCP tools instead)
+- NOT for task tracking (use board MD files instead)
 
 ### SM Workspace
 - `sm/IMPROVEMENT_BACKLOG.md` — Process issues (log during sprint)
@@ -261,7 +299,7 @@ A task is "Done" when:
 - [ ] Tests pass (backend: jest, frontend: vitest, mobile: jest + lint)
 - [ ] Lint and build pass
 - [ ] TL code review approved
-- [ ] Task status updated via `update_task_status` MCP tool
+- [ ] Task status updated in sprint MD (card moved to `## Done`, `- [x]`, `Status: done`)
 - [ ] SM notified of completion
 - [ ] PO acceptance verified
 - [ ] **Boss approved for production** (required before merge to main)
@@ -351,7 +389,7 @@ love-scrum-team/
 
 # Note: Role→pane mapping is dynamic via tmux @role_name options
 # Note: tm-send is a global tool at ~/.local/bin/tm-send (not project-specific)
-# Note: Backlog & task management via MCP tools (list_backlog, get_board, etc.)
+# Note: Backlog & board management via Markdown files in docs/board/
 ```
 
 ---
@@ -383,7 +421,8 @@ tmux attach -t love_scrum
 **Production deployment requires Boss approval:**
 1. DEV implements → TL reviews → SM coordinates
 2. PO QA validates → deploys to dev
-3. Boss reviews on dev → approves
-4. PO merges main → deploys production
+3. PO calls `notify_boss(urgency=high)` to request Boss review
+4. Boss reviews on dev → approves
+5. PO completes sprint (update sprint-status to `completed`, move file to `sprints/archive/`) → merges main → deploys production
 
 **Note:** `.env.dev` + `.env.prod` are gitignored.

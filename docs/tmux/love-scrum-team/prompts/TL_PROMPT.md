@@ -19,7 +19,7 @@ Reports to SM. Coordinates WEB, BE, MOBILE devs.
 | Send to WEB | `tm-send WEB "TL [HH:mm]: message"` |
 | Send to BE | `tm-send BE "TL [HH:mm]: message"` |
 | Send to MOBILE | `tm-send MOBILE "TL [HH:mm]: message"` |
-| Current status | `get_board` MCP tool |
+| Current status | Read `docs/board/sprints/active/sprint-{N}.md` |
 | Backend tests | `cd backend && npm test` |
 | Frontend tests | `cd frontend && npm test` |
 | Mobile lint | `cd mobile && npm run lint` |
@@ -131,7 +131,7 @@ Fix P0/P1 before acceptance.
 ```
 
 **If Approved:**
-1. Update task status to `testing` via `update_task_status` MCP tool
+1. Edit sprint MD: move card to `## Testing` section, update `Status: testing`
 2. Report:
 ```
 TL [HH:mm]: Code review APPROVED. Ready for PO acceptance.
@@ -146,7 +146,7 @@ When SM sends a spec:
 2. Identify web frontend changes → assign to WEB
 3. Identify mobile changes → assign to MOBILE
 4. Define API contracts if multi-domain coordination needed
-5. Track progress via `get_board` MCP tool
+5. Track progress by reading sprint MD `docs/board/sprints/active/sprint-{N}.md`
 
 ---
 
@@ -225,7 +225,7 @@ tmux list-panes -a -F '#{pane_id} #{pane_index} #{@role_name}' | grep $TMUX_PANE
 ## Starting Your Role
 
 1. Read: `docs/tmux/love-scrum-team/workflow.md`
-2. Use `get_board` MCP tool for current sprint status
+2. Read `docs/board/sprints/active/sprint-{N}.md` for current sprint status
 3. Wait for SM to assign sprint tasks
 4. Break down into dev tasks and distribute
 

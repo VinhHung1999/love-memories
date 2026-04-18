@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { validate } from '../middleware/validate';
-import { registerSchema, loginSchema, deleteAccountSchema } from '../validators/authSchemas';
+import { registerSchema, loginSchema, deleteAccountSchema, appleAuthSchema, appleCompleteSchema } from '../validators/authSchemas';
 import type { AuthRequest } from '../middleware/auth';
 import * as AuthService from '../services/AuthService';
 import * as EmailService from '../services/EmailService';
@@ -118,6 +118,45 @@ export const deleteAccount = [
     const { password } = req.body as { password: string };
     await AuthService.deleteAccount(userId, coupleId, password);
     res.status(204).send();
+  }),
+];
+
+export const appleAuth = [
+  validate(appleAuthSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { idToken, name } = req.body as { idToken: string; name?: string };
+    try {
+      const result = await AuthService.appleAuth(idToken, name);
+      res.json(result);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Invalid Apple')) {
+        res.status(401).json({ error: 'Invalid Apple token' });
+      } else {
+        throw err;
+      }
+    }
+  }),
+];
+
+export const appleComplete = [
+  validate(appleCompleteSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { idToken, name, inviteCode, coupleName } = req.body as {
+      idToken: string;
+      name?: string;
+      inviteCode?: string;
+      coupleName?: string;
+    };
+    try {
+      const result = await AuthService.appleComplete(idToken, inviteCode, coupleName, name);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Invalid Apple')) {
+        res.status(401).json({ error: 'Invalid Apple token' });
+      } else {
+        throw err;
+      }
+    }
   }),
 ];
 

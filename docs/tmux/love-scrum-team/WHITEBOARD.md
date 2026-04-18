@@ -1,26 +1,28 @@
 # Team Whiteboard
 
-**Sprint:** 56 (DONE — pending Boss review)
-**Last Completed:** Sprint 56 — Deploy to Internal App Store + Android Bundle ID Rename
+**Sprint:** 59 CLOSED 2026-04-18 — mobile-rework foundation shipped (9 commits merged to main). Next sprint on-hold per Boss.
+**Last Completed:** Sprint 59 — Bootstrap `mobile-rework/` (Expo SDK 54 scaffold, theme, fonts, i18n, nav, API client, internal ad-hoc build Memoura 2.0.0 (4)) — Boss approved 2026-04-18
+
+**Big direction (Boss 2026-04-18):** Mobile rebuild from scratch. New source at `mobile-rework/` based on prototype `docs/design/prototype/memoura-v2/`. Drop all modules not in prototype (FoodSpots / Recipes / Expenses / Achievements / Date Planner). BE + web-PWA unchanged. Plan: Sprints 59→65 (~7 sprints, ~80 pts).
 
 ---
+
+## Team (Sprint 58+ — 2-pane: PO + DEV)
+
+Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to reduce coordination noise. Archived prompts in `prompts/_archive/`.
 
 ## Current Status
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | DONE | Sprint 56 deployed to app store | 2026-03-26 |
-| SM   | IDLE   | — | — |
-| TL   | IDLE   | — | — |
-| WEB  | IDLE   | — | — |
-| BE   | IDLE   | — | — |
-| MOBILE | IDLE | — | — |
+| PO   | IDLE | Sprint 59 closed + merged to main; running /generate-rules next; Sprint 60 on-hold (Boss said khoan start) | 2026-04-18 |
+| DEV  | IDLE | Sprint 59 shipped + merged; awaiting Sprint 60 kickoff | 2026-04-18 |
 
-**Task tracking uses MCP tools** (`get_board`, `list_backlog`, etc.). Use `list_backlog` for live product backlog.
+**Task tracking uses board MD files.** Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md` for product backlog.
 
 ---
 
-## Product Backlog (MCP — source of truth)
+## Product Backlog (~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md — source of truth)
 
 | ID | Item | Priority | Points |
 |----|------|----------|--------|
@@ -82,6 +84,8 @@ _Sprint 53 — MVP Completion (Subscription Enforcement, Bug Fixes, App Store Pr
 _Sprint 54 — Streak Tracking, Rename Memoura, Domain Migration, Dashboard Redesign: DEPLOYED_
 _Sprint 55 — Photo Booth, Love Letters Redesign, Notification System: DEPLOYED_
 _Sprint 56 — Deploy to Internal App Store, Android Bundle ID Rename (com.hungphu.memoura): DEPLOYED_
+_Sprint 58 — Google Sign-In multi-platform audience fix (T270) + Sign in with Apple (T271, BE + MOBILE): CLOSED 2026-04-18 (Boss TestFlight E2E pending)_
+_Sprint 59 — mobile-rework bootstrap (Expo SDK 54 scaffold, theme system, fonts, i18n, shared components, Expo Router nav, API client, internal ad-hoc deploy): CLOSED 2026-04-18 (Memoura 2.0.0 (4) on app-store.hungphu.work, approved by Boss)_
 
 ---
 

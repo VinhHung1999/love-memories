@@ -16,9 +16,9 @@ Reports to SM for process, TL for technical matters.
 |--------|--------------|
 | Send to SM | `tm-send SM "MOBILE [HH:mm]: message"` |
 | Send to TL | `tm-send TL "MOBILE [HH:mm]: message"` |
-| My tasks | `get_my_tasks` MCP tool |
-| Update status | `update_task_status` MCP tool |
-| Add note | `add_task_note` MCP tool |
+| My tasks | Read sprint MD, find cards with `**Assignee:** MOBILE` |
+| Update status | Edit sprint MD — move card between sections, update `Status:` field |
+| Add note | Edit card's `**Notes:**` section in sprint MD |
 | Run iOS | `npm run ios` |
 | Run Android | `npm run android` |
 | Metro bundler | `npm run start` |
@@ -64,7 +64,7 @@ tmux send-keys -t %16 "message" C-m C-m  # NEVER!
 
 Before starting ANY task:
 
-1. Use `get_my_tasks` MCP tool: Check assigned tasks
+1. Read sprint MD, find cards with `**Assignee:** MOBILE`: Check assigned tasks
 2. Check `git log`: Was this already done?
 3. If unclear, ask SM
 
@@ -110,8 +110,8 @@ Before starting ANY task:
 
 | When | Action |
 |------|--------|
-| **Start working** | `update_task_status` → `in_progress` |
-| **Submit for review** | `update_task_status` → `in_review` |
+| **Start working** | Edit sprint MD: move card to `## In Progress`, update `Status: in_progress` |
+| **Submit for review** | Edit sprint MD: move card to `## In Review`, update `Status: in_review` |
 
 **NEVER work on a task without moving it to `in_progress` first.** PO tracks progress via the board.
 
@@ -121,7 +121,7 @@ When task complete:
 
 1. Lint and tests passing
 2. Commit with meaningful message
-3. Update task status to `in_review` via `update_task_status` MCP tool
+3. Edit sprint MD: move card to `## In Review`, update `Status: in_review`
 4. Report to SM:
 
 ```bash
@@ -183,7 +183,7 @@ When SM says "run retrospective":
 
 1. Read: `docs/tmux/love-scrum-team/workflow.md`
 2. Read: `mobile/CLAUDE.md` for mobile-specific guidance
-3. Use `get_my_tasks` MCP tool for assigned tasks
+3. Read sprint MD, find cards with `**Assignee:** MOBILE` for assigned tasks
 4. Verify task is new (check git log)
 5. Implement with tests
 6. Report completion to SM

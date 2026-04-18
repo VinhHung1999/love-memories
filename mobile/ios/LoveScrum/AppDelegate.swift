@@ -4,6 +4,7 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import FirebaseCore
 import FirebaseMessaging
+import GoogleSignIn
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
@@ -59,6 +60,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
   func application(_ application: UIApplication,
                    didFailToRegisterForRemoteNotificationsWithError error: Error) {
     print("[Push] Failed to register for remote notifications: \(error)")
+  }
+
+  // URL callback chain: Google Sign-In first, then RCTLinkingManager for
+  // custom scheme deep links (lovescrum://). Manual handler disables swizzling,
+  // so both must be chained — returning false here breaks RN Linking entirely.
+  func application(_ app: UIApplication, open url: URL,
+                   options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+    if GIDSignIn.sharedInstance.handle(url) { return true }
+    return RCTLinkingManager.application(app, open: url, options: options)
   }
 }
 
