@@ -6,6 +6,7 @@ export type AuthUser = {
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
+  coupleId: string | null;
 };
 
 type Tokens = {
@@ -23,6 +24,7 @@ type Actions = {
   setSession: (input: { user: AuthUser; accessToken: string; refreshToken: string }) => Promise<void>;
   setAccessToken: (accessToken: string) => Promise<void>;
   setUser: (user: AuthUser | null) => void;
+  setCoupleId: (coupleId: string | null) => void;
   clear: () => Promise<void>;
 };
 
@@ -77,6 +79,15 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     void persist({ user, accessToken, refreshToken });
   },
 
+  setCoupleId: (coupleId) => {
+    const current = get().user;
+    if (!current) return;
+    const next = { ...current, coupleId };
+    set({ user: next });
+    const { accessToken, refreshToken } = get();
+    void persist({ user: next, accessToken, refreshToken });
+  },
+
   clear: async () => {
     set({ user: null, accessToken: null, refreshToken: null });
     try {
@@ -86,3 +97,8 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     }
   },
 }));
+
+// Selectors — call as `useAuthStore(isAuthenticated)` / `useAuthStore(hasCouple)`
+// or imperatively via `isAuthenticated(useAuthStore.getState())`.
+export const isAuthenticated = (s: State): boolean => !!s.accessToken;
+export const hasCouple = (s: State): boolean => !!s.user?.coupleId;

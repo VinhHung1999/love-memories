@@ -1,8 +1,8 @@
-import { Redirect } from 'expo-router';
+import { View } from 'react-native';
 
-// Root of the app. For Sprint 59 smoke-testing we land on the sprint-59 demo
-// screen (T279). Real auth-gated routing (→ /(auth)/welcome or /(tabs)) lands
-// in a later sprint once authStore + onboarding screens are real.
+// Empty placeholder — root layout's auth gate redirects to `/(auth)/welcome`
+// (no token), `/(auth)/pair-create` (token, no couple), or `/(tabs)` (paired).
+// We render nothing here so there is no flash before the redirect lands.
 export default function Index() {
-  return <Redirect href="/sprint-59-demo" />;
+  return <View className="flex-1 bg-bg" />;
 }
