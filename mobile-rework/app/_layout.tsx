@@ -161,6 +161,12 @@ function useOnboardingResume() {
 // Catches `memoura://pair?code=…` and `https://memoura.app/pair?code=…` whether
 // the app cold-started from the link or was already running. Pre-fills the join
 // form via T285's `?code=` route param.
+//
+// Sprint 60 T285: if the user isn't authed yet (cold-start from share link
+// before they've ever signed in), stash the code in authStore.pendingPairCode
+// and let useAuthGate route to /(auth)/welcome. After signup/login the gate
+// drops them on /(auth)/pair-create, which consumes pendingPairCode and
+// router.replace's into pair-join with the code as a route param.
 function useDeepLink() {
   const router = useRouter();
   const handledInitial = useRef(false);
@@ -170,6 +176,15 @@ function useDeepLink() {
       const route = parseMemouraUrl(url);
       if (!route) return;
       if (route.name === 'pair-join') {
+        const code = route.params?.code;
+        const authed = !!useAuthStore.getState().accessToken;
+        if (!authed) {
+          // Stash + let the gate take them through the auth wizard. Don't push
+          // pair-join itself — the user can't join without a JWT, and we don't
+          // want a half-functional pair-join screen flashing.
+          if (code) useAuthStore.getState().setPendingPairCode(code);
+          return;
+        }
         router.push({ pathname: '/(auth)/pair-join', params: route.params });
       }
     }

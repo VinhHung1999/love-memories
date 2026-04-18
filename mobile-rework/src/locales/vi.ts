@@ -168,8 +168,20 @@ const vi = {
         shareMessage:
           'Mình đợi em ở Memoura ✨ Mở link để vào: https://memoura.app/pair?code={{code}} (hoặc nhập mã {{code}} trong app)',
       },
+      join: {
+        title: 'Nhập mã của người ta',
+        subtitle: 'Tám ký tự, mình sẽ tự gán hoa',
+        cta: 'Ghép đôi',
+        ctaIcon: '💞',
+        joining: 'Đang ghép đôi…',
+        partnerHint: 'Bạn sẽ ghép với {{name}}',
+      },
       errors: {
         network: 'Mạng đang trục trặc. Em thử lại nhé.',
+        invalidCode: 'Mã không đúng. Em kiểm tra lại nhé.',
+        codeUsed: 'Mã này đã được dùng rồi.',
+        rateLimited: 'Em thử nhanh quá, đợi một chút nhé.',
+        alreadyPaired: 'Em đã ghép với người khác rồi.',
       },
     },
     intro: {

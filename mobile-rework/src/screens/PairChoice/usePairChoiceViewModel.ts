@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -28,9 +28,23 @@ type FormError = { kind: 'network' };
 export function usePairChoiceViewModel() {
   const router = useRouter();
   const setSession = useAuthStore((s) => s.setSession);
+  const pendingPairCode = useAuthStore((s) => s.pendingPairCode);
+  const setPendingPairCode = useAuthStore((s) => s.setPendingPairCode);
 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
+
+  // Sprint 60 T285: when the user lands here after auth-wizard with a stashed
+  // invite code (deep-link arrived pre-auth → useDeepLink stashed it), forward
+  // them to pair-join with the code as a route param. Clear BEFORE push so
+  // useLocalSearchParams reads the code from the route, not the store — and so
+  // a back-press from pair-join to PairChoice doesn't re-trigger the redirect.
+  useEffect(() => {
+    if (!pendingPairCode) return;
+    const code = pendingPairCode;
+    setPendingPairCode(null);
+    router.replace({ pathname: '/(auth)/pair-join', params: { code } });
+  }, [pendingPairCode, router, setPendingPairCode]);
 
   const onCreate = useCallback(async () => {
     if (creating) return;

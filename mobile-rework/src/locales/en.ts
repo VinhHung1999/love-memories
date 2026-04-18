@@ -166,8 +166,20 @@ const en: Resources = {
         shareMessage:
           'Come find me on Memoura \u2728 Open: https://memoura.app/pair?code={{code}} (or type code {{code}} in the app)',
       },
+      join: {
+        title: 'Enter their code',
+        subtitle: 'Eight characters, we\u2019ll uppercase for you',
+        cta: 'Pair up',
+        ctaIcon: '\uD83D\uDC9E',
+        joining: 'Pairing\u2026',
+        partnerHint: 'You\u2019ll pair with {{name}}',
+      },
       errors: {
         network: 'Network hiccup. Try again in a bit.',
+        invalidCode: 'That code doesn\u2019t look right.',
+        codeUsed: 'That code has already been used.',
+        rateLimited: 'Slow down a sec, then try again.',
+        alreadyPaired: 'You\u2019re already paired with someone.',
       },
     },
     intro: {

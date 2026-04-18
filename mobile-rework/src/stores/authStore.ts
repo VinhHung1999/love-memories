@@ -21,6 +21,11 @@ type State = Tokens & {
   // T286 OnboardingDone sets true as the explicit commit. See
   // docs/specs/sprint-60-pairing.md §"Auth gate — onboardingComplete flag".
   onboardingComplete: boolean;
+  // Sprint 60 T285: transient (NOT persisted) holding tank for an invite code
+  // received via `memoura://pair?code=…` while the user was unauthed. After
+  // they sign in / sign up, PairChoice consumes it to redirect into pair-join
+  // with the code prefilled, then clears it. Cleared on clear() too.
+  pendingPairCode: string | null;
   hydrated: boolean;
 };
 
@@ -31,6 +36,7 @@ type Actions = {
   setUser: (user: AuthUser | null) => void;
   setCoupleId: (coupleId: string | null) => void;
   setOnboardingComplete: (value: boolean) => Promise<void>;
+  setPendingPairCode: (code: string | null) => void;
   clear: () => Promise<void>;
 };
 
@@ -51,6 +57,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
   accessToken: null,
   refreshToken: null,
   onboardingComplete: false,
+  pendingPairCode: null,
   hydrated: false,
 
   hydrate: async () => {
@@ -104,8 +111,18 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     await persist({ user, accessToken, refreshToken, onboardingComplete: value });
   },
 
+  setPendingPairCode: (code) => {
+    set({ pendingPairCode: code });
+  },
+
   clear: async () => {
-    set({ user: null, accessToken: null, refreshToken: null, onboardingComplete: false });
+    set({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      onboardingComplete: false,
+      pendingPairCode: null,
+    });
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
     } catch {
