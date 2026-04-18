@@ -2,6 +2,13 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { z } from 'zod';
 import { ApiError, apiClient } from '@/lib/apiClient';
+import {
+  completeAppleSignIn,
+  completeGoogleSignIn,
+  signInWithApple,
+  signInWithGoogle,
+} from '@/lib/socialAuth';
+import type { SocialKind } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 
 export const loginSchema = z.object({
@@ -29,7 +36,8 @@ type AuthResponse = {
 type FormError =
   | { kind: 'invalidCredentials' }
   | { kind: 'rateLimited' }
-  | { kind: 'network' };
+  | { kind: 'network' }
+  | { kind: 'socialFailed' };
 
 export function useLoginViewModel() {
   const router = useRouter();
@@ -41,6 +49,7 @@ export function useLoginViewModel() {
   const [errors, setErrors] = useState<LoginFieldErrors>({});
   const [formError, setFormError] = useState<FormError | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<SocialKind | null>(null);
 
   const canSubmit = email.includes('@') && password.length >= 1;
 
@@ -106,6 +115,28 @@ export function useLoginViewModel() {
     router.push('/(auth)/forgot-password');
   }, [router]);
 
+  const onSocial = useCallback(async (kind: SocialKind) => {
+    setSocialLoading(kind);
+    setFormError(null);
+    try {
+      const provider = kind === 'apple' ? signInWithApple : signInWithGoogle;
+      const result = await provider();
+      if (result.kind === 'cancelled') return;
+      if (kind === 'apple') {
+        await completeAppleSignIn(result.idToken, result.nameHint);
+      } else {
+        await completeGoogleSignIn(result.idToken);
+      }
+      // useAuthGate routes — no manual navigation. New users → pair-create
+      // (coupleId=null + onboardingComplete=false), returning users with a
+      // coupleId go through the resume probe → (tabs).
+    } catch {
+      setFormError({ kind: 'socialFailed' });
+    } finally {
+      setSocialLoading(null);
+    }
+  }, []);
+
   return {
     email,
     password,
@@ -113,6 +144,7 @@ export function useLoginViewModel() {
     errors,
     formError,
     submitting,
+    socialLoading,
     canSubmit,
     setEmail,
     setPassword,
@@ -120,5 +152,6 @@ export function useLoginViewModel() {
     onSubmit,
     onSwitchSignup,
     onForgot,
+    onSocial,
   };
 }

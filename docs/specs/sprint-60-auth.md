@@ -1,6 +1,6 @@
-# Sprint 60 — Technical Spec: Email Auth + Password Reset
+# Sprint 60 — Technical Spec: Email Auth + Password Reset + Social SSO
 
-**Author:** DEV | **Date:** 2026-04-18 | **Tickets:** T282 (this doc covers BE + mobile primitives + 3 screens)
+**Author:** DEV | **Date:** 2026-04-18 | **Tickets:** T282 (BE + mobile primitives + 3 screens), T283 (Google + Apple SSO wire-up)
 
 ---
 
@@ -155,11 +155,152 @@ interpolation for any field-validation messages that include limits
 
 ## Out of scope (this sprint)
 
-- Real social auth wiring (T283).
+- Real social auth Android wiring (Sprint 65 — see T283 below).
 - Couple pairing screens (T284).
 - Deep-link entry into reset-password (T285) — for now the email link points at the
   web PWA's existing reset surface; mobile-only reset can be added once the
   universal-link plumbing lands.
+
+---
+
+## T283 — Google + Apple SSO wire-up
+
+Replaces the disabled `SocialRowStub` from T282 with the real provider buttons.
+Backend `/auth/google` + `/auth/apple` already exist (Sprint 58); this ticket is
+mobile-side only.
+
+### Library choice — Option A: native modules
+
+| Provider | Package                                          |
+| -------- | ------------------------------------------------ |
+| Google   | `@react-native-google-signin/google-signin` v16  |
+| Apple    | `expo-apple-authentication` v8 (Expo official)   |
+
+Native libraries (Option A) over `expo-auth-session` (Option B) because: (a)
+both are battle-tested in the legacy `mobile/` app, (b) Apple HIG requires the
+native sheet for Sign in with Apple, (c) Google Sign-In's native sheet is
+materially nicer than the in-app browser fallback Option B forces.
+
+### Trade-off paid for Option A
+
+`expo prebuild --clean` regenerates `ios/Memoura/AppDelegate.swift` from a
+template, so any hand-edits are wiped. We need to inject the GoogleSignIn URL
+handler back in every prebuild — covered by a custom config-plugin
+(`plugins/withGoogleSigninUrlHandler.js`).
+
+### Config (`app.config.ts`)
+
+```ts
+ios: { ..., usesAppleSignIn: true },           // Apple entitlement
+plugins: [
+  ...,
+  'expo-apple-authentication',                 // Apple
+  ['@react-native-google-signin/google-signin', // Google URL scheme
+    { iosUrlScheme: 'com.googleusercontent.apps.<reversed-iOS-client-ID>' }],
+  './plugins/withGoogleSigninUrlHandler',      // injects GIDSignIn handler
+],
+extra: {
+  googleIosClientId: '<iOS client ID>',
+  googleWebClientId: '<Web client ID — required for idToken issuance>',
+},
+```
+
+`extra.*` is read by `src/config/env.ts` and passed to
+`GoogleSignin.configure({ iosClientId, webClientId })` once at root layout
+boot.
+
+### `src/lib/socialAuth.ts`
+
+Exports five things:
+
+| Export                         | Purpose                                             |
+| ------------------------------ | --------------------------------------------------- |
+| `configureGoogleSignIn()`      | Idempotent boot-time `GoogleSignin.configure`       |
+| `signInWithGoogle()`           | Returns `{ kind: 'token', idToken } \| { kind: 'cancelled' }` |
+| `signInWithApple()`            | Same shape; returns `nameHint` on first sign-in     |
+| `completeGoogleSignIn(token)`  | POST `/auth/google` (+ `/google/complete` on `needsCouple`) → `setSession` |
+| `completeAppleSignIn(token, nameHint?)` | Same flow against `/auth/apple`                |
+
+### Apple credential persistence
+
+Apple sends `email` + `fullName` ONLY on the first sign-in for a given Apple
+ID. Subsequent calls return only the stable `user` ID + `identityToken`. We
+cache the first-time tuple in AsyncStorage (`@memoura/apple-credentials/v1`)
+keyed by Apple user ID, so later sign-ins can still pass `nameHint` to the
+backend. Cache is best-effort — the backend already wrote the user row on
+first sign-in.
+
+### Custom config-plugin: `plugins/withGoogleSigninUrlHandler.js`
+
+The official google-signin Expo plugin only writes the reversed-client URL
+scheme to `Info.plist`. RN 0.77+ Swift AppDelegates do NOT auto-swizzle the
+URL handler, so without manual injection the Google sheet opens but the
+callback URL never reaches `GIDSignIn.sharedInstance.handle(url)` and the
+sign-in promise hangs.
+
+The plugin runs `withAppDelegate` to:
+1. Add `import GoogleSignIn` after `import ReactAppDependencyProvider`.
+2. Insert `if GIDSignIn.sharedInstance.handle(url) { return true }` as the
+   first line of the existing `application(_:open:options:)` body.
+
+Both edits are idempotent (string-presence checks) so re-running prebuild on
+an already-patched AppDelegate is a no-op. Throws if the AppDelegate template
+changes shape — better to fail loud than silently break sign-in.
+
+### Backend contract (already in place — Sprint 58)
+
+| Method | Path                       | Body                              | Returns |
+| ------ | -------------------------- | --------------------------------- | ------- |
+| POST   | `/api/auth/google`         | `{ idToken }`                     | `AuthResponse` OR `{ needsCouple: true, googleProfile }` |
+| POST   | `/api/auth/google/complete`| `{ idToken, inviteCode?, coupleName? }` | `AuthResponse` |
+| POST   | `/api/auth/apple`          | `{ idToken, name? }`              | `AuthResponse` OR `{ needsCouple: true, appleProfile }` |
+| POST   | `/api/auth/apple/complete` | `{ idToken, name?, inviteCode?, coupleName? }` | `AuthResponse` |
+
+The mobile flow always calls `/complete` with no `inviteCode` / `coupleName`
+on the `needsCouple` branch — the user is created with `coupleId=null` and
+the auth gate then routes them to `/(auth)/pair-create`, identical to the
+email-signup path.
+
+### `src/components/SocialRow.tsx`
+
+Replaces the inline `SocialRowStub` from T282 in both `LoginScreen` and
+`SignUpScreen`. Behaviour:
+
+| Platform | Apple                  | Google              | Phone               |
+| -------- | ---------------------- | ------------------- | ------------------- |
+| iOS      | Real (HIG sheet)       | Real (native sheet) | Coming-soon `Alert` |
+| Android  | Hidden (HIG: iOS only) | Coming-soon `Alert` | Coming-soon `Alert` |
+
+Per-button `loading` state (`'apple' | 'google' | null`) — the active button
+shows an `ActivityIndicator` and the row dims while a sign-in is in flight,
+absorbing further taps.
+
+### Cancellation
+
+User-cancelled sign-ins return silently — no toast, no error message:
+- Google: `statusCodes.SIGN_IN_CANCELLED` or `result.type === 'cancelled'`
+- Apple: `ERR_REQUEST_CANCELED`
+
+Other errors surface as `formError = { kind: 'socialFailed' }` →
+"Đăng nhập chưa thành. Em thử lại sau nhé." copy.
+
+### iOS entitlements
+
+`ios/Memoura/Memoura.entitlements` (regenerated by prebuild from
+`usesAppleSignIn: true`):
+
+```xml
+<key>com.apple.developer.applesignin</key>
+<array><string>Default</string></array>
+```
+
+### Out of scope for T283
+
+- Android Google Sign-In (web client ID is wired but the Android flavor
+  doesn't have native Google Play Services config yet — Sprint 65).
+- Phone / SMS auth — placeholder only, no decision yet on Twilio vs Firebase.
+- Account linking (existing email user signs in with Google for the same
+  email) — backend already handles the email-link case; no separate UI.
 
 ---
 

@@ -2,6 +2,13 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { z } from 'zod';
 import { ApiError, apiClient } from '@/lib/apiClient';
+import {
+  completeAppleSignIn,
+  completeGoogleSignIn,
+  signInWithApple,
+  signInWithGoogle,
+} from '@/lib/socialAuth';
+import type { SocialKind } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 
 export const PASSWORD_MIN = 6;
@@ -35,7 +42,8 @@ export type SignupFieldErrors = {
 type FormError =
   | { kind: 'emailTaken' }
   | { kind: 'rateLimited' }
-  | { kind: 'network' };
+  | { kind: 'network' }
+  | { kind: 'socialFailed' };
 
 type AuthResponse = {
   accessToken: string;
@@ -71,6 +79,7 @@ export function useSignUpViewModel() {
   const [errors, setErrors] = useState<SignupFieldErrors>({});
   const [formError, setFormError] = useState<FormError | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<SocialKind | null>(null);
 
   const canSubmit =
     name.trim().length > 0 &&
@@ -147,6 +156,25 @@ export function useSignUpViewModel() {
     router.replace('/(auth)/login');
   }, [router]);
 
+  const onSocial = useCallback(async (kind: SocialKind) => {
+    setSocialLoading(kind);
+    setFormError(null);
+    try {
+      const provider = kind === 'apple' ? signInWithApple : signInWithGoogle;
+      const result = await provider();
+      if (result.kind === 'cancelled') return;
+      if (kind === 'apple') {
+        await completeAppleSignIn(result.idToken, result.nameHint);
+      } else {
+        await completeGoogleSignIn(result.idToken);
+      }
+    } catch {
+      setFormError({ kind: 'socialFailed' });
+    } finally {
+      setSocialLoading(null);
+    }
+  }, []);
+
   return {
     name,
     email,
@@ -157,6 +185,7 @@ export function useSignUpViewModel() {
     errors,
     formError,
     submitting,
+    socialLoading,
     canSubmit,
     setName,
     setEmail,
@@ -166,5 +195,6 @@ export function useSignUpViewModel() {
     onToggleShowConfirm,
     onSubmit,
     onSwitchLogin,
+    onSocial,
   };
 }

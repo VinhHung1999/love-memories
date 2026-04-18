@@ -137,6 +137,12 @@ const vi = {
         emailTaken: 'Email này đã được đăng ký rồi',
         rateLimited: 'Em thử lại sau một chút nhé',
         network: 'Mạng đang trục trặc. Em thử lại sau nhé.',
+        socialFailed: 'Đăng nhập chưa thành. Em thử lại sau nhé.',
+      },
+      comingSoon: {
+        title: 'Sắp ra mắt',
+        body: 'Mình vẫn đang chăm chút phần này. Em dùng email trước nhé.',
+        ok: 'OK',
       },
     },
     pairing: {

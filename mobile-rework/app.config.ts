@@ -21,6 +21,7 @@ const config: ExpoConfig = {
     supportsTablet: false,
     bundleIdentifier: bundleId,
     buildNumber: '1',
+    usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -68,6 +69,22 @@ const config: ExpoConfig = {
         cameraPermission: 'Memoura cần quyền camera khi em chụp khoảnh khắc.',
       },
     ],
+    'expo-apple-authentication',
+    [
+      '@react-native-google-signin/google-signin',
+      {
+        // REVERSED iOS OAuth client ID — must match the Google Cloud iOS client
+        // for bundle `com.hungphu.memoura`. Backend audience array must include
+        // both this iOS client and the web client below.
+        iosUrlScheme:
+          'com.googleusercontent.apps.1066031301719-mll9pttl9b3pucs1fgu88mojievri330',
+      },
+    ],
+    // Custom plugin — injects `GIDSignIn.sharedInstance.handle(url)` into the
+    // Swift AppDelegate. RN 0.77+ no longer auto-swizzles URL handlers, and the
+    // google-signin plugin above only writes Info.plist. Must run AFTER
+    // google-signin so the AppDelegate already exists when we patch it.
+    './plugins/withGoogleSigninUrlHandler',
   ],
   experiments: {
     typedRoutes: true,
@@ -75,6 +92,10 @@ const config: ExpoConfig = {
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL,
     appBaseUrl: process.env.EXPO_PUBLIC_APP_BASE_URL,
+    googleIosClientId:
+      '1066031301719-mll9pttl9b3pucs1fgu88mojievri330.apps.googleusercontent.com',
+    googleWebClientId:
+      '1066031301719-jmep5e8c5hksosc9j47668at4urpln4c.apps.googleusercontent.com',
     eas: {
       projectId: '',
     },

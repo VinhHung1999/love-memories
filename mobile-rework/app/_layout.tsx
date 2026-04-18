@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
 import { apiClient } from '@/lib/apiClient';
 import { parseMemouraUrl } from '@/lib/deepLink';
+import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
 import { useAuthStore } from '@/stores/authStore';
 import { fontMap } from '@/theme/fonts';
@@ -30,6 +31,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     void useAuthStore.getState().hydrate();
+    // Configure Google Sign-In once at boot. Idempotent — repeats no-op.
+    configureGoogleSignIn();
   }, []);
 
   const ready = (fontsLoaded || fontError) && i18nReady && hydrated;

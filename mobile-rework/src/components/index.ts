@@ -8,3 +8,4 @@ export { LinearGradient } from './Gradient';
 export { Input } from './Input';
 export { SafeScreen } from './SafeScreen';
 export { ScreenBackBtn, ScreenHeader } from './ScreenHeader';
+export { SocialRow, type SocialKind } from './SocialRow';

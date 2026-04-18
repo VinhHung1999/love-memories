@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenBackBtn } from '@/components';
+import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenBackBtn, SocialRow } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { PASSWORD_MIN, useSignUpViewModel } from './useSignUpViewModel';
 
@@ -22,6 +22,7 @@ export function SignUpScreen() {
     errors,
     formError,
     submitting,
+    socialLoading,
     canSubmit,
     setName,
     setEmail,
@@ -31,13 +32,16 @@ export function SignUpScreen() {
     onToggleShowConfirm,
     onSubmit,
     onSwitchLogin,
+    onSocial,
   } = useSignUpViewModel();
   const formErrorText = formError
     ? formError.kind === 'emailTaken'
       ? t('onboarding.auth.errors.emailTaken')
       : formError.kind === 'rateLimited'
         ? t('onboarding.auth.errors.rateLimited')
-        : t('onboarding.auth.errors.network')
+        : formError.kind === 'socialFailed'
+          ? t('onboarding.auth.errors.socialFailed')
+          : t('onboarding.auth.errors.network')
     : null;
 
   return (
@@ -186,7 +190,11 @@ export function SignUpScreen() {
 
               <DividerWith label={t('onboarding.auth.or')} />
 
-              <SocialRowStub />
+              <SocialRow
+                loading={socialLoading}
+                onApple={() => onSocial('apple')}
+                onGoogle={() => onSocial('google')}
+              />
 
               <View className="mt-7 flex-row justify-center items-center">
                 <Text className="font-body text-ink-soft text-[13px]">
@@ -206,45 +214,3 @@ export function SignUpScreen() {
   );
 }
 
-// Stubbed disabled row — real OAuth wiring lands in T283.
-function SocialRowStub() {
-  const { t } = useTranslation();
-  const items: readonly { key: string; icon: string; label: string; classes: string; textClass: string }[] = [
-    {
-      key: 'apple',
-      icon: '',
-      label: t('onboarding.auth.signup.socialApple'),
-      classes: 'bg-ink',
-      textClass: 'text-bg',
-    },
-    {
-      key: 'google',
-      icon: 'G',
-      label: t('onboarding.auth.signup.socialGoogle'),
-      classes: 'bg-bg-elev border border-line',
-      textClass: 'text-ink',
-    },
-    {
-      key: 'phone',
-      icon: '☎',
-      label: t('onboarding.auth.signup.socialPhone'),
-      classes: 'bg-surface border border-line',
-      textClass: 'text-ink',
-    },
-  ];
-  return (
-    <View className="flex-row gap-2 opacity-50">
-      {items.map((it) => (
-        <View
-          key={it.key}
-          className={`flex-1 flex-row items-center justify-center py-3.5 rounded-2xl ${it.classes}`}
-        >
-          {it.icon ? (
-            <Text className={`font-bodyBold text-[15px] mr-2 ${it.textClass}`}>{it.icon}</Text>
-          ) : null}
-          <Text className={`font-bodyBold text-sm ${it.textClass}`}>{it.label}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}

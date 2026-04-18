@@ -135,6 +135,12 @@ const en: Resources = {
         emailTaken: 'That email is already registered',
         rateLimited: 'Try again in a moment',
         network: 'Network hiccup. Try again in a bit.',
+        socialFailed: 'Sign-in didn\u2019t go through. Try again in a bit.',
+      },
+      comingSoon: {
+        title: 'Coming soon',
+        body: 'We\u2019re still polishing this one. Try email for now.',
+        ok: 'Got it',
       },
     },
     pairing: {
