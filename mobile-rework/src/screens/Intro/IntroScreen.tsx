@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Image,
   Pressable,
   ScrollView,
   Text,
@@ -217,34 +218,39 @@ function SlideVisual({ kind }: { kind: IntroSlideKind }) {
   return <DailyVisual />;
 }
 
-function MomentsVisual() {
-  const c = useAppColors();
+// T297 (bug #1): real CC0 photos for the 3 polaroid frames on the Moments
+// slide. Bundled as require()s for instant render. Photo #3 pivoted to a
+// warm still-life (latte cups) per PO directive — objects > posed couples
+// for intimacy + VN relatability. Credits in
+// assets/images/onboarding/CREDITS.md.
+const MOMENTS_PHOTOS = [
+  require('../../../assets/images/onboarding/intro-moments-1.jpg'),
+  require('../../../assets/images/onboarding/intro-moments-2.jpg'),
+  require('../../../assets/images/onboarding/intro-moments-3.jpg'),
+] as const;
 
+function MomentsVisual() {
   // Ports `IntroVisual('moments')` from onboarding.jsx:230. Polaroid card 160×200,
   // pre-resolved center offsets: container row centers at left-1/2; each card
   // half-width = 80, then add the prototype's per-card x and y.
-  const cards: readonly {
-    posClass: string;
-    grad: readonly [string, string];
-  }[] = [
-    { posClass: '-ml-[140px] mt-0 -rotate-[12deg]', grad: [c.primarySoft, c.secondarySoft] },
-    { posClass: '-ml-[80px] mt-[20px] -rotate-[2deg]', grad: [c.accentSoft, c.primarySoft] },
-    { posClass: '-ml-[20px] mt-[5px] rotate-[10deg]', grad: [c.secondarySoft, c.accentSoft] },
-  ];
+  const positions = [
+    '-ml-[140px] mt-0 -rotate-[12deg]',
+    '-ml-[80px] mt-[20px] -rotate-[2deg]',
+    '-ml-[20px] mt-[5px] rotate-[10deg]',
+  ] as const;
 
   return (
     <View className="relative w-full h-full">
-      {cards.map((card, i) => (
+      {positions.map((posClass, i) => (
         <View
           key={i}
-          className={`absolute left-1/2 top-[30px] w-[160px] h-[200px] bg-white rounded-md shadow-elevated ${card.posClass}`}
+          className={`absolute left-1/2 top-[30px] w-[160px] h-[200px] bg-white rounded-md shadow-elevated ${posClass}`}
         >
-          <View className="absolute top-[8px] left-[8px] right-[8px] bottom-[28px] rounded-[2px] overflow-hidden">
-            <LinearGradient
-              colors={card.grad}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="absolute inset-0"
+          <View className="absolute top-[8px] left-[8px] right-[8px] bottom-[28px] rounded-[2px] overflow-hidden bg-ink-soft/10">
+            <Image
+              source={MOMENTS_PHOTOS[i]}
+              resizeMode="cover"
+              className="absolute inset-0 w-full h-full"
             />
           </View>
         </View>

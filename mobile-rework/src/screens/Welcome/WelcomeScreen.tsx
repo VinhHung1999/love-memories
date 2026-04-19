@@ -1,11 +1,20 @@
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Circle, Path } from 'react-native-svg';
 import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useWelcomeViewModel } from './useWelcomeViewModel';
+
+// T297 (bug #1): real CC0 Unsplash photos replace the gradient + silhouette
+// placeholders. Bundled as local require()s so the polaroids render instantly
+// (no network flash on the very first screen). Credits in
+// assets/images/onboarding/CREDITS.md.
+const POLAROID_PHOTOS = [
+  require('../../../assets/images/onboarding/welcome-1.jpg'),
+  require('../../../assets/images/onboarding/welcome-2.jpg'),
+  require('../../../assets/images/onboarding/welcome-3.jpg'),
+] as const;
 
 // T294 (bug #1): Vietnamese-bearing display text needs leading ≥ ~1.25× font-size
 // (≥ ~1.3× for uppercase) so dấu mũ/sắc/huyền don't get clipped at the top of the
@@ -29,11 +38,6 @@ export function WelcomeScreen() {
   const c = useAppColors();
   const { onStart, onLogin } = useWelcomeViewModel();
 
-  const polaroidGradients: readonly (readonly [string, string])[] = [
-    [c.primarySoft, c.secondarySoft],
-    [c.accentSoft, c.primarySoft],
-    [c.secondarySoft, c.accentSoft],
-  ];
   const polaroidLabels = [
     t('onboarding.welcome.polaroidLabels.one'),
     t('onboarding.welcome.polaroidLabels.two'),
@@ -58,16 +62,12 @@ export function WelcomeScreen() {
                 key={i}
                 className={`absolute w-[186px] h-[220px] bg-white rounded-lg shadow-elevated ${posClass}`}
               >
-                <View className="absolute top-[10px] left-[10px] right-[10px] bottom-[36px] rounded-[2px] overflow-hidden">
-                  <LinearGradient
-                    colors={[polaroidGradients[i][0], polaroidGradients[i][1]]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    className="absolute inset-0"
+                <View className="absolute top-[10px] left-[10px] right-[10px] bottom-[36px] rounded-[2px] overflow-hidden bg-ink-soft/10">
+                  <Image
+                    source={POLAROID_PHOTOS[i]}
+                    resizeMode="cover"
+                    className="absolute inset-0 w-full h-full"
                   />
-                  <Svg width="100%" height="100%" viewBox="0 0 100 100" opacity={0.35}>
-                    <PolaroidSilhouette idx={i} fill={c.inkSoft} />
-                  </Svg>
                 </View>
                 <Text className="absolute bottom-[8px] left-0 right-0 text-center font-displayItalic text-base text-ink-soft">
                   {polaroidLabels[i]}
@@ -169,17 +169,3 @@ function LegalFooter() {
   );
 }
 
-function PolaroidSilhouette({ idx, fill }: { idx: number; fill: string }) {
-  if (idx === 0) {
-    return <Path d="M0,80 Q25,40 50,55 T100,50 L100,100 L0,100 Z" fill={fill} />;
-  }
-  if (idx === 1) {
-    return (
-      <>
-        <Circle cx="35" cy="45" r="10" fill={fill} />
-        <Circle cx="65" cy="50" r="12" fill={fill} />
-      </>
-    );
-  }
-  return <Path d="M20,60 Q50,30 80,60 Q65,85 50,85 Q35,85 20,60 Z" fill={fill} />;
-}
