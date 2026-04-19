@@ -1,3 +1,4 @@
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ApiError, apiClient } from '@/lib/apiClient';
@@ -58,10 +59,20 @@ type CreateCoupleResponse = {
   inviteCode: string;
 };
 
+// T314: /api/profile/avatar returns the updated user row (select: id, email,
+// name, avatar). We only need the CDN url — cache the rest if useful later.
+type AvatarUploadResponse = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  avatar: string | null;
+};
+
 type FormError =
   | { kind: 'nameRequired' }
   | { kind: 'dateRequired' }
   | { kind: 'dateInvalid' }
+  | { kind: 'avatarFailed' }
   | { kind: 'network' };
 
 function parseAnniversary(input: string): string | null | 'invalid' {
@@ -95,6 +106,15 @@ export function usePersonalizeViewModel() {
   const [date, setDate] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<FormError | null>(null);
+  // T314: avatar is upload-in-background. Local URI renders instantly (optimistic
+  // preview); the POST races in parallel while the user fills the rest of the
+  // form. By the time they tap Continue, the CDN URL is typically already on
+  // user.avatarUrl. Submit doesn't block on it — a stuck upload shouldn't
+  // trap the user in onboarding.
+  const [avatarLocalUri, setAvatarLocalUri] = useState<string | null>(
+    user?.avatarUrl ?? null,
+  );
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const colorIndexes = useMemo<number[]>(
     () => Array.from({ length: COLOR_COUNT }, (_, i) => i),
@@ -195,6 +215,64 @@ export function usePersonalizeViewModel() {
     }
   }, [canSubmit, nick, date, colorIndex, isCreator, setUser, setSession, router]);
 
+  // T314: pick + optimistic upload. Flow:
+  //   1. Request media-library perm (idempotent — OS caches decisions).
+  //   2. Launch picker with 1:1 crop, high quality (BE re-encodes via CDN).
+  //   3. Set local URI immediately → view shows the chosen photo.
+  //   4. Fire POST /api/profile/avatar in parallel; on success, write the
+  //      returned CDN URL into authStore.user.avatarUrl so downstream screens
+  //      (OnboardingDone hero, home, profile) pick it up.
+  //   5. On failure, keep the local URI as a preview but surface `avatarFailed`
+  //      so the user knows to retry. Submit is NOT blocked — profile without
+  //      an avatar is valid.
+  const onPickAvatar = useCallback(async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted && perm.status !== 'granted') {
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9,
+      });
+      if (res.canceled || !res.assets?.[0]) return;
+      const asset = res.assets[0];
+      const uri = asset.uri;
+      setAvatarLocalUri(uri);
+      setFormError((prev) => (prev?.kind === 'avatarFailed' ? null : prev));
+      setAvatarUploading(true);
+
+      // Derive filename + mime. expo-image-picker sometimes omits fileName on
+      // iOS — fall back to a synthesised one based on the uri extension.
+      const fallbackName = `avatar-${Date.now()}.jpg`;
+      const name = asset.fileName ?? fallbackName;
+      const type = asset.mimeType ?? 'image/jpeg';
+
+      try {
+        const updated = await apiClient.upload<AvatarUploadResponse>(
+          '/api/profile/avatar',
+          'avatar',
+          { uri, name, type },
+        );
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
+          setUser({ ...currentUser, avatarUrl: updated.avatar });
+        }
+        // Swap the preview to the CDN URL so we stop holding a reference to
+        // a cache-only local file that may get evicted mid-session.
+        if (updated.avatar) setAvatarLocalUri(updated.avatar);
+      } catch {
+        setFormError({ kind: 'avatarFailed' });
+      } finally {
+        setAvatarUploading(false);
+      }
+    } catch {
+      // ImagePicker launch failed (missing permission UI, etc.) — no-op.
+    }
+  }, [setUser]);
+
   return {
     nick,
     setNick,
@@ -207,6 +285,9 @@ export function usePersonalizeViewModel() {
     canSubmit,
     formError,
     isCreator,
+    avatarLocalUri,
+    avatarUploading,
+    onPickAvatar,
     onSubmit,
   };
 }

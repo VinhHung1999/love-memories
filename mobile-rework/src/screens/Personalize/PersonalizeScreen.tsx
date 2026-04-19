@@ -1,10 +1,12 @@
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import { Check } from 'lucide-react-native';
+import { Camera, Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -78,6 +80,9 @@ export function PersonalizeScreen() {
     canSubmit,
     formError,
     isCreator,
+    avatarLocalUri,
+    avatarUploading,
+    onPickAvatar,
     onSubmit,
   } = usePersonalizeViewModel();
 
@@ -124,6 +129,29 @@ export function PersonalizeScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* T314: avatar picker hero. Sits above the preview card on both
+                creator + joiner paths. Optimistic — preview shows the local
+                URI the moment the user picks, while the upload races in the
+                background. Submit is not gated on the upload (a slow CDN
+                shouldn't trap the user in onboarding). */}
+            <View className="items-center px-5 pt-1 pb-1">
+              <AvatarPicker
+                uri={avatarLocalUri}
+                initial={initial}
+                colorIndex={colorIndex}
+                uploading={avatarUploading}
+                disabled={submitting}
+                onPress={onPickAvatar}
+                ctaLabel={
+                  avatarUploading
+                    ? t('onboarding.personalize.avatarUploading')
+                    : avatarLocalUri
+                      ? t('onboarding.personalize.avatarChange')
+                      : t('onboarding.personalize.avatarAdd')
+                }
+              />
+            </View>
+
             <View className="px-5 pt-3">
               <PreviewCard
                 colorIndex={colorIndex}
@@ -134,6 +162,7 @@ export function PersonalizeScreen() {
                 // the preview doesn't dangle a placeholder date they can't fill.
                 date={isCreator ? previewDate : null}
                 sinceLabel={t('onboarding.personalize.previewSince')}
+                avatarUri={avatarLocalUri}
               />
             </View>
 
@@ -216,23 +245,40 @@ type PreviewProps = {
   // null on joiner path (no date field) — the "since …" line is omitted entirely.
   date: string | null;
   sinceLabel: string;
+  // T314: when the user has picked an avatar, the preview chip shows it
+  // instead of the gradient + initial fallback.
+  avatarUri: string | null;
 };
 
-function PreviewCard({ colorIndex, initial, name, partnerLabel, date, sinceLabel }: PreviewProps) {
+function PreviewCard({
+  colorIndex,
+  initial,
+  name,
+  partnerLabel,
+  date,
+  sinceLabel,
+  avatarUri,
+}: PreviewProps) {
   const from = SWATCH_FROM[colorIndex];
   const to = SWATCH_TO[colorIndex];
   return (
     <View className="self-center flex-row items-center rounded-[22px] border border-line-on-surface bg-surface px-5 py-4">
       <View className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-bg shadow-chip">
-        <LinearGradient
-          colors={[from, to]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="absolute inset-0"
-        />
-        <View className="flex-1 items-center justify-center">
-          <Text className="font-displayBold text-white text-[20px]">{initial}</Text>
-        </View>
+        {avatarUri ? (
+          <Image source={{ uri: avatarUri }} className="w-full h-full" resizeMode="cover" />
+        ) : (
+          <>
+            <LinearGradient
+              colors={[from, to]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
+            />
+            <View className="flex-1 items-center justify-center">
+              <Text className="font-displayBold text-white text-[20px]">{initial}</Text>
+            </View>
+          </>
+        )}
       </View>
       <View className="ml-3.5">
         {/* T294 (bug #1): leading-[20px] (1.11×) clipped dấu mũ on "người ấy";
@@ -246,6 +292,73 @@ function PreviewCard({ colorIndex, initial, name, partnerLabel, date, sinceLabel
           </Text>
         ) : null}
       </View>
+    </View>
+  );
+}
+
+// T314: hero avatar picker. Big circular tap target above the preview card.
+// Three states:
+//   empty   → gradient swatch + camera glyph + "Thêm ảnh"
+//   picked  → image fill + small camera badge + "Thay đổi ảnh"
+//   loading → image fill + spinner overlay + "Đang tải ảnh…"
+function AvatarPicker({
+  uri,
+  initial,
+  colorIndex,
+  uploading,
+  disabled,
+  onPress,
+  ctaLabel,
+}: {
+  uri: string | null;
+  initial: string;
+  colorIndex: number;
+  uploading: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+  ctaLabel: string;
+}) {
+  const from = SWATCH_FROM[colorIndex];
+  const to = SWATCH_TO[colorIndex];
+  return (
+    <View className="items-center">
+      <Pressable
+        onPress={disabled ? undefined : onPress}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!disabled, busy: uploading }}
+        accessibilityLabel={ctaLabel}
+        hitSlop={8}
+        className={`w-[112px] h-[112px] rounded-full overflow-hidden border-2 border-bg shadow-hero ${
+          disabled ? 'opacity-60' : 'active:opacity-90'
+        }`}
+      >
+        {uri ? (
+          <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
+        ) : (
+          <>
+            <LinearGradient
+              colors={[from, to]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
+            />
+            <View className="flex-1 items-center justify-center">
+              <Text className="font-displayBold text-white text-[42px]">{initial}</Text>
+            </View>
+          </>
+        )}
+        {uploading ? (
+          <View className="absolute inset-0 items-center justify-center bg-black/35">
+            <ActivityIndicator color="#FFFFFF" />
+          </View>
+        ) : null}
+        {uri && !uploading ? (
+          <View className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-white items-center justify-center shadow-chip">
+            <Camera size={16} color="#1A1A1A" strokeWidth={2.2} />
+          </View>
+        ) : null}
+      </Pressable>
+      <Text className="mt-2.5 font-bodyMedium text-ink-soft text-[13px]">{ctaLabel}</Text>
     </View>
   );
 }

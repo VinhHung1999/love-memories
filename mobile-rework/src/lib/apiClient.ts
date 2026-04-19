@@ -107,6 +107,14 @@ export async function apiFetch<T = unknown>(
   return body as T;
 }
 
+// T314: multipart/form-data helper for avatar upload (expo-image-picker →
+// POST /api/profile/avatar, field name `avatar`). RN's FormData accepts
+// `{ uri, name, type }` directly; the fetch polyfill streams it. We hand the
+// FormData to apiFetch as-is — the existing Content-Type branch on line 63
+// skips the JSON header when body is FormData, which lets fetch set the
+// correct multipart boundary automatically.
+type UploadFile = { uri: string; name: string; type: string };
+
 export const apiClient = {
   get: <T = unknown>(path: string, options?: RequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'GET' }),
@@ -130,4 +138,16 @@ export const apiClient = {
     }),
   del: <T = unknown>(path: string, options?: RequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'DELETE' }),
+  upload: <T = unknown>(
+    path: string,
+    field: string,
+    file: UploadFile,
+    options?: RequestOptions,
+  ) => {
+    const form = new FormData();
+    // RN's FormData types don't quite match the web spec — cast to the shape
+    // the runtime actually accepts (Android/iOS fetch reads { uri, name, type }).
+    form.append(field, file as unknown as Blob);
+    return apiFetch<T>(path, { ...options, method: 'POST', body: form });
+  },
 };
