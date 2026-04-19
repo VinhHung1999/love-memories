@@ -13,15 +13,25 @@ import { parseMemouraUrl } from '@/lib/deepLink';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { fontMap } from '@/theme/fonts';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+// T288: hard cap on splash. If fonts/i18n/auth/theme can't all settle in 3s
+// (corrupt AsyncStorage, missing font file, etc.) we proceed with whatever
+// state we have and log a warning. Without this, a single failing async
+// boot step holds the splash forever and the user sees a permanent splash
+// — same blank-screen symptom as the gate hole T288 also fixes.
+const HYDRATION_TIMEOUT_MS = 3000;
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontMap);
   const [i18nReady, setI18nReady] = useState(false);
-  const hydrated = useAuthStore((s) => s.hydrated);
+  const [timeoutFired, setTimeoutFired] = useState(false);
+  const authHydrated = useAuthStore((s) => s.hydrated);
+  const themeHydrated = useThemeStore((s) => s.hydrated);
 
   useEffect(() => {
     initI18n()
@@ -31,11 +41,26 @@ export default function RootLayout() {
 
   useEffect(() => {
     void useAuthStore.getState().hydrate();
+    void useThemeStore.getState().hydrate();
     // Configure Google Sign-In once at boot. Idempotent — repeats no-op.
     configureGoogleSignIn();
   }, []);
 
-  const ready = (fontsLoaded || fontError) && i18nReady && hydrated;
+  const allReady =
+    (fontsLoaded || fontError) && i18nReady && authHydrated && themeHydrated;
+  const ready = allReady || timeoutFired;
+
+  useEffect(() => {
+    if (allReady) return;
+    const id = setTimeout(() => {
+      console.warn(
+        `[RootLayout] hydration timed out after ${HYDRATION_TIMEOUT_MS}ms — proceeding with partial state`,
+        { fontsLoaded, fontError: !!fontError, i18nReady, authHydrated, themeHydrated },
+      );
+      setTimeoutFired(true);
+    }, HYDRATION_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [allReady, fontsLoaded, fontError, i18nReady, authHydrated, themeHydrated]);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
@@ -74,15 +99,24 @@ function RootStack() {
 // segment we leave them alone — they can navigate freely inside `(auth)`
 // without the gate yanking them to a different screen mid-form.
 //
-// Sprint 60 T284: gate is now keyed on `onboardingComplete`, not `coupleId`.
+// Sprint 60 T284: gate is keyed on `onboardingComplete`, not `coupleId`.
 // During onboarding the user transiently has coupleId=set but pairing isn't
 // done; routing to (tabs) on coupleId would break the resume path. T286
 // OnboardingDone is the explicit commit that flips onboardingComplete=true.
 //
+// Sprint 60 T288: explicit branch for the initial `/` (`/index`) route.
+// On a cold-start with `authed=T, onboardingComplete=T` Expo Router lands the
+// user on the root index (segments[0]===undefined → not in (auth), not in
+// (tabs)). The pre-T288 four-branch gate had no match for that case and the
+// blank `/index` placeholder rendered forever — Boss's white-screen bug.
+// Fix: collapse routing into three exhaustive auth states; any time the user
+// is NOT in the correct group (including unknown groups like /index), push
+// them to the right destination.
+//
 // PRE_AUTH_SCREENS = the (auth) screens shown BEFORE the user has a session.
 // The remaining (auth) screens (pair-create / pair-invite / pair-join /
 // personalize / permissions / onboarding-done) are pairing/onboarding steps,
-// so we must NOT yank an authed user off them — they need to walk the wizard.
+// so an authed-not-onboarded user is allowed to stay on those.
 const PRE_AUTH_SCREENS: readonly string[] = [
   'welcome',
   'intro',
@@ -96,6 +130,7 @@ function useAuthGate() {
   const segments = useSegments();
   const accessToken = useAuthStore((s) => s.accessToken);
   const onboardingComplete = useAuthStore((s) => s.onboardingComplete);
+  const hasSeenOnboarding = useAuthStore((s) => s.hasSeenOnboarding);
 
   useEffect(() => {
     // expo-router types segments as a narrow tuple inferred from the app
@@ -103,24 +138,41 @@ function useAuthGate() {
     const seg = segments as readonly string[];
     const inAuthGroup = seg[0] === '(auth)';
     const inTabsGroup = seg[0] === '(tabs)';
+    const inModalGroup = seg[0] === '(modal)';
     const authed = !!accessToken;
     const screen = seg[1];
     const onPreAuthScreen =
       inAuthGroup && typeof screen === 'string' && PRE_AUTH_SCREENS.includes(screen);
 
-    if (!authed && !inAuthGroup) {
-      router.replace('/(auth)/welcome');
-    } else if (authed && !onboardingComplete && inTabsGroup) {
-      router.replace('/(auth)/pair-create');
-    } else if (authed && !onboardingComplete && onPreAuthScreen) {
-      // Just signed in / signed up while still on a pre-auth screen — push
-      // them into the pairing wizard. Without this the user is stuck on
-      // signup/login after setSession because no other branch fires.
-      router.replace('/(auth)/pair-create');
-    } else if (authed && onboardingComplete && inAuthGroup) {
-      router.replace('/(tabs)');
+    if (!authed) {
+      // Unauthed: only allowed inside the (auth) group. Anything else
+      // (tabs, modals, /index, unknown) → /login if the user has previously
+      // completed onboarding on this install (T288 Boss bug #15), otherwise
+      // /welcome (true first-run).
+      if (!inAuthGroup) {
+        router.replace(hasSeenOnboarding ? '/(auth)/login' : '/(auth)/welcome');
+      }
+      return;
     }
-  }, [accessToken, onboardingComplete, segments, router]);
+
+    // Authed past this point. Modals are layered over either tabs or auth
+    // and shouldn't trigger a routing decision — leave them alone.
+    if (inModalGroup) return;
+
+    if (!onboardingComplete) {
+      // Authed but onboarding incomplete: must be inside the post-auth
+      // (auth) wizard (pair-create / pair-invite / pair-join / personalize /
+      // permissions / onboarding-done). Tabs, pre-auth screens, /index, and
+      // unknown groups all funnel back to pair-create.
+      const inWizard = inAuthGroup && !onPreAuthScreen;
+      if (!inWizard) router.replace('/(auth)/pair-create');
+      return;
+    }
+
+    // Authed + onboarded: belongs in (tabs). Anywhere else (auth group,
+    // /index from a fresh cold-start, unknown) → tabs.
+    if (!inTabsGroup) router.replace('/(tabs)');
+  }, [accessToken, onboardingComplete, hasSeenOnboarding, segments, router]);
 }
 
 // Reinstall edge case (sprint-60-pairing.md §"Edge case — reinstall with
