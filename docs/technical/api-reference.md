@@ -408,6 +408,39 @@ Generate or regenerate the 8-character lowercase-hex invite code (`crypto.random
 
 ---
 
+### `GET /api/couple/validate-invite?code=…` — Public (no auth)
+
+Preview an invite code before the joiner commits to `POST /api/couple/join`. Used by the mobile pair-join flow (debounced as the 8-hex code is typed) and by the public web landing page at `https://memoura.app/join/<code>` to render the inviter's name + avatar.
+
+**Query params:** `code` (required) — 8-char hex, lowercase or uppercase accepted.
+
+**Response (200, valid):**
+```json
+{
+  "valid": true,
+  "coupleName": "Linh & Minh",
+  "inviter": {
+    "name": "Linh",
+    "avatarUrl": "https://cdn.memoura.app/u/abc.jpg"
+  }
+}
+```
+
+**Response (200, invalid):**
+```json
+{ "valid": false, "error": "Invalid invite code" }
+```
+or `"This couple is already full"` when the couple already has 2 members.
+
+**Notes:**
+- **Public endpoint by design** — the 8-hex code IS the auth, mirroring the share-link model. Anyone with the code can preview the inviter's name + avatar.
+- `inviter.name` may be empty string if the inviter hasn't completed Personalize yet (couple created but no name set).
+- `inviter.avatarUrl` is `null` when the inviter hasn't uploaded an avatar.
+
+**Errors:** `400` missing `code` query param.
+
+---
+
 ### `POST /api/couple` — Auth required
 
 Create a couple for the current user. The user must not already belong to a couple. The response includes a fresh access/refresh-token pair (the new JWT carries `coupleId`) and the first auto-generated `inviteCode` (8 lowercase hex chars).

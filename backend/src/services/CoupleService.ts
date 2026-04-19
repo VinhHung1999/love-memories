@@ -84,15 +84,26 @@ export async function getMyInvite(userId: string) {
 
 export async function validateInvite(code: string) {
   const couple = await prisma.couple.findUnique({ where: { inviteCode: code } });
-  if (!couple) return { valid: false, error: 'Invalid invite code' };
+  if (!couple) return { valid: false as const, error: 'Invalid invite code' };
 
   const [count, partner] = await Promise.all([
     prisma.user.count({ where: { coupleId: couple.id } }),
     prisma.user.findFirst({ where: { coupleId: couple.id }, select: { name: true, avatar: true } }),
   ]);
 
-  if (count >= 2) return { valid: false, error: 'This couple is already full' };
-  return { valid: true, coupleName: couple.name, partnerName: partner?.name ?? '', partnerAvatar: partner?.avatar ?? null };
+  if (count >= 2) return { valid: false as const, error: 'This couple is already full' };
+  // Sprint 60 B41a — joiner UI needs both name + avatar to render the inviter
+  // hero before they commit. Old shape returned `partnerName`/`partnerAvatar`
+  // as siblings; nested `inviter` reads better at the call site and groups
+  // the optional fields. Public endpoint by design — the 8-hex code IS the auth.
+  return {
+    valid: true as const,
+    coupleName: couple.name,
+    inviter: {
+      name: partner?.name ?? '',
+      avatarUrl: partner?.avatar ?? null,
+    },
+  };
 }
 
 export async function createCouple(userId: string, name?: string) {

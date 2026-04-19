@@ -32,6 +32,13 @@ type State = Tokens & {
   // they sign in / sign up, PairChoice consumes it to redirect into pair-join
   // with the code prefilled, then clears it. Cleared on clear() too.
   pendingPairCode: string | null;
+  // Sprint 60 T316: transient (NOT persisted) inviter snapshot fetched by
+  // PairJoin's debounced /validate-invite call. Joiner-path screens after
+  // PairJoin (Personalize hero, OnboardingDone celebration) read this to
+  // greet the user with the inviter's actual name + avatar instead of the
+  // generic "người ấy" copy. Cleared on successful pair-join (the real
+  // partner now lives on user.partner via /api/couple) and on clear().
+  pendingPartner: { name: string; avatarUrl: string | null } | null;
   hydrated: boolean;
 };
 
@@ -48,6 +55,7 @@ type Actions = {
   setCoupleId: (coupleId: string | null) => void;
   setOnboardingComplete: (value: boolean) => Promise<void>;
   setPendingPairCode: (code: string | null) => void;
+  setPendingPartner: (partner: { name: string; avatarUrl: string | null } | null) => void;
   clear: () => Promise<void>;
 };
 
@@ -85,6 +93,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
   onboardingComplete: false,
   hasSeenOnboarding: false,
   pendingPairCode: null,
+  pendingPartner: null,
   hydrated: false,
 
   hydrate: async () => {
@@ -165,6 +174,10 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     set({ pendingPairCode: code });
   },
 
+  setPendingPartner: (partner) => {
+    set({ pendingPartner: partner });
+  },
+
   clear: async () => {
     // T288: hasSeenOnboarding persists across logout by design — only the
     // session keys are wiped. The ONBOARDED_KEY survives.
@@ -174,6 +187,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
       refreshToken: null,
       onboardingComplete: false,
       pendingPairCode: null,
+      pendingPartner: null,
     });
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);

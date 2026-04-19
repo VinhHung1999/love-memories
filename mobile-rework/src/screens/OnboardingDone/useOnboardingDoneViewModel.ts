@@ -19,6 +19,7 @@ export function useOnboardingDoneViewModel() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const setOnboardingComplete = useAuthStore((s) => s.setOnboardingComplete);
+  const setPendingPartner = useAuthStore((s) => s.setPendingPartner);
   const [entering, setEntering] = useState(false);
 
   const onEnter = useCallback(async () => {
@@ -32,10 +33,14 @@ export function useOnboardingDoneViewModel() {
         // until a later sync, but the local flag unblocks the gate now.
       }
       await setOnboardingComplete(true);
+      // T316: drop the transient inviter stash now that (tabs) will fetch the
+      // real partner via /api/couple. Keeping it around would let stale name/
+      // avatar leak into any screen still reading pendingPartner.
+      setPendingPartner(null);
     } finally {
       router.replace('/(tabs)');
     }
-  }, [entering, setOnboardingComplete, router]);
+  }, [entering, setOnboardingComplete, setPendingPartner, router]);
 
   return {
     selfName: user?.name ?? null,

@@ -24,8 +24,11 @@ const VALIDATE_DEBOUNCE_MS = 400;
 
 type ValidateResponse = {
   valid: boolean;
-  partnerName?: string | null;
-  partnerAvatar?: string | null;
+  // Sprint 60 B41a — BE reshape. Old siblings `partnerName`/`partnerAvatar`
+  // collapsed into nested `inviter` so the joiner UI gets a single object
+  // to spread into the hero (Personalize, OnboardingDone celebration).
+  inviter?: { name: string; avatarUrl: string | null } | null;
+  coupleName?: string | null;
   error?: string;
 };
 
@@ -77,10 +80,16 @@ export function usePairJoinViewModel() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ code?: string }>();
   const setSession = useAuthStore((s) => s.setSession);
+  const setPendingPartner = useAuthStore((s) => s.setPendingPartner);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const [cells, setCells] = useState<string[]>(emptyCells);
+  // Sprint 60 T316: keep partnerName local for the inline preview row above
+  // the cells (cheap, immediate). Avatar lives in authStore.pendingPartner so
+  // downstream screens (Personalize hero) can also consume it without prop-
+  // drilling through the router. Both populated by the same /validate-invite.
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [partnerAvatarUrl, setPartnerAvatarUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<FormError | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -126,6 +135,8 @@ export function usePairJoinViewModel() {
   useEffect(() => {
     if (code.length !== CODE_LEN) {
       setPartnerName(null);
+      setPartnerAvatarUrl(null);
+      setPendingPartner(null);
       return;
     }
     let cancelled = false;
@@ -136,21 +147,34 @@ export function usePairJoinViewModel() {
           { skipAuth: true },
         );
         if (cancelled) return;
-        if (res.valid) {
-          setPartnerName(res.partnerName ?? null);
+        if (res.valid && res.inviter) {
+          const name = res.inviter.name ?? '';
+          setPartnerName(name || null);
+          setPartnerAvatarUrl(res.inviter.avatarUrl ?? null);
+          // T316: stash for downstream joiner screens (Personalize hero,
+          // OnboardingDone celebration). Cleared after successful join (the
+          // real partner now lives on the couple) or when the cells lose
+          // 8-char fullness (user backspaced — no longer a valid preview).
+          setPendingPartner({ name, avatarUrl: res.inviter.avatarUrl ?? null });
         } else {
           setPartnerName(null);
+          setPartnerAvatarUrl(null);
+          setPendingPartner(null);
         }
       } catch {
         // Silent — inline preview is best-effort. Submit still gates the flow.
-        if (!cancelled) setPartnerName(null);
+        if (!cancelled) {
+          setPartnerName(null);
+          setPartnerAvatarUrl(null);
+          setPendingPartner(null);
+        }
       }
     }, VALIDATE_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [code]);
+  }, [code, setPendingPartner]);
 
   const focusCell = useCallback((index: number) => {
     const target = inputRefs.current[index];
@@ -348,6 +372,7 @@ export function usePairJoinViewModel() {
   return {
     cells,
     partnerName,
+    partnerAvatarUrl,
     submitting,
     canSubmit,
     formError,

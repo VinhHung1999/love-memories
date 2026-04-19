@@ -1658,7 +1658,7 @@ describe('Couple Profile', () => {
     expect(res.status).toBe(401);
   });
 
-  it('GET /api/couple/validate-invite returns valid=true with partnerName + partnerAvatar (no auth required)', async () => {
+  it('GET /api/couple/validate-invite returns valid=true with inviter {name, avatarUrl} (no auth required)', async () => {
     // Create a joinable couple with exactly 1 member
     const joinable = await prisma.couple.create({ data: { name: 'Joinable Couple', inviteCode: 'JOINTEST' } });
     await prisma.user.create({ data: { email: 'solo@test.com', password: 'x', name: 'Solo User', coupleId: joinable.id } });
@@ -1666,8 +1666,7 @@ describe('Couple Profile', () => {
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(true);
     expect(res.body.coupleName).toBe('Joinable Couple');
-    expect(res.body.partnerName).toBe('Solo User');
-    expect('partnerAvatar' in res.body).toBe(true);
+    expect(res.body.inviter).toEqual({ name: 'Solo User', avatarUrl: null });
     // Cleanup
     await prisma.user.deleteMany({ where: { email: 'solo@test.com' } });
     await prisma.couple.delete({ where: { id: joinable.id } });

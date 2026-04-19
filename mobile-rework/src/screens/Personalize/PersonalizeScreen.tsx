@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthBigBtn, AuthField, LinearGradient, ScreenHeader } from '@/components';
+import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePersonalizeViewModel } from './usePersonalizeViewModel';
 
@@ -79,8 +80,13 @@ export function PersonalizeScreen() {
     onSubmit,
   } = usePersonalizeViewModel();
 
+  const pendingPartner = useAuthStore((s) => s.pendingPartner);
   const previewName = nick.trim() || t('onboarding.personalize.previewPlaceholder');
-  const partnerLabel = t('onboarding.personalize.previewPartner');
+  // T316: joiner path stashes inviter {name, avatarUrl} on /validate-invite,
+  // so prefer the real name over the generic "người ấy" fallback. Creator
+  // path leaves pendingPartner null until partner joins → keep the fallback.
+  const partnerLabel =
+    pendingPartner?.name?.trim() || t('onboarding.personalize.previewPartner');
   const previewDate = date.trim() || t('onboarding.personalize.datePlaceholder');
   const initial = previewName.charAt(0).toUpperCase();
 
