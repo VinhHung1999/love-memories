@@ -31,6 +31,7 @@ import DailyQuestionsPage from './pages/DailyQuestionsPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
+import JoinLandingPage from './pages/JoinLandingPage';
 
 async function registerPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -80,10 +81,16 @@ export default function App() {
 
   // Public routes (outside auth gate)
   const pathname = window.location.pathname;
-  if (pathname.startsWith('/s/') || pathname === '/privacy-policy' || pathname === '/terms-of-service') {
+  if (
+    pathname.startsWith('/s/') ||
+    pathname.startsWith('/join/') ||
+    pathname === '/privacy-policy' ||
+    pathname === '/terms-of-service'
+  ) {
     return (
       <Routes>
         <Route path="/s/:token" element={<ShareViewerPage />} />
+        <Route path="/join/:code" element={<JoinLandingPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       </Routes>

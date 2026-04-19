@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "DHGY59PZWW.com.hungphu.memoura",
+        "paths": ["/join/*"]
+      }
+    ]
+  }
+}
