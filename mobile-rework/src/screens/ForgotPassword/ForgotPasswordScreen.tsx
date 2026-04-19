@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, LinearGradient, ScreenBackBtn } from '@/components';
+import { AuthBigBtn, AuthField, LinearGradient, ScreenBackBtn, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useForgotPasswordViewModel } from './useForgotPasswordViewModel';
 
@@ -41,25 +41,18 @@ function FormView({ vm }: { vm: ReturnType<typeof useForgotPasswordViewModel> })
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           className="flex-1"
         >
-          <View className="px-2 pt-2">
-            <ScreenBackBtn />
-          </View>
+          <ScreenHeader
+            showBack
+            title={t('onboarding.auth.forgot.title')}
+            subtitle={t('onboarding.auth.forgot.subtitle')}
+          />
 
           <ScrollView
             className="flex-1"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="px-5 pt-3">
-              <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-                {t('onboarding.auth.forgot.title')}
-              </Text>
-              <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-                {t('onboarding.auth.forgot.subtitle')}
-              </Text>
-            </View>
-
-            <View className="px-5 pt-7 pb-10">
+            <View className="px-5 pt-3 pb-10">
               <Text className="font-body text-ink-soft text-[14.5px] leading-[22px] mb-5 max-w-[330px]">
                 {t('onboarding.auth.forgot.instructions')}
               </Text>

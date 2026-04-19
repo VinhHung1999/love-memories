@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenBackBtn, SocialRow } from '@/components';
+import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenHeader, SocialRow } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { PASSWORD_MIN, useSignUpViewModel } from './useSignUpViewModel';
 
@@ -60,25 +60,18 @@ export function SignUpScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           className="flex-1"
         >
-          <View className="px-2 pt-2">
-            <ScreenBackBtn />
-          </View>
+          {/* T290 (bug #14): no back button — signup is an entry point. */}
+          <ScreenHeader
+            title={t('onboarding.auth.signup.title')}
+            subtitle={t('onboarding.auth.signup.subtitle')}
+          />
 
           <ScrollView
             className="flex-1"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="px-5 pt-3">
-              <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-                {t('onboarding.auth.signup.title')}
-              </Text>
-              <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-                {t('onboarding.auth.signup.subtitle')}
-              </Text>
-            </View>
-
-            <View className="px-5 pt-7 pb-10">
+            <View className="px-5 pt-3 pb-10">
               <Text className="font-displayItalic uppercase text-primary-deep text-[12px] tracking-[2px] mb-5">
                 {t('onboarding.auth.signup.accent')}
               </Text>

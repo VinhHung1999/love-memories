@@ -15,8 +15,16 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="welcome" />
       <Stack.Screen name="intro" />
-      <Stack.Screen name="signup" />
-      <Stack.Screen name="login" />
+      {/* T290 (bug #14): signup + login are entry points — no back gesture or
+          chrome. Users switch between the two via in-screen links. */}
+      <Stack.Screen
+        name="signup"
+        options={{ gestureEnabled: false, headerBackVisible: false }}
+      />
+      <Stack.Screen
+        name="login"
+        options={{ gestureEnabled: false, headerBackVisible: false }}
+      />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="pair-create" />
       <Stack.Screen name="pair-join" />

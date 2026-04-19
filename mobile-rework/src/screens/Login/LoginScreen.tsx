@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenBackBtn, SocialRow } from '@/components';
+import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenHeader, SocialRow } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useLoginViewModel } from './useLoginViewModel';
 
@@ -56,25 +56,18 @@ export function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           className="flex-1"
         >
-          <View className="px-2 pt-2">
-            <ScreenBackBtn />
-          </View>
+          {/* T290 (bug #14): no back button — login is an entry point. */}
+          <ScreenHeader
+            title={t('onboarding.auth.login.title')}
+            subtitle={t('onboarding.auth.login.subtitle')}
+          />
 
           <ScrollView
             className="flex-1"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="px-5 pt-3">
-              <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-                {t('onboarding.auth.login.title')}
-              </Text>
-              <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-                {t('onboarding.auth.login.subtitle')}
-              </Text>
-            </View>
-
-            <View className="px-5 pt-7 pb-10">
+            <View className="px-5 pt-3 pb-10">
               <AvatarPair />
 
               <AuthField

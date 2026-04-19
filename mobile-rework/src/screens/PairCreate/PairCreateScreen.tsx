@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient, ScreenBackBtn } from '@/components';
+import { LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePairCreateViewModel } from './usePairCreateViewModel';
 
@@ -23,10 +23,6 @@ export function PairCreateScreen() {
       <TopWash />
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        <View className="px-2 pt-2">
-          <ScreenBackBtn />
-        </View>
-
         {vm.stage === 'loading' ? <LoadingState /> : null}
         {vm.stage === 'choose' ? (
           <ChooseState
@@ -69,8 +65,11 @@ function TopWash() {
 
 function LoadingState() {
   return (
-    <View className="flex-1 items-center justify-center">
-      <ActivityIndicator />
+    <View className="flex-1">
+      <ScreenHeader showBack />
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator />
+      </View>
     </View>
   );
 }
@@ -85,23 +84,20 @@ type ChooseProps = {
 function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
   const { t } = useTranslation();
   return (
-    <ScrollView
-      className="flex-1"
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="px-5 pt-3">
-        <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-          {t('onboarding.pairing.choice.title')}
-        </Text>
-        <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-          {t('onboarding.pairing.choice.subtitle')}
-        </Text>
-      </View>
+    <View className="flex-1">
+      <ScreenHeader
+        showBack
+        title={t('onboarding.pairing.choice.title')}
+        subtitle={t('onboarding.pairing.choice.subtitle')}
+      />
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <PairedHearts />
 
-      <PairedHearts />
-
-      <View className="px-5 pt-4 pb-10">
+        <View className="px-5 pt-4 pb-10">
         <PairOption
           accent="primary"
           icon={t('onboarding.pairing.choice.create.icon')}
@@ -125,14 +121,15 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
           </Text>
         ) : null}
 
-        <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line border-dashed bg-surface-alt px-4 py-3.5">
-          <Text className="text-lg">🔒</Text>
-          <Text className="flex-1 font-body text-ink-soft text-[12.5px] leading-[18px]">
-            {t('onboarding.pairing.choice.lockNote')}
-          </Text>
+          <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line border-dashed bg-surface-alt px-4 py-3.5">
+            <Text className="text-lg">🔒</Text>
+            <Text className="flex-1 font-body text-ink-soft text-[12.5px] leading-[18px]">
+              {t('onboarding.pairing.choice.lockNote')}
+            </Text>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -162,21 +159,18 @@ function InviteState({
   const ready = !!code;
 
   return (
-    <ScrollView
-      className="flex-1"
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="px-5 pt-3">
-        <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-          {t('onboarding.pairing.invite.title')}
-        </Text>
-        <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-          {t('onboarding.pairing.invite.subtitle')}
-        </Text>
-      </View>
-
-      <View className="px-5 pt-7 pb-10">
+    <View className="flex-1">
+      <ScreenHeader
+        showBack
+        title={t('onboarding.pairing.invite.title')}
+        subtitle={t('onboarding.pairing.invite.subtitle')}
+      />
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="px-5 pt-3 pb-10">
         <View className="rounded-[28px] border border-line bg-bg-elev px-5 py-8 shadow-lg items-center">
           <Text className="font-displayItalic uppercase text-primary-deep text-[11px] tracking-[2px] mb-3">
             {t('onboarding.pairing.invite.codeLabel')}
@@ -256,13 +250,14 @@ function InviteState({
           </Pressable>
         </View>
 
-        {error ? (
-          <Text className="mt-3 font-body text-primary-deep text-[13px] text-center">
-            {t('onboarding.pairing.errors.network')}
-          </Text>
-        ) : null}
-      </View>
-    </ScrollView>
+          {error ? (
+            <Text className="mt-3 font-body text-primary-deep text-[13px] text-center">
+              {t('onboarding.pairing.errors.network')}
+            </Text>
+          ) : null}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 

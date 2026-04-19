@@ -34,7 +34,9 @@ export function IntroScreen() {
     if (screenWidth <= 0) return;
     scrollRef.current?.scrollTo({ x: target * screenWidth, animated: true });
   };
-  const onSkip = () => goTo(slideCount - 1);
+  // T290 (bug #11): Skip used to scroll to the last slide; Boss wants it to
+  // jump straight into signup so the user isn't forced to read every slide.
+  const onSkip = () => finish();
   const onNext = () => {
     if (idx < slideCount - 1) goTo(idx + 1);
     else finish();

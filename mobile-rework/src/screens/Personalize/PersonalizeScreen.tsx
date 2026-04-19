@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, LinearGradient, ScreenBackBtn } from '@/components';
+import { AuthBigBtn, AuthField, LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePersonalizeViewModel } from './usePersonalizeViewModel';
 
@@ -60,9 +60,11 @@ export function PersonalizeScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        <View className="px-2 pt-2">
-          <ScreenBackBtn />
-        </View>
+        <ScreenHeader
+          showBack
+          title={t('onboarding.personalize.title')}
+          subtitle={t('onboarding.personalize.subtitle')}
+        />
 
         <KeyboardAvoidingView
           className="flex-1"
@@ -74,15 +76,6 @@ export function PersonalizeScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <View className="px-5 pt-3">
-              <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-                {t('onboarding.personalize.title')}
-              </Text>
-              <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-                {t('onboarding.personalize.subtitle')}
-              </Text>
-            </View>
-
-            <View className="px-5 pt-6">
               <PreviewCard
                 colorIndex={colorIndex}
                 initial={initial}

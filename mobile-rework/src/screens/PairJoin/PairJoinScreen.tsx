@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, LinearGradient, ScreenBackBtn } from '@/components';
+import { AuthBigBtn, LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePairJoinViewModel } from './usePairJoinViewModel';
 
@@ -54,9 +54,11 @@ export function PairJoinScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        <View className="px-2 pt-2">
-          <ScreenBackBtn />
-        </View>
+        <ScreenHeader
+          showBack
+          title={t('onboarding.pairing.join.title')}
+          subtitle={t('onboarding.pairing.join.subtitle')}
+        />
 
         <KeyboardAvoidingView
           className="flex-1"
@@ -68,15 +70,6 @@ export function PairJoinScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <View className="px-5 pt-3">
-              <Text className="font-displayMediumItalic text-ink text-[28px] leading-[32px]">
-                {t('onboarding.pairing.join.title')}
-              </Text>
-              <Text className="mt-1.5 font-body text-ink-mute text-[13px]">
-                {t('onboarding.pairing.join.subtitle')}
-              </Text>
-            </View>
-
-            <View className="px-5 pt-7">
               <Pressable
                 onPress={onOpenScanner}
                 accessibilityRole="button"
