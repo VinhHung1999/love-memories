@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Share } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { env } from '@/config/env';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -27,10 +28,12 @@ import { useAuthStore } from '@/stores/authStore';
 // memberCount===2. Boss preferred a single explicit "I've sent it" CTA so
 // the inviter isn't stuck staring at an indeterminate spinner.
 
-// Always production share host. The Universal Link AASA file is served at
-// memoura.app (not dev.memoura.app); a dev-domain share link would 404 at
-// the web landing AND fail to trigger the app deep-link handoff.
-const SHARE_HOST = 'https://memoura.app';
+// T302: share host comes from env.appBaseUrl (EXPO_PUBLIC_APP_BASE_URL →
+// extra.appBaseUrl → 'https://memoura.app'). Dev builds inject the dev web
+// host so the inviter's share link matches the build's environment instead
+// of hardcoding prod. Universal Link / AASA caveat: only memoura.app serves
+// the apple-app-site-association file today; dev hosts will Safari-fallback
+// until step 2 lands.
 
 // BE shapes — both endpoints colocated in backend/src/services/CoupleService.ts.
 type CreateCoupleResponse = {
@@ -160,7 +163,7 @@ export function usePairCreateViewModel() {
     if (!code) return;
     const message = t('onboarding.pairing.invite.shareMessage', {
       code: code.toLowerCase(),
-      url: `${SHARE_HOST}/join/${code.toLowerCase()}`,
+      url: `${env.appBaseUrl}/join/${code.toLowerCase()}`,
     });
     try {
       await Share.share({ message });
@@ -212,7 +215,7 @@ export function usePairCreateViewModel() {
     stage,
     code,
     formattedCode: formatHexCode(code),
-    qrPayload: code ? `${SHARE_HOST}/join/${code.toLowerCase()}` : null,
+    qrPayload: code ? `${env.appBaseUrl}/join/${code.toLowerCase()}` : null,
     creating,
     regenerating,
     error,
