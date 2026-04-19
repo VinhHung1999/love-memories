@@ -43,7 +43,7 @@ export function AuthBigBtn({
       className={`w-full flex-row items-center justify-center rounded-full py-4 px-5 ${
         isDisabled
           ? 'bg-surface'
-          : `${FILL[variant]} shadow-lg active:opacity-90`
+          : `${FILL[variant]} shadow-hero active:opacity-90`
       }`}
     >
       {loading ? (
