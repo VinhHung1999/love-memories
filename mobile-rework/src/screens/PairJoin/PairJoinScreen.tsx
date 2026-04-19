@@ -166,7 +166,11 @@ function ScannerOverlay({ visible, onClose, onScanned }: ScannerProps) {
             centered (flex-1 items-center justify-center), hint right under it.
             Was flex-1 justify-between which pinned the reticle to the bottom. */}
         <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-          <View className="px-4 pt-2 flex-row justify-end">
+          {/* T303-C-redo: pt-6 (was pt-2) — on iOS 26 with dynamic island the
+              SafeArea top inset still leaves the close button visually crowded
+              against the island. Extra 16pt buys breathing room without
+              needing to read useSafeAreaInsets() manually. */}
+          <View className="px-4 pt-6 flex-row justify-end">
             <Pressable
               onPress={onClose}
               accessibilityRole="button"

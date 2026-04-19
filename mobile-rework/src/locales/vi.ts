@@ -1,5 +1,14 @@
 // Ported from docs/design/prototype/memoura-v2/tokens.jsx COPY.vi.
 // Double-brace interpolation per react-i18next convention: {{name}}.
+//
+// T305 — Editorial pass: subject "em" → "mình" for self-reference (gender-neutral,
+// matches Boss preference). Partner-referring tokens preserved verbatim:
+//   - "người ấy", "người ta" (third-person partner refs)
+//   - "hai đứa mình", "hai đứa", "chúng mình" (couple-collective)
+//   - "{{partner}}" interpolation
+//   - Letter prose addressed to the partner (intro.slides.letters.body)
+// Where the original chained both subjects ("em ... mình ..." in one sentence),
+// rewritten to avoid double-"mình" awkwardness rather than mechanically substituted.
 
 const vi = {
   common: {
@@ -30,7 +39,7 @@ const vi = {
       s: 'giây',
     },
     dailyQTitle: 'Hỏi nhau hôm nay',
-    dailyQ: 'Nếu được tặng nhau một buổi chiều bất kỳ, em muốn mình làm gì cùng nhau?',
+    dailyQ: 'Nếu được tặng nhau một buổi chiều bất kỳ, mình muốn cùng làm gì nhỉ?',
     dailyQCta: 'Trả lời',
     dailyQPartnerPending: '{{partner}} đã trả lời · chạm để mở khoá',
     dailyQStreak: 'Chuỗi {{days}} ngày',
@@ -67,18 +76,18 @@ const vi = {
   },
   onboarding: {
     welcome: {
-      accent: 'chào mừng em',
+      accent: 'chào mừng',
       title: 'Memoura',
       body: 'Không gian chỉ của hai đứa mình — nơi mỗi khoảnh khắc, mỗi dòng thư, mỗi câu hỏi đều có chỗ để ở lại.',
       ctaPrimary: 'Bắt đầu câu chuyện của mình',
-      ctaSecondary: 'Tôi đã có tài khoản',
+      ctaSecondary: 'Mình đã có tài khoản',
       polaroidLabels: {
         one: 'Đà Lạt · 12.02',
         two: 'Cà phê sáng',
         three: 'Anniversary',
       },
       legal: {
-        prefix: 'Bằng cách tiếp tục, em đồng ý với ',
+        prefix: 'Bằng cách tiếp tục, mình đồng ý với ',
         terms: 'Điều khoản',
         and: ' và ',
         privacy: 'Chính sách bảo mật',
@@ -90,8 +99,8 @@ const vi = {
       signup: {
         title: 'Tạo tài khoản',
         subtitle: 'Chỉ hai đứa mình thấy nhau',
-        accent: 'mình bắt đầu nhé',
-        nameLabel: 'Tên em',
+        accent: 'cùng bắt đầu nhé',
+        nameLabel: 'Tên của mình',
         namePlaceholder: 'Linh',
         emailLabel: 'Email',
         emailPlaceholder: 'linh@memoura.co',
@@ -101,7 +110,7 @@ const vi = {
         confirmPasswordPlaceholder: 'Gõ lại cho chắc nhé',
         show: 'Hiện',
         hide: 'Ẩn',
-        termsLead: 'Khi tiếp tục, em đồng ý với ',
+        termsLead: 'Khi tiếp tục, mình đồng ý với ',
         termsLink: 'Điều khoản',
         termsAnd: ' và ',
         privacyLink: 'Quyền riêng tư',
@@ -115,11 +124,11 @@ const vi = {
       },
       login: {
         title: 'Chào mừng lại',
-        subtitle: 'Anh ấy/cô ấy đã nhớ em rồi',
+        subtitle: 'Người ấy đang đợi mình',
         emailLabel: 'Email hoặc tên',
         emailPlaceholder: 'linh@memoura.co',
         passwordLabel: 'Mật khẩu',
-        passwordPlaceholder: 'Mật khẩu của em',
+        passwordPlaceholder: 'Mật khẩu của mình',
         forgot: 'Quên mật khẩu?',
         cta: 'Đăng nhập',
         switchPrompt: 'Chưa có tài khoản? ',
@@ -127,36 +136,36 @@ const vi = {
       },
       forgot: {
         title: 'Quên mất rồi',
-        subtitle: 'Không sao, mình gửi lại cho',
+        subtitle: 'Không sao, Memoura gửi lại cho',
         instructions:
-          'Em nhập email đã dùng để đăng ký. Mình sẽ gửi một liên kết để em đặt lại mật khẩu.',
+          'Mình nhập email đã dùng để đăng ký. Memoura sẽ gửi một liên kết để mình đặt lại mật khẩu.',
         emailLabel: 'Email',
         emailPlaceholder: 'linh@memoura.co',
         cta: 'Gửi liên kết',
         sentTitle: 'Đã gửi rồi',
         sentBody:
-          'Mình đã gửi liên kết đặt lại mật khẩu tới {{email}}. Kiểm tra hộp thư nhé.',
+          'Memoura đã gửi liên kết đặt lại mật khẩu tới {{email}}. Kiểm tra hộp thư nhé.',
         backToLogin: 'Về đăng nhập',
       },
       errors: {
-        nameRequired: 'Cho mình biết tên em nhé',
+        nameRequired: 'Cho Memoura biết tên của mình nhé',
         emailInvalid: 'Email chưa đúng định dạng',
         passwordTooShort: 'Mật khẩu cần ít nhất {{min}} ký tự',
-        passwordRequired: 'Nhập mật khẩu của em',
+        passwordRequired: 'Nhập mật khẩu của mình nhé',
         passwordMismatch: 'Hai lần mật khẩu chưa khớp',
         invalidCredentials: 'Email hoặc mật khẩu chưa đúng',
         emailTaken: 'Email này đã được đăng ký rồi',
-        rateLimited: 'Em thử lại sau một chút nhé',
-        network: 'Mạng đang trục trặc. Em thử lại sau nhé.',
-        socialFailed: 'Đăng nhập chưa thành. Em thử lại sau nhé.',
+        rateLimited: 'Mình thử lại sau một chút nhé',
+        network: 'Mạng đang trục trặc. Mình thử lại sau nhé.',
+        socialFailed: 'Đăng nhập chưa thành. Mình thử lại sau nhé.',
       },
       comingSoon: {
         title: 'Sắp ra mắt',
-        body: 'Mình vẫn đang chăm chút phần này. Em dùng email trước nhé.',
+        body: 'Memoura vẫn đang chăm chút phần này. Mình dùng email trước nhé.',
         ok: 'OK',
       },
       pendingPair: {
-        banner: 'Em có lời mời ghép đôi {{code}} — đăng nhập để tiếp tục',
+        banner: 'Mình có lời mời ghép đôi {{code}} — đăng nhập để tiếp tục',
       },
     },
     pairing: {
@@ -176,9 +185,9 @@ const vi = {
       invite: {
         title: 'Mã ghép đôi',
         subtitle: 'Gửi mã này cho người ta nhé',
-        codeLabel: 'mã của em',
+        codeLabel: 'mã của mình',
         shareCta: 'Chia sẻ',
-        continueCta: 'Em đã gửi rồi, tiếp tục',
+        continueCta: 'Mình đã gửi rồi, tiếp tục',
         regenerating: 'Đang đổi mã…',
         regenerate: {
           cta: 'Lấy mã mới?',
@@ -192,15 +201,16 @@ const vi = {
       },
       join: {
         title: 'Nhập mã của người ta',
-        subtitle: 'Tám ký tự, mình sẽ tự gán hoa',
+        subtitle: 'Tám ký tự, Memoura sẽ tự gán hoa',
         cta: 'Ghép đôi',
         ctaIcon: '💞',
         joining: 'Đang ghép đôi…',
-        partnerHint: 'Bạn sẽ ghép với {{name}}',
+        partnerHint: 'Mình sẽ ghép với {{name}}',
         scan: {
           cta: 'Quét mã QR của người ta',
           permissionTitle: 'Cần camera',
-          permissionBody: 'Memoura cần camera để em quét mã QR. Em mở Cài đặt để cho phép nhé.',
+          permissionBody:
+            'Memoura cần camera để quét mã QR. Mình mở Cài đặt để cho phép nhé.',
           permissionCancel: 'Huỷ',
           permissionOpenSettings: 'Mở Cài đặt',
           invalidCode: 'Mã QR không hợp lệ.',
@@ -209,37 +219,37 @@ const vi = {
         },
       },
       errors: {
-        network: 'Mạng đang trục trặc. Em thử lại nhé.',
-        invalidCode: 'Mã không đúng. Em kiểm tra lại nhé.',
+        network: 'Mạng đang trục trặc. Mình thử lại nhé.',
+        invalidCode: 'Mã không đúng. Mình kiểm tra lại nhé.',
         codeUsed: 'Mã này đã được dùng rồi.',
-        rateLimited: 'Em thử nhanh quá, đợi một chút nhé.',
-        alreadyPaired: 'Em đã ghép với người khác rồi.',
+        rateLimited: 'Hơi nhanh quá, đợi một chút rồi thử lại nhé.',
+        alreadyPaired: 'Mình đã ghép với người khác rồi.',
       },
     },
     personalize: {
       title: 'Một chút riêng tư',
       subtitle: 'Tên gọi · màu · ngày bắt đầu',
-      nickLabel: 'Tên gọi của em',
-      nickPlaceholder: 'Em',
+      nickLabel: 'Tên gọi của mình',
+      nickPlaceholder: 'Mình',
       nickIcon: '✶',
       colorLabel: 'Màu của hai đứa',
       dateLabel: 'Ngày hai đứa bắt đầu',
       datePlaceholder: '14.02.2023',
       dateIcon: '📅',
       previewSince: 'từ',
-      previewPlaceholder: 'Em',
+      previewPlaceholder: 'Mình',
       previewPartner: 'người ấy',
       cta: 'Gần xong rồi',
       saving: 'Đang lưu…',
       errors: {
-        nameRequired: 'Cho mình biết em gọi mình là gì nhé',
+        nameRequired: 'Mình muốn được gọi là gì nhỉ?',
         dateInvalid: 'Ngày chưa đúng định dạng (DD.MM.YYYY)',
-        network: 'Mạng đang trục trặc. Em thử lại nhé.',
+        network: 'Mạng đang trục trặc. Mình thử lại nhé.',
       },
     },
     permissions: {
       title: 'Một vài quyền',
-      subtitle: 'Em có thể đổi sau này',
+      subtitle: 'Mình có thể đổi sau này',
       cta: 'Xong rồi, vào nhà',
       skip: 'Bỏ qua',
       allow: 'Cho phép',
@@ -251,13 +261,13 @@ const vi = {
       },
       photos: {
         title: 'Thư viện ảnh',
-        body: 'Để em chọn ảnh khi thêm khoảnh khắc.',
+        body: 'Để mình chọn ảnh khi thêm khoảnh khắc.',
       },
     },
     done: {
       eyebrow: 'mọi thứ sẵn rồi',
       title: '{{names}},\nchào mừng về nhà.',
-      titleSelfFallback: 'em',
+      titleSelfFallback: 'mình',
       titlePartnerFallback: 'người ấy',
       body: 'Đây sẽ là nơi giữ lại những gì hai đứa không muốn quên. Bắt đầu bằng khoảnh khắc đầu tiên nhé.',
       cta: 'Vào Memoura',
@@ -277,15 +287,15 @@ const vi = {
           title: 'Viết thư\ncho nhau nghe',
           body: 'Có những điều khó nói thành lời — mình gửi em trong một lá thư. Có thể hẹn ngày đến, hoặc để dành cho ngày kỷ niệm.',
           letterSalutation: 'Gửi Minh,',
-          letterSignoff: '— của em',
+          letterSignoff: '— của mình',
         },
         daily: {
           accent: 'mỗi ngày một câu',
           title: 'Biết nhau hơn\ntừng ngày một',
           body: 'Mỗi sáng một câu hỏi nhỏ — để hai đứa mình vẫn hiểu nhau thêm một chút, kể cả những ngày bận nhất.',
           today: 'Hôm nay',
-          question: 'Giấc mơ đẹp nhất của em?',
-          placeholder: 'Em trả lời…',
+          question: 'Giấc mơ đẹp nhất của mình?',
+          placeholder: 'Mình trả lời…',
           answeredBy: 'người ấy đã trả lời',
         },
       },
@@ -293,7 +303,7 @@ const vi = {
   },
   pairing: {
     title: 'Ghép đôi',
-    yourCode: 'Mã của bạn',
+    yourCode: 'Mã của mình',
     enterPartnerCode: 'Nhập mã của đối phương',
     share: 'Chia sẻ mã',
     paired: 'Đã ghép đôi với {{partner}}',

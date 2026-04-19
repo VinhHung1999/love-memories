@@ -26,7 +26,9 @@ const config: ExpoConfig = {
     // at https://memoura.app/.well-known/apple-app-site-association by the web
     // surface. Cold-start handling: Expo Router parses the inbound URL via
     // Linking and pair-join.tsx reads `code` from the route params.
-    associatedDomains: ['applinks:memoura.app'],
+    // T304 — dev.memoura.app added so dev-pointing builds can verify the
+    // Universal Link → pair-join flow without rebuilding for prod hostname.
+    associatedDomains: ['applinks:memoura.app', 'applinks:dev.memoura.app'],
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
