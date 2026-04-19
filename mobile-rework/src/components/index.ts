@@ -2,6 +2,7 @@ export { AuthBigBtn } from './AuthBigBtn';
 export { AuthField } from './AuthField';
 export { Avatar } from './Avatar';
 export { Button } from './Button';
+export { CameraView } from './Camera';
 export { Card } from './Card';
 export { DividerWith } from './DividerWith';
 export { LinearGradient } from './Gradient';

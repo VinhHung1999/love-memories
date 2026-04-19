@@ -1,4 +1,3 @@
-import { CameraView } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
@@ -13,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, LinearGradient, ScreenHeader } from '@/components';
+import { AuthBigBtn, CameraView, LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePairJoinViewModel } from './usePairJoinViewModel';
 
@@ -138,15 +137,23 @@ type ScannerProps = {
 function ScannerOverlay({ visible, onClose, onScanned }: ScannerProps) {
   const { t } = useTranslation();
   return (
+    // T303-C: presentationStyle='fullScreen' (was overFullScreen+transparent).
+    // overFullScreen renders the modal in a portal that's outside the
+    // SafeAreaProvider tree, so SafeAreaView inside reads insets=0 → close
+    // button + hint clipped by status bar / home indicator. fullScreen takes
+    // over the screen the normal way so safe-area context is preserved.
     <Modal
       visible={visible}
       animationType="fade"
-      presentationStyle="overFullScreen"
-      transparent
+      presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black">
         {visible ? (
+          // T303-A: CameraView is a native-bridged view — NativeWind v4 does
+          // NOT auto-cssInterop it. Without the registration in
+          // components/Camera.tsx the className was dropped, the view
+          // collapsed to 0×0, and the preview rendered as solid black.
           <CameraView
             facing="back"
             barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
@@ -155,7 +162,10 @@ function ScannerOverlay({ visible, onClose, onScanned }: ScannerProps) {
           />
         ) : null}
 
-        <SafeAreaView edges={['top', 'bottom']} className="flex-1 justify-between">
+        {/* T303-B: 3-row layout — close button top-right, reticle vertically
+            centered (flex-1 items-center justify-center), hint right under it.
+            Was flex-1 justify-between which pinned the reticle to the bottom. */}
+        <SafeAreaView edges={['top', 'bottom']} className="flex-1">
           <View className="px-4 pt-2 flex-row justify-end">
             <Pressable
               onPress={onClose}
@@ -167,12 +177,11 @@ function ScannerOverlay({ visible, onClose, onScanned }: ScannerProps) {
             </Pressable>
           </View>
 
-          <View className="items-center pb-8 px-6">
-            {/* T292 (bug #2B): viewfinder reticle is not chrome — bumped to
-                solid white so the scan target stays definitive on bright
-                or busy camera scenes. */}
-            <View className="w-[260px] h-[260px] rounded-3xl border-2 border-white mb-6" />
-            <Text className="font-bodyMedium text-white text-[14px] text-center">
+          <View className="flex-1 items-center justify-center px-6">
+            {/* T292 (bug #2B): viewfinder reticle is not chrome — solid white
+                so the scan target stays definitive on bright or busy scenes. */}
+            <View className="w-[260px] h-[260px] rounded-3xl border-2 border-white" />
+            <Text className="mt-6 font-bodyMedium text-white text-[14px] text-center">
               {t('onboarding.pairing.join.scan.hint')}
             </Text>
           </View>
