@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components';
-import { useAppColors } from '@/theme/ThemeProvider';
+import { useAppColors, useAppMode } from '@/theme/ThemeProvider';
 import { INTRO_SLIDE_KINDS, IntroSlideKind, useIntroViewModel } from './useIntroViewModel';
 
 // Gotchas (T294):
@@ -46,6 +46,7 @@ type SlideCopy = {
 export function IntroScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
+  const mode = useAppMode();
   const { idx, finish, slideCount, onMomentumEnd } = useIntroViewModel();
   const { width: screenWidth } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
@@ -100,9 +101,10 @@ export function IntroScreen() {
         scrollEventThrottle={16}
       >
         {INTRO_SLIDE_KINDS.map((kind) => {
-          // T294 follow-up (bug #2 revision): only `moments` is dark; pastel
-          // slides need themed text. See header gotcha #2.
-          const isDark = kind === 'moments';
+          // T297 (bug #4): in darkmode all 3 hero gradients use dark palette
+          // values, so letters/daily also need the white variant for contrast.
+          // Light mode keeps the per-slide rule (only moments is dark).
+          const isDark = kind === 'moments' || mode === 'dark';
           const accentCls = isDark ? 'text-white/85' : 'text-primary-deep';
           const titleCls = isDark ? 'text-white' : 'text-ink';
           const bodyCls = isDark ? 'text-white/90' : 'text-ink-soft';
@@ -139,8 +141,11 @@ export function IntroScreen() {
                   {/* T294 (bug #1): leading-[1.5em] keeps uppercase VN
                       diacritics inside the line box. Color resolved per
                       slide above (dark gradient → white, pastel → themed). */}
+                  {/* T297 (bug #3): font-displayItalic + uppercase drops VN
+                      diacritics ("KHOẢNH KHẮC NHỎ" → "KHOANH KHAC NHO").
+                      Be Vietnam Pro Medium has full uppercase VN coverage. */}
                   <Text
-                    className={`font-displayItalic uppercase ${accentCls} text-[11px] leading-[1.5em] tracking-[2px]`}
+                    className={`font-bodyMedium uppercase ${accentCls} text-[11px] leading-[1.5em] tracking-[2px]`}
                   >
                     {slideCopy[kind].accent}
                   </Text>
@@ -213,7 +218,6 @@ function SlideVisual({ kind }: { kind: IntroSlideKind }) {
 }
 
 function MomentsVisual() {
-  const { t } = useTranslation();
   const c = useAppColors();
 
   // Ports `IntroVisual('moments')` from onboarding.jsx:230. Polaroid card 160×200,
@@ -245,18 +249,6 @@ function MomentsVisual() {
           </View>
         </View>
       ))}
-      {/* T291 (bug #3): "forever & always" wrapped on iPhone SE (375 px) when
-          container was 120 px wide. Bumped to 220 px and centered (-ml-[110px])
-          so the script stays on one line; numberOfLines={1} guarantees no
-          wrap on smaller locales/fonts. */}
-      <View className="absolute left-1/2 -ml-[110px] top-[245px] w-[220px] items-center -rotate-[5deg]">
-        <Text
-          numberOfLines={1}
-          className="font-displayItalic text-primary-deep text-[22px]"
-        >
-          {t('onboarding.intro.slides.moments.sticker')}
-        </Text>
-      </View>
     </View>
   );
 }

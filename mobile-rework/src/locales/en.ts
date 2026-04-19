@@ -264,8 +264,7 @@ const en: Resources = {
         moments: {
           accent: 'small moments',
           title: 'Keep every\nlittle day',
-          body: 'A diary of the days we spend together — a photo, a few words, a quiet afternoon. Just for the two of us.',
-          sticker: 'forever & always',
+          body: 'Small moments — a held hand, a breakfast, a rainy afternoon — saved just for the two of us.',
         },
         letters: {
           accent: 'handwritten notes',

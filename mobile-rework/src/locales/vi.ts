@@ -266,8 +266,7 @@ const vi = {
         moments: {
           accent: 'khoảnh khắc nhỏ',
           title: 'Giữ lại\nnhững ngày bên nhau',
-          body: 'Ghi lại những ngày mình ở bên nhau — một tấm ảnh, một câu nói, một buổi chiều. Chỉ hai đứa mình thấy được.',
-          sticker: 'mãi mãi',
+          body: 'Những khoảnh khắc nhỏ — một cái nắm tay, một bữa sáng, một buổi chiều mưa — gom lại thành của riêng hai đứa mình.',
         },
         letters: {
           accent: 'thư viết tay',

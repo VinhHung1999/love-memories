@@ -90,8 +90,11 @@ export function WelcomeScreen() {
         <View className="px-7 pt-10 pb-12">
           {/* T294 (bug #1): leading-none on uppercase VN clipped dấu huyền on
               "chào mừng em"; bumped to leading-[1.5em] so the diacritic sits
-              fully inside the line box. */}
-          <Text className="font-displayItalic uppercase text-white/90 text-xs leading-[1.5em] tracking-[2.4px]">
+              fully inside the line box.
+              T297 (bug #3): font-displayItalic + uppercase drops VN diacritics
+              at glyph level (Fraunces italic uppercase coverage broken). Be
+              Vietnam Pro Medium handles uppercase VN correctly. */}
+          <Text className="font-bodyMedium uppercase text-white/90 text-xs leading-[1.5em] tracking-[2.4px]">
             {t('onboarding.welcome.accent')}
           </Text>
           {/* T294 (bug #1): leading-[54px] (0.96×) clipped descenders on the
