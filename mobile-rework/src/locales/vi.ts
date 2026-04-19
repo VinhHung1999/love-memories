@@ -259,6 +259,7 @@ const vi = {
       saving: 'Đang lưu…',
       errors: {
         nameRequired: 'Mình muốn được gọi là gì nhỉ?',
+        dateRequired: 'Hãy chọn ngày bắt đầu',
         dateInvalid: 'Ngày chưa đúng định dạng (DD.MM.YYYY)',
         network: 'Mạng đang trục trặc. Mình thử lại nhé.',
       },

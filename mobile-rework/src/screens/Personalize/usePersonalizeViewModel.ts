@@ -20,8 +20,20 @@ import { useAuthStore } from '@/stores/authStore';
 //     router.replace('/(auth)/onboarding-done')       → SKIPS /permissions
 //
 //   joiner   (user.coupleId != null, already joined via POST /api/couple/join)
-//     Promise.all(PUT /api/profile, PUT /api/couple)  → name + color + date
-//     router.replace('/(auth)/permissions')           → unchanged legacy flow
+//     PUT /api/profile (name only — joiner doesn't own couple settings)
+//     router.replace('/(auth)/onboarding-done')       → T317: SKIPS /permissions
+//
+// Sprint 60 Build 23 (T313/T317/T318):
+//   T313 — creator MUST pick a start date (gate canSubmit). Empty no longer
+//          silently writes null; the date is the seed for the home-screen
+//          relationship counter and skipping it caused returning users to
+//          land on "0 ngày bên nhau".
+//   T317 — joiner now also skips /permissions, mirroring creator. Permissions
+//          gating moves to first-use prompts in (tabs) (location/camera) so
+//          the wizard ends on the celebration screen, not a permissions wall.
+//   T318 — joiner DOES NOT submit color or anniversaryDate. The inviter owns
+//          those couple-level fields; joiner only fills their own profile name.
+//          Date field is hidden in the view.
 //
 // We DO NOT flip setOnboardingComplete(true) locally — the gate in app/_layout
 // would instantly route the user into (tabs) and OnboardingDone would never
@@ -48,6 +60,7 @@ type CreateCoupleResponse = {
 
 type FormError =
   | { kind: 'nameRequired' }
+  | { kind: 'dateRequired' }
   | { kind: 'dateInvalid' }
   | { kind: 'network' };
 
@@ -88,24 +101,37 @@ export function usePersonalizeViewModel() {
     [],
   );
 
-  const canSubmit = nick.trim().length > 0 && !submitting;
+  // T306: creator = no coupleId yet (joiner POSTed /api/couple/join before
+  // reaching this screen, so theirs is set). Drives both UI gates (T313 date
+  // requirement, T318 date field hidden, T317 routing).
+  const isCreator = !user?.coupleId;
+
+  // T313: creator MUST pick start date. Joiner never sees the date field,
+  // so it's not part of their canSubmit calculation.
+  const canSubmit =
+    nick.trim().length > 0 && (!isCreator || date.trim().length > 0) && !submitting;
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setFormError(null);
     const trimmedName = nick.trim();
-    const parsedAnniversary = parseAnniversary(date);
-    if (parsedAnniversary === 'invalid') {
-      setFormError({ kind: 'dateInvalid' });
-      return;
+    // T318: joiner doesn't submit anniversaryDate at all — creator owns the
+    // couple-level fields. Skip parse + write entirely on the joiner branch.
+    let parsedAnniversary: string | null = null;
+    if (isCreator) {
+      const parsed = parseAnniversary(date);
+      if (parsed === 'invalid') {
+        setFormError({ kind: 'dateInvalid' });
+        return;
+      }
+      if (parsed === null) {
+        // T313: defense in depth — canSubmit already blocks this, but if a
+        // race lets it through, surface the error rather than silently writing.
+        setFormError({ kind: 'dateRequired' });
+        return;
+      }
+      parsedAnniversary = parsed;
     }
-
-    // T306: creator path is anyone arriving at Personalize without a coupleId.
-    // The joiner went through POST /api/couple/join before landing here, so
-    // their coupleId is already set. This check survives re-entries cleanly —
-    // once POST /api/couple succeeds in the creator branch, setSession writes
-    // the new coupleId so a retry would see coupleId set and not double-POST.
-    const isCreator = !user?.coupleId;
 
     setSubmitting(true);
     try {
@@ -123,17 +149,21 @@ export function usePersonalizeViewModel() {
             coupleId: res.user.coupleId,
           },
         });
+        // PUT name + couple settings in parallel — different rows, BE can't
+        // atomically batch anyway, and parallel halves the RTT.
+        await Promise.all([
+          apiClient.put('/api/profile', { name: trimmedName }),
+          apiClient.put('/api/couple', {
+            color: String(colorIndex),
+            anniversaryDate: parsedAnniversary,
+          }),
+        ]);
+      } else {
+        // T318: joiner only writes their own name. Color + start date are
+        // creator-owned; touching /api/couple here would let the joiner
+        // overwrite the inviter's choices on the same record.
+        await apiClient.put('/api/profile', { name: trimmedName });
       }
-
-      // PUT name + couple settings in parallel — different rows, BE can't
-      // atomically batch anyway, and parallel halves the RTT.
-      await Promise.all([
-        apiClient.put('/api/profile', { name: trimmedName }),
-        apiClient.put('/api/couple', {
-          color: String(colorIndex),
-          anniversaryDate: parsedAnniversary,
-        }),
-      ]);
 
       // Reflect updated name locally so OnboardingDone can greet the user.
       // Re-read from store rather than closing over `user`, since the creator
@@ -150,10 +180,10 @@ export function usePersonalizeViewModel() {
         } catch {
           // ignore — OnboardingDone will retry
         }
-        router.replace('/(auth)/onboarding-done');
-      } else {
-        router.replace('/(auth)/permissions');
       }
+      // T317: both branches end on OnboardingDone. Permissions wizard removed
+      // from the joiner path — first-use prompts in (tabs) handle it.
+      router.replace('/(auth)/onboarding-done');
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError({ kind: 'network' });
@@ -163,7 +193,7 @@ export function usePersonalizeViewModel() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, nick, date, colorIndex, user, setUser, setSession, router]);
+  }, [canSubmit, nick, date, colorIndex, isCreator, setUser, setSession, router]);
 
   return {
     nick,
@@ -176,6 +206,7 @@ export function usePersonalizeViewModel() {
     submitting,
     canSubmit,
     formError,
+    isCreator,
     onSubmit,
   };
 }

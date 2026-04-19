@@ -247,6 +247,7 @@ const en: Resources = {
       saving: 'Saving\u2026',
       errors: {
         nameRequired: 'Tell us what to call you',
+        dateRequired: 'Pick a start date',
         dateInvalid: 'Date should look like DD.MM.YYYY',
         network: 'Network hiccup. Try again in a bit.',
       },

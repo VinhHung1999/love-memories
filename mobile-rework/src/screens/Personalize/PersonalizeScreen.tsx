@@ -77,6 +77,7 @@ export function PersonalizeScreen() {
     submitting,
     canSubmit,
     formError,
+    isCreator,
     onSubmit,
   } = usePersonalizeViewModel();
 
@@ -129,7 +130,9 @@ export function PersonalizeScreen() {
                 initial={initial}
                 name={previewName}
                 partnerLabel={partnerLabel}
-                date={previewDate}
+                // T318: joiner has no date input — omit the "từ …" line so
+                // the preview doesn't dangle a placeholder date they can't fill.
+                date={isCreator ? previewDate : null}
                 sinceLabel={t('onboarding.personalize.previewSince')}
               />
             </View>
@@ -164,14 +167,19 @@ export function PersonalizeScreen() {
                 </View>
               </View>
 
-              <DateField
-                label={t('onboarding.personalize.dateLabel')}
-                placeholder={t('onboarding.personalize.datePlaceholder')}
-                icon={t('onboarding.personalize.dateIcon')}
-                value={date}
-                onChange={setDate}
-                disabled={submitting}
-              />
+              {/* T318: hide start-date on joiner path — creator owns the
+                  couple-level field. Joiner's "start date" is whatever the
+                  inviter picked; they see it in tabs after /api/couple loads. */}
+              {isCreator ? (
+                <DateField
+                  label={t('onboarding.personalize.dateLabel')}
+                  placeholder={t('onboarding.personalize.datePlaceholder')}
+                  icon={t('onboarding.personalize.dateIcon')}
+                  value={date}
+                  onChange={setDate}
+                  disabled={submitting}
+                />
+              ) : null}
 
               {formError ? (
                 <Text className="mt-2 font-body text-primary-deep text-[13px] text-center">
@@ -205,7 +213,8 @@ type PreviewProps = {
   initial: string;
   name: string;
   partnerLabel: string;
-  date: string;
+  // null on joiner path (no date field) — the "since …" line is omitted entirely.
+  date: string | null;
   sinceLabel: string;
 };
 
@@ -231,9 +240,11 @@ function PreviewCard({ colorIndex, initial, name, partnerLabel, date, sinceLabel
         <Text className="font-displayMedium text-ink text-[18px] leading-[24px]">
           {name} & {partnerLabel}
         </Text>
-        <Text className="mt-1 font-script text-ink-soft text-[16px]">
-          {sinceLabel} {date}
-        </Text>
+        {date ? (
+          <Text className="mt-1 font-script text-ink-soft text-[16px]">
+            {sinceLabel} {date}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
