@@ -142,6 +142,9 @@ const en: Resources = {
         body: 'We\u2019re still polishing this one. Try email for now.',
         ok: 'Got it',
       },
+      pendingPair: {
+        banner: 'You have a pair invite {{code}} — sign in to continue',
+      },
     },
     pairing: {
       choice: {

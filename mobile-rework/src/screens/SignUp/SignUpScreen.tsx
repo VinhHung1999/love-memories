@@ -1,7 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenHeader, SocialRow } from '@/components';
+import {
+  AuthBigBtn,
+  AuthField,
+  DividerWith,
+  LinearGradient,
+  PendingPairBanner,
+  ScreenHeader,
+  SocialRow,
+} from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { PASSWORD_MIN, useSignUpViewModel } from './useSignUpViewModel';
 
@@ -75,6 +83,8 @@ export function SignUpScreen() {
               <Text className="font-displayItalic uppercase text-primary-deep text-[12px] tracking-[2px] mb-5">
                 {t('onboarding.auth.signup.accent')}
               </Text>
+
+              <PendingPairBanner />
 
               <AuthField
                 label={t('onboarding.auth.signup.nameLabel')}

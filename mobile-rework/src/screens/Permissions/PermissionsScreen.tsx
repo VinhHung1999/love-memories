@@ -73,7 +73,12 @@ export function PermissionsScreen() {
           </View>
 
           <View className="px-5 pt-6 pb-10">
+            {/* T292 (bug #3): variant='primary' so the threshold CTA reads as
+                hero against the primary-tinted permission cards above —
+                plain bg-ink "chìm" (sinks) into the visual hierarchy of a
+                screen already painted with the brand accent. */}
             <AuthBigBtn
+              variant="primary"
               label={t('onboarding.permissions.cta')}
               onPress={onContinue}
             />

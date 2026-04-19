@@ -110,7 +110,10 @@ export function WelcomeScreen() {
             <Pressable
               onPress={onLogin}
               accessibilityRole="button"
-              className="flex-row items-center justify-center bg-transparent border border-white/45 rounded-full py-3.5 px-5 active:opacity-80"
+              // T292 (bug #2A): border-white/45 read too thin against the
+              // adjacent text-white/90 label — bumped to /70 so the outline
+              // matches the text's optical weight on the hero gradient.
+              className="flex-row items-center justify-center bg-transparent border border-white/70 rounded-full py-3.5 px-5 active:opacity-80"
             >
               <Text className="font-bodySemibold text-white text-sm">
                 {t('onboarding.welcome.ctaSecondary')}

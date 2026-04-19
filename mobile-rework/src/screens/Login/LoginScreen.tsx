@@ -1,7 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthBigBtn, AuthField, DividerWith, LinearGradient, ScreenHeader, SocialRow } from '@/components';
+import {
+  AuthBigBtn,
+  AuthField,
+  DividerWith,
+  LinearGradient,
+  PendingPairBanner,
+  ScreenHeader,
+  SocialRow,
+} from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useLoginViewModel } from './useLoginViewModel';
 
@@ -69,6 +77,7 @@ export function LoginScreen() {
           >
             <View className="px-5 pt-3 pb-10">
               <AvatarPair />
+              <PendingPairBanner />
 
               <AuthField
                 label={t('onboarding.auth.login.emailLabel')}

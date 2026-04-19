@@ -144,6 +144,9 @@ const vi = {
         body: 'Mình vẫn đang chăm chút phần này. Em dùng email trước nhé.',
         ok: 'OK',
       },
+      pendingPair: {
+        banner: 'Em có lời mời ghép đôi {{code}} — đăng nhập để tiếp tục',
+      },
     },
     pairing: {
       choice: {

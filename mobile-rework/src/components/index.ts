@@ -6,6 +6,7 @@ export { Card } from './Card';
 export { DividerWith } from './DividerWith';
 export { LinearGradient } from './Gradient';
 export { Input } from './Input';
+export { PendingPairBanner } from './PendingPairBanner';
 export { SafeScreen } from './SafeScreen';
 export { ScreenBackBtn, ScreenHeader } from './ScreenHeader';
 export { SocialRow, type SocialKind } from './SocialRow';

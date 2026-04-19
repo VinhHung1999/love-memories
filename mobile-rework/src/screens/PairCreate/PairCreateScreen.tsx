@@ -161,8 +161,12 @@ function InviteState({
 
   return (
     <View className="flex-1">
+      {/* T292 (bug #2): no back arrow once invite is issued. Boss rule: once
+          on the Your Code screen the user has committed; backing out and
+          re-entering would just spawn another invite probe. The gate restores
+          this state automatically via /api/invite/me on next entry, so kill+
+          reopen still lands here without losing the code. */}
       <ScreenHeader
-        showBack
         title={t('onboarding.pairing.invite.title')}
         subtitle={t('onboarding.pairing.invite.subtitle')}
       />

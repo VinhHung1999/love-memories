@@ -168,7 +168,10 @@ function ScannerOverlay({ visible, onClose, onScanned }: ScannerProps) {
           </View>
 
           <View className="items-center pb-8 px-6">
-            <View className="w-[260px] h-[260px] rounded-3xl border-2 border-white/80 mb-6" />
+            {/* T292 (bug #2B): viewfinder reticle is not chrome — bumped to
+                solid white so the scan target stays definitive on bright
+                or busy camera scenes. */}
+            <View className="w-[260px] h-[260px] rounded-3xl border-2 border-white mb-6" />
             <Text className="font-bodyMedium text-white text-[14px] text-center">
               {t('onboarding.pairing.join.scan.hint')}
             </Text>
