@@ -97,10 +97,15 @@ export function WelcomeScreen() {
               accessibilityRole="button"
               className="flex-row items-center justify-center bg-white rounded-full py-4 px-5 shadow-lg active:opacity-90"
             >
-              <Text className="font-bodyBold text-ink text-[15px]">
+              {/* T291 (bug #1): button is hardcoded bg-white, so the label
+                  must NOT use the themed `text-ink` token — in dark mode `ink`
+                  flips to a near-white (#FBEDE8) and the CTA goes invisible.
+                  Pin to the light-mode ink hex so it stays legible regardless
+                  of theme mode. */}
+              <Text className="font-bodyBold text-[#2A1A1E] text-[15px]">
                 {t('onboarding.welcome.ctaPrimary')}
               </Text>
-              <Text className="font-bodyBold text-ink text-base ml-2">→</Text>
+              <Text className="font-bodyBold text-[#2A1A1E] text-base ml-2">→</Text>
             </Pressable>
             <Pressable
               onPress={onLogin}

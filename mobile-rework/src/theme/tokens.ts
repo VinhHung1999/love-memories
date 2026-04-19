@@ -179,9 +179,12 @@ export const DENSITIES: Record<DensityId, Density> = {
   compact: { pad: 16, gap: 12, radius: 18, cardPad: 16, titleSize: 28 },
 };
 
-// Boss-locked defaults (see CLAUDE.md "Design defaults"):
+// Boss-locked defaults (see CLAUDE.md "Design defaults").
+// T291 (bug #2): default palette flipped from Brand → Evolve. Existing users
+// keep their saved prefs (themeStore hydrates from AsyncStorage); only fresh
+// installs inherit this default.
 export const DEFAULTS = {
-  palette: 'brand' as PaletteId,
+  palette: 'evolve' as PaletteId,
   mode: 'system' as 'system' | Mode,
   type: 'serif' as TypeSystemId,
   density: 'airy' as DensityId,

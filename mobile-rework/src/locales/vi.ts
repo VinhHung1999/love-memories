@@ -152,12 +152,10 @@ const vi = {
         create: {
           title: 'Tạo lời mời',
           subtitle: 'Cho người ta một mã 8 ký tự',
-          icon: '✦',
         },
         join: {
           title: 'Có mã rồi',
           subtitle: 'Nhập mã từ người ta',
-          icon: '→',
         },
         lockNote: 'Mỗi người chỉ ghép với một người. Không có bạn bè, không có theo dõi.',
       },
@@ -234,12 +232,10 @@ const vi = {
       granted: 'Đã bật',
       denied: 'Đã tắt',
       notif: {
-        icon: '🔔',
         title: 'Thông báo nhẹ nhàng',
         body: 'Một câu hỏi sáng, một lời chúc tối. Không spam.',
       },
       photos: {
-        icon: '🖼',
         title: 'Thư viện ảnh',
         body: 'Để em chọn ảnh khi thêm khoảnh khắc.',
       },

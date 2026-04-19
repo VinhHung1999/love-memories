@@ -1,3 +1,4 @@
+import { Bell, Image as ImageIcon, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,7 +49,7 @@ export function PermissionsScreen() {
               status={status}
               onAllow={onAllow}
               onSkip={onSkip}
-              icon={t('onboarding.permissions.notif.icon')}
+              Icon={Bell}
               title={t('onboarding.permissions.notif.title')}
               body={t('onboarding.permissions.notif.body')}
               allowLabel={t('onboarding.permissions.allow')}
@@ -61,7 +62,7 @@ export function PermissionsScreen() {
               status={status}
               onAllow={onAllow}
               onSkip={onSkip}
-              icon={t('onboarding.permissions.photos.icon')}
+              Icon={ImageIcon}
               title={t('onboarding.permissions.photos.title')}
               body={t('onboarding.permissions.photos.body')}
               allowLabel={t('onboarding.permissions.allow')}
@@ -88,7 +89,7 @@ type CardProps = {
   status: CardStatus;
   onAllow: (k: CardKey) => void;
   onSkip: (k: CardKey) => void;
-  icon: string;
+  Icon: LucideIcon;
   title: string;
   body: string;
   allowLabel: string;
@@ -102,7 +103,7 @@ function PermissionCard({
   status,
   onAllow,
   onSkip,
-  icon,
+  Icon,
   title,
   body,
   allowLabel,
@@ -110,11 +111,16 @@ function PermissionCard({
   grantedLabel,
   deniedLabel,
 }: CardProps) {
+  const c = useAppColors();
   const state = status[cardKey];
   const granted = state === 'granted';
   const denied = state === 'denied';
   const requesting = state === 'requesting';
   const decided = granted || denied;
+  // T291 (bug #6): swap emoji glyphs for lucide vector icons. Stroke colour
+  // tracks granted state so an "allowed" card visibly tints into the primary
+  // palette accent instead of staying neutral.
+  const iconStroke = granted ? c.primary : c.inkSoft;
 
   return (
     <View
@@ -128,7 +134,7 @@ function PermissionCard({
             granted ? 'bg-primary/15' : 'bg-surface-alt'
           }`}
         >
-          <Text className="text-[22px]">{icon}</Text>
+          <Icon size={22} strokeWidth={1.8} color={iconStroke} />
         </View>
         <View className="flex-1 min-w-0">
           <Text className="font-bodyBold text-ink text-[14.5px] leading-[18px]">{title}</Text>

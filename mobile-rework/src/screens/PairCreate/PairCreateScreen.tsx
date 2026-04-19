@@ -1,3 +1,4 @@
+import { Heart, Users, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -100,7 +101,7 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
         <View className="px-5 pt-4 pb-10">
         <PairOption
           accent="primary"
-          icon={t('onboarding.pairing.choice.create.icon')}
+          Icon={Heart}
           title={t('onboarding.pairing.choice.create.title')}
           subtitle={t('onboarding.pairing.choice.create.subtitle')}
           loading={creating}
@@ -108,7 +109,7 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
         />
         <PairOption
           accent="accent"
-          icon={t('onboarding.pairing.choice.join.icon')}
+          Icon={Users}
           title={t('onboarding.pairing.choice.join.title')}
           subtitle={t('onboarding.pairing.choice.join.subtitle')}
           disabled={creating}
@@ -280,7 +281,7 @@ function PairedHearts() {
 
 type OptionProps = {
   accent: PairAccent;
-  icon: string;
+  Icon: LucideIcon;
   title: string;
   subtitle: string;
   loading?: boolean;
@@ -292,12 +293,13 @@ const ICON_BG: Record<PairAccent, string> = {
   primary: 'bg-primary/15',
   accent: 'bg-accent/15',
 };
-const ICON_FG: Record<PairAccent, string> = {
-  primary: 'text-primary',
-  accent: 'text-accent',
-};
 
-function PairOption({ accent, icon, title, subtitle, loading, disabled, onPress }: OptionProps) {
+// T291 (bug #6): emoji glyphs swapped for lucide-react-native vector icons.
+// Per-accent stroke colour resolved off the live theme palette so dark mode
+// still renders crisp 1.8-stroke icons instead of muddy emoji.
+function PairOption({ accent, Icon, title, subtitle, loading, disabled, onPress }: OptionProps) {
+  const c = useAppColors();
+  const stroke = accent === 'primary' ? c.primary : c.accent;
   const dim = !!disabled || !!loading;
   return (
     <Pressable
@@ -309,7 +311,7 @@ function PairOption({ accent, icon, title, subtitle, loading, disabled, onPress 
       }`}
     >
       <View className={`w-12 h-12 rounded-2xl items-center justify-center ${ICON_BG[accent]}`}>
-        <Text className={`text-[22px] ${ICON_FG[accent]}`}>{icon}</Text>
+        <Icon size={24} strokeWidth={1.8} color={stroke} />
       </View>
       <View className="flex-1 min-w-0">
         <Text className="font-displayMedium text-ink text-[18px] leading-[21px]">{title}</Text>

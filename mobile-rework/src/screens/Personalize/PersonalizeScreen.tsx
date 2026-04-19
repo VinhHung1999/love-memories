@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -211,7 +212,7 @@ function ColorSwatch({
       accessibilityRole="button"
       accessibilityState={{ selected, disabled }}
       hitSlop={6}
-      className={`w-14 h-14 rounded-full overflow-hidden ${
+      className={`w-14 h-14 rounded-full overflow-hidden items-center justify-center ${
         selected ? 'border-[3px] border-ink' : 'border border-line'
       } shadow-sm`}
     >
@@ -221,6 +222,9 @@ function ColorSwatch({
         end={{ x: 1, y: 1 }}
         className="absolute inset-0"
       />
+      {/* T291 (bug #6): selected swatch overlays a lucide Check so the
+          chosen palette is unambiguous (border-only state was easy to miss). */}
+      {selected ? <Check size={22} strokeWidth={2.5} color="#FFFFFF" /> : null}
     </Pressable>
   );
 }

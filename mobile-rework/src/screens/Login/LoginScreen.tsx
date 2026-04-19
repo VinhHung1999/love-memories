@@ -160,7 +160,11 @@ function AvatarPair() {
   const c = useAppColors();
   return (
     <View className="flex-row justify-center items-center mb-6">
-      <View className="w-14 h-14 rounded-full overflow-hidden items-center justify-center border-2 border-white shadow-lg z-10">
+      {/* T291 (bug #4-5): pair-avatar separator was `border-white`, which
+          looked harsh on the cream `bg-bg`. Using `border-bg` matches the
+          PairCreate PairedHearts convention — ring picks up the page colour
+          so the avatars feel carved out rather than outlined in pure white. */}
+      <View className="w-14 h-14 rounded-full overflow-hidden items-center justify-center border-2 border-bg shadow-lg z-10">
         <LinearGradient
           colors={[c.primary, c.secondary]}
           start={{ x: 0, y: 0 }}
@@ -169,7 +173,7 @@ function AvatarPair() {
         />
         <Text className="font-displayMediumItalic text-white text-[22px]">L</Text>
       </View>
-      <View className="w-14 h-14 rounded-full overflow-hidden items-center justify-center border-2 border-white shadow-lg -ml-3.5">
+      <View className="w-14 h-14 rounded-full overflow-hidden items-center justify-center border-2 border-bg shadow-lg -ml-3.5">
         <LinearGradient
           colors={[c.accent, c.primary]}
           start={{ x: 0, y: 0 }}

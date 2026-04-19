@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useAppColors, useTypeSystem } from '@/theme/ThemeProvider';
 
 // T290 (Sprint 60 polish) — header layout per docs/design/prototype/memoura-v2/
@@ -50,15 +50,9 @@ export function ScreenBackBtn({ onPress }: { onPress?: () => void }) {
       accessibilityLabel="Back"
       hitSlop={8}
     >
-      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M15 5l-7 7 7 7"
-          stroke={c.ink}
-          strokeWidth={2.3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
+      {/* T291 (bug #6): hand-rolled SVG chevron swapped for lucide ChevronLeft.
+          strokeWidth 2.3 keeps the same visual weight as the prior path. */}
+      <ChevronLeft size={18} strokeWidth={2.3} color={c.ink} />
     </Pressable>
   );
 }

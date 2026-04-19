@@ -150,12 +150,10 @@ const en: Resources = {
         create: {
           title: 'Create an invite',
           subtitle: 'Give them an 8-character code',
-          icon: '\u2726',
         },
         join: {
           title: 'I have a code',
           subtitle: 'Enter the code they sent you',
-          icon: '\u2192',
         },
         lockNote: 'Each person pairs with one other. No friends, no followers, no feed.',
       },
@@ -232,12 +230,10 @@ const en: Resources = {
       granted: 'On',
       denied: 'Off',
       notif: {
-        icon: '\uD83D\uDD14',
         title: 'Gentle notifications',
         body: 'A morning question, a goodnight ping. Never spam.',
       },
       photos: {
-        icon: '\uD83D\uDDBC',
         title: 'Photo library',
         body: 'So you can add photos to your moments.',
       },

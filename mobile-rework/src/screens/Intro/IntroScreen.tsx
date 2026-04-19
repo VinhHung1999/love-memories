@@ -208,8 +208,15 @@ function MomentsVisual() {
           </View>
         </View>
       ))}
-      <View className="absolute left-1/2 -ml-[60px] top-[245px] w-[120px] items-center -rotate-[5deg]">
-        <Text className="font-displayItalic text-primary-deep text-[22px]">
+      {/* T291 (bug #3): "forever & always" wrapped on iPhone SE (375 px) when
+          container was 120 px wide. Bumped to 220 px and centered (-ml-[110px])
+          so the script stays on one line; numberOfLines={1} guarantees no
+          wrap on smaller locales/fonts. */}
+      <View className="absolute left-1/2 -ml-[110px] top-[245px] w-[220px] items-center -rotate-[5deg]">
+        <Text
+          numberOfLines={1}
+          className="font-displayItalic text-primary-deep text-[22px]"
+        >
           {t('onboarding.intro.slides.moments.sticker')}
         </Text>
       </View>
