@@ -149,7 +149,6 @@ const vi = {
       choice: {
         title: 'Cho ai nữa?',
         subtitle: 'Memoura chỉ có hai người',
-        skip: 'Để sau',
         create: {
           title: 'Tạo lời mời',
           subtitle: 'Cho người ta một mã 8 ký tự',
@@ -167,12 +166,17 @@ const vi = {
         subtitle: 'Gửi mã này cho người ta nhé',
         codeLabel: 'mã của em',
         shareCta: 'Chia sẻ',
-        rotateCta: 'Lấy mã mới?',
-        rotating: 'Đang đổi mã…',
-        waitingTitle: 'Đang đợi người ta…',
-        waitingSubtitle: 'Mình sẽ tự chuyển sang bước tiếp khi người ta vào',
+        continueCta: 'Em đã gửi rồi, tiếp tục',
+        regenerating: 'Đang đổi mã…',
+        regenerate: {
+          cta: 'Lấy mã mới?',
+          title: 'Đổi mã mới?',
+          body: 'Mã cũ sẽ không còn hiệu lực. Người ta sẽ cần mã mới để vào.',
+          confirm: 'Đổi mã',
+          cancel: 'Huỷ',
+        },
         shareMessage:
-          'Mình đợi em ở Memoura ✨ Mở link để vào: https://memoura.app/pair?code={{code}} (hoặc nhập mã {{code}} trong app)',
+          'Mình đợi em ở Memoura ✨ Mở link để vào: {{url}} (hoặc nhập mã {{code}} trong app)',
       },
       join: {
         title: 'Nhập mã của người ta',
@@ -181,6 +185,16 @@ const vi = {
         ctaIcon: '💞',
         joining: 'Đang ghép đôi…',
         partnerHint: 'Bạn sẽ ghép với {{name}}',
+        scan: {
+          cta: 'Quét mã QR của người ta',
+          permissionTitle: 'Cần camera',
+          permissionBody: 'Memoura cần camera để em quét mã QR. Em mở Cài đặt để cho phép nhé.',
+          permissionCancel: 'Huỷ',
+          permissionOpenSettings: 'Mở Cài đặt',
+          invalidCode: 'Mã QR không hợp lệ.',
+          close: 'Đóng',
+          hint: 'Đưa camera vào mã QR của người ta',
+        },
       },
       errors: {
         network: 'Mạng đang trục trặc. Em thử lại nhé.',

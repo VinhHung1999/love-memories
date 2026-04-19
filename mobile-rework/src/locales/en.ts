@@ -147,7 +147,6 @@ const en: Resources = {
       choice: {
         title: 'Who\u2019s with you?',
         subtitle: 'Memoura is just for two',
-        skip: 'Later',
         create: {
           title: 'Create an invite',
           subtitle: 'Give them an 8-character code',
@@ -165,12 +164,17 @@ const en: Resources = {
         subtitle: 'Send this to them',
         codeLabel: 'your code',
         shareCta: 'Share',
-        rotateCta: 'New code?',
-        rotating: 'Refreshing\u2026',
-        waitingTitle: 'Waiting for them\u2026',
-        waitingSubtitle: 'We\u2019ll move on once they join',
+        continueCta: 'I\u2019ve sent it, continue',
+        regenerating: 'Refreshing\u2026',
+        regenerate: {
+          cta: 'New code?',
+          title: 'Get a new code?',
+          body: 'The old code will stop working. They\u2019ll need the new one to join.',
+          confirm: 'Get new code',
+          cancel: 'Cancel',
+        },
         shareMessage:
-          'Come find me on Memoura \u2728 Open: https://memoura.app/pair?code={{code}} (or type code {{code}} in the app)',
+          'Come find me on Memoura \u2728 Open: {{url}} (or type code {{code}} in the app)',
       },
       join: {
         title: 'Enter their code',
@@ -179,6 +183,16 @@ const en: Resources = {
         ctaIcon: '\uD83D\uDC9E',
         joining: 'Pairing\u2026',
         partnerHint: 'You\u2019ll pair with {{name}}',
+        scan: {
+          cta: 'Scan their QR code',
+          permissionTitle: 'Camera needed',
+          permissionBody: 'Memoura needs your camera to scan the QR code. Open Settings to allow it.',
+          permissionCancel: 'Cancel',
+          permissionOpenSettings: 'Open Settings',
+          invalidCode: 'That QR code isn\u2019t valid.',
+          close: 'Close',
+          hint: 'Point your camera at their QR code',
+        },
       },
       errors: {
         network: 'Network hiccup. Try again in a bit.',

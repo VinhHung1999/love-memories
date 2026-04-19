@@ -1,1 +1,1 @@
-export { PairChoiceScreen as default } from '@/screens/PairChoice';
+export { PairCreateScreen as default } from '@/screens/PairCreate';

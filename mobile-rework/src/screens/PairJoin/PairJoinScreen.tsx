@@ -1,8 +1,11 @@
+import { CameraView } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
+  Modal,
   NativeSyntheticEvent,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -29,10 +32,14 @@ export function PairJoinScreen() {
     submitting,
     canSubmit,
     formError,
+    scanning,
     onChangeCell,
     onKeyPress,
     setCellRef,
     onSubmit,
+    onOpenScanner,
+    onCloseScanner,
+    onScanned,
   } = usePairJoinViewModel();
 
   return (
@@ -69,7 +76,23 @@ export function PairJoinScreen() {
               </Text>
             </View>
 
-            <View className="px-5 pt-9">
+            <View className="px-5 pt-7">
+              <Pressable
+                onPress={onOpenScanner}
+                accessibilityRole="button"
+                disabled={submitting}
+                className={`flex-row items-center justify-center gap-2 self-center rounded-full bg-surface border border-line px-4 py-2.5 ${
+                  submitting ? 'opacity-60' : 'active:opacity-90'
+                }`}
+              >
+                <Text className="text-base">📷</Text>
+                <Text className="font-bodyMedium text-ink text-[13px]">
+                  {t('onboarding.pairing.join.scan.cta')}
+                </Text>
+              </Pressable>
+            </View>
+
+            <View className="px-5 pt-6">
               <CodeCells
                 cells={cells}
                 setCellRef={setCellRef}
@@ -107,7 +130,59 @@ export function PairJoinScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <ScannerOverlay visible={scanning} onClose={onCloseScanner} onScanned={onScanned} />
     </View>
+  );
+}
+
+type ScannerProps = {
+  visible: boolean;
+  onClose: () => void;
+  onScanned: (raw: string) => void;
+};
+
+function ScannerOverlay({ visible, onClose, onScanned }: ScannerProps) {
+  const { t } = useTranslation();
+  return (
+    <Modal
+      visible={visible}
+      animationType="fade"
+      presentationStyle="overFullScreen"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black">
+        {visible ? (
+          <CameraView
+            facing="back"
+            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+            onBarcodeScanned={(e) => onScanned(e.data)}
+            className="absolute inset-0"
+          />
+        ) : null}
+
+        <SafeAreaView edges={['top', 'bottom']} className="flex-1 justify-between">
+          <View className="px-4 pt-2 flex-row justify-end">
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              hitSlop={12}
+              className="w-10 h-10 rounded-full bg-black/40 items-center justify-center active:opacity-80"
+            >
+              <Text className="text-white text-lg font-bodyBold">✕</Text>
+            </Pressable>
+          </View>
+
+          <View className="items-center pb-8 px-6">
+            <View className="w-[260px] h-[260px] rounded-3xl border-2 border-white/80 mb-6" />
+            <Text className="font-bodyMedium text-white text-[14px] text-center">
+              {t('onboarding.pairing.join.scan.hint')}
+            </Text>
+          </View>
+        </SafeAreaView>
+      </View>
+    </Modal>
   );
 }
 

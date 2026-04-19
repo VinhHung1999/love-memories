@@ -22,6 +22,11 @@ const config: ExpoConfig = {
     bundleIdentifier: bundleId,
     buildNumber: '1',
     usesAppleSignIn: true,
+    // T289 — Universal Link for /join/<code>. The matching AASA file is served
+    // at https://memoura.app/.well-known/apple-app-site-association by the web
+    // surface. Cold-start handling: Expo Router parses the inbound URL via
+    // Linking and pair-join.tsx reads `code` from the route params.
+    associatedDomains: ['applinks:memoura.app'],
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -67,6 +72,16 @@ const config: ExpoConfig = {
         photosPermission:
           'Memoura cần quyền truy cập ảnh để em chọn ảnh khi thêm khoảnh khắc.',
         cameraPermission: 'Memoura cần quyền camera khi em chụp khoảnh khắc.',
+      },
+    ],
+    [
+      'expo-camera',
+      {
+        // T289 — used by pair-join "Scan their QR code" to read the partner's
+        // QR (8-hex code or https://memoura.app/join/<code> URL). Only granted
+        // permissions interaction is the OS prompt on first scan tap.
+        cameraPermission: 'Memoura cần camera để em quét mã QR của người ấy.',
+        recordAudioAndroid: false,
       },
     ],
     'expo-apple-authentication',

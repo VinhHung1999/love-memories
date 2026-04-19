@@ -3,10 +3,12 @@ import * as Linking from 'expo-linking';
 export type DeepLinkRoute =
   | { name: 'pair-join'; params: { code?: string } };
 
-// Accepts both the custom scheme (`memoura://pair?code=123456`) and the
-// universal-link form (`https://memoura.app/pair?code=...`). Universal-links
-// proper (Associated Domains + AASA) land in Sprint 65 — this function only
-// PARSES; the OS hands us the URL via `expo-linking` once that ships.
+// Recognised inbound URL shapes (T289 Universal Link migration):
+//   - `https://memoura.app/join/<8hex>` — Universal Link (canonical share format)
+//   - `memoura://join/<8hex>`           — custom-scheme equivalent (in-process)
+//   - `https://memoura.app/pair?code=…` — legacy path kept for older shares
+//   - `memoura://pair?code=…`           — legacy custom-scheme equivalent
+// Any other shape returns null and the caller treats it as "not a deep link".
 export function parseMemouraUrl(url: string | null | undefined): DeepLinkRoute | null {
   if (!url) return null;
   let parsed: ReturnType<typeof Linking.parse>;
@@ -16,19 +18,44 @@ export function parseMemouraUrl(url: string | null | undefined): DeepLinkRoute |
     return null;
   }
 
-  // For a custom scheme like `memoura://pair?code=…`, expo-linking puts
-  // `pair` in `hostname` and leaves `path` empty. For `https://memoura.app/pair?…`
-  // it puts `pair` in `path`. Coalesce both into one segment.
-  const segment = (parsed.path && parsed.path !== '' ? parsed.path : parsed.hostname ?? '')
-    .replace(/^\/+/, '')
-    .toLowerCase();
+  // For a custom-scheme URL like `memoura://join/ABC12345`, expo-linking
+  // returns hostname=`join` and path=`ABC12345`. For the universal-link
+  // `https://memoura.app/join/ABC12345` it puts hostname=`memoura.app` and
+  // path=`join/ABC12345`. Normalise to a `[head, ...rest]` segment array.
+  const hostname = (parsed.hostname ?? '').toLowerCase();
+  const path = (parsed.path ?? '').replace(/^\/+/, '').toLowerCase();
+  const segments = hostname === 'memoura.app' || hostname === ''
+    ? path.split('/').filter(Boolean)
+    : [hostname, ...path.split('/').filter(Boolean)];
 
-  if (segment === 'pair') {
-    const code = readString(parsed.queryParams, 'code');
+  if (segments.length === 0) return null;
+  const [head, ...rest] = segments;
+
+  // /join/<code> — canonical T289 format.
+  if (head === 'join') {
+    const code = rest[0] ? sanitizeHex(rest[0]) : undefined;
     return { name: 'pair-join', params: code ? { code } : {} };
   }
 
+  // Legacy /pair?code=… — kept so old shares (and the in-flight share message
+  // text from previous app versions) still route correctly.
+  if (head === 'pair') {
+    const code = readString(parsed.queryParams, 'code');
+    return { name: 'pair-join', params: code ? { code: sanitizeHex(code) } : {} };
+  }
+
   return null;
+}
+
+// Strip non-hex (handles share-link query params with stray punctuation),
+// uppercase, cap at 8. Caller still validates length downstream.
+function sanitizeHex(raw: string): string {
+  const out: string[] = [];
+  for (const ch of raw) {
+    if (/[0-9a-f]/i.test(ch)) out.push(ch);
+    if (out.length >= 8) break;
+  }
+  return out.join('').toUpperCase();
 }
 
 function readString(
