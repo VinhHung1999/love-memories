@@ -1,3 +1,4 @@
+import { Lock, Mail } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,7 +85,7 @@ export function LoginScreen() {
                 placeholder={t('onboarding.auth.login.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
-                icon="✉"
+                icon={<Mail size={18} color={c.inkMute} strokeWidth={1.75} />}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
@@ -97,7 +98,7 @@ export function LoginScreen() {
                 placeholder={t('onboarding.auth.login.passwordPlaceholder')}
                 value={password}
                 onChangeText={setPassword}
-                icon="⌂"
+                icon={<Lock size={18} color={c.inkMute} strokeWidth={1.75} />}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoComplete="password"

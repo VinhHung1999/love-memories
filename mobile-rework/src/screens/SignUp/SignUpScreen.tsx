@@ -1,5 +1,14 @@
+import { Lock, Mail, User } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AuthBigBtn,
@@ -12,6 +21,11 @@ import {
 } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { PASSWORD_MIN, useSignUpViewModel } from './useSignUpViewModel';
+
+// T298 (bug #3): Terms + Privacy URLs match the web PWA — see
+// frontend/src/App.tsx:94-95.
+const TERMS_URL = 'https://memoura.app/terms-of-service';
+const PRIVACY_URL = 'https://memoura.app/privacy-policy';
 
 // Ports `SignUpScreen` from docs/design/prototype/memoura-v2/auth.jsx:95.
 // Soft top wash (primarySoft → bg). Header + accent line + form + terms + CTA
@@ -91,7 +105,7 @@ export function SignUpScreen() {
                 placeholder={t('onboarding.auth.signup.namePlaceholder')}
                 value={name}
                 onChangeText={setName}
-                icon="✶"
+                icon={<User size={18} color={c.inkMute} strokeWidth={1.75} />}
                 autoCapitalize="words"
                 autoComplete="name"
                 returnKeyType="next"
@@ -103,7 +117,7 @@ export function SignUpScreen() {
                 placeholder={t('onboarding.auth.signup.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
-                icon="✉"
+                icon={<Mail size={18} color={c.inkMute} strokeWidth={1.75} />}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
@@ -116,7 +130,7 @@ export function SignUpScreen() {
                 placeholder={t('onboarding.auth.signup.passwordPlaceholder', { min: PASSWORD_MIN })}
                 value={password}
                 onChangeText={setPassword}
-                icon="⌂"
+                icon={<Lock size={18} color={c.inkMute} strokeWidth={1.75} />}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoComplete="password-new"
@@ -146,7 +160,7 @@ export function SignUpScreen() {
                 placeholder={t('onboarding.auth.signup.confirmPasswordPlaceholder')}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                icon="⌂"
+                icon={<Lock size={18} color={c.inkMute} strokeWidth={1.75} />}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoComplete="password-new"
@@ -172,8 +186,25 @@ export function SignUpScreen() {
                 }
               />
 
+              {/* T298 (bug #3): Terms + Privacy were a single Text block; Boss
+                  wants tappable links. Inline Text with onPress is the
+                  RN-native way to embed links — keeps natural text wrapping. */}
               <Text className="mt-1.5 font-body text-ink-mute text-xs leading-[18px]">
-                {t('onboarding.auth.signup.terms')}
+                {t('onboarding.auth.signup.termsLead')}
+                <Text
+                  className="underline text-ink"
+                  onPress={() => Linking.openURL(TERMS_URL)}
+                >
+                  {t('onboarding.auth.signup.termsLink')}
+                </Text>
+                {t('onboarding.auth.signup.termsAnd')}
+                <Text
+                  className="underline text-ink"
+                  onPress={() => Linking.openURL(PRIVACY_URL)}
+                >
+                  {t('onboarding.auth.signup.privacyLink')}
+                </Text>
+                {t('onboarding.auth.signup.termsTail')}
               </Text>
 
               {formErrorText ? (

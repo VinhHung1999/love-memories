@@ -1,3 +1,4 @@
+import { Mail } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -62,7 +63,7 @@ function FormView({ vm }: { vm: ReturnType<typeof useForgotPasswordViewModel> })
                 placeholder={t('onboarding.auth.forgot.emailPlaceholder')}
                 value={vm.email}
                 onChangeText={vm.setEmail}
-                icon="✉"
+                icon={<Mail size={18} color={c.inkMute} strokeWidth={1.75} />}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"

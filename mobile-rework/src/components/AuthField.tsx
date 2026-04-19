@@ -7,7 +7,7 @@ import { useAppColors } from '@/theme/ThemeProvider';
 
 type Props = Omit<TextInputProps, 'style'> & {
   label?: string;
-  icon?: string;
+  icon?: ReactNode;
   trailing?: ReactNode;
   error?: string;
   className?: string;
@@ -32,12 +32,16 @@ export const AuthField = forwardRef<TextInput, Props>(function AuthField(
           {label}
         </Text>
       ) : null}
+      {/* T298 (bug #1): NativeWind 1.5px border renders heavier on iOS than CSS
+          1.5px (same calibration drift as T296 shadow). Tailwind default
+          `border` (1px) matches Boss's eye-calibrated weight from the mock. */}
       <View
-        className={`flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border-[1.5px] ${borderClass}`}
+        className={`flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border ${borderClass}`}
       >
-        {icon ? (
-          <Text className="font-body text-ink-mute text-base mr-2.5">{icon}</Text>
-        ) : null}
+        {/* T298 (bug #2): icon is now a ReactNode (lucide component) — render
+            directly with mr-2.5 spacing. Old API wrapped a Text glyph; that
+            stays out so lucide strokes render at native size. */}
+        {icon ? <View className="mr-2.5">{icon}</View> : null}
         <TextInput
           ref={ref}
           className="flex-1 font-bodyMedium text-[15px] text-ink"
