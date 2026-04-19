@@ -17,6 +17,20 @@ import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { INTRO_SLIDE_KINDS, IntroSlideKind, useIntroViewModel } from './useIntroViewModel';
 
+// Gotchas (T294):
+// 1. Vietnamese-bearing display text needs leading ≥ ~1.25em (≥ ~1.3em on
+//    uppercase) so dấu mũ/sắc/huyền don't get clipped at the line-box top.
+//    Default Tailwind `leading-none` and font-size-equal `leading-[Npx]`
+//    silently chop diacritics — always specify explicit headroom.
+// 2. The intro hero gradient is always dark across both palettes/modes (heroA→
+//    heroB→heroC walks warm→deep). Slide accent / title / body must use
+//    hardcoded `text-white*` — themed `text-ink` / `text-primary-deep` flips
+//    to near-black in light mode and disappears.
+// 3. Cards sitting on a coloured gradient must NOT carry `border border-line`.
+//    The themed line token (post-T293) is a soft hairline pre-composed against
+//    bg, so on a hero-gradient backdrop it reads as a dark hairline. Drop the
+//    border and rely on `shadow-lg` for elevation — matches prototype intent.
+
 type SlideCopy = {
   accent: string;
   title: string;
@@ -109,13 +123,16 @@ export function IntroScreen() {
               <View className="flex-1" />
 
               <View className="px-7 pb-[96px]">
-                <Text className="font-displayItalic uppercase text-primary-deep text-[11px] leading-none tracking-[2px]">
+                {/* T294 (bug #1+#2): white over the always-dark hero gradient
+                    + leading-[1.5em] so uppercase VN diacritics aren't
+                    clipped. */}
+                <Text className="font-displayItalic uppercase text-white/85 text-[11px] leading-[1.5em] tracking-[2px]">
                   {slideCopy[kind].accent}
                 </Text>
-                <Text className="mt-2.5 font-displayMediumItalic text-ink text-[40px] leading-[40px]">
+                <Text className="mt-2.5 font-displayMediumItalic text-white text-[40px] leading-[48px]">
                   {slideCopy[kind].title}
                 </Text>
-                <Text className="mt-3.5 font-body text-ink-soft text-[14.5px] leading-[22px] max-w-[310px]">
+                <Text className="mt-3.5 font-body text-white/90 text-[14.5px] leading-[22px] max-w-[310px]">
                   {slideCopy[kind].body}
                 </Text>
               </View>
@@ -245,7 +262,9 @@ function LettersVisual() {
       {cards.map((card, i) => (
         <View
           key={i}
-          className={`absolute left-1/2 -ml-[115px] top-[40px] w-[230px] h-[240px] bg-white rounded-2xl border border-line shadow-lg p-5 ${card.posClass} ${card.opacityClass}`}
+          // T294 (bug #3): no border on white-card-on-gradient — see header
+          // gotcha #3. shadow-lg alone carries the elevation cue.
+          className={`absolute left-1/2 -ml-[115px] top-[40px] w-[230px] h-[240px] bg-white rounded-2xl shadow-lg p-5 ${card.posClass} ${card.opacityClass}`}
         >
           {i === 2 ? (
             <>
@@ -275,7 +294,9 @@ function DailyVisual() {
 
   return (
     <View className="relative w-full h-full">
-      <View className="absolute left-1/2 -ml-[135px] top-[24px] w-[270px] rounded-[22px] border border-line shadow-lg overflow-hidden -rotate-[2deg]">
+      {/* T294 (bug #3): no border on the question card — gotcha #3 in header.
+          shadow-lg carries elevation. */}
+      <View className="absolute left-1/2 -ml-[135px] top-[24px] w-[270px] rounded-[22px] shadow-lg overflow-hidden -rotate-[2deg]">
         <LinearGradient
           colors={[c.accentSoft, c.bg]}
           start={{ x: 0, y: 0 }}
@@ -286,11 +307,16 @@ function DailyVisual() {
           <Text className="font-displayItalic text-accent text-lg">
             {t('onboarding.intro.slides.daily.today')}
           </Text>
-          <Text className="mt-2.5 font-displayMediumItalic text-ink text-[22px] leading-[26px]">
+          {/* T294 (bug #1): leading bumped 26→30 (1.36×) so VN dấu in
+              "Giấc mơ đẹp nhất của em?" doesn't clip. */}
+          <Text className="mt-2.5 font-displayMediumItalic text-ink text-[22px] leading-[30px]">
             “{t('onboarding.intro.slides.daily.question')}”
           </Text>
           <View className="mt-4 flex-row items-center gap-2">
-            <View className="flex-1 px-3 py-2.5 rounded-xl bg-white border border-line">
+            {/* T294 (bug #3): mock input border dropped — same gotcha #3.
+                The white pill on the soft accent gradient reads cleanly
+                without a hairline. */}
+            <View className="flex-1 px-3 py-2.5 rounded-xl bg-white">
               <Text className="font-body text-ink-mute text-[11px]">
                 {t('onboarding.intro.slides.daily.placeholder')}
               </Text>
@@ -307,10 +333,26 @@ function DailyVisual() {
           </View>
         </View>
       </View>
-      <View className="absolute left-1/2 -ml-[60px] top-[240px] w-[120px] flex-row items-center justify-center bg-primary-soft rounded-full px-3.5 py-2">
-        <Text className="font-bodyBold text-primary-deep text-xs">
-          {`🔥 ${t('onboarding.intro.slides.daily.streak')}`}
-        </Text>
+      {/* T294 (bug #5): "answered by partner" mock — purely visual teaser to
+          show the daily Q is a two-way ritual. No real data. Sits below the
+          question card; -ml-[120px] = w-[240px]/2 so it's centered. */}
+      <View className="absolute left-1/2 -ml-[120px] top-[200px] w-[240px] flex-row items-center gap-3 rounded-[18px] bg-white/95 shadow-lg px-3.5 py-3">
+        <View className="w-8 h-8 rounded-full overflow-hidden items-center justify-center">
+          <LinearGradient
+            colors={[c.accent, c.accentSoft]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="absolute inset-0"
+          />
+          <Text className="font-displayBold text-white text-[13px]">M</Text>
+        </View>
+        <View className="flex-1 gap-1.5">
+          <Text className="font-body text-ink-mute text-[11px] leading-[14px]">
+            {t('onboarding.intro.slides.daily.answeredBy')}
+          </Text>
+          <View className="h-1.5 rounded-[3px] bg-line w-[85%]" />
+          <View className="h-1.5 rounded-[3px] bg-line w-[60%]" />
+        </View>
       </View>
     </View>
   );

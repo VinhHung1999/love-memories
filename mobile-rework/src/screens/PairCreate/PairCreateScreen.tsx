@@ -67,7 +67,10 @@ function TopWash() {
 function LoadingState() {
   return (
     <View className="flex-1">
-      <ScreenHeader showBack />
+      {/* T294 (bug #8): no back arrow on the pair flow at all. Once the user
+          lands here, going back orphans the invite probe / stale form state.
+          See _layout.tsx — gestureEnabled is also disabled on this route. */}
+      <ScreenHeader />
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator />
       </View>
@@ -86,8 +89,8 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
   const { t } = useTranslation();
   return (
     <View className="flex-1">
+      {/* T294 (bug #8): no back — see LoadingState for rationale. */}
       <ScreenHeader
-        showBack
         title={t('onboarding.pairing.choice.title')}
         subtitle={t('onboarding.pairing.choice.subtitle')}
       />
@@ -318,7 +321,9 @@ function PairOption({ accent, Icon, title, subtitle, loading, disabled, onPress 
         <Icon size={24} strokeWidth={1.8} color={stroke} />
       </View>
       <View className="flex-1 min-w-0">
-        <Text className="font-displayMedium text-ink text-[18px] leading-[21px]">{title}</Text>
+        {/* T294 (bug #1): leading-[21px] (1.17×) clipped dấu mũ on "Tạo lời
+            mời" / "Có mã rồi"; bumped to 24px (1.33×). */}
+        <Text className="font-displayMedium text-ink text-[18px] leading-[24px]">{title}</Text>
         <Text className="mt-1 font-body text-ink-mute text-[12.5px] leading-[18px]">
           {subtitle}
         </Text>

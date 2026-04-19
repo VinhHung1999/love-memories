@@ -26,9 +26,19 @@ export default function AuthLayout() {
         options={{ gestureEnabled: false, headerBackVisible: false }}
       />
       <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="pair-create" />
+      {/* T294 (bug #8): pair-create + personalize are commit points — once the
+          user creates an invite or starts personalizing, swiping back orphans
+          the pair state. Locks gesture + header back; ScreenHeader inside both
+          screens also drops its back arrow for the same reason. */}
+      <Stack.Screen
+        name="pair-create"
+        options={{ gestureEnabled: false, headerBackVisible: false }}
+      />
       <Stack.Screen name="pair-join" />
-      <Stack.Screen name="personalize" />
+      <Stack.Screen
+        name="personalize"
+        options={{ gestureEnabled: false, headerBackVisible: false }}
+      />
       <Stack.Screen name="permissions" />
       {/* T286: lock onboarding-done so the user can't swipe back into the
           permissions wizard once they've crossed the commit point. The CTA

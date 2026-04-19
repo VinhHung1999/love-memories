@@ -1,3 +1,4 @@
+import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -5,6 +6,12 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useWelcomeViewModel } from './useWelcomeViewModel';
+
+// T294 (bug #1): Vietnamese-bearing display text needs leading ≥ ~1.25× font-size
+// (≥ ~1.3× for uppercase) so dấu mũ/sắc/huyền don't get clipped at the top of the
+// line box. See IntroScreen header for the same gotcha.
+const TERMS_URL = 'https://memoura.app/terms';
+const PRIVACY_URL = 'https://memoura.app/privacy';
 
 // Polaroid stack ports `WelcomeScreen` from
 // docs/design/prototype/memoura-v2/onboarding.jsx:5. Original positions
@@ -81,10 +88,16 @@ export function WelcomeScreen() {
         </View>
 
         <View className="px-7 pt-10 pb-12">
-          <Text className="font-displayItalic uppercase text-white/90 text-xs leading-none tracking-[2.4px]">
+          {/* T294 (bug #1): leading-none on uppercase VN clipped dấu huyền on
+              "chào mừng em"; bumped to leading-[1.5em] so the diacritic sits
+              fully inside the line box. */}
+          <Text className="font-displayItalic uppercase text-white/90 text-xs leading-[1.5em] tracking-[2.4px]">
             {t('onboarding.welcome.accent')}
           </Text>
-          <Text className="mt-3 font-displayMediumItalic text-white text-[56px] leading-[54px]">
+          {/* T294 (bug #1): leading-[54px] (0.96×) clipped descenders on the
+              display 56-pt title; 64px (1.14×) keeps Memoura's italic glyphs
+              fully rendered. */}
+          <Text className="mt-3 font-displayMediumItalic text-white text-[56px] leading-[64px]">
             {t('onboarding.welcome.title')}
           </Text>
           <Text className="mt-4 font-body text-white/90 text-[15px] leading-snug max-w-[300px]">
@@ -120,9 +133,36 @@ export function WelcomeScreen() {
               </Text>
             </Pressable>
           </View>
+
+          <LegalFooter />
         </View>
       </SafeAreaView>
     </View>
+  );
+}
+
+// T294 (bug #7): legal footer below the secondary CTA. Links open in the
+// in-app browser tab so the user stays inside Memoura.
+function LegalFooter() {
+  const { t } = useTranslation();
+  const openTerms = () => {
+    void WebBrowser.openBrowserAsync(TERMS_URL);
+  };
+  const openPrivacy = () => {
+    void WebBrowser.openBrowserAsync(PRIVACY_URL);
+  };
+  return (
+    <Text className="mt-5 text-center font-body text-white/70 text-[11px] leading-[16px]">
+      {t('onboarding.welcome.legal.prefix')}
+      <Text onPress={openTerms} className="text-white/90 underline">
+        {t('onboarding.welcome.legal.terms')}
+      </Text>
+      {t('onboarding.welcome.legal.and')}
+      <Text onPress={openPrivacy} className="text-white/90 underline">
+        {t('onboarding.welcome.legal.privacy')}
+      </Text>
+      {t('onboarding.welcome.legal.suffix')}
+    </Text>
   );
 }
 
