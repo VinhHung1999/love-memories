@@ -3,6 +3,30 @@ import * as Linking from 'expo-linking';
 export type DeepLinkRoute =
   | { name: 'pair-join'; params: { code?: string } };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTRACT for adding a new accepted deep-link path (/letter/:id, /moment/:id…)
+// ─────────────────────────────────────────────────────────────────────────────
+// Both halves are MANDATORY. Skipping either reproduces the Build 21 "unknown
+// route" white-screen bug (T312) on cold-start Universal Links.
+//
+//   (a) FILE-ROUTE — create `app/<path>/[param].tsx` that does the navigation
+//       in a useEffect (sanitize → optional setPending* stash for unauthed →
+//       router.replace to the destination). Expo Router's file-tree routing
+//       runs synchronously at mount and renders the not-found screen BEFORE
+//       Linking's URL listener can fire on cold-start, so the file-route is
+//       the only authoritative handler for first-paint.
+//
+//   (b) LISTENER SHORT-CIRCUIT — extend `useDeepLink` in `app/_layout.tsx` so
+//       the warm-start branch detects URLs already owned by a file-route and
+//       returns BEFORE the router.push, avoiding two stacked entries when
+//       the file-route + the listener both fire (e.g. user re-opens app from
+//       a share while it's still alive in memory).
+//
+// The legacy `/pair?code=…` shape below has no file-route — it's the one
+// exception, kept only so old shares that pre-date T312 still resolve via
+// the listener push. Don't add new exceptions; ship a file-route every time.
+// ─────────────────────────────────────────────────────────────────────────────
+//
 // Recognised inbound URL shapes (T289 Universal Link migration):
 //   - `https://memoura.app/join/<8hex>` — Universal Link (canonical share format)
 //   - `memoura://join/<8hex>`           — custom-scheme equivalent (in-process)
