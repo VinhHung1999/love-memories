@@ -49,6 +49,39 @@ export async function generateInvite(coupleId: string) {
   return { inviteCode };
 }
 
+// T289: lets a returning user resume their pending invite without re-creating
+// the couple. PairCreate calls this on mount: 200 → render code-ready state,
+// 404 → render Create CTA, 409 → user already paired (gate handles routing).
+export async function getMyInvite(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { coupleId: true },
+  });
+  if (!user) throw new AppError(404, 'User not found');
+  if (!user.coupleId) throw new AppError(404, 'No pending invite', 'NO_INVITE');
+
+  const couple = await prisma.couple.findUnique({
+    where: { id: user.coupleId },
+    select: {
+      id: true,
+      name: true,
+      inviteCode: true,
+      createdAt: true,
+      _count: { select: { users: true } },
+    },
+  });
+  if (!couple) throw new AppError(404, 'No pending invite', 'NO_INVITE');
+  if (couple._count.users >= 2) {
+    throw new AppError(409, 'Already paired', 'ALREADY_PAIRED');
+  }
+
+  return {
+    inviteCode: couple.inviteCode,
+    createdAt: couple.createdAt,
+    couple: { id: couple.id, name: couple.name },
+  };
+}
+
 export async function validateInvite(code: string) {
   const couple = await prisma.couple.findUnique({ where: { inviteCode: code } });
   if (!couple) return { valid: false, error: 'Invalid invite code' };

@@ -24,6 +24,7 @@ import { loveLetterRoutes } from './loveLetters';
 import { recapRoutes } from './recap';
 import { expenseRoutes } from './expenses';
 import { coupleRoutes } from './couple';
+import { inviteRoutes } from './invite';
 import { shareRoutes } from './share';
 import { subscriptionRoutes } from './subscription';
 import { dailyQuestionRoutes } from './dailyQuestions';
@@ -65,6 +66,8 @@ import { validateInvite } from '../controllers/CoupleController';
 router.get('/couple/validate-invite', validateInvite);
 // /couple: requireAuth only — create/join routes need access before couple is set
 router.use('/couple', requireAuth, coupleRoutes);
+// /invite: requireAuth only — used during pairing wizard before couple is full
+router.use('/invite', requireAuth, inviteRoutes);
 router.use('/share', shareRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/daily-questions', ...rc, dailyQuestionRoutes);

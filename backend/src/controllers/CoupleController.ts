@@ -32,6 +32,11 @@ export const generateInvite = asyncHandler(async (req: AuthRequest, res: Respons
   res.json(result);
 });
 
+export const getMyInvite = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await CoupleService.getMyInvite(req.user!.userId);
+  res.json(result);
+});
+
 export const validateInvite = asyncHandler(async (req: Request, res: Response) => {
   const code = req.query.code as string;
   if (!code) {

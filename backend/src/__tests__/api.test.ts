@@ -1709,6 +1709,75 @@ describe('Couple Profile', () => {
   });
 });
 
+// Sprint 60 T289 — pair-create resume. Lets a user who created an invite,
+// killed the app, and reopened pair-create see their pending code instead of
+// getting an "already in couple" error. Three branches: pending invite (200),
+// no couple (404 NO_INVITE), already paired (409 ALREADY_PAIRED).
+describe('GET /api/invite/me', () => {
+  it('returns 200 with pending invite when user has couple but partner not joined', async () => {
+    const couple = await prisma.couple.create({
+      data: { name: 'Pending Couple', inviteCode: 'PENDING1' },
+    });
+    const user = await prisma.user.create({
+      data: {
+        email: 'invite-pending@test.com',
+        password: 'x',
+        name: 'Pending Inviter',
+        coupleId: couple.id,
+      },
+    });
+    const userToken = generateToken(user.id, couple.id);
+
+    const res = await request(app)
+      .get('/api/invite/me')
+      .set({ Authorization: `Bearer ${userToken}` });
+
+    expect(res.status).toBe(200);
+    expect(res.body.inviteCode).toBe('PENDING1');
+    expect(res.body.createdAt).toBeTruthy();
+    expect(res.body.couple).toEqual({ id: couple.id, name: 'Pending Couple' });
+
+    await prisma.user.delete({ where: { id: user.id } });
+    await prisma.couple.delete({ where: { id: couple.id } });
+  });
+
+  it('returns 404 with code=NO_INVITE when user has no couple', async () => {
+    const { generateAccessToken } = await import('../utils/auth');
+    const user = await prisma.user.create({
+      data: {
+        email: 'invite-no-couple@test.com',
+        password: 'x',
+        name: 'Lone Wolf',
+        // no coupleId
+      },
+    });
+    const userToken = generateAccessToken(user.id, null);
+
+    const res = await request(app)
+      .get('/api/invite/me')
+      .set({ Authorization: `Bearer ${userToken}` });
+
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe('NO_INVITE');
+
+    await prisma.user.delete({ where: { id: user.id } });
+  });
+
+  it('returns 409 with code=ALREADY_PAIRED when couple has 2 members', async () => {
+    // testCoupleId from beforeAll has 2 users — the main `token` belongs to
+    // one of them, so it's the cleanest fixture for the paired branch.
+    const res = await request(app).get('/api/invite/me').set(auth());
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('ALREADY_PAIRED');
+  });
+
+  it('returns 401 without auth token', async () => {
+    const res = await request(app).get('/api/invite/me');
+    expect(res.status).toBe(401);
+  });
+});
+
 // ─── Share Links ─────────────────────────────────────────────────────────────
 describe('Share Links', () => {
   let momentId: string;
