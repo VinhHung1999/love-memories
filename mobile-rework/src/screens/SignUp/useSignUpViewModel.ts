@@ -54,6 +54,7 @@ type AuthResponse = {
     name: string | null;
     avatar: string | null;
     coupleId: string | null;
+    onboardingComplete: boolean;
   };
 };
 
@@ -128,6 +129,7 @@ export function useSignUpViewModel() {
       await setSession({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
+        onboardingComplete: res.user.onboardingComplete,
         user: {
           id: res.user.id,
           email: res.user.email,
@@ -137,8 +139,8 @@ export function useSignUpViewModel() {
         },
       });
       // useAuthGate in app/_layout.tsx routes to /(auth)/pair-create because
-      // the brand-new user has onboardingComplete=false (gate's PRE_AUTH_SCREENS
-      // branch fires once accessToken flips on the /(auth)/signup segment).
+      // the brand-new user has onboardingComplete=false (server default) →
+      // PRE_AUTH_SCREENS branch fires once accessToken flips on /(auth)/signup.
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) setFormError({ kind: 'emailTaken' });

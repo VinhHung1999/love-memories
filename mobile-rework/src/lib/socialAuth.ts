@@ -178,6 +178,7 @@ type AuthResponse = {
     name: string | null;
     avatar: string | null;
     coupleId: string | null;
+    onboardingComplete: boolean;
   };
 };
 
@@ -230,6 +231,7 @@ async function applyAuthResponse(res: AuthResponse): Promise<void> {
   await useAuthStore.getState().setSession({
     accessToken: res.accessToken,
     refreshToken: res.refreshToken,
+    onboardingComplete: res.user.onboardingComplete,
     user: {
       id: res.user.id,
       email: res.user.email,

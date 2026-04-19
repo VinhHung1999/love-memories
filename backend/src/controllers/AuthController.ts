@@ -9,6 +9,7 @@ import {
   appleCompleteSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  setOnboardingCompleteSchema,
 } from '../validators/authSchemas';
 import type { AuthRequest } from '../middleware/auth';
 import * as AuthService from '../services/AuthService';
@@ -188,6 +189,15 @@ export const resetPassword = [
     const { token, newPassword } = req.body as { token: string; newPassword: string };
     await AuthService.resetPassword(token, newPassword);
     res.json({ ok: true });
+  }),
+];
+
+export const setOnboardingComplete = [
+  validate(setOnboardingCompleteSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { value } = req.body as { value: boolean };
+    const result = await AuthService.setOnboardingComplete((req as AuthRequest).user!.userId, value);
+    res.json(result);
   }),
 ];
 

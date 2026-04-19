@@ -9,6 +9,7 @@ router.post('/login', AuthController.login);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', requireAuth, AuthController.logout);
 router.get('/me', requireAuth, AuthController.me);
+router.patch('/me/onboarding-complete', requireAuth, AuthController.setOnboardingComplete);
 router.delete('/account', requireAuth, AuthController.deleteAccount);
 router.post('/send-verification', requireAuth, AuthController.sendVerification);
 router.get('/verify-email', AuthController.verifyEmail);

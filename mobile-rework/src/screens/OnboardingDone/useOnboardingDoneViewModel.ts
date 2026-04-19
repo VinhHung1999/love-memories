@@ -1,16 +1,19 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
+import { apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
 // Sprint 60 T286 — final commit screen. Tap-to-enter:
-//   1. setOnboardingComplete(true) — explicit gate flip per
-//      docs/specs/sprint-60-pairing.md §"OnboardingDone owns the commit".
-//   2. router.replace('/(tabs)') — useAuthGate would also route us, but
+//   1. PATCH /api/auth/me/onboarding-complete — T301 server-side commit so a
+//      re-login on a fresh install skips the wizard (replaces the ad-hoc
+//      useOnboardingResume couple-probe).
+//   2. setOnboardingComplete(true) — flip local gate for instant navigation.
+//   3. router.replace('/(tabs)') — useAuthGate would also route us, but
 //      replacing immediately avoids a one-frame blank as the gate effect
 //      runs after the next render.
 //
-// Best-effort: if persistence fails the gate still routes (hydrate would
-// re-read whatever ended up in storage). We don't block entry on async write.
+// The server PATCH is best-effort. If it fails (offline), the local flag still
+// gets the user into the app; next successful /refresh or /me will reconcile.
 
 export function useOnboardingDoneViewModel() {
   const router = useRouter();
@@ -22,10 +25,14 @@ export function useOnboardingDoneViewModel() {
     if (entering) return;
     setEntering(true);
     try {
+      try {
+        await apiClient.patch('/api/auth/me/onboarding-complete', { value: true });
+      } catch {
+        // Offline / transient — keep going; the server will still say false
+        // until a later sync, but the local flag unblocks the gate now.
+      }
       await setOnboardingComplete(true);
     } finally {
-      // Replace, not push — onboarding-done shouldn't sit on the back stack
-      // for a paired user accidentally swiping back into the auth wizard.
       router.replace('/(tabs)');
     }
   }, [entering, setOnboardingComplete, router]);

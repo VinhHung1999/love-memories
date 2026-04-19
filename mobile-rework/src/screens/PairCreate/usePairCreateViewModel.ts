@@ -42,6 +42,7 @@ type CreateCoupleResponse = {
     name: string | null;
     avatar: string | null;
     coupleId: string | null;
+    onboardingComplete: boolean;
   };
   inviteCode: string;
 };
@@ -132,6 +133,7 @@ export function usePairCreateViewModel() {
       await setSession({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
+        onboardingComplete: res.user.onboardingComplete,
         user: {
           id: res.user.id,
           email: res.user.email,

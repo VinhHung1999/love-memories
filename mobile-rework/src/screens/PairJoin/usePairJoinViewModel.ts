@@ -38,6 +38,7 @@ type JoinResponse = {
     name: string | null;
     avatar: string | null;
     coupleId: string | null;
+    onboardingComplete: boolean;
   };
   partnerName?: string | null;
 };
@@ -220,6 +221,7 @@ export function usePairJoinViewModel() {
         await setSession({
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
+          onboardingComplete: res.user.onboardingComplete,
           user: {
             id: res.user.id,
             email: res.user.email,

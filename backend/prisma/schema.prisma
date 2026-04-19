@@ -47,6 +47,7 @@ model User {
   avatar              String?
   coupleId            String?
   emailVerified       Boolean              @default(false)
+  onboardingComplete  Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   couple              Couple?              @relation(fields: [coupleId], references: [id])

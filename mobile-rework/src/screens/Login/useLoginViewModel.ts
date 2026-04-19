@@ -30,6 +30,7 @@ type AuthResponse = {
     name: string | null;
     avatar: string | null;
     coupleId: string | null;
+    onboardingComplete: boolean;
   };
 };
 
@@ -80,6 +81,7 @@ export function useLoginViewModel() {
       await setSession({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
+        onboardingComplete: res.user.onboardingComplete,
         user: {
           id: res.user.id,
           email: res.user.email,
@@ -88,11 +90,9 @@ export function useLoginViewModel() {
           coupleId: res.user.coupleId,
         },
       });
-      // useAuthGate in app/_layout.tsx routes to (tabs) or (auth)/pair-create
-      // based on onboardingComplete — no manual navigation needed.
-      // Returning users with coupleId=set but onboardingComplete=false (e.g.
-      // reinstall) land on pair-create first, then useOnboardingResume probes
-      // /api/couple and flips the flag → gate re-runs → (tabs).
+      // T301: server is the source of truth for onboardingComplete. Returning
+      // users (paired + finished wizard once) land directly in (tabs); fresh
+      // accounts (onboardingComplete=false) hit (auth)/pair-create.
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) setFormError({ kind: 'invalidCredentials' });

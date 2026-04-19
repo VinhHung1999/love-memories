@@ -8,7 +8,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
-import { apiClient } from '@/lib/apiClient';
 import { parseMemouraUrl } from '@/lib/deepLink';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
@@ -83,7 +82,6 @@ export default function RootLayout() {
 function RootStack() {
   useDeepLink();
   useAuthGate();
-  useOnboardingResume();
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
@@ -173,56 +171,6 @@ function useAuthGate() {
     // /index from a fresh cold-start, unknown) → tabs.
     if (!inTabsGroup) router.replace('/(tabs)');
   }, [accessToken, onboardingComplete, hasSeenOnboarding, segments, router]);
-}
-
-// Reinstall edge case (sprint-60-pairing.md §"Edge case — reinstall with
-// existing couple"): hydrate restores tokens but onboardingComplete defaults
-// to false on a fresh install. Lazy-probe GET /api/couple once when authed +
-// has coupleId + onboardingComplete is still false; if the couple is full
-// (memberCount === 2) the user previously finished onboarding, so flip the
-// flag and let useAuthGate route to (tabs).
-//
-// Lazy (here, after auth state is known) instead of eager (in hydrate)
-// because: (a) launch must stay offline-tolerant, (b) we only care once
-// authed, (c) if offline the user lingers on /(auth)/pair-create and the
-// next probe attempt fixes them when reconnected.
-//
-// Sprint 60 T285 guard: only probe while the user is on a PRE_AUTH_SCREEN
-// (welcome/login/signup/…). The intended trigger is "user just logged back
-// in after reinstall" — that path lands on /(auth)/login. The joiner path
-// (pair-join → setSession with new coupleId) ALSO satisfies the auth+coupleId
-// preconditions but is mid-wizard; without this guard we'd flip the flag and
-// yank them out of /(auth)/personalize before they finish T286.
-function useOnboardingResume() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const coupleId = useAuthStore((s) => s.user?.coupleId ?? null);
-  const onboardingComplete = useAuthStore((s) => s.onboardingComplete);
-  const segments = useSegments();
-  const probedRef = useRef(false);
-
-  useEffect(() => {
-    if (!accessToken || !coupleId || onboardingComplete) {
-      probedRef.current = false; // arm again if user signs out + back in
-      return;
-    }
-    const seg = segments as readonly string[];
-    const onPreAuth =
-      seg[0] === '(auth)' && typeof seg[1] === 'string' && PRE_AUTH_SCREENS.includes(seg[1]);
-    if (!onPreAuth) return;
-    if (probedRef.current) return;
-    probedRef.current = true;
-    (async () => {
-      try {
-        const res = await apiClient.get<{ memberCount: number }>('/api/couple');
-        if (res.memberCount >= 2) {
-          await useAuthStore.getState().setOnboardingComplete(true);
-        }
-      } catch {
-        // network down or 401 — leave flag false, gate keeps user in (auth);
-        // probedRef stays true so we don't hammer; next state change re-arms.
-      }
-    })();
-  }, [accessToken, coupleId, onboardingComplete, segments]);
 }
 
 // Catches `memoura://pair?code=…` and `https://memoura.app/pair?code=…` whether

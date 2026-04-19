@@ -37,7 +37,12 @@ type State = Tokens & {
 
 type Actions = {
   hydrate: () => Promise<void>;
-  setSession: (input: { user: AuthUser; accessToken: string; refreshToken: string }) => Promise<void>;
+  setSession: (input: {
+    user: AuthUser;
+    accessToken: string;
+    refreshToken: string;
+    onboardingComplete: boolean;
+  }) => Promise<void>;
   setAccessToken: (accessToken: string) => Promise<void>;
   setUser: (user: AuthUser | null) => void;
   setCoupleId: (coupleId: string | null) => void;
@@ -107,9 +112,18 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     }
   },
 
-  setSession: async ({ user, accessToken, refreshToken }) => {
-    set({ user, accessToken, refreshToken, onboardingComplete: false });
-    await persist({ user, accessToken, refreshToken, onboardingComplete: false });
+  setSession: async ({ user, accessToken, refreshToken, onboardingComplete }) => {
+    // T301: server is the source of truth — login/register/refresh return the
+    // user's stored onboardingComplete. No more force-false on every login,
+    // which was wiping returning users back into the wizard.
+    set({ user, accessToken, refreshToken, onboardingComplete });
+    await persist({ user, accessToken, refreshToken, onboardingComplete });
+    // Latch hasSeenOnboarding the first time we ever see a completed account
+    // (e.g. login on a fresh install where the local flag was never set).
+    if (onboardingComplete && !get().hasSeenOnboarding) {
+      set({ hasSeenOnboarding: true });
+      await persistOnboarded(true);
+    }
   },
 
   setAccessToken: async (accessToken) => {
