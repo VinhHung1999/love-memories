@@ -51,8 +51,12 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       heroA: '#F5C8B6',
       heroB: '#E8788A',
       heroC: '#8B5A7E',
-      line: 'rgba(42,26,30,0.08)',
-      lineSoft: 'rgba(42,26,30,0.04)',
+      // T293: pre-composed against bg #FFF8F6 so NativeWind v4's
+      // `rgb(var() / <alpha-value>)` pipeline doesn't apply alpha=1 to a
+      // colour that already had alpha baked in. Original web rgba values
+      // kept in comments for design reference.
+      line: '#EEE6E5',      // was rgba(42,26,30,0.08) over bg #FFF8F6
+      lineSoft: '#F6EFED',  // was rgba(42,26,30,0.04)
     },
     dark: {
       name: 'Brand',
@@ -73,8 +77,9 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       heroA: '#6B3244',
       heroB: '#C94F65',
       heroC: '#3B1E2B',
-      line: 'rgba(255,255,255,0.08)',
-      lineSoft: 'rgba(255,255,255,0.04)',
+      // T293: pre-composed against bg #1A1013.
+      line: '#2C2326',      // was rgba(255,255,255,0.08) over bg #1A1013
+      lineSoft: '#231A1C',  // was rgba(255,255,255,0.04)
     },
   },
   evolve: {
@@ -97,8 +102,9 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       heroA: '#E8B590',
       heroB: '#C23B4E',
       heroC: '#3E1F2A',
-      line: 'rgba(31,21,18,0.1)',
-      lineSoft: 'rgba(31,21,18,0.05)',
+      // T293: pre-composed against bg #F7EFE8.
+      line: '#E1D9D3',      // was rgba(31,21,18,0.1) over bg #F7EFE8
+      lineSoft: '#ECE4DD',  // was rgba(31,21,18,0.05)
     },
     dark: {
       name: 'Evolve',
@@ -119,8 +125,9 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       heroA: '#5C2A34',
       heroB: '#8E1F34',
       heroC: '#1A0C10',
-      line: 'rgba(255,255,255,0.1)',
-      lineSoft: 'rgba(255,255,255,0.05)',
+      // T293: pre-composed against bg #150E0C.
+      line: '#2C2624',      // was rgba(255,255,255,0.1) over bg #150E0C
+      lineSoft: '#211A18',  // was rgba(255,255,255,0.05)
     },
   },
 };
