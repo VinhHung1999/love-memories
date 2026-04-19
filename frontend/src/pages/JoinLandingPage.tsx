@@ -11,6 +11,12 @@ import { useParams } from 'react-router-dom';
 //      ships). If iOS still routes here (race, AASA cache, in-app browser),
 //      the "Đã có app" button is the manual fallback.
 //
+// T315 (Sprint 60 Build 23) — call GET /api/couple/validate-invite?code=…
+// on mount to surface the inviter's actual name + avatar above the code
+// pill. Public endpoint by design (the 8-hex code IS the auth) — no token
+// needed. Failure is silent: page falls back to the generic "Người ấy
+// mời em" eyebrow so a slow/down API doesn't block the share flow.
+//
 // App Store ID is a placeholder until Memoura ships publicly — the app is
 // currently distributed via app-store.hungphu.work (ad-hoc). Update both
 // `APP_STORE_ID` and `APP_STORE_URL` once the public ASC listing is live.
@@ -18,6 +24,14 @@ const APP_STORE_ID = '0000000000';
 const APP_STORE_URL = 'https://app-store.hungphu.work';
 const SCHEME_DEEP_LINK = (code: string) => `memoura://join/${code.toLowerCase()}`;
 const UNIVERSAL_LINK = (code: string) => `https://memoura.app/join/${code.toLowerCase()}`;
+
+type InviterPreview = { name: string; avatarUrl: string | null } | null;
+type ValidateInviteResponse = {
+  valid: boolean;
+  coupleName?: string | null;
+  inviter?: { name: string; avatarUrl: string | null } | null;
+  error?: string;
+};
 
 function formatHexCode(code: string): string {
   const upper = code.toUpperCase();
@@ -41,6 +55,9 @@ export default function JoinLandingPage() {
   const code = useMemo(() => sanitizeHex(params.code), [params.code]);
   const formatted = code ? formatHexCode(code) : '';
   const [copied, setCopied] = useState(false);
+  // T315: inviter preview from /validate-invite. null = not yet loaded OR
+  // load failed OR code invalid — view falls back to the generic eyebrow.
+  const [inviter, setInviter] = useState<InviterPreview>(null);
 
   // Smart App Banner — iOS Safari renders this as a top banner with an OPEN
   // button if the app is installed, falling back to the App Store. Injected
@@ -57,6 +74,34 @@ export default function JoinLandingPage() {
       meta.remove();
       document.title = prevTitle;
     };
+  }, [code]);
+
+  // T315: fetch inviter preview. Public endpoint — no auth header needed.
+  // Raw fetch (not the api.ts request() helper) because the helper assumes
+  // logged-in context (auto-redirect on 401), and this page is anonymous-first.
+  // Check res.status BEFORE res.json() — 429/5xx come back as plain text.
+  useEffect(() => {
+    if (!code) return;
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/couple/validate-invite?code=${encodeURIComponent(code.toLowerCase())}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data: ValidateInviteResponse = await res.json();
+        if (data.valid && data.inviter) {
+          setInviter({
+            name: data.inviter.name,
+            avatarUrl: data.inviter.avatarUrl,
+          });
+        }
+      } catch {
+        // Silent — landing page is functional without the preview.
+      }
+    })();
+    return () => controller.abort();
   }, [code]);
 
   const onCopy = async () => {
@@ -84,13 +129,16 @@ export default function JoinLandingPage() {
     );
   }
 
+  // T315: prefer inviter name when known, fall back to "Người ấy" generic copy.
+  const eyebrow = inviter?.name ? `${inviter.name} mời em` : 'Người ấy mời em';
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-white">
       <div className="mx-auto max-w-md px-6 pt-16 pb-12 text-center">
-        <PairedHearts />
+        {inviter ? <InviterHero inviter={inviter} /> : <PairedHearts />}
 
         <p className="mt-8 font-body text-xs uppercase tracking-[3px] text-rose-500">
-          Người ấy mời em
+          {eyebrow}
         </p>
         <h1 className="mt-3 font-heading text-3xl leading-tight text-gray-900">
           Vào Memoura cùng nhau
@@ -165,6 +213,29 @@ function PairedHearts() {
         <span className="font-heading text-3xl text-white">?</span>
       </div>
       <span className="absolute left-1/2 top-12 -translate-x-1/2 text-2xl">💞</span>
+    </div>
+  );
+}
+
+// T315: when /validate-invite returns the inviter, render their actual photo
+// (or first-letter on rose gradient) at ~80px in place of the generic paired
+// hearts placeholder. Single circle reads as "this is who's inviting you" —
+// resists the visual ambiguity of two unknown faces in PairedHearts.
+function InviterHero({ inviter }: { inviter: { name: string; avatarUrl: string | null } }) {
+  const initial = (inviter.name.trim()[0] ?? '?').toUpperCase();
+  return (
+    <div className="mx-auto flex flex-col items-center">
+      <div className="h-[88px] w-[88px] rounded-full overflow-hidden bg-gradient-to-br from-rose-400 to-orange-400 shadow-lg ring-4 ring-white flex items-center justify-center">
+        {inviter.avatarUrl ? (
+          <img
+            src={inviter.avatarUrl}
+            alt={inviter.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="font-heading text-4xl text-white">{initial}</span>
+        )}
+      </div>
     </div>
   );
 }
