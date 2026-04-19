@@ -200,6 +200,14 @@ function useDeepLink() {
           if (code) useAuthStore.getState().setPendingPairCode(code);
           return;
         }
+        // T312: /join/<code> URLs are owned by `app/join/[code].tsx` — that
+        // file-route handles the authed redirect to pair-join. Skip push here
+        // so we don't stack two pair-join entries. Legacy /pair?code=… still
+        // needs this branch because there's no file route for it.
+        const urlStr = (url ?? '').toString().toLowerCase();
+        const isJoinFileRoute =
+          urlStr.includes('/join/') || urlStr.startsWith('memoura://join/');
+        if (isJoinFileRoute) return;
         router.push({ pathname: '/(auth)/pair-join', params: route.params });
       }
     }

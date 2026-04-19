@@ -22,9 +22,18 @@ export function parseMemouraUrl(url: string | null | undefined): DeepLinkRoute |
   // returns hostname=`join` and path=`ABC12345`. For the universal-link
   // `https://memoura.app/join/ABC12345` it puts hostname=`memoura.app` and
   // path=`join/ABC12345`. Normalise to a `[head, ...rest]` segment array.
+  //
+  // T311 fix: accept any `*.memoura.app` subdomain (dev.memoura.app,
+  // staging.memoura.app, …). Previously we hard-coded `memoura.app`, so
+  // scanning a dev QR ran the else-branch that prepended `dev.memoura.app`
+  // to segments → head="dev.memoura.app" → null. The caller's fallback
+  // `sanitize(raw)` then scraped hex from the full URL, yielding garbage
+  // like "DEAAABCD" (the hex-only slice of "dev.memoura.app/j…").
   const hostname = (parsed.hostname ?? '').toLowerCase();
   const path = (parsed.path ?? '').replace(/^\/+/, '').toLowerCase();
-  const segments = hostname === 'memoura.app' || hostname === ''
+  const isMemouraHost =
+    hostname === '' || hostname === 'memoura.app' || hostname.endsWith('.memoura.app');
+  const segments = isMemouraHost
     ? path.split('/').filter(Boolean)
     : [hostname, ...path.split('/').filter(Boolean)];
 
