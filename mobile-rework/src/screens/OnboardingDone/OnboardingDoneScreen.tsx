@@ -54,7 +54,7 @@ export function OnboardingDoneScreen() {
             onPress={entering ? undefined : onEnter}
             accessibilityRole="button"
             accessibilityState={{ busy: entering }}
-            className="w-full flex-row items-center justify-center rounded-full bg-white py-4 px-5 shadow-lg active:opacity-90"
+            className="w-full flex-row items-center justify-center rounded-full bg-white py-4 px-5 shadow-hero active:opacity-90"
           >
             {entering ? (
               <ActivityIndicator color={c.ink} />

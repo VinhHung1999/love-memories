@@ -115,7 +115,7 @@ function SentView({ email, onBack }: { email: string; onBack: () => void }) {
         </View>
 
         <View className="flex-1 px-5 items-center justify-center">
-          <View className="w-[88px] h-[88px] rounded-full overflow-hidden items-center justify-center shadow-lg mb-6">
+          <View className="w-[88px] h-[88px] rounded-full overflow-hidden items-center justify-center shadow-hero mb-6">
             <LinearGradient
               colors={[c.accent, c.primary]}
               start={{ x: 0, y: 0 }}

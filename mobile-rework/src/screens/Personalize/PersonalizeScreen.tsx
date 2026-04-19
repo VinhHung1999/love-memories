@@ -204,7 +204,7 @@ function PreviewCard({ colorIndex, initial, name, partnerLabel, date, sinceLabel
   const to = SWATCH_TO[colorIndex];
   return (
     <View className="self-center flex-row items-center rounded-[22px] border border-line bg-surface px-5 py-4">
-      <View className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-bg shadow-sm">
+      <View className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-bg shadow-chip">
         <LinearGradient
           colors={[from, to]}
           start={{ x: 0, y: 0 }}
@@ -366,7 +366,7 @@ function ColorSwatch({
       hitSlop={6}
       className={`w-14 h-14 rounded-full overflow-hidden items-center justify-center ${
         selected ? 'border-[3px] border-ink' : 'border border-line'
-      } shadow-sm`}
+      } shadow-chip`}
     >
       <LinearGradient
         colors={[from, to]}
