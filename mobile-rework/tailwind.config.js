@@ -45,6 +45,17 @@ module.exports = {
         script: ['DancingScript_400Regular'],
         scriptBold: ['DancingScript_700Bold'],
       },
+      // T296: ported 1:1 from prototype boxShadow values (pairing.jsx:90,
+      // 136, 138). Tailwind defaults `shadow-sm` / `shadow-lg` translate to
+      // tight high-opacity native iOS shadows that read as dark stamped
+      // patches. These tokens preserve the soft CSS feel on iOS + give
+      // android `elevation` an approximation NativeWind can pick up.
+      boxShadow: {
+        card: '0 2px 8px rgba(0,0,0,0.03)',
+        elevated: '0 20px 50px rgba(0,0,0,0.1)',
+        hero: '0 12px 28px rgba(0,0,0,0.18)',
+        chip: '0 1px 3px rgba(0,0,0,0.05)',
+      },
     },
   },
   plugins: [],
