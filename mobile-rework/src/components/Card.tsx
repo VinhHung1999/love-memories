@@ -12,6 +12,7 @@ type Props = {
   onPress?: () => void;
   className?: string;
   variant?: Variant;
+  accessibilityState?: { disabled?: boolean; busy?: boolean; selected?: boolean };
 };
 
 const VARIANTS: Record<Variant, string> = {
@@ -21,11 +22,22 @@ const VARIANTS: Record<Variant, string> = {
   chip: 'rounded-full border border-line bg-surface shadow-chip',
 };
 
-export function Card({ children, onPress, className, variant = 'plain' }: Props) {
+export function Card({
+  children,
+  onPress,
+  className,
+  variant = 'plain',
+  accessibilityState,
+}: Props) {
   const classes = `${VARIANTS[variant]} ${className ?? ''}`;
   if (onPress) {
     return (
-      <Pressable onPress={onPress} className={`${classes} active:opacity-90`}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityState={accessibilityState}
+        className={`${classes} active:opacity-90`}
+      >
         {children}
       </Pressable>
     );

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient, ScreenHeader } from '@/components';
+import { Card, LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePairCreateViewModel } from './usePairCreateViewModel';
 
@@ -179,7 +179,7 @@ function InviteState({
         keyboardShouldPersistTaps="handled"
       >
         <View className="px-5 pt-3 pb-10">
-        <View className="rounded-[28px] border border-line bg-bg-elev px-5 py-8 shadow-lg items-center">
+        <Card variant="elevated" className="px-5 py-8 items-center">
           <Text className="font-displayItalic uppercase text-primary-deep text-[11px] tracking-[2px] mb-3">
             {t('onboarding.pairing.invite.codeLabel')}
           </Text>
@@ -209,7 +209,7 @@ function InviteState({
               </View>
             )}
           </View>
-        </View>
+        </Card>
 
         <View className="mt-5">
           <Pressable
@@ -217,7 +217,7 @@ function InviteState({
             accessibilityRole="button"
             disabled={!ready}
             className={`w-full flex-row items-center justify-center rounded-full py-4 px-5 ${
-              ready ? 'bg-surface border border-line active:opacity-90' : 'bg-surface'
+              ready ? 'bg-surface border border-line shadow-chip active:opacity-90' : 'bg-surface'
             }`}
           >
             <Text className={`font-bodyBold text-[15px] ${ready ? 'text-ink' : 'text-ink-mute'}`}>
@@ -232,7 +232,7 @@ function InviteState({
             accessibilityRole="button"
             disabled={!ready}
             className={`w-full flex-row items-center justify-center rounded-full py-4 px-5 ${
-              ready ? 'bg-ink shadow-lg active:opacity-90' : 'bg-surface'
+              ready ? 'bg-ink shadow-hero active:opacity-90' : 'bg-surface'
             }`}
           >
             <Text className={`font-bodyBold text-[15px] ${ready ? 'text-bg' : 'text-ink-mute'}`}>
@@ -274,10 +274,10 @@ function PairedHearts() {
   return (
     <View className="px-6 pt-6">
       <View className="self-center w-[180px] h-[130px] relative">
-        <View className="absolute left-2.5 top-5 w-20 h-20 rounded-full bg-primary border-[3px] border-bg shadow-lg items-center justify-center">
+        <View className="absolute left-2.5 top-5 w-20 h-20 rounded-full bg-primary border-[3px] border-bg shadow-hero items-center justify-center">
           <Text className="font-displayBold text-white text-[32px]">L</Text>
         </View>
-        <View className="absolute right-2.5 top-[30px] w-20 h-20 rounded-full bg-accent border-[3px] border-bg shadow-lg items-center justify-center">
+        <View className="absolute right-2.5 top-[30px] w-20 h-20 rounded-full bg-accent border-[3px] border-bg shadow-hero items-center justify-center">
           <Text className="font-displayBold text-white text-[32px]">?</Text>
         </View>
         <Text className="absolute left-1/2 top-[55px] -translate-x-1/2 text-2xl">💞</Text>
@@ -309,13 +309,11 @@ function PairOption({ accent, Icon, title, subtitle, loading, disabled, onPress 
   const stroke = accent === 'primary' ? c.primary : c.accent;
   const dim = !!disabled || !!loading;
   return (
-    <Pressable
+    <Card
+      variant="option"
       onPress={dim ? undefined : onPress}
-      accessibilityRole="button"
       accessibilityState={{ disabled: dim, busy: loading }}
-      className={`flex-row items-center gap-3.5 rounded-[20px] border border-line bg-surface px-4 py-[18px] mb-2.5 shadow-sm ${
-        dim ? 'opacity-60' : 'active:opacity-90'
-      }`}
+      className={`flex-row items-center gap-3.5 px-4 py-[18px] mb-2.5 ${dim ? 'opacity-60' : ''}`}
     >
       <View className={`w-12 h-12 rounded-2xl items-center justify-center ${ICON_BG[accent]}`}>
         <Icon size={24} strokeWidth={1.8} color={stroke} />
@@ -329,6 +327,6 @@ function PairOption({ accent, Icon, title, subtitle, loading, disabled, onPress 
         </Text>
       </View>
       <Text className="font-bodyMedium text-ink-mute text-lg">→</Text>
-    </Pressable>
+    </Card>
   );
 }
