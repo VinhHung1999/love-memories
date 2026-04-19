@@ -22,10 +22,13 @@ import { INTRO_SLIDE_KINDS, IntroSlideKind, useIntroViewModel } from './useIntro
 //    uppercase) so dấu mũ/sắc/huyền don't get clipped at the line-box top.
 //    Default Tailwind `leading-none` and font-size-equal `leading-[Npx]`
 //    silently chop diacritics — always specify explicit headroom.
-// 2. The intro hero gradient is always dark across both palettes/modes (heroA→
-//    heroB→heroC walks warm→deep). Slide accent / title / body must use
-//    hardcoded `text-white*` — themed `text-ink` / `text-primary-deep` flips
-//    to near-black in light mode and disappears.
+// 2. ONLY the `moments` slide uses the dark hero gradient (heroA→heroB→heroC,
+//    warm→deep across both palettes/modes) — there text must be hardcoded
+//    `text-white*`. The `letters` + `daily` slides use soft pastel gradients
+//    (accentSoft / primarySoft / secondarySoft) where white text disappears;
+//    those keep themed `text-primary-deep` / `text-ink` / `text-ink-soft`.
+//    Old "all slides white" guidance bricked legibility on letters+daily —
+//    fix is per-slide via `isDark = kind === 'moments'` at the map iteration.
 // 3. Cards sitting on a coloured gradient must NOT carry `border border-line`.
 //    The themed line token (post-T293) is a soft hairline pre-composed against
 //    bg, so on a hero-gradient backdrop it reads as a dark hairline. Drop the
@@ -93,52 +96,66 @@ export function IntroScreen() {
         onMomentumScrollEnd={(e) => onMomentumEnd(e, screenWidth)}
         scrollEventThrottle={16}
       >
-        {INTRO_SLIDE_KINDS.map((kind) => (
-          <View key={kind} className="w-screen h-full">
-            <LinearGradient
-              colors={slideGradients[kind]}
-              locations={[0, 0.55, 1]}
-              start={{ x: 0.1, y: 0 }}
-              end={{ x: 0.9, y: 1 }}
-              className="absolute inset-0"
-            />
+        {INTRO_SLIDE_KINDS.map((kind) => {
+          // T294 follow-up (bug #2 revision): only `moments` is dark; pastel
+          // slides need themed text. See header gotcha #2.
+          const isDark = kind === 'moments';
+          const accentCls = isDark ? 'text-white/85' : 'text-primary-deep';
+          const titleCls = isDark ? 'text-white' : 'text-ink';
+          const bodyCls = isDark ? 'text-white/90' : 'text-ink-soft';
+          return (
+            <View key={kind} className="w-screen h-full">
+              <LinearGradient
+                colors={slideGradients[kind]}
+                locations={[0, 0.55, 1]}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 0.9, y: 1 }}
+                className="absolute inset-0"
+              />
 
-            <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-              <View className="flex-row justify-end px-5 pt-4">
-                <Pressable
-                  onPress={onSkip}
-                  accessibilityRole="button"
-                  className="bg-white/40 rounded-full px-3.5 py-2 active:opacity-70"
-                >
-                  <Text className="font-bodySemibold text-ink text-xs">
-                    {t('common.skip')}
+              <SafeAreaView edges={['top', 'bottom']} className="flex-1">
+                <View className="flex-row justify-end px-5 pt-4">
+                  <Pressable
+                    onPress={onSkip}
+                    accessibilityRole="button"
+                    className="bg-white/40 rounded-full px-3.5 py-2 active:opacity-70"
+                  >
+                    <Text className="font-bodySemibold text-ink text-xs">
+                      {t('common.skip')}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <View className="h-[320px] mt-5">
+                  <SlideVisual kind={kind} />
+                </View>
+
+                <View className="flex-1" />
+
+                <View className="px-7 pb-[96px]">
+                  {/* T294 (bug #1): leading-[1.5em] keeps uppercase VN
+                      diacritics inside the line box. Color resolved per
+                      slide above (dark gradient → white, pastel → themed). */}
+                  <Text
+                    className={`font-displayItalic uppercase ${accentCls} text-[11px] leading-[1.5em] tracking-[2px]`}
+                  >
+                    {slideCopy[kind].accent}
                   </Text>
-                </Pressable>
-              </View>
-
-              <View className="h-[320px] mt-5">
-                <SlideVisual kind={kind} />
-              </View>
-
-              <View className="flex-1" />
-
-              <View className="px-7 pb-[96px]">
-                {/* T294 (bug #1+#2): white over the always-dark hero gradient
-                    + leading-[1.5em] so uppercase VN diacritics aren't
-                    clipped. */}
-                <Text className="font-displayItalic uppercase text-white/85 text-[11px] leading-[1.5em] tracking-[2px]">
-                  {slideCopy[kind].accent}
-                </Text>
-                <Text className="mt-2.5 font-displayMediumItalic text-white text-[40px] leading-[48px]">
-                  {slideCopy[kind].title}
-                </Text>
-                <Text className="mt-3.5 font-body text-white/90 text-[14.5px] leading-[22px] max-w-[310px]">
-                  {slideCopy[kind].body}
-                </Text>
-              </View>
-            </SafeAreaView>
-          </View>
-        ))}
+                  <Text
+                    className={`mt-2.5 font-displayMediumItalic ${titleCls} text-[40px] leading-[48px]`}
+                  >
+                    {slideCopy[kind].title}
+                  </Text>
+                  <Text
+                    className={`mt-3.5 font-body ${bodyCls} text-[14.5px] leading-[22px] max-w-[310px]`}
+                  >
+                    {slideCopy[kind].body}
+                  </Text>
+                </View>
+              </SafeAreaView>
+            </View>
+          );
+        })}
       </ScrollView>
 
       <SafeAreaView
