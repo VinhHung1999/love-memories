@@ -56,7 +56,7 @@ export function WelcomeScreen() {
             {POLAROID_POSITIONS.map((posClass, i) => (
               <View
                 key={i}
-                className={`absolute w-[186px] h-[220px] bg-white rounded-lg shadow-lg ${posClass}`}
+                className={`absolute w-[186px] h-[220px] bg-white rounded-lg shadow-elevated ${posClass}`}
               >
                 <View className="absolute top-[10px] left-[10px] right-[10px] bottom-[36px] rounded-[2px] overflow-hidden">
                   <LinearGradient
@@ -108,7 +108,7 @@ export function WelcomeScreen() {
             <Pressable
               onPress={onStart}
               accessibilityRole="button"
-              className="flex-row items-center justify-center bg-white rounded-full py-4 px-5 shadow-lg active:opacity-90"
+              className="flex-row items-center justify-center bg-white rounded-full py-4 px-5 shadow-hero active:opacity-90"
             >
               {/* T291 (bug #1): button is hardcoded bg-white, so the label
                   must NOT use the themed `text-ink` token — in dark mode `ink`
