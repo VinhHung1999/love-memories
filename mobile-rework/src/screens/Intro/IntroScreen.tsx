@@ -32,7 +32,10 @@ import { INTRO_SLIDE_KINDS, IntroSlideKind, useIntroViewModel } from './useIntro
 // 3. Cards sitting on a coloured gradient must NOT carry `border border-line`.
 //    The themed line token (post-T293) is a soft hairline pre-composed against
 //    bg, so on a hero-gradient backdrop it reads as a dark hairline. Drop the
-//    border and rely on `shadow-lg` for elevation — matches prototype intent.
+//    border and rely on the soft shadow tokens (`shadow-elevated` for full
+//    cards, `shadow-card` for the lightweight answered-by mock) — matches
+//    prototype intent. T296 swapped the old `shadow-lg` (tight high-opacity
+//    iOS native shadow) for the soft custom tokens defined in tailwind.config.
 
 type SlideCopy = {
   accent: string;
@@ -175,7 +178,7 @@ export function IntroScreen() {
           <Pressable
             onPress={onNext}
             accessibilityRole="button"
-            className="flex-row items-center bg-ink rounded-full px-5 py-3.5 shadow-lg active:opacity-90"
+            className="flex-row items-center bg-ink rounded-full px-5 py-3.5 shadow-hero active:opacity-90"
           >
             <Text className="font-bodyBold text-bg text-sm">{ctaLabel}</Text>
             <Text className="font-bodyBold text-bg text-sm ml-2">→</Text>
@@ -230,7 +233,7 @@ function MomentsVisual() {
       {cards.map((card, i) => (
         <View
           key={i}
-          className={`absolute left-1/2 top-[30px] w-[160px] h-[200px] bg-white rounded-md shadow-lg ${card.posClass}`}
+          className={`absolute left-1/2 top-[30px] w-[160px] h-[200px] bg-white rounded-md shadow-elevated ${card.posClass}`}
         >
           <View className="absolute top-[8px] left-[8px] right-[8px] bottom-[28px] rounded-[2px] overflow-hidden">
             <LinearGradient
@@ -280,8 +283,8 @@ function LettersVisual() {
         <View
           key={i}
           // T294 (bug #3): no border on white-card-on-gradient — see header
-          // gotcha #3. shadow-lg alone carries the elevation cue.
-          className={`absolute left-1/2 -ml-[115px] top-[40px] w-[230px] h-[240px] bg-white rounded-2xl shadow-lg p-5 ${card.posClass} ${card.opacityClass}`}
+          // gotcha #3. shadow-elevated (T296) alone carries the elevation cue.
+          className={`absolute left-1/2 -ml-[115px] top-[40px] w-[230px] h-[240px] bg-white rounded-2xl shadow-elevated p-5 ${card.posClass} ${card.opacityClass}`}
         >
           {i === 2 ? (
             <>
@@ -312,8 +315,8 @@ function DailyVisual() {
   return (
     <View className="relative w-full h-full">
       {/* T294 (bug #3): no border on the question card — gotcha #3 in header.
-          shadow-lg carries elevation. */}
-      <View className="absolute left-1/2 -ml-[135px] top-[24px] w-[270px] rounded-[22px] shadow-lg overflow-hidden -rotate-[2deg]">
+          shadow-elevated (T296) carries elevation. */}
+      <View className="absolute left-1/2 -ml-[135px] top-[24px] w-[270px] rounded-[22px] shadow-elevated overflow-hidden -rotate-[2deg]">
         <LinearGradient
           colors={[c.accentSoft, c.bg]}
           start={{ x: 0, y: 0 }}
@@ -353,7 +356,7 @@ function DailyVisual() {
       {/* T294 (bug #5): "answered by partner" mock — purely visual teaser to
           show the daily Q is a two-way ritual. No real data. Sits below the
           question card; -ml-[120px] = w-[240px]/2 so it's centered. */}
-      <View className="absolute left-1/2 -ml-[120px] top-[200px] w-[240px] flex-row items-center gap-3 rounded-[18px] bg-white/95 shadow-lg px-3.5 py-3">
+      <View className="absolute left-1/2 -ml-[120px] top-[200px] w-[240px] flex-row items-center gap-3 rounded-[18px] bg-white/95 shadow-card px-3.5 py-3">
         <View className="w-8 h-8 rounded-full overflow-hidden items-center justify-center">
           <LinearGradient
             colors={[c.accent, c.accentSoft]}
