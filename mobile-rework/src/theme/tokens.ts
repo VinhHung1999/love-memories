@@ -28,6 +28,12 @@ export type Palette = {
   heroC: string;
   line: string;
   lineSoft: string;
+  // T299: same alpha-on-ink line, pre-composed against `surface` instead of
+  // `bg`. Inputs / cards render on `surface` (lighter than `bg` in every
+  // palette), so the bg-composed `line` reads ~14% on surface vs prototype's
+  // dynamic 10%. Use `lineOnSurface` for borders inside surface containers.
+  lineOnSurface: string;
+  lineSoftOnSurface: string;
 };
 
 export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
@@ -57,6 +63,8 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       // kept in comments for design reference.
       line: '#EEE6E5',      // was rgba(42,26,30,0.08) over bg #FFF8F6
       lineSoft: '#F6EFED',  // was rgba(42,26,30,0.04)
+      lineOnSurface: '#EEEDED',     // rgba(42,26,30,0.08) pre-composed over surface #FFFFFF
+      lineSoftOnSurface: '#F6F5F6', // rgba(42,26,30,0.04) pre-composed over surface #FFFFFF
     },
     dark: {
       name: 'Brand',
@@ -80,6 +88,8 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       // T293: pre-composed against bg #1A1013.
       line: '#2C2326',      // was rgba(255,255,255,0.08) over bg #1A1013
       lineSoft: '#231A1C',  // was rgba(255,255,255,0.04)
+      lineOnSurface: '#3B2E31',     // rgba(255,255,255,0.08) pre-composed over surface #2A1C20
+      lineSoftOnSurface: '#322528', // rgba(255,255,255,0.04) pre-composed over surface #2A1C20
     },
   },
   evolve: {
@@ -105,6 +115,8 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       // T293: pre-composed against bg #F7EFE8.
       line: '#E1D9D3',      // was rgba(31,21,18,0.1) over bg #F7EFE8
       lineSoft: '#ECE4DD',  // was rgba(31,21,18,0.05)
+      lineOnSurface: '#E8E4E0',     // rgba(31,21,18,0.1) pre-composed over surface #FFFBF7
+      lineSoftOnSurface: '#F3EFEB', // rgba(31,21,18,0.05) pre-composed over surface #FFFBF7
     },
     dark: {
       name: 'Evolve',
@@ -128,6 +140,8 @@ export const PALETTES: Record<PaletteId, Record<Mode, Palette>> = {
       // T293: pre-composed against bg #150E0C.
       line: '#2C2624',      // was rgba(255,255,255,0.1) over bg #150E0C
       lineSoft: '#211A18',  // was rgba(255,255,255,0.05)
+      lineOnSurface: '#3B302E',     // rgba(255,255,255,0.1) pre-composed over surface #261A17
+      lineSoftOnSurface: '#302522', // rgba(255,255,255,0.05) pre-composed over surface #261A17
     },
   },
 };

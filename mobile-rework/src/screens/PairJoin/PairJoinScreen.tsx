@@ -74,7 +74,7 @@ export function PairJoinScreen() {
                 onPress={onOpenScanner}
                 accessibilityRole="button"
                 disabled={submitting}
-                className={`flex-row items-center justify-center gap-2 self-center rounded-full bg-surface border border-line px-4 py-2.5 ${
+                className={`flex-row items-center justify-center gap-2 self-center rounded-full bg-surface border border-line-on-surface px-4 py-2.5 ${
                   submitting ? 'opacity-60' : 'active:opacity-90'
                 }`}
               >
@@ -232,7 +232,7 @@ function CodeCell({ value, setRef, onChangeText, onKeyPress, editable }: CellPro
       keyboardType="default"
       textContentType="oneTimeCode"
       className={`w-[36px] h-[56px] rounded-[14px] bg-surface text-center font-displayBold text-ink text-[28px] ${
-        filled ? 'border-[1.5px] border-primary' : 'border border-line'
+        filled ? 'border-[1.5px] border-primary' : 'border border-line-on-surface'
       }`}
     />
   );

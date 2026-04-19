@@ -125,7 +125,7 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
           </Text>
         ) : null}
 
-          <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line border-dashed bg-surface-alt px-4 py-3.5">
+          <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line-on-surface border-dashed bg-surface-alt px-4 py-3.5">
             <Text className="text-lg">🔒</Text>
             <Text className="flex-1 font-body text-ink-soft text-[12.5px] leading-[18px]">
               {t('onboarding.pairing.choice.lockNote')}
@@ -217,7 +217,7 @@ function InviteState({
             accessibilityRole="button"
             disabled={!ready}
             className={`w-full flex-row items-center justify-center rounded-full py-4 px-5 ${
-              ready ? 'bg-surface border border-line shadow-chip active:opacity-90' : 'bg-surface'
+              ready ? 'bg-surface border border-line-on-surface shadow-chip active:opacity-90' : 'bg-surface'
             }`}
           >
             <Text className={`font-bodyBold text-[15px] ${ready ? 'text-ink' : 'text-ink-mute'}`}>

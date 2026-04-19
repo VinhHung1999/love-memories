@@ -52,5 +52,7 @@ export function paletteToCssVars(p: Palette): Record<string, string> {
     '--color-hero-c': toRgbChannels(p.heroC),
     '--color-line': toRgbChannels(p.line),
     '--color-line-soft': toRgbChannels(p.lineSoft),
+    '--color-line-on-surface': toRgbChannels(p.lineOnSurface),
+    '--color-line-soft-on-surface': toRgbChannels(p.lineSoftOnSurface),
   };
 }

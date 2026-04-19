@@ -203,7 +203,7 @@ function PreviewCard({ colorIndex, initial, name, partnerLabel, date, sinceLabel
   const from = SWATCH_FROM[colorIndex];
   const to = SWATCH_TO[colorIndex];
   return (
-    <View className="self-center flex-row items-center rounded-[22px] border border-line bg-surface px-5 py-4">
+    <View className="self-center flex-row items-center rounded-[22px] border border-line-on-surface bg-surface px-5 py-4">
       <View className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-bg shadow-chip">
         <LinearGradient
           colors={[from, to]}
@@ -286,7 +286,7 @@ function DateField({
         onPress={open}
         accessibilityRole="button"
         accessibilityState={{ disabled: !!disabled }}
-        className={`flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border-[1.5px] border-line ${
+        className={`flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border-[1.5px] border-line-on-surface ${
           disabled ? 'opacity-60' : 'active:opacity-90'
         }`}
       >
@@ -317,7 +317,7 @@ function DateField({
             {/* Inner Pressable swallows taps so the spinner area doesn't
                 trigger the backdrop close handler. */}
             <Pressable onPress={() => {}} className="bg-surface rounded-t-[24px] pb-6">
-              <View className="flex-row items-center justify-between px-5 pt-4 pb-2 border-b border-line">
+              <View className="flex-row items-center justify-between px-5 pt-4 pb-2 border-b border-line-on-surface">
                 <Pressable onPress={close} hitSlop={8}>
                   <Text className="font-bodyMedium text-ink-mute text-[15px]">
                     {t('common.cancel')}

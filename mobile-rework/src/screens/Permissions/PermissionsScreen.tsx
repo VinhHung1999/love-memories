@@ -130,7 +130,7 @@ function PermissionCard({
   return (
     <View
       className={`mb-2.5 rounded-[18px] border-[1.5px] bg-surface px-4 py-4 ${
-        granted ? 'border-primary' : 'border-line'
+        granted ? 'border-primary' : 'border-line-on-surface'
       }`}
     >
       <View className="flex-row items-start gap-3.5">

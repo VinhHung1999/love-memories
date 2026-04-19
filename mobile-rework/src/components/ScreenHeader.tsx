@@ -45,7 +45,7 @@ export function ScreenBackBtn({ onPress }: { onPress?: () => void }) {
   return (
     <Pressable
       onPress={handle}
-      className="w-10 h-10 rounded-2xl bg-surface border border-line items-center justify-center shadow-chip active:opacity-80"
+      className="w-10 h-10 rounded-2xl bg-surface border border-line-on-surface items-center justify-center shadow-chip active:opacity-80"
       accessibilityRole="button"
       accessibilityLabel="Back"
       hitSlop={8}

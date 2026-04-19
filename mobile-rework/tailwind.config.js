@@ -30,6 +30,8 @@ module.exports = {
         'hero-c': themed('--color-hero-c'),
         line: themed('--color-line'),
         'line-soft': themed('--color-line-soft'),
+        'line-on-surface': themed('--color-line-on-surface'),
+        'line-soft-on-surface': themed('--color-line-soft-on-surface'),
       },
       fontFamily: {
         body: ['BeVietnamPro_400Regular'],

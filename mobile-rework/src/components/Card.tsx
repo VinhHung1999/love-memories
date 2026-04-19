@@ -15,11 +15,14 @@ type Props = {
   accessibilityState?: { disabled?: boolean; busy?: boolean; selected?: boolean };
 };
 
+// T299: all variants render on `surface` (or `bg-elev` which equals surface in
+// every palette) — use the on-surface line tokens so border alpha matches the
+// prototype's dynamic rgba over the lighter card background.
 const VARIANTS: Record<Variant, string> = {
-  option: 'rounded-[20px] border border-line bg-surface shadow-card',
-  elevated: 'rounded-[28px] border border-line bg-bg-elev shadow-elevated',
-  plain: 'rounded-3xl bg-surface border border-line-soft',
-  chip: 'rounded-full border border-line bg-surface shadow-chip',
+  option: 'rounded-[20px] border border-line-on-surface bg-surface shadow-card',
+  elevated: 'rounded-[28px] border border-line-on-surface bg-bg-elev shadow-elevated',
+  plain: 'rounded-3xl bg-surface border border-line-soft-on-surface',
+  chip: 'rounded-full border border-line-on-surface bg-surface shadow-chip',
 };
 
 export function Card({

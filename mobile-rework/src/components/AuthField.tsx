@@ -23,7 +23,7 @@ export const AuthField = forwardRef<TextInput, Props>(function AuthField(
     ? 'border-primary-deep'
     : focused
       ? 'border-primary'
-      : 'border-line';
+      : 'border-line-on-surface';
 
   return (
     <View className={`mb-3.5 ${className ?? ''}`}>
