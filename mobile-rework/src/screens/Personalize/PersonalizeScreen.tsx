@@ -96,12 +96,16 @@ export function PersonalizeScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {/* T294 (bug #8): no back — Personalize is the post-pair commit point;
-            stepping back to PairCreate would orphan the just-paired state.
-            _layout.tsx also disables the swipe gesture for this route. */}
+        {/* T306 (sprint 60 bundle 4): back is ENABLED. Creator path — the
+            couple POST fires on Continue, not on mount; stepping back just
+            loses typed state. Joiner path — PairJoin used router.replace, so
+            there's no PairJoin entry in the stack and back falls through to
+            PairChoice, which useAuthGate will immediately redirect away from
+            once it sees coupleId set. */}
         <ScreenHeader
           title={t('onboarding.personalize.title')}
           subtitle={t('onboarding.personalize.subtitle')}
+          showBack
         />
 
         <KeyboardAvoidingView

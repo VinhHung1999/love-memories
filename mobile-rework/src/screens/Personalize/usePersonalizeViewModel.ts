@@ -9,12 +9,42 @@ import { useAuthStore } from '@/stores/authStore';
 // to avoid the data race where the joiner overwrites the inviter's partner-nick.
 // We keep 3 input cells: name + color + anniversaryDate (DD.MM.YYYY).
 //
-// Submit fires PUT /api/profile (name) + PUT /api/couple ({color, anniversaryDate})
-// in parallel. Anniversary is optional; empty string skips. Date parses as
-// DD.MM.YYYY → ISO so BE Zod accepts.
+// T306 (Sprint 60 Bundle 4) — Continue is now the commit point for the
+// creator flow, not pair-create. Two branches:
+//
+//   creator  (user.coupleId == null)
+//     POST /api/couple                               → couple + new JWTs
+//     setSession()                                    → store new tokens
+//     Promise.all(PUT /api/profile, PUT /api/couple)  → name + color + date
+//     PATCH /api/auth/me/onboarding-complete          → best-effort server commit
+//     router.replace('/(auth)/onboarding-done')       → SKIPS /permissions
+//
+//   joiner   (user.coupleId != null, already joined via POST /api/couple/join)
+//     Promise.all(PUT /api/profile, PUT /api/couple)  → name + color + date
+//     router.replace('/(auth)/permissions')           → unchanged legacy flow
+//
+// We DO NOT flip setOnboardingComplete(true) locally — the gate in app/_layout
+// would instantly route the user into (tabs) and OnboardingDone would never
+// render. OnboardingDone owns the local flip + second PATCH (idempotent).
+//
+// Orphaned couple on mid-chain failure is accepted for MVP (logged as B41).
 
 const COLOR_COUNT = 4;
 const DATE_RE = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+
+type CreateCoupleResponse = {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string | null;
+    name: string | null;
+    avatar: string | null;
+    coupleId: string | null;
+    onboardingComplete: boolean;
+  };
+  inviteCode: string;
+};
 
 type FormError =
   | { kind: 'nameRequired' }
@@ -45,6 +75,7 @@ export function usePersonalizeViewModel() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const setSession = useAuthStore((s) => s.setSession);
 
   const [nick, setNick] = useState<string>(user?.name ?? '');
   const [colorIndex, setColorIndex] = useState<number>(0);
@@ -69,10 +100,33 @@ export function usePersonalizeViewModel() {
       return;
     }
 
+    // T306: creator path is anyone arriving at Personalize without a coupleId.
+    // The joiner went through POST /api/couple/join before landing here, so
+    // their coupleId is already set. This check survives re-entries cleanly —
+    // once POST /api/couple succeeds in the creator branch, setSession writes
+    // the new coupleId so a retry would see coupleId set and not double-POST.
+    const isCreator = !user?.coupleId;
+
     setSubmitting(true);
     try {
-      // Send name + couple update in parallel — they touch different rows so
-      // BE can't atomically batch anyway, and parallel halves the RTT.
+      if (isCreator) {
+        const res = await apiClient.post<CreateCoupleResponse>('/api/couple', {});
+        await setSession({
+          accessToken: res.accessToken,
+          refreshToken: res.refreshToken,
+          onboardingComplete: res.user.onboardingComplete,
+          user: {
+            id: res.user.id,
+            email: res.user.email,
+            name: res.user.name,
+            avatarUrl: res.user.avatar,
+            coupleId: res.user.coupleId,
+          },
+        });
+      }
+
+      // PUT name + couple settings in parallel — different rows, BE can't
+      // atomically batch anyway, and parallel halves the RTT.
       await Promise.all([
         apiClient.put('/api/profile', { name: trimmedName }),
         apiClient.put('/api/couple', {
@@ -80,9 +134,26 @@ export function usePersonalizeViewModel() {
           anniversaryDate: parsedAnniversary,
         }),
       ]);
+
       // Reflect updated name locally so OnboardingDone can greet the user.
-      if (user) setUser({ ...user, name: trimmedName });
-      router.replace('/(auth)/permissions');
+      // Re-read from store rather than closing over `user`, since the creator
+      // branch just replaced the session above.
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) setUser({ ...currentUser, name: trimmedName });
+
+      if (isCreator) {
+        // Server-side commit. Best-effort — OnboardingDone retries on entry.
+        // We do NOT call setOnboardingComplete(true) here; the gate would
+        // immediately route into (tabs) and skip OnboardingDone.
+        try {
+          await apiClient.patch('/api/auth/me/onboarding-complete', { value: true });
+        } catch {
+          // ignore — OnboardingDone will retry
+        }
+        router.replace('/(auth)/onboarding-done');
+      } else {
+        router.replace('/(auth)/permissions');
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError({ kind: 'network' });
@@ -92,7 +163,7 @@ export function usePersonalizeViewModel() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, nick, date, colorIndex, user, setUser, router]);
+  }, [canSubmit, nick, date, colorIndex, user, setUser, setSession, router]);
 
   return {
     nick,

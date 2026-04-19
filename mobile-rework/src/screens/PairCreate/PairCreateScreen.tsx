@@ -26,12 +26,7 @@ export function PairCreateScreen() {
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
         {vm.stage === 'loading' ? <LoadingState /> : null}
         {vm.stage === 'choose' ? (
-          <ChooseState
-            creating={vm.creating}
-            error={vm.error}
-            onCreate={vm.onCreate}
-            onJoin={vm.onJoin}
-          />
+          <ChooseState error={vm.error} onCreate={vm.onCreate} onJoin={vm.onJoin} />
         ) : null}
         {vm.stage === 'invite' ? (
           <InviteState
@@ -79,13 +74,12 @@ function LoadingState() {
 }
 
 type ChooseProps = {
-  creating: boolean;
   error: { kind: 'network' } | null;
   onCreate: () => void;
   onJoin: () => void;
 };
 
-function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
+function ChooseState({ error, onCreate, onJoin }: ChooseProps) {
   const { t } = useTranslation();
   return (
     <View className="flex-1">
@@ -102,12 +96,13 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
         <PairedHearts />
 
         <View className="px-5 pt-4 pb-10">
+        {/* T306: Create forwards to Personalize synchronously — no loading
+            spinner since there's no API call on this tap. */}
         <PairOption
           accent="primary"
           Icon={Heart}
           title={t('onboarding.pairing.choice.create.title')}
           subtitle={t('onboarding.pairing.choice.create.subtitle')}
-          loading={creating}
           onPress={onCreate}
         />
         <PairOption
@@ -115,7 +110,6 @@ function ChooseState({ creating, error, onCreate, onJoin }: ChooseProps) {
           Icon={Users}
           title={t('onboarding.pairing.choice.join.title')}
           subtitle={t('onboarding.pairing.choice.join.subtitle')}
-          disabled={creating}
           onPress={onJoin}
         />
 

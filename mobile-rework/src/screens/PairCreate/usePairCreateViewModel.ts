@@ -10,46 +10,28 @@ import { useAuthStore } from '@/stores/authStore';
 // screens into a single 2-state flow on `/(auth)/pair-create`.
 //
 //   stage='choose'  → show 2 PairOption cards (Create | Join)
-//   stage='invite'  → show code + QR + Share + Continue + Regenerate
+//   stage='invite'  → legacy holding screen for users who already created
+//                     an invite under the pre-T306 flow. New users never
+//                     reach it (Create now routes straight to Personalize).
 //
 // On mount we GET /api/invite/me:
-//   200 → invite already exists (user resumed from kill or back-nav) →
-//         skip the chooser and render the invite directly. Fixes Boss bug
-//         #9 ("re-create error" — POST /api/couple was failing with
-//         "already in couple" for users who had created an invite then
-//         force-closed the app).
+//   200 → legacy invite exists (user resumed from kill or back-nav on an
+//         old build that called POST /api/couple here) → render invite so
+//         they can still Share + Continue. Post-T306 flow doesn't create
+//         couples on this screen so 200 is only reachable via legacy state.
 //   404 NO_INVITE → fresh state, show chooser.
 //   409 ALREADY_PAIRED → user already has a partner; the auth gate will
 //         take them through personalize → tabs. Defensive replace() in
 //         case the gate hasn't yet caught up to the latest server state.
 //
-// Continue is a manual confirmation (Boss bug #10 — "skip waiting screen"):
-// the previous PairInvite polled /api/couple every 3s and auto-advanced on
-// memberCount===2. Boss preferred a single explicit "I've sent it" CTA so
-// the inviter isn't stuck staring at an indeterminate spinner.
-
-// T302: share host comes from env.appBaseUrl (EXPO_PUBLIC_APP_BASE_URL →
-// extra.appBaseUrl → 'https://memoura.app'). Dev builds inject the dev web
-// host so the inviter's share link matches the build's environment instead
-// of hardcoding prod. Universal Link / AASA caveat: only memoura.app serves
-// the apple-app-site-association file today; dev hosts will Safari-fallback
-// until step 2 lands.
+// T306 (Sprint 60 Bundle 4): Create no longer commits here — tapping the
+// Create card just routes to /(auth)/personalize, and Personalize fires the
+// POST /api/couple + PUT + PATCH chain on Continue. Rationale: Boss wants
+// the pairing commit deferred to the point where the user has actually
+// filled in their name/color/anniversary, so abandoned creators don't leave
+// orphaned couples on the BE. See PO spec bundle-4 / T306.
 
 // BE shapes — both endpoints colocated in backend/src/services/CoupleService.ts.
-type CreateCoupleResponse = {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string | null;
-    name: string | null;
-    avatar: string | null;
-    coupleId: string | null;
-    onboardingComplete: boolean;
-  };
-  inviteCode: string;
-};
-
 type InviteMeResponse = {
   inviteCode: string;
   createdAt: string;
@@ -72,13 +54,11 @@ function formatHexCode(code: string | null): string {
 export function usePairCreateViewModel() {
   const router = useRouter();
   const { t } = useTranslation();
-  const setSession = useAuthStore((s) => s.setSession);
   const pendingPairCode = useAuthStore((s) => s.pendingPairCode);
   const setPendingPairCode = useAuthStore((s) => s.setPendingPairCode);
 
   const [stage, setStage] = useState<Stage>('loading');
   const [code, setCode] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<FormError | null>(null);
 
@@ -127,37 +107,18 @@ export function usePairCreateViewModel() {
     };
   }, [router]);
 
-  const onCreate = useCallback(async () => {
-    if (creating) return;
-    setError(null);
-    setCreating(true);
-    try {
-      const res = await apiClient.post<CreateCoupleResponse>('/api/couple', {});
-      await setSession({
-        accessToken: res.accessToken,
-        refreshToken: res.refreshToken,
-        onboardingComplete: res.user.onboardingComplete,
-        user: {
-          id: res.user.id,
-          email: res.user.email,
-          name: res.user.name,
-          avatarUrl: res.user.avatar,
-          coupleId: res.user.coupleId,
-        },
-      });
-      setCode(res.inviteCode);
-      setStage('invite');
-    } catch {
-      setError({ kind: 'network' });
-    } finally {
-      setCreating(false);
-    }
-  }, [creating, setSession]);
+  // T306: Create just forwards to Personalize. No POST /api/couple here —
+  // Personalize's onSubmit detects the null coupleId and runs the create-
+  // chain atomically (POST /api/couple → PUT profile + PUT couple → PATCH
+  // onboarding-complete). Using replace so back-swipe can't land the user
+  // back on the chooser with a committed couple.
+  const onCreate = useCallback(() => {
+    router.replace('/(auth)/personalize');
+  }, [router]);
 
   const onJoin = useCallback(() => {
-    if (creating) return;
     router.push('/(auth)/pair-join');
-  }, [creating, router]);
+  }, [router]);
 
   const onShare = useCallback(async () => {
     if (!code) return;
@@ -216,7 +177,6 @@ export function usePairCreateViewModel() {
     code,
     formattedCode: formatHexCode(code),
     qrPayload: code ? `${env.appBaseUrl}/join/${code.toLowerCase()}` : null,
-    creating,
     regenerating,
     error,
     onCreate,

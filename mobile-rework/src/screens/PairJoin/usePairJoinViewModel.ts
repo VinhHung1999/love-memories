@@ -93,7 +93,15 @@ export function usePairJoinViewModel() {
   // Route-param prefill (deep-link consumed via PairChoice → here). Ran once
   // on mount; route param is sanitized on the way in too in case the share
   // link comes in lowercased or with stray chars.
+  //
+  // T308 — if the prefilled code is already 8 chars, auto-submit without
+  // waiting for user tap. This covers both Universal Link cold-start (AASA
+  // hits pair-join directly with ?code=FULLCODE) and the post-auth
+  // pendingPairCode forward from pair-create.tsx. Manual typing path does
+  // NOT auto-submit (prefilledRef stays false). autoSubmittedRef is
+  // belt-and-suspenders against StrictMode double-invoke + any remount.
   const prefilledRef = useRef(false);
+  const autoSubmittedRef = useRef(false);
   useEffect(() => {
     if (prefilledRef.current) return;
     const raw = typeof params.code === 'string' ? params.code : null;
@@ -102,6 +110,14 @@ export function usePairJoinViewModel() {
     if (!sanitized) return;
     prefilledRef.current = true;
     setCells(fillCells(sanitized));
+    if (sanitized.length === CODE_LEN && !autoSubmittedRef.current) {
+      autoSubmittedRef.current = true;
+      void submitCode(sanitized);
+    }
+    // submitCode is intentionally excluded from deps — this effect must fire
+    // exactly once per code-param change, and submitCode's identity churns
+    // on every setSession call. prefilledRef + autoSubmittedRef guard reentry.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.code]);
 
   // Debounced validate — fires only when code is full. We don't show inline
