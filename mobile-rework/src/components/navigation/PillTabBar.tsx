@@ -1,4 +1,5 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -6,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { LinearGradient } from '@/components/Gradient';
-import { useAppColors } from '@/theme/ThemeProvider';
+import { useAppColors, useAppMode } from '@/theme/ThemeProvider';
 
 type TabKey = 'home' | 'moments' | 'letters' | 'profile';
 
@@ -29,6 +30,7 @@ type Props = BottomTabBarProps & { onCameraPress?: () => void };
 export function PillTabBar({ state, navigation, onCameraPress }: Props) {
   const { t } = useTranslation();
   const colors = useAppColors();
+  const mode = useAppMode();
   const insets = useSafeAreaInsets();
   const activeRoute = state.routes[state.index]?.name;
 
@@ -68,7 +70,28 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
         pointerEvents="box-none"
         className="flex-row items-center px-3"
       >
-        <View className="flex-1 flex-row items-center justify-around h-[62px] rounded-full bg-bg-elev border border-line px-2 shadow-elevated mr-2.5">
+        {/* T360: Glass pill frost. Prototype `ios-frame.jsx` IOSGlassPill
+            recipe is `backdropFilter: blur(12px) saturate(180%)` over a
+            translucent tint — on native we approximate with expo-blur
+            BlurView. intensity=50 matches the prototype's "soft frost"; tint
+            follows useAppMode() so dark theme gets the darker liquid-glass
+            variant. bg-bg-elev DROPPED — BlurView owns the fill now.
+            border-line + shadow-elevated KEEP for the hairline + lift.
+            Rounded-full needs overflow:hidden to clip the blur inside the
+            pill shape.
+            Style-prop carve-out: `expo-blur` BlurView is a native RN
+            component — NativeWind className does NOT pass its `tint` /
+            `intensity` through, and wrapping in a styled <View> would add
+            an extra layer between border and blur that muddies the shine.
+            `style={{ flex: 1, borderRadius: 9999, overflow: 'hidden' }}`
+            is the minimum inline carve-out. Documented in
+            `.claude/rules/mobile-rework.md` §NativeWind exceptions. */}
+        <BlurView
+          intensity={50}
+          tint={mode === 'dark' ? 'dark' : 'light'}
+          style={{ flex: 1, borderRadius: 9999, overflow: 'hidden' }}
+          className="flex-row items-center justify-around h-[62px] rounded-full border border-line px-2 shadow-elevated mr-2.5"
+        >
           {TABS.map((tab) => {
             const isActive = tab.route === activeRoute;
             return (
@@ -95,7 +118,7 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
               </Pressable>
             );
           })}
-        </View>
+        </BlurView>
 
         <Pressable
           onPress={handleCameraPress}

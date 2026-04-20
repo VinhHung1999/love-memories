@@ -24,9 +24,18 @@ prototype before coding a screen.
 1. **MVVM.** Screen = `XxxScreen.tsx` (view only) + `useXxxViewModel.ts` (logic,
    state, API). Co-locate in `src/screens/Xxx/`.
 2. **NativeWind only — ZERO `style` prop.** No `StyleSheet.create()`. All styling via
-   `className`. **Sole exception:** `Animated.Value` transforms/opacity (technically
-   impossible as className). Shadows → `shadow-sm`/`shadow-lg`.
-   `contentContainerStyle` → wrap children in `<View className="min-h-full ...">`.
+   `className`. **Carve-outs (narrow, documented):**
+   - `Animated.Value` transforms/opacity — technically impossible as className.
+   - `expo-blur` `<BlurView>` — native props (`intensity`, `tint`) aren't class-able.
+     Combined with `rounded-full` clipping, the blur needs an inline
+     `style={{ borderRadius: 9999, overflow: 'hidden' }}` so the frost stays inside
+     the pill shape; the rest of the styling stays on `className`. See
+     `src/components/navigation/PillTabBar.tsx` (T360).
+   - `@gorhom/bottom-sheet` — `backgroundStyle` / `handleIndicatorStyle` only accept
+     style objects, not className. Keep them minimal (background color + handle
+     color from `useAppColors()`).
+   Shadows → `shadow-sm`/`shadow-lg`. `contentContainerStyle` → wrap children in
+   `<View className="min-h-full ...">`.
 3. **Theme via `useAppColors()`.** No hardcoded hex outside `src/theme/tokens.ts`.
    The ONE exception: `ThemeProvider.tsx` uses `style={themeVars}` on the root
    `<View>` to declare NativeWind `vars()` — this is the theme-application surface
@@ -135,6 +144,15 @@ Dev vs prod is detected via `__DEV__` in `src/config/env.ts`, not an env var.
 - `REACT_NATIVE_PRODUCTION=1` in Podfile crashes iOS 26 / Xcode 26 in
   SafeAreaProvider — **do NOT add this flag globally**.
 - TestFlight daily upload limit ~10/bundle — batch fixes before rebuilding.
+- **App icon stale trap.** `assets/images/icon.png` is the Expo source; the actual
+  native asset is `ios/Memoura/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png`.
+  Changing the Expo source does NOT auto-update the native asset — that only happens
+  via `expo prebuild`. Our `build-testflight.sh` / `deploy-appstore.sh` skip prebuild
+  (to preserve Mapbox xcconfig + signing config), so after updating the icon source:
+  **manually `cp assets/images/icon.png ios/.../AppIcon.appiconset/App-Icon-1024x1024@1x.png`**
+  and MD5-verify before building. Sprint 61 Build 30 shipped with stale icon because
+  this step was missed (T359 fix 2026-04-20). iOS 14+ uses single-size 1024 source
+  and scales at runtime — no per-size PNGs needed.
 
 ### Internal ad-hoc distribution
 
