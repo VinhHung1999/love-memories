@@ -14,6 +14,8 @@ import {
 import {
   ComingSoonSheet,
   type ComingSoonSheetHandle,
+  CoupleNameSheet,
+  type CoupleNameSheetHandle,
   EditProfileSheet,
   type EditProfileSheetHandle,
   InviteCodeSheet,
@@ -37,6 +39,7 @@ export function ProfileScreen() {
   const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
   const editProfileRef = useRef<EditProfileSheetHandle>(null);
+  const coupleNameRef = useRef<CoupleNameSheetHandle>(null);
 
   // Approach (b) — dedicated "Chỉnh sửa hồ sơ" row is the primary affordance;
   // the hero self-avatar is the secondary affordance and shares this handler.
@@ -53,8 +56,14 @@ export function ProfileScreen() {
   }, [vm.inviteCode]);
 
   const onCoupleNamePress = useCallback(() => {
-    comingSoonRef.current?.open();
-  }, []);
+    // Editing a couple name requires an actual couple — solo users fall
+    // back to coming-soon (mirror of onInvitePress's solo path in T340).
+    if (vm.isSolo) {
+      comingSoonRef.current?.open();
+      return;
+    }
+    coupleNameRef.current?.open(vm.coupleName);
+  }, [vm.isSolo, vm.coupleName]);
 
   const onAnniversariesPress = useCallback(() => {
     comingSoonRef.current?.open();
@@ -176,6 +185,7 @@ export function ProfileScreen() {
       <ComingSoonSheet ref={comingSoonRef} />
       <InviteCodeSheet ref={inviteSheetRef} />
       <EditProfileSheet ref={editProfileRef} />
+      <CoupleNameSheet ref={coupleNameRef} onSaved={vm.setCoupleName} />
     </SafeScreen>
   );
 }

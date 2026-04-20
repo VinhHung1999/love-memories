@@ -391,6 +391,20 @@ const vi = {
       copyCta: 'Sao chép',
       copied: 'Đã sao chép ✓',
     },
+    // Sprint 61 T342 — edit couple-name bottom sheet. Opens from the
+    // "Tên gọi của mình" settings row.
+    coupleName: {
+      title: 'Tên gọi của mình',
+      subtitle: 'Đặt một cái tên chung cho hai đứa — có thể đổi bất cứ lúc nào.',
+      label: 'Tên gọi',
+      placeholder: 'Ví dụ: Minh & Linh',
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+      errors: {
+        nameRequired: 'Nhập tên giúp mình nhé.',
+        network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
+      },
+    },
     // Sprint 61 T341 — edit-profile bottom sheet (name + avatar). Opens from
     // the hero self-avatar and the "Chỉnh sửa hồ sơ" settings row.
     editProfile: {

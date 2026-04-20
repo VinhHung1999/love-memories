@@ -370,6 +370,18 @@ const en: Resources = {
       copyCta: 'Copy',
       copied: 'Copied ✓',
     },
+    coupleName: {
+      title: 'Our name',
+      subtitle: "Give the two of you a shared name — you can change it anytime.",
+      label: 'Name',
+      placeholder: 'e.g. Minh & Linh',
+      save: 'Save',
+      saving: 'Saving…',
+      errors: {
+        nameRequired: 'Please enter a name.',
+        network: 'Something went wrong. Check your connection and try again.',
+      },
+    },
     editProfile: {
       title: 'Edit profile',
       subtitle: 'Update your display name and profile photo.',

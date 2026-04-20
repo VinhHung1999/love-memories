@@ -133,6 +133,14 @@ export function useProfileViewModel() {
     await clearAuth();
   }, [clearAuth]);
 
+  // T342: optimistic couple-name patch. The PUT /api/couple response is the
+  // full updated couple, but we only need the name to refresh the hero /
+  // settings-row detail — keep the signature narrow so the sheet doesn't
+  // leak response shape into the ViewModel's public API.
+  const setCoupleName = useCallback((name: string) => {
+    setCouple((prev) => (prev ? { ...prev, name } : prev));
+  }, []);
+
   // App version detail for the (eventual) "Memoura+" row — read once from
   // expo-constants. Falls back to the package.json version baked into the
   // config if nativeApplicationVersion is missing (iOS simulator in dev).
@@ -164,6 +172,7 @@ export function useProfileViewModel() {
     setNotificationsEnabled,
     signOut,
     appVersion,
+    setCoupleName,
     refresh: load,
   };
 }
