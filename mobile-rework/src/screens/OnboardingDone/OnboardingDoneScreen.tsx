@@ -63,10 +63,16 @@ export function OnboardingDoneScreen() {
               <ActivityIndicator color={c.ink} />
             ) : (
               <>
-                <Text className="font-bodyBold text-ink text-[15px]">
+                {/* T329 (Build 26): button is hardcoded bg-white, so the
+                    label must NOT use the themed `text-ink` token — in dark
+                    mode `ink` flips to a near-white (#FBEDE8) and the CTA
+                    goes invisible. Pin to the light-mode ink hex so it
+                    stays legible regardless of theme mode. Same fix as
+                    T291 bug#1 in WelcomeScreen. */}
+                <Text className="font-bodyBold text-[#2A1A1E] text-[15px]">
                   {t('onboarding.done.cta')}
                 </Text>
-                <Text className="font-bodyBold text-ink text-[15px] ml-2">→</Text>
+                <Text className="font-bodyBold text-[#2A1A1E] text-[15px] ml-2">→</Text>
               </>
             )}
           </Pressable>
