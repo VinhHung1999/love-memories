@@ -59,7 +59,7 @@ export function SettingsRow({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: !!disabled }}
-      className={`flex-row items-center gap-3 px-4 py-3.5 ${
+      className={`flex-row items-center gap-3 px-4 py-5 ${
         disabled ? '' : 'active:bg-surface-alt/60'
       }`}
     >

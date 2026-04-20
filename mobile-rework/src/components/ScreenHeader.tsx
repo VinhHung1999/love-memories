@@ -68,7 +68,7 @@ export function ScreenHeader({
 }: Props) {
   const ts = useTypeSystem();
   return (
-    <View className={`flex-row items-center gap-3 px-4 pt-2.5 pb-4 ${className ?? ''}`}>
+    <View className={`flex-row items-center gap-3 px-4 pt-2.5 pb-6 ${className ?? ''}`}>
       {showBack ? <ScreenBackBtn onPress={onBack} /> : null}
       <View className="flex-1 min-w-0">
         {title ? (

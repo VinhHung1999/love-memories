@@ -172,7 +172,7 @@ export function ProfileScreen() {
                 scoped counts — hide the row and never hit the endpoint. */}
             {!vm.isSolo ? <StatsRow stats={vm.stats} /> : null}
 
-            <View className="mx-5 mt-4">
+            <View className="mx-5 mt-6">
               <SettingsCard>
                 <SettingsRow
                   icon={Pencil}
@@ -234,8 +234,8 @@ export function ProfileScreen() {
                 browser (SFSafariViewController / Chrome Custom Tabs) via the
                 VM handlers. Version row is non-tappable (noChevron + no
                 onPress) — purely informational. */}
-            <View className="mx-5 mt-5">
-              <Text className="mb-2 px-1 font-displayItalic uppercase text-ink-mute text-[11px] tracking-[2px]">
+            <View className="mx-5 mt-6">
+              <Text className="mb-3 px-1 font-displayItalic uppercase text-ink-mute text-[11px] tracking-[2px]">
                 {t('profile.settingsSections.infoLegal')}
               </Text>
               <SettingsCard>
@@ -262,8 +262,8 @@ export function ProfileScreen() {
                 its own section so it reads as a deliberate gate rather than
                 a peer of the utility rows above. 2-step confirm lives in
                 onDeleteAccountPress (Alert) → DeleteAccountSheet. */}
-            <View className="mx-5 mt-5">
-              <Text className="mb-2 px-1 font-displayItalic uppercase text-ink-mute text-[11px] tracking-[2px]">
+            <View className="mx-5 mt-6">
+              <Text className="mb-3 px-1 font-displayItalic uppercase text-ink-mute text-[11px] tracking-[2px]">
                 {t('profile.settingsSections.account')}
               </Text>
               <SettingsCard>
@@ -371,7 +371,7 @@ function HeroCard({
   const eyebrowTextClass = isSolo ? 'text-ink-soft' : 'text-white/85';
 
   return (
-    <View className="mx-5 mt-4">
+    <View className="mx-5 mt-6">
       <LinearGradient
         colors={gradientColors}
         locations={[0, 0.6, 1]}
@@ -379,8 +379,11 @@ function HeroCard({
         end={{ x: 1, y: 1 }}
         className="rounded-3xl overflow-hidden shadow-elevated"
       >
-        {/* LinearGradient ignores padding — content goes inside an inner View. */}
-        <View className="relative px-5 pt-6 pb-5">
+        {/* LinearGradient ignores padding — content goes inside an inner View.
+            T366: generous pb for airy rhythm so content below doesn't kiss
+            the hero's bottom edge; pt stays at 6 (top aligns with other
+            screens' ScreenHeader pt). */}
+        <View className="relative px-5 pt-6 pb-8">
           {/* T365: dropped the old `absolute rounded-full bg-white/25` radial
               approximation — it renders as a hard-edged oval ("vòng tròn"
               Boss flagged Build 33) because RN has no smooth radial fade.
@@ -492,7 +495,8 @@ type HeroAvatarProps = {
 function StatsRow({ stats }: { stats: ProfileStats }) {
   const { t } = useTranslation();
   return (
-    <View className="mx-5 mt-3 flex-row gap-2">
+    // T366: airy gap from hero — mb-6 card-min per standing rule.
+    <View className="mx-5 mt-6 flex-row gap-2">
       <StatCard value={stats.moments} label={t('profile.stats.moments')} />
       <StatCard value={stats.letters} label={t('profile.stats.letters')} />
       <StatCard value={stats.questions} label={t('profile.stats.questions')} />
