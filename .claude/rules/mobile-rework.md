@@ -159,6 +159,12 @@ Dev vs prod is detected via `__DEV__` in `src/config/env.ts`, not an env var.
 `deploy-appstore.sh` builds ad-hoc IPA and uploads to `app-store.hungphu.work`.
 ExportOptions `method=ad-hoc`, provisioning profile must include target UDIDs.
 
+**Auto-bumps the build number** via `agvtool new-version -all "$((CURRENT+1))"`
+before archiving. **Do NOT manually `agvtool next-version` before calling this
+script** — your manual bump + script's auto-bump = net +2 (e.g. 30 → 31 → 32)
+and a skipped TF build slot. Just call the script; it handles the bump. Sprint
+61 Build 31 shipped as 32 because of this overlap (2026-04-20).
+
 ## Build / lint / scripts
 
 ```bash
