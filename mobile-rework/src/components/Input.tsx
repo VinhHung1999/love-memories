@@ -19,7 +19,7 @@ export const Input = forwardRef<TextInput, Props>(function Input(
     ? 'border-primary-deep'
     : focused
       ? 'border-primary'
-      : 'border-line';
+      : 'border-line-on-surface';
 
   return (
     <View className={className}>

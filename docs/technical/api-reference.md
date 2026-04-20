@@ -227,6 +227,56 @@ Verify email address via token from the verification email link.
 
 ---
 
+### `POST /api/auth/forgot-password` — Public (Sprint 60)
+
+Request a password-reset email. Always returns `200` to avoid leaking whether an
+account exists. Silently no-ops for unknown emails and for accounts that only have
+Google/Apple Sign-In (no password to reset).
+
+**Request:**
+```json
+{ "email": "you@example.com" }
+```
+
+**Response (200) — always:**
+```json
+{ "ok": true }
+```
+
+**Behaviour:**
+- Issues a one-time reset token (random 32-byte hex), 1-hour expiry.
+- Replaces any previously-unused token for the same user (only the newest is valid).
+- Sends the token to the user via SMTP. If SMTP is unconfigured, logs the token to
+  the server console (dev convenience).
+- Rate limit: 3 requests per hour per user — excess requests still respond 200 but
+  do not send email.
+
+**Errors:**
+- `400` missing or malformed `email`.
+
+---
+
+### `POST /api/auth/reset-password` — Public (Sprint 60)
+
+Consume a password-reset token and set a new password. On success, all of the user's
+active refresh tokens are revoked (forces a fresh login on every device).
+
+**Request:**
+```json
+{ "token": "abc123…", "newPassword": "min-6-chars" }
+```
+
+**Response (200):**
+```json
+{ "ok": true }
+```
+
+**Errors:**
+- `400` missing/short fields (`newPassword` must be ≥ 6 chars).
+- `400` token unknown, expired, or already used.
+
+---
+
 ## Subscription (Sprint 45)
 
 ### `GET /api/subscription/status`
@@ -347,12 +397,109 @@ All fields optional.
 
 ### `POST /api/couple/generate-invite`
 
-Generate or regenerate 8-character invite code for partner registration.
+Generate or regenerate the 8-character lowercase-hex invite code (`crypto.randomBytes(4).toString('hex')`) for partner registration. Codes do **not** expire server-side; rotation is user-initiated and the previous code becomes invalid the moment a new one is generated.
 
 **Response (200):**
 ```json
-{ "inviteCode": "ABC12345", "expiresAt": "2026-03-15T..." }
+{ "inviteCode": "a3f8d2b1" }
 ```
+
+**Errors:** `401` unauthenticated · `403` no couple yet (call `POST /api/couple` first to create a couple)
+
+---
+
+### `GET /api/couple/validate-invite?code=…` — Public (no auth)
+
+Preview an invite code before the joiner commits to `POST /api/couple/join`. Used by the mobile pair-join flow (debounced as the 8-hex code is typed) and by the public web landing page at `https://memoura.app/join/<code>` to render the inviter's name + avatar.
+
+**Query params:** `code` (required) — 8-char hex, lowercase or uppercase accepted.
+
+**Response (200, valid):**
+```json
+{
+  "valid": true,
+  "coupleName": "Linh & Minh",
+  "inviter": {
+    "name": "Linh",
+    "avatarUrl": "https://cdn.memoura.app/u/abc.jpg"
+  }
+}
+```
+
+**Response (200, invalid):**
+```json
+{ "valid": false, "error": "Invalid invite code" }
+```
+or `"This couple is already full"` when the couple already has 2 members.
+
+**Notes:**
+- **Public endpoint by design** — the 8-hex code IS the auth, mirroring the share-link model. Anyone with the code can preview the inviter's name + avatar.
+- `inviter.name` may be empty string if the inviter hasn't completed Personalize yet (couple created but no name set).
+- `inviter.avatarUrl` is `null` when the inviter hasn't uploaded an avatar.
+
+**Errors:** `400` missing `code` query param.
+
+---
+
+### `POST /api/couple` — Auth required
+
+Create a couple for the current user. The user must not already belong to a couple. The response includes a fresh access/refresh-token pair (the new JWT carries `coupleId`) and the first auto-generated `inviteCode` (8 lowercase hex chars).
+
+**Request:**
+```json
+{ "name": "Linh & Minh" }
+```
+
+`name` is **optional** as of Sprint 60 T284 — mobile-rework's PairCreate flow creates the couple immediately after signup before the name is collected (Personalize step T286 sets it later via `PUT /api/couple`). When omitted or blank, `Couple.name` is stored as `NULL`.
+
+**Response (201):**
+```json
+{
+  "accessToken": "...",
+  "refreshToken": "...",
+  "user": {
+    "id": "uuid",
+    "email": "linh@memoura.co",
+    "name": "Linh",
+    "avatar": null,
+    "coupleId": "uuid",
+    "googleId": null
+  },
+  "inviteCode": "a3f8d2b1"
+}
+```
+
+**Errors:** `400` user already in a couple · `401` unauthenticated
+
+---
+
+### `POST /api/couple/join` — Auth required
+
+Join an existing couple via its invite code. The user must not already belong to a couple, and the target couple must have fewer than 2 members. Response includes refreshed JWT pair (new token carries `coupleId`) and the partner's display name.
+
+**Request:**
+```json
+{ "inviteCode": "a3f8d2b1" }
+```
+
+**Response (200):**
+```json
+{
+  "accessToken": "...",
+  "refreshToken": "...",
+  "user": {
+    "id": "uuid",
+    "email": "minh@memoura.co",
+    "name": "Minh",
+    "avatar": null,
+    "coupleId": "uuid",
+    "googleId": null
+  },
+  "partnerName": "Linh"
+}
+```
+
+**Errors:** `400` invalid code · `400` user already in a couple · `400` couple already has 2 members · `401` unauthenticated
 
 ---
 

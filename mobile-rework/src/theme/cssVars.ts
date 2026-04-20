@@ -1,9 +1,12 @@
 import { Palette } from './tokens';
 
 // Converts a hex (#RRGGBB) or rgba(...) string to the "r g b" channel triple
-// that tailwind's `rgb(var(--x) / <alpha-value>)` syntax needs. For rgba()
-// sources (our line/lineSoft tokens) we drop alpha — callers should use
-// tailwind `/10`, `/20` modifiers instead.
+// that tailwind's `rgb(var(--x) / <alpha-value>)` syntax needs. All current
+// tokens are hex (T293: line/lineSoft were rgba originally; the alpha was
+// silently stripped here, so borders rendered solid instead of as soft
+// hairlines — fixed by pre-composing against bg in tokens.ts). The rgba()
+// branch below is kept as defence: if a future token is rgba, the alpha is
+// intentionally dropped — prefer pre-composed hex for theme tokens.
 function toRgbChannels(value: string): string {
   if (value.startsWith('#')) {
     const hex = value.slice(1);
@@ -49,5 +52,7 @@ export function paletteToCssVars(p: Palette): Record<string, string> {
     '--color-hero-c': toRgbChannels(p.heroC),
     '--color-line': toRgbChannels(p.line),
     '--color-line-soft': toRgbChannels(p.lineSoft),
+    '--color-line-on-surface': toRgbChannels(p.lineOnSurface),
+    '--color-line-soft-on-surface': toRgbChannels(p.lineSoftOnSurface),
   };
 }

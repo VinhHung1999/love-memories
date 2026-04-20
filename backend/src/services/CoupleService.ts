@@ -12,12 +12,18 @@ export async function getCouple(coupleId: string) {
   return couple;
 }
 
-export async function update(coupleId: string, name?: string, anniversaryDate?: string | null) {
+export async function update(
+  coupleId: string,
+  name?: string,
+  anniversaryDate?: string | null,
+  color?: string | null,
+) {
   const updateData: Record<string, unknown> = {};
   if (name !== undefined) updateData.name = name;
   if (anniversaryDate !== undefined) {
     updateData.anniversaryDate = anniversaryDate ? new Date(anniversaryDate) : null;
   }
+  if (color !== undefined) updateData.color = color;
 
   const couple = await prisma.couple.update({
     where: { id: coupleId },
@@ -43,30 +49,77 @@ export async function generateInvite(coupleId: string) {
   return { inviteCode };
 }
 
+// T289: lets a returning user resume their pending invite without re-creating
+// the couple. PairCreate calls this on mount: 200 → render code-ready state,
+// 404 → render Create CTA, 409 → user already paired (gate handles routing).
+export async function getMyInvite(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { coupleId: true },
+  });
+  if (!user) throw new AppError(404, 'User not found');
+  if (!user.coupleId) throw new AppError(404, 'No pending invite', 'NO_INVITE');
+
+  const couple = await prisma.couple.findUnique({
+    where: { id: user.coupleId },
+    select: {
+      id: true,
+      name: true,
+      inviteCode: true,
+      createdAt: true,
+      _count: { select: { users: true } },
+    },
+  });
+  if (!couple) throw new AppError(404, 'No pending invite', 'NO_INVITE');
+  if (couple._count.users >= 2) {
+    throw new AppError(409, 'Already paired', 'ALREADY_PAIRED');
+  }
+
+  return {
+    inviteCode: couple.inviteCode,
+    createdAt: couple.createdAt,
+    couple: { id: couple.id, name: couple.name },
+  };
+}
+
 export async function validateInvite(code: string) {
   const couple = await prisma.couple.findUnique({ where: { inviteCode: code } });
-  if (!couple) return { valid: false, error: 'Invalid invite code' };
+  if (!couple) return { valid: false as const, error: 'Invalid invite code' };
 
   const [count, partner] = await Promise.all([
     prisma.user.count({ where: { coupleId: couple.id } }),
     prisma.user.findFirst({ where: { coupleId: couple.id }, select: { name: true, avatar: true } }),
   ]);
 
-  if (count >= 2) return { valid: false, error: 'This couple is already full' };
-  return { valid: true, coupleName: couple.name, partnerName: partner?.name ?? '', partnerAvatar: partner?.avatar ?? null };
+  if (count >= 2) return { valid: false as const, error: 'This couple is already full' };
+  // Sprint 60 B41a — joiner UI needs both name + avatar to render the inviter
+  // hero before they commit. Old shape returned `partnerName`/`partnerAvatar`
+  // as siblings; nested `inviter` reads better at the call site and groups
+  // the optional fields. Public endpoint by design — the 8-hex code IS the auth.
+  return {
+    valid: true as const,
+    coupleName: couple.name,
+    inviter: {
+      name: partner?.name ?? '',
+      avatarUrl: partner?.avatar ?? null,
+    },
+  };
 }
 
-export async function createCouple(userId: string, name: string) {
+export async function createCouple(userId: string, name?: string) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
   if (!user) throw new AppError(404, 'User not found');
   if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
 
   const inviteCode = crypto.randomBytes(4).toString('hex');
-  const couple = await prisma.couple.create({ data: { name: name.trim(), inviteCode } });
+  const trimmedName = name?.trim();
+  const couple = await prisma.couple.create({
+    data: { name: trimmedName && trimmedName.length > 0 ? trimmedName : null, inviteCode },
+  });
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { coupleId: couple.id },
-    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true },
   });
   return { ...updated, inviteCode: couple.inviteCode };
 }
@@ -85,7 +138,7 @@ export async function joinCouple(userId: string, inviteCode: string) {
     prisma.user.update({
       where: { id: userId },
       data: { coupleId: couple.id },
-      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true },
+      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true },
     }),
     prisma.user.findFirst({
       where: { coupleId: couple.id, id: { not: userId } },

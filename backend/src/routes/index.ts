@@ -24,6 +24,7 @@ import { loveLetterRoutes } from './loveLetters';
 import { recapRoutes } from './recap';
 import { expenseRoutes } from './expenses';
 import { coupleRoutes } from './couple';
+import { inviteRoutes } from './invite';
 import { shareRoutes } from './share';
 import { subscriptionRoutes } from './subscription';
 import { dailyQuestionRoutes } from './dailyQuestions';
@@ -52,7 +53,11 @@ router.use('/recipes', ...rc, recipeRoutes);
 router.use('/cooking-sessions', ...rc, cookingSessionRoutes);
 router.use('/ai', ...rc, aiRoutes);
 router.use('/achievements', ...rc, achievementRoutes);
-router.use('/profile', ...rc, profileRoutes);
+// /profile: requireAuth only — creator hits avatar picker on Personalize
+// BEFORE POST /api/couple fires (T306 sequencing — couple created in
+// Personalize.onSubmit). Adding requireCouple here breaks T319 onboarding
+// avatar upload. Profile writes are per-user, not couple-scoped.
+router.use('/profile', requireAuth, profileRoutes);
 router.use('/notifications', ...rc, notificationRoutes);
 router.use('/push', ...rc, pushRoutes);
 router.use('/date-wishes', ...rc, dateWishRoutes);
@@ -65,6 +70,8 @@ import { validateInvite } from '../controllers/CoupleController';
 router.get('/couple/validate-invite', validateInvite);
 // /couple: requireAuth only — create/join routes need access before couple is set
 router.use('/couple', requireAuth, coupleRoutes);
+// /invite: requireAuth only — used during pairing wizard before couple is full
+router.use('/invite', requireAuth, inviteRoutes);
 router.use('/share', shareRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/daily-questions', ...rc, dailyQuestionRoutes);

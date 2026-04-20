@@ -62,7 +62,7 @@ Dev flavor dropped in Sprint 59 (f626215) — avoided registering a second App S
 
 ## Design defaults (locked)
 
-- Palette: **Brand light** (rose `#E8788A`)
+- Palette: **Evolve light** (deep rose `#C23B4E`) — flipped from Brand in Sprint 60 (T291). Existing users keep saved prefs.
 - Mode: system
 - Type system: **serif** (Fraunces display + Be Vietnam Pro body)
 - Density: **airy**

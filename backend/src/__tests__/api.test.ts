@@ -1627,6 +1627,19 @@ describe('Couple Profile', () => {
     expect(res.body.value).toBe('2020-06-15');
   });
 
+  // Sprint 60 T286 — `color` (palette swatch index "0"–"3" or hex later).
+  it('PUT /api/couple updates color', async () => {
+    const res = await request(app).put('/api/couple').set(auth()).send({ color: '2' });
+    expect(res.status).toBe(200);
+    expect(res.body.color).toBe('2');
+  });
+
+  it('PUT /api/couple clears color when explicit null', async () => {
+    const res = await request(app).put('/api/couple').set(auth()).send({ color: null });
+    expect(res.status).toBe(200);
+    expect(res.body.color).toBeNull();
+  });
+
   it('POST /api/couple/generate-invite generates 8-char code', async () => {
     const res = await request(app).post('/api/couple/generate-invite').set(auth());
     expect(res.status).toBe(200);
@@ -1645,7 +1658,7 @@ describe('Couple Profile', () => {
     expect(res.status).toBe(401);
   });
 
-  it('GET /api/couple/validate-invite returns valid=true with partnerName + partnerAvatar (no auth required)', async () => {
+  it('GET /api/couple/validate-invite returns valid=true with inviter {name, avatarUrl} (no auth required)', async () => {
     // Create a joinable couple with exactly 1 member
     const joinable = await prisma.couple.create({ data: { name: 'Joinable Couple', inviteCode: 'JOINTEST' } });
     await prisma.user.create({ data: { email: 'solo@test.com', password: 'x', name: 'Solo User', coupleId: joinable.id } });
@@ -1653,8 +1666,7 @@ describe('Couple Profile', () => {
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(true);
     expect(res.body.coupleName).toBe('Joinable Couple');
-    expect(res.body.partnerName).toBe('Solo User');
-    expect('partnerAvatar' in res.body).toBe(true);
+    expect(res.body.inviter).toEqual({ name: 'Solo User', avatarUrl: null });
     // Cleanup
     await prisma.user.deleteMany({ where: { email: 'solo@test.com' } });
     await prisma.couple.delete({ where: { id: joinable.id } });
@@ -1693,6 +1705,75 @@ describe('Couple Profile', () => {
     const res = await request(app).get('/api/couple/validate-invite?code=ANYCODE');
     expect(res.status).toBe(200);
     expect(res.body.valid).toBe(false); // ANYCODE doesn't exist — valid=false, but NOT 401
+  });
+});
+
+// Sprint 60 T289 — pair-create resume. Lets a user who created an invite,
+// killed the app, and reopened pair-create see their pending code instead of
+// getting an "already in couple" error. Three branches: pending invite (200),
+// no couple (404 NO_INVITE), already paired (409 ALREADY_PAIRED).
+describe('GET /api/invite/me', () => {
+  it('returns 200 with pending invite when user has couple but partner not joined', async () => {
+    const couple = await prisma.couple.create({
+      data: { name: 'Pending Couple', inviteCode: 'PENDING1' },
+    });
+    const user = await prisma.user.create({
+      data: {
+        email: 'invite-pending@test.com',
+        password: 'x',
+        name: 'Pending Inviter',
+        coupleId: couple.id,
+      },
+    });
+    const userToken = generateToken(user.id, couple.id);
+
+    const res = await request(app)
+      .get('/api/invite/me')
+      .set({ Authorization: `Bearer ${userToken}` });
+
+    expect(res.status).toBe(200);
+    expect(res.body.inviteCode).toBe('PENDING1');
+    expect(res.body.createdAt).toBeTruthy();
+    expect(res.body.couple).toEqual({ id: couple.id, name: 'Pending Couple' });
+
+    await prisma.user.delete({ where: { id: user.id } });
+    await prisma.couple.delete({ where: { id: couple.id } });
+  });
+
+  it('returns 404 with code=NO_INVITE when user has no couple', async () => {
+    const { generateAccessToken } = await import('../utils/auth');
+    const user = await prisma.user.create({
+      data: {
+        email: 'invite-no-couple@test.com',
+        password: 'x',
+        name: 'Lone Wolf',
+        // no coupleId
+      },
+    });
+    const userToken = generateAccessToken(user.id, null);
+
+    const res = await request(app)
+      .get('/api/invite/me')
+      .set({ Authorization: `Bearer ${userToken}` });
+
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe('NO_INVITE');
+
+    await prisma.user.delete({ where: { id: user.id } });
+  });
+
+  it('returns 409 with code=ALREADY_PAIRED when couple has 2 members', async () => {
+    // testCoupleId from beforeAll has 2 users — the main `token` belongs to
+    // one of them, so it's the cleanest fixture for the paired branch.
+    const res = await request(app).get('/api/invite/me').set(auth());
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('ALREADY_PAIRED');
+  });
+
+  it('returns 401 without auth token', async () => {
+    const res = await request(app).get('/api/invite/me');
+    expect(res.status).toBe(401);
   });
 });
 

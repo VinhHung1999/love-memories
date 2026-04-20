@@ -1,10 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { vars } from 'nativewind';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { useColorScheme, View } from 'react-native';
+import { useThemeStore, type ModePref } from '@/stores/themeStore';
 import { paletteToCssVars } from './cssVars';
 import {
-  DEFAULTS,
   DENSITIES,
   Density,
   DensityId,
@@ -17,16 +16,11 @@ import {
   TypeSystemId,
 } from './tokens';
 
-type ModePref = 'system' | Mode;
-
-type ThemeState = {
+type ThemeContextValue = {
   palette: PaletteId;
   mode: ModePref;
   type: TypeSystemId;
   density: DensityId;
-};
-
-type ThemeContextValue = ThemeState & {
   resolvedMode: Mode;
   colors: Palette;
   typeSystem: TypeSystem;
@@ -37,58 +31,42 @@ type ThemeContextValue = ThemeState & {
   setDensity: (d: DensityId) => void;
 };
 
-const STORAGE_KEY = '@memoura/theme/v1';
-
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+// T288: persisted state lives in src/stores/themeStore.ts so the root layout
+// can wait on hydration alongside authStore. ThemeProvider is now a pure
+// derive-and-vars layer — no AsyncStorage, no internal state.
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [state, setState] = useState<ThemeState>({
-    palette: DEFAULTS.palette,
-    mode: DEFAULTS.mode,
-    type: DEFAULTS.type,
-    density: DEFAULTS.density,
-  });
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as Partial<ThemeState>;
-          setState((s) => ({ ...s, ...parsed }));
-        }
-      } catch {
-        // corrupt cache — fall back to defaults
-      } finally {
-        setHydrated(true);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [state, hydrated]);
+  const palette = useThemeStore((s) => s.palette);
+  const mode = useThemeStore((s) => s.mode);
+  const type = useThemeStore((s) => s.type);
+  const density = useThemeStore((s) => s.density);
+  const setPalette = useThemeStore((s) => s.setPalette);
+  const setMode = useThemeStore((s) => s.setMode);
+  const setType = useThemeStore((s) => s.setType);
+  const setDensity = useThemeStore((s) => s.setDensity);
 
   const resolvedMode: Mode =
-    state.mode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : state.mode;
-  const colors = PALETTES[state.palette][resolvedMode];
+    mode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : mode;
+  const colors = PALETTES[palette][resolvedMode];
 
   const value = useMemo<ThemeContextValue>(
     () => ({
-      ...state,
+      palette,
+      mode,
+      type,
+      density,
       resolvedMode,
       colors,
-      typeSystem: TYPE_SYSTEMS[state.type],
-      densityTokens: DENSITIES[state.density],
-      setPalette: (palette) => setState((s) => ({ ...s, palette })),
-      setMode: (mode) => setState((s) => ({ ...s, mode })),
-      setType: (type) => setState((s) => ({ ...s, type })),
-      setDensity: (density) => setState((s) => ({ ...s, density })),
+      typeSystem: TYPE_SYSTEMS[type],
+      densityTokens: DENSITIES[density],
+      setPalette,
+      setMode,
+      setType,
+      setDensity,
     }),
-    [state, resolvedMode, colors],
+    [palette, mode, type, density, resolvedMode, colors, setPalette, setMode, setType, setDensity],
   );
 
   // `vars()` is the NativeWind v4 mechanism for declaring CSS custom properties

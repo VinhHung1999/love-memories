@@ -15,6 +15,15 @@ export class ApiError extends Error {
 type RequestOptions = RequestInit & {
   skipAuth?: boolean;
   isRetry?: boolean;
+  // T328 (Build 26): explicit opt-out of the JSON Content-Type default. The
+  // old `body instanceof FormData` check works in dev (Metro JS engine) but
+  // fails under Hermes prod bytecode — class identity gets minified/polyfill-
+  // swapped, the check returns false, we set Content-Type=application/json
+  // on a multipart body, and multer drops the body as not-multipart (→ 400
+  // in <2ms because it never read the stream). Callers like `apiClient.upload`
+  // pass `skipJsonContentType: true` so the header branch never fires for
+  // multipart, regardless of runtime FormData identity.
+  skipJsonContentType?: boolean;
 };
 
 let refreshInFlight: Promise<string | null> | null = null;
@@ -56,11 +65,11 @@ export async function apiFetch<T = unknown>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { skipAuth, isRetry, headers, ...rest } = options;
+  const { skipAuth, isRetry, skipJsonContentType, headers, ...rest } = options;
   const { accessToken } = useAuthStore.getState();
   const mergedHeaders: Record<string, string> = {
     Accept: 'application/json',
-    ...(rest.body && !(rest.body instanceof FormData)
+    ...(rest.body && !skipJsonContentType
       ? { 'Content-Type': 'application/json' }
       : {}),
     ...(headers as Record<string, string> | undefined),
@@ -107,6 +116,19 @@ export async function apiFetch<T = unknown>(
   return body as T;
 }
 
+// T314: multipart/form-data helper for avatar upload (expo-image-picker →
+// POST /api/profile/avatar, field name `avatar`). RN's FormData accepts
+// `{ uri, name, type }` directly; the fetch polyfill streams it.
+//
+// T328 (Build 26): we used to rely on `body instanceof FormData` in apiFetch
+// to suppress the JSON Content-Type — that worked in dev but failed under
+// Hermes prod bytecode (FormData class identity loss → false negative →
+// JSON header overrode the multipart boundary fetch would have set → multer
+// skipped the body → 7×400 in <2ms in Boss's TestFlight Build 24). The
+// upload helper now explicitly passes `skipJsonContentType: true` so fetch's
+// own multipart boundary handling kicks in regardless of runtime identity.
+type UploadFile = { uri: string; name: string; type: string };
+
 export const apiClient = {
   get: <T = unknown>(path: string, options?: RequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'GET' }),
@@ -122,6 +144,29 @@ export const apiClient = {
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
     }),
+  patch: <T = unknown>(path: string, body?: unknown, options?: RequestOptions) =>
+    apiFetch<T>(path, {
+      ...options,
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    }),
   del: <T = unknown>(path: string, options?: RequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'DELETE' }),
+  upload: <T = unknown>(
+    path: string,
+    field: string,
+    file: UploadFile,
+    options?: RequestOptions,
+  ) => {
+    const form = new FormData();
+    // RN's FormData types don't quite match the web spec — cast to the shape
+    // the runtime actually accepts (Android/iOS fetch reads { uri, name, type }).
+    form.append(field, file as unknown as Blob);
+    return apiFetch<T>(path, {
+      ...options,
+      method: 'POST',
+      body: form,
+      skipJsonContentType: true,
+    });
+  },
 };

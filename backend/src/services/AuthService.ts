@@ -47,6 +47,7 @@ type UserAuthShape = {
   avatar: string | null;
   coupleId: string | null;
   googleId: string | null;
+  onboardingComplete: boolean;
 };
 
 export async function createRefreshToken(userId: string): Promise<string> {
@@ -71,6 +72,7 @@ export function buildAuthResponse(
       avatar: user.avatar,
       coupleId: user.coupleId,
       googleId: user.googleId,
+      onboardingComplete: user.onboardingComplete,
     },
   };
 }
@@ -147,7 +149,7 @@ export async function refresh(token: string) {
   const stored = await prisma.refreshToken.findUnique({
     where: { token },
     include: {
-      user: { select: { id: true, coupleId: true, email: true, name: true, avatar: true, googleId: true } },
+      user: { select: { id: true, coupleId: true, email: true, name: true, avatar: true, googleId: true, onboardingComplete: true } },
     },
   });
 
@@ -173,7 +175,7 @@ export async function logout(userId: string, refreshToken?: string) {
 export async function me(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, emailVerified: true, createdAt: true },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, emailVerified: true, onboardingComplete: true, createdAt: true },
   });
   if (!user) throw new AppError(404, 'User not found');
   return user;
@@ -428,6 +430,42 @@ export async function appleComplete(
   return buildAuthResponse(user, accessToken, refreshToken);
 }
 
+/**
+ * Always returns void (no enumeration of registered emails).
+ * If the email matches a password-backed account, issues a reset token and emails it.
+ * Google/Apple-only accounts are intentionally skipped — they have no password to reset.
+ */
+export async function forgotPassword(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !user.password) return;
+
+  // Best-effort: rate-limit errors should still propagate (caller maps to 429).
+  const { sendPasswordResetEmail } = await import('./EmailService');
+  await sendPasswordResetEmail(user.id, user.email, user.name);
+}
+
+/**
+ * Verify reset token, set new password, mark token used, revoke all active refresh tokens.
+ * Throws AppError for invalid / expired / already-used tokens.
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const record = await prisma.passwordReset.findUnique({ where: { token } });
+  if (!record) throw new AppError(400, 'Invalid or expired reset token');
+  if (record.usedAt) throw new AppError(400, 'Reset token has already been used');
+  if (record.expiresAt < new Date()) throw new AppError(400, 'Reset token has expired');
+
+  const hashed = await hashPassword(newPassword);
+
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: record.userId }, data: { password: hashed } }),
+    prisma.passwordReset.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
+    prisma.refreshToken.updateMany({
+      where: { userId: record.userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
+}
+
 export async function googleLink(userId: string, idToken: string) {
   const profile = await verifyGoogleToken(idToken);
 
@@ -438,4 +476,16 @@ export async function googleLink(userId: string, idToken: string) {
 
   const user = await prisma.user.update({ where: { id: userId }, data: { googleId: profile.googleId } });
   return { ok: true, googleId: user.googleId };
+}
+
+// T301: server-side flag so re-login skips the wizard. Mobile sets true on
+// the Finish step; auth responses (login/refresh/me) carry the value back so
+// the gate routes a returning user straight to (tabs).
+export async function setOnboardingComplete(userId: string, value: boolean) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { onboardingComplete: value },
+    select: { id: true, onboardingComplete: true },
+  });
+  return user;
 }

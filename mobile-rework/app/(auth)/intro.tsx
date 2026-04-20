@@ -1,12 +1,5 @@
-import { Text, View } from 'react-native';
-import { SafeScreen } from '@/components';
+import { IntroScreen } from '@/screens/Intro';
 
-export default function Intro() {
-  return (
-    <SafeScreen>
-      <View className="flex-1 items-center justify-center">
-        <Text className="font-bodyMedium text-ink">Intro — placeholder</Text>
-      </View>
-    </SafeScreen>
-  );
+export default function IntroRoute() {
+  return <IntroScreen />;
 }

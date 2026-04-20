@@ -17,13 +17,23 @@ export const getCouple = asyncHandler(async (req: AuthRequest, res: Response) =>
 });
 
 export const update = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { name, anniversaryDate } = req.body;
-  const couple = await CoupleService.update(req.user!.coupleId!, name, anniversaryDate);
+  const { name, anniversaryDate, color } = req.body;
+  const couple = await CoupleService.update(
+    req.user!.coupleId!,
+    name,
+    anniversaryDate,
+    color,
+  );
   res.json(couple);
 });
 
 export const generateInvite = asyncHandler(async (req: AuthRequest, res: Response) => {
   const result = await CoupleService.generateInvite(req.user!.coupleId!);
+  res.json(result);
+});
+
+export const getMyInvite = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await CoupleService.getMyInvite(req.user!.userId);
   res.json(result);
 });
 

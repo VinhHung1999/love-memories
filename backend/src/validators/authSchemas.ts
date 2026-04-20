@@ -33,3 +33,16 @@ export const generateRecipeSchema = z.object({
   mode: z.enum(['text', 'youtube', 'url']),
   input: z.string().min(1),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+
+export const setOnboardingCompleteSchema = z.object({
+  value: z.boolean(),
+});
