@@ -104,18 +104,19 @@ export function PersonalizeScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {/* T320 + T321 (Build 24): creator-only back, with explicit onBack.
-            PairCreate routed here via router.replace (no stack entry), so the
-            default ScreenBackBtn → router.back() was a silent no-op. Joiner
-            path hides back entirely — partner is already committed on BE and
-            stepping back to PairJoin would just loop them back here. */}
+        {/* T332 (Build 28): creator-only back, plain router.back().
+            T327 flipped PairCreate → Personalize from router.replace to
+            router.push, so PairCreate now sits beneath Personalize on the
+            stack and the default pop is what we want — typed partner name on
+            PairCreate is preserved. The previous router.replace shoved a
+            FRESH PairCreate on top, which felt like a forward-push to Boss
+            and wiped the form. Joiner path hides back entirely — stack was
+            reset by T331 so there's nothing valid to pop to. */}
         <ScreenHeader
           title={t('onboarding.personalize.title')}
           subtitle={t('onboarding.personalize.subtitle')}
           showBack={isCreator}
-          onBack={
-            isCreator ? () => router.replace('/(auth)/pair-create') : undefined
-          }
+          onBack={isCreator ? () => router.back() : undefined}
         />
 
         <KeyboardAvoidingView
