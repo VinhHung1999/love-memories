@@ -1,3 +1,18 @@
+import {
+  Bell,
+  Cake,
+  FileText,
+  Gem,
+  HandHelping,
+  Info,
+  Link,
+  LogOut,
+  Moon,
+  Pencil,
+  ScrollText,
+  Trash2,
+  UsersRound,
+} from 'lucide-react-native';
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -151,24 +166,24 @@ export function ProfileScreen() {
             <View className="mx-5 mt-4">
               <SettingsCard>
                 <SettingsRow
-                  icon="✏️"
+                  icon={Pencil}
                   label={t('profile.settingsList.editProfile')}
                   detail={t('profile.settingsList.editProfileDetail')}
                   onPress={onEditProfile}
                 />
                 <SettingsRow
-                  icon="🎂"
+                  icon={Cake}
                   label={t('profile.settingsList.anniversaries')}
                   onPress={onAnniversariesPress}
                 />
                 <SettingsRow
-                  icon="👥"
+                  icon={UsersRound}
                   label={t('profile.settingsList.coupleName')}
                   detail={vm.coupleNameDetail ?? undefined}
                   onPress={onCoupleNamePress}
                 />
                 <SettingsRow
-                  icon="🔗"
+                  icon={Link}
                   label={t('profile.settingsList.inviteCode')}
                   detail={vm.inviteCode ? vm.inviteCode.toUpperCase() : undefined}
                   onPress={onInvitePress}
@@ -179,24 +194,24 @@ export function ProfileScreen() {
                   onToggle={vm.onNotificationsToggle}
                 />
                 <SettingsRow
-                  icon="🌙"
+                  icon={Moon}
                   label={t('profile.settingsList.appearance')}
                   detail={t('profile.settingsList.detail.system')}
                   onPress={onAppearancePress}
                 />
                 <SettingsRow
-                  icon="💎"
+                  icon={Gem}
                   label={t('profile.settingsList.memouraPlus')}
                   detail={t('profile.settingsList.detail.free')}
                   onPress={onMemouraPlusPress}
                 />
                 <SettingsRow
-                  icon="👋"
+                  icon={HandHelping}
                   label={t('profile.settingsList.replayTour')}
                   onPress={onReplayTourPress}
                 />
                 <SettingsRow
-                  icon="🚪"
+                  icon={LogOut}
                   label={t('profile.settingsList.signOut')}
                   destructive
                   onPress={onSignOutPress}
@@ -215,17 +230,17 @@ export function ProfileScreen() {
               </Text>
               <SettingsCard>
                 <SettingsRow
-                  icon="📜"
+                  icon={ScrollText}
                   label={t('profile.settingsList.privacy')}
                   onPress={vm.onPrivacyPress}
                 />
                 <SettingsRow
-                  icon="📄"
+                  icon={FileText}
                   label={t('profile.settingsList.terms')}
                   onPress={vm.onTermsPress}
                 />
                 <SettingsRow
-                  icon="ℹ️"
+                  icon={Info}
                   label={t('profile.settingsList.version')}
                   detail={vm.appVersionLabel ?? undefined}
                   noChevron
@@ -243,7 +258,7 @@ export function ProfileScreen() {
               </Text>
               <SettingsCard>
                 <SettingsRow
-                  icon="🗑"
+                  icon={Trash2}
                   label={t('profile.settingsList.deleteAccount.label')}
                   detail={t('profile.settingsList.deleteAccount.detail')}
                   destructive
@@ -280,7 +295,7 @@ function NotificationsRow({ enabled, onToggle }: NotificationsRowProps) {
   const c = useAppColors();
   return (
     <SettingsRow
-      icon="🔔"
+      icon={Bell}
       label={t('profile.settingsList.notifications')}
       detail={
         enabled

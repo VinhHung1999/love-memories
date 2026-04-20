@@ -1,15 +1,19 @@
+import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T340 (Sprint 61) — single row inside the Profile settings card. Mirrors
-// prototype more-screens.jsx rows: 32×32 emoji chip on surfaceAlt + label
+// prototype more-screens.jsx rows: 32×32 icon chip on surfaceAlt + label
 // (flex-1) + right detail + chevron. Divider handling lives on SettingsCard
 // so the row itself doesn't care about its position.
+// T353: icon switched from emoji-string to lucide component (Boss rule —
+// drop emoji in settings list). Chip still 32×32 rounded-xl bg-surface-alt,
+// icon size 18 + strokeWidth 1.75 to match prototype visual weight.
 
 type Props = {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   /** Small muted right-side text (e.g. "Bật", couple name, version). */
   detail?: string;
@@ -30,7 +34,7 @@ type Props = {
 };
 
 export function SettingsRow({
-  icon,
+  icon: Icon,
   label,
   detail,
   trailing,
@@ -47,6 +51,7 @@ export function SettingsRow({
       ? 'text-ink-mute'
       : 'text-ink';
   const chevronStroke = destructive ? c.primaryDeep : c.inkMute;
+  const iconColor = destructive ? c.primaryDeep : disabled ? c.inkMute : c.ink;
 
   return (
     <Pressable
@@ -59,7 +64,7 @@ export function SettingsRow({
       }`}
     >
       <View className="w-8 h-8 rounded-xl bg-surface-alt items-center justify-center">
-        <Text className="text-base">{icon}</Text>
+        <Icon size={18} color={iconColor} strokeWidth={1.75} />
       </View>
       <Text
         numberOfLines={1}
