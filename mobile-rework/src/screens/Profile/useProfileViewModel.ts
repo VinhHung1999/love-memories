@@ -1,4 +1,4 @@
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking, Platform } from 'react-native';
@@ -72,40 +72,59 @@ export function useProfileViewModel() {
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
   const [stats, setStats] = useState<ProfileStats>(EMPTY_STATS);
 
-  const load = useCallback(async () => {
-    // No coupleId → we're solo. No need to hit /api/couple or /api/profile/stats
-    // (both gated by requireCouple → 400).
-    if (!user?.coupleId) {
-      setCouple(null);
-      setStats(EMPTY_STATS);
-      setStage('ready');
-      return;
-    }
-    setStage('loading');
-    try {
-      // Stats are non-critical — treat a failure there as 0s rather than
-      // dropping the whole screen to the error stage.
-      const [coupleRes, statsRes] = await Promise.all([
-        apiClient.get<CoupleResponse>('/api/couple'),
-        apiClient.get<ProfileStats>('/api/profile/stats').catch(() => EMPTY_STATS),
-      ]);
-      setCouple(coupleRes);
-      setStats(statsRes);
-      setStage('ready');
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
+  // T354: `silent` skips the 'loading' → 'ready' stage transition so a focus
+  // refetch doesn't flicker the hero card back to a spinner. Initial mount
+  // still paints the spinner normally (silent=false).
+  const load = useCallback(
+    async (silent = false) => {
+      // No coupleId → we're solo. No need to hit /api/couple or /api/profile/stats
+      // (both gated by requireCouple → 400).
+      if (!user?.coupleId) {
         setCouple(null);
         setStats(EMPTY_STATS);
         setStage('ready');
         return;
       }
-      setStage('error');
-    }
-  }, [user?.coupleId]);
+      if (!silent) setStage('loading');
+      try {
+        // Stats are non-critical — treat a failure there as 0s rather than
+        // dropping the whole screen to the error stage.
+        const [coupleRes, statsRes] = await Promise.all([
+          apiClient.get<CoupleResponse>('/api/couple'),
+          apiClient.get<ProfileStats>('/api/profile/stats').catch(() => EMPTY_STATS),
+        ]);
+        setCouple(coupleRes);
+        setStats(statsRes);
+        setStage('ready');
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+          setCouple(null);
+          setStats(EMPTY_STATS);
+          setStage('ready');
+          return;
+        }
+        // Silent refreshes must not knock the screen into 'error' — if the
+        // hero is already painted we'd rather keep stale data than blank it.
+        if (!silent) setStage('error');
+      }
+    },
+    [user?.coupleId],
+  );
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  // T354: Profile VM originally loaded once on mount. If the user regenerates
+  // the invite code from Dashboard (POST /api/couple/generate-invite), Profile
+  // keeps rendering the stale code it fetched at mount. Refetch (silently) on
+  // every Profile tab focus — /api/couple is a cheap single-couple lookup and
+  // the silent flag keeps the hero card visible while the refresh is in flight.
+  useFocusEffect(
+    useCallback(() => {
+      void load(true);
+    }, [load]),
+  );
 
   const me: HeroPerson = {
     name: user?.name ?? '',

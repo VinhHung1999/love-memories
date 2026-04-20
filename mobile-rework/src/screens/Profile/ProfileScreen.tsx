@@ -42,6 +42,7 @@ import {
   SettingsCard,
   SettingsRow,
 } from '@/components';
+import { formatInviteCode } from '@/lib/formatInviteCode';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { type HeroPerson, type ProfileStats, useProfileViewModel } from './useProfileViewModel';
 
@@ -185,7 +186,7 @@ export function ProfileScreen() {
                 <SettingsRow
                   icon={Link}
                   label={t('profile.settingsList.inviteCode')}
-                  detail={vm.inviteCode ? vm.inviteCode.toUpperCase() : undefined}
+                  detail={vm.inviteCode ? formatInviteCode(vm.inviteCode) : undefined}
                   onPress={onInvitePress}
                   disabled={!vm.inviteCode}
                 />

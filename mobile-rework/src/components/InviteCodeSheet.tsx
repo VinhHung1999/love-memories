@@ -18,6 +18,7 @@ import { Pressable, Share, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { env } from '@/config/env';
+import { formatInviteCode, toInvitePayload } from '@/lib/formatInviteCode';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T340 (Sprint 61) — invite-code bottom sheet for the Profile settings list.
@@ -33,12 +34,6 @@ export type InviteCodeSheetHandle = {
 };
 
 const COPIED_RESET_MS = 1600;
-
-function formatHexCode(code: string): string {
-  const upper = code.toUpperCase();
-  if (upper.length !== 8) return upper;
-  return `${upper.slice(0, 4)} ${upper.slice(4)}`;
-}
 
 export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) => {
   const bsRef = useRef<BottomSheetModal>(null);
@@ -92,9 +87,10 @@ export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) =
 
   const onShare = useCallback(async () => {
     if (!code) return;
+    const payload = toInvitePayload(code);
     const message = t('home.shareCode.shareMessage', {
-      code: code.toLowerCase(),
-      url: `${env.appBaseUrl}/join/${code.toLowerCase()}`,
+      code: payload,
+      url: `${env.appBaseUrl}/join/${payload}`,
     });
     try {
       await Share.share({ message });
@@ -105,7 +101,7 @@ export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) =
 
   const onCopy = useCallback(async () => {
     if (!code) return;
-    await Clipboard.setStringAsync(code.toLowerCase());
+    await Clipboard.setStringAsync(toInvitePayload(code));
     setCopied(true);
     if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
     copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_MS);
@@ -134,7 +130,7 @@ export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) =
               {t('profile.invite.codeLabel')}
             </Text>
             <Text className="mt-2 font-displayBold text-ink text-[32px] leading-[38px] tracking-[3px]">
-              {code ? formatHexCode(code) : ''}
+              {formatInviteCode(code)}
             </Text>
           </View>
 

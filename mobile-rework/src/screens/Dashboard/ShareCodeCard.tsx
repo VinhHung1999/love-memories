@@ -6,6 +6,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { Card } from '@/components';
 import { env } from '@/config/env';
 import { ApiError, apiClient } from '@/lib/apiClient';
+import { formatInviteCode, toInvitePayload } from '@/lib/formatInviteCode';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -37,13 +38,6 @@ type RegenerateResponse = { inviteCode: string };
 
 const POLL_INTERVAL_MS = 3000;
 const COPIED_RESET_MS = 1600;
-
-function formatHexCode(code: string | null): string {
-  if (!code) return '';
-  const upper = code.toUpperCase();
-  if (upper.length !== 8) return upper;
-  return `${upper.slice(0, 4)} ${upper.slice(4)}`;
-}
 
 export function ShareCodeCard() {
   const user = useAuthStore((s) => s.user);
@@ -110,13 +104,14 @@ export function ShareCodeCard() {
     [],
   );
 
-  const qrPayload = code ? `${env.appBaseUrl}/join/${code.toLowerCase()}` : null;
+  const qrPayload = code ? `${env.appBaseUrl}/join/${toInvitePayload(code)}` : null;
 
   const onShare = useCallback(async () => {
     if (!code) return;
+    const payload = toInvitePayload(code);
     const message = t('home.shareCode.shareMessage', {
-      code: code.toLowerCase(),
-      url: `${env.appBaseUrl}/join/${code.toLowerCase()}`,
+      code: payload,
+      url: `${env.appBaseUrl}/join/${payload}`,
     });
     try {
       await Share.share({ message });
@@ -127,7 +122,7 @@ export function ShareCodeCard() {
 
   const onCopy = useCallback(async () => {
     if (!code) return;
-    await Clipboard.setStringAsync(code.toLowerCase());
+    await Clipboard.setStringAsync(toInvitePayload(code));
     setCopied(true);
     if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
     copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_MS);
@@ -189,7 +184,7 @@ export function ShareCodeCard() {
           </View>
         ) : ready ? (
           <Text className="font-displayBold text-ink text-[36px] leading-[42px] tracking-[3px]">
-            {formatHexCode(code)}
+            {formatInviteCode(code)}
           </Text>
         ) : (
           <Text className="font-body text-primary-deep text-[13px]">
