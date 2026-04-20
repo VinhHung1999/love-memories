@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 60 IN PROGRESS 2026-04-18 — Onboarding + Auth + Pairing (mobile-rework). 7 tasks T280-T286, 13 pts. Board: `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-6.md`.
-**Last Completed:** Sprint 59 — Bootstrap `mobile-rework/` (Expo SDK 54 scaffold, theme, fonts, i18n, nav, API client, internal ad-hoc build Memoura 2.0.0 (4)) — Boss approved 2026-04-18
+**Sprint:** 60 CLOSED 2026-04-20 — Onboarding + Auth + Pairing (mobile-rework). Shipped 60+ commits T280-T335 on Memoura 2.0.0 build 29. Merged main + prod deployed (memoura-api, memoura-web). Next sprint on hold pending Boss direction.
+**Last Completed:** Sprint 60 — Welcome/Intro/Signup/Login/Forgot/SSO/PairCreate/PairJoin/Personalize/Permissions/OnboardingDone + /join/:code web landing + password-reset BE endpoints — Boss approved 2026-04-20
 
 **Big direction (Boss 2026-04-18):** Mobile rebuild from scratch. New source at `mobile-rework/` based on prototype `docs/design/prototype/memoura-v2/`. Drop all modules not in prototype (FoodSpots / Recipes / Expenses / Achievements / Date Planner). BE + web-PWA unchanged. Plan: Sprints 59→65 (~7 sprints, ~80 pts).
 
@@ -15,8 +15,8 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | BUILD-29-NOTIFIED | Build 29 notify_boss(high) fired 13:54 — T335 reset-on-OnboardingDone (commit a1ca411). URL + creator/joiner edge-swipe test checklist + carry-forward Build 28 (T332/T333) intact note. T334 couple photos still blocked on Boss direction. | 2026-04-20 |
-| DEV  | BUILD-29-UPLOADED | Build 29 uploaded 13:53 (2.0.0 (29), 12.66 MB). T335 commit a1ca411 (CommonActions.reset on Permissions.onContinue + Personalize joiner-submit). Bundle-grep clean (CommonActions=1, RESET=1, onboarding-done=1). Knowledge-store merged into brain2 raw. Standing by. | 2026-04-20 |
+| PO   | IDLE | Sprint 60 CLOSED. Merged main (afe4e56), prod deployed (memoura-api + memoura-web). Sprint-6.md archived. Running /know-updater next. Awaiting Sprint 61 kickoff. | 2026-04-20 |
+| DEV  | IDLE | Sprint 60 merged + prod deployed. Build 29 live on app-store.hungphu.work. Awaiting Sprint 61. | 2026-04-20 |
 
 **Task tracking uses board MD files.** Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md` for product backlog.
 
@@ -86,7 +86,7 @@ _Sprint 55 — Photo Booth, Love Letters Redesign, Notification System: DEPLOYED
 _Sprint 56 — Deploy to Internal App Store, Android Bundle ID Rename (com.hungphu.memoura): DEPLOYED_
 _Sprint 58 — Google Sign-In multi-platform audience fix (T270) + Sign in with Apple (T271, BE + MOBILE): CLOSED 2026-04-18 (Boss TestFlight E2E pending)_
 _Sprint 59 — mobile-rework bootstrap (Expo SDK 54 scaffold, theme system, fonts, i18n, shared components, Expo Router nav, API client, internal ad-hoc deploy): CLOSED 2026-04-18 (Memoura 2.0.0 (4) on app-store.hungphu.work, approved by Boss)_
-_Sprint 60 — Onboarding + Auth + Pairing (mobile-rework): IN PROGRESS 2026-04-18_
+_Sprint 60 — Onboarding + Auth + Pairing (mobile-rework): CLOSED 2026-04-20 (Memoura 2.0.0 (29) + web /join/:code + BE password-reset endpoints, merged main, prod deployed)_
 
 ---
 
