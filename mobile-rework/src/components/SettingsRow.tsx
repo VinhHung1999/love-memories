@@ -24,6 +24,8 @@ type Props = {
   destructive?: boolean;
   /** Disables the row — greys label + drops active feedback. */
   disabled?: boolean;
+  /** Hides the chevron when the row is purely informational (e.g. version). */
+  noChevron?: boolean;
   accessibilityLabel?: string;
 };
 
@@ -35,6 +37,7 @@ export function SettingsRow({
   onPress,
   destructive,
   disabled,
+  noChevron,
   accessibilityLabel,
 }: Props) {
   const c = useAppColors();
@@ -71,7 +74,7 @@ export function SettingsRow({
       ) : null}
       {trailing ? (
         trailing
-      ) : (
+      ) : noChevron ? null : (
         <Svg width={6} height={10} viewBox="0 0 8 14" fill="none">
           <Path
             d="M1 1l6 6-6 6"

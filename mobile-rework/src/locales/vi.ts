@@ -357,6 +357,9 @@ const vi = {
     // more-screens.jsx:7. Detail subkeys are used for rows where the right-
     // hand caption swaps based on state (notifications on/off, appearance
     // mode, subscription tier, app version).
+    settingsSections: {
+      infoLegal: 'Thông tin & Pháp lý',
+    },
     settingsList: {
       editProfile: 'Chỉnh sửa hồ sơ',
       editProfileDetail: 'Tên · ảnh',
@@ -367,6 +370,9 @@ const vi = {
       appearance: 'Giao diện',
       memouraPlus: 'Memoura+',
       replayTour: 'Xem lại hướng dẫn',
+      privacy: 'Chính sách bảo mật',
+      terms: 'Điều khoản sử dụng',
+      version: 'Phiên bản',
       signOut: 'Đăng xuất',
       detail: {
         on: 'Bật',

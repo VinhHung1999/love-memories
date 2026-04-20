@@ -1,10 +1,11 @@
 import { CommonActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, Linking } from 'react-native';
+import { AppState, Linking, Platform } from 'react-native';
 
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
+import * as WebBrowser from 'expo-web-browser';
 
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -202,6 +203,27 @@ export function useProfileViewModel() {
     (Constants.expoConfig?.version as string | undefined) ??
     null;
 
+  // T347: native binary build number for the "Phiên bản" row — iOS and
+  // Android expose it on different branches of Constants.platform. No
+  // expo-application dep needed; both are populated by expo-constants.
+  const appBuild =
+    Platform.select<string | number | undefined>({
+      ios: Constants.platform?.ios?.buildNumber ?? undefined,
+      android: Constants.expoConfig?.android?.versionCode ?? undefined,
+    }) ?? null;
+  const appVersionLabel =
+    appVersion && appBuild !== null ? `${appVersion} (${appBuild})` : appVersion;
+
+  // T347: Privacy + Terms open in an in-app browser (SFSafariViewController
+  // on iOS, Chrome Custom Tabs on Android) — App Store-friendly for static
+  // third-party content and keeps the user inside the app.
+  const onPrivacyPress = useCallback(async () => {
+    await WebBrowser.openBrowserAsync('https://memoura.app/privacy');
+  }, []);
+  const onTermsPress = useCallback(async () => {
+    await WebBrowser.openBrowserAsync('https://memoura.app/terms');
+  }, []);
+
   // Couple-name detail for the "Tên gọi của mình" row. When a couple hasn't
   // set a custom name, we compose "Me & Them" from both avatars' display
   // names (same shape as the hero fallback).
@@ -225,6 +247,9 @@ export function useProfileViewModel() {
     onNotificationsToggle,
     signOut,
     appVersion,
+    appVersionLabel,
+    onPrivacyPress,
+    onTermsPress,
     setCoupleName,
     refresh: load,
   };

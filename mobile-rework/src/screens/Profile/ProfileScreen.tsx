@@ -178,6 +178,35 @@ export function ProfileScreen() {
                 />
               </SettingsCard>
             </View>
+
+            {/* T347 — separate "Thông tin & Pháp lý" card so the legal rows
+                read as their own section. Privacy + Terms open in an in-app
+                browser (SFSafariViewController / Chrome Custom Tabs) via the
+                VM handlers. Version row is non-tappable (noChevron + no
+                onPress) — purely informational. */}
+            <View className="mx-5 mt-5">
+              <Text className="mb-2 px-1 font-displayItalic uppercase text-ink-mute text-[11px] tracking-[2px]">
+                {t('profile.settingsSections.infoLegal')}
+              </Text>
+              <SettingsCard>
+                <SettingsRow
+                  icon="📜"
+                  label={t('profile.settingsList.privacy')}
+                  onPress={vm.onPrivacyPress}
+                />
+                <SettingsRow
+                  icon="📄"
+                  label={t('profile.settingsList.terms')}
+                  onPress={vm.onTermsPress}
+                />
+                <SettingsRow
+                  icon="ℹ️"
+                  label={t('profile.settingsList.version')}
+                  detail={vm.appVersionLabel ?? undefined}
+                  noChevron
+                />
+              </SettingsCard>
+            </View>
           </>
         )}
       </ScrollView>

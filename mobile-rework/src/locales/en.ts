@@ -337,6 +337,9 @@ const en: Resources = {
       letters: 'Letters',
       questions: 'Questions',
     },
+    settingsSections: {
+      infoLegal: 'Info & Legal',
+    },
     settingsList: {
       editProfile: 'Edit profile',
       editProfileDetail: 'Name · photo',
@@ -347,6 +350,9 @@ const en: Resources = {
       appearance: 'Appearance',
       memouraPlus: 'Memoura+',
       replayTour: 'Replay tour',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
+      version: 'Version',
       signOut: 'Sign out',
       detail: {
         on: 'On',
