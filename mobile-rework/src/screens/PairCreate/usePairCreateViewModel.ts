@@ -110,10 +110,14 @@ export function usePairCreateViewModel() {
   // T306: Create just forwards to Personalize. No POST /api/couple here —
   // Personalize's onSubmit detects the null coupleId and runs the create-
   // chain atomically (POST /api/couple → PUT profile + PUT couple → PATCH
-  // onboarding-complete). Using replace so back-swipe can't land the user
-  // back on the chooser with a committed couple.
+  // onboarding-complete).
+  // T327 (Build 25): switched replace → push so iOS animates the proper
+  // slide-from-right transition (replace renders as cross-fade and Boss
+  // perceives it as "không phải push"). Back-pop from Personalize is now
+  // safe because POST /api/couple is deferred until onSubmit — at most the
+  // user loses typed state, no orphan couple is left behind.
   const onCreate = useCallback(() => {
-    router.replace('/(auth)/personalize');
+    router.push('/(auth)/personalize');
   }, [router]);
 
   const onJoin = useCallback(() => {
