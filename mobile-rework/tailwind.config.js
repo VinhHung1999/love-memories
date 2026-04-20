@@ -57,7 +57,11 @@ module.exports = {
         elevated: '0 20px 50px rgba(0,0,0,0.1)',
         hero: '0 12px 28px rgba(0,0,0,0.18)',
         chip: '0 1px 3px rgba(0,0,0,0.05)',
-        pill: '0 12px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+        // T371: pill shadow previously too faint to separate the tab bar
+        // from the cream bg. Boss QA on Build 34 flagged "chưa có shadow".
+        // Bumped primary drop to opacity 0.18 / radius 20 / y-offset 8 so the
+        // pill reads as lifted; kept the tight ambient below to anchor it.
+        pill: '0 8px 20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)',
       },
     },
   },
