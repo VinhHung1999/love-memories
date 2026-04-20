@@ -1,6 +1,7 @@
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router';
 import { Camera, Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -68,6 +69,7 @@ const SWATCH_TO: Record<number, string> = {
 export function PersonalizeScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
+  const router = useRouter();
   const {
     nick,
     setNick,
@@ -108,16 +110,18 @@ export function PersonalizeScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {/* T306 (sprint 60 bundle 4): back is ENABLED. Creator path — the
-            couple POST fires on Continue, not on mount; stepping back just
-            loses typed state. Joiner path — PairJoin used router.replace, so
-            there's no PairJoin entry in the stack and back falls through to
-            PairChoice, which useAuthGate will immediately redirect away from
-            once it sees coupleId set. */}
+        {/* T320 + T321 (Build 24): creator-only back, with explicit onBack.
+            PairCreate routed here via router.replace (no stack entry), so the
+            default ScreenBackBtn → router.back() was a silent no-op. Joiner
+            path hides back entirely — partner is already committed on BE and
+            stepping back to PairJoin would just loop them back here. */}
         <ScreenHeader
           title={t('onboarding.personalize.title')}
           subtitle={t('onboarding.personalize.subtitle')}
-          showBack
+          showBack={isCreator}
+          onBack={
+            isCreator ? () => router.replace('/(auth)/pair-create') : undefined
+          }
         />
 
         <KeyboardAvoidingView
