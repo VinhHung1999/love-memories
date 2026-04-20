@@ -1,3 +1,5 @@
+import { CommonActions } from '@react-navigation/native';
+import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking } from 'react-native';
 
@@ -63,6 +65,7 @@ function formatAnniversary(iso: string | null | undefined): string | null {
 
 export function useProfileViewModel() {
   const user = useAuthStore((s) => s.user);
+  const navigation = useNavigation();
 
   const [stage, setStage] = useState<ProfileStage>('loading');
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
@@ -159,9 +162,29 @@ export function useProfileViewModel() {
   }, [notificationPermission]);
 
   const clearAuth = useAuthStore((s) => s.clear);
+  // T345: sign-out must truncate the UIKit native stack, not just the JS
+  // history. Clearing auth alone leaves the gate to fire
+  // router.replace('/(auth)/login') (hasSeenOnboarding persists post-logout),
+  // but router.replace keeps the prior tabs controller mounted beneath —
+  // iOS edge-swipe would find it and pop the user back into Profile with
+  // a stale VM + 401s. Mirrors the T335 rationale; nested-state form is
+  // the tabs→auth cross-segment version. Target 'login' (not 'welcome')
+  // because the user already has an account and knows their creds.
   const signOut = useCallback(async () => {
     await clearAuth();
-  }, [clearAuth]);
+    const root = navigation.getParent();
+    root?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: '(auth)',
+            state: { index: 0, routes: [{ name: 'login' }] },
+          },
+        ],
+      }),
+    );
+  }, [clearAuth, navigation]);
 
   // T342: optimistic couple-name patch. The PUT /api/couple response is the
   // full updated couple, but we only need the name to refresh the hero /
