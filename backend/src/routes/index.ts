@@ -53,7 +53,11 @@ router.use('/recipes', ...rc, recipeRoutes);
 router.use('/cooking-sessions', ...rc, cookingSessionRoutes);
 router.use('/ai', ...rc, aiRoutes);
 router.use('/achievements', ...rc, achievementRoutes);
-router.use('/profile', ...rc, profileRoutes);
+// /profile: requireAuth only — creator hits avatar picker on Personalize
+// BEFORE POST /api/couple fires (T306 sequencing — couple created in
+// Personalize.onSubmit). Adding requireCouple here breaks T319 onboarding
+// avatar upload. Profile writes are per-user, not couple-scoped.
+router.use('/profile', requireAuth, profileRoutes);
 router.use('/notifications', ...rc, notificationRoutes);
 router.use('/push', ...rc, pushRoutes);
 router.use('/date-wishes', ...rc, dateWishRoutes);
