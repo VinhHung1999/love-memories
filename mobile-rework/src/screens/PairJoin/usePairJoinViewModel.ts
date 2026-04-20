@@ -1,5 +1,6 @@
+import { CommonActions } from '@react-navigation/native';
 import { useCameraPermissions } from 'expo-camera';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -76,7 +77,7 @@ function fillCells(code: string): string[] {
 }
 
 export function usePairJoinViewModel() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ code?: string }>();
   const setSession = useAuthStore((s) => s.setSession);
@@ -270,11 +271,30 @@ export function usePairJoinViewModel() {
             coupleId: res.user.coupleId,
           },
         });
+        // T331 (Build 27): full stack reset, NOT replace. The join is
+        // committed server-side at this point — the user must not be able to
+        // edge-swipe back to the code-entry screen and see a half-undone
+        // state. router.replace was leaving the prior native UIKit screens
+        // in the iOS swipe-back stack even though JS history was rewritten,
+        // so iOS edge-swipe could still pop back to PairJoin. CommonActions
+        // .reset clears the AuthLayout Stack and makes Personalize the new
+        // root entry — there's literally nothing behind to pop.
+        //
+        // Note: route name is 'personalize' (not '(auth)/personalize') —
+        // useNavigation() here returns the AuthLayout Stack, which registers
+        // its screens by file name only. Path-style names only apply to the
+        // ROOT Stack (which sees '(auth)' as a single child).
+        //
         // Both inviter and joiner walk T286 (Personalize → Permissions →
-        // OnboardingDone) — display name + permissions are per-user, and
-        // OnboardingDone owns the explicit setOnboardingComplete(true) commit.
-        // Spec: docs/specs/sprint-60-pairing.md §"Joiner flow".
-        router.replace('/(auth)/personalize');
+        // OnboardingDone). Creator path stays on router.push (T327) so the
+        // creator's swipe-back still works; only the joiner commit point is
+        // reset here.
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'personalize' }],
+          }),
+        );
       } catch (err) {
         if (err instanceof ApiError) {
           // BE collapses all logical join failures into 400 with distinct
@@ -302,7 +322,7 @@ export function usePairJoinViewModel() {
         setSubmitting(false);
       }
     },
-    [router, setSession],
+    [navigation, setSession],
   );
 
   const onSubmit = useCallback(() => {

@@ -34,11 +34,14 @@ export default function AuthLayout() {
         options={{ gestureEnabled: false, headerBackVisible: false }}
       />
       <Stack.Screen name="pair-join" />
-      {/* T306 (sprint 60 bundle 4): Personalize now runs BEFORE the couple
-          commit on the creator path — back-navigating just loses typed form
-          state, nothing persisted. On the joiner path the join itself used
-          router.replace, so the stack has no PairJoin entry to return to.
-          Re-enable gesture + header back (revert the T294 lock). */}
+      {/* T306 + T331: Personalize behavior differs per entry path.
+          Creator: arrives via router.push from PairCreate (T327). Gesture +
+          back button work natively — nothing committed yet (POST /api/couple
+          fires in onSubmit), so going back is safe.
+          Joiner: arrives via navigation.reset from PairJoin.submitCode — the
+          stack has been cleared to make Personalize the new root. Nothing
+          behind to pop, so no gesture/back is possible even though
+          Stack.Screen defaults say it is. Join is irrevocable. */}
       <Stack.Screen name="personalize" />
       <Stack.Screen name="permissions" />
       {/* T286: lock onboarding-done so the user can't swipe back into the
