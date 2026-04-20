@@ -29,8 +29,10 @@ prototype before coding a screen.
    - `expo-blur` `<BlurView>` — native props (`intensity`, `tint`) aren't class-able.
      Combined with `rounded-full` clipping, the blur needs an inline
      `style={{ borderRadius: 9999, overflow: 'hidden' }}` so the frost stays inside
-     the pill shape; the rest of the styling stays on `className`. See
-     `src/components/navigation/PillTabBar.tsx` (T360).
+     the pill shape; the rest of the styling stays on `className`. PillTabBar
+     shipped this pattern in T360 then reverted to solid `bg-bg-elev` +
+     `shadow-pill` in T361 (Boss preferred solid + soft shadow over frost).
+     Keep the carve-out documented for future surfaces that need glass.
    - `@gorhom/bottom-sheet` — `backgroundStyle` / `handleIndicatorStyle` only accept
      style objects, not className. Keep them minimal (background color + handle
      color from `useAppColors()`).
