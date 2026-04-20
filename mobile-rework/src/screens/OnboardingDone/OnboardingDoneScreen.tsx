@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components';
-import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useOnboardingDoneViewModel } from './useOnboardingDoneViewModel';
 
@@ -11,19 +10,18 @@ import { useOnboardingDoneViewModel } from './useOnboardingDoneViewModel';
 // white pill CTA at bottom. Back gesture is disabled at the Stack level
 // (app/(auth)/_layout.tsx) so the user can only move forward into (tabs).
 //
-// T316: joiner path now hydrates inviter name via authStore.pendingPartner
-// (set on /validate-invite during PairJoin). Creator path leaves it null —
-// the partner hasn't joined yet — so the "người ấy" fallback still applies.
+// T316/T330: joiner path hydrates partner name from the viewModel, which
+// re-fetches /api/couple on mount (validate-invite stash is usually empty
+// because the creator hadn't named themselves yet at invite-validate time).
 
 export function OnboardingDoneScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
-  const { selfName, entering, onEnter } = useOnboardingDoneViewModel();
-  const pendingPartner = useAuthStore((s) => s.pendingPartner);
+  const { selfName, partnerName, entering, onEnter } = useOnboardingDoneViewModel();
 
   const self = (selfName ?? '').trim() || t('onboarding.done.titleSelfFallback');
   const partner =
-    pendingPartner?.name?.trim() || t('onboarding.done.titlePartnerFallback');
+    partnerName?.trim() || t('onboarding.done.titlePartnerFallback');
   const names = `${self} & ${partner}`;
 
   return (
