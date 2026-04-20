@@ -31,10 +31,10 @@ import {
   type AnniversarySheetHandle,
   ComingSoonSheet,
   type ComingSoonSheetHandle,
-  CoupleNameSheet,
-  type CoupleNameSheetHandle,
   DeleteAccountSheet,
   type DeleteAccountSheetHandle,
+  EditCoupleIdentitySheet,
+  type EditCoupleIdentitySheetHandle,
   EditProfileSheet,
   type EditProfileSheetHandle,
   InviteCodeSheet,
@@ -61,7 +61,7 @@ export function ProfileScreen() {
   const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
   const editProfileRef = useRef<EditProfileSheetHandle>(null);
-  const coupleNameRef = useRef<CoupleNameSheetHandle>(null);
+  const editIdentityRef = useRef<EditCoupleIdentitySheetHandle>(null);
   const anniversaryRef = useRef<AnniversarySheetHandle>(null);
   const deleteAccountRef = useRef<DeleteAccountSheetHandle>(null);
   const themeRef = useRef<ThemeSheetHandle>(null);
@@ -81,14 +81,16 @@ export function ProfileScreen() {
   }, [vm.inviteCode]);
 
   const onCoupleNamePress = useCallback(() => {
-    // Editing a couple name requires an actual couple — solo users fall
-    // back to coming-soon (mirror of onInvitePress's solo path in T340).
+    // T357+T358: Editing name + slogan requires an actual couple — solo
+    // users fall back to coming-soon (mirror of onInvitePress's solo path
+    // in T340). Name + slogan are edited together in one sheet so the row
+    // label stays `coupleName` but the scope expanded.
     if (vm.isSolo) {
       comingSoonRef.current?.open();
       return;
     }
-    coupleNameRef.current?.open(vm.coupleName);
-  }, [vm.isSolo, vm.coupleName]);
+    editIdentityRef.current?.open(vm.coupleName, vm.slogan);
+  }, [vm.isSolo, vm.coupleName, vm.slogan]);
 
   // T355: Anniversary row opens a date-picker sheet. Solo users have no
   // couple to PUT against (requireCouple → 400) — mirror the invite/couple
@@ -291,7 +293,11 @@ export function ProfileScreen() {
       <ComingSoonSheet ref={comingSoonRef} />
       <InviteCodeSheet ref={inviteSheetRef} />
       <EditProfileSheet ref={editProfileRef} />
-      <CoupleNameSheet ref={coupleNameRef} onSaved={vm.setCoupleName} />
+      <EditCoupleIdentitySheet
+        ref={editIdentityRef}
+        onSavedName={vm.setCoupleName}
+        onSavedSlogan={vm.setSloganCommit}
+      />
       <AnniversarySheet ref={anniversaryRef} onSaved={vm.setAnniversary} />
       <DeleteAccountSheet ref={deleteAccountRef} onConfirm={vm.deleteAccount} />
       <ThemeSheet ref={themeRef} />

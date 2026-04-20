@@ -79,6 +79,10 @@ export function useProfileViewModel() {
   const [stage, setStage] = useState<ProfileStage>('loading');
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
   const [stats, setStats] = useState<ProfileStats>(EMPTY_STATS);
+  // T358: couple slogan lives in AppSetting['app-slogan'], not on Couple.
+  // Empty string = no slogan set. See EditCoupleIdentitySheet header for
+  // why we chose AppSetting over a dedicated column.
+  const [slogan, setSlogan] = useState<string>('');
 
   // T354: `silent` skips the 'loading' → 'ready' stage transition so a focus
   // refetch doesn't flicker the hero card back to a spinner. Initial mount
@@ -90,24 +94,32 @@ export function useProfileViewModel() {
       if (!user?.coupleId) {
         setCouple(null);
         setStats(EMPTY_STATS);
+        setSlogan('');
         setStage('ready');
         return;
       }
       if (!silent) setStage('loading');
       try {
-        // Stats are non-critical — treat a failure there as 0s rather than
-        // dropping the whole screen to the error stage.
-        const [coupleRes, statsRes] = await Promise.all([
+        // Stats + slogan are non-critical — treat a failure there as
+        // empty defaults rather than dropping the whole screen to the
+        // error stage. Slogan also 404s gracefully (route returns value:null
+        // when unset; the .catch here guards network / unknown errors).
+        const [coupleRes, statsRes, sloganRes] = await Promise.all([
           apiClient.get<CoupleResponse>('/api/couple'),
           apiClient.get<ProfileStats>('/api/profile/stats').catch(() => EMPTY_STATS),
+          apiClient
+            .get<{ value: string | null }>('/api/settings/app-slogan')
+            .catch(() => ({ value: null as string | null })),
         ]);
         setCouple(coupleRes);
         setStats(statsRes);
+        setSlogan(sloganRes.value ?? '');
         setStage('ready');
       } catch (err) {
         if (err instanceof ApiError && err.status === 404) {
           setCouple(null);
           setStats(EMPTY_STATS);
+          setSlogan('');
           setStage('ready');
           return;
         }
@@ -245,6 +257,15 @@ export function useProfileViewModel() {
     setCouple((prev) => (prev ? { ...prev, name } : prev));
   }, []);
 
+  // T358: slogan commit handler — the sheet does the PUT /api/settings/app-slogan
+  // itself (paired with the name PUT under Promise.allSettled) and calls this
+  // with the trimmed value it wrote. Parent just patches local state. Empty
+  // string is valid ("clear slogan"); the sheet also sends empty strings on
+  // purpose so we don't need extra branching here.
+  const setSloganCommit = useCallback((next: string) => {
+    setSlogan(next);
+  }, []);
+
   // T355: optimistic anniversary save. Sheet passes the YYYY-MM-DD string it
   // built from LOCAL parts — VM trusts it (no timezone recompute here) and
   // hits PUT /api/couple, which syncs both Couple.anniversaryDate AND
@@ -329,6 +350,8 @@ export function useProfileViewModel() {
     setCoupleName,
     setAnniversary,
     anniversaryIso: couple?.anniversaryDate ?? null,
+    slogan,
+    setSloganCommit,
     themeLabel,
     refresh: load,
   };

@@ -453,6 +453,32 @@ const vi = {
         network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
       },
     },
+    // Sprint 61 T357+T358 — merged edit-identity bottom sheet (name + slogan).
+    // Replaces coupleName above as the active sheet for the "Tên gọi của
+    // mình" row; the coupleName keys stay in place so CoupleNameSheet.tsx
+    // doesn't break until the legacy file is removed.
+    editIdentity: {
+      title: 'Tên gọi & slogan',
+      subtitle: 'Đặt tên gọi chung và một câu slogan ngắn cho hai bạn.',
+      fields: {
+        name: {
+          label: 'Tên gọi',
+          placeholder: 'Ví dụ: Minh & Linh',
+        },
+        slogan: {
+          label: 'Slogan (tuỳ chọn)',
+          placeholder: 'Một câu ngắn cho hai bạn…',
+        },
+      },
+      counter: '{{count}}/{{max}}',
+      errors: {
+        nameRequired: 'Chưa có tên gọi. Hãy điền một tên.',
+        sloganTooLong: 'Slogan tối đa 80 ký tự.',
+        saveFailed: 'Có lỗi xảy ra. Hãy thử lại.',
+      },
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+    },
     // Sprint 61 T341 — edit-profile bottom sheet (name + avatar). Opens from
     // the hero self-avatar and the "Chỉnh sửa hồ sơ" settings row.
     editProfile: {

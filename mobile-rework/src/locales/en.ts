@@ -423,6 +423,28 @@ const en: Resources = {
         network: 'Something went wrong. Check your connection and try again.',
       },
     },
+    editIdentity: {
+      title: 'Names & slogan',
+      subtitle: 'Set a shared nickname and a short slogan for the two of you.',
+      fields: {
+        name: {
+          label: 'Nickname',
+          placeholder: 'e.g. Alex & Sam',
+        },
+        slogan: {
+          label: 'Slogan (optional)',
+          placeholder: 'A short line for the two of you…',
+        },
+      },
+      counter: '{{count}}/{{max}}',
+      errors: {
+        nameRequired: 'Please enter a nickname.',
+        sloganTooLong: 'Slogan must be 80 characters or fewer.',
+        saveFailed: 'Something went wrong. Please try again.',
+      },
+      save: 'Save',
+      saving: 'Saving…',
+    },
     editProfile: {
       title: 'Edit profile',
       subtitle: 'Update your display name and profile photo.',
