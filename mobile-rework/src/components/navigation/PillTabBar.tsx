@@ -65,7 +65,7 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
             Text labels removed; active state is a 4px primary dot under the
             icon (prototype compact TabItem line 169-171). Icons swapped to
             lucide for cross-surface consistency with SettingsRow. */}
-        <View className="flex-1 flex-row items-center justify-around h-[62px] rounded-full bg-bg-elev border border-line px-2 shadow-pill mr-2.5">
+        <View className="flex-1 flex-row items-center justify-around h-[62px] rounded-full bg-bg-elev border border-line-on-surface px-2 shadow-pill mr-2.5">
           {TABS.map((tab) => {
             const isActive = tab.route === activeRoute;
             const Icon = tab.icon;
