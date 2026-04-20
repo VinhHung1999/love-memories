@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { AppState, Linking } from 'react-native';
 
 import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
 
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -118,15 +120,43 @@ export function useProfileViewModel() {
 
   const isSolo = !couple || !partner;
 
-  // T340: Settings list state.
-  // - notificationsEnabled is LOCAL-ONLY for this sprint. T343 will wire it
-  //   to a PATCH /api/users/me endpoint + persist via authStore. Defaulting
-  //   to true matches the prototype's "Bật" detail.
-  // - The sign-out handler is the bridge into T345; for now it just clears
-  //   the auth store so QA can exercise the confirm dialog. T345 will add
-  //   the CommonActions.reset → welcome nav to prevent edge-swipe back into
-  //   tabs (same lesson as Sprint 60 T335).
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  // T343: notifications toggle mirrors the OS push-permission status — the
+  // switch is ON only when the OS has granted permission. There is no
+  // server-side flag; push can't fire without OS permission anyway so the
+  // OS is the only source of truth worth reading.
+  //
+  // Tap behavior:
+  //   undetermined → trigger the native permission prompt
+  //   granted | denied → open the Settings app (iOS/Android disallow a
+  //     re-prompt once the user has decided)
+  //
+  // An AppState listener re-reads the permission when the app returns to
+  // foreground so a user who toggled it in Settings sees the row update
+  // without a manual reload.
+  const [notificationPermission, setNotificationPermission] =
+    useState<Notifications.PermissionStatus>('undetermined' as Notifications.PermissionStatus);
+
+  const refreshNotificationPermission = useCallback(async () => {
+    const res = await Notifications.getPermissionsAsync();
+    setNotificationPermission(res.status);
+  }, []);
+
+  useEffect(() => {
+    void refreshNotificationPermission();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refreshNotificationPermission();
+    });
+    return () => sub.remove();
+  }, [refreshNotificationPermission]);
+
+  const onNotificationsToggle = useCallback(async () => {
+    if (notificationPermission === 'undetermined') {
+      const res = await Notifications.requestPermissionsAsync();
+      setNotificationPermission(res.status);
+      return;
+    }
+    await Linking.openSettings();
+  }, [notificationPermission]);
 
   const clearAuth = useAuthStore((s) => s.clear);
   const signOut = useCallback(async () => {
@@ -168,8 +198,8 @@ export function useProfileViewModel() {
     isSolo,
     inviteCode: couple?.inviteCode ?? null,
     stats,
-    notificationsEnabled,
-    setNotificationsEnabled,
+    notificationsEnabled: notificationPermission === 'granted',
+    onNotificationsToggle,
     signOut,
     appVersion,
     setCoupleName,

@@ -151,7 +151,7 @@ export function ProfileScreen() {
                 />
                 <NotificationsRow
                   enabled={vm.notificationsEnabled}
-                  onToggle={vm.setNotificationsEnabled}
+                  onToggle={vm.onNotificationsToggle}
                 />
                 <SettingsRow
                   icon="🌙"
@@ -192,13 +192,15 @@ export function ProfileScreen() {
 
 type NotificationsRowProps = {
   enabled: boolean;
-  onToggle: (next: boolean) => void;
+  onToggle: () => void;
 };
 
-// Dedicated row wrapper so the Switch stays thumb-sized (44×26) and renders
-// in place of the chevron. Row.disabled={false} because the whole row is
-// still tappable — tapping anywhere flips the switch for a better touch
-// target than the 44pt Switch alone.
+// T343: the row mirrors OS push permission. Tapping anywhere on the row OR
+// the switch delegates to the VM handler which either triggers the native
+// prompt (when undetermined) or opens OS Settings (when already granted
+// or denied — iOS/Android disallow a second native prompt). The Switch
+// therefore never writes its own value; it's purely a display of the
+// current permission state.
 function NotificationsRow({ enabled, onToggle }: NotificationsRowProps) {
   const { t } = useTranslation();
   const c = useAppColors();
@@ -211,7 +213,7 @@ function NotificationsRow({ enabled, onToggle }: NotificationsRowProps) {
           ? t('profile.settingsList.detail.on')
           : t('profile.settingsList.detail.off')
       }
-      onPress={() => onToggle(!enabled)}
+      onPress={onToggle}
       trailing={
         <Switch
           value={enabled}
