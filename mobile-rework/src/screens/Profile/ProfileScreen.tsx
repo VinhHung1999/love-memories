@@ -27,6 +27,8 @@ import {
 } from 'react-native';
 
 import {
+  AnniversarySheet,
+  type AnniversarySheetHandle,
   ComingSoonSheet,
   type ComingSoonSheetHandle,
   CoupleNameSheet,
@@ -58,6 +60,7 @@ export function ProfileScreen() {
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
   const editProfileRef = useRef<EditProfileSheetHandle>(null);
   const coupleNameRef = useRef<CoupleNameSheetHandle>(null);
+  const anniversaryRef = useRef<AnniversarySheetHandle>(null);
   const deleteAccountRef = useRef<DeleteAccountSheetHandle>(null);
 
   // Approach (b) — dedicated "Chỉnh sửa hồ sơ" row is the primary affordance;
@@ -84,9 +87,16 @@ export function ProfileScreen() {
     coupleNameRef.current?.open(vm.coupleName);
   }, [vm.isSolo, vm.coupleName]);
 
+  // T355: Anniversary row opens a date-picker sheet. Solo users have no
+  // couple to PUT against (requireCouple → 400) — mirror the invite/couple
+  // name pattern and fall back to the coming-soon sheet.
   const onAnniversariesPress = useCallback(() => {
-    comingSoonRef.current?.open();
-  }, []);
+    if (vm.isSolo) {
+      comingSoonRef.current?.open();
+      return;
+    }
+    anniversaryRef.current?.open(vm.anniversaryIso);
+  }, [vm.isSolo, vm.anniversaryIso]);
 
   const onAppearancePress = useCallback(() => {
     comingSoonRef.current?.open();
@@ -175,6 +185,7 @@ export function ProfileScreen() {
                 <SettingsRow
                   icon={Cake}
                   label={t('profile.settingsList.anniversaries')}
+                  detail={vm.anniversaryLabel ?? t('profile.anniversary.notSet')}
                   onPress={onAnniversariesPress}
                 />
                 <SettingsRow
@@ -275,6 +286,7 @@ export function ProfileScreen() {
       <InviteCodeSheet ref={inviteSheetRef} />
       <EditProfileSheet ref={editProfileRef} />
       <CoupleNameSheet ref={coupleNameRef} onSaved={vm.setCoupleName} />
+      <AnniversarySheet ref={anniversaryRef} onSaved={vm.setAnniversary} />
       <DeleteAccountSheet ref={deleteAccountRef} onConfirm={vm.deleteAccount} />
     </SafeScreen>
   );

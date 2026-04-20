@@ -1,3 +1,4 @@
+export { AnniversarySheet, type AnniversarySheetHandle } from './AnniversarySheet';
 export { AuthBigBtn } from './AuthBigBtn';
 export { AuthField } from './AuthField';
 export { Avatar } from './Avatar';

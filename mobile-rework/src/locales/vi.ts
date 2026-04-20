@@ -426,6 +426,19 @@ const vi = {
         network: 'Không xóa được tài khoản. Kiểm tra mạng rồi thử lại.',
       },
     },
+    // Sprint 61 T355 — anniversary date-picker bottom sheet. Opens from
+    // the "Kỷ niệm & ngày quan trọng" settings row. Single date, local
+    // YYYY-MM-DD, max = today.
+    anniversary: {
+      title: 'Kỷ niệm của hai đứa',
+      subtitle: 'Chọn ngày hai đứa mình bắt đầu — ngày sẽ hiện trên thẻ “Đôi mình”.',
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+      notSet: 'Chưa đặt',
+      errors: {
+        network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
+      },
+    },
     // Sprint 61 T342 — edit couple-name bottom sheet. Opens from the
     // "Tên gọi của mình" settings row.
     coupleName: {

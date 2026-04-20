@@ -401,6 +401,16 @@ const en: Resources = {
         network: "Couldn't delete the account. Check your connection and try again.",
       },
     },
+    anniversary: {
+      title: 'Your anniversary',
+      subtitle: 'Pick the date your story began — we\'ll show it on the Us card.',
+      save: 'Save',
+      saving: 'Saving…',
+      notSet: 'Not set',
+      errors: {
+        network: 'Something went wrong. Check your connection and try again.',
+      },
+    },
     coupleName: {
       title: 'Our name',
       subtitle: "Give the two of you a shared name — you can change it anytime.",

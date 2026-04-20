@@ -237,6 +237,31 @@ export function useProfileViewModel() {
     setCouple((prev) => (prev ? { ...prev, name } : prev));
   }, []);
 
+  // T355: optimistic anniversary save. Sheet passes the YYYY-MM-DD string it
+  // built from LOCAL parts — VM trusts it (no timezone recompute here) and
+  // hits PUT /api/couple, which syncs both Couple.anniversaryDate AND
+  // AppSetting['relationship-start-date'] so the web PWA sees it too.
+  //
+  // Optimistic + revert per Lu: snapshot the prior couple inside the
+  // synchronous updater, patch in the new date, then on reject roll back
+  // and re-throw so the sheet can render its inline error and stay open.
+  const setAnniversary = useCallback(async (iso: string) => {
+    let prev: CoupleResponse | null = null;
+    setCouple((current) => {
+      prev = current;
+      return current ? { ...current, anniversaryDate: iso } : current;
+    });
+    try {
+      const updated = await apiClient.put<CoupleResponse>('/api/couple', {
+        anniversaryDate: iso,
+      });
+      setCouple(updated);
+    } catch (err) {
+      setCouple(prev);
+      throw err;
+    }
+  }, []);
+
   // App version detail for the (eventual) "Memoura+" row — read once from
   // expo-constants. Falls back to the package.json version baked into the
   // config if nativeApplicationVersion is missing (iOS simulator in dev).
@@ -294,6 +319,8 @@ export function useProfileViewModel() {
     onPrivacyPress,
     onTermsPress,
     setCoupleName,
+    setAnniversary,
+    anniversaryIso: couple?.anniversaryDate ?? null,
     refresh: load,
   };
 }
