@@ -59,6 +59,10 @@ export default function JoinLandingPage() {
   // T315: inviter preview from /validate-invite. null = not yet loaded OR
   // load failed OR code invalid — view falls back to the generic eyebrow.
   const [inviter, setInviter] = useState<InviterPreview>(null);
+  // T333: BE-confirmed invalid code (couple full or invite already consumed).
+  // Stays null while loading / on network failure — only flips when the API
+  // explicitly returns valid:false. Network errors keep the optimistic flow.
+  const [invalid, setInvalid] = useState<boolean>(false);
 
   // Smart App Banner — iOS Safari renders this as a top banner with an OPEN
   // button if the app is installed, falling back to the App Store. Injected
@@ -97,6 +101,11 @@ export default function JoinLandingPage() {
             name: data.inviter.name,
             avatarUrl: data.inviter.avatarUrl,
           });
+        } else if (!data.valid) {
+          // T333: surface the dead-link state. BE returns reasons like
+          // "This couple is already full" or "Invalid code" — we collapse
+          // both to one user-friendly Vietnamese card below.
+          setInvalid(true);
         }
       } catch {
         // Silent — landing page is functional without the preview.
@@ -124,6 +133,28 @@ export default function JoinLandingPage() {
           <h1 className="font-heading text-2xl text-gray-900">Mã không hợp lệ</h1>
           <p className="mt-2 text-sm text-gray-600">
             Liên kết em nhận được không có mã. Em hỏi lại người ấy nhé.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // T333: BE-confirmed dead link — couple already full or invite consumed.
+  // Render BEFORE the main flow so we don't flash QR/CTAs to a user who
+  // can never act on them. Single message covers both failure modes; raw
+  // BE error string is intentionally hidden.
+  if (invalid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white px-6 text-center">
+        <div>
+          <div className="text-5xl mb-4">💔</div>
+          <h1 className="font-heading text-2xl text-gray-900">
+            Mã này đã hết hiệu lực
+          </h1>
+          <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+            Có thể cặp đôi đã đủ người, hoặc mã đã được dùng rồi.
+            <br />
+            Em hỏi lại người ấy nhé.
           </p>
         </div>
       </div>
