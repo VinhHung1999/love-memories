@@ -6,6 +6,7 @@ export { CameraView } from './Camera';
 export { Card } from './Card';
 export { ComingSoonSheet, type ComingSoonSheetHandle } from './ComingSoonSheet';
 export { DividerWith } from './DividerWith';
+export { EditProfileSheet, type EditProfileSheetHandle } from './EditProfileSheet';
 export { LinearGradient } from './Gradient';
 export { Input } from './Input';
 export { InviteCodeSheet, type InviteCodeSheetHandle } from './InviteCodeSheet';

@@ -14,6 +14,8 @@ import {
 import {
   ComingSoonSheet,
   type ComingSoonSheetHandle,
+  EditProfileSheet,
+  type EditProfileSheetHandle,
   InviteCodeSheet,
   type InviteCodeSheetHandle,
   LinearGradient,
@@ -34,12 +36,12 @@ export function ProfileScreen() {
   const { t } = useTranslation();
   const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
+  const editProfileRef = useRef<EditProfileSheetHandle>(null);
 
   // Approach (b) — dedicated "Chỉnh sửa hồ sơ" row is the primary affordance;
-  // the hero avatars are the secondary affordance and share this handler. Both
-  // stub to the coming-soon sheet until T341 lands the real edit bottom sheet.
+  // the hero self-avatar is the secondary affordance and shares this handler.
   const onEditProfile = useCallback(() => {
-    comingSoonRef.current?.open();
+    editProfileRef.current?.open();
   }, []);
 
   const onInvitePress = useCallback(() => {
@@ -173,6 +175,7 @@ export function ProfileScreen() {
 
       <ComingSoonSheet ref={comingSoonRef} />
       <InviteCodeSheet ref={inviteSheetRef} />
+      <EditProfileSheet ref={editProfileRef} />
     </SafeScreen>
   );
 }

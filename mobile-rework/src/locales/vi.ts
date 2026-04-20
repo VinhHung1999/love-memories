@@ -391,6 +391,24 @@ const vi = {
       copyCta: 'Sao chép',
       copied: 'Đã sao chép ✓',
     },
+    // Sprint 61 T341 — edit-profile bottom sheet (name + avatar). Opens from
+    // the hero self-avatar and the "Chỉnh sửa hồ sơ" settings row.
+    editProfile: {
+      title: 'Chỉnh sửa hồ sơ',
+      subtitle: 'Cập nhật tên hiển thị và ảnh đại diện của mình.',
+      nameLabel: 'Tên của mình',
+      namePlaceholder: 'Ví dụ: Minh',
+      avatarAdd: 'Thêm ảnh đại diện',
+      avatarChange: 'Đổi ảnh',
+      avatarUploading: 'Đang tải ảnh…',
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+      errors: {
+        nameRequired: 'Nhập tên giúp mình nhé.',
+        avatarFailed: 'Tải ảnh không thành công. Thử lại nha.',
+        network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
+      },
+    },
     theme: 'Giao diện',
     palette: 'Bảng màu',
     mode: 'Chế độ',
