@@ -9,6 +9,11 @@ const en: Resources = {
     continue: 'Continue',
     skip: 'Skip',
     loading: 'Loading…',
+    comingSoon: {
+      title: 'Coming soon ✨',
+      defaultBody: "We're still polishing this one. Hang tight.",
+      close: 'Close',
+    },
   },
   tabs: {
     home: 'Home',

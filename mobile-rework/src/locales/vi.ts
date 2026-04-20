@@ -19,6 +19,13 @@ const vi = {
     continue: 'Tiếp tục',
     skip: 'Bỏ qua',
     loading: 'Đang tải…',
+    // Sprint 61 T344 — shared ComingSoonSheet. Used by 4 Profile settings rows
+    // (Kỷ niệm, Giao diện, Memoura+, Xem hướng dẫn) until those features ship.
+    comingSoon: {
+      title: 'Sắp có ✨',
+      defaultBody: 'Memoura đang chăm chút phần này. Mình chờ một chút nhé.',
+      close: 'Đóng',
+    },
   },
   tabs: {
     home: 'Nhà',

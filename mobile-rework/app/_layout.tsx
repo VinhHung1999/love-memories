@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -71,8 +72,15 @@ export default function RootLayout() {
     <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider>
         <ThemeProvider>
-          <RootStack />
-          <StatusBar style="auto" />
+          {/* BottomSheetModalProvider must wrap any screen that spawns a
+              @gorhom/bottom-sheet BottomSheetModal. Sits inside ThemeProvider so
+              sheets inherit the same `vars()` scope descendants consume. First
+              needed by Sprint 61 T344 ComingSoonSheet; additional sheets in
+              T340–T342 reuse the same provider. */}
+          <BottomSheetModalProvider>
+            <RootStack />
+            <StatusBar style="auto" />
+          </BottomSheetModalProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

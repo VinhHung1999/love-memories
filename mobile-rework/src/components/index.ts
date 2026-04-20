@@ -4,6 +4,7 @@ export { Avatar } from './Avatar';
 export { Button } from './Button';
 export { CameraView } from './Camera';
 export { Card } from './Card';
+export { ComingSoonSheet, type ComingSoonSheetHandle } from './ComingSoonSheet';
 export { DividerWith } from './DividerWith';
 export { LinearGradient } from './Gradient';
 export { Input } from './Input';
