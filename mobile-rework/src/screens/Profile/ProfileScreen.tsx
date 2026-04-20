@@ -16,6 +16,8 @@ import {
   type ComingSoonSheetHandle,
   CoupleNameSheet,
   type CoupleNameSheetHandle,
+  DeleteAccountSheet,
+  type DeleteAccountSheetHandle,
   EditProfileSheet,
   type EditProfileSheetHandle,
   InviteCodeSheet,
@@ -40,6 +42,7 @@ export function ProfileScreen() {
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
   const editProfileRef = useRef<EditProfileSheetHandle>(null);
   const coupleNameRef = useRef<CoupleNameSheetHandle>(null);
+  const deleteAccountRef = useRef<DeleteAccountSheetHandle>(null);
 
   // Approach (b) — dedicated "Chỉnh sửa hồ sơ" row is the primary affordance;
   // the hero self-avatar is the secondary affordance and shares this handler.
@@ -97,6 +100,28 @@ export function ProfileScreen() {
       ],
     );
   }, [t, vm]);
+
+  // T348: 2-step delete flow. Step 1 = Alert.alert (OS-native, aligns with
+  // App Store reviewers' expectation that destructive primary gets a confirm
+  // prompt). Step 2 = DeleteAccountSheet with text-challenge ("XÓA"/"DELETE")
+  // — only a deliberate typed match enables the destructive CTA. Either
+  // Cancel unwinds without touching the server.
+  const onDeleteAccountPress = useCallback(() => {
+    Alert.alert(
+      t('profile.settingsList.deleteAccountAlert.title'),
+      t('profile.settingsList.deleteAccountAlert.body'),
+      [
+        { text: t('profile.settingsList.deleteAccountAlert.cancel'), style: 'cancel' },
+        {
+          text: t('profile.settingsList.deleteAccountAlert.confirm'),
+          style: 'destructive',
+          onPress: () => {
+            deleteAccountRef.current?.open();
+          },
+        },
+      ],
+    );
+  }, [t]);
 
   return (
     <SafeScreen>
@@ -207,6 +232,25 @@ export function ProfileScreen() {
                 />
               </SettingsCard>
             </View>
+
+            {/* T348 — Account / Danger Zone. Single destructive row kept in
+                its own section so it reads as a deliberate gate rather than
+                a peer of the utility rows above. 2-step confirm lives in
+                onDeleteAccountPress (Alert) → DeleteAccountSheet. */}
+            <View className="mx-5 mt-5">
+              <Text className="mb-2 px-1 font-displayItalic uppercase text-ink-mute text-[11px] tracking-[2px]">
+                {t('profile.settingsSections.account')}
+              </Text>
+              <SettingsCard>
+                <SettingsRow
+                  icon="🗑"
+                  label={t('profile.settingsList.deleteAccount.label')}
+                  detail={t('profile.settingsList.deleteAccount.detail')}
+                  destructive
+                  onPress={onDeleteAccountPress}
+                />
+              </SettingsCard>
+            </View>
           </>
         )}
       </ScrollView>
@@ -215,6 +259,7 @@ export function ProfileScreen() {
       <InviteCodeSheet ref={inviteSheetRef} />
       <EditProfileSheet ref={editProfileRef} />
       <CoupleNameSheet ref={coupleNameRef} onSaved={vm.setCoupleName} />
+      <DeleteAccountSheet ref={deleteAccountRef} onConfirm={vm.deleteAccount} />
     </SafeScreen>
   );
 }

@@ -187,6 +187,29 @@ export function useProfileViewModel() {
     );
   }, [clearAuth, navigation]);
 
+  // T348: Delete Account (App Store 5.1.1(v) mandatory). Two-phase: the
+  // sheet catches the promise and renders inline error on failure, so we
+  // deliberately let non-2xx bubble via apiClient's ApiError. Only order
+  // that works: DELETE first (server-side teardown), then clearAuth (no
+  // point clearing local state if the server call failed), then reset
+  // to 'welcome' (account is gone — signup is the only way back in).
+  const deleteAccount = useCallback(async () => {
+    await apiClient.del('/api/auth/account');
+    await clearAuth();
+    const root = navigation.getParent();
+    root?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: '(auth)',
+            state: { index: 0, routes: [{ name: 'welcome' }] },
+          },
+        ],
+      }),
+    );
+  }, [clearAuth, navigation]);
+
   // T342: optimistic couple-name patch. The PUT /api/couple response is the
   // full updated couple, but we only need the name to refresh the hero /
   // settings-row detail — keep the signature narrow so the sheet doesn't
@@ -246,6 +269,7 @@ export function useProfileViewModel() {
     notificationsEnabled: notificationPermission === 'granted',
     onNotificationsToggle,
     signOut,
+    deleteAccount,
     appVersion,
     appVersionLabel,
     onPrivacyPress,

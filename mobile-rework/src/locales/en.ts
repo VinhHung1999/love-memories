@@ -339,6 +339,7 @@ const en: Resources = {
     },
     settingsSections: {
       infoLegal: 'Info & Legal',
+      account: 'Account',
     },
     settingsList: {
       editProfile: 'Edit profile',
@@ -354,6 +355,16 @@ const en: Resources = {
       terms: 'Terms of Service',
       version: 'Version',
       signOut: 'Sign out',
+      deleteAccount: {
+        label: 'Delete account',
+        detail: 'Permanently erase your data',
+      },
+      deleteAccountAlert: {
+        title: 'Delete account?',
+        body: 'All your moments, letters, and photos will be permanently deleted. This action CANNOT be undone.',
+        cancel: 'Cancel',
+        confirm: 'Continue',
+      },
       detail: {
         on: 'On',
         off: 'Off',
@@ -375,6 +386,20 @@ const en: Resources = {
       shareCta: 'Share',
       copyCta: 'Copy',
       copied: 'Copied ✓',
+    },
+    deleteAccount: {
+      title: 'Permanently delete account',
+      subtitle:
+        'Your account, moments, letters, photos, and every shared memory will be erased from Memoura. This cannot be undone.',
+      challenge: 'DELETE',
+      inputLabel: 'Type "{{word}}" to confirm',
+      placeholder: 'Type {{word}}',
+      confirmCta: 'Delete forever',
+      confirming: 'Deleting…',
+      cancel: 'Cancel',
+      errors: {
+        network: "Couldn't delete the account. Check your connection and try again.",
+      },
     },
     coupleName: {
       title: 'Our name',

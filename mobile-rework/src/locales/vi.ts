@@ -359,6 +359,7 @@ const vi = {
     // mode, subscription tier, app version).
     settingsSections: {
       infoLegal: 'Thông tin & Pháp lý',
+      account: 'Tài khoản',
     },
     settingsList: {
       editProfile: 'Chỉnh sửa hồ sơ',
@@ -374,6 +375,16 @@ const vi = {
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',
       signOut: 'Đăng xuất',
+      deleteAccount: {
+        label: 'Xóa tài khoản',
+        detail: 'Xóa vĩnh viễn dữ liệu của bạn',
+      },
+      deleteAccountAlert: {
+        title: 'Xóa tài khoản?',
+        body: 'Tất cả khoảnh khắc, thư, ảnh của mình sẽ bị xóa vĩnh viễn. Hành động này KHÔNG thể hoàn tác.',
+        cancel: 'Huỷ',
+        confirm: 'Tiếp tục',
+      },
       detail: {
         on: 'Bật',
         off: 'Tắt',
@@ -396,6 +407,24 @@ const vi = {
       shareCta: 'Chia sẻ',
       copyCta: 'Sao chép',
       copied: 'Đã sao chép ✓',
+    },
+    // Sprint 61 T348 — Delete Account confirmation sheet (App Store
+    // 5.1.1(v) mandatory). Text-challenge word must match after trim,
+    // case-sensitive — localized so VN users aren't hit with English-only
+    // friction. DELETE matches the challenge word in en.ts.
+    deleteAccount: {
+      title: 'Xóa tài khoản vĩnh viễn',
+      subtitle:
+        'Tài khoản, khoảnh khắc, thư, ảnh và mọi kỷ niệm của mình sẽ bị xóa hoàn toàn khỏi Memoura. Không thể hoàn tác.',
+      challenge: 'XÓA',
+      inputLabel: 'Gõ "{{word}}" để xác nhận',
+      placeholder: 'Gõ {{word}}',
+      confirmCta: 'Xóa vĩnh viễn',
+      confirming: 'Đang xóa…',
+      cancel: 'Huỷ',
+      errors: {
+        network: 'Không xóa được tài khoản. Kiểm tra mạng rồi thử lại.',
+      },
     },
     // Sprint 61 T342 — edit couple-name bottom sheet. Opens from the
     // "Tên gọi của mình" settings row.

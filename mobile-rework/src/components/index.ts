@@ -6,6 +6,7 @@ export { CameraView } from './Camera';
 export { Card } from './Card';
 export { ComingSoonSheet, type ComingSoonSheetHandle } from './ComingSoonSheet';
 export { CoupleNameSheet, type CoupleNameSheetHandle } from './CoupleNameSheet';
+export { DeleteAccountSheet, type DeleteAccountSheetHandle } from './DeleteAccountSheet';
 export { DividerWith } from './DividerWith';
 export { EditProfileSheet, type EditProfileSheetHandle } from './EditProfileSheet';
 export { LinearGradient } from './Gradient';
