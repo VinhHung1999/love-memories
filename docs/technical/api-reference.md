@@ -1656,12 +1656,19 @@ Set/upsert setting value.
 
 ### `PUT /api/profile`
 
-Update user name.
+Update user profile. Accepts any subset of the fields below; at least one must be provided.
 
 **Request:**
 ```json
-{ "name": "New Name" }
+{ "name": "New Name", "notificationsEnabled": false }
 ```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| name | string | min 1 char, optional |
+| notificationsEnabled | boolean | Sprint 61 T343 — per-user push preference, optional |
+
+**Response (200):** `{ id, email, name, avatar, notificationsEnabled }`
 
 ---
 

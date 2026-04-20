@@ -119,7 +119,7 @@ export async function createCouple(userId: string, name?: string) {
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { coupleId: couple.id },
-    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true, notificationsEnabled: true },
   });
   return { ...updated, inviteCode: couple.inviteCode };
 }
@@ -138,7 +138,7 @@ export async function joinCouple(userId: string, inviteCode: string) {
     prisma.user.update({
       where: { id: userId },
       data: { coupleId: couple.id },
-      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true },
+      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true, notificationsEnabled: true },
     }),
     prisma.user.findFirst({
       where: { coupleId: couple.id, id: { not: userId } },

@@ -48,6 +48,7 @@ model User {
   coupleId            String?
   emailVerified       Boolean              @default(false)
   onboardingComplete  Boolean              @default(false)
+  notificationsEnabled Boolean             @default(true)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   couple              Couple?              @relation(fields: [coupleId], references: [id])
