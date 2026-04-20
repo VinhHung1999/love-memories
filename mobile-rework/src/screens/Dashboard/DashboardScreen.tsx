@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeScreen } from '@/components';
+import { useTabBarBottomInset } from '@/hooks/useTabBarBottomInset';
 import { useAuthStore } from '@/stores/authStore';
 import { ShareCodeCard } from './ShareCodeCard';
 
@@ -12,6 +13,7 @@ import { ShareCodeCard } from './ShareCodeCard';
 export function DashboardScreen() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
+  const tabBarBottomInsetClass = useTabBarBottomInset();
   const greeting = user?.name
     ? t('home.greeting', { name: user.name })
     : t('tabs.home');
@@ -20,7 +22,7 @@ export function DashboardScreen() {
     <SafeScreen>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-36"
+        contentContainerClassName={tabBarBottomInsetClass}
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5 pt-4">

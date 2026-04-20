@@ -9,6 +9,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/Gradient';
 import { useAppColors } from '@/theme/ThemeProvider';
 
+// T369 — shared tab-bar layout constant so scroll containers inside (tabs)/*
+// can compute bottom inset via `useTabBarBottomInset()` instead of magic
+// `pb-36` numbers scattered across screens. Matches the pill's `h-[62px]`
+// below so any change here flows through the hook.
+export const TAB_BAR_HEIGHT = 62;
+
 type TabKey = 'home' | 'moments' | 'letters' | 'profile';
 
 type TabDef = {
@@ -65,6 +71,7 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
             Text labels removed; active state is a 4px primary dot under the
             icon (prototype compact TabItem line 169-171). Icons swapped to
             lucide for cross-surface consistency with SettingsRow. */}
+        {/* h-[62px] must stay in sync with TAB_BAR_HEIGHT above. */}
         <View className="flex-1 flex-row items-center justify-around h-[62px] rounded-full bg-bg-elev border border-line-on-surface px-2 shadow-pill mr-2.5">
           {TABS.map((tab) => {
             const isActive = tab.route === activeRoute;
