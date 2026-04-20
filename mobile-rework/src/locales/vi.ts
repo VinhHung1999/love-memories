@@ -471,7 +471,25 @@ const vi = {
         network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
       },
     },
-    theme: 'Giao diện',
+    // Sprint 61 T356 — Theme picker bottom sheet (Light / Dark / System).
+    // Opened from the "Giao diện" settings row. `option.*` labels the three
+    // Pressable rows inside the sheet; `current.*` is the detail string
+    // shown on the settings row itself (identical wording, kept as a
+    // sibling so future divergence stays easy).
+    theme: {
+      title: 'Giao diện',
+      subtitle: 'Chọn cách ứng dụng hiển thị. "Theo hệ thống" sẽ đổi theo cài đặt thiết bị.',
+      option: {
+        light: 'Sáng',
+        dark: 'Tối',
+        system: 'Theo hệ thống',
+      },
+      current: {
+        light: 'Sáng',
+        dark: 'Tối',
+        system: 'Theo hệ thống',
+      },
+    },
     palette: 'Bảng màu',
     mode: 'Chế độ',
     typeSystem: 'Kiểu chữ',

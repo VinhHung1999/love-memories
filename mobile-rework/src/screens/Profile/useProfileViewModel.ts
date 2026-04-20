@@ -1,6 +1,7 @@
 import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppState, Linking, Platform } from 'react-native';
 
 import Constants from 'expo-constants';
@@ -9,6 +10,7 @@ import * as WebBrowser from 'expo-web-browser';
 
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeControls } from '@/theme/ThemeProvider';
 
 // T338 (Sprint 61) — Profile hero VM. Hydrates from GET /api/couple and
 // exposes a compact shape the hero needs: me, partner, coupleName,
@@ -67,6 +69,12 @@ function formatAnniversary(iso: string | null | undefined): string | null {
 export function useProfileViewModel() {
   const user = useAuthStore((s) => s.user);
   const navigation = useNavigation();
+  const { t } = useTranslation();
+  // T356: theme detail label for the "Giao diện" settings row. The sheet
+  // itself reads+writes mode directly via useThemeControls() — we only need
+  // the label here to keep the row's right-hand caption in sync.
+  const { mode: themeMode } = useThemeControls();
+  const themeLabel = t(`profile.theme.current.${themeMode}` as const);
 
   const [stage, setStage] = useState<ProfileStage>('loading');
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
@@ -321,6 +329,7 @@ export function useProfileViewModel() {
     setCoupleName,
     setAnniversary,
     anniversaryIso: couple?.anniversaryDate ?? null,
+    themeLabel,
     refresh: load,
   };
 }

@@ -439,7 +439,20 @@ const en: Resources = {
         network: 'Something went wrong. Check your connection and try again.',
       },
     },
-    theme: 'Appearance',
+    theme: {
+      title: 'Appearance',
+      subtitle: 'Choose how the app looks. "System" follows your device setting.',
+      option: {
+        light: 'Light',
+        dark: 'Dark',
+        system: 'System',
+      },
+      current: {
+        light: 'Light',
+        dark: 'Dark',
+        system: 'System',
+      },
+    },
     palette: 'Palette',
     mode: 'Mode',
     typeSystem: 'Type system',

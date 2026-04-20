@@ -43,6 +43,8 @@ import {
   SafeScreen,
   SettingsCard,
   SettingsRow,
+  ThemeSheet,
+  type ThemeSheetHandle,
 } from '@/components';
 import { formatInviteCode } from '@/lib/formatInviteCode';
 import { useAppColors } from '@/theme/ThemeProvider';
@@ -62,6 +64,7 @@ export function ProfileScreen() {
   const coupleNameRef = useRef<CoupleNameSheetHandle>(null);
   const anniversaryRef = useRef<AnniversarySheetHandle>(null);
   const deleteAccountRef = useRef<DeleteAccountSheetHandle>(null);
+  const themeRef = useRef<ThemeSheetHandle>(null);
 
   // Approach (b) — dedicated "Chỉnh sửa hồ sơ" row is the primary affordance;
   // the hero self-avatar is the secondary affordance and shares this handler.
@@ -98,8 +101,11 @@ export function ProfileScreen() {
     anniversaryRef.current?.open(vm.anniversaryIso);
   }, [vm.isSolo, vm.anniversaryIso]);
 
+  // T356: Appearance row opens the theme picker (Light / Dark / System). The
+  // sheet reads + writes mode directly via useThemeControls(); VM exposes
+  // vm.themeLabel so the row's right-hand caption stays reactive.
   const onAppearancePress = useCallback(() => {
-    comingSoonRef.current?.open();
+    themeRef.current?.open();
   }, []);
 
   const onMemouraPlusPress = useCallback(() => {
@@ -208,7 +214,7 @@ export function ProfileScreen() {
                 <SettingsRow
                   icon={Moon}
                   label={t('profile.settingsList.appearance')}
-                  detail={t('profile.settingsList.detail.system')}
+                  detail={vm.themeLabel}
                   onPress={onAppearancePress}
                 />
                 <SettingsRow
@@ -288,6 +294,7 @@ export function ProfileScreen() {
       <CoupleNameSheet ref={coupleNameRef} onSaved={vm.setCoupleName} />
       <AnniversarySheet ref={anniversaryRef} onSaved={vm.setAnniversary} />
       <DeleteAccountSheet ref={deleteAccountRef} onConfirm={vm.deleteAccount} />
+      <ThemeSheet ref={themeRef} />
     </SafeScreen>
   );
 }

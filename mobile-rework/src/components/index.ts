@@ -19,3 +19,4 @@ export { ScreenBackBtn, ScreenHeader } from './ScreenHeader';
 export { SettingsCard } from './SettingsCard';
 export { SettingsRow } from './SettingsRow';
 export { SocialRow, type SocialKind } from './SocialRow';
+export { ThemeSheet, type ThemeSheetHandle } from './ThemeSheet';
