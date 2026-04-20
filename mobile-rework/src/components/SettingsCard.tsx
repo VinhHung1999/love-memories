@@ -16,7 +16,7 @@ export function SettingsCard({ children, className }: Props) {
   const items = Children.toArray(children).filter(Boolean);
   return (
     <View
-      className={`rounded-3xl bg-surface border border-line-on-surface overflow-hidden ${className ?? ''}`}
+      className={`rounded-[20px] bg-surface border border-line-on-surface overflow-hidden ${className ?? ''}`}
     >
       {items.map((child, i) => (
         <Fragment key={i}>

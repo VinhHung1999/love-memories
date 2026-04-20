@@ -350,7 +350,7 @@ const vi = {
     // Sprint 61 T339 — stats row
     stats: {
       moments: 'Khoảnh khắc',
-      letters: 'Thư',
+      letters: 'Thư tình',
       questions: 'Câu hỏi',
     },
     // Sprint 61 T340 — settings list. Labels mirror prototype

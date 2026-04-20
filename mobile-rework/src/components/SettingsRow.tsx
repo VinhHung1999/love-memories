@@ -63,7 +63,7 @@ export function SettingsRow({
         disabled ? '' : 'active:bg-surface-alt/60'
       }`}
     >
-      <View className="w-8 h-8 rounded-xl bg-surface-alt items-center justify-center">
+      <View className="w-8 h-8 rounded-[10px] bg-surface-alt items-center justify-center">
         <Icon size={18} color={iconColor} strokeWidth={1.75} />
       </View>
       <Text

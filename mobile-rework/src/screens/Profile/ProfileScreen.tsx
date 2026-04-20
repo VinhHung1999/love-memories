@@ -164,6 +164,7 @@ export function ProfileScreen() {
               partner={vm.partner}
               coupleName={vm.coupleName}
               anniversaryLabel={vm.anniversaryLabel}
+              slogan={vm.slogan}
               isSolo={vm.isSolo}
               onEditProfile={onEditProfile}
             />
@@ -336,6 +337,7 @@ type HeroProps = {
   partner: HeroPerson | null;
   coupleName: string | null;
   anniversaryLabel: string | null;
+  slogan: string;
   isSolo: boolean;
   onEditProfile: () => void;
 };
@@ -345,6 +347,7 @@ function HeroCard({
   partner,
   coupleName,
   anniversaryLabel,
+  slogan,
   isSolo,
   onEditProfile,
 }: HeroProps) {
@@ -378,15 +381,11 @@ function HeroCard({
       >
         {/* LinearGradient ignores padding — content goes inside an inner View. */}
         <View className="relative px-5 pt-6 pb-5">
-          {/* Prototype's radial highlight (more-screens.jsx:19-20) — RN has no
-              radial gradient, so we approximate with a soft rounded wash pinned
-              top-left. Clipped by the parent's overflow-hidden. */}
-          {!isSolo ? (
-            <View
-              pointerEvents="none"
-              className="absolute -top-6 -left-6 w-56 h-40 rounded-full bg-white/25"
-            />
-          ) : null}
+          {/* T365: dropped the old `absolute rounded-full bg-white/25` radial
+              approximation — it renders as a hard-edged oval ("vòng tròn"
+              Boss flagged Build 33) because RN has no smooth radial fade.
+              Prototype's radial highlight (more-screens.jsx:19-20) is subtle
+              enough that the 3-stop LinearGradient alone reads fine. */}
 
           <View className="relative">
             <Text
@@ -410,6 +409,22 @@ function HeroCard({
                 >
                   {displayName}
                 </Text>
+
+                {/* T365: slogan display line — closes the loop from T358
+                    (edit-only). Dancing Script per Boss's approval of the
+                    script font on Profile hero. Paired = white/70 over the
+                    gradient; solo = ink-mute over the soft surface. Hidden
+                    when slogan is empty so it never renders an empty row. */}
+                {slogan.trim().length > 0 ? (
+                  <Text
+                    numberOfLines={2}
+                    className={`mt-0.5 font-script text-[15px] leading-[20px] ${
+                      isSolo ? 'text-ink-mute' : 'text-white/70'
+                    }`}
+                  >
+                    {slogan}
+                  </Text>
+                ) : null}
 
                 {isSolo ? (
                   <Text className="mt-1 font-body text-ink-soft text-[13px] leading-[18px]">
@@ -486,12 +501,13 @@ function StatsRow({ stats }: { stats: ProfileStats }) {
 }
 
 function StatCard({ value, label }: { value: number; label: string }) {
+  // T365: match prototype tokens (more-screens.jsx). Sentence-case label
+  // (drop uppercase + letter-spacing), smaller value text, tighter padding
+  // so 3 cards share a row without feeling heavy.
   return (
-    <View className="flex-1 rounded-2xl bg-surface border border-line px-3 py-3 items-center">
-      <Text className="font-displayMedium text-ink text-[22px] leading-[26px]">{value}</Text>
-      <Text className="mt-0.5 font-body text-ink-mute text-[11px] uppercase tracking-[1px]">
-        {label}
-      </Text>
+    <View className="flex-1 rounded-[14px] bg-surface border border-line-on-surface px-2 py-2.5 items-center">
+      <Text className="font-displayMedium text-ink text-[20px] leading-[24px]">{value}</Text>
+      <Text className="mt-0.5 font-body text-ink-mute text-[11px]">{label}</Text>
     </View>
   );
 }
