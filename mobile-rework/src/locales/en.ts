@@ -319,6 +319,14 @@ const en: Resources = {
   },
   profile: {
     title: 'Us',
+    hero: {
+      usLabel: 'Us',
+      soloLabel: 'Solo',
+      notPaired: 'Not paired yet',
+      since: 'since {{date}}',
+      selfFallback: 'Me',
+      partnerFallback: 'Them',
+    },
     theme: 'Appearance',
     palette: 'Palette',
     mode: 'Mode',

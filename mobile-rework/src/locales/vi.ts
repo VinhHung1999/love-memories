@@ -331,6 +331,15 @@ const vi = {
   },
   profile: {
     title: 'Mình',
+    // Sprint 61 T338 — hero card copy
+    hero: {
+      usLabel: 'Đôi mình',
+      soloLabel: 'Một mình',
+      notPaired: 'Chưa ghép đôi',
+      since: 'từ {{date}}',
+      selfFallback: 'Mình',
+      partnerFallback: 'người ấy',
+    },
     theme: 'Giao diện',
     palette: 'Bảng màu',
     mode: 'Chế độ',
