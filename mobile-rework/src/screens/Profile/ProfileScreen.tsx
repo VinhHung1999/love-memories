@@ -127,7 +127,7 @@ export function ProfileScreen() {
     <SafeScreen>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-28"
+        contentContainerClassName="pb-36"
         showsVerticalScrollIndicator={false}
       >
         {vm.stage === 'loading' ? (

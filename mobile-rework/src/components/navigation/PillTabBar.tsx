@@ -2,7 +2,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { LinearGradient } from '@/components/Gradient';
@@ -29,7 +29,17 @@ type Props = BottomTabBarProps & { onCameraPress?: () => void };
 export function PillTabBar({ state, navigation, onCameraPress }: Props) {
   const { t } = useTranslation();
   const colors = useAppColors();
+  const insets = useSafeAreaInsets();
   const activeRoute = state.routes[state.index]?.name;
+
+  // T352: drop SafeAreaView wrap — prototype pill floats at fixed bottom-24 on
+  // web, not system-reserved. Home-indicator devices still need clearance so
+  // pill doesn't sit on the indicator's gesture zone; resolve via
+  // useSafeAreaInsets + conditional className (Zero-style rule → arbitrary
+  // px class strings are static-only, pair is safer). pb-9 = 36px clears the
+  // 34pt iPhone indicator with 2px breathing; pb-3 = baseline for devices
+  // without indicator (iPhone SE / Android 3-button nav gives its own inset).
+  const bottomClass = insets.bottom > 0 ? 'pb-9' : 'pb-3';
 
   const onTabPress = (tab: TabDef) => {
     const route = state.routes.find((r) => r.name === tab.route);
@@ -50,14 +60,13 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
   };
 
   return (
-    <SafeAreaView
-      edges={['bottom']}
+    <View
       pointerEvents="box-none"
-      className="absolute left-0 right-0 bottom-0"
+      className={`absolute left-0 right-0 bottom-0 ${bottomClass}`}
     >
       <View
         pointerEvents="box-none"
-        className="flex-row items-center px-3 pb-2"
+        className="flex-row items-center px-3"
       >
         <View className="flex-1 flex-row items-center justify-around h-[62px] rounded-full bg-bg-elev border border-line px-2 shadow-elevated mr-2.5">
           {TABS.map((tab) => {
@@ -103,7 +112,7 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
           </LinearGradient>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

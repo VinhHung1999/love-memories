@@ -20,7 +20,7 @@ export function DashboardScreen() {
     <SafeScreen>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-28"
+        contentContainerClassName="pb-36"
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5 pt-4">
