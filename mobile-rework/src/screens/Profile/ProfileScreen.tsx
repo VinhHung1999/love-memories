@@ -3,7 +3,7 @@ import { ActivityIndicator, Image, ScrollView, Text, View } from 'react-native';
 
 import { LinearGradient, SafeScreen } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
-import { type HeroPerson, useProfileViewModel } from './useProfileViewModel';
+import { type HeroPerson, type ProfileStats, useProfileViewModel } from './useProfileViewModel';
 
 // T338 (Sprint 61) — Profile hero card. Subsequent tasks in the sprint
 // (T339 stats, T340 settings, T341 edit sheets, T345 sign out, T347 legal,
@@ -24,13 +24,18 @@ export function ProfileScreen() {
             <ActivityIndicator />
           </View>
         ) : (
-          <HeroCard
-            me={vm.me}
-            partner={vm.partner}
-            coupleName={vm.coupleName}
-            anniversaryLabel={vm.anniversaryLabel}
-            isSolo={vm.isSolo}
-          />
+          <>
+            <HeroCard
+              me={vm.me}
+              partner={vm.partner}
+              coupleName={vm.coupleName}
+              anniversaryLabel={vm.anniversaryLabel}
+              isSolo={vm.isSolo}
+            />
+            {/* Stats only make sense when paired. Solo users have no couple-
+                scoped counts — hide the row and never hit the endpoint. */}
+            {!vm.isSolo ? <StatsRow stats={vm.stats} /> : null}
+          </>
         )}
       </ScrollView>
     </SafeScreen>
@@ -159,6 +164,28 @@ type HeroAvatarProps = {
   gradient: [string, string];
   offsetClass: string;
 };
+
+function StatsRow({ stats }: { stats: ProfileStats }) {
+  const { t } = useTranslation();
+  return (
+    <View className="mx-5 mt-3 flex-row gap-2">
+      <StatCard value={stats.moments} label={t('profile.stats.moments')} />
+      <StatCard value={stats.letters} label={t('profile.stats.letters')} />
+      <StatCard value={stats.questions} label={t('profile.stats.questions')} />
+    </View>
+  );
+}
+
+function StatCard({ value, label }: { value: number; label: string }) {
+  return (
+    <View className="flex-1 rounded-2xl bg-surface border border-line px-3 py-3 items-center">
+      <Text className="font-displayMedium text-ink text-[22px] leading-[26px]">{value}</Text>
+      <Text className="mt-0.5 font-body text-ink-mute text-[11px] uppercase tracking-[1px]">
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 function HeroAvatar({ person, gradient, offsetClass }: HeroAvatarProps) {
   return (

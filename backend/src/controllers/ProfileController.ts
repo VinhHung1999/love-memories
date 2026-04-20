@@ -13,3 +13,9 @@ export const uploadAvatar = asyncHandler(async (req: AuthRequest, res: Response)
   const user = await ProfileService.updateAvatar(req.user!.userId, req.file);
   res.json(user);
 });
+
+export const stats = asyncHandler(async (req: AuthRequest, res: Response) => {
+  // requireCouple at route level guarantees coupleId is set.
+  const stats = await ProfileService.getStats(req.user!.coupleId!);
+  res.json(stats);
+});

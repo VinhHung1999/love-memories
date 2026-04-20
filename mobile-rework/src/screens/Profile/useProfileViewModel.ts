@@ -32,6 +32,14 @@ export type HeroPerson = {
   avatarUrl: string | null;
 };
 
+export type ProfileStats = {
+  moments: number;
+  letters: number;
+  questions: number;
+};
+
+const EMPTY_STATS: ProfileStats = { moments: 0, letters: 0, questions: 0 };
+
 function toInitial(name?: string | null): string {
   if (!name) return '·';
   const trimmed = name.trim();
@@ -54,23 +62,32 @@ export function useProfileViewModel() {
 
   const [stage, setStage] = useState<ProfileStage>('loading');
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
+  const [stats, setStats] = useState<ProfileStats>(EMPTY_STATS);
 
   const load = useCallback(async () => {
-    // No coupleId → we're solo. No need to hit /api/couple (requireCouple
-    // middleware would 400 anyway).
+    // No coupleId → we're solo. No need to hit /api/couple or /api/profile/stats
+    // (both gated by requireCouple → 400).
     if (!user?.coupleId) {
       setCouple(null);
+      setStats(EMPTY_STATS);
       setStage('ready');
       return;
     }
     setStage('loading');
     try {
-      const res = await apiClient.get<CoupleResponse>('/api/couple');
-      setCouple(res);
+      // Stats are non-critical — treat a failure there as 0s rather than
+      // dropping the whole screen to the error stage.
+      const [coupleRes, statsRes] = await Promise.all([
+        apiClient.get<CoupleResponse>('/api/couple'),
+        apiClient.get<ProfileStats>('/api/profile/stats').catch(() => EMPTY_STATS),
+      ]);
+      setCouple(coupleRes);
+      setStats(statsRes);
       setStage('ready');
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setCouple(null);
+        setStats(EMPTY_STATS);
         setStage('ready');
         return;
       }
@@ -107,6 +124,7 @@ export function useProfileViewModel() {
     anniversaryLabel: formatAnniversary(couple?.anniversaryDate),
     isSolo,
     inviteCode: couple?.inviteCode ?? null,
+    stats,
     refresh: load,
   };
 }

@@ -340,6 +340,12 @@ const vi = {
       selfFallback: 'Mình',
       partnerFallback: 'người ấy',
     },
+    // Sprint 61 T339 — stats row
+    stats: {
+      moments: 'Khoảnh khắc',
+      letters: 'Thư',
+      questions: 'Câu hỏi',
+    },
     theme: 'Giao diện',
     palette: 'Bảng màu',
     mode: 'Chế độ',

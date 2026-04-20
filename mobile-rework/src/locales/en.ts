@@ -327,6 +327,11 @@ const en: Resources = {
       selfFallback: 'Me',
       partnerFallback: 'Them',
     },
+    stats: {
+      moments: 'Moments',
+      letters: 'Letters',
+      questions: 'Questions',
+    },
     theme: 'Appearance',
     palette: 'Palette',
     mode: 'Mode',
