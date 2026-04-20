@@ -2,8 +2,9 @@ import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, Linking, Platform } from 'react-native';
+import { Alert, AppState, Linking, Platform } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as WebBrowser from 'expo-web-browser';
@@ -163,21 +164,28 @@ export function useProfileViewModel() {
 
   const isSolo = !couple || !partner;
 
-  // T343: notifications toggle mirrors the OS push-permission status — the
-  // switch is ON only when the OS has granted permission. There is no
-  // server-side flag; push can't fire without OS permission anyway so the
-  // OS is the only source of truth worth reading.
+  // T364: notifications are a 3-state (S1/S2/S3) machine on top of the OS
+  // permission. Effective ON = OS granted AND localPref=on. Local pref is
+  // persisted separately because once the user has granted system perm,
+  // we want them to be able to silence pushes inside the app WITHOUT
+  // revoking the OS grant (which can't be re-granted from inside the app).
   //
-  // Tap behavior:
-  //   undetermined → trigger the native permission prompt
-  //   granted | denied → open the Settings app (iOS/Android disallow a
-  //     re-prompt once the user has decided)
+  // Transitions:
+  //   S1 perm=undetermined + tap
+  //     → request native prompt.
+  //         granted → pref=on. effective ON.
+  //         denied  → Alert(denied) → [Mở Cài đặt | Huỷ].
+  //   S2 perm=granted + pref=on + tap  → pref=off (local only). effective OFF.
+  //   S3 effective OFF (pref=off OR perm≠granted) + tap
+  //     → Alert(disabled) → [Mở Cài đặt | Huỷ]. Re-enabling is a deliberate
+  //       settings-bounce; AppState listener reconciles when app returns.
   //
-  // An AppState listener re-reads the permission when the app returns to
-  // foreground so a user who toggled it in Settings sees the row update
-  // without a manual reload.
+  // An AppState listener re-reads perm when the app foregrounds so a user
+  // who flipped the system switch sees the row update immediately.
+  const NOTIF_PREF_KEY = '@memoura/notifications/v1';
   const [notificationPermission, setNotificationPermission] =
     useState<Notifications.PermissionStatus>('undetermined' as Notifications.PermissionStatus);
+  const [notificationsLocalPref, setNotificationsLocalPref] = useState<boolean>(true);
 
   const refreshNotificationPermission = useCallback(async () => {
     const res = await Notifications.getPermissionsAsync();
@@ -186,20 +194,91 @@ export function useProfileViewModel() {
 
   useEffect(() => {
     void refreshNotificationPermission();
+    void AsyncStorage.getItem(NOTIF_PREF_KEY).then((raw) => {
+      // Missing key = first-run default ON. Only an explicit "0" flips off.
+      setNotificationsLocalPref(raw === null ? true : raw === '1');
+    });
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') void refreshNotificationPermission();
     });
     return () => sub.remove();
   }, [refreshNotificationPermission]);
 
+  const persistNotificationsPref = useCallback(async (next: boolean) => {
+    setNotificationsLocalPref(next);
+    await AsyncStorage.setItem(NOTIF_PREF_KEY, next ? '1' : '0');
+  }, []);
+
+  // T364 — system-blocked (perm=denied) Alert → Linking.
+  // iOS: `app-settings:` deep-links to the app's settings page.
+  // Android: Linking.openSettings() resolves to app settings.
+  const showSystemBlockedAlert = useCallback(() => {
+    Alert.alert(
+      t('profile.settingsList.notificationsPrompt.systemBlockedTitle'),
+      t('profile.settingsList.notificationsPrompt.systemBlockedBody'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('profile.settingsList.notificationsPrompt.systemBlockedAction'),
+          onPress: () => {
+            const url = Platform.OS === 'ios' ? 'app-settings:' : null;
+            if (url) void Linking.openURL(url);
+            else void Linking.openSettings();
+          },
+        },
+      ],
+    );
+  }, [t]);
+
+  // T364 — pref=off + perm=granted → in-app re-enable confirm (no Settings).
+  // Friction is intentional per Lu: tắt = 1 tap, bật lại = 1 confirm.
+  const showConfirmEnableAlert = useCallback(() => {
+    Alert.alert(
+      t('profile.settingsList.notificationsPrompt.confirmEnableTitle'),
+      t('profile.settingsList.notificationsPrompt.confirmEnableBody'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('profile.settingsList.notificationsPrompt.confirmEnableAction'),
+          onPress: () => {
+            void persistNotificationsPref(true);
+          },
+        },
+      ],
+    );
+  }, [persistNotificationsPref, t]);
+
   const onNotificationsToggle = useCallback(async () => {
+    // Branch 1: undetermined — fire the native prompt, split on result.
     if (notificationPermission === 'undetermined') {
       const res = await Notifications.requestPermissionsAsync();
       setNotificationPermission(res.status);
+      if (res.status === 'granted') {
+        await persistNotificationsPref(true);
+      } else {
+        showSystemBlockedAlert();
+      }
       return;
     }
-    await Linking.openSettings();
-  }, [notificationPermission]);
+    // Branch 4: perm=denied at OS level — can only be unblocked via Settings.
+    if (notificationPermission !== 'granted') {
+      showSystemBlockedAlert();
+      return;
+    }
+    // Branch 2: perm=granted + pref=on → silent mute (local only).
+    if (notificationsLocalPref) {
+      await persistNotificationsPref(false);
+      return;
+    }
+    // Branch 3: perm=granted + pref=off → confirm-flip inside the app.
+    showConfirmEnableAlert();
+  }, [
+    notificationPermission,
+    notificationsLocalPref,
+    persistNotificationsPref,
+    showConfirmEnableAlert,
+    showSystemBlockedAlert,
+  ]);
 
   const clearAuth = useAuthStore((s) => s.clear);
   // T345: sign-out must truncate the UIKit native stack, not just the JS
@@ -339,7 +418,8 @@ export function useProfileViewModel() {
     isSolo,
     inviteCode: couple?.inviteCode ?? null,
     stats,
-    notificationsEnabled: notificationPermission === 'granted',
+    notificationsEnabled:
+      notificationPermission === 'granted' && notificationsLocalPref,
     onNotificationsToggle,
     signOut,
     deleteAccount,
