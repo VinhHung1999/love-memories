@@ -353,6 +353,44 @@ const vi = {
       letters: 'Thư',
       questions: 'Câu hỏi',
     },
+    // Sprint 61 T340 — settings list. Labels mirror prototype
+    // more-screens.jsx:7. Detail subkeys are used for rows where the right-
+    // hand caption swaps based on state (notifications on/off, appearance
+    // mode, subscription tier, app version).
+    settingsList: {
+      editProfile: 'Chỉnh sửa hồ sơ',
+      editProfileDetail: 'Tên · ảnh',
+      anniversaries: 'Kỷ niệm & ngày quan trọng',
+      coupleName: 'Tên gọi của mình',
+      inviteCode: 'Mã mời',
+      notifications: 'Thông báo',
+      appearance: 'Giao diện',
+      memouraPlus: 'Memoura+',
+      replayTour: 'Xem lại hướng dẫn',
+      signOut: 'Đăng xuất',
+      detail: {
+        on: 'Bật',
+        off: 'Tắt',
+        system: 'Theo hệ thống',
+        free: 'Miễn phí',
+        version: 'v{{version}}',
+      },
+      signOutAlert: {
+        title: 'Đăng xuất?',
+        body: 'Bạn sẽ cần đăng nhập lại để xem các khoảnh khắc của hai đứa.',
+        cancel: 'Huỷ',
+        confirm: 'Đăng xuất',
+      },
+    },
+    // Sprint 61 T340 — invite-code bottom sheet opened from settings list.
+    invite: {
+      title: 'Mã mời của bạn',
+      subtitle: 'Gửi mã này cho người ấy để cùng vào Memoura.',
+      codeLabel: 'mã của bạn',
+      shareCta: 'Chia sẻ',
+      copyCta: 'Sao chép',
+      copied: 'Đã sao chép ✓',
+    },
     theme: 'Giao diện',
     palette: 'Bảng màu',
     mode: 'Chế độ',

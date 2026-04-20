@@ -1,16 +1,91 @@
+import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
-import { LinearGradient, SafeScreen } from '@/components';
+import {
+  ComingSoonSheet,
+  type ComingSoonSheetHandle,
+  InviteCodeSheet,
+  type InviteCodeSheetHandle,
+  LinearGradient,
+  SafeScreen,
+  SettingsCard,
+  SettingsRow,
+} from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { type HeroPerson, type ProfileStats, useProfileViewModel } from './useProfileViewModel';
 
-// T338 (Sprint 61) — Profile hero card. Subsequent tasks in the sprint
-// (T339 stats, T340 settings, T341 edit sheets, T345 sign out, T347 legal,
-// T348 delete account) append sections below this hero card.
+// T338 (Sprint 61) — Profile hero card. T339 stats row, T340 settings list
+// (9 rows incl. "Chỉnh sửa hồ sơ" per PO approach b). T341/T342 edit sheets,
+// T343 notifications persistence, T345 sign-out nav reset, T347 legal rows,
+// T348 delete-account flow append on top of this scaffold.
 
 export function ProfileScreen() {
   const vm = useProfileViewModel();
+  const { t } = useTranslation();
+  const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
+  const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
+
+  // Approach (b) — dedicated "Chỉnh sửa hồ sơ" row is the primary affordance;
+  // the hero avatars are the secondary affordance and share this handler. Both
+  // stub to the coming-soon sheet until T341 lands the real edit bottom sheet.
+  const onEditProfile = useCallback(() => {
+    comingSoonRef.current?.open();
+  }, []);
+
+  const onInvitePress = useCallback(() => {
+    if (!vm.inviteCode) {
+      comingSoonRef.current?.open();
+      return;
+    }
+    inviteSheetRef.current?.open(vm.inviteCode);
+  }, [vm.inviteCode]);
+
+  const onCoupleNamePress = useCallback(() => {
+    comingSoonRef.current?.open();
+  }, []);
+
+  const onAnniversariesPress = useCallback(() => {
+    comingSoonRef.current?.open();
+  }, []);
+
+  const onAppearancePress = useCallback(() => {
+    comingSoonRef.current?.open();
+  }, []);
+
+  const onMemouraPlusPress = useCallback(() => {
+    comingSoonRef.current?.open();
+  }, []);
+
+  const onReplayTourPress = useCallback(() => {
+    comingSoonRef.current?.open();
+  }, []);
+
+  const onSignOutPress = useCallback(() => {
+    Alert.alert(
+      t('profile.settingsList.signOutAlert.title'),
+      t('profile.settingsList.signOutAlert.body'),
+      [
+        { text: t('profile.settingsList.signOutAlert.cancel'), style: 'cancel' },
+        {
+          text: t('profile.settingsList.signOutAlert.confirm'),
+          style: 'destructive',
+          onPress: () => {
+            void vm.signOut();
+          },
+        },
+      ],
+    );
+  }, [t, vm]);
 
   return (
     <SafeScreen>
@@ -31,14 +106,109 @@ export function ProfileScreen() {
               coupleName={vm.coupleName}
               anniversaryLabel={vm.anniversaryLabel}
               isSolo={vm.isSolo}
+              onEditProfile={onEditProfile}
             />
             {/* Stats only make sense when paired. Solo users have no couple-
                 scoped counts — hide the row and never hit the endpoint. */}
             {!vm.isSolo ? <StatsRow stats={vm.stats} /> : null}
+
+            <View className="mx-5 mt-4">
+              <SettingsCard>
+                <SettingsRow
+                  icon="✏️"
+                  label={t('profile.settingsList.editProfile')}
+                  detail={t('profile.settingsList.editProfileDetail')}
+                  onPress={onEditProfile}
+                />
+                <SettingsRow
+                  icon="🎂"
+                  label={t('profile.settingsList.anniversaries')}
+                  onPress={onAnniversariesPress}
+                />
+                <SettingsRow
+                  icon="👥"
+                  label={t('profile.settingsList.coupleName')}
+                  detail={vm.coupleNameDetail ?? undefined}
+                  onPress={onCoupleNamePress}
+                />
+                <SettingsRow
+                  icon="🔗"
+                  label={t('profile.settingsList.inviteCode')}
+                  detail={vm.inviteCode ? vm.inviteCode.toUpperCase() : undefined}
+                  onPress={onInvitePress}
+                  disabled={!vm.inviteCode}
+                />
+                <NotificationsRow
+                  enabled={vm.notificationsEnabled}
+                  onToggle={vm.setNotificationsEnabled}
+                />
+                <SettingsRow
+                  icon="🌙"
+                  label={t('profile.settingsList.appearance')}
+                  detail={t('profile.settingsList.detail.system')}
+                  onPress={onAppearancePress}
+                />
+                <SettingsRow
+                  icon="💎"
+                  label={t('profile.settingsList.memouraPlus')}
+                  detail={t('profile.settingsList.detail.free')}
+                  onPress={onMemouraPlusPress}
+                />
+                <SettingsRow
+                  icon="👋"
+                  label={t('profile.settingsList.replayTour')}
+                  onPress={onReplayTourPress}
+                />
+                <SettingsRow
+                  icon="🚪"
+                  label={t('profile.settingsList.signOut')}
+                  destructive
+                  onPress={onSignOutPress}
+                />
+              </SettingsCard>
+            </View>
           </>
         )}
       </ScrollView>
+
+      <ComingSoonSheet ref={comingSoonRef} />
+      <InviteCodeSheet ref={inviteSheetRef} />
     </SafeScreen>
+  );
+}
+
+type NotificationsRowProps = {
+  enabled: boolean;
+  onToggle: (next: boolean) => void;
+};
+
+// Dedicated row wrapper so the Switch stays thumb-sized (44×26) and renders
+// in place of the chevron. Row.disabled={false} because the whole row is
+// still tappable — tapping anywhere flips the switch for a better touch
+// target than the 44pt Switch alone.
+function NotificationsRow({ enabled, onToggle }: NotificationsRowProps) {
+  const { t } = useTranslation();
+  const c = useAppColors();
+  return (
+    <SettingsRow
+      icon="🔔"
+      label={t('profile.settingsList.notifications')}
+      detail={
+        enabled
+          ? t('profile.settingsList.detail.on')
+          : t('profile.settingsList.detail.off')
+      }
+      onPress={() => onToggle(!enabled)}
+      trailing={
+        <Switch
+          value={enabled}
+          onValueChange={onToggle}
+          trackColor={{ false: c.lineOnSurface, true: c.primary }}
+          thumbColor={c.bg}
+          ios_backgroundColor={c.lineOnSurface}
+        />
+      }
+    />
   );
 }
 
@@ -48,9 +218,17 @@ type HeroProps = {
   coupleName: string | null;
   anniversaryLabel: string | null;
   isSolo: boolean;
+  onEditProfile: () => void;
 };
 
-function HeroCard({ me, partner, coupleName, anniversaryLabel, isSolo }: HeroProps) {
+function HeroCard({
+  me,
+  partner,
+  coupleName,
+  anniversaryLabel,
+  isSolo,
+  onEditProfile,
+}: HeroProps) {
   const { t } = useTranslation();
   const c = useAppColors();
 
@@ -99,7 +277,12 @@ function HeroCard({ me, partner, coupleName, anniversaryLabel, isSolo }: HeroPro
             </Text>
 
             <View className="mt-1.5 flex-row items-center gap-2.5">
-              <HeroAvatars me={me} partner={partner} isSolo={isSolo} />
+              <HeroAvatars
+                me={me}
+                partner={partner}
+                isSolo={isSolo}
+                onEditProfile={onEditProfile}
+              />
 
               <View className="flex-1 min-w-0">
                 <Text
@@ -134,19 +317,25 @@ type AvatarsProps = {
   me: HeroPerson;
   partner: HeroPerson | null;
   isSolo: boolean;
+  onEditProfile: () => void;
 };
 
-function HeroAvatars({ me, partner, isSolo }: AvatarsProps) {
+function HeroAvatars({ me, partner, isSolo, onEditProfile }: AvatarsProps) {
   const c = useAppColors();
   // Container width shrinks when solo so the name column gets more room.
   const containerClass = isSolo ? 'relative w-[52px] h-14' : 'relative w-[82px] h-14';
 
   return (
     <View className={containerClass}>
+      {/* Self avatar is the secondary affordance for edit-profile — primary
+          is the dedicated "Chỉnh sửa hồ sơ" row below. Partner avatar is
+          NOT tappable (editing someone else's photo is never the user's
+          intent — T342 handles couple-name edits instead). */}
       <HeroAvatar
         person={me}
         gradient={[c.heroA, c.heroB]}
         offsetClass="left-0 top-0"
+        onPress={onEditProfile}
       />
       {partner ? (
         <HeroAvatar
@@ -163,6 +352,7 @@ type HeroAvatarProps = {
   person: HeroPerson;
   gradient: [string, string];
   offsetClass: string;
+  onPress?: () => void;
 };
 
 function StatsRow({ stats }: { stats: ProfileStats }) {
@@ -187,31 +377,46 @@ function StatCard({ value, label }: { value: number; label: string }) {
   );
 }
 
-function HeroAvatar({ person, gradient, offsetClass }: HeroAvatarProps) {
-  return (
-    <View
-      className={`absolute w-[52px] h-[52px] rounded-full overflow-hidden border-[3px] border-white/70 ${offsetClass}`}
+function HeroAvatar({ person, gradient, offsetClass, onPress }: HeroAvatarProps) {
+  const content = person.avatarUrl ? (
+    <Image
+      source={{ uri: person.avatarUrl }}
+      className="w-full h-full"
+      resizeMode="cover"
+    />
+  ) : (
+    <LinearGradient
+      colors={gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      className="w-full h-full"
     >
-      {person.avatarUrl ? (
-        <Image
-          source={{ uri: person.avatarUrl }}
-          className="w-full h-full"
-          resizeMode="cover"
-        />
-      ) : (
-        <LinearGradient
-          colors={gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="w-full h-full"
-        >
-          <View className="flex-1 items-center justify-center">
-            <Text className="font-displayBold text-white text-[22px]">
-              {person.initial}
-            </Text>
-          </View>
-        </LinearGradient>
-      )}
-    </View>
+      <View className="flex-1 items-center justify-center">
+        <Text className="font-displayBold text-white text-[22px]">
+          {person.initial}
+        </Text>
+      </View>
+    </LinearGradient>
+  );
+
+  if (!onPress) {
+    return (
+      <View
+        className={`absolute w-[52px] h-[52px] rounded-full overflow-hidden border-[3px] border-white/70 ${offsetClass}`}
+      >
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      hitSlop={6}
+      className={`absolute w-[52px] h-[52px] rounded-full overflow-hidden border-[3px] border-white/70 active:opacity-85 ${offsetClass}`}
+    >
+      {content}
+    </Pressable>
   );
 }

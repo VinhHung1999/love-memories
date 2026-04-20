@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import Constants from 'expo-constants';
+
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -116,15 +118,52 @@ export function useProfileViewModel() {
 
   const isSolo = !couple || !partner;
 
+  // T340: Settings list state.
+  // - notificationsEnabled is LOCAL-ONLY for this sprint. T343 will wire it
+  //   to a PATCH /api/users/me endpoint + persist via authStore. Defaulting
+  //   to true matches the prototype's "Bật" detail.
+  // - The sign-out handler is the bridge into T345; for now it just clears
+  //   the auth store so QA can exercise the confirm dialog. T345 will add
+  //   the CommonActions.reset → welcome nav to prevent edge-swipe back into
+  //   tabs (same lesson as Sprint 60 T335).
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const clearAuth = useAuthStore((s) => s.clear);
+  const signOut = useCallback(async () => {
+    await clearAuth();
+  }, [clearAuth]);
+
+  // App version detail for the (eventual) "Memoura+" row — read once from
+  // expo-constants. Falls back to the package.json version baked into the
+  // config if nativeApplicationVersion is missing (iOS simulator in dev).
+  const appVersion =
+    Constants.nativeApplicationVersion ??
+    (Constants.expoConfig?.version as string | undefined) ??
+    null;
+
+  // Couple-name detail for the "Tên gọi của mình" row. When a couple hasn't
+  // set a custom name, we compose "Me & Them" from both avatars' display
+  // names (same shape as the hero fallback).
+  const coupleNameDetail =
+    couple?.name ??
+    (partnerUser
+      ? `${user?.name ?? ''} & ${partnerUser.name ?? ''}`.trim().replace(/^&\s+|\s+&$/g, '')
+      : null);
+
   return {
     stage,
     me,
     partner,
     coupleName: couple?.name ?? null,
+    coupleNameDetail,
     anniversaryLabel: formatAnniversary(couple?.anniversaryDate),
     isSolo,
     inviteCode: couple?.inviteCode ?? null,
     stats,
+    notificationsEnabled,
+    setNotificationsEnabled,
+    signOut,
+    appVersion,
     refresh: load,
   };
 }
