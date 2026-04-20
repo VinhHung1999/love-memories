@@ -1,5 +1,6 @@
+import { CommonActions } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -96,7 +97,7 @@ function parseAnniversary(input: string): string | null | 'invalid' {
 }
 
 export function usePersonalizeViewModel() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const setSession = useAuthStore((s) => s.setSession);
@@ -203,7 +204,18 @@ export function usePersonalizeViewModel() {
       }
       // T317: both branches end on OnboardingDone. Permissions wizard removed
       // from the joiner path — first-use prompts in (tabs) handle it.
-      router.replace('/(auth)/onboarding-done');
+      // T335 (Build 29): full stack reset, NOT replace. Couple is committed
+      // server-side (creator: POST /api/couple; joiner: prior /api/couple/join)
+      // before this dispatch fires — the user must not be able to edge-swipe
+      // back into Personalize and re-submit. Same rationale as T331's joiner
+      // path. Route name 'onboarding-done' (file name only — useNavigation()
+      // returns the AuthLayout Stack, not the root Stack that uses path-style).
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'onboarding-done' }],
+        }),
+      );
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError({ kind: 'network' });
@@ -213,7 +225,7 @@ export function usePersonalizeViewModel() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, nick, date, colorIndex, isCreator, setUser, setSession, router]);
+  }, [canSubmit, nick, date, colorIndex, isCreator, setUser, setSession, navigation]);
 
   // T314: pick + optimistic upload. Flow:
   //   1. Request media-library perm (idempotent — OS caches decisions).

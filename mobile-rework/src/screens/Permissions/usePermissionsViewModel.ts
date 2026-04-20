@@ -1,6 +1,7 @@
-import { useRouter } from 'expo-router';
+import { CommonActions } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Notifications from 'expo-notifications';
+import { useNavigation } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
 import { apiClient } from '@/lib/apiClient';
@@ -44,7 +45,7 @@ async function registerPushToken(): Promise<void> {
 }
 
 export function usePermissionsViewModel() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const [status, setStatus] = useState<CardStatus>(INITIAL);
 
   const setCard = useCallback((key: CardKey, value: CardState) => {
@@ -94,9 +95,23 @@ export function usePermissionsViewModel() {
     [status, setCard],
   );
 
+  // T335 (Build 29): full stack reset, NOT replace. OnboardingDone is a
+  // commit point — tokens + couple are persisted before this CTA fires
+  // (T306 creator path). router.replace rewrites JS history but UIKit's
+  // native controller stack still holds pair-create → personalize →
+  // permissions beneath. CommonActions.reset truncates the native stack
+  // too so an iOS edge-swipe has nothing to pop. Mirrors T331 pattern.
+  // Route name is 'onboarding-done' (file name) — useNavigation() here
+  // returns the AuthLayout Stack which registers screens by file name,
+  // NOT the path-style '(auth)/onboarding-done' the root Stack uses.
   const onContinue = useCallback(() => {
-    router.replace('/(auth)/onboarding-done');
-  }, [router]);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'onboarding-done' }],
+      }),
+    );
+  }, [navigation]);
 
   return {
     status,
