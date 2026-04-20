@@ -3,12 +3,8 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import * as ProfileService from '../services/ProfileService';
 import type { AuthRequest } from '../middleware/auth';
 
-export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { name, notificationsEnabled } = req.body as {
-    name?: string;
-    notificationsEnabled?: boolean;
-  };
-  const user = await ProfileService.updateProfile(req.user!.userId, { name, notificationsEnabled });
+export const updateName = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const user = await ProfileService.updateName(req.user!.userId, req.body.name);
   res.json(user);
 });
 

@@ -50,8 +50,6 @@ free | active | expired | cancelled | grace_period
 | avatar | String? | | Avatar CDN URL |
 | coupleId | String? | FK → Couple | Sprint 32: Couple association |
 | emailVerified | Boolean | `@default(false)` | Sprint 45: Email verification status |
-| onboardingComplete | Boolean | `@default(false)` | Sprint 60: Onboarding wizard completed |
-| notificationsEnabled | Boolean | `@default(true)` | Sprint 61: Per-user push notification preference (T343) |
 | createdAt | DateTime | `@default(now())` | |
 | updatedAt | DateTime | `@updatedAt` | |
 

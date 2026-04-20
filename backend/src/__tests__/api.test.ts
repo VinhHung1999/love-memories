@@ -1063,26 +1063,6 @@ describe('Profile', () => {
     expect(res.status).toBe(400);
   });
 
-  // T343 — Sprint 61 — per-user notifications toggle persisted to User.notificationsEnabled
-  it('PUT /api/profile updates notificationsEnabled', async () => {
-    const off = await request(app).put('/api/profile').set(auth()).send({ notificationsEnabled: false });
-    expect(off.status).toBe(200);
-    expect(off.body.notificationsEnabled).toBe(false);
-
-    const me = await request(app).get('/api/auth/me').set(auth());
-    expect(me.status).toBe(200);
-    expect(me.body.notificationsEnabled).toBe(false);
-
-    const on = await request(app).put('/api/profile').set(auth()).send({ notificationsEnabled: true });
-    expect(on.status).toBe(200);
-    expect(on.body.notificationsEnabled).toBe(true);
-  });
-
-  it('PUT /api/profile rejects empty body', async () => {
-    const res = await request(app).put('/api/profile').set(auth()).send({});
-    expect(res.status).toBe(400);
-  });
-
   it('POST /api/profile/avatar returns 401 without auth', async () => {
     const res = await request(app).post('/api/profile/avatar');
     expect(res.status).toBe(401);

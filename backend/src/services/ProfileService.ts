@@ -1,24 +1,10 @@
 import prisma from '../utils/prisma';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 
-const userSelect = {
-  id: true,
-  email: true,
-  name: true,
-  avatar: true,
-  notificationsEnabled: true,
-};
+const userSelect = { id: true, email: true, name: true, avatar: true };
 
-type UpdateProfileInput = {
-  name?: string;
-  notificationsEnabled?: boolean;
-};
-
-export async function updateProfile(userId: string, input: UpdateProfileInput) {
-  const data: UpdateProfileInput = {};
-  if (input.name !== undefined) data.name = input.name;
-  if (input.notificationsEnabled !== undefined) data.notificationsEnabled = input.notificationsEnabled;
-  return prisma.user.update({ where: { id: userId }, data, select: userSelect });
+export async function updateName(userId: string, name: string) {
+  return prisma.user.update({ where: { id: userId }, data: { name }, select: userSelect });
 }
 
 export async function updateAvatar(userId: string, file: Express.Multer.File) {

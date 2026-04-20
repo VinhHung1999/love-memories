@@ -48,7 +48,6 @@ type UserAuthShape = {
   coupleId: string | null;
   googleId: string | null;
   onboardingComplete: boolean;
-  notificationsEnabled: boolean;
 };
 
 export async function createRefreshToken(userId: string): Promise<string> {
@@ -74,7 +73,6 @@ export function buildAuthResponse(
       coupleId: user.coupleId,
       googleId: user.googleId,
       onboardingComplete: user.onboardingComplete,
-      notificationsEnabled: user.notificationsEnabled,
     },
   };
 }
@@ -151,7 +149,7 @@ export async function refresh(token: string) {
   const stored = await prisma.refreshToken.findUnique({
     where: { token },
     include: {
-      user: { select: { id: true, coupleId: true, email: true, name: true, avatar: true, googleId: true, onboardingComplete: true, notificationsEnabled: true } },
+      user: { select: { id: true, coupleId: true, email: true, name: true, avatar: true, googleId: true, onboardingComplete: true } },
     },
   });
 
@@ -177,7 +175,7 @@ export async function logout(userId: string, refreshToken?: string) {
 export async function me(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, emailVerified: true, onboardingComplete: true, notificationsEnabled: true, createdAt: true },
+    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, emailVerified: true, onboardingComplete: true, createdAt: true },
   });
   if (!user) throw new AppError(404, 'User not found');
   return user;
