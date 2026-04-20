@@ -1,18 +1,21 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAppColors } from '@/theme/ThemeProvider';
+
+import { PillTabBar } from '@/components/navigation/PillTabBar';
 
 export default function TabsLayout() {
   const { t } = useTranslation();
-  const colors = useAppColors();
+
+  const handleCameraPress = () => {
+    // T337: camera pill is a stub this sprint — modal camera sheet lands in a
+    // later sprint. Log so QA can confirm the pill is responsive.
+    console.log('camera-pill-press');
+  };
+
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.inkMute,
-        tabBarStyle: { backgroundColor: colors.bgElev, borderTopColor: colors.line },
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <PillTabBar {...props} onCameraPress={handleCameraPress} />}
     >
       <Tabs.Screen name="index" options={{ title: t('tabs.home') }} />
       <Tabs.Screen name="moments" options={{ title: t('tabs.moments') }} />
