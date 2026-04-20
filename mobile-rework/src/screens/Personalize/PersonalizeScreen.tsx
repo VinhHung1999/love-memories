@@ -18,7 +18,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthBigBtn, AuthField, LinearGradient, ScreenHeader } from '@/components';
-import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePersonalizeViewModel } from './usePersonalizeViewModel';
 
@@ -88,14 +87,9 @@ export function PersonalizeScreen() {
     onSubmit,
   } = usePersonalizeViewModel();
 
-  const pendingPartner = useAuthStore((s) => s.pendingPartner);
+  // T323 (Build 24): preview card removed — partnerLabel/previewDate/sinceLabel
+  // are no longer rendered. previewName + initial still feed AvatarPicker.
   const previewName = nick.trim() || t('onboarding.personalize.previewPlaceholder');
-  // T316: joiner path stashes inviter {name, avatarUrl} on /validate-invite,
-  // so prefer the real name over the generic "người ấy" fallback. Creator
-  // path leaves pendingPartner null until partner joins → keep the fallback.
-  const partnerLabel =
-    pendingPartner?.name?.trim() || t('onboarding.personalize.previewPartner');
-  const previewDate = date.trim() || t('onboarding.personalize.datePlaceholder');
   const initial = previewName.charAt(0).toUpperCase();
 
   return (
@@ -153,20 +147,6 @@ export function PersonalizeScreen() {
                       ? t('onboarding.personalize.avatarChange')
                       : t('onboarding.personalize.avatarAdd')
                 }
-              />
-            </View>
-
-            <View className="px-5 pt-3">
-              <PreviewCard
-                colorIndex={colorIndex}
-                initial={initial}
-                name={previewName}
-                partnerLabel={partnerLabel}
-                // T318: joiner has no date input — omit the "từ …" line so
-                // the preview doesn't dangle a placeholder date they can't fill.
-                date={isCreator ? previewDate : null}
-                sinceLabel={t('onboarding.personalize.previewSince')}
-                avatarUri={avatarLocalUri}
               />
             </View>
 
@@ -241,66 +221,7 @@ export function PersonalizeScreen() {
   );
 }
 
-type PreviewProps = {
-  colorIndex: number;
-  initial: string;
-  name: string;
-  partnerLabel: string;
-  // null on joiner path (no date field) — the "since …" line is omitted entirely.
-  date: string | null;
-  sinceLabel: string;
-  // T314: when the user has picked an avatar, the preview chip shows it
-  // instead of the gradient + initial fallback.
-  avatarUri: string | null;
-};
-
-function PreviewCard({
-  colorIndex,
-  initial,
-  name,
-  partnerLabel,
-  date,
-  sinceLabel,
-  avatarUri,
-}: PreviewProps) {
-  const from = SWATCH_FROM[colorIndex];
-  const to = SWATCH_TO[colorIndex];
-  return (
-    <View className="self-center flex-row items-center rounded-[22px] border border-line-on-surface bg-surface px-5 py-4">
-      <View className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-bg shadow-chip">
-        {avatarUri ? (
-          <Image source={{ uri: avatarUri }} className="w-full h-full" resizeMode="cover" />
-        ) : (
-          <>
-            <LinearGradient
-              colors={[from, to]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="absolute inset-0"
-            />
-            <View className="flex-1 items-center justify-center">
-              <Text className="font-displayBold text-white text-[20px]">{initial}</Text>
-            </View>
-          </>
-        )}
-      </View>
-      <View className="ml-3.5">
-        {/* T294 (bug #1): leading-[20px] (1.11×) clipped dấu mũ on "người ấy";
-            24px (1.33×) keeps both lowercase + dấu fully drawn. */}
-        <Text className="font-displayMedium text-ink text-[18px] leading-[24px]">
-          {name} & {partnerLabel}
-        </Text>
-        {date ? (
-          <Text className="mt-1 font-script text-ink-soft text-[16px]">
-            {sinceLabel} {date}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-  );
-}
-
-// T314: hero avatar picker. Big circular tap target above the preview card.
+// T314: hero avatar picker. Big circular tap target above the form.
 // Three states:
 //   empty   → gradient swatch + camera glyph + "Thêm ảnh"
 //   picked  → image fill + small camera badge + "Thay đổi ảnh"
@@ -326,42 +247,51 @@ function AvatarPicker({
   const to = SWATCH_TO[colorIndex];
   return (
     <View className="items-center">
-      <Pressable
-        onPress={disabled ? undefined : onPress}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !!disabled, busy: uploading }}
-        accessibilityLabel={ctaLabel}
-        hitSlop={8}
-        className={`w-[112px] h-[112px] rounded-full overflow-hidden border-2 border-bg shadow-hero ${
-          disabled ? 'opacity-60' : 'active:opacity-90'
-        }`}
-      >
-        {uri ? (
-          <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
-        ) : (
-          <>
-            <LinearGradient
-              colors={[from, to]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="absolute inset-0"
-            />
-            <View className="flex-1 items-center justify-center">
-              <Text className="font-displayBold text-white text-[42px]">{initial}</Text>
+      {/* T322: outer wrapper does NOT clip — the camera badge needs to
+          overflow the rounded-full circle. The Pressable below keeps
+          overflow-hidden so the Image fills the circle cleanly. Badge is a
+          sibling of Pressable so it isn't clipped by the avatar mask. */}
+      <View className="w-[112px] h-[112px]">
+        <Pressable
+          onPress={disabled ? undefined : onPress}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !!disabled, busy: uploading }}
+          accessibilityLabel={ctaLabel}
+          hitSlop={8}
+          className={`w-[112px] h-[112px] rounded-full overflow-hidden border-2 border-bg shadow-hero ${
+            disabled ? 'opacity-60' : 'active:opacity-90'
+          }`}
+        >
+          {uri ? (
+            <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
+          ) : (
+            <>
+              <LinearGradient
+                colors={[from, to]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="absolute inset-0"
+              />
+              <View className="flex-1 items-center justify-center">
+                <Text className="font-displayBold text-white text-[42px]">{initial}</Text>
+              </View>
+            </>
+          )}
+          {uploading ? (
+            <View className="absolute inset-0 items-center justify-center bg-black/35">
+              <ActivityIndicator color="#FFFFFF" />
             </View>
-          </>
-        )}
-        {uploading ? (
-          <View className="absolute inset-0 items-center justify-center bg-black/35">
-            <ActivityIndicator color="#FFFFFF" />
-          </View>
-        ) : null}
+          ) : null}
+        </Pressable>
         {uri && !uploading ? (
-          <View className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-white items-center justify-center shadow-chip">
+          <View
+            pointerEvents="none"
+            className="absolute -bottom-0.5 -right-0.5 w-9 h-9 rounded-full bg-white items-center justify-center shadow-chip border-2 border-bg"
+          >
             <Camera size={16} color="#1A1A1A" strokeWidth={2.2} />
           </View>
         ) : null}
-      </Pressable>
+      </View>
       <Text className="mt-2.5 font-bodyMedium text-ink-soft text-[13px]">{ctaLabel}</Text>
     </View>
   );
