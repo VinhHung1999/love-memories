@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import QRCode from 'react-qr-code';
 import { useParams } from 'react-router-dom';
 
 // T289/T309 (Sprint 60 polish) — public landing for `https://memoura.app/join/:code`.
@@ -146,6 +147,15 @@ export default function JoinLandingPage() {
         <p className="mt-3 font-body text-sm text-gray-600">
           Memoura là nơi hai đứa giữ lại khoảnh khắc, thư tay và những câu hỏi nhỏ của mỗi ngày.
         </p>
+
+        {/* B43: QR for the same Universal Link the "Đã có app" button uses.
+            Lets the inviter point their phone at the partner's screen instead
+            of dictating the code by hand — primary share path on couch / cafe. */}
+        <div className="mt-8 flex justify-center">
+          <div className="bg-white p-4 rounded-2xl shadow-md">
+            <QRCode value={UNIVERSAL_LINK(code)} size={180} />
+          </div>
+        </div>
 
         {/* T309: code pill — ring + pill shape reads as a shareable token, not
             a generic card. Tap-to-copy kept with animated "Đã chép" affordance. */}
