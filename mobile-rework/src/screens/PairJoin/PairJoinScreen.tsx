@@ -225,6 +225,7 @@ function CodeCells({ cells, setCellRef, onChangeCell, onKeyPress, disabled }: Ce
       {cells.map((ch, i) => (
         <CodeCell
           key={i}
+          index={i}
           value={ch}
           setRef={(node) => setCellRef(i, node)}
           onChangeText={(value) => onChangeCell(i, value)}
@@ -239,6 +240,7 @@ function CodeCells({ cells, setCellRef, onChangeCell, onKeyPress, disabled }: Ce
 }
 
 type CellProps = {
+  index: number;
   value: string;
   setRef: (node: TextInput | null) => void;
   onChangeText: (value: string) => void;
@@ -246,7 +248,13 @@ type CellProps = {
   editable?: boolean;
 };
 
-function CodeCell({ value, setRef, onChangeText, onKeyPress, editable }: CellProps) {
+// T351: iOS AutoFill highlights cells with textContentType='oneTimeCode'
+// yellow while waiting to fill. When every cell carries the hint, only a
+// subset actually paint yellow — visual inconsistency. iOS delivers the
+// full SMS code as one string into a single focused field, so we keep the
+// hint on cell 0 (AutoFill target + where onChangeCell splits the 8-char
+// paste across all cells) and drop it from the rest.
+function CodeCell({ index, value, setRef, onChangeText, onKeyPress, editable }: CellProps) {
   const filled = value.length > 0;
   return (
     <TextInput
@@ -259,7 +267,7 @@ function CodeCell({ value, setRef, onChangeText, onKeyPress, editable }: CellPro
       autoCapitalize="characters"
       autoCorrect={false}
       keyboardType="default"
-      textContentType="oneTimeCode"
+      textContentType={index === 0 ? 'oneTimeCode' : 'none'}
       className={`w-[36px] h-[56px] rounded-[14px] bg-surface text-center font-displayBold text-ink text-[28px] ${
         filled ? 'border-[1.5px] border-primary' : 'border border-line-on-surface'
       }`}
