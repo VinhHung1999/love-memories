@@ -385,16 +385,12 @@ const vi = {
         cancel: 'Huỷ',
         confirm: 'Tiếp tục',
       },
-      // T364 — notifications 4-branch state machine. Two Alert variants:
-      //   confirmEnable: perm=granted + pref=off → in-app flip (no Settings).
-      //   systemBlocked: perm=denied (from prompt or OS Settings) → Linking.
-      // Friction is intentional: off = 1 tap, re-enable = 1 confirm.
-      // Named `notificationsPrompt` to avoid collision with the row label
-      // `notifications: 'Thông báo'` above.
+      // T373 — notifications prompt. Only the `systemBlocked` alert remains:
+      // when OS perm is denied, the row bounces to Settings because iOS/Android
+      // don't let an app re-prompt for push after a denial. Granted-state flips
+      // are silent now (no in-app confirm). Named `notificationsPrompt` to
+      // avoid collision with the row label `notifications: 'Thông báo'` above.
       notificationsPrompt: {
-        confirmEnableTitle: 'Bật lại thông báo?',
-        confirmEnableBody: 'Mình vừa tắt thông báo trong app. Bật lại để không bỏ lỡ những khoảnh khắc mới nhé.',
-        confirmEnableAction: 'Bật lại',
         systemBlockedTitle: 'Thông báo đang bị chặn',
         systemBlockedBody: 'Thông báo đang bị chặn trong Cài đặt iOS. Mở Cài đặt để bật lại nhé.',
         systemBlockedAction: 'Mở Cài đặt',

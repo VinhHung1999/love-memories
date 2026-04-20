@@ -14,7 +14,21 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        // T372 — absolute-positioned tabBarStyle tells React Navigation to
+        // stop reserving scene space for its default tab-bar slot. Our
+        // floating PillTabBar (rendered below via the `tabBar` prop) can
+        // then overlay the full-height Scene without the ~83px reserved
+        // band that was clipping scroll content on Build 35. Boss-approved
+        // config 2026-04-21 — 4 keys only, no `height: 0` override.
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+        },
+      }}
       tabBar={(props) => <PillTabBar {...props} onCameraPress={handleCameraPress} />}
     >
       <Tabs.Screen name="index" options={{ title: t('tabs.home') }} />

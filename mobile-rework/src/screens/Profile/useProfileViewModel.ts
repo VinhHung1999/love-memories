@@ -230,24 +230,10 @@ export function useProfileViewModel() {
     );
   }, [t]);
 
-  // T364 — pref=off + perm=granted → in-app re-enable confirm (no Settings).
-  // Friction is intentional per Lu: tắt = 1 tap, bật lại = 1 confirm.
-  const showConfirmEnableAlert = useCallback(() => {
-    Alert.alert(
-      t('profile.settingsList.notificationsPrompt.confirmEnableTitle'),
-      t('profile.settingsList.notificationsPrompt.confirmEnableBody'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('profile.settingsList.notificationsPrompt.confirmEnableAction'),
-          onPress: () => {
-            void persistNotificationsPref(true);
-          },
-        },
-      ],
-    );
-  }, [persistNotificationsPref, t]);
-
+  // T373 — once OS perm is granted, in-app toggle flips silently both ways.
+  // OS permission is the single source of truth for blocking; the local pref
+  // is a frictionless mute switch under it. Earlier T364 confirm-enable flow
+  // was dropped at Boss's call — too much friction for a daily toggle.
   const onNotificationsToggle = useCallback(async () => {
     // Branch 1: undetermined — fire the native prompt, split on result.
     if (notificationPermission === 'undetermined') {
@@ -260,23 +246,17 @@ export function useProfileViewModel() {
       }
       return;
     }
-    // Branch 4: perm=denied at OS level — can only be unblocked via Settings.
+    // Branch 2: perm=denied at OS level — only Settings can unblock.
     if (notificationPermission !== 'granted') {
       showSystemBlockedAlert();
       return;
     }
-    // Branch 2: perm=granted + pref=on → silent mute (local only).
-    if (notificationsLocalPref) {
-      await persistNotificationsPref(false);
-      return;
-    }
-    // Branch 3: perm=granted + pref=off → confirm-flip inside the app.
-    showConfirmEnableAlert();
+    // Branch 3: perm=granted — flip the local pref silently, either direction.
+    await persistNotificationsPref(!notificationsLocalPref);
   }, [
     notificationPermission,
     notificationsLocalPref,
     persistNotificationsPref,
-    showConfirmEnableAlert,
     showSystemBlockedAlert,
   ]);
 

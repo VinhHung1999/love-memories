@@ -365,12 +365,10 @@ const en: Resources = {
         cancel: 'Cancel',
         confirm: 'Continue',
       },
-      // T364 — notifications 4-branch state machine. Matches vi.ts schema.
+      // T373 — only `systemBlocked` remains (OS perm denied → Settings bounce).
+      // Granted-state flips are silent now. Matches vi.ts schema.
       // Named `notificationsPrompt` to avoid collision with the row label.
       notificationsPrompt: {
-        confirmEnableTitle: 'Turn notifications back on?',
-        confirmEnableBody: 'You muted notifications in-app. Re-enable to stay in the loop on new moments.',
-        confirmEnableAction: 'Turn on',
         systemBlockedTitle: 'Notifications are blocked',
         systemBlockedBody: 'Notifications are blocked in iOS Settings. Open Settings to re-enable.',
         systemBlockedAction: 'Open Settings',

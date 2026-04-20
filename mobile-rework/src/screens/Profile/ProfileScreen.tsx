@@ -43,10 +43,10 @@ import {
   SafeScreen,
   SettingsCard,
   SettingsRow,
+  TabBarSpacer,
   ThemeSheet,
   type ThemeSheetHandle,
 } from '@/components';
-import { useTabBarBottomInset } from '@/hooks/useTabBarBottomInset';
 import { formatInviteCode } from '@/lib/formatInviteCode';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { type HeroPerson, type ProfileStats, useProfileViewModel } from './useProfileViewModel';
@@ -147,13 +147,10 @@ export function ProfileScreen() {
     );
   }, [t]);
 
-  const tabBarBottomInsetClass = useTabBarBottomInset();
-
   return (
     <SafeScreen>
       <ScrollView
         className="flex-1"
-        contentContainerClassName={tabBarBottomInsetClass}
         showsVerticalScrollIndicator={false}
       >
         {vm.stage === 'loading' ? (
@@ -279,6 +276,8 @@ export function ProfileScreen() {
                 />
               </SettingsCard>
             </View>
+
+            <TabBarSpacer />
           </>
         )}
       </ScrollView>
