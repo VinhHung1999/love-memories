@@ -80,28 +80,17 @@ export function ProfileScreen() {
     inviteSheetRef.current?.open(vm.inviteCode);
   }, [vm.inviteCode]);
 
+  // T363: solo unlock — name/slogan/anniversary are personal fields that
+  // sync into the couple once paired. Sheet wiring is 100% ready (slogan
+  // already hits AppSetting; name/anniversary 400 on solo surfaces via
+  // sheet's inline saveFailed banner). Drop the comingSoon guard here.
   const onCoupleNamePress = useCallback(() => {
-    // T357+T358: Editing name + slogan requires an actual couple — solo
-    // users fall back to coming-soon (mirror of onInvitePress's solo path
-    // in T340). Name + slogan are edited together in one sheet so the row
-    // label stays `coupleName` but the scope expanded.
-    if (vm.isSolo) {
-      comingSoonRef.current?.open();
-      return;
-    }
     editIdentityRef.current?.open(vm.coupleName, vm.slogan);
-  }, [vm.isSolo, vm.coupleName, vm.slogan]);
+  }, [vm.coupleName, vm.slogan]);
 
-  // T355: Anniversary row opens a date-picker sheet. Solo users have no
-  // couple to PUT against (requireCouple → 400) — mirror the invite/couple
-  // name pattern and fall back to the coming-soon sheet.
   const onAnniversariesPress = useCallback(() => {
-    if (vm.isSolo) {
-      comingSoonRef.current?.open();
-      return;
-    }
     anniversaryRef.current?.open(vm.anniversaryIso);
-  }, [vm.isSolo, vm.anniversaryIso]);
+  }, [vm.anniversaryIso]);
 
   // T356: Appearance row opens the theme picker (Light / Dark / System). The
   // sheet reads + writes mode directly via useThemeControls(); VM exposes
