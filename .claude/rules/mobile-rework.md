@@ -36,6 +36,22 @@ prototype before coding a screen.
    - `@gorhom/bottom-sheet` — `backgroundStyle` / `handleIndicatorStyle` only accept
      style objects, not className. Keep them minimal (background color + handle
      color from `useAppColors()`).
+   - **Conditional styling — `style` prop, never ternary in `className`.** Any value
+     that flips at runtime (bg color, shadow, text color, visibility) goes on
+     `style` resolved via `useAppColors()`. Keep `className` a SINGLE STATIC STRING
+     for layout/typography only. Toggling classes — especially interactive
+     modifiers (`active:`, `focus:`, `hover:`, `disabled:`) — across ternary
+     branches crashes NativeWind v4 at re-render with a MISLEADING error
+     `[Error: Couldn't find a navigation context. Have you wrapped your app with
+     'NavigationContainer'?]` that points at React Navigation but has nothing to
+     do with it. Burned AuthBigBtn Login flow, Sprint 61 2026-04-21. See
+     `.claude/memory/bugs-and-lessons/nativewind-conditional-className-crash.md`.
+     Right shape:
+     ```tsx
+     const c = useAppColors();
+     const style = isDisabled ? { backgroundColor: c.surface } : { backgroundColor: c.ink };
+     <Pressable className="rounded-full py-4 px-5 active:opacity-90" style={style} />
+     ```
    Shadows → `shadow-sm`/`shadow-lg`. `contentContainerStyle` → wrap children in
    `<View className="min-h-full ...">`.
 3. **Theme via `useAppColors()`.** No hardcoded hex outside `src/theme/tokens.ts`.
@@ -208,6 +224,15 @@ frames. Don't port these from `mobile/` unless PO/Boss explicitly asks.
 
 ## Known bug patterns
 
+- **NativeWind v4 conditional `className` → "Couldn't find a navigation context"**:
+  the most misleading error in this project. Toggling classes across ternary
+  branches of a `className` template literal (especially interactive modifiers
+  like `active:opacity-90`) crashes at re-render with a React-Navigation-shaped
+  error that has NOTHING to do with nav — stack bottoms out at
+  `CssInterop.Pressable` with no nav hooks in the tree. Fix: every conditional
+  value on `style` prop via `useAppColors()`; `className` stays a single static
+  string. See Hard Rule #2's conditional-styling carve-out and
+  `.claude/memory/bugs-and-lessons/nativewind-conditional-className-crash.md`.
 - **BottomSheet + keyboard**: inside `@gorhom/bottom-sheet` use `BottomSheetTextInput`
   or `Input` with `bottomSheet` prop — RN `TextInput` doesn't trigger keyboard avoid.
 - **BottomSheetModal on fullScreenModal iOS**: touches blocked by `transparentModal`
