@@ -103,6 +103,32 @@ const vi = {
         cancel: 'Để sau',
       },
     },
+    // T378 — create moment screen (photos + description + date). Submit
+    // dismisses the modal immediately and hands upload off to uploadQueue
+    // which the global UploadProgressToast renders.
+    momentCreate: {
+      title: 'Khoảnh khắc mới',
+      save: 'Lưu',
+      close: 'Đóng',
+      photosLabel: 'Ảnh',
+      photosCount: '{{count}}/10',
+      addMore: 'Thêm ảnh',
+      removePhoto: 'Bỏ ảnh này',
+      descriptionLabel: 'Mô tả',
+      descriptionPlaceholder: 'Kể về khoảnh khắc này…',
+      dateLabel: 'Ngày',
+      dateToday: 'Hôm nay',
+      datePickerConfirm: 'Xong',
+      submitError: 'Không lưu được. Thử lại nhé.',
+    },
+    // T378 — global upload toast copy. Count is passed as {{count}}.
+    uploadToast: {
+      uploading: 'Đang đăng {{count}} ảnh…',
+      done: 'Đã lưu {{count}} ảnh',
+      failed: '{{count}} ảnh lỗi',
+      retry: 'Thử lại',
+      dismiss: 'Đóng',
+    },
   },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',

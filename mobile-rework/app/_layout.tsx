@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
 import { CameraActionSheet } from '@/components/CameraActionSheet';
+import { UploadProgressToast } from '@/components/UploadProgressToast';
 import { parseMemouraUrl } from '@/lib/deepLink';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
@@ -84,6 +85,12 @@ export default function RootLayout() {
                 useCameraSheetStore.getState().open() to present it — no ref
                 drilling through the nav tree. */}
             <CameraActionSheet />
+            {/* T378: single global toast that tracks uploadQueue entries so
+                photo uploads keep flagging progress / errors after the
+                composer modal dismisses. Mounted inside
+                BottomSheetModalProvider and above RootStack so it floats over
+                every route (tabs + modals). */}
+            <UploadProgressToast />
             <StatusBar style="auto" />
           </BottomSheetModalProvider>
         </ThemeProvider>
