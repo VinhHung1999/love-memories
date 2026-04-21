@@ -122,6 +122,18 @@ const en: Resources = {
       retry: 'Try again',
       justNow: 'Just now',
     },
+    list: {
+      eyebrow: 'Our album',
+      title: 'Moments',
+      error: 'Could not load moments. Please try again.',
+      retry: 'Try again',
+      morePhotos: '+{{count}}',
+      empty: {
+        title: 'No moments yet',
+        subtitle: 'A single photo, a single line — kept exactly as it felt today.',
+        cta: 'Create the first moment',
+      },
+    },
   },
   auth: {
     welcomeTitle: 'Welcome to Memoura',

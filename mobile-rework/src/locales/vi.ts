@@ -131,7 +131,7 @@ const vi = {
       dismiss: 'Đóng',
     },
   },
-  // T379 — MomentDetail (photo gallery + lightbox + caption body).
+  // T379 / T376 — Moments list + Detail strings.
   moments: {
     detail: {
       title: 'Khoảnh khắc',
@@ -140,6 +140,18 @@ const vi = {
       notFound: 'Không tìm thấy khoảnh khắc này.',
       retry: 'Thử lại',
       justNow: 'Vừa xong',
+    },
+    list: {
+      eyebrow: 'Album chung',
+      title: 'Khoảnh khắc',
+      error: 'Không tải được danh sách. Thử lại nhé.',
+      retry: 'Thử lại',
+      morePhotos: '+{{count}}',
+      empty: {
+        title: 'Chưa có khoảnh khắc nào',
+        subtitle: 'Một tấm ảnh, một dòng chú thích — tất cả sẽ được giữ lại, đúng như hôm nay.',
+        cta: 'Tạo khoảnh khắc đầu tiên',
+      },
     },
   },
   auth: {
