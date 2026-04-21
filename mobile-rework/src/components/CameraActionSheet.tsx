@@ -13,6 +13,7 @@ import { Alert, Linking, Platform, Pressable, Text, View } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MAX_PHOTOS } from '@/screens/MomentCreate/useMomentCreateViewModel';
 import { useCameraSheetStore } from '@/stores/cameraSheetStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -20,7 +21,7 @@ import { useAppColors } from '@/theme/ThemeProvider';
 // pill in PillTabBar, or either CTA on the Dashboard / Moments empty states.
 // Offers three paths to start a moment:
 //   1. Chụp ảnh   → ImagePicker.launchCameraAsync (single shot, quality 0.8)
-//   2. Chọn thư viện → launchImageLibraryAsync (multi-select, up to 10)
+//   2. Chọn thư viện → launchImageLibraryAsync (multi-select, up to MAX_PHOTOS)
 //   3. Photobooth — DIMMED STUB until Sprint 64 lands the full flow
 //      (prototype camera-sheet.jsx shows this row active, but Boss chốt via
 //      Telegram 2026-04-21 rằng Photobooth chưa làm → giữ row dimmed +
@@ -183,7 +184,7 @@ export function CameraActionSheet() {
             icon={<ImageIcon size={22} color={c.accent} strokeWidth={1.75} />}
             tint="bg-accent-soft"
             title={t('compose.cameraSheet.pickLibrary')}
-            subtitle={t('compose.cameraSheet.pickLibrarySub')}
+            subtitle={t('compose.cameraSheet.pickLibrarySub', { max: MAX_PHOTOS })}
             onPress={onLibrary}
           />
           <Row

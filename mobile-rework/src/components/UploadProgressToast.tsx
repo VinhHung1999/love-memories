@@ -13,7 +13,8 @@ import { useUploadQueueStore } from '@/lib/uploadQueue';
 //
 // Rendering rules:
 //   - If no entries → render nothing (absolute-positioned invisible view).
-//   - If any uploading → compact pill with spinner + "Đang đăng {{n}} ảnh…".
+//   - If any uploading → spinner + "Đang tải lên {{current}}/{{total}} ảnh"
+//     (T391: serial progress, current = successCount + 1 clamped to total).
 //   - If all settled + some errors → warning pill + retry-all + dismiss-all.
 //   - All-success states auto-dismiss via the queue's AUTO_DISMISS_MS timer
 //     (3s), so the "success" branch flashes briefly then the toast unmounts.
@@ -29,7 +30,7 @@ export function UploadProgressToast() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
-  const { uploadingCount, errorIds, successCount, total } = useMemo(() => {
+  const { uploadingCount, errorIds, successCount, total, displayCurrent } = useMemo(() => {
     const entries = Object.values(uploads);
     let uploading = 0;
     let success = 0;
@@ -39,11 +40,16 @@ export function UploadProgressToast() {
       else if (e.status === 'error') errors.push(e.id);
       else if (e.status === 'success') success += 1;
     }
+    // Serial progress index (T391): the "next in line" photo is successCount+1.
+    // Clamp to total for the brief window after the last success lands but
+    // before AUTO_DISMISS_MS unmounts the toast.
+    const current = Math.min(success + 1, entries.length);
     return {
       uploadingCount: uploading,
       errorIds: errors,
       successCount: success,
       total: entries.length,
+      displayCurrent: current,
     };
   }, [uploads]);
 
@@ -94,9 +100,9 @@ export function UploadProgressToast() {
           className="font-bodyMedium text-white text-[13px] leading-[18px] flex-shrink"
         >
           {stillUploading
-            ? t('compose.uploadToast.uploading', { count: uploadingCount })
+            ? t('compose.uploadToast.uploading', { current: displayCurrent, total })
             : hasErrors
-              ? t('compose.uploadToast.failed', { count: errorIds.length })
+              ? t('compose.uploadToast.failed', { failed: errorIds.length, total })
               : t('compose.uploadToast.done', { count: successCount })}
         </Text>
         {!stillUploading && hasErrors ? (

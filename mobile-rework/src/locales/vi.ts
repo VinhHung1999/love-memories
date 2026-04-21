@@ -105,7 +105,7 @@ const vi = {
       takePhoto: 'Chụp ảnh',
       takePhotoSub: 'Bật camera, chụp ngay một tấm',
       pickLibrary: 'Chọn từ thư viện',
-      pickLibrarySub: 'Thêm tối đa 10 ảnh đã có',
+      pickLibrarySub: 'Thêm tối đa {{max}} ảnh đã có',
       photobooth: 'Photo Booth',
       photoboothSub: 'Sắp ra mắt 💝',
       permission: {
@@ -146,11 +146,13 @@ const vi = {
       tagTooLong: 'Nhãn phải dưới {{max}} ký tự.',
       tagDuplicate: 'Nhãn này đã có rồi.',
     },
-    // T378 — global upload toast copy. Count is passed as {{count}}.
+    // T378 — global upload toast. T391 (Sprint 62): serial upload gate means
+    // progress is X/Y, not count-only. `uploading` expects {{current}} + {{total}};
+    // `failed` expects {{failed}} + {{total}}; `done` keeps {{count}}=successCount.
     uploadToast: {
-      uploading: 'Đang đăng {{count}} ảnh…',
-      done: 'Đã lưu {{count}} ảnh',
-      failed: '{{count}} ảnh lỗi',
+      uploading: 'Đang tải lên {{current}}/{{total}} ảnh',
+      done: 'Đã tải {{count}} ảnh',
+      failed: 'Không tải được {{failed}}/{{total}} ảnh',
       retry: 'Thử lại',
       dismiss: 'Đóng',
     },

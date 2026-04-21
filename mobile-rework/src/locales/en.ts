@@ -90,7 +90,7 @@ const en: Resources = {
       takePhoto: 'Take a photo',
       takePhotoSub: 'Open the camera, snap one now',
       pickLibrary: 'Pick from library',
-      pickLibrarySub: 'Add up to 10 existing photos',
+      pickLibrarySub: 'Add up to {{max}} existing photos',
       photobooth: 'Photo Booth',
       photoboothSub: 'Coming soon 💝',
       permission: {
@@ -129,9 +129,9 @@ const en: Resources = {
       tagDuplicate: 'That tag is already added.',
     },
     uploadToast: {
-      uploading: 'Uploading {{count}} photo(s)…',
-      done: 'Saved {{count}} photo(s)',
-      failed: '{{count}} photo(s) failed',
+      uploading: 'Uploading {{current}}/{{total}} photos',
+      done: 'Uploaded {{count}} photos',
+      failed: 'Failed {{failed}}/{{total}} photos',
       retry: 'Retry',
       dismiss: 'Dismiss',
     },

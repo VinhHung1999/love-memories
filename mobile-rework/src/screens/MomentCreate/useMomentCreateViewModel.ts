@@ -16,7 +16,10 @@ import { useMomentsStore } from '@/stores/momentsStore';
 // keep running in the background via uploadQueue — the global
 // UploadProgressToast renders progress across whatever screen the user is on.
 
-const MAX_PHOTOS = 10;
+// Sprint 62 T391 — Boss chốt cap 5 ảnh/moment. Bump const này → copy Vi/En tự
+// nhảy qua {{max}} interpolation. Exported để các caller ngoài module này
+// (CameraActionSheet caption) share cùng 1 nguồn.
+export const MAX_PHOTOS = 5;
 const DESCRIPTION_MAX = 2000;
 const TITLE_MAX = 200;
 const TAG_MAX = 40;
