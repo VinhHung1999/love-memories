@@ -1,4 +1,4 @@
-import { ImagePlus } from 'lucide-react-native';
+import { Images, ImagePlus } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
@@ -39,7 +39,7 @@ export function LatestMomentCard({
         onPress={() => onPress(moment.id)}
         accessibilityRole="button"
         accessibilityLabel={moment.title}
-        className="rounded-2xl overflow-hidden bg-surface border border-line-on-surface shadow-card active:opacity-90"
+        className="rounded-[22px] overflow-hidden bg-surface border border-line-on-surface shadow-card active:opacity-90"
       >
         {/* Cover — falls back to a soft gradient placeholder when a moment
             was just created and photos haven't finished uploading yet. */}
@@ -57,7 +57,8 @@ export function LatestMomentCard({
           )}
 
           {photoCount > 1 ? (
-            <View className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-ink/60">
+            <View className="absolute bottom-3 right-3 flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-ink/60">
+              <Images size={12} strokeWidth={2} color="#ffffff" />
               <Text className="font-bodyMedium text-white text-[11px]">
                 1 / {photoCount}
               </Text>

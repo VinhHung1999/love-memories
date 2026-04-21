@@ -1,3 +1,4 @@
+import { Images } from 'lucide-react-native';
 import { Image, Pressable, Text, View } from 'react-native';
 
 import { LinearGradient } from '@/components';
@@ -39,9 +40,10 @@ export function MiniMomentCard({ moment, onPress }: Props) {
         )}
         {photoCount > 1 ? (
           <View
-            className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md"
+            className="absolute top-2 right-2 flex-row items-center gap-0.5 px-1.5 py-0.5 rounded-md"
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
           >
+            <Images size={11} strokeWidth={2} color="#ffffff" />
             <Text className="font-bodyBold text-white text-[10px]">
               {photoCount}
             </Text>

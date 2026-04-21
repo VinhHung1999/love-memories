@@ -1,3 +1,4 @@
+import { Images } from 'lucide-react-native';
 import { Image, Pressable, Text, View } from 'react-native';
 
 import { LinearGradient } from '@/components';
@@ -40,9 +41,10 @@ export function DayHeroCard({ moment, onPress }: Props) {
         )}
         {photoCount > 1 ? (
           <View
-            className="absolute bottom-3 right-3 px-2 py-1 rounded-lg"
+            className="absolute bottom-3 right-3 flex-row items-center gap-1 px-2 py-1 rounded-lg"
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
           >
+            <Images size={12} strokeWidth={2} color="#ffffff" />
             <Text className="font-bodyBold text-white text-[11px]">
               1/{photoCount}
             </Text>
