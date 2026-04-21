@@ -67,6 +67,17 @@ const en: Resources = {
       shareMessage: "I'm waiting for you on Memoura. Code: {{code}}\n{{url}}",
       error: "Couldn't load the code. Tap to retry.",
     },
+    empty: {
+      title: 'Your very first page',
+      subtitle: "Snap a photo, write a line — someday you'll flip back and smile.",
+      ctaPrimary: 'Add a moment',
+      ctaSecondary: 'Open camera',
+      polaroidCaption: 'moment #1',
+    },
+    latest: {
+      eyebrow: 'Latest moment',
+      viewAll: 'See all',
+    },
   },
   compose: {
     title: 'Create',

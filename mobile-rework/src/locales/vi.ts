@@ -79,6 +79,18 @@ const vi = {
       shareMessage: 'Mình đang đợi người ấy trên Memoura nè. Mã: {{code}}\n{{url}}',
       error: 'Không tải được mã. Chạm để thử lại.',
     },
+    // T375 — Dashboard empty state (polaroid hero) + latest moment card
+    empty: {
+      title: 'Trang đầu của hai đứa',
+      subtitle: 'Chụp một tấm, viết một câu — rồi một ngày nào đó hai đứa sẽ lật lại và cười.',
+      ctaPrimary: 'Thêm khoảnh khắc',
+      ctaSecondary: 'Mở camera',
+      polaroidCaption: 'khoảnh khắc #1',
+    },
+    latest: {
+      eyebrow: 'Khoảnh khắc mới nhất',
+      viewAll: 'Xem tất cả',
+    },
   },
   compose: {
     title: 'Tạo mới',
