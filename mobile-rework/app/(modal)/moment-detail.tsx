@@ -1,12 +1,12 @@
-import { Text, View } from 'react-native';
-import { SafeScreen } from '@/components';
+import { useLocalSearchParams } from 'expo-router';
 
-export default function MomentDetail() {
-  return (
-    <SafeScreen>
-      <View className="flex-1 items-center justify-center">
-        <Text className="font-bodyMedium text-ink">MomentDetail — placeholder</Text>
-      </View>
-    </SafeScreen>
-  );
+import { MomentDetailScreen } from '@/screens/MomentDetail/MomentDetailScreen';
+
+// T379 (Sprint 62) — Expo Router modal for viewing one moment. `id` is passed
+// as a search param from Dashboard (T375) and Moments list (T376). Route is a
+// thin wrapper so the MVVM screen can be tested/previewed in isolation.
+
+export default function MomentDetailRoute() {
+  const params = useLocalSearchParams<{ id?: string }>();
+  return <MomentDetailScreen id={params.id} />;
 }

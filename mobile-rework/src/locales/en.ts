@@ -113,6 +113,16 @@ const en: Resources = {
       dismiss: 'Dismiss',
     },
   },
+  moments: {
+    detail: {
+      title: 'Moment',
+      back: 'Back',
+      error: 'Could not load this moment. Please try again.',
+      notFound: 'This moment could not be found.',
+      retry: 'Try again',
+      justNow: 'Just now',
+    },
+  },
   auth: {
     welcomeTitle: 'Welcome to Memoura',
     welcomeSub: 'A quiet home for the small things you two keep.',

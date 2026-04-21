@@ -131,6 +131,17 @@ const vi = {
       dismiss: 'Đóng',
     },
   },
+  // T379 — MomentDetail (photo gallery + lightbox + caption body).
+  moments: {
+    detail: {
+      title: 'Khoảnh khắc',
+      back: 'Quay lại',
+      error: 'Không tải được khoảnh khắc. Thử lại nhé.',
+      notFound: 'Không tìm thấy khoảnh khắc này.',
+      retry: 'Thử lại',
+      justNow: 'Vừa xong',
+    },
+  },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',
     welcomeSub: 'Nơi giữ lại những điều bé nhỏ của hai đứa.',
