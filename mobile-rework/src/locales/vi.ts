@@ -206,6 +206,20 @@ const vi = {
       reactions: {
         signInHint: 'Đăng nhập để gửi cảm xúc',
       },
+      comments: {
+        title: 'Bình luận',
+        empty: 'Chưa có bình luận nào. Viết gì đó cho nhau nhé.',
+        placeholder: 'Viết gì đó…',
+        sendLabel: 'Gửi',
+        postError: 'Không gửi được. Thử lại sau nhé.',
+        deleteAlert: {
+          title: 'Xóa bình luận này?',
+          body: 'Bình luận sẽ mất, không khôi phục được.',
+          cancel: 'Huỷ',
+          confirm: 'Xóa',
+        },
+        deleteError: 'Không xóa được. Thử lại sau nhé.',
+      },
     },
     list: {
       eyebrow: 'Album chung',

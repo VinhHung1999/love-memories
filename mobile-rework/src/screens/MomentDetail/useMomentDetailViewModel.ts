@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  addComment as apiAddComment,
+  deleteComment as apiDeleteComment,
   deleteMoment as apiDeleteMoment,
+  listComments as apiListComments,
   toggleReaction as apiToggleReaction,
+  type MomentCommentRow,
   type MomentReactionRow,
   getMoment,
 } from '@/api/moments';
@@ -56,6 +61,12 @@ export type ReactionAggregate = {
   reactedByMe: boolean;
 };
 
+// T401 — polling cadence for the comments thread while MomentDetail is
+// focused. Every 10s refetches `/api/moments/:id/comments`. Interval is
+// cleared on blur (useFocusEffect cleanup) and on unmount so the timer
+// doesn't fire past navigation.
+const COMMENTS_POLL_MS = 10_000;
+
 type ErrorReason = 'network' | 'notFound' | 'unknown';
 
 type State = {
@@ -71,6 +82,7 @@ export type RemoveResult =
 export function useMomentDetailViewModel(id: string | undefined) {
   const version = useMomentsStore((s) => s.version);
   const invalidate = useMomentsStore((s) => s.invalidate);
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
   const currentUserName = useAuthStore((s) => s.user?.name ?? null);
   const [state, setState] = useState<State>({
     moment: null,
@@ -78,6 +90,9 @@ export function useMomentDetailViewModel(id: string | undefined) {
     error: null,
   });
   const [removing, setRemoving] = useState(false);
+  const [comments, setComments] = useState<MomentCommentRow[]>([]);
+  const [commentsLoaded, setCommentsLoaded] = useState(false);
+  const [posting, setPosting] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) {
@@ -188,6 +203,103 @@ export function useMomentDetailViewModel(id: string | undefined) {
     void load();
   }, [load, version]);
 
+  // T401 — comments fetch + polling every 10s while focused. The
+  // useFocusEffect cleanup clears the interval on blur (navigating to
+  // another screen) and on unmount, so no timer fires past navigation.
+  // The alivedRef guard also stops a late-response setState if the
+  // fetch overlaps unmount.
+  const alivedRef = useRef(true);
+  useEffect(() => {
+    alivedRef.current = true;
+    return () => {
+      alivedRef.current = false;
+    };
+  }, []);
+
+  const loadComments = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      if (!id) return;
+      try {
+        const rows = await apiListComments(id);
+        if (!alivedRef.current) return;
+        setComments(rows);
+        setCommentsLoaded(true);
+      } catch {
+        if (!opts?.silent && alivedRef.current) {
+          setCommentsLoaded(true);
+        }
+      }
+    },
+    [id],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return undefined;
+      void loadComments();
+      const timer = setInterval(() => {
+        void loadComments({ silent: true });
+      }, COMMENTS_POLL_MS);
+      return () => {
+        clearInterval(timer);
+      };
+    }, [id, loadComments]),
+  );
+
+  const postComment = useCallback(
+    async (content: string): Promise<boolean> => {
+      const trimmed = content.trim();
+      if (!id || !trimmed || !currentUserName || posting) return false;
+      const tmpId = `tmp-${Date.now()}`;
+      const optimistic: MomentCommentRow = {
+        id: tmpId,
+        momentId: id,
+        userId: currentUserId,
+        author: currentUserName,
+        content: trimmed,
+        createdAt: new Date().toISOString(),
+        user: currentUserName
+          ? { name: currentUserName, avatar: null }
+          : null,
+      };
+      setComments((prev) => [...prev, optimistic]);
+      setPosting(true);
+      try {
+        const row = await apiAddComment(id, currentUserName, trimmed);
+        if (!alivedRef.current) return true;
+        setComments((prev) =>
+          prev.map((c) => (c.id === tmpId ? row : c)),
+        );
+        return true;
+      } catch {
+        if (alivedRef.current) {
+          setComments((prev) => prev.filter((c) => c.id !== tmpId));
+        }
+        return false;
+      } finally {
+        if (alivedRef.current) setPosting(false);
+      }
+    },
+    [id, currentUserId, currentUserName, posting],
+  );
+
+  const removeComment = useCallback(
+    async (commentId: string): Promise<boolean> => {
+      if (!id) return false;
+      // Optimistic remove — snapshot for rollback on failure.
+      const snapshot = comments;
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      try {
+        await apiDeleteComment(id, commentId);
+        return true;
+      } catch {
+        if (alivedRef.current) setComments(snapshot);
+        return false;
+      }
+    },
+    [id, comments],
+  );
+
   return {
     ...state,
     reload: load,
@@ -195,5 +307,11 @@ export function useMomentDetailViewModel(id: string | undefined) {
     removing,
     react,
     reactions: reactionAggregates,
+    comments,
+    commentsLoaded,
+    postComment,
+    removeComment,
+    posting,
+    currentUserId,
   };
 }

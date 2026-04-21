@@ -184,6 +184,20 @@ const en: Resources = {
       reactions: {
         signInHint: 'Sign in to react',
       },
+      comments: {
+        title: 'Comments',
+        empty: 'No comments yet. Say something to each other.',
+        placeholder: 'Write something…',
+        sendLabel: 'Send',
+        postError: "Couldn't post comment. Please try again.",
+        deleteAlert: {
+          title: 'Delete this comment?',
+          body: 'This comment will be removed permanently.',
+          cancel: 'Cancel',
+          confirm: 'Delete',
+        },
+        deleteError: "Couldn't delete. Please try again.",
+      },
     },
     list: {
       eyebrow: 'Our album',

@@ -4,11 +4,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Platform, Pressable, ScrollView, Text, ToastAndroid, View } from 'react-native';
 
+import type { MomentCommentRow } from '@/api/moments';
 import { TabBarSpacer } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
+import { CommentsSection } from './components/CommentsSection';
 import { HeroGallery } from './components/HeroGallery';
 import { ReactionsBar } from './components/ReactionsBar';
+import { ReplyBar } from './components/ReplyBar';
 import { PhotoLightbox } from './PhotoLightbox';
 import {
   type MomentDetail,
@@ -154,10 +157,16 @@ export function MomentDetailScreen({ id }: Props) {
           locale={i18n.language}
           reactions={vm.reactions}
           onReact={vm.react}
+          comments={vm.comments}
+          commentsLoaded={vm.commentsLoaded}
+          currentUserId={vm.currentUserId}
+          onDeleteComment={vm.removeComment}
           t={t}
         />
         <TabBarSpacer />
       </ScrollView>
+
+      <ReplyBar onSend={vm.postComment} posting={vm.posting} />
 
       <PhotoLightbox
         visible={lightboxUri !== null}
@@ -173,10 +182,24 @@ type DetailBodyProps = {
   locale: string;
   reactions: readonly ReactionAggregate[];
   onReact: (emoji: string) => void;
+  comments: MomentCommentRow[];
+  commentsLoaded: boolean;
+  currentUserId: string | null;
+  onDeleteComment: (commentId: string) => Promise<boolean>;
   t: (k: string, opts?: Record<string, unknown>) => string;
 };
 
-function DetailBody({ moment, locale, reactions, onReact, t }: DetailBodyProps) {
+function DetailBody({
+  moment,
+  locale,
+  reactions,
+  onReact,
+  comments,
+  commentsLoaded,
+  currentUserId,
+  onDeleteComment,
+  t,
+}: DetailBodyProps) {
   const dateLabel = useMemo(
     () => formatFullDate(new Date(moment.date), locale),
     [moment.date, locale],
@@ -218,6 +241,14 @@ function DetailBody({ moment, locale, reactions, onReact, t }: DetailBodyProps) 
       <View className="mt-6">
         <ReactionsBar reactions={reactions} onReact={onReact} />
       </View>
+
+      <CommentsSection
+        comments={comments}
+        loaded={commentsLoaded}
+        locale={locale}
+        currentUserId={currentUserId}
+        onDelete={onDeleteComment}
+      />
     </View>
   );
 }

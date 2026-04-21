@@ -169,13 +169,23 @@ export async function addComment(
   return comment;
 }
 
-export async function deleteComment(commentId: string, coupleId: string) {
+export async function deleteComment(
+  commentId: string,
+  userId: string | null,
+  coupleId: string,
+) {
   const comment = await prisma.momentComment.findUnique({
     where: { id: commentId },
     include: { moment: { select: { coupleId: true } } },
   });
   if (!comment || comment.moment.coupleId !== coupleId) {
     throw new AppError(404, 'Comment not found');
+  }
+  // T401 — owner-only delete. Legacy comments with null userId stay
+  // deletable by any couple member for backfill safety. New comments
+  // always carry userId from requireAuth, so the 403 bites partners.
+  if (comment.userId && comment.userId !== userId) {
+    throw new AppError(403, 'Not your comment');
   }
   await prisma.momentComment.delete({ where: { id: commentId } });
 }

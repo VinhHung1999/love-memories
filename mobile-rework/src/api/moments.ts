@@ -74,3 +74,40 @@ export function toggleReaction(
     { emoji, author },
   );
 }
+
+// T401 — comments. BE row shape joins user {name, avatar} so the mobile
+// avatar + display name render without extra lookup. userId is null for
+// legacy/anonymous comments (pre-Sprint 32); currently-authenticated
+// posts always carry it.
+export type MomentCommentRow = {
+  id: string;
+  momentId: string;
+  userId: string | null;
+  author: string;
+  content: string;
+  createdAt: string;
+  user: { name: string; avatar: string | null } | null;
+};
+
+export function listComments(momentId: string) {
+  return apiClient.get<MomentCommentRow[]>(
+    `/api/moments/${momentId}/comments`,
+  );
+}
+
+export function addComment(
+  momentId: string,
+  author: string,
+  content: string,
+) {
+  return apiClient.post<MomentCommentRow>(
+    `/api/moments/${momentId}/comments`,
+    { author, content },
+  );
+}
+
+export function deleteComment(momentId: string, commentId: string) {
+  return apiClient.del<{ ok: true }>(
+    `/api/moments/${momentId}/comments/${commentId}`,
+  );
+}
