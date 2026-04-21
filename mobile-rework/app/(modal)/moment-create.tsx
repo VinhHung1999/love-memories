@@ -7,9 +7,16 @@ import { MomentCreateScreen } from '@/screens/MomentCreate/MomentCreateScreen';
 // Receives `initialPhotos` as a JSON-encoded URI list from the camera sheet
 // (T377 CameraActionSheet.navigateToCreate). Parse here and hand parsed
 // strings to the screen so the MVVM layer only sees primitives.
+//
+// T397 (Sprint 63) — also accepts `editingMomentId` from MomentDetail's
+// more-dots → Edit. When present, the screen hydrates from the server and
+// PUTs on save instead of POSTing a new row.
 
 export default function MomentCreateRoute() {
-  const params = useLocalSearchParams<{ initialPhotos?: string }>();
+  const params = useLocalSearchParams<{
+    initialPhotos?: string;
+    editingMomentId?: string;
+  }>();
 
   const initialPhotos = useMemo<string[]>(() => {
     if (!params.initialPhotos) return [];
@@ -21,5 +28,10 @@ export default function MomentCreateRoute() {
     }
   }, [params.initialPhotos]);
 
-  return <MomentCreateScreen initialPhotos={initialPhotos} />;
+  return (
+    <MomentCreateScreen
+      initialPhotos={initialPhotos}
+      editingMomentId={params.editingMomentId}
+    />
+  );
 }

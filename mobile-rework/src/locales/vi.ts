@@ -126,6 +126,9 @@ const vi = {
       partnerFallback: 'nửa kia',
       save: 'Lưu',
       savePartner: 'Lưu → {{partner}} sẽ thấy',
+      editHeroTitle: 'Chỉnh sửa',
+      editSaveLabel: 'Lưu thay đổi',
+      editLoadError: 'Không tải được khoảnh khắc. Thử lại nhé.',
       close: 'Đóng',
       photosLabel: 'Ảnh',
       photosCount: '{{count}}/{{max}}',
@@ -167,6 +170,22 @@ const vi = {
       retry: 'Thử lại',
       justNow: 'Vừa xong',
       comingSoon: 'Sắp có rồi nhé',
+      more: {
+        edit: 'Chỉnh sửa',
+        delete: 'Xóa khoảnh khắc',
+        cancel: 'Huỷ',
+      },
+      deleteAlert: {
+        title: 'Xóa khoảnh khắc này?',
+        body: 'Khoảnh khắc và tất cả ảnh bên trong sẽ mất vĩnh viễn.',
+        cancel: 'Huỷ',
+        confirm: 'Xóa',
+      },
+      deleteError: {
+        title: 'Không xóa được',
+        body: 'Có lỗi xảy ra. Thử lại sau nhé.',
+      },
+      updated: 'Đã cập nhật',
     },
     list: {
       eyebrow: 'Album chung',

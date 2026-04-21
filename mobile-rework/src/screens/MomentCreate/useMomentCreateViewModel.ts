@@ -1,6 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  deleteMomentPhoto,
+  getMoment,
+  updateMoment,
+} from '@/api/moments';
 import { apiClient, ApiError } from '@/lib/apiClient';
 import { uploadQueue } from '@/lib/uploadQueue';
 import i18n from '@/locales/i18n';
@@ -15,6 +20,13 @@ import { useMomentsStore } from '@/stores/momentsStore';
 // just the moment-row creation, then the caller dismisses the modal. Uploads
 // keep running in the background via uploadQueue — the global
 // UploadProgressToast renders progress across whatever screen the user is on.
+//
+// T397 (Sprint 63) — edit mode. When `editingMomentId` is provided the VM
+// hydrates from GET /api/moments/:id on mount (title, caption, date, tags,
+// location, photos) and `onSubmit` branches to PUT for metadata + enqueues
+// ONLY net-new local URIs to uploadQueue. Existing server photos are removed
+// immediately via DELETE /api/moments/:id/photos/:photoId when the user taps
+// the photo's × — no "save-to-confirm"; tap = gone.
 
 // Sprint 62 T391 — Boss chốt cap 5 ảnh/moment. Bump const này → copy Vi/En tự
 // nhảy qua {{max}} interpolation. Exported để các caller ngoài module này
@@ -56,22 +68,92 @@ export type AddTagResult =
   | { ok: true }
   | { ok: false; reason: 'empty' | 'too_long' | 'duplicate' };
 
-export function useMomentCreateViewModel(initialPhotos: string[]) {
+export function useMomentCreateViewModel(
+  initialPhotos: string[],
+  editingMomentId?: string,
+) {
+  const editMode = !!editingMomentId;
+
   const [photos, setPhotos] = useState<string[]>(() =>
-    initialPhotos.slice(0, MAX_PHOTOS),
+    editMode ? [] : initialPhotos.slice(0, MAX_PHOTOS),
   );
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [takenAt, setTakenAt] = useState<Date>(() => new Date());
+  // Parallel map of server-side photo URI → photo row ID. Entries are only
+  // present for photos loaded from GET; net-new local URIs added via
+  // addMorePhotos aren't in here. onSubmit uses this to decide which URIs go
+  // through the uploadQueue vs which ones are already on the server.
+  const [serverPhotoIds, setServerPhotoIds] = useState<Record<string, string>>({});
+  // Preserved across edit — the PUT payload round-trips it unchanged. T399
+  // will add a picker; until then edit mode preserves whatever the moment
+  // already had.
+  const [location, setLocation] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [initializing, setInitializing] = useState(editMode);
+  const [loadError, setLoadError] = useState(false);
+
+  // Hydrate from server on mount when in edit mode. Cancel-guarded so an
+  // unmount mid-fetch doesn't stomp state.
+  useEffect(() => {
+    if (!editingMomentId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const row = await getMoment(editingMomentId);
+        if (cancelled) return;
+        setTitle(row.title);
+        setDescription(row.caption ?? '');
+        setTags(row.tags ?? []);
+        setTakenAt(new Date(row.date));
+        setLocation(row.location);
+        const uris = row.photos.map((p) => p.url);
+        const idMap: Record<string, string> = {};
+        row.photos.forEach((p) => {
+          idMap[p.url] = p.id;
+        });
+        setPhotos(uris);
+        setServerPhotoIds(idMap);
+        setInitializing(false);
+      } catch {
+        if (cancelled) return;
+        setLoadError(true);
+        setInitializing(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editingMomentId]);
 
   const canSubmit =
-    title.trim().length >= 1 && photos.length > 0 && !submitting;
+    title.trim().length >= 1 &&
+    photos.length > 0 &&
+    !submitting &&
+    !initializing;
 
-  const removePhoto = useCallback((uri: string) => {
-    setPhotos((prev) => prev.filter((p) => p !== uri));
-  }, []);
+  const removePhoto = useCallback(
+    (uri: string) => {
+      setPhotos((prev) => prev.filter((p) => p !== uri));
+      const serverId = serverPhotoIds[uri];
+      if (serverId && editingMomentId) {
+        // Fire-and-forget — server-side row is a thin join table; if the
+        // DELETE fails the CDN asset lingers but the moment row is fine.
+        // Don't surface an alert mid-edit; user's next PUT will land
+        // regardless. Log to console for future telemetry.
+        deleteMomentPhoto(editingMomentId, serverId).catch(() => {
+          console.warn('[moment edit] deleteMomentPhoto failed', serverId);
+        });
+        setServerPhotoIds((prev) => {
+          const next = { ...prev };
+          delete next[uri];
+          return next;
+        });
+      }
+    },
+    [editingMomentId, serverPhotoIds],
+  );
 
   const addTag = useCallback((raw: string): AddTagResult => {
     const trimmed = raw.trim();
@@ -117,9 +199,10 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
     });
   }, [photos.length]);
 
-  // T378 — submit flow. Returns the moment id on success so the caller can
-  // dismiss + optionally navigate to the detail screen. Photo uploads are
-  // handed to uploadQueue and fire after we return.
+  // T378/T397 — submit flow. Create mode POSTs a new row then enqueues all
+  // photos. Edit mode PUTs metadata then enqueues only the net-new local
+  // URIs (server photos are already up there). Photo uploads are handed to
+  // uploadQueue and fire after we return.
   const onSubmit = useCallback(async (): Promise<SubmitResult> => {
     if (!canSubmit) return { ok: false, reason: 'validation' };
     setSubmitting(true);
@@ -130,6 +213,47 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
         trimmedTitle.length > 0
           ? trimmedTitle.slice(0, TITLE_MAX)
           : deriveTitle(description, takenAt);
+
+      const invalidate = useMomentsStore.getState().invalidate;
+
+      if (editingMomentId) {
+        await updateMoment(editingMomentId, {
+          title: finalTitle,
+          caption: trimmedDesc.length > 0 ? trimmedDesc : null,
+          date: takenAt.toISOString(),
+          tags,
+        });
+        invalidate();
+
+        const newLocal = photos.filter((uri) => !serverPhotoIds[uri]);
+        const total = newLocal.length;
+        let remaining = total;
+
+        newLocal.forEach((uri, index) => {
+          const filename =
+            uri.split('/').pop() || `moment-${Date.now()}-${index}.jpg`;
+          const ext = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
+          const type = ext === 'png' ? 'image/png' : 'image/jpeg';
+          const id = `moment-edit-${editingMomentId}-${index}-${Date.now()}`;
+          uploadQueue.enqueue({
+            id,
+            label: filename,
+            uploadFn: () =>
+              apiClient.upload(
+                `/api/moments/${editingMomentId}/photos`,
+                'photos',
+                { uri, name: filename, type },
+              ),
+            onSuccess: () => {
+              remaining -= 1;
+              if (remaining === 0) invalidate();
+            },
+          });
+        });
+
+        return { ok: true, momentId: editingMomentId };
+      }
+
       const moment = await apiClient.post<MomentRow>('/api/moments', {
         title: finalTitle,
         caption: trimmedDesc.length > 0 ? trimmedDesc : undefined,
@@ -138,7 +262,6 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
       });
 
       const momentId = moment.id;
-      const invalidate = useMomentsStore.getState().invalidate;
       // Bump immediately — the moment row exists even if photos trickle in
       // later. Dashboard + Moments list pull a cover once the first photo
       // lands via a second refetch from the toast's on-success hook below.
@@ -179,7 +302,16 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, title, description, takenAt, photos, tags]);
+  }, [
+    canSubmit,
+    title,
+    description,
+    takenAt,
+    photos,
+    tags,
+    editingMomentId,
+    serverPhotoIds,
+  ]);
 
   const limits = useMemo(
     () => ({
@@ -202,8 +334,13 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
     removeTag,
     takenAt,
     setTakenAt,
+    location,
+    setLocation,
     submitting,
     canSubmit,
+    initializing,
+    loadError,
+    editMode,
     limits,
     removePhoto,
     addMorePhotos,

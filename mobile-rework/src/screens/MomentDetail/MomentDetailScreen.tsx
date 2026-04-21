@@ -1,9 +1,11 @@
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, ToastAndroid, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Text, ToastAndroid, View } from 'react-native';
 
 import { TabBarSpacer } from '@/components';
+import { useAppColors } from '@/theme/ThemeProvider';
 
 import { HeroGallery } from './components/HeroGallery';
 import { PhotoLightbox } from './PhotoLightbox';
@@ -17,8 +19,12 @@ import { type MomentDetail, useMomentDetailViewModel } from './useMomentDetailVi
 //
 // MVVM: all data comes from useMomentDetailViewModel — the screen keeps
 // only ephemeral UI state (active photo index, lightbox URI).
-// Edit/Delete wiring lands in T397/T398 via an ActionSheet from the
-// more-dots GlassButton. Share is currently a stub toast.
+//
+// T397/T398 (Sprint 63) — more-dots GlassButton fires a native ActionSheet
+// (iOS UIAlertController / Android BottomSheetDialog via
+// @expo/react-native-action-sheet). Edit option → push the create modal
+// preloaded via `editingMomentId` param. Delete option → native confirm
+// Alert → DELETE /api/moments/:id → pop back.
 
 type Props = {
   id: string | undefined;
@@ -27,6 +33,8 @@ type Props = {
 export function MomentDetailScreen({ id }: Props) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const c = useAppColors();
+  const { showActionSheetWithOptions } = useActionSheet();
 
   const vm = useMomentDetailViewModel(id);
 
@@ -39,11 +47,66 @@ export function MomentDetailScreen({ id }: Props) {
 
   const showComingSoon = useCallback(() => {
     const msg = t('moments.detail.comingSoon');
-    if (ToastAndroid && typeof ToastAndroid.show === 'function') {
+    if (Platform.OS === 'android' && ToastAndroid?.show) {
       ToastAndroid.show(msg, ToastAndroid.SHORT);
     }
-    // iOS toast surfaces via T397/T398 proper modals; no noisy alert in stub.
+    // iOS stub — Share wiring lands in a later sprint; no noisy alert.
   }, [t]);
+
+  const navigateToEdit = useCallback(() => {
+    if (!vm.moment) return;
+    router.push({
+      pathname: '/moment-create',
+      params: { editingMomentId: vm.moment.id },
+    });
+  }, [router, vm.moment]);
+
+  const confirmDelete = useCallback(() => {
+    if (!vm.moment) return;
+    Alert.alert(
+      t('moments.detail.deleteAlert.title'),
+      t('moments.detail.deleteAlert.body'),
+      [
+        { text: t('moments.detail.deleteAlert.cancel'), style: 'cancel' },
+        {
+          text: t('moments.detail.deleteAlert.confirm'),
+          style: 'destructive',
+          onPress: async () => {
+            const result = await vm.remove();
+            if (result.ok) {
+              router.back();
+            } else {
+              Alert.alert(
+                t('moments.detail.deleteError.title'),
+                t('moments.detail.deleteError.body'),
+              );
+            }
+          },
+        },
+      ],
+    );
+  }, [router, t, vm]);
+
+  const onMore = useCallback(() => {
+    if (!vm.moment) return;
+    const editLabel = t('moments.detail.more.edit');
+    const deleteLabel = t('moments.detail.more.delete');
+    const cancelLabel = t('moments.detail.more.cancel');
+    const options = [editLabel, deleteLabel, cancelLabel];
+    showActionSheetWithOptions(
+      {
+        options,
+        destructiveButtonIndex: 1,
+        cancelButtonIndex: 2,
+        userInterfaceStyle: 'light',
+        tintColor: c.ink,
+      },
+      (selectedIndex) => {
+        if (selectedIndex === 0) navigateToEdit();
+        else if (selectedIndex === 1) confirmDelete();
+      },
+    );
+  }, [c.ink, confirmDelete, navigateToEdit, showActionSheetWithOptions, t, vm.moment]);
 
   if (vm.loading) {
     return <DetailSkeleton />;
@@ -78,7 +141,7 @@ export function MomentDetailScreen({ id }: Props) {
           onIndexChange={setActiveIndex}
           onBack={onBack}
           onShare={showComingSoon}
-          onMore={showComingSoon}
+          onMore={onMore}
           onPhotoPress={openLightbox}
         />
         <DetailBody moment={vm.moment} locale={i18n.language} t={t} />

@@ -42,13 +42,14 @@ import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
 type Props = {
   initialPhotos: string[];
+  editingMomentId?: string;
 };
 
-export function MomentCreateScreen({ initialPhotos }: Props) {
+export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const c = useAppColors();
-  const vm = useMomentCreateViewModel(initialPhotos);
+  const vm = useMomentCreateViewModel(initialPhotos, editingMomentId);
 
   const [pickingDate, setPickingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState<Date>(vm.takenAt);
@@ -71,9 +72,12 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     date: dateLabel,
     partner: partnerName,
   });
-  const saveLabel = t('compose.momentCreate.savePartner', {
-    partner: partnerName,
-  });
+  const heroTitle = vm.editMode
+    ? t('compose.momentCreate.editHeroTitle')
+    : t('compose.momentCreate.heroTitle');
+  const saveLabel = vm.editMode
+    ? t('compose.momentCreate.editSaveLabel')
+    : t('compose.momentCreate.savePartner', { partner: partnerName });
 
   const onClose = () => router.back();
 
@@ -85,6 +89,28 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     }
     Alert.alert(t('compose.momentCreate.submitError'));
   };
+
+  // T397 — edit mode hydration failure (404 / network). Show the chrome +
+  // inline message so the user can bail back to MomentDetail; rather than
+  // a blank white screen.
+  if (vm.loadError) {
+    return (
+      <View className="flex-1 bg-bg items-center justify-center px-8">
+        <Text className="font-body text-ink text-[15px] text-center">
+          {t('compose.momentCreate.editLoadError')}
+        </Text>
+        <Pressable
+          onPress={onClose}
+          accessibilityRole="button"
+          className="mt-5 px-5 h-10 rounded-full bg-surface border border-line-on-surface items-center justify-center active:opacity-80"
+        >
+          <Text className="font-bodySemibold text-ink text-[14px]">
+            {t('compose.momentCreate.close')}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   const openDatePicker = () => {
     setDateDraft(vm.takenAt);
@@ -167,7 +193,7 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
                 className="font-displayMedium text-ink text-[20px] leading-[24px]"
                 numberOfLines={1}
               >
-                {t('compose.momentCreate.heroTitle')}
+                {heroTitle}
               </Text>
             </View>
 

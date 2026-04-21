@@ -108,6 +108,9 @@ const en: Resources = {
       partnerFallback: 'your love',
       save: 'Save',
       savePartner: 'Save → {{partner}} will see',
+      editHeroTitle: 'Edit',
+      editSaveLabel: 'Save changes',
+      editLoadError: 'Could not load this moment. Try again.',
       close: 'Close',
       photosLabel: 'Photos',
       photosCount: '{{count}}/{{max}}',
@@ -145,6 +148,22 @@ const en: Resources = {
       retry: 'Try again',
       justNow: 'Just now',
       comingSoon: 'Coming soon',
+      more: {
+        edit: 'Edit',
+        delete: 'Delete moment',
+        cancel: 'Cancel',
+      },
+      deleteAlert: {
+        title: 'Delete this moment?',
+        body: 'The moment and all of its photos will be permanently removed.',
+        cancel: 'Cancel',
+        confirm: 'Delete',
+      },
+      deleteError: {
+        title: 'Could not delete',
+        body: 'Something went wrong. Please try again later.',
+      },
+      updated: 'Moment updated',
     },
     list: {
       eyebrow: 'Our album',
