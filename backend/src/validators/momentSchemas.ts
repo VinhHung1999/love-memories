@@ -8,7 +8,7 @@ export const createMomentSchema = z.object({
   date: z.string().transform((s) => new Date(s)),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
-  location: z.string().optional(),
+  location: z.string().max(120).nullable().optional(),
   tags: z.array(z.string()).optional().default([]),
   spotifyUrl: z.string().url().startsWith('https://open.spotify.com/').optional().or(z.literal('')),
 });

@@ -598,6 +598,7 @@ describe('Moments CRUD', () => {
       });
     expect(res.status).toBe(201);
     expect(res.body.title).toBe('Test Moment');
+    expect(res.body.location).toBe('Test Location');
     momentId = res.body.id;
   });
 
@@ -612,15 +613,38 @@ describe('Moments CRUD', () => {
     const res = await request(app).get(`/api/moments/${momentId}`).set(auth());
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(momentId);
+    expect(res.body.location).toBe('Test Location');
   });
 
-  it('PUT /api/moments/:id updates a moment', async () => {
+  it('PUT /api/moments/:id updates title and location', async () => {
     const res = await request(app)
       .put(`/api/moments/${momentId}`)
       .set(auth())
-      .send({ title: 'Updated Moment' });
+      .send({ title: 'Updated Moment', location: 'Đà Lạt' });
     expect(res.status).toBe(200);
     expect(res.body.title).toBe('Updated Moment');
+    expect(res.body.location).toBe('Đà Lạt');
+  });
+
+  it('PUT /api/moments/:id clears location via null', async () => {
+    const res = await request(app)
+      .put(`/api/moments/${momentId}`)
+      .set(auth())
+      .send({ location: null });
+    expect(res.status).toBe(200);
+    expect(res.body.location).toBeNull();
+  });
+
+  it('POST /api/moments rejects location > 120 chars', async () => {
+    const res = await request(app)
+      .post('/api/moments')
+      .set(auth())
+      .send({
+        title: 'Too long loc',
+        date: '2024-06-15',
+        location: 'A'.repeat(121),
+      });
+    expect(res.status).toBe(400);
   });
 
   it('DELETE /api/moments/:id deletes a moment', async () => {
