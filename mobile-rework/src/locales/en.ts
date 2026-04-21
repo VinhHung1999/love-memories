@@ -181,6 +181,9 @@ const en: Resources = {
         body: 'Something went wrong. Please try again later.',
       },
       updated: 'Moment updated',
+      reactions: {
+        signInHint: 'Sign in to react',
+      },
     },
     list: {
       eyebrow: 'Our album',

@@ -203,6 +203,9 @@ const vi = {
         body: 'Có lỗi xảy ra. Thử lại sau nhé.',
       },
       updated: 'Đã cập nhật',
+      reactions: {
+        signInHint: 'Đăng nhập để gửi cảm xúc',
+      },
     },
     list: {
       eyebrow: 'Album chung',

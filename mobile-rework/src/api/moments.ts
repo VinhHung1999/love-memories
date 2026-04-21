@@ -13,6 +13,16 @@ export type MomentPhoto = {
   filename: string;
 };
 
+// T400 — backend row shape for a single reaction record. One row per
+// (momentId, emoji, author). Mobile aggregates these into per-emoji pills.
+export type MomentReactionRow = {
+  id: string;
+  momentId: string;
+  emoji: string;
+  author: string;
+  createdAt: string;
+};
+
 export type MomentDetailRow = {
   id: string;
   title: string;
@@ -23,6 +33,7 @@ export type MomentDetailRow = {
   photos: MomentPhoto[];
   tags: string[];
   location: string | null;
+  reactions?: MomentReactionRow[];
 };
 
 export type UpdateMomentPayload = {
@@ -48,5 +59,18 @@ export function deleteMoment(id: string) {
 export function deleteMomentPhoto(momentId: string, photoId: string) {
   return apiClient.del<{ ok: true }>(
     `/api/moments/${momentId}/photos/${photoId}`,
+  );
+}
+
+// T400 — toggle reaction. Backend returns the fresh reactions list for the
+// moment after applying the toggle (create if missing, delete if present).
+export function toggleReaction(
+  momentId: string,
+  emoji: string,
+  author: string,
+) {
+  return apiClient.post<MomentReactionRow[]>(
+    `/api/moments/${momentId}/reactions`,
+    { emoji, author },
   );
 }

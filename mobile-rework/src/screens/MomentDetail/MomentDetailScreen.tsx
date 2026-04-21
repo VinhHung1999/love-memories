@@ -8,8 +8,13 @@ import { TabBarSpacer } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { HeroGallery } from './components/HeroGallery';
+import { ReactionsBar } from './components/ReactionsBar';
 import { PhotoLightbox } from './PhotoLightbox';
-import { type MomentDetail, useMomentDetailViewModel } from './useMomentDetailViewModel';
+import {
+  type MomentDetail,
+  type ReactionAggregate,
+  useMomentDetailViewModel,
+} from './useMomentDetailViewModel';
 
 // T396 (Sprint 63) — MomentDetail FULL REDESIGN.
 // Previous layout (4:3 + small header) is replaced with a 520px immersive
@@ -144,7 +149,13 @@ export function MomentDetailScreen({ id }: Props) {
           onMore={onMore}
           onPhotoPress={openLightbox}
         />
-        <DetailBody moment={vm.moment} locale={i18n.language} t={t} />
+        <DetailBody
+          moment={vm.moment}
+          locale={i18n.language}
+          reactions={vm.reactions}
+          onReact={vm.react}
+          t={t}
+        />
         <TabBarSpacer />
       </ScrollView>
 
@@ -160,10 +171,12 @@ export function MomentDetailScreen({ id }: Props) {
 type DetailBodyProps = {
   moment: MomentDetail;
   locale: string;
+  reactions: readonly ReactionAggregate[];
+  onReact: (emoji: string) => void;
   t: (k: string, opts?: Record<string, unknown>) => string;
 };
 
-function DetailBody({ moment, locale, t }: DetailBodyProps) {
+function DetailBody({ moment, locale, reactions, onReact, t }: DetailBodyProps) {
   const dateLabel = useMemo(
     () => formatFullDate(new Date(moment.date), locale),
     [moment.date, locale],
@@ -201,6 +214,10 @@ function DetailBody({ moment, locale, t }: DetailBodyProps) {
           ))}
         </View>
       ) : null}
+
+      <View className="mt-6">
+        <ReactionsBar reactions={reactions} onReact={onReact} />
+      </View>
     </View>
   );
 }
