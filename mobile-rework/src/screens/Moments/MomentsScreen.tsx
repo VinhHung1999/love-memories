@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { Plus } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +18,6 @@ import { useAppColors } from '@/theme/ThemeProvider';
 import { CalendarCard } from './components/CalendarCard';
 import { DayHeroCard } from './components/DayHeroCard';
 import { MiniMomentCard } from './components/MiniMomentCard';
-import { MomentsEmpty } from './components/MomentsEmpty';
 import { useMomentsViewModel, type ViewMode } from './useMomentsViewModel';
 
 // T384 (Sprint 62) — Moments tab calendar view. Prototype source of truth:
@@ -34,8 +34,13 @@ import { useMomentsViewModel, type ViewMode } from './useMomentsViewModel';
 //
 // Scroll is a plain ScrollView — filter model means the content below the
 // calendar is always just one day's worth, so the FlatList virtualization
-// from the timeline is unnecessary here. If the couple has 0 moments total,
-// fall back to the Sprint 62 empty screen (MomentsEmpty + camera CTA).
+// from the timeline is unnecessary here.
+//
+// T385 item 6 (Sprint 62 polish): the calendar ALWAYS renders whenever the
+// data layer isn't in initial loading/error. If the couple has 0 moments the
+// grid is just empty dots + an in-card EmptyTotal block (polaroid hero +
+// camera CTA). Previously this whole screen forked to MomentsEmpty which
+// Boss read as "chưa hiển thị, đang là 1 khoảng trắng" on Build 42.
 //
 // Bomb-check receipts (pre-commit): className strings static, conditional
 // values via style prop + useAppColors(). Every `active:` modifier lives on
@@ -95,15 +100,6 @@ export function MomentsScreen() {
             </Text>
           </Pressable>
         </CenterFill>
-      ) : vm.total === 0 ? (
-        <CenterFill>
-          <MomentsEmpty
-            title={t('moments.list.empty.title')}
-            subtitle={t('moments.list.empty.subtitle')}
-            ctaLabel={t('moments.list.empty.cta')}
-            onCta={openCameraSheet}
-          />
-        </CenterFill>
       ) : (
         <ScrollView
           contentContainerClassName="pt-2"
@@ -136,10 +132,19 @@ export function MomentsScreen() {
 
           <View className="px-5 mt-3">
             {selectedMoments.length === 0 ? (
-              <EmptyDay
-                title={t('moments.list.selected.emptyTitle')}
-                subtitle={t('moments.list.selected.emptySubtitle')}
-              />
+              vm.total === 0 ? (
+                <EmptyTotal
+                  title={t('moments.list.empty.title')}
+                  subtitle={t('moments.list.empty.subtitle')}
+                  ctaLabel={t('moments.list.empty.cta')}
+                  onCta={openCameraSheet}
+                />
+              ) : (
+                <EmptyDay
+                  title={t('moments.list.selected.emptyTitle')}
+                  subtitle={t('moments.list.selected.emptySubtitle')}
+                />
+              )
             ) : selectedMoments.length === 1 ? (
               <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
             ) : (
@@ -303,6 +308,61 @@ function EmptyDay({ title, subtitle }: { title: string; subtitle: string }) {
       <Text className="font-body text-ink-mute text-[12px] text-center mt-1">
         {subtitle}
       </Text>
+    </View>
+  );
+}
+
+type EmptyTotalProps = {
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  onCta: () => void;
+};
+
+// T385 item 6 — in-calendar empty state for couples with 0 moments total.
+// Polaroid hero copied from MomentsEmpty so the vibe survives the layout
+// change (calendar always renders above, this card sits under SelectedDayHeader).
+function EmptyTotal({ title, subtitle, ctaLabel, onCta }: EmptyTotalProps) {
+  const c = useAppColors();
+  return (
+    <View
+      className="rounded-3xl py-8 px-5 items-center bg-surface"
+      style={{
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: c.line,
+      }}
+    >
+      <View className="w-[200px] h-[140px] items-center justify-center mb-4">
+        <View className="absolute left-0 top-3 w-[76px] h-[96px] rounded-xl bg-surface border border-line-on-surface -rotate-6 items-center justify-center">
+          <Text className="font-displayMedium text-ink-mute text-[26px]">+</Text>
+        </View>
+        <View className="absolute right-0 top-3 w-[76px] h-[96px] rounded-xl bg-surface border border-line-on-surface rotate-6 items-center justify-center">
+          <Text className="font-displayMedium text-ink-mute text-[26px]">+</Text>
+        </View>
+        <View className="absolute left-[50px] top-0 w-[100px] h-[120px] rounded-2xl bg-surface border border-line-on-surface items-center justify-center shadow-lg">
+          <Text className="text-primary text-[40px]">♡</Text>
+        </View>
+      </View>
+
+      <Text className="font-displayMedium text-ink text-[20px] leading-[26px] text-center max-w-[260px]">
+        {title}
+      </Text>
+      <Text className="font-body text-ink-mute text-[13px] leading-[20px] text-center mt-2 max-w-[260px]">
+        {subtitle}
+      </Text>
+
+      <Pressable
+        onPress={onCta}
+        accessibilityRole="button"
+        accessibilityLabel={ctaLabel}
+        className="mt-5 flex-row items-center px-6 h-11 rounded-full bg-primary shadow-lg active:bg-primary-deep"
+      >
+        <Plus size={16} strokeWidth={2.5} color="#ffffff" />
+        <Text className="font-bodySemibold text-white text-[14px] ml-2">
+          {ctaLabel}
+        </Text>
+      </Pressable>
     </View>
   );
 }

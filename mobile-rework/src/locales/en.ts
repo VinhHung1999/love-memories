@@ -70,7 +70,7 @@ const en: Resources = {
     empty: {
       title: 'Your very first page',
       subtitle: "Snap a photo, write a line — someday you'll flip back and smile.",
-      ctaPrimary: 'Add your first moment',
+      ctaPrimary: 'Add a moment',
       ctaSecondary: 'Open camera',
       polaroidCaption: 'moment #1',
     },
@@ -104,6 +104,7 @@ const en: Resources = {
       title: 'New moment',
       heroTitle: 'Keep it',
       heroSubtitle: '{{date}} · {{partner}} will see',
+      titlePlaceholder: 'A name for it…',
       partnerFallback: 'your love',
       save: 'Save',
       savePartner: 'Save → {{partner}} will see',
@@ -119,6 +120,13 @@ const en: Resources = {
       datePickerConfirm: 'Done',
       submitError: 'Could not save. Please try again.',
       autoTitleFallback: 'Moment · {{date}}',
+      tagAddLabel: 'tag',
+      tagAddPrompt: 'Add a tag',
+      tagAddConfirm: 'Add',
+      tagInputPlaceholder: 'e.g. travel',
+      tagEmpty: 'Tags cannot be empty.',
+      tagTooLong: 'Tags must be under {{max}} characters.',
+      tagDuplicate: 'That tag is already added.',
     },
     uploadToast: {
       uploading: 'Uploading {{count}} photo(s)…',
@@ -144,9 +152,9 @@ const en: Resources = {
       retry: 'Try again',
       morePhotos: '+{{count}}',
       empty: {
-        title: 'No moments yet',
-        subtitle: 'A single photo, a single line — kept exactly as it felt today.',
-        cta: 'Create the first moment',
+        title: 'No memories yet 📸',
+        subtitle: 'Tap + to add your first moment.',
+        cta: 'Add a moment',
       },
       // T384 — calendar view (month grid + filtered day content)
       view: {

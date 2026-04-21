@@ -24,20 +24,21 @@ import { useAppColors } from '@/theme/ThemeProvider';
 
 import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
-// T383 (Sprint 62) — diary-style composer per
-// docs/design/prototype/memoura-v2/add-moment.jsx. VM signature untouched
-// from T378; this is a pure View rebuild.
+// T385 (Sprint 62 polish) — Boss Build 42 QA feedback pass.
+// Layout change: close X + small "Giữ lại" heading share one row; 34px display
+// slot becomes an explicit title TextInput ("Một cái tên…"); subtitle
+// "{date} · {partner} sẽ thấy" stays on its own tappable row below the title
+// input. Tag chips are now interactive — tap existing chip to remove, tap
+// "+ tag" to open an entry modal.
 //
-// Layout: 280px primary-soft→bg hero gradient behind a close chip + 34px
-// "Giữ lại" display title + "{date} · {partner} sẽ thấy" subtitle. Subtitle
-// is tappable — opens the date picker (no separate date row, prototype
-// folds date into subtitle). Below: horizontal photo strip (140×180 tilted
-// polaroid style), transparent caption textarea, four static hashtag
-// placeholder chips (Sprint 63 will wire tags), big pill Save button.
+// The route is promoted to `presentation: 'fullScreenModal'` via an override
+// in app/(modal)/_layout.tsx so it covers the previous screen entirely and
+// slides up bottom→top on iOS.
 //
-// Partner name: authStore only carries user.name; /api/couple isn't worth a
-// synchronous fetch on open. Falls back to t('partnerFallback') — "nửa kia"
-// / "your love" — per PO Lu 2026-04-21.
+// NativeWind v4 rule: every runtime-varying color/shadow goes through the
+// `style` prop with `useAppColors()`; className stays a single static string
+// (conditional className with `active:` modifiers crashes NW v4 with a
+// misleading React-Navigation-shaped error).
 
 type Props = {
   initialPhotos: string[];
@@ -51,6 +52,9 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
 
   const [pickingDate, setPickingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState<Date>(vm.takenAt);
+
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [tagDraft, setTagDraft] = useState('');
 
   const partnerName = t('compose.momentCreate.partnerFallback');
 
@@ -98,6 +102,26 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     setPickingDate(false);
   };
 
+  const openTagModal = () => {
+    setTagDraft('');
+    setTagModalOpen(true);
+  };
+  const closeTagModal = () => setTagModalOpen(false);
+  const submitTag = () => {
+    const result = vm.addTag(tagDraft);
+    if (!result.ok) {
+      const msg =
+        result.reason === 'empty'
+          ? t('compose.momentCreate.tagEmpty')
+          : result.reason === 'too_long'
+            ? t('compose.momentCreate.tagTooLong', { max: vm.limits.tagMax })
+            : t('compose.momentCreate.tagDuplicate');
+      Alert.alert(msg);
+      return;
+    }
+    setTagModalOpen(false);
+  };
+
   return (
     <View className="flex-1 bg-bg">
       <LinearGradient
@@ -116,8 +140,9 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <SafeAreaView edges={['top']}>
-            {/* Close chip (left), no header save — Save lives at end of scroll */}
-            <View className="flex-row items-center px-4 pt-2 pb-2">
+            {/* Header row — X chip + small "Giữ lại" heading share the row.
+                34px display slot moved to the title input below. */}
+            <View className="flex-row items-center gap-3 px-4 pt-8 pb-2">
               <Pressable
                 onPress={onClose}
                 accessibilityRole="button"
@@ -127,16 +152,27 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
               >
                 <X size={18} strokeWidth={2.3} color={c.ink} />
               </Pressable>
-            </View>
-
-            {/* Hero title + tappable subtitle (opens date picker) */}
-            <View className="px-6 pt-5 pb-2">
               <Text
-                className="font-display text-ink text-[34px] leading-[40px] tracking-tight"
+                className="font-displayMedium text-ink text-[20px] leading-[24px]"
                 numberOfLines={1}
               >
                 {t('compose.momentCreate.heroTitle')}
               </Text>
+            </View>
+
+            {/* Title input — 34px display, transparent, replaces the former
+                big "Giữ lại" heading. canSubmit requires non-empty trim. */}
+            <View className="px-6 pt-3">
+              <TextInput
+                value={vm.title}
+                onChangeText={vm.setTitle}
+                placeholder={t('compose.momentCreate.titlePlaceholder')}
+                placeholderTextColor={c.inkMute}
+                maxLength={vm.limits.titleMax}
+                multiline={false}
+                returnKeyType="done"
+                className="font-display text-ink text-[34px] leading-[40px] tracking-tight p-0"
+              />
               <Pressable
                 onPress={openDatePicker}
                 accessibilityRole="button"
@@ -206,12 +242,20 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
             />
           </View>
 
-          {/* Hashtag placeholder chips — static decoration, Sprint 63 will wire */}
+          {/* Interactive tag chips — tap existing chip to remove, tap "+ tag"
+              to open the add-tag modal. Empty state = just the dashed + chip. */}
           <View className="flex-row flex-wrap gap-1.5 px-4 pt-3">
-            <PlaceholderChip icon="📍" label="Đà Lạt" />
-            <PlaceholderChip icon="#" label="dulich" />
-            <PlaceholderChip icon="#" label="capheviavn" />
-            <PlaceholderChip icon="+" label="tag" dashed />
+            {vm.tags.map((tag) => (
+              <RemovableTagChip
+                key={tag}
+                label={tag}
+                onRemove={() => vm.removeTag(tag)}
+              />
+            ))}
+            <AddTagChip
+              label={t('compose.momentCreate.tagAddLabel')}
+              onPress={openTagModal}
+            />
           </View>
 
           {/* Save button — full width pill, primary bg + primary drop shadow */}
@@ -291,33 +335,106 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
           </Pressable>
         </Modal>
       ) : null}
+
+      {/* Tag add modal — cross-platform TextInput bottom sheet */}
+      <Modal
+        visible={tagModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeTagModal}
+      >
+        <Pressable
+          onPress={closeTagModal}
+          className="flex-1 bg-black/40 justify-end"
+        >
+          <Pressable onPress={() => {}} className="bg-surface rounded-t-[24px]">
+            <SafeAreaView edges={['bottom']}>
+              <View className="flex-row items-center justify-between px-5 pt-4 pb-2 border-b border-line-on-surface">
+                <Pressable onPress={closeTagModal} hitSlop={8}>
+                  <Text className="font-bodyMedium text-ink-mute text-[15px]">
+                    {t('common.cancel')}
+                  </Text>
+                </Pressable>
+                <Text className="font-bodyBold text-ink text-[15px]">
+                  {t('compose.momentCreate.tagAddPrompt')}
+                </Text>
+                <Pressable onPress={submitTag} hitSlop={8}>
+                  <Text className="font-bodyBold text-primary-deep text-[15px]">
+                    {t('compose.momentCreate.tagAddConfirm')}
+                  </Text>
+                </Pressable>
+              </View>
+              <View className="px-5 pt-4 pb-5">
+                <TextInput
+                  value={tagDraft}
+                  onChangeText={setTagDraft}
+                  placeholder={t('compose.momentCreate.tagInputPlaceholder')}
+                  placeholderTextColor={c.inkMute}
+                  maxLength={vm.limits.tagMax}
+                  autoFocus
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={submitTag}
+                  className="font-body text-ink text-[16px] leading-[22px] px-3 py-3 rounded-xl bg-surface-alt"
+                />
+              </View>
+            </SafeAreaView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
-type ChipProps = { icon: string; label: string; dashed?: boolean };
+type RemovableChipProps = { label: string; onRemove: () => void };
 
-// Decorative only — no Pressable wrapping. Sprint 63 will wire real tags.
-// Dashed vs solid chip shape branches via `style` prop (NativeWind v4 rule:
-// no conditional className to avoid the misleading navigation-context crash).
-function PlaceholderChip({ icon, label, dashed }: ChipProps) {
+function RemovableTagChip({ label, onRemove }: RemovableChipProps) {
   const c = useAppColors();
   return (
-    <View
-      className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border"
+    <Pressable
+      onPress={onRemove}
+      accessibilityRole="button"
+      accessibilityLabel={`Remove tag ${label}`}
+      className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border active:opacity-70"
       style={{
-        backgroundColor: dashed ? 'transparent' : c.surface,
+        backgroundColor: c.surface,
         borderColor: c.lineOnSurface,
-        borderStyle: dashed ? 'dashed' : 'solid',
       }}
     >
       <Text className="font-body text-ink-mute text-[12px] leading-[16px]">
-        {icon}
+        #
       </Text>
       <Text className="font-bodySemibold text-ink text-[12px] leading-[16px]">
         {label}
       </Text>
-    </View>
+      <X size={11} strokeWidth={2.3} color={c.inkMute} />
+    </Pressable>
+  );
+}
+
+type AddChipProps = { label: string; onPress: () => void };
+
+function AddTagChip({ label, onPress }: AddChipProps) {
+  const c = useAppColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border active:opacity-70"
+      style={{
+        backgroundColor: 'transparent',
+        borderColor: c.lineOnSurface,
+        borderStyle: 'dashed',
+      }}
+    >
+      <Text className="font-body text-ink-mute text-[12px] leading-[16px]">
+        +
+      </Text>
+      <Text className="font-bodySemibold text-ink text-[12px] leading-[16px]">
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 

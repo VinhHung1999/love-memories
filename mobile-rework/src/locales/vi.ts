@@ -83,7 +83,7 @@ const vi = {
     empty: {
       title: 'Trang đầu của hai đứa',
       subtitle: 'Chụp một tấm, viết một câu — rồi một ngày nào đó hai đứa sẽ lật lại và cười.',
-      ctaPrimary: 'Thêm khoảnh khắc đầu tiên',
+      ctaPrimary: 'Thêm khoảnh khắc',
       ctaSecondary: 'Mở camera',
       polaroidCaption: 'khoảnh khắc #1',
     },
@@ -122,6 +122,7 @@ const vi = {
       title: 'Khoảnh khắc mới',
       heroTitle: 'Giữ lại',
       heroSubtitle: '{{date}} · {{partner}} sẽ thấy',
+      titlePlaceholder: 'Một cái tên…',
       partnerFallback: 'nửa kia',
       save: 'Lưu',
       savePartner: 'Lưu → {{partner}} sẽ thấy',
@@ -137,6 +138,13 @@ const vi = {
       datePickerConfirm: 'Xong',
       submitError: 'Không lưu được. Thử lại nhé.',
       autoTitleFallback: 'Khoảnh khắc {{date}}',
+      tagAddLabel: 'tag',
+      tagAddPrompt: 'Thêm nhãn',
+      tagAddConfirm: 'Thêm',
+      tagInputPlaceholder: 'Ví dụ: dulich',
+      tagEmpty: 'Nhãn không được để trống.',
+      tagTooLong: 'Nhãn phải dưới {{max}} ký tự.',
+      tagDuplicate: 'Nhãn này đã có rồi.',
     },
     // T378 — global upload toast copy. Count is passed as {{count}}.
     uploadToast: {
@@ -164,9 +172,9 @@ const vi = {
       retry: 'Thử lại',
       morePhotos: '+{{count}}',
       empty: {
-        title: 'Chưa có khoảnh khắc nào',
-        subtitle: 'Một tấm ảnh, một dòng chú thích — tất cả sẽ được giữ lại, đúng như hôm nay.',
-        cta: 'Tạo khoảnh khắc đầu tiên',
+        title: 'Chưa có kỷ niệm nào 📸',
+        subtitle: 'Nhấn + để thêm khoảnh khắc đầu tiên.',
+        cta: 'Thêm khoảnh khắc',
       },
       // T384 — calendar view (month grid + filtered day content)
       view: {

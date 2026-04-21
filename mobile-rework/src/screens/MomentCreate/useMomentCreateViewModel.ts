@@ -19,13 +19,14 @@ import { useMomentsStore } from '@/stores/momentsStore';
 const MAX_PHOTOS = 10;
 const DESCRIPTION_MAX = 2000;
 const TITLE_MAX = 200;
+const TAG_MAX = 40;
 
 type MomentRow = { id: string };
 
-// T378 fix — backend `createMomentSchema` requires title (1..200), caption
-// optional, date ISO string. Composer UI stays 1-screen (no title input per
-// Boss), so we derive title here: first non-empty line of description trimmed
-// to TITLE_MAX; empty → locale-formatted fallback using takenAt.
+// T385 (Sprint 62 polish) — Boss wants the literal prototype: explicit title
+// input 34px. VM now owns `title` state; canSubmit gates on non-empty title.
+// `deriveTitle` kept only as a defensive fallback inside POST — in normal flow
+// canSubmit blocks submit unless title is set.
 function deriveTitle(description: string, takenAt: Date): string {
   const firstLine = description.split('\n')[0]?.trim() ?? '';
   if (firstLine.length >= 1) return firstLine.slice(0, TITLE_MAX);
@@ -48,18 +49,44 @@ export type SubmitResult =
   | { ok: true; momentId: string }
   | { ok: false; reason: 'network' | 'validation' | 'unknown' };
 
+export type AddTagResult =
+  | { ok: true }
+  | { ok: false; reason: 'empty' | 'too_long' | 'duplicate' };
+
 export function useMomentCreateViewModel(initialPhotos: string[]) {
   const [photos, setPhotos] = useState<string[]>(() =>
     initialPhotos.slice(0, MAX_PHOTOS),
   );
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [takenAt, setTakenAt] = useState<Date>(() => new Date());
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = photos.length > 0 && !submitting;
+  const canSubmit =
+    title.trim().length >= 1 && photos.length > 0 && !submitting;
 
   const removePhoto = useCallback((uri: string) => {
     setPhotos((prev) => prev.filter((p) => p !== uri));
+  }, []);
+
+  const addTag = useCallback((raw: string): AddTagResult => {
+    const trimmed = raw.trim();
+    if (trimmed.length < 1) return { ok: false, reason: 'empty' };
+    if (trimmed.length > TAG_MAX) return { ok: false, reason: 'too_long' };
+    let dup = false;
+    setTags((prev) => {
+      if (prev.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
+        dup = true;
+        return prev;
+      }
+      return [...prev, trimmed];
+    });
+    return dup ? { ok: false, reason: 'duplicate' } : { ok: true };
+  }, []);
+
+  const removeTag = useCallback((label: string) => {
+    setTags((prev) => prev.filter((t) => t !== label));
   }, []);
 
   const addMorePhotos = useCallback(async () => {
@@ -94,11 +121,17 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
     if (!canSubmit) return { ok: false, reason: 'validation' };
     setSubmitting(true);
     try {
-      const trimmed = description.trim();
+      const trimmedDesc = description.trim();
+      const trimmedTitle = title.trim();
+      const finalTitle =
+        trimmedTitle.length > 0
+          ? trimmedTitle.slice(0, TITLE_MAX)
+          : deriveTitle(description, takenAt);
       const moment = await apiClient.post<MomentRow>('/api/moments', {
-        title: deriveTitle(description, takenAt),
-        caption: trimmed.length > 0 ? trimmed : undefined,
+        title: finalTitle,
+        caption: trimmedDesc.length > 0 ? trimmedDesc : undefined,
         date: takenAt.toISOString(),
+        tags: tags.length > 0 ? tags : undefined,
       });
 
       const momentId = moment.id;
@@ -143,17 +176,27 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, description, takenAt, photos]);
+  }, [canSubmit, title, description, takenAt, photos, tags]);
 
   const limits = useMemo(
-    () => ({ max: MAX_PHOTOS, descriptionMax: DESCRIPTION_MAX }),
+    () => ({
+      max: MAX_PHOTOS,
+      descriptionMax: DESCRIPTION_MAX,
+      titleMax: TITLE_MAX,
+      tagMax: TAG_MAX,
+    }),
     [],
   );
 
   return {
     photos,
+    title,
+    setTitle,
     description,
     setDescription,
+    tags,
+    addTag,
+    removeTag,
     takenAt,
     setTakenAt,
     submitting,
