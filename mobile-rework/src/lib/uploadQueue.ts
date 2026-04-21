@@ -22,6 +22,15 @@ import { create } from 'zustand';
 // spinner that never settled. Gate to MAX_CONCURRENT in-flight `uploadFn`
 // calls; the rest queue FIFO. Retries (both auto setTimeout + manual) must
 // re-enter the gate so they don't bypass the limit.
+//
+// T394 (Sprint 62): pending entries weren't counted in the toast. With serial
+// gate, `enqueue` pushed a thunk into `pending[]` but didn't write the entry
+// to zustand until `run()` actually started — so `Object.values(uploads).length`
+// was 1 while the user had picked 5 photos. Toast showed "1/1" instead of
+// "1/5". Fix: eager-seed the entry during enqueue() before `schedule()`, so
+// `total` reflects the full batch from the first tick. Paired with batch-level
+// auto-dismiss (replaced per-success setTimeout) — per-success dismiss shrunk
+// `total` mid-batch and jittered the progress counter.
 
 export type UploadStatus = 'uploading' | 'success' | 'error';
 
@@ -99,77 +108,118 @@ function schedule(task: () => Promise<void>): void {
   pump();
 }
 
-export const useUploadQueueStore = create<State & Actions>((set, get) => ({
-  uploads: {},
-  enqueue: ({ id, label, uploadFn, maxRetries = 2, onSuccess, onFailure }) => {
-    const write = (entry: UploadEntry) =>
-      set((s) => ({ uploads: { ...s.uploads, [id]: entry } }));
-
-    const run = async (attempt: number) => {
-      write({ id, label, status: 'uploading', attempts: attempt, maxRetries });
-      try {
-        const result = await uploadFn();
-        write({ id, label, status: 'success', attempts: attempt, maxRetries });
-        onSuccess?.(result);
-        retryTasks.delete(id);
-        setTimeout(() => {
-          const current = get().uploads[id];
-          if (current?.status === 'success') get().dismiss(id);
-        }, AUTO_DISMISS_MS);
-      } catch (err) {
-        if (attempt < maxRetries) {
-          // Release the current slot on return; acquire a fresh one after the
-          // backoff so queued uploads don't stall behind a sleeping retry.
-          setTimeout(() => {
-            schedule(() => run(attempt + 1));
-          }, RETRY_DELAY_MS);
-          return;
+export const useUploadQueueStore = create<State & Actions>((set, get) => {
+  // T394 — batch auto-dismiss. Per-success setTimeout(dismiss(id)) shrank
+  // `total` mid-batch and jittered the serial progress counter. Instead,
+  // schedule a single timer when the queue is fully idle (no uploading, no
+  // errors); on fire, re-check idle then drop all success rows in one set().
+  // Error rows stay so the user can retry. Overlapping timers are safe — the
+  // re-check inside the callback guards the actual mutation, so a second
+  // firing is a no-op.
+  const scheduleBatchDismissIfIdle = (): void => {
+    const entries = Object.values(get().uploads);
+    const anyUploading = entries.some((e) => e.status === 'uploading');
+    if (anyUploading) return;
+    const anyErrors = entries.some((e) => e.status === 'error');
+    if (anyErrors) return;
+    setTimeout(() => {
+      const now = Object.values(get().uploads);
+      const stillIdle = !now.some(
+        (e) => e.status === 'uploading' || e.status === 'error',
+      );
+      if (!stillIdle) return;
+      set((s) => {
+        const next: Record<string, UploadEntry> = { ...s.uploads };
+        for (const e of Object.values(s.uploads)) {
+          if (e.status === 'success') delete next[e.id];
         }
-        write({
-          id,
-          label,
-          status: 'error',
-          error: err instanceof Error ? err.message : 'Upload failed',
-          attempts: attempt,
-          maxRetries,
-        });
-        retryTasks.set(id, () => {
-          schedule(() => run(0));
-        });
-        onFailure?.(err);
-      }
-    };
+        return { uploads: next };
+      });
+    }, AUTO_DISMISS_MS);
+  };
 
-    schedule(() => run(0));
-  },
-  retry: (id) => {
-    retryTasks.get(id)?.();
-  },
-  dismiss: (id) => {
-    // Known edge (skipped for B47): if `id` is sitting in `pending` when
-    // dismissed, the closure still fires later and its `run()` will re-add
-    // the entry via `write()`. Not user-reachable today — UploadProgressToast
-    // only fires per-id dismiss from the internal auto-success path, never
-    // from a user gesture on a pending row. Revisit if we ship a "cancel
-    // this upload" affordance.
-    set((s) => {
-      const next = { ...s.uploads };
-      delete next[id];
-      return { uploads: next };
-    });
-    retryTasks.delete(id);
-  },
-  clearAll: () => {
-    set({ uploads: {} });
-    retryTasks.clear();
-    pending.length = 0;
-    // In-flight uploadFn calls can't be aborted (RN fetch has no AbortSignal
-    // support in the apiClient wrapper); they settle naturally and their
-    // finally hooks decrement activeCount. Don't touch activeCount here —
-    // resetting to 0 while tasks are live would let the next enqueue exceed
-    // MAX_CONCURRENT once the orphaned finallys fire.
-  },
-}));
+  return {
+    uploads: {},
+    enqueue: ({ id, label, uploadFn, maxRetries = 2, onSuccess, onFailure }) => {
+      const write = (entry: UploadEntry) =>
+        set((s) => ({ uploads: { ...s.uploads, [id]: entry } }));
+
+      // T394 — eager pre-seed so pending entries count toward `total` in the
+      // toast. Without this, 4 of 5 photos sit in `pending[]` with no store
+      // entry, and the toast renders "1/1" until each run() starts.
+      write({ id, label, status: 'uploading', attempts: 0, maxRetries });
+
+      const run = async (attempt: number) => {
+        write({ id, label, status: 'uploading', attempts: attempt, maxRetries });
+        try {
+          const result = await uploadFn();
+          write({ id, label, status: 'success', attempts: attempt, maxRetries });
+          onSuccess?.(result);
+          retryTasks.delete(id);
+          scheduleBatchDismissIfIdle();
+        } catch (err) {
+          if (attempt < maxRetries) {
+            // Release the current slot on return; acquire a fresh one after the
+            // backoff so queued uploads don't stall behind a sleeping retry.
+            setTimeout(() => {
+              schedule(() => run(attempt + 1));
+            }, RETRY_DELAY_MS);
+            return;
+          }
+          write({
+            id,
+            label,
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Upload failed',
+            attempts: attempt,
+            maxRetries,
+          });
+          retryTasks.set(id, () => {
+            schedule(() => run(0));
+          });
+          onFailure?.(err);
+          // Error doesn't trigger dismiss (guard inside skips when anyErrors),
+          // but fire the check anyway so a later manual dismiss() of the error
+          // row re-evaluates the idle state via its own setState callback path.
+          scheduleBatchDismissIfIdle();
+        }
+      };
+
+      schedule(() => run(0));
+    },
+    retry: (id) => {
+      retryTasks.get(id)?.();
+    },
+    dismiss: (id) => {
+      // Known edge (skipped for B47): if `id` is sitting in `pending` when
+      // dismissed, the closure still fires later and its `run()` will re-add
+      // the entry via `write()`. Not user-reachable today — UploadProgressToast
+      // only fires per-id dismiss from the internal auto-success path, never
+      // from a user gesture on a pending row. Revisit if we ship a "cancel
+      // this upload" affordance.
+      set((s) => {
+        const next = { ...s.uploads };
+        delete next[id];
+        return { uploads: next };
+      });
+      retryTasks.delete(id);
+      // T394 — after manual dismiss (e.g. user dismissed an error row) check
+      // whether the queue is now idle + success-only, so the remaining success
+      // rows can auto-unmount.
+      scheduleBatchDismissIfIdle();
+    },
+    clearAll: () => {
+      set({ uploads: {} });
+      retryTasks.clear();
+      pending.length = 0;
+      // In-flight uploadFn calls can't be aborted (RN fetch has no AbortSignal
+      // support in the apiClient wrapper); they settle naturally and their
+      // finally hooks decrement activeCount. Don't touch activeCount here —
+      // resetting to 0 while tasks are live would let the next enqueue exceed
+      // MAX_CONCURRENT once the orphaned finallys fire.
+    },
+  };
+});
 
 // Non-hook facade for callers outside React (ViewModels, submit flows). All
 // operations forward to the zustand store so subscribers still re-render.
