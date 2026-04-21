@@ -64,11 +64,7 @@ function ReactionPill({ emoji, count, reactedByMe, onPress, disabled }: PillProp
       <Text className="text-[16px]">{emoji}</Text>
       {count > 0 ? (
         <Text
-          className={
-            reactedByMe
-              ? 'font-bodySemibold text-[13px]'
-              : 'font-bodyMedium text-[13px]'
-          }
+          className="font-bodySemibold text-[13px]"
           style={{ color: reactedByMe ? c.primaryDeep : c.inkSoft }}
         >
           {count}
