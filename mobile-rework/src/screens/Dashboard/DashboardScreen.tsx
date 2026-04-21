@@ -40,6 +40,15 @@ export function DashboardScreen() {
     useCameraSheetStore.getState().open();
   }, []);
 
+  // T381 — direct push to moment-create (skip sheet). Empty photos array so
+  // the composer lands on the native picker path via "+" cell inside.
+  const openMomentCreate = useCallback(() => {
+    router.push({
+      pathname: '/(modal)/moment-create',
+      params: { initialPhotos: JSON.stringify([]) },
+    });
+  }, [router]);
+
   const openDetail = useCallback(
     (id: string) => {
       router.push({ pathname: '/moment-detail', params: { id } });
@@ -91,8 +100,8 @@ export function DashboardScreen() {
             primaryLabel={t('home.empty.ctaPrimary')}
             secondaryLabel={t('home.empty.ctaSecondary')}
             polaroidCaption={t('home.empty.polaroidCaption')}
-            onPrimary={openCameraSheet}
-            onSecondary={openCameraSheet}
+            onAddMoment={openMomentCreate}
+            onOpenCamera={openCameraSheet}
           />
         )}
 

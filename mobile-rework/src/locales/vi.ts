@@ -83,7 +83,7 @@ const vi = {
     empty: {
       title: 'Trang đầu của hai đứa',
       subtitle: 'Chụp một tấm, viết một câu — rồi một ngày nào đó hai đứa sẽ lật lại và cười.',
-      ctaPrimary: 'Thêm khoảnh khắc',
+      ctaPrimary: 'Thêm khoảnh khắc đầu tiên',
       ctaSecondary: 'Mở camera',
       polaroidCaption: 'khoảnh khắc #1',
     },

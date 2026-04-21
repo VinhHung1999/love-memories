@@ -70,7 +70,7 @@ const en: Resources = {
     empty: {
       title: 'Your very first page',
       subtitle: "Snap a photo, write a line — someday you'll flip back and smile.",
-      ctaPrimary: 'Add a moment',
+      ctaPrimary: 'Add your first moment',
       ctaSecondary: 'Open camera',
       polaroidCaption: 'moment #1',
     },

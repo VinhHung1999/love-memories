@@ -104,7 +104,15 @@ export function CameraActionSheet() {
     [t],
   );
 
+  // T382 (Sprint 62) — close the sheet BEFORE the async work kicks off so
+  // every return path (permission denied, picker canceled, empty assets,
+  // success) leaves a dismissed sheet. Earlier version only closed on the
+  // success path via navigateToCreate; the three failure paths left the
+  // sheet stuck open, forcing the user to tap the backdrop. close() calling
+  // dismiss() twice (here + inside navigateToCreate) is a no-op after the
+  // first — the second request on an already-dismissed sheet short-circuits.
   const onCamera = useCallback(async () => {
+    close();
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       showSettingsAlert('cameraDenied');
@@ -117,9 +125,10 @@ export function CameraActionSheet() {
     });
     if (result.canceled || !result.assets?.length) return;
     navigateToCreate(result.assets.map((a) => a.uri));
-  }, [showSettingsAlert, navigateToCreate]);
+  }, [close, showSettingsAlert, navigateToCreate]);
 
   const onLibrary = useCallback(async () => {
+    close();
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
       showSettingsAlert('libraryDenied');
@@ -133,7 +142,7 @@ export function CameraActionSheet() {
     });
     if (result.canceled || !result.assets?.length) return;
     navigateToCreate(result.assets.map((a) => a.uri));
-  }, [showSettingsAlert, navigateToCreate]);
+  }, [close, showSettingsAlert, navigateToCreate]);
 
   const onPhotobooth = useCallback(() => {
     // Sprint 64 parity — tap is intentional no-op. Sheet stays open so the

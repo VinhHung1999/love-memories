@@ -14,10 +14,11 @@ import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T375 — Dashboard empty state. Polaroid stack hero (3 tilted frames, the top
-// one carries a pulsing heart) + headline + 2-CTA pair. Both CTAs open the
-// same Camera BottomSheet (T377 store) per spec — primary adds a moment, the
-// secondary "Open camera" entry also routes through the sheet so users who
-// tap either button end up in the same flow. Prototype ref: empty-states.jsx
+// one carries a pulsing heart) + headline + 2-CTA pair.
+// T381 (Sprint 62) — CTAs split by intent: primary "Thêm khoảnh khắc đầu tiên"
+// pushes moment-create directly (skip sheet — user signaled intent), secondary
+// "Mở camera" opens the Camera BottomSheet for camera/library/photobooth
+// choice. Boss rule 2026-04-21 via Telegram. Prototype ref: empty-states.jsx
 // `EmptyHomeBody`.
 
 type Props = {
@@ -26,8 +27,8 @@ type Props = {
   primaryLabel: string;
   secondaryLabel: string;
   polaroidCaption: string;
-  onPrimary: () => void;
-  onSecondary: () => void;
+  onAddMoment: () => void;
+  onOpenCamera: () => void;
 };
 
 export function EmptyHero({
@@ -36,8 +37,8 @@ export function EmptyHero({
   primaryLabel,
   secondaryLabel,
   polaroidCaption,
-  onPrimary,
-  onSecondary,
+  onAddMoment,
+  onOpenCamera,
 }: Props) {
   const c = useAppColors();
 
@@ -65,10 +66,12 @@ export function EmptyHero({
         </View>
       </View>
 
-      {/* CTA pair — side by side. Both open the Camera sheet (T377). */}
+      {/* CTA pair (T381) — Primary: direct push to moment-create (skip sheet
+          when user signaled clear intent). Secondary: open Camera sheet for
+          source choice. */}
       <View className="flex-row gap-2.5 mt-3.5">
         <Pressable
-          onPress={onPrimary}
+          onPress={onAddMoment}
           accessibilityRole="button"
           accessibilityLabel={primaryLabel}
           className="flex-1 flex-row items-center justify-center h-12 rounded-2xl bg-primary shadow-pill active:bg-primary-deep"
@@ -79,7 +82,7 @@ export function EmptyHero({
           </Text>
         </Pressable>
         <Pressable
-          onPress={onSecondary}
+          onPress={onOpenCamera}
           accessibilityRole="button"
           accessibilityLabel={secondaryLabel}
           className="flex-1 flex-row items-center justify-center h-12 rounded-2xl bg-surface border border-line-on-surface active:opacity-80"
