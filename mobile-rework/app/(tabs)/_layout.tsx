@@ -2,14 +2,16 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { PillTabBar } from '@/components/navigation/PillTabBar';
+import { useCameraSheetStore } from '@/stores/cameraSheetStore';
 
 export default function TabsLayout() {
   const { t } = useTranslation();
 
+  // T377: camera pill now opens the global CameraActionSheet (mounted in
+  // app/_layout.tsx). Store toggle instead of ref drilling so Dashboard +
+  // Moments empty-state CTAs can share the same affordance.
   const handleCameraPress = () => {
-    // T337: camera pill is a stub this sprint — modal camera sheet lands in a
-    // later sprint. Log so QA can confirm the pill is responsive.
-    console.log('camera-pill-press');
+    useCameraSheetStore.getState().open();
   };
 
   return (

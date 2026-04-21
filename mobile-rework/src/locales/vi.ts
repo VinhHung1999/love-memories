@@ -85,6 +85,24 @@ const vi = {
     moment: 'Khoảnh khắc',
     letter: 'Viết thư',
     booth: 'Photo Booth',
+    // T377 — camera pill action sheet. Three rows: quick camera, library
+    // picker, stubbed Photobooth (dimmed until Sprint 64).
+    cameraSheet: {
+      title: 'Ghi lại cùng nhau',
+      subtitle: 'Chọn cách mình muốn bắt khoảnh khắc này',
+      takePhoto: 'Chụp ảnh',
+      takePhotoSub: 'Bật camera, chụp ngay một tấm',
+      pickLibrary: 'Chọn từ thư viện',
+      pickLibrarySub: 'Thêm tối đa 10 ảnh đã có',
+      photobooth: 'Photo Booth',
+      photoboothSub: 'Sắp ra mắt 💝',
+      permission: {
+        cameraDenied: 'Memoura cần quyền truy cập máy ảnh để chụp khoảnh khắc. Mở Cài đặt để bật nhé.',
+        libraryDenied: 'Memoura cần quyền truy cập thư viện ảnh để thêm khoảnh khắc. Mở Cài đặt để bật nhé.',
+        openSettings: 'Mở Cài đặt',
+        cancel: 'Để sau',
+      },
+    },
   },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',

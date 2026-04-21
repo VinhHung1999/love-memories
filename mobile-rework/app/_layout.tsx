@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
+import { CameraActionSheet } from '@/components/CameraActionSheet';
 import { parseMemouraUrl } from '@/lib/deepLink';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
@@ -79,6 +80,10 @@ export default function RootLayout() {
               T340–T342 reuse the same provider. */}
           <BottomSheetModalProvider>
             <RootStack />
+            {/* T377: single global instance. Any screen calls
+                useCameraSheetStore.getState().open() to present it — no ref
+                drilling through the nav tree. */}
+            <CameraActionSheet />
             <StatusBar style="auto" />
           </BottomSheetModalProvider>
         </ThemeProvider>

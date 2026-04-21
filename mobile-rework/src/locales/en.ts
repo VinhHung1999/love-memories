@@ -73,6 +73,22 @@ const en: Resources = {
     moment: 'Moment',
     letter: 'Letter',
     booth: 'Photo Booth',
+    cameraSheet: {
+      title: 'Capture together',
+      subtitle: 'Pick how you want to catch this one',
+      takePhoto: 'Take a photo',
+      takePhotoSub: 'Open the camera, snap one now',
+      pickLibrary: 'Pick from library',
+      pickLibrarySub: 'Add up to 10 existing photos',
+      photobooth: 'Photo Booth',
+      photoboothSub: 'Coming soon 💝',
+      permission: {
+        cameraDenied: 'Memoura needs camera access to capture moments. Open Settings to enable it.',
+        libraryDenied: 'Memoura needs photo library access to add moments. Open Settings to enable it.',
+        openSettings: 'Open Settings',
+        cancel: 'Not now',
+      },
+    },
   },
   auth: {
     welcomeTitle: 'Welcome to Memoura',
