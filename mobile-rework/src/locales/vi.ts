@@ -168,6 +168,25 @@ const vi = {
         subtitle: 'Một tấm ảnh, một dòng chú thích — tất cả sẽ được giữ lại, đúng như hôm nay.',
         cta: 'Tạo khoảnh khắc đầu tiên',
       },
+      // T384 — calendar view (month grid + filtered day content)
+      view: {
+        month: 'Tháng',
+        week: 'Tuần',
+      },
+      nav: {
+        prevMonth: 'Tháng trước',
+        nextMonth: 'Tháng sau',
+      },
+      selected: {
+        count: '{{count}} khoảnh khắc',
+        emptyTitle: 'Chưa có gì hôm này',
+        emptySubtitle: 'Nhưng chắc chắn có gì đó đã xảy ra…',
+      },
+      legend: {
+        hasMoments: 'Có khoảnh khắc',
+        multiple: 'Nhiều khoảnh khắc',
+        dayCount: '{{count}} ngày',
+      },
     },
   },
   auth: {

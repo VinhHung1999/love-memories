@@ -1,0 +1,70 @@
+import { Image, Pressable, Text, View } from 'react-native';
+
+import { LinearGradient } from '@/components';
+import { useAppColors } from '@/theme/ThemeProvider';
+
+import type { MomentRow } from '../useMomentsViewModel';
+
+// T384 — hero card for the selected day when there's ≥1 moment. 200px photo
+// header (real cover photo or primary-gradient fallback) with count chip;
+// title + caption footer. Tap → open moment detail route.
+
+type Props = {
+  moment: MomentRow;
+  onPress: (id: string) => void;
+};
+
+export function DayHeroCard({ moment, onPress }: Props) {
+  const c = useAppColors();
+  const cover = moment.photos[0];
+  const photoCount = moment.photos.length;
+
+  return (
+    <Pressable
+      onPress={() => onPress(moment.id)}
+      accessibilityRole="button"
+      className="rounded-3xl overflow-hidden bg-surface border border-line active:opacity-90"
+    >
+      <View className="h-[200px] bg-surface-alt">
+        {cover ? (
+          <Image
+            source={{ uri: cover.url }}
+            resizeMode="cover"
+            className="w-full h-full"
+          />
+        ) : (
+          <LinearGradient
+            colors={[c.primarySoft, c.primary, c.primaryDeep]}
+            className="w-full h-full"
+          />
+        )}
+        {photoCount > 1 ? (
+          <View
+            className="absolute bottom-3 right-3 px-2 py-1 rounded-lg"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          >
+            <Text className="font-bodyBold text-white text-[11px]">
+              1/{photoCount}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      <View className="px-4 py-3">
+        <Text
+          numberOfLines={1}
+          className="font-displayMedium text-ink text-[20px] leading-[24px]"
+        >
+          {moment.title}
+        </Text>
+        {moment.caption ? (
+          <Text
+            numberOfLines={2}
+            className="font-body text-ink-soft text-[13px] leading-[19px] mt-1"
+          >
+            {moment.caption}
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}

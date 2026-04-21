@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   Text,
   View,
 } from 'react-native';
@@ -14,23 +14,32 @@ import { SafeScreen, TabBarSpacer } from '@/components';
 import { useCameraSheetStore } from '@/stores/cameraSheetStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { MomentCard } from './components/MomentCard';
+import { CalendarCard } from './components/CalendarCard';
+import { DayHeroCard } from './components/DayHeroCard';
+import { MiniMomentCard } from './components/MiniMomentCard';
 import { MomentsEmpty } from './components/MomentsEmpty';
-import { type MomentRow, useMomentsViewModel } from './useMomentsViewModel';
+import { useMomentsViewModel, type ViewMode } from './useMomentsViewModel';
 
-// T376 (Sprint 62) — Moments tab. Header (eyebrow + "Khoảnh khắc"), vertical
-// FlatList timeline of MomentCards, pull-to-refresh, client-side pagination
-// (page bump via onEndReached; backend returns full list in one call — see
-// VM). Empty state opens the Camera action sheet (T377 store singleton) so
-// the tab never looks like a dead-end.
+// T384 (Sprint 62) — Moments tab calendar view. Prototype source of truth:
+// docs/design/prototype/memoura-v2/moments2.jsx. Tap a date → filter selected
+// day's moments (DayHeroCard / hero + mini grid). Tap same day again → revert
+// to today (decided with Lu: matches prototype intent, no extra clear chip).
 //
-// Gotchas addressed:
-//   - TabBarSpacer as ListFooterComponent so last card doesn't clip under
-//     the floating pill tab bar (T374 locked values: 150/116).
-//   - `contentContainerClassName` with a dynamic class string won't apply
-//     under NativeWind v4 JIT — we keep the centered loader/empty/error in
-//     a dedicated branch that wraps a flex-1 View instead of relying on
-//     FlatList's contentContainer.
+// Layout:
+//   Header (eyebrow + "Khoảnh khắc" + Month/Week pill toggle on the right)
+//   CalendarCard (month nav ◀▶ + weekday header + 7-col grid + legend)
+//   SelectedDayHeader (weekday name + ordinal day + count chip)
+//   Selected content: empty-state | DayHeroCard | hero + 2-col mini grid
+//   TabBarSpacer (floating pill clearance)
+//
+// Scroll is a plain ScrollView — filter model means the content below the
+// calendar is always just one day's worth, so the FlatList virtualization
+// from the timeline is unnecessary here. If the couple has 0 moments total,
+// fall back to the Sprint 62 empty screen (MomentsEmpty + camera CTA).
+//
+// Bomb-check receipts (pre-commit): className strings static, conditional
+// values via style prop + useAppColors(). Every `active:` modifier lives on
+// a className that never flips branches.
 
 export function MomentsScreen() {
   const { t, i18n } = useTranslation();
@@ -50,32 +59,28 @@ export function MomentsScreen() {
     [router],
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: MomentRow }) => (
-      <View className="px-5 pb-6">
-        <MomentCard
-          moment={item}
-          locale={i18n.language}
-          onPress={openDetail}
-          morePhotosLabel={(count) => t('moments.list.morePhotos', { count })}
-        />
-      </View>
-    ),
-    [i18n.language, openDetail, t],
-  );
+  const grid = vm.viewMode === 'week' ? vm.weekGrid : vm.grid;
+  const selectedMoments = vm.selectedDayMoments;
+
+  const dayName = formatWeekday(vm.selectedDay, i18n.language);
+  const dayOrdinal = formatDayOrdinal(vm.selectedDay, i18n.language);
 
   return (
     <SafeScreen edges={['top']}>
       <Header
         eyebrow={t('moments.list.eyebrow')}
         title={t('moments.list.title')}
+        viewMode={vm.viewMode}
+        onSetViewMode={vm.setViewMode}
+        monthLabel={t('moments.list.view.month')}
+        weekLabel={t('moments.list.view.week')}
       />
 
-      {vm.loading && vm.moments.length === 0 ? (
+      {vm.loading && vm.total === 0 ? (
         <CenterFill>
           <ActivityIndicator color={c.primary} />
         </CenterFill>
-      ) : vm.error && vm.moments.length === 0 ? (
+      ) : vm.error && vm.total === 0 ? (
         <CenterFill>
           <Text className="font-bodyMedium text-ink text-[15px] text-center px-8">
             {t('moments.list.error')}
@@ -90,7 +95,7 @@ export function MomentsScreen() {
             </Text>
           </Pressable>
         </CenterFill>
-      ) : vm.moments.length === 0 ? (
+      ) : vm.total === 0 ? (
         <CenterFill>
           <MomentsEmpty
             title={t('moments.list.empty.title')}
@@ -100,12 +105,9 @@ export function MomentsScreen() {
           />
         </CenterFill>
       ) : (
-        <FlatList
-          data={vm.moments}
-          keyExtractor={(m) => m.id}
-          renderItem={renderItem}
-          onEndReachedThreshold={0.4}
-          onEndReached={vm.hasMore ? vm.onEndReached : undefined}
+        <ScrollView
+          contentContainerClassName="pt-2"
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={vm.refreshing}
@@ -113,9 +115,49 @@ export function MomentsScreen() {
               tintColor={c.primary}
             />
           }
-          showsVerticalScrollIndicator={false}
-          ListFooterComponent={<TabBarSpacer />}
-        />
+        >
+          <CalendarCard
+            grid={grid}
+            monthAnchor={vm.monthAnchor}
+            onPrevMonth={vm.prevMonth}
+            onNextMonth={vm.nextMonth}
+            onSelectDay={vm.setSelectedDay}
+            daysWithMomentsCount={vm.daysWithMomentsCount}
+          />
+
+          <SelectedDayHeader
+            dayName={dayName}
+            dayOrdinal={dayOrdinal}
+            count={selectedMoments.length}
+            countLabel={t('moments.list.selected.count', {
+              count: selectedMoments.length,
+            })}
+          />
+
+          <View className="px-5 mt-3">
+            {selectedMoments.length === 0 ? (
+              <EmptyDay
+                title={t('moments.list.selected.emptyTitle')}
+                subtitle={t('moments.list.selected.emptySubtitle')}
+              />
+            ) : selectedMoments.length === 1 ? (
+              <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
+            ) : (
+              <>
+                <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
+                <View className="flex-row flex-wrap mt-2.5 -mx-1">
+                  {selectedMoments.slice(1).map((m) => (
+                    <View key={m.id} className="w-1/2 p-1">
+                      <MiniMomentCard moment={m} onPress={openDetail} />
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
+          </View>
+
+          <TabBarSpacer />
+        </ScrollView>
       )}
     </SafeScreen>
   );
@@ -124,16 +166,142 @@ export function MomentsScreen() {
 type HeaderProps = {
   eyebrow: string;
   title: string;
+  viewMode: ViewMode;
+  onSetViewMode: (mode: ViewMode) => void;
+  monthLabel: string;
+  weekLabel: string;
 };
 
-function Header({ eyebrow, title }: HeaderProps) {
+function Header({
+  eyebrow,
+  title,
+  viewMode,
+  onSetViewMode,
+  monthLabel,
+  weekLabel,
+}: HeaderProps) {
   return (
-    <View className="px-5 pt-2 pb-3">
-      <Text className="font-body text-ink-mute text-[12px] uppercase tracking-widest">
-        {eyebrow}
+    <View className="flex-row items-end justify-between px-5 pt-2 pb-3">
+      <View>
+        <Text className="font-body text-ink-mute text-[12px] uppercase tracking-widest">
+          {eyebrow}
+        </Text>
+        <Text className="font-displayMedium text-ink text-[32px] leading-[36px] mt-1">
+          {title}
+        </Text>
+      </View>
+      <ViewToggle
+        viewMode={viewMode}
+        onSet={onSetViewMode}
+        monthLabel={monthLabel}
+        weekLabel={weekLabel}
+      />
+    </View>
+  );
+}
+
+type ViewToggleProps = {
+  viewMode: ViewMode;
+  onSet: (mode: ViewMode) => void;
+  monthLabel: string;
+  weekLabel: string;
+};
+
+function ViewToggle({ viewMode, onSet, monthLabel, weekLabel }: ViewToggleProps) {
+  return (
+    <View className="flex-row bg-surface-alt rounded-xl p-0.5">
+      <ToggleBtn active={viewMode === 'month'} onPress={() => onSet('month')}>
+        {monthLabel}
+      </ToggleBtn>
+      <ToggleBtn active={viewMode === 'week'} onPress={() => onSet('week')}>
+        {weekLabel}
+      </ToggleBtn>
+    </View>
+  );
+}
+
+function ToggleBtn({
+  active,
+  onPress,
+  children,
+}: {
+  active: boolean;
+  onPress: () => void;
+  children: string;
+}) {
+  const c = useAppColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      className="px-3 py-1.5 rounded-lg active:opacity-80"
+      style={{
+        backgroundColor: active ? c.bgElev : 'transparent',
+      }}
+    >
+      <Text
+        className="font-bodySemibold text-[12px]"
+        style={{ color: active ? c.ink : c.inkMute }}
+      >
+        {children}
       </Text>
-      <Text className="font-displayMedium text-ink text-[32px] leading-[36px] mt-1">
+    </Pressable>
+  );
+}
+
+type SelectedDayHeaderProps = {
+  dayName: string;
+  dayOrdinal: string;
+  count: number;
+  countLabel: string;
+};
+
+function SelectedDayHeader({
+  dayName,
+  dayOrdinal,
+  count,
+  countLabel,
+}: SelectedDayHeaderProps) {
+  const c = useAppColors();
+  return (
+    <View className="px-5 pt-6">
+      <Text className="font-body text-ink-mute text-[11px] uppercase tracking-widest">
+        {dayName}
+      </Text>
+      <View className="flex-row items-baseline mt-1">
+        <Text className="font-displayMedium text-ink text-[26px] leading-[30px]">
+          {dayOrdinal}
+        </Text>
+        {count > 0 ? (
+          <Text
+            className="font-body text-[14px] ml-2"
+            style={{ color: c.inkMute }}
+          >
+            · {countLabel}
+          </Text>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+function EmptyDay({ title, subtitle }: { title: string; subtitle: string }) {
+  const c = useAppColors();
+  return (
+    <View
+      className="rounded-3xl py-10 px-5 items-center bg-surface"
+      style={{
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: c.line,
+      }}
+    >
+      <Text className="text-[36px] mb-2">📷</Text>
+      <Text className="font-bodySemibold text-ink-soft text-[14px] text-center">
         {title}
+      </Text>
+      <Text className="font-body text-ink-mute text-[12px] text-center mt-1">
+        {subtitle}
       </Text>
     </View>
   );
@@ -141,4 +309,73 @@ function Header({ eyebrow, title }: HeaderProps) {
 
 function CenterFill({ children }: { children: React.ReactNode }) {
   return <View className="flex-1 items-center justify-center">{children}</View>;
+}
+
+const VI_DAY_NAMES = [
+  'Chủ nhật',
+  'Thứ Hai',
+  'Thứ Ba',
+  'Thứ Tư',
+  'Thứ Năm',
+  'Thứ Sáu',
+  'Thứ Bảy',
+];
+
+const EN_DAY_NAMES = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+const VI_MONTH_SHORT = [
+  'thg 1',
+  'thg 2',
+  'thg 3',
+  'thg 4',
+  'thg 5',
+  'thg 6',
+  'thg 7',
+  'thg 8',
+  'thg 9',
+  'thg 10',
+  'thg 11',
+  'thg 12',
+];
+
+const EN_MONTH_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+function parseKey(key: string): Date {
+  const [y, m, d] = key.split('-').map((n) => parseInt(n, 10));
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+function formatWeekday(key: string, lang: string): string {
+  const names = lang.startsWith('vi') ? VI_DAY_NAMES : EN_DAY_NAMES;
+  return names[parseKey(key).getDay()];
+}
+
+function formatDayOrdinal(key: string, lang: string): string {
+  const d = parseKey(key);
+  const isVi = lang.startsWith('vi');
+  const months = isVi ? VI_MONTH_SHORT : EN_MONTH_SHORT;
+  return isVi
+    ? `Ngày ${d.getDate()} ${months[d.getMonth()]}`
+    : `${months[d.getMonth()]} ${d.getDate()}`;
 }

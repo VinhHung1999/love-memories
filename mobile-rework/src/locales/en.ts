@@ -148,6 +148,25 @@ const en: Resources = {
         subtitle: 'A single photo, a single line — kept exactly as it felt today.',
         cta: 'Create the first moment',
       },
+      // T384 — calendar view (month grid + filtered day content)
+      view: {
+        month: 'Month',
+        week: 'Week',
+      },
+      nav: {
+        prevMonth: 'Previous month',
+        nextMonth: 'Next month',
+      },
+      selected: {
+        count: '{{count}} moment(s)',
+        emptyTitle: 'Nothing saved this day',
+        emptySubtitle: 'But something must have happened…',
+      },
+      legend: {
+        hasMoments: 'Has moments',
+        multiple: 'Multiple',
+        dayCount: '{{count}} day(s)',
+      },
     },
   },
   auth: {
