@@ -228,7 +228,18 @@ export function useMomentsViewModel() {
     return d;
   }, [monthOffset]);
 
-  const monthLabel = useMemo(() => monthAnchor, [monthAnchor]);
+  // T395 — week view label should follow selectedDay across month boundaries.
+  // Month mode still uses monthAnchor (monthOffset-driven); week mode derives
+  // from selectedDay so prev/next week arrows that cross Apr→May retarget the
+  // label. Scope trimmed per Lu: no monthOffset snap when user toggles back to
+  // month mode — left as a separate UX polish.
+  const monthLabel = useMemo(() => {
+    if (viewMode === 'week') {
+      const [y, m] = selectedDay.split('-').map((n) => parseInt(n, 10));
+      return new Date(y, (m ?? 1) - 1, 1);
+    }
+    return monthAnchor;
+  }, [viewMode, selectedDay, monthAnchor]);
 
   const grid = useMemo<(DayCell | null)[]>(() => {
     const year = monthAnchor.getFullYear();
