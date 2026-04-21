@@ -53,7 +53,11 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
   const [pickingDate, setPickingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState<Date>(vm.takenAt);
 
-  const [tagModalOpen, setTagModalOpen] = useState(false);
+  // T386.9 — inline chip-input. Tap "+ tag" swaps the dashed add chip for an
+  // inline TextInput in the same tags row; no stacked Modal sheet. On submit:
+  // add + clear draft but stay in input mode for rapid entry. Blur with empty
+  // draft exits.
+  const [tagEditing, setTagEditing] = useState(false);
   const [tagDraft, setTagDraft] = useState('');
 
   const partnerName = t('compose.momentCreate.partnerFallback');
@@ -102,13 +106,20 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     setPickingDate(false);
   };
 
-  const openTagModal = () => {
+  const startTagEdit = () => {
     setTagDraft('');
-    setTagModalOpen(true);
+    setTagEditing(true);
   };
-  const closeTagModal = () => setTagModalOpen(false);
+  const onTagBlur = () => {
+    if (!tagDraft.trim()) setTagEditing(false);
+  };
   const submitTag = () => {
-    const result = vm.addTag(tagDraft);
+    const trimmed = tagDraft.trim();
+    if (!trimmed) {
+      setTagEditing(false);
+      return;
+    }
+    const result = vm.addTag(trimmed);
     if (!result.ok) {
       const msg =
         result.reason === 'empty'
@@ -119,7 +130,7 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
       Alert.alert(msg);
       return;
     }
-    setTagModalOpen(false);
+    setTagDraft('');
   };
 
   return (
@@ -243,7 +254,8 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
           </View>
 
           {/* Interactive tag chips — tap existing chip to remove, tap "+ tag"
-              to open the add-tag modal. Empty state = just the dashed + chip. */}
+              to reveal an inline TextInput (T386.9). Empty state = just the
+              dashed + chip. */}
           <View className="flex-row flex-wrap gap-1.5 px-4 pt-3">
             {vm.tags.map((tag) => (
               <RemovableTagChip
@@ -252,10 +264,20 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
                 onRemove={() => vm.removeTag(tag)}
               />
             ))}
-            <AddTagChip
-              label={t('compose.momentCreate.tagAddLabel')}
-              onPress={openTagModal}
-            />
+            {tagEditing ? (
+              <InlineTagInput
+                value={tagDraft}
+                onChangeText={setTagDraft}
+                onSubmit={submitTag}
+                onBlur={onTagBlur}
+                maxLength={vm.limits.tagMax}
+              />
+            ) : (
+              <AddTagChip
+                label={t('compose.momentCreate.tagAddLabel')}
+                onPress={startTagEdit}
+              />
+            )}
           </View>
 
           {/* Save button — full width pill, primary bg + primary drop shadow */}
@@ -336,53 +358,6 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
         </Modal>
       ) : null}
 
-      {/* Tag add modal — cross-platform TextInput bottom sheet */}
-      <Modal
-        visible={tagModalOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={closeTagModal}
-      >
-        <Pressable
-          onPress={closeTagModal}
-          className="flex-1 bg-black/40 justify-end"
-        >
-          <Pressable onPress={() => {}} className="bg-surface rounded-t-[24px]">
-            <SafeAreaView edges={['bottom']}>
-              <View className="flex-row items-center justify-between px-5 pt-4 pb-2 border-b border-line-on-surface">
-                <Pressable onPress={closeTagModal} hitSlop={8}>
-                  <Text className="font-bodyMedium text-ink-mute text-[15px]">
-                    {t('common.cancel')}
-                  </Text>
-                </Pressable>
-                <Text className="font-bodyBold text-ink text-[15px]">
-                  {t('compose.momentCreate.tagAddPrompt')}
-                </Text>
-                <Pressable onPress={submitTag} hitSlop={8}>
-                  <Text className="font-bodyBold text-primary-deep text-[15px]">
-                    {t('compose.momentCreate.tagAddConfirm')}
-                  </Text>
-                </Pressable>
-              </View>
-              <View className="px-5 pt-4 pb-5">
-                <TextInput
-                  value={tagDraft}
-                  onChangeText={setTagDraft}
-                  placeholder={t('compose.momentCreate.tagInputPlaceholder')}
-                  placeholderTextColor={c.inkMute}
-                  maxLength={vm.limits.tagMax}
-                  autoFocus
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={submitTag}
-                  className="font-body text-ink text-[16px] leading-[22px] px-3 py-3 rounded-xl bg-surface-alt"
-                />
-              </View>
-            </SafeAreaView>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </View>
   );
 }
@@ -410,6 +385,53 @@ function RemovableTagChip({ label, onRemove }: RemovableChipProps) {
       </Text>
       <X size={11} strokeWidth={2.3} color={c.inkMute} />
     </Pressable>
+  );
+}
+
+type InlineInputProps = {
+  value: string;
+  onChangeText: (v: string) => void;
+  onSubmit: () => void;
+  onBlur: () => void;
+  maxLength: number;
+};
+
+function InlineTagInput({
+  value,
+  onChangeText,
+  onSubmit,
+  onBlur,
+  maxLength,
+}: InlineInputProps) {
+  const c = useAppColors();
+  const { t } = useTranslation();
+  return (
+    <View
+      className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border"
+      style={{
+        backgroundColor: c.surface,
+        borderColor: c.lineOnSurface,
+        borderStyle: 'dashed',
+      }}
+    >
+      <Text className="font-body text-ink-mute text-[12px] leading-[16px]">
+        #
+      </Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={t('compose.momentCreate.tagInputPlaceholder')}
+        placeholderTextColor={c.inkMute}
+        maxLength={maxLength}
+        autoFocus
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="done"
+        onSubmitEditing={onSubmit}
+        onBlur={onBlur}
+        className="font-bodySemibold text-ink text-[12px] leading-[16px] p-0 w-[120px]"
+      />
+    </View>
   );
 }
 

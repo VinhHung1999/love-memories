@@ -22,7 +22,7 @@ export function MiniMomentCard({ moment, onPress }: Props) {
     <Pressable
       onPress={() => onPress(moment.id)}
       accessibilityRole="button"
-      className="flex-1 rounded-2xl overflow-hidden bg-surface border border-line active:opacity-90"
+      className="flex-1 rounded-[22px] overflow-hidden bg-surface border border-line-on-surface shadow-card active:opacity-90"
     >
       <View className="aspect-square bg-surface-alt">
         {cover ? (

@@ -96,11 +96,11 @@ export function CalendarCard({
   if (isEmpty) {
     return (
       <View
-        className="mx-5 rounded-3xl bg-surface p-4"
+        className="mx-5 rounded-[22px] bg-surface p-4"
         style={{
           borderWidth: 1,
           borderStyle: 'dashed',
-          borderColor: c.line,
+          borderColor: c.lineOnSurface,
         }}
       >
         {/* Static month label (no nav) */}
@@ -162,7 +162,7 @@ export function CalendarCard({
   }
 
   return (
-    <View className="mx-5 rounded-3xl bg-surface border border-line p-4 shadow-sm">
+    <View className="mx-5 rounded-[22px] bg-surface border border-line-on-surface p-4 shadow-card">
       {/* Month nav */}
       <View className="flex-row items-center justify-between mb-3">
         <Pressable
@@ -218,7 +218,7 @@ export function CalendarCard({
       {/* Legend */}
       <View
         className="flex-row items-center mt-3 pt-3 border-t"
-        style={{ borderTopColor: c.line }}
+        style={{ borderTopColor: c.lineOnSurface }}
       >
         <View className="flex-row items-center gap-1.5">
           <View

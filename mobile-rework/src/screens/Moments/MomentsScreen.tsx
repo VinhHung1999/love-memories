@@ -364,11 +364,11 @@ function EmptyDay({ title, subtitle }: { title: string; subtitle: string }) {
   const c = useAppColors();
   return (
     <View
-      className="rounded-3xl py-10 px-5 items-center bg-surface"
+      className="rounded-[22px] py-10 px-5 items-center bg-surface"
       style={{
         borderWidth: 1,
         borderStyle: 'dashed',
-        borderColor: c.line,
+        borderColor: c.lineOnSurface,
       }}
     >
       <Text className="text-[36px] mb-2">📷</Text>

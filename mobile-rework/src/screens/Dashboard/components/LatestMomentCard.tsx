@@ -81,7 +81,7 @@ export function LatestMomentCard({
               {moment.caption}
             </Text>
           ) : null}
-          <Text className="mt-3 font-body text-ink-mute text-[11px] uppercase tracking-wider">
+          <Text className="mt-3 font-body text-ink-mute text-[11px]">
             {relativeLabel}
           </Text>
         </View>

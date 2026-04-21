@@ -23,7 +23,7 @@ export function DayHeroCard({ moment, onPress }: Props) {
     <Pressable
       onPress={() => onPress(moment.id)}
       accessibilityRole="button"
-      className="rounded-3xl overflow-hidden bg-surface border border-line active:opacity-90"
+      className="rounded-[22px] overflow-hidden bg-surface border border-line-on-surface shadow-card active:opacity-90"
     >
       <View className="h-[200px] bg-surface-alt">
         {cover ? (

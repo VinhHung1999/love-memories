@@ -239,6 +239,10 @@ export function useMomentsViewModel() {
         isSelected: k === selectedDay,
       });
     }
+    // T386 item 1 — pad trailing nulls so the last row is always 7 cells. Without
+    // this, flex-1 on DayCellView stretches day widths to fill the row, making
+    // the final row look visibly larger than the others (Boss Build 44 feedback).
+    while (cells.length % 7 !== 0) cells.push(null);
     return cells;
   }, [monthAnchor, grouped, selectedDay]);
 

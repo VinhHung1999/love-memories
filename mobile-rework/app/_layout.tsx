@@ -108,6 +108,9 @@ function RootStack() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(modal)" options={{ presentation: 'modal' }} />
+      {/* T386.7 — moment-detail lives outside (modal) as a full-screen card
+          push (Boss Build-44 feedback). Default stack card presentation. */}
+      <Stack.Screen name="moment-detail" />
     </Stack>
   );
 }
@@ -174,8 +177,10 @@ function useAuthGate() {
     }
 
     // Authed past this point. Modals are layered over either tabs or auth
-    // and shouldn't trigger a routing decision — leave them alone.
+    // and shouldn't trigger a routing decision — leave them alone. Same
+    // treatment for root-level card-push routes (T386.7: moment-detail).
     if (inModalGroup) return;
+    if (seg[0] === 'moment-detail') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth
