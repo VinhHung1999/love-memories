@@ -233,6 +233,7 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
                 <Text className="mt-1.5 font-bodySemibold text-ink-mute text-[11px]">
                   {t('compose.momentCreate.photosCount', {
                     count: vm.photos.length,
+                    max: vm.limits.max,
                   })}
                 </Text>
               </Pressable>

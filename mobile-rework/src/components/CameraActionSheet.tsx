@@ -138,7 +138,9 @@ export function CameraActionSheet() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
-      selectionLimit: 10,
+      // T393 — align picker cap with MAX_PHOTOS. Picking 10 then letting
+      // MomentCreate slice(0, 5) silently drop the extras confused Build 48 QA.
+      selectionLimit: MAX_PHOTOS,
       quality: 0.8,
     });
     if (result.canceled || !result.assets?.length) return;

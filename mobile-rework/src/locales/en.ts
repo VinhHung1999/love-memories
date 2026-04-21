@@ -110,7 +110,7 @@ const en: Resources = {
       savePartner: 'Save → {{partner}} will see',
       close: 'Close',
       photosLabel: 'Photos',
-      photosCount: '{{count}}/10',
+      photosCount: '{{count}}/{{max}}',
       addMore: 'Add photo',
       removePhoto: 'Remove photo',
       descriptionLabel: 'Description',

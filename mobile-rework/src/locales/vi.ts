@@ -128,7 +128,7 @@ const vi = {
       savePartner: 'Lưu → {{partner}} sẽ thấy',
       close: 'Đóng',
       photosLabel: 'Ảnh',
-      photosCount: '{{count}}/10',
+      photosCount: '{{count}}/{{max}}',
       addMore: 'Thêm ảnh',
       removePhoto: 'Bỏ ảnh này',
       descriptionLabel: 'Mô tả',
