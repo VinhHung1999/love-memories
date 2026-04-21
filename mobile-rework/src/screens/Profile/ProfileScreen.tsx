@@ -148,7 +148,7 @@ export function ProfileScreen() {
   }, [t]);
 
   return (
-    <SafeScreen>
+    <SafeScreen edges={['top']}>
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
