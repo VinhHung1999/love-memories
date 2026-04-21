@@ -2,7 +2,7 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { Calendar, Plus, X } from 'lucide-react-native';
+import { Plus, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,21 +19,25 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SafeScreen } from '@/components';
+import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
-// T378 (Sprint 62) — create a new moment. Single scrollable screen (Boss
-// chose 1-screen over multi-step wizard). Header has close (left) · title
-// (center) · save (right). Photos render in a 3-col grid with a trailing "+"
-// cell when under the cap. Description is a flexible multiline field, date
-// defaults to today and never accepts future dates (BE enforces too).
+// T383 (Sprint 62) — diary-style composer per
+// docs/design/prototype/memoura-v2/add-moment.jsx. VM signature untouched
+// from T378; this is a pure View rebuild.
 //
-// Submit flow: tap Lưu → await POST /api/moments → router.dismiss() → each
-// photo fires off to uploadQueue so the composer never blocks on uploads.
-// Global UploadProgressToast (app/_layout.tsx) renders progress across
-// whatever screen the user navigates to next.
+// Layout: 280px primary-soft→bg hero gradient behind a close chip + 34px
+// "Giữ lại" display title + "{date} · {partner} sẽ thấy" subtitle. Subtitle
+// is tappable — opens the date picker (no separate date row, prototype
+// folds date into subtitle). Below: horizontal photo strip (140×180 tilted
+// polaroid style), transparent caption textarea, four static hashtag
+// placeholder chips (Sprint 63 will wire tags), big pill Save button.
+//
+// Partner name: authStore only carries user.name; /api/couple isn't worth a
+// synchronous fetch on open. Falls back to t('partnerFallback') — "nửa kia"
+// / "your love" — per PO Lu 2026-04-21.
 
 type Props = {
   initialPhotos: string[];
@@ -48,13 +52,26 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
   const [pickingDate, setPickingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState<Date>(vm.takenAt);
 
+  const partnerName = t('compose.momentCreate.partnerFallback');
+
+  const isToday = sameDay(vm.takenAt, new Date());
+  const dateLabel = isToday
+    ? t('compose.momentCreate.dateToday')
+    : formatDate(vm.takenAt, i18n.language);
+
+  const heroSubtitle = t('compose.momentCreate.heroSubtitle', {
+    date: dateLabel,
+    partner: partnerName,
+  });
+  const saveLabel = t('compose.momentCreate.savePartner', {
+    partner: partnerName,
+  });
+
   const onClose = () => router.back();
 
   const onSave = async () => {
     const result = await vm.onSubmit();
     if (result.ok) {
-      // Fire-and-forget uploads continue in uploadQueue. Back out of the
-      // modal immediately so the user sees their Dashboard card appear.
       router.back();
       return;
     }
@@ -81,43 +98,13 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     setPickingDate(false);
   };
 
-  const dateLabel = formatDate(vm.takenAt, i18n.language);
-  const isToday = sameDay(vm.takenAt, new Date());
-
   return (
-    <SafeScreen edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-1 pb-3 border-b border-line-on-surface/70">
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('compose.momentCreate.close')}
-          className="w-10 h-10 rounded-2xl bg-surface border border-line-on-surface items-center justify-center active:opacity-80"
-        >
-          <X size={18} strokeWidth={2.3} color={c.ink} />
-        </Pressable>
-        <Text
-          numberOfLines={1}
-          className="font-displayMedium text-ink text-[18px] leading-[22px] flex-1 text-center mx-3"
-        >
-          {t('compose.momentCreate.title')}
-        </Text>
-        <Pressable
-          onPress={onSave}
-          disabled={!vm.canSubmit}
-          accessibilityRole="button"
-          accessibilityLabel={t('compose.momentCreate.save')}
-          className="h-10 px-5 rounded-full items-center justify-center active:opacity-90"
-          style={{ backgroundColor: vm.canSubmit ? c.primary : c.surfaceAlt }}
-        >
-          <Text
-            className="font-bodySemibold text-[14px]"
-            style={{ color: vm.canSubmit ? '#ffffff' : c.inkMute }}
-          >
-            {t('compose.momentCreate.save')}
-          </Text>
-        </Pressable>
-      </View>
+    <View className="flex-1 bg-bg">
+      <LinearGradient
+        colors={[c.primarySoft, c.bg]}
+        className="absolute left-0 right-0 top-0 h-[280px]"
+        pointerEvents="none"
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -125,91 +112,131 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerClassName="pb-10"
+          contentContainerClassName="pb-16"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Photos */}
-          <View className="px-4 pt-5">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="font-bodyBold text-ink-mute text-[11px] uppercase tracking-[1.2px]">
-                {t('compose.momentCreate.photosLabel')}
-              </Text>
-              <Text className="font-body text-ink-mute text-[11px]">
-                {t('compose.momentCreate.photosCount', { count: vm.photos.length })}
-              </Text>
+          <SafeAreaView edges={['top']}>
+            {/* Close chip (left), no header save — Save lives at end of scroll */}
+            <View className="flex-row items-center px-4 pt-2 pb-2">
+              <Pressable
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel={t('compose.momentCreate.close')}
+                className="w-10 h-10 rounded-2xl bg-surface border border-line-on-surface items-center justify-center shadow-chip active:opacity-80"
+                hitSlop={8}
+              >
+                <X size={18} strokeWidth={2.3} color={c.ink} />
+              </Pressable>
             </View>
-            <View className="flex-row flex-wrap -mx-1">
-              {vm.photos.map((uri) => (
-                <View key={uri} className="w-1/3 p-1">
-                  <View className="aspect-square rounded-2xl overflow-hidden bg-surface-alt relative">
-                    <Image source={{ uri }} className="w-full h-full" />
-                    <Pressable
-                      onPress={() => vm.removePhoto(uri)}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('compose.momentCreate.removePhoto')}
-                      hitSlop={6}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/70 items-center justify-center"
-                    >
-                      <X size={12} strokeWidth={2.5} color="#ffffff" />
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-              {vm.photos.length < vm.limits.max ? (
-                <View className="w-1/3 p-1">
-                  <Pressable
-                    onPress={vm.addMorePhotos}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('compose.momentCreate.addMore')}
-                    className="aspect-square rounded-2xl border-[1.5px] border-dashed border-line-on-surface items-center justify-center bg-surface active:opacity-80"
-                  >
-                    <Plus size={22} color={c.primary} strokeWidth={2} />
-                    <Text className="mt-1.5 font-bodyMedium text-ink-mute text-[11px]">
-                      {t('compose.momentCreate.addMore')}
-                    </Text>
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
-          </View>
 
-          {/* Description */}
-          <View className="px-4 pt-6">
-            <Text className="font-bodyBold text-ink-mute text-[11px] uppercase tracking-[1.2px] mb-2 pl-1">
-              {t('compose.momentCreate.descriptionLabel')}
-            </Text>
-            <View className="rounded-2xl bg-surface border border-line-on-surface px-4 py-3.5 min-h-[140px]">
-              <TextInput
-                value={vm.description}
-                onChangeText={vm.setDescription}
-                placeholder={t('compose.momentCreate.descriptionPlaceholder')}
-                placeholderTextColor={c.inkMute}
-                multiline
-                maxLength={vm.limits.descriptionMax}
-                textAlignVertical="top"
-                className="font-body text-ink text-[15px] leading-[22px] min-h-[112px]"
-              />
-            </View>
-          </View>
-
-          {/* Date */}
-          <View className="px-4 pt-6">
-            <Text className="font-bodyBold text-ink-mute text-[11px] uppercase tracking-[1.2px] mb-2 pl-1">
-              {t('compose.momentCreate.dateLabel')}
-            </Text>
-            <Pressable
-              onPress={openDatePicker}
-              accessibilityRole="button"
-              className="flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border border-line-on-surface active:opacity-90"
-            >
-              <Calendar size={18} color={c.primary} strokeWidth={2} />
-              <Text className="flex-1 font-bodyMedium text-ink text-[15px] ml-3">
-                {dateLabel}
+            {/* Hero title + tappable subtitle (opens date picker) */}
+            <View className="px-6 pt-5 pb-2">
+              <Text
+                className="font-display text-ink text-[34px] leading-[40px] tracking-tight"
+                numberOfLines={1}
+              >
+                {t('compose.momentCreate.heroTitle')}
               </Text>
-              {isToday ? (
-                <Text className="font-body text-ink-mute text-[12px]">
-                  {t('compose.momentCreate.dateToday')}
+              <Pressable
+                onPress={openDatePicker}
+                accessibilityRole="button"
+                accessibilityLabel={t('compose.momentCreate.dateLabel')}
+                hitSlop={6}
+                className="mt-2 self-start active:opacity-70"
+              >
+                <Text className="font-body text-ink-mute text-[13px] leading-[18px]">
+                  {heroSubtitle}
                 </Text>
-              ) : null}
+              </Pressable>
+            </View>
+          </SafeAreaView>
+
+          {/* Horizontal photo strip */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="pl-4 pr-4 pt-4 pb-2 gap-2"
+          >
+            {vm.photos.map((uri, i) => (
+              <View
+                key={uri}
+                className="w-[140px] h-[180px] rounded-[18px] overflow-hidden bg-surface-alt shadow-hero"
+                style={{ transform: [{ rotate: i % 2 === 0 ? '-1deg' : '1.2deg' }] }}
+              >
+                <Image source={{ uri }} className="w-full h-full" />
+                <Pressable
+                  onPress={() => vm.removePhoto(uri)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('compose.momentCreate.removePhoto')}
+                  hitSlop={6}
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/60 items-center justify-center"
+                >
+                  <X size={12} strokeWidth={2.5} color="#ffffff" />
+                </Pressable>
+              </View>
+            ))}
+            {vm.photos.length < vm.limits.max ? (
+              <Pressable
+                onPress={vm.addMorePhotos}
+                accessibilityRole="button"
+                accessibilityLabel={t('compose.momentCreate.addMore')}
+                className="w-[140px] h-[180px] rounded-[18px] border-[1.5px] border-dashed border-line-on-surface bg-surface items-center justify-center active:opacity-80"
+              >
+                <Plus size={22} strokeWidth={2} color={c.primary} />
+                <Text className="mt-1.5 font-bodySemibold text-ink-mute text-[11px]">
+                  {t('compose.momentCreate.photosCount', {
+                    count: vm.photos.length,
+                  })}
+                </Text>
+              </Pressable>
+            ) : null}
+          </ScrollView>
+
+          {/* Caption — transparent, no border, flows with page */}
+          <View className="px-6 pt-4">
+            <TextInput
+              value={vm.description}
+              onChangeText={vm.setDescription}
+              placeholder={t('compose.momentCreate.descriptionPlaceholder')}
+              placeholderTextColor={c.inkMute}
+              multiline
+              maxLength={vm.limits.descriptionMax}
+              textAlignVertical="top"
+              className="font-body text-ink text-[15px] leading-[24px] min-h-[96px]"
+            />
+          </View>
+
+          {/* Hashtag placeholder chips — static decoration, Sprint 63 will wire */}
+          <View className="flex-row flex-wrap gap-1.5 px-4 pt-3">
+            <PlaceholderChip icon="📍" label="Đà Lạt" />
+            <PlaceholderChip icon="#" label="dulich" />
+            <PlaceholderChip icon="#" label="capheviavn" />
+            <PlaceholderChip icon="+" label="tag" dashed />
+          </View>
+
+          {/* Save button — full width pill, primary bg + primary drop shadow */}
+          <View className="px-4 pt-7">
+            <Pressable
+              onPress={onSave}
+              disabled={!vm.canSubmit}
+              accessibilityRole="button"
+              accessibilityLabel={saveLabel}
+              className="rounded-full py-4 items-center justify-center active:opacity-90"
+              style={{
+                backgroundColor: vm.canSubmit ? c.primary : c.surfaceAlt,
+                shadowColor: c.primary,
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: vm.canSubmit ? 0.33 : 0,
+                shadowRadius: 24,
+                elevation: vm.canSubmit ? 8 : 0,
+              }}
+            >
+              <Text
+                className="font-bodyBold text-[15px]"
+                style={{ color: vm.canSubmit ? '#ffffff' : c.inkMute }}
+              >
+                {saveLabel}
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -234,11 +261,11 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
           animationType="fade"
           onRequestClose={closeIosPicker}
         >
-          <Pressable onPress={closeIosPicker} className="flex-1 bg-black/40 justify-end">
-            <Pressable
-              onPress={() => {}}
-              className="bg-surface rounded-t-[24px]"
-            >
+          <Pressable
+            onPress={closeIosPicker}
+            className="flex-1 bg-black/40 justify-end"
+          >
+            <Pressable onPress={() => {}} className="bg-surface rounded-t-[24px]">
               <SafeAreaView edges={['bottom']}>
                 <View className="flex-row items-center justify-between px-5 pt-4 pb-2 border-b border-line-on-surface">
                   <Pressable onPress={closeIosPicker} hitSlop={8}>
@@ -264,7 +291,33 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
           </Pressable>
         </Modal>
       ) : null}
-    </SafeScreen>
+    </View>
+  );
+}
+
+type ChipProps = { icon: string; label: string; dashed?: boolean };
+
+// Decorative only — no Pressable wrapping. Sprint 63 will wire real tags.
+// Dashed vs solid chip shape branches via `style` prop (NativeWind v4 rule:
+// no conditional className to avoid the misleading navigation-context crash).
+function PlaceholderChip({ icon, label, dashed }: ChipProps) {
+  const c = useAppColors();
+  return (
+    <View
+      className="flex-row items-center gap-1 px-3 py-1.5 rounded-full border"
+      style={{
+        backgroundColor: dashed ? 'transparent' : c.surface,
+        borderColor: c.lineOnSurface,
+        borderStyle: dashed ? 'dashed' : 'solid',
+      }}
+    >
+      <Text className="font-body text-ink-mute text-[12px] leading-[16px]">
+        {icon}
+      </Text>
+      <Text className="font-bodySemibold text-ink text-[12px] leading-[16px]">
+        {label}
+      </Text>
+    </View>
   );
 }
 
