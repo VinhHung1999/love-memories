@@ -22,6 +22,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
+import { LocationPickerSheet } from './components/LocationPickerSheet';
+import { LocationPill } from './components/LocationPill';
 import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
 // T385 (Sprint 62 polish) — Boss Build 42 QA feedback pass.
@@ -60,6 +62,10 @@ export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
   // draft exits.
   const [tagEditing, setTagEditing] = useState(false);
   const [tagDraft, setTagDraft] = useState('');
+
+  // T399 — location picker sheet visibility. The VM owns the location value;
+  // this flag only controls whether the sheet is presented.
+  const [pickingLocation, setPickingLocation] = useState(false);
 
   const partnerName = t('compose.momentCreate.partnerFallback');
 
@@ -280,10 +286,15 @@ export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
             />
           </View>
 
-          {/* Interactive tag chips — tap existing chip to remove, tap "+ tag"
-              to reveal an inline TextInput (T386.9). Empty state = just the
-              dashed + chip. */}
+          {/* T399 — Location pill + interactive tag chips share one wrap row.
+              Pill-first matches prototype L107-124 order (📍 before #tags).
+              Tapping the pill opens LocationPickerSheet; clearing happens
+              inside the sheet, not on the pill itself. */}
           <View className="flex-row flex-wrap gap-1.5 px-4 pt-3">
+            <LocationPill
+              value={vm.location}
+              onPress={() => setPickingLocation(true)}
+            />
             {vm.tags.map((tag) => (
               <RemovableTagChip
                 key={tag}
@@ -385,6 +396,19 @@ export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
         </Modal>
       ) : null}
 
+      <LocationPickerSheet
+        visible={pickingLocation}
+        value={vm.location}
+        onPick={(placeName) => {
+          vm.setLocation(placeName);
+          setPickingLocation(false);
+        }}
+        onClear={() => {
+          vm.setLocation(null);
+          setPickingLocation(false);
+        }}
+        onClose={() => setPickingLocation(false)}
+      />
     </View>
   );
 }

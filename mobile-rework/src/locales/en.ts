@@ -130,6 +130,23 @@ const en: Resources = {
       tagEmpty: 'Tags cannot be empty.',
       tagTooLong: 'Tags must be under {{max}} characters.',
       tagDuplicate: 'That tag is already added.',
+      location: {
+        addLabel: 'Add location',
+        editLabel: 'Location: {{name}}',
+        sheetTitle: 'Where was this?',
+        searchPlaceholder: 'Search places…',
+        clearQuery: 'Clear search',
+        useGps: 'Use current location',
+        clear: 'Remove location',
+        initialHint: 'Type a café, street, or use your current location.',
+        noResults: 'No matches. Try a different keyword.',
+        searchError: 'Something went wrong. Try again shortly.',
+        gpsError: {
+          permission: 'We need location access to auto-fill. Enable it in Settings.',
+          unavailable: 'Could not identify a place from your current position.',
+          network: 'Network issue — please try again.',
+        },
+      },
     },
     uploadToast: {
       uploading: 'Uploading {{current}}/{{total}} photos',

@@ -86,6 +86,18 @@ const config: ExpoConfig = {
         recordAudioAndroid: false,
       },
     ],
+    [
+      'expo-location',
+      {
+        // T399 — used by the moment compose location picker only. Foreground-
+        // only (when-in-use) is sufficient; we never background-track, never
+        // store lat/lng (place name only per Sprint 63 spec).
+        locationWhenInUsePermission:
+          'Memoura cần vị trí khi em muốn tự động điền địa điểm cho khoảnh khắc.',
+        isIosBackgroundLocationEnabled: false,
+        isAndroidBackgroundLocationEnabled: false,
+      },
+    ],
     'expo-apple-authentication',
     [
       '@react-native-google-signin/google-signin',

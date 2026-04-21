@@ -41,7 +41,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>47</string>
+    <string>52</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
@@ -57,6 +57,8 @@
     </dict>
     <key>NSCameraUsageDescription</key>
     <string>Memoura cần quyền camera khi em chụp khoảnh khắc.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Memoura cần vị trí khi em muốn tự động điền địa điểm cho khoảnh khắc.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryUsageDescription</key>

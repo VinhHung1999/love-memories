@@ -148,6 +148,23 @@ const vi = {
       tagEmpty: 'Nhãn không được để trống.',
       tagTooLong: 'Nhãn phải dưới {{max}} ký tự.',
       tagDuplicate: 'Nhãn này đã có rồi.',
+      location: {
+        addLabel: 'Thêm địa điểm',
+        editLabel: 'Địa điểm: {{name}}',
+        sheetTitle: 'Ở đâu nhỉ?',
+        searchPlaceholder: 'Tìm địa điểm…',
+        clearQuery: 'Xoá tìm kiếm',
+        useGps: 'Dùng vị trí hiện tại',
+        clear: 'Xoá địa điểm',
+        initialHint: 'Gõ tên quán, đường, hoặc dùng vị trí hiện tại.',
+        noResults: 'Không tìm thấy địa điểm nào. Thử từ khoá khác nhé.',
+        searchError: 'Mạng đang trục trặc. Thử lại trong giây lát.',
+        gpsError: {
+          permission: 'Mình cần quyền vị trí để tự động điền. Vào Cài đặt để bật nhé.',
+          unavailable: 'Không xác định được địa điểm từ vị trí hiện tại.',
+          network: 'Mạng đang trục trặc. Thử lại nhé.',
+        },
+      },
     },
     // T378 — global upload toast. T391 (Sprint 62): serial upload gate means
     // progress is X/Y, not count-only. `uploading` expects {{current}} + {{total}};

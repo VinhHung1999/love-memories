@@ -217,11 +217,17 @@ export function useMomentCreateViewModel(
       const invalidate = useMomentsStore.getState().invalidate;
 
       if (editingMomentId) {
+        // Include every editable field on PUT so the user's edits actually
+        // round-trip — omitting `location` here (original T397 mistake) made
+        // the endpoint treat it as "unchanged", so clearing or swapping a
+        // pin in edit mode silently no-op'd. Sparse update semantics mean
+        // an explicit null clears; an explicit string replaces.
         await updateMoment(editingMomentId, {
           title: finalTitle,
           caption: trimmedDesc.length > 0 ? trimmedDesc : null,
           date: takenAt.toISOString(),
           tags,
+          location: location && location.trim().length > 0 ? location : null,
         });
         invalidate();
 
@@ -259,6 +265,7 @@ export function useMomentCreateViewModel(
         caption: trimmedDesc.length > 0 ? trimmedDesc : undefined,
         date: takenAt.toISOString(),
         tags: tags.length > 0 ? tags : undefined,
+        location: location && location.trim().length > 0 ? location : undefined,
       });
 
       const momentId = moment.id;
@@ -309,6 +316,7 @@ export function useMomentCreateViewModel(
     takenAt,
     photos,
     tags,
+    location,
     editingMomentId,
     serverPhotoIds,
   ]);
