@@ -152,9 +152,16 @@ const en: Resources = {
       retry: 'Try again',
       morePhotos: '+{{count}}',
       empty: {
-        title: 'No memories yet 📸',
-        subtitle: 'Tap + to add your first moment.',
-        cta: 'Add a moment',
+        eyebrow: 'Our album',
+        calendarWaiting: 'this calendar is waiting',
+        title: 'No moments yet',
+        subtitle:
+          'A single photo, a single line — kept exactly as it felt today.',
+        cta: 'Create the first moment',
+        whisperPrefix: "{{name}} hasn't added anything either. ",
+        whisperTail: 'Start together?',
+        whisperSoloPrefix: 'Anywhere is a fine place to start. ',
+        whisperSoloTail: 'Add the first moment?',
       },
       // T384 — calendar view (month grid + filtered day content)
       view: {

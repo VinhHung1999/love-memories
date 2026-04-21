@@ -16,6 +16,12 @@ import { DayCellView } from './DayCell';
 // Weekday labels are hardcoded per-locale (Lu's reminder: Intl weekday:short
 // returns 'Th 2' flavors for vi-VN). Month label uses Intl long-month then
 // reshapes to Vietnamese "Tháng X YYYY" vs English "Month YYYY".
+//
+// T385 item 6 (Sprint 62 polish) — `isEmpty` variant (prototype
+// docs/design/prototype/memoura-v2/empty-states.jsx L215-286). When empty:
+// dashed border, no nav arrows (center-only static month), no legend, dimmed
+// cells via DayCellView, and a floating pill CTA pinned to the bottom edge.
+// Non-empty branch is UNCHANGED.
 
 type Props = {
   grid: (DayCell | null)[];
@@ -24,6 +30,8 @@ type Props = {
   onNextMonth: () => void;
   onSelectDay: (dateKey: string) => void;
   daysWithMomentsCount: number;
+  isEmpty?: boolean;
+  emptyPillLabel?: string;
 };
 
 const VI_WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -72,6 +80,8 @@ export function CalendarCard({
   onNextMonth,
   onSelectDay,
   daysWithMomentsCount,
+  isEmpty = false,
+  emptyPillLabel,
 }: Props) {
   const { t, i18n } = useTranslation();
   const c = useAppColors();
@@ -81,6 +91,74 @@ export function CalendarCard({
   const rows: (DayCell | null)[][] = [];
   for (let i = 0; i < grid.length; i += 7) {
     rows.push(grid.slice(i, i + 7));
+  }
+
+  if (isEmpty) {
+    return (
+      <View
+        className="mx-5 rounded-3xl bg-surface p-4"
+        style={{
+          borderWidth: 1,
+          borderStyle: 'dashed',
+          borderColor: c.line,
+        }}
+      >
+        {/* Static month label (no nav) */}
+        <View className="items-center mb-2.5">
+          <Text className="font-displayMedium text-ink text-[18px]">
+            {formatMonthLabel(monthAnchor, i18n.language)}
+          </Text>
+        </View>
+
+        {/* Weekday header */}
+        <View className="flex-row mb-1.5">
+          {weekdays.map((label, i) => (
+            <View key={i} className="flex-1 items-center py-0.5">
+              <Text
+                className="font-bodyBold text-[10px] tracking-wider"
+                style={{ color: c.inkMute }}
+              >
+                {label}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Dimmed date grid */}
+        {rows.map((row, r) => (
+          <View key={r} className="flex-row">
+            {row.map((cell, i) => (
+              <DayCellView
+                key={`${r}-${i}`}
+                cell={cell}
+                onPress={onSelectDay}
+                isEmpty
+              />
+            ))}
+          </View>
+        ))}
+
+        {/* Floating CTA pill — straddles bottom edge */}
+        {emptyPillLabel ? (
+          <View
+            className="absolute left-0 right-0 items-center"
+            style={{ bottom: -14 }}
+          >
+            <View
+              className="px-3.5 py-1.5 rounded-full shadow-lg"
+              style={{ backgroundColor: c.ink }}
+            >
+              <Text
+                className="font-bodyMedium text-[11px] uppercase tracking-wider"
+                style={{ color: c.bg }}
+              >
+                {emptyPillLabel}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+      </View>
+    );
   }
 
   return (

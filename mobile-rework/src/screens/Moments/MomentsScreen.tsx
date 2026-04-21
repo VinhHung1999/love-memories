@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { SafeScreen, TabBarSpacer } from '@/components';
+import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
 import { useCameraSheetStore } from '@/stores/cameraSheetStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -25,22 +25,14 @@ import { useMomentsViewModel, type ViewMode } from './useMomentsViewModel';
 // day's moments (DayHeroCard / hero + mini grid). Tap same day again → revert
 // to today (decided with Lu: matches prototype intent, no extra clear chip).
 //
-// Layout:
-//   Header (eyebrow + "Khoảnh khắc" + Month/Week pill toggle on the right)
-//   CalendarCard (month nav ◀▶ + weekday header + 7-col grid + legend)
-//   SelectedDayHeader (weekday name + ordinal day + count chip)
-//   Selected content: empty-state | DayHeroCard | hero + 2-col mini grid
-//   TabBarSpacer (floating pill clearance)
-//
-// Scroll is a plain ScrollView — filter model means the content below the
-// calendar is always just one day's worth, so the FlatList virtualization
-// from the timeline is unnecessary here.
-//
-// T385 item 6 (Sprint 62 polish): the calendar ALWAYS renders whenever the
-// data layer isn't in initial loading/error. If the couple has 0 moments the
-// grid is just empty dots + an in-card EmptyTotal block (polaroid hero +
-// camera CTA). Previously this whole screen forked to MomentsEmpty which
-// Boss read as "chưa hiển thị, đang là 1 khoảng trắng" on Build 42.
+// T385 item 6 (Sprint 62 polish) — when the couple has 0 moments, render the
+// dedicated EmptyMomentsScreen layout from
+// docs/design/prototype/memoura-v2/empty-states.jsx L190-385:
+//   Header (no view toggle)
+//   Dimmed CalendarCard (isEmpty=true, floating pill)
+//   Illustration block (NOT carded — 3 frames + title + subtitle + CTA pill)
+//   Partner whisper card (accent-soft bg, heroA→heroB gradient avatar)
+// Non-empty branch is UNCHANGED from T384.
 //
 // Bomb-check receipts (pre-commit): className strings static, conditional
 // values via style prop + useAppColors(). Every `active:` modifier lives on
@@ -70,22 +62,39 @@ export function MomentsScreen() {
   const dayName = formatWeekday(vm.selectedDay, i18n.language);
   const dayOrdinal = formatDayOrdinal(vm.selectedDay, i18n.language);
 
-  return (
-    <SafeScreen edges={['top']}>
-      <Header
-        eyebrow={t('moments.list.eyebrow')}
-        title={t('moments.list.title')}
-        viewMode={vm.viewMode}
-        onSetViewMode={vm.setViewMode}
-        monthLabel={t('moments.list.view.month')}
-        weekLabel={t('moments.list.view.week')}
-      />
+  const isLoading = vm.loading && vm.total === 0;
+  const isError = vm.error && vm.total === 0;
+  const isEmpty = !isLoading && !isError && vm.total === 0;
 
-      {vm.loading && vm.total === 0 ? (
+  if (isLoading) {
+    return (
+      <SafeScreen edges={['top']}>
+        <HeaderDefault
+          eyebrow={t('moments.list.eyebrow')}
+          title={t('moments.list.title')}
+          viewMode={vm.viewMode}
+          onSetViewMode={vm.setViewMode}
+          monthLabel={t('moments.list.view.month')}
+          weekLabel={t('moments.list.view.week')}
+        />
         <CenterFill>
           <ActivityIndicator color={c.primary} />
         </CenterFill>
-      ) : vm.error && vm.total === 0 ? (
+      </SafeScreen>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeScreen edges={['top']}>
+        <HeaderDefault
+          eyebrow={t('moments.list.eyebrow')}
+          title={t('moments.list.title')}
+          viewMode={vm.viewMode}
+          onSetViewMode={vm.setViewMode}
+          monthLabel={t('moments.list.view.month')}
+          weekLabel={t('moments.list.view.week')}
+        />
         <CenterFill>
           <Text className="font-bodyMedium text-ink text-[15px] text-center px-8">
             {t('moments.list.error')}
@@ -100,7 +109,17 @@ export function MomentsScreen() {
             </Text>
           </Pressable>
         </CenterFill>
-      ) : (
+      </SafeScreen>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <SafeScreen edges={['top']}>
+        <HeaderEmpty
+          eyebrow={t('moments.list.empty.eyebrow')}
+          title={t('moments.list.title')}
+        />
         <ScrollView
           contentContainerClassName="pt-2"
           showsVerticalScrollIndicator={false}
@@ -119,56 +138,94 @@ export function MomentsScreen() {
             onNextMonth={vm.nextMonth}
             onSelectDay={vm.setSelectedDay}
             daysWithMomentsCount={vm.daysWithMomentsCount}
+            isEmpty
+            emptyPillLabel={t('moments.list.empty.calendarWaiting')}
           />
-
-          <SelectedDayHeader
-            dayName={dayName}
-            dayOrdinal={dayOrdinal}
-            count={selectedMoments.length}
-            countLabel={t('moments.list.selected.count', {
-              count: selectedMoments.length,
-            })}
+          <EmptyIllustrationBlock
+            title={t('moments.list.empty.title')}
+            subtitle={t('moments.list.empty.subtitle')}
+            ctaLabel={t('moments.list.empty.cta')}
+            onCta={openCameraSheet}
           />
-
-          <View className="px-5 mt-3">
-            {selectedMoments.length === 0 ? (
-              vm.total === 0 ? (
-                <EmptyTotal
-                  title={t('moments.list.empty.title')}
-                  subtitle={t('moments.list.empty.subtitle')}
-                  ctaLabel={t('moments.list.empty.cta')}
-                  onCta={openCameraSheet}
-                />
-              ) : (
-                <EmptyDay
-                  title={t('moments.list.selected.emptyTitle')}
-                  subtitle={t('moments.list.selected.emptySubtitle')}
-                />
-              )
-            ) : selectedMoments.length === 1 ? (
-              <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
-            ) : (
-              <>
-                <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
-                <View className="flex-row flex-wrap mt-2.5 -mx-1">
-                  {selectedMoments.slice(1).map((m) => (
-                    <View key={m.id} className="w-1/2 p-1">
-                      <MiniMomentCard moment={m} onPress={openDetail} />
-                    </View>
-                  ))}
-                </View>
-              </>
-            )}
-          </View>
-
+          <PartnerWhisperCard
+            hasPartner={vm.hasCouple && !!vm.partnerName}
+            partnerName={vm.partnerName ?? ''}
+            partnerInitial={vm.partnerInitial}
+          />
           <TabBarSpacer />
         </ScrollView>
-      )}
+      </SafeScreen>
+    );
+  }
+
+  return (
+    <SafeScreen edges={['top']}>
+      <HeaderDefault
+        eyebrow={t('moments.list.eyebrow')}
+        title={t('moments.list.title')}
+        viewMode={vm.viewMode}
+        onSetViewMode={vm.setViewMode}
+        monthLabel={t('moments.list.view.month')}
+        weekLabel={t('moments.list.view.week')}
+      />
+      <ScrollView
+        contentContainerClassName="pt-2"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={vm.refreshing}
+            onRefresh={vm.onRefresh}
+            tintColor={c.primary}
+          />
+        }
+      >
+        <CalendarCard
+          grid={grid}
+          monthAnchor={vm.monthAnchor}
+          onPrevMonth={vm.prevMonth}
+          onNextMonth={vm.nextMonth}
+          onSelectDay={vm.setSelectedDay}
+          daysWithMomentsCount={vm.daysWithMomentsCount}
+        />
+
+        <SelectedDayHeader
+          dayName={dayName}
+          dayOrdinal={dayOrdinal}
+          count={selectedMoments.length}
+          countLabel={t('moments.list.selected.count', {
+            count: selectedMoments.length,
+          })}
+        />
+
+        <View className="px-5 mt-3">
+          {selectedMoments.length === 0 ? (
+            <EmptyDay
+              title={t('moments.list.selected.emptyTitle')}
+              subtitle={t('moments.list.selected.emptySubtitle')}
+            />
+          ) : selectedMoments.length === 1 ? (
+            <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
+          ) : (
+            <>
+              <DayHeroCard moment={selectedMoments[0]} onPress={openDetail} />
+              <View className="flex-row flex-wrap mt-2.5 -mx-1">
+                {selectedMoments.slice(1).map((m) => (
+                  <View key={m.id} className="w-1/2 p-1">
+                    <MiniMomentCard moment={m} onPress={openDetail} />
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
+
+        <TabBarSpacer />
+      </ScrollView>
     </SafeScreen>
   );
 }
 
-type HeaderProps = {
+type HeaderDefaultProps = {
   eyebrow: string;
   title: string;
   viewMode: ViewMode;
@@ -177,14 +234,14 @@ type HeaderProps = {
   weekLabel: string;
 };
 
-function Header({
+function HeaderDefault({
   eyebrow,
   title,
   viewMode,
   onSetViewMode,
   monthLabel,
   weekLabel,
-}: HeaderProps) {
+}: HeaderDefaultProps) {
   return (
     <View className="flex-row items-end justify-between px-5 pt-2 pb-3">
       <View>
@@ -201,6 +258,19 @@ function Header({
         monthLabel={monthLabel}
         weekLabel={weekLabel}
       />
+    </View>
+  );
+}
+
+function HeaderEmpty({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <View className="px-5 pt-2 pb-3">
+      <Text className="font-body text-ink-mute text-[12px] uppercase tracking-widest">
+        {eyebrow}
+      </Text>
+      <Text className="font-displayMedium text-ink text-[32px] leading-[36px] mt-1">
+        {title}
+      </Text>
     </View>
   );
 }
@@ -312,43 +382,72 @@ function EmptyDay({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
-type EmptyTotalProps = {
+type EmptyIllustrationBlockProps = {
   title: string;
   subtitle: string;
   ctaLabel: string;
   onCta: () => void;
 };
 
-// T385 item 6 — in-calendar empty state for couples with 0 moments total.
-// Polaroid hero copied from MomentsEmpty so the vibe survives the layout
-// change (calendar always renders above, this card sits under SelectedDayHeader).
-function EmptyTotal({ title, subtitle, ctaLabel, onCta }: EmptyTotalProps) {
+// T385 item 6 — prototype empty-states.jsx L289-357. The polaroid stack is
+// NOT wrapped in a bordered card (vibe: illustration floats on bg). 3 frames
+// — outer pair rotated ±7° with "+", center elevated with heart. CTA pill is
+// filled primary with a soft deep shadow.
+function EmptyIllustrationBlock({
+  title,
+  subtitle,
+  ctaLabel,
+  onCta,
+}: EmptyIllustrationBlockProps) {
   const c = useAppColors();
   return (
-    <View
-      className="rounded-3xl py-8 px-5 items-center bg-surface"
-      style={{
-        borderWidth: 1,
-        borderStyle: 'dashed',
-        borderColor: c.line,
-      }}
-    >
-      <View className="w-[200px] h-[140px] items-center justify-center mb-4">
-        <View className="absolute left-0 top-3 w-[76px] h-[96px] rounded-xl bg-surface border border-line-on-surface -rotate-6 items-center justify-center">
-          <Text className="font-displayMedium text-ink-mute text-[26px]">+</Text>
+    <View className="items-center mt-10 px-5">
+      <View className="w-[180px] h-[130px] items-center justify-center mb-5">
+        {/* frame 1 — left, rotated -7° */}
+        <View
+          className="absolute left-0 top-[14px] w-20 h-[100px] rounded-[10px] bg-surface items-center justify-center -rotate-6"
+          style={{ borderWidth: 1.5, borderColor: c.line }}
+        >
+          <Text
+            className="font-displayMedium text-[28px]"
+            style={{ color: c.inkMute }}
+          >
+            +
+          </Text>
         </View>
-        <View className="absolute right-0 top-3 w-[76px] h-[96px] rounded-xl bg-surface border border-line-on-surface rotate-6 items-center justify-center">
-          <Text className="font-displayMedium text-ink-mute text-[26px]">+</Text>
+        {/* frame 3 — right, rotated +7° */}
+        <View
+          className="absolute right-0 top-[14px] w-20 h-[100px] rounded-[10px] bg-surface items-center justify-center rotate-6"
+          style={{ borderWidth: 1.5, borderColor: c.line }}
+        >
+          <Text
+            className="font-displayMedium text-[28px]"
+            style={{ color: c.inkMute }}
+          >
+            +
+          </Text>
         </View>
-        <View className="absolute left-[50px] top-0 w-[100px] h-[120px] rounded-2xl bg-surface border border-line-on-surface items-center justify-center shadow-lg">
-          <Text className="text-primary text-[40px]">♡</Text>
+        {/* frame 2 — center, elevated */}
+        <View
+          className="absolute top-0 w-[100px] h-[120px] rounded-[12px] bg-surface items-center justify-center shadow-lg"
+          style={{ borderWidth: 1.5, borderColor: c.line }}
+        >
+          <Text className="text-[40px]" style={{ color: c.primary }}>
+            ♡
+          </Text>
         </View>
       </View>
 
-      <Text className="font-displayMedium text-ink text-[20px] leading-[26px] text-center max-w-[260px]">
+      <Text
+        className="font-displayMedium text-ink text-[24px] leading-[28px] text-center"
+        style={{ maxWidth: 260 }}
+      >
         {title}
       </Text>
-      <Text className="font-body text-ink-mute text-[13px] leading-[20px] text-center mt-2 max-w-[260px]">
+      <Text
+        className="font-body text-ink-mute text-[13.5px] leading-[21px] text-center mt-2.5"
+        style={{ maxWidth: 280 }}
+      >
         {subtitle}
       </Text>
 
@@ -356,13 +455,60 @@ function EmptyTotal({ title, subtitle, ctaLabel, onCta }: EmptyTotalProps) {
         onPress={onCta}
         accessibilityRole="button"
         accessibilityLabel={ctaLabel}
-        className="mt-5 flex-row items-center px-6 h-11 rounded-full bg-primary shadow-lg active:bg-primary-deep"
+        className="mt-6 flex-row items-center px-7 h-[46px] rounded-full bg-primary shadow-lg active:bg-primary-deep"
       >
-        <Plus size={16} strokeWidth={2.5} color="#ffffff" />
-        <Text className="font-bodySemibold text-white text-[14px] ml-2">
+        <Plus size={18} strokeWidth={2.5} color="#ffffff" />
+        <Text className="font-bodySemibold text-white text-[14.5px] ml-2">
           {ctaLabel}
         </Text>
       </Pressable>
+    </View>
+  );
+}
+
+type PartnerWhisperCardProps = {
+  hasPartner: boolean;
+  partnerName: string;
+  partnerInitial: string;
+};
+
+// T385 item 6 — prototype empty-states.jsx L359-380. accent-soft bg, 34×34
+// heroA→heroB gradient avatar with partner's first initial. Text is prefix +
+// **bold tail**. Solo branch (no partner) uses a different copy pair so the
+// card never reads weird ("undefined hasn't added anything").
+function PartnerWhisperCard({
+  hasPartner,
+  partnerName,
+  partnerInitial,
+}: PartnerWhisperCardProps) {
+  const c = useAppColors();
+  const { t } = useTranslation();
+
+  const prefix = hasPartner
+    ? t('moments.list.empty.whisperPrefix', { name: partnerName })
+    : t('moments.list.empty.whisperSoloPrefix');
+  const tail = hasPartner
+    ? t('moments.list.empty.whisperTail')
+    : t('moments.list.empty.whisperSoloTail');
+
+  return (
+    <View className="mx-5 mt-6 p-3.5 rounded-2xl bg-accent-soft flex-row items-center">
+      <LinearGradient
+        colors={[c.heroA, c.heroB]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="w-[34px] h-[34px] rounded-full items-center justify-center"
+      >
+        <Text className="font-displayMedium text-white text-[14px]">
+          {hasPartner ? partnerInitial : '♡'}
+        </Text>
+      </LinearGradient>
+      <View className="flex-1 min-w-0 ml-2.5">
+        <Text className="font-body text-ink text-[12.5px] leading-[18px]">
+          {prefix}
+          <Text className="font-bodyBold">{tail}</Text>
+        </Text>
+      </View>
     </View>
   );
 }

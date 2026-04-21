@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { apiClient, ApiError } from '@/lib/apiClient';
+import { useAuthStore } from '@/stores/authStore';
 import { useMomentsStore } from '@/stores/momentsStore';
 
 // T376 (Sprint 62) — Moments list VM. Backend `GET /api/moments` returns the
@@ -58,6 +59,22 @@ export type DayCell = {
 
 export type ViewMode = 'month' | 'week';
 
+type CoupleUserLite = {
+  id: string;
+  name: string | null;
+};
+
+type CoupleResponseLite = {
+  users: CoupleUserLite[];
+};
+
+function toInitial(name?: string | null): string {
+  if (!name) return '·';
+  const trimmed = name.trim();
+  if (!trimmed) return '·';
+  return trimmed[0]!.toUpperCase();
+}
+
 const PAGE_SIZE = 20;
 
 type ErrorReason = 'network' | 'unknown';
@@ -91,10 +108,15 @@ function todayKey(): string {
 
 export function useMomentsViewModel() {
   const version = useMomentsStore((s) => s.version);
+  const user = useAuthStore((s) => s.user);
   const [state, setState] = useState<State>(INITIAL);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDay, setSelectedDayRaw] = useState<string>(() => todayKey());
+  // T385 item 6 — partner identity for the empty-state whisper card. Only
+  // fetch if we actually hit the empty state (total === 0) AND user has a
+  // couple. Non-empty Moments never needs this, so no reason to eager-load.
+  const [partnerName, setPartnerName] = useState<string | null>(null);
 
   const fetchAll = useCallback(async (mode: 'initial' | 'refresh') => {
     if (mode === 'initial') {
@@ -126,6 +148,29 @@ export function useMomentsViewModel() {
   useEffect(() => {
     void fetchAll('initial');
   }, [fetchAll, version]);
+
+  const isEmpty = !state.loading && state.all.length === 0;
+  const coupleId = user?.coupleId ?? null;
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    // Fetch partner name only when we actually enter the empty state and a
+    // couple exists. Silent on failure — the whisper card has a solo variant.
+    if (!isEmpty || !coupleId || partnerName !== null) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await apiClient.get<CoupleResponseLite>('/api/couple');
+        if (cancelled) return;
+        const partner = res.users.find((u) => u.id !== userId);
+        setPartnerName(partner?.name ?? '');
+      } catch {
+        if (!cancelled) setPartnerName('');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEmpty, coupleId, userId, partnerName]);
 
   const onRefresh = useCallback(() => {
     void fetchAll('refresh');
@@ -260,5 +305,10 @@ export function useMomentsViewModel() {
     setSelectedDay,
     selectedDayMoments,
     daysWithMomentsCount,
+
+    // empty state (T385 item 6)
+    hasCouple: !!coupleId,
+    partnerName,
+    partnerInitial: toInitial(partnerName),
   };
 }

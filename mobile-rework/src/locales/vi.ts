@@ -172,9 +172,16 @@ const vi = {
       retry: 'Thử lại',
       morePhotos: '+{{count}}',
       empty: {
-        title: 'Chưa có kỷ niệm nào 📸',
-        subtitle: 'Nhấn + để thêm khoảnh khắc đầu tiên.',
-        cta: 'Thêm khoảnh khắc',
+        eyebrow: 'Album chung',
+        calendarWaiting: 'lịch đang đợi được lấp đầy',
+        title: 'Chưa có khoảnh khắc nào',
+        subtitle:
+          'Một tấm ảnh, một dòng chú thích — tất cả sẽ được giữ lại, đúng như hôm nay.',
+        cta: 'Tạo khoảnh khắc đầu tiên',
+        whisperPrefix: '{{name}} cũng chưa thêm gì. ',
+        whisperTail: 'Cùng bắt đầu?',
+        whisperSoloPrefix: 'Mình bắt đầu từ đâu cũng được. ',
+        whisperSoloTail: 'Thêm khoảnh khắc đầu tiên?',
       },
       // T384 — calendar view (month grid + filtered day content)
       view: {
