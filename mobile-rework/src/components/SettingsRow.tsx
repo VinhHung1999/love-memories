@@ -55,13 +55,12 @@ export function SettingsRow({
 
   return (
     <Pressable
-      onPress={disabled ? undefined : onPress}
+      onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: !!disabled }}
-      className={`flex-row items-center gap-3 px-4 py-5 ${
-        disabled ? '' : 'active:bg-surface-alt/60'
-      }`}
+      className="flex-row items-center gap-3 px-4 py-5 active:bg-surface-alt/60"
     >
       <View className="w-8 h-8 rounded-[10px] bg-surface-alt items-center justify-center">
         <Icon size={18} color={iconColor} strokeWidth={1.75} />

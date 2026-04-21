@@ -1,7 +1,8 @@
 # Team Whiteboard
 
-**Sprint:** IDLE — awaiting Sprint 62 goal.
+**Sprint:** 🔥 **Sprint 62 ACTIVE** — Moments CORE (mobile-rework). 5 task / 14 pts. Board: `sprints/active/sprint-8.md`. Spec: `docs/specs/sprint-62-moments-core.md`. Branch: `sprint_62`. Kick-off 2026-04-21.
 **Last Completed:** Sprint 61 — Pill BottomTab + Profile (hero + 3 stats + 8 settings rows + edit flows) + Privacy/Terms/Delete Account + Notification state machine + T374 blind-buffer tab clearance — Boss approved via Build 39 (ad-hoc, app-store.hungphu.work) 2026-04-21. Board archived at `sprints/archive/sprint-7.md`. T367 + T368 deferred to backlog.
+**Future sprints (planned, not active):** Sprint 63 Moments CRUD+tags (`sprints/planning/sprint-9.md`) · Sprint 64 Partner interaction (`sprints/planning/sprint-10.md`).
 
 **Big direction (Boss 2026-04-18):** Mobile rebuild from scratch. New source at `mobile-rework/` based on prototype `docs/design/prototype/memoura-v2/`. Drop all modules not in prototype (FoodSpots / Recipes / Expenses / Achievements / Date Planner). BE + web-PWA unchanged. Plan: Sprints 59→65 (~7 sprints, ~80 pts).
 
@@ -15,8 +16,8 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO (Lu) | STAND BY | Sprint 61 closed, Build 39 ad-hoc approved. Retro logged, board archived, merged `sprint_61` → `main`. Awaiting Sprint 62 goal from Boss. | 2026-04-21 |
-| DEV (Zu) | STAND BY | Sprint 61 final commit 356004a (T374 +30px spacer). Awaiting next sprint kickoff. | 2026-04-21 |
+| PO (Lu) | ACTIVE | Sprint 62 kicked off — 5 cards T375-T379 in `sprints/active/sprint-8.md`. Spec written. Board CLI rolled out (both prompts updated). Awaiting Zu ACK. | 2026-04-21 |
+| DEV (Zu) | STAND BY | Sprint 62 assignment in flight — spec path + board CLI heads-up sent. | 2026-04-21 |
 
 **Task tracking uses board MD files.** Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md` for product backlog.
 

@@ -199,11 +199,13 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetHandle, Props>(
                 onPress={canConfirm ? onConfirmPress : undefined}
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !canConfirm, busy: submitting }}
-                className={`flex-1 h-14 rounded-full items-center justify-center ${
-                  canConfirm ? 'bg-primary-deep active:opacity-90' : 'bg-primary-deep/40'
-                }`}
+                className="flex-1 h-14 rounded-full items-center justify-center active:opacity-90"
+                style={{ backgroundColor: canConfirm ? c.primaryDeep : c.surfaceAlt }}
               >
-                <Text className="font-bodySemibold text-white text-base">
+                <Text
+                  className="font-bodySemibold text-base"
+                  style={{ color: canConfirm ? '#ffffff' : c.inkMute }}
+                >
                   {submitting
                     ? t('profile.deleteAccount.confirming')
                     : t('profile.deleteAccount.confirmCta')}

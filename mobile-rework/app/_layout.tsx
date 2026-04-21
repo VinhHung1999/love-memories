@@ -9,6 +9,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
+import { CameraActionSheet } from '@/components/CameraActionSheet';
+import { UploadProgressToast } from '@/components/UploadProgressToast';
 import { parseMemouraUrl } from '@/lib/deepLink';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
@@ -79,6 +81,16 @@ export default function RootLayout() {
               T340–T342 reuse the same provider. */}
           <BottomSheetModalProvider>
             <RootStack />
+            {/* T377: single global instance. Any screen calls
+                useCameraSheetStore.getState().open() to present it — no ref
+                drilling through the nav tree. */}
+            <CameraActionSheet />
+            {/* T378: single global toast that tracks uploadQueue entries so
+                photo uploads keep flagging progress / errors after the
+                composer modal dismisses. Mounted inside
+                BottomSheetModalProvider and above RootStack so it floats over
+                every route (tabs + modals). */}
+            <UploadProgressToast />
             <StatusBar style="auto" />
           </BottomSheetModalProvider>
         </ThemeProvider>
@@ -96,6 +108,9 @@ function RootStack() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(modal)" options={{ presentation: 'modal' }} />
+      {/* T386.7 — moment-detail lives outside (modal) as a full-screen card
+          push (Boss Build-44 feedback). Default stack card presentation. */}
+      <Stack.Screen name="moment-detail" />
     </Stack>
   );
 }
@@ -162,8 +177,10 @@ function useAuthGate() {
     }
 
     // Authed past this point. Modals are layered over either tabs or auth
-    // and shouldn't trigger a routing decision — leave them alone.
+    // and shouldn't trigger a routing decision — leave them alone. Same
+    // treatment for root-level card-push routes (T386.7: moment-detail).
     if (inModalGroup) return;
+    if (seg[0] === 'moment-detail') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

@@ -79,12 +79,132 @@ const vi = {
       shareMessage: 'Mình đang đợi người ấy trên Memoura nè. Mã: {{code}}\n{{url}}',
       error: 'Không tải được mã. Chạm để thử lại.',
     },
+    // T375 — Dashboard empty state (polaroid hero) + latest moment card
+    empty: {
+      title: 'Trang đầu của hai đứa',
+      subtitle: 'Chụp một tấm, viết một câu — rồi một ngày nào đó hai đứa sẽ lật lại và cười.',
+      ctaPrimary: 'Thêm khoảnh khắc',
+      ctaSecondary: 'Mở camera',
+      polaroidCaption: 'khoảnh khắc #1',
+    },
+    latest: {
+      eyebrow: 'Khoảnh khắc mới nhất',
+      viewAll: 'Xem tất cả',
+    },
   },
   compose: {
     title: 'Tạo mới',
     moment: 'Khoảnh khắc',
     letter: 'Viết thư',
     booth: 'Photo Booth',
+    // T377 — camera pill action sheet. Three rows: quick camera, library
+    // picker, stubbed Photobooth (dimmed until Sprint 64).
+    cameraSheet: {
+      title: 'Ghi lại cùng nhau',
+      subtitle: 'Chọn cách mình muốn bắt khoảnh khắc này',
+      takePhoto: 'Chụp ảnh',
+      takePhotoSub: 'Bật camera, chụp ngay một tấm',
+      pickLibrary: 'Chọn từ thư viện',
+      pickLibrarySub: 'Thêm tối đa {{max}} ảnh đã có',
+      photobooth: 'Photo Booth',
+      photoboothSub: 'Sắp ra mắt 💝',
+      permission: {
+        cameraDenied: 'Memoura cần quyền truy cập máy ảnh để chụp khoảnh khắc. Mở Cài đặt để bật nhé.',
+        libraryDenied: 'Memoura cần quyền truy cập thư viện ảnh để thêm khoảnh khắc. Mở Cài đặt để bật nhé.',
+        openSettings: 'Mở Cài đặt',
+        cancel: 'Để sau',
+      },
+    },
+    // T378 — create moment screen (photos + description + date). Submit
+    // dismisses the modal immediately and hands upload off to uploadQueue
+    // which the global UploadProgressToast renders.
+    momentCreate: {
+      title: 'Khoảnh khắc mới',
+      heroTitle: 'Giữ lại',
+      heroSubtitle: '{{date}} · {{partner}} sẽ thấy',
+      titlePlaceholder: 'Một cái tên…',
+      partnerFallback: 'nửa kia',
+      save: 'Lưu',
+      savePartner: 'Lưu → {{partner}} sẽ thấy',
+      close: 'Đóng',
+      photosLabel: 'Ảnh',
+      photosCount: '{{count}}/{{max}}',
+      addMore: 'Thêm ảnh',
+      removePhoto: 'Bỏ ảnh này',
+      descriptionLabel: 'Mô tả',
+      descriptionPlaceholder: 'Chuyện này là của ai, hôm đó trời thế nào…',
+      dateLabel: 'Ngày',
+      dateToday: 'Hôm nay',
+      datePickerConfirm: 'Xong',
+      submitError: 'Không lưu được. Thử lại nhé.',
+      autoTitleFallback: 'Khoảnh khắc {{date}}',
+      tagAddLabel: 'tag',
+      tagAddPrompt: 'Thêm nhãn',
+      tagAddConfirm: 'Thêm',
+      tagInputPlaceholder: 'Ví dụ: dulich',
+      tagEmpty: 'Nhãn không được để trống.',
+      tagTooLong: 'Nhãn phải dưới {{max}} ký tự.',
+      tagDuplicate: 'Nhãn này đã có rồi.',
+    },
+    // T378 — global upload toast. T391 (Sprint 62): serial upload gate means
+    // progress is X/Y, not count-only. `uploading` expects {{current}} + {{total}};
+    // `failed` expects {{failed}} + {{total}}; `done` keeps {{count}}=successCount.
+    uploadToast: {
+      uploading: 'Đang tải lên {{current}}/{{total}} ảnh',
+      done: 'Đã tải {{count}} ảnh',
+      failed: 'Không tải được {{failed}}/{{total}} ảnh',
+      retry: 'Thử lại',
+      dismiss: 'Đóng',
+    },
+  },
+  // T379 / T376 — Moments list + Detail strings.
+  moments: {
+    detail: {
+      title: 'Khoảnh khắc',
+      back: 'Quay lại',
+      error: 'Không tải được khoảnh khắc. Thử lại nhé.',
+      notFound: 'Không tìm thấy khoảnh khắc này.',
+      retry: 'Thử lại',
+      justNow: 'Vừa xong',
+    },
+    list: {
+      eyebrow: 'Album chung',
+      title: 'Khoảnh khắc',
+      error: 'Không tải được danh sách. Thử lại nhé.',
+      retry: 'Thử lại',
+      morePhotos: '+{{count}}',
+      empty: {
+        eyebrow: 'Album chung',
+        calendarWaiting: 'lịch đang đợi được lấp đầy',
+        title: 'Chưa có khoảnh khắc nào',
+        subtitle:
+          'Một tấm ảnh, một dòng chú thích — tất cả sẽ được giữ lại, đúng như hôm nay.',
+        cta: 'Tạo khoảnh khắc đầu tiên',
+        whisperPrefix: '{{name}} cũng chưa thêm gì. ',
+        whisperTail: 'Cùng bắt đầu?',
+        whisperSoloPrefix: 'Mình bắt đầu từ đâu cũng được. ',
+        whisperSoloTail: 'Thêm khoảnh khắc đầu tiên?',
+      },
+      // T384 — calendar view (month grid + filtered day content)
+      view: {
+        month: 'Tháng',
+        week: 'Tuần',
+      },
+      nav: {
+        prevMonth: 'Tháng trước',
+        nextMonth: 'Tháng sau',
+      },
+      selected: {
+        count: '{{count}} khoảnh khắc',
+        emptyTitle: 'Chưa có gì hôm này',
+        emptySubtitle: 'Nhưng chắc chắn có gì đó đã xảy ra…',
+      },
+      legend: {
+        hasMoments: 'Có khoảnh khắc',
+        multiple: 'Nhiều khoảnh khắc',
+        dayCount: '{{count}} ngày',
+      },
+    },
   },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',

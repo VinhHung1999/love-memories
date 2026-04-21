@@ -210,11 +210,26 @@ function InviteState({
             onPress={ready ? onShare : undefined}
             accessibilityRole="button"
             disabled={!ready}
-            className={`w-full flex-row items-center justify-center rounded-full py-4 px-5 ${
-              ready ? 'bg-surface border border-line-on-surface shadow-chip active:opacity-90' : 'bg-surface'
-            }`}
+            className="w-full flex-row items-center justify-center rounded-full py-4 px-5 active:opacity-90"
+            style={
+              ready
+                ? {
+                    backgroundColor: c.surface,
+                    borderWidth: 1,
+                    borderColor: c.lineOnSurface,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 3,
+                    elevation: 2,
+                  }
+                : { backgroundColor: c.surface }
+            }
           >
-            <Text className={`font-bodyBold text-[15px] ${ready ? 'text-ink' : 'text-ink-mute'}`}>
+            <Text
+              className="font-bodyBold text-[15px]"
+              style={{ color: ready ? c.ink : c.inkMute }}
+            >
               {t('onboarding.pairing.invite.shareCta')}
             </Text>
           </Pressable>
@@ -225,14 +240,34 @@ function InviteState({
             onPress={ready ? onContinue : undefined}
             accessibilityRole="button"
             disabled={!ready}
-            className={`w-full flex-row items-center justify-center rounded-full py-4 px-5 ${
-              ready ? 'bg-ink shadow-hero active:opacity-90' : 'bg-surface'
-            }`}
+            className="w-full flex-row items-center justify-center rounded-full py-4 px-5 active:opacity-90"
+            style={
+              ready
+                ? {
+                    backgroundColor: c.ink,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 12 },
+                    shadowOpacity: 0.18,
+                    shadowRadius: 28,
+                    elevation: 10,
+                  }
+                : { backgroundColor: c.surface }
+            }
           >
-            <Text className={`font-bodyBold text-[15px] ${ready ? 'text-bg' : 'text-ink-mute'}`}>
+            <Text
+              className="font-bodyBold text-[15px]"
+              style={{ color: ready ? c.bg : c.inkMute }}
+            >
               {t('onboarding.pairing.invite.continueCta')}
             </Text>
-            {ready ? <Text className="ml-2 font-bodyBold text-bg text-[15px]">→</Text> : null}
+            {ready ? (
+              <Text
+                className="ml-2 font-bodyBold text-[15px]"
+                style={{ color: c.bg }}
+              >
+                →
+              </Text>
+            ) : null}
           </Pressable>
         </View>
 

@@ -259,9 +259,9 @@ function AvatarPicker({
           accessibilityState={{ disabled: !!disabled, busy: uploading }}
           accessibilityLabel={ctaLabel}
           hitSlop={8}
-          className={`w-[112px] h-[112px] rounded-full overflow-hidden border-2 border-bg shadow-hero ${
-            disabled ? 'opacity-60' : 'active:opacity-90'
-          }`}
+          disabled={disabled}
+          className="w-[112px] h-[112px] rounded-full overflow-hidden border-2 border-bg shadow-hero active:opacity-90"
+          style={{ opacity: disabled ? 0.6 : 1 }}
         >
           {uri ? (
             <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
@@ -355,9 +355,9 @@ function DateField({
         onPress={open}
         accessibilityRole="button"
         accessibilityState={{ disabled: !!disabled }}
-        className={`flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border-[1.5px] border-line-on-surface ${
-          disabled ? 'opacity-60' : 'active:opacity-90'
-        }`}
+        disabled={disabled}
+        className="flex-row items-center bg-surface rounded-2xl px-4 py-3.5 border-[1.5px] border-line-on-surface active:opacity-90"
+        style={{ opacity: disabled ? 0.6 : 1 }}
       >
         {icon ? (
           <Text className="font-body text-ink-mute text-base mr-2.5">{icon}</Text>

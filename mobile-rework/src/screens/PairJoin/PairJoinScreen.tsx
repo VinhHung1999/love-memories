@@ -103,9 +103,8 @@ export function PairJoinScreen() {
                 onPress={onOpenScanner}
                 accessibilityRole="button"
                 disabled={submitting}
-                className={`flex-row items-center justify-center gap-2 self-center rounded-full bg-surface border border-line-on-surface px-4 py-2.5 ${
-                  submitting ? 'opacity-60' : 'active:opacity-90'
-                }`}
+                className="flex-row items-center justify-center gap-2 self-center rounded-full bg-surface border border-line-on-surface px-4 py-2.5 active:opacity-90"
+                style={{ opacity: submitting ? 0.6 : 1 }}
               >
                 <Camera size={16} color={c.ink} strokeWidth={2.2} />
                 <Text className="font-bodyMedium text-ink text-[13px]">

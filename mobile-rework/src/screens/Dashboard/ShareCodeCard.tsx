@@ -215,12 +215,12 @@ export function ShareCodeCard() {
           onPress={ready ? onShare : undefined}
           accessibilityRole="button"
           disabled={!ready}
-          className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${
-            ready ? 'bg-ink active:opacity-90' : 'bg-surface-alt'
-          }`}
+          className="flex-1 flex-row items-center justify-center rounded-full py-3 active:opacity-90"
+          style={{ backgroundColor: ready ? c.ink : c.surfaceAlt }}
         >
           <Text
-            className={`font-bodyBold text-[14px] ${ready ? 'text-bg' : 'text-ink-mute'}`}
+            className="font-bodyBold text-[14px]"
+            style={{ color: ready ? c.bg : c.inkMute }}
           >
             {t('home.shareCode.shareCta')}
           </Text>
@@ -229,12 +229,11 @@ export function ShareCodeCard() {
           onPress={ready ? onCopy : undefined}
           accessibilityRole="button"
           disabled={!ready}
-          className={`flex-1 flex-row items-center justify-center rounded-full py-3 border ${
-            ready ? 'bg-surface border-line-on-surface active:opacity-90' : 'bg-surface border-line-on-surface'
-          }`}
+          className="flex-1 flex-row items-center justify-center rounded-full py-3 border bg-surface border-line-on-surface active:opacity-90"
         >
           <Text
-            className={`font-bodyBold text-[14px] ${ready ? 'text-ink' : 'text-ink-mute'}`}
+            className="font-bodyBold text-[14px]"
+            style={{ color: ready ? c.ink : c.inkMute }}
           >
             {copied ? t('home.shareCode.copied') : t('home.shareCode.copyCta')}
           </Text>

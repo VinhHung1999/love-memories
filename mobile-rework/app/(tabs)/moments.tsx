@@ -1,14 +1,8 @@
-import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
-import { SafeScreen } from '@/components';
+import { MomentsScreen } from '@/screens/Moments/MomentsScreen';
 
-export default function Moments() {
-  const { t } = useTranslation();
-  return (
-    <SafeScreen>
-      <View className="flex-1 items-center justify-center">
-        <Text className="font-displayMedium text-2xl text-ink">{t('tabs.moments')}</Text>
-      </View>
-    </SafeScreen>
-  );
+// T376 (Sprint 62) — Moments tab. Thin route wrapper for MVVM screen so the
+// screen folder can be tested/previewed in isolation.
+
+export default function MomentsRoute() {
+  return <MomentsScreen />;
 }

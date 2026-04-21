@@ -360,9 +360,9 @@ function AvatarPicker({
           accessibilityState={{ disabled: !!disabled, busy: uploading }}
           accessibilityLabel={ctaLabel}
           hitSlop={8}
-          className={`w-[88px] h-[88px] rounded-full overflow-hidden border-2 border-bg shadow-hero ${
-            disabled ? 'opacity-60' : 'active:opacity-90'
-          }`}
+          disabled={disabled}
+          className="w-[88px] h-[88px] rounded-full overflow-hidden border-2 border-bg shadow-hero active:opacity-90"
+          style={{ opacity: disabled ? 0.6 : 1 }}
         >
           {uri ? (
             <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
