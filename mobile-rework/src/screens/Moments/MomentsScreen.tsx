@@ -134,8 +134,8 @@ export function MomentsScreen() {
           <CalendarCard
             grid={grid}
             monthAnchor={vm.monthAnchor}
-            onPrevMonth={vm.prevMonth}
-            onNextMonth={vm.nextMonth}
+            onPrevMonth={vm.viewMode === 'week' ? vm.prevWeek : vm.prevMonth}
+            onNextMonth={vm.viewMode === 'week' ? vm.nextWeek : vm.nextMonth}
             onSelectDay={vm.setSelectedDay}
             daysWithMomentsCount={vm.daysWithMomentsCount}
             isEmpty
@@ -182,8 +182,8 @@ export function MomentsScreen() {
         <CalendarCard
           grid={grid}
           monthAnchor={vm.monthAnchor}
-          onPrevMonth={vm.prevMonth}
-          onNextMonth={vm.nextMonth}
+          onPrevMonth={vm.viewMode === 'week' ? vm.prevWeek : vm.prevMonth}
+          onNextMonth={vm.viewMode === 'week' ? vm.nextWeek : vm.nextMonth}
           onSelectDay={vm.setSelectedDay}
           daysWithMomentsCount={vm.daysWithMomentsCount}
         />

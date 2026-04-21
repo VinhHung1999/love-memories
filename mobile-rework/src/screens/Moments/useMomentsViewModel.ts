@@ -106,6 +106,17 @@ function todayKey(): string {
   return dateKey(new Date());
 }
 
+// T392 (Sprint 62) — week-view prev/next arrow shift. Month arrows bump
+// monthOffset; week arrows can't, because weekGrid derives from selectedDay
+// (not monthOffset). Shift the selected day by ±7 in local time so the week
+// Sun→Sat recomputes and the arrow matches the user's mental model.
+function shiftDays(key: string, delta: number): string {
+  const [y, m, d] = key.split('-').map((n) => parseInt(n, 10));
+  const anchor = new Date(y, (m ?? 1) - 1, d ?? 1);
+  anchor.setDate(anchor.getDate() + delta);
+  return dateKey(anchor);
+}
+
 export function useMomentsViewModel() {
   const version = useMomentsStore((s) => s.version);
   const user = useAuthStore((s) => s.user);
@@ -284,6 +295,18 @@ export function useMomentsViewModel() {
   const prevMonth = useCallback(() => setMonthOffset((v) => v - 1), []);
   const nextMonth = useCallback(() => setMonthOffset((v) => v + 1), []);
 
+  // T392 — week arrows shift selectedDay, not monthOffset. Use the RAW setter
+  // (not setSelectedDay) because the raw setter skips the "tap same key =
+  // revert to today" rule — arrows must always shift.
+  const prevWeek = useCallback(
+    () => setSelectedDayRaw((prev) => shiftDays(prev, -7)),
+    [],
+  );
+  const nextWeek = useCallback(
+    () => setSelectedDayRaw((prev) => shiftDays(prev, 7)),
+    [],
+  );
+
   return {
     // timeline (existing contract — do not break)
     moments: visible,
@@ -303,6 +326,8 @@ export function useMomentsViewModel() {
     monthAnchor: monthLabel,
     prevMonth,
     nextMonth,
+    prevWeek,
+    nextWeek,
     grid,
     weekGrid,
     selectedDay,
