@@ -1067,6 +1067,44 @@ describe('Profile', () => {
     const res = await request(app).post('/api/profile/avatar');
     expect(res.status).toBe(401);
   });
+
+  // T339 — Sprint 61 — profile stats row
+  describe('GET /api/profile/stats', () => {
+    it('returns 401 without auth', async () => {
+      const res = await request(app).get('/api/profile/stats');
+      expect(res.status).toBe(401);
+    });
+
+    it('returns shape {moments, letters, questions} with numeric counts', async () => {
+      const res = await request(app).get('/api/profile/stats').set(auth());
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        moments: expect.any(Number),
+        letters: expect.any(Number),
+        questions: expect.any(Number),
+      });
+      expect(res.body.moments).toBeGreaterThanOrEqual(0);
+      expect(res.body.letters).toBeGreaterThanOrEqual(0);
+      expect(res.body.questions).toBeGreaterThanOrEqual(0);
+    });
+
+    it('empty couple returns all zeros', async () => {
+      const user = await prisma.user.create({
+        data: { email: `stats-empty-${Date.now()}@lovescrum.test`, name: 'Stats Empty', password: await hashPassword('pw') },
+      });
+      const couple = await prisma.couple.create({ data: { name: 'Empty Couple' } });
+      await prisma.user.update({ where: { id: user.id }, data: { coupleId: couple.id } });
+      const emptyToken = generateToken(user.id, couple.id);
+
+      const res = await request(app).get('/api/profile/stats').set({ Authorization: `Bearer ${emptyToken}` });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ moments: 0, letters: 0, questions: 0 });
+
+      await prisma.user.update({ where: { id: user.id }, data: { coupleId: null } });
+      await prisma.couple.delete({ where: { id: couple.id } });
+      await prisma.user.delete({ where: { id: user.id } });
+    });
+  });
 });
 
 describe('Comments', () => {

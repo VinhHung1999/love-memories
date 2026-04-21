@@ -9,6 +9,11 @@ const en: Resources = {
     continue: 'Continue',
     skip: 'Skip',
     loading: 'Loading…',
+    comingSoon: {
+      title: 'Coming soon ✨',
+      defaultBody: "We're still polishing this one. Hang tight.",
+      close: 'Close',
+    },
   },
   tabs: {
     home: 'Home',
@@ -319,7 +324,165 @@ const en: Resources = {
   },
   profile: {
     title: 'Us',
-    theme: 'Appearance',
+    hero: {
+      usLabel: 'Us',
+      soloLabel: 'Solo',
+      notPaired: 'Not paired yet',
+      since: 'since {{date}}',
+      selfFallback: 'Me',
+      partnerFallback: 'Them',
+    },
+    stats: {
+      moments: 'Moments',
+      letters: 'Letters',
+      questions: 'Questions',
+    },
+    settingsSections: {
+      infoLegal: 'Info & Legal',
+      account: 'Account',
+    },
+    settingsList: {
+      editProfile: 'Edit profile',
+      editProfileDetail: 'Name · photo',
+      anniversaries: 'Anniversaries',
+      coupleName: 'Our names',
+      inviteCode: 'Invite code',
+      notifications: 'Notifications',
+      appearance: 'Appearance',
+      memouraPlus: 'Memoura+',
+      replayTour: 'Replay tour',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
+      version: 'Version',
+      signOut: 'Sign out',
+      deleteAccount: {
+        label: 'Delete account',
+        detail: 'Permanently erase your data',
+      },
+      deleteAccountAlert: {
+        title: 'Delete account?',
+        body: 'All your moments, letters, and photos will be permanently deleted. This action CANNOT be undone.',
+        cancel: 'Cancel',
+        confirm: 'Continue',
+      },
+      // T373 — only `systemBlocked` remains (OS perm denied → Settings bounce).
+      // Granted-state flips are silent now. Matches vi.ts schema.
+      // Named `notificationsPrompt` to avoid collision with the row label.
+      notificationsPrompt: {
+        systemBlockedTitle: 'Notifications are blocked',
+        systemBlockedBody: 'Notifications are blocked in iOS Settings. Open Settings to re-enable.',
+        systemBlockedAction: 'Open Settings',
+      },
+      detail: {
+        on: 'On',
+        off: 'Off',
+        system: 'System',
+        free: 'Free',
+        version: 'v{{version}}',
+      },
+      signOutAlert: {
+        title: 'Sign out?',
+        body: "You'll need to sign in again to see your shared moments.",
+        cancel: 'Cancel',
+        confirm: 'Sign out',
+      },
+    },
+    invite: {
+      title: 'Your invite code',
+      subtitle: 'Send this to them so the two of you can meet on Memoura.',
+      codeLabel: 'your code',
+      shareCta: 'Share',
+      copyCta: 'Copy',
+      copied: 'Copied ✓',
+    },
+    deleteAccount: {
+      title: 'Permanently delete account',
+      subtitle:
+        'Your account, moments, letters, photos, and every shared memory will be erased from Memoura. This cannot be undone.',
+      challenge: 'DELETE',
+      inputLabel: 'Type "{{word}}" to confirm',
+      placeholder: 'Type {{word}}',
+      confirmCta: 'Delete forever',
+      confirming: 'Deleting…',
+      cancel: 'Cancel',
+      errors: {
+        network: "Couldn't delete the account. Check your connection and try again.",
+      },
+    },
+    anniversary: {
+      title: 'Your anniversary',
+      subtitle: 'Pick the date your story began — we\'ll show it on the Us card.',
+      save: 'Save',
+      saving: 'Saving…',
+      notSet: 'Not set',
+      errors: {
+        network: 'Something went wrong. Check your connection and try again.',
+      },
+    },
+    coupleName: {
+      title: 'Our name',
+      subtitle: "Give the two of you a shared name — you can change it anytime.",
+      label: 'Name',
+      placeholder: 'e.g. Minh & Linh',
+      save: 'Save',
+      saving: 'Saving…',
+      errors: {
+        nameRequired: 'Please enter a name.',
+        network: 'Something went wrong. Check your connection and try again.',
+      },
+    },
+    editIdentity: {
+      title: 'Names & slogan',
+      subtitle: 'Set a shared nickname and a short slogan for the two of you.',
+      fields: {
+        name: {
+          label: 'Nickname',
+          placeholder: 'e.g. Alex & Sam',
+        },
+        slogan: {
+          label: 'Slogan (optional)',
+          placeholder: 'A short line for the two of you…',
+        },
+      },
+      counter: '{{count}}/{{max}}',
+      errors: {
+        nameRequired: 'Please enter a nickname.',
+        sloganTooLong: 'Slogan must be 80 characters or fewer.',
+        saveFailed: 'Something went wrong. Please try again.',
+      },
+      save: 'Save',
+      saving: 'Saving…',
+    },
+    editProfile: {
+      title: 'Edit profile',
+      subtitle: 'Update your display name and profile photo.',
+      nameLabel: 'Your name',
+      namePlaceholder: 'e.g. Minh',
+      avatarAdd: 'Add profile photo',
+      avatarChange: 'Change photo',
+      avatarUploading: 'Uploading…',
+      save: 'Save',
+      saving: 'Saving…',
+      errors: {
+        nameRequired: 'Please enter a name.',
+        avatarFailed: "Couldn't upload that photo. Give it another try.",
+        network: 'Something went wrong. Check your connection and try again.',
+      },
+    },
+    theme: {
+      title: 'Appearance',
+      subtitle: 'Choose how the app looks. "System" follows your device setting.',
+      option: {
+        light: 'Light',
+        dark: 'Dark',
+        system: 'System',
+      },
+      current: {
+        light: 'Light',
+        dark: 'Dark',
+        system: 'System',
+      },
+    },
     palette: 'Palette',
     mode: 'Mode',
     typeSystem: 'Type system',

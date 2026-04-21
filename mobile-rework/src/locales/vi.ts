@@ -19,6 +19,13 @@ const vi = {
     continue: 'Tiếp tục',
     skip: 'Bỏ qua',
     loading: 'Đang tải…',
+    // Sprint 61 T344 — shared ComingSoonSheet. Used by 4 Profile settings rows
+    // (Kỷ niệm, Giao diện, Memoura+, Xem hướng dẫn) until those features ship.
+    comingSoon: {
+      title: 'Sắp có ✨',
+      defaultBody: 'Memoura đang chăm chút phần này. Mình chờ một chút nhé.',
+      close: 'Đóng',
+    },
   },
   tabs: {
     home: 'Nhà',
@@ -331,7 +338,194 @@ const vi = {
   },
   profile: {
     title: 'Mình',
-    theme: 'Giao diện',
+    // Sprint 61 T338 — hero card copy
+    hero: {
+      usLabel: 'Đôi mình',
+      soloLabel: 'Một mình',
+      notPaired: 'Chưa ghép đôi',
+      since: 'từ {{date}}',
+      selfFallback: 'Mình',
+      partnerFallback: 'người ấy',
+    },
+    // Sprint 61 T339 — stats row
+    stats: {
+      moments: 'Khoảnh khắc',
+      letters: 'Thư tình',
+      questions: 'Câu hỏi',
+    },
+    // Sprint 61 T340 — settings list. Labels mirror prototype
+    // more-screens.jsx:7. Detail subkeys are used for rows where the right-
+    // hand caption swaps based on state (notifications on/off, appearance
+    // mode, subscription tier, app version).
+    settingsSections: {
+      infoLegal: 'Thông tin & Pháp lý',
+      account: 'Tài khoản',
+    },
+    settingsList: {
+      editProfile: 'Chỉnh sửa hồ sơ',
+      editProfileDetail: 'Tên · ảnh',
+      anniversaries: 'Kỷ niệm & ngày quan trọng',
+      coupleName: 'Tên gọi của mình',
+      inviteCode: 'Mã mời',
+      notifications: 'Thông báo',
+      appearance: 'Giao diện',
+      memouraPlus: 'Memoura+',
+      replayTour: 'Xem lại hướng dẫn',
+      privacy: 'Chính sách bảo mật',
+      terms: 'Điều khoản sử dụng',
+      version: 'Phiên bản',
+      signOut: 'Đăng xuất',
+      deleteAccount: {
+        label: 'Xóa tài khoản',
+        detail: 'Xóa vĩnh viễn dữ liệu của bạn',
+      },
+      deleteAccountAlert: {
+        title: 'Xóa tài khoản?',
+        body: 'Tất cả khoảnh khắc, thư, ảnh của mình sẽ bị xóa vĩnh viễn. Hành động này KHÔNG thể hoàn tác.',
+        cancel: 'Huỷ',
+        confirm: 'Tiếp tục',
+      },
+      // T373 — notifications prompt. Only the `systemBlocked` alert remains:
+      // when OS perm is denied, the row bounces to Settings because iOS/Android
+      // don't let an app re-prompt for push after a denial. Granted-state flips
+      // are silent now (no in-app confirm). Named `notificationsPrompt` to
+      // avoid collision with the row label `notifications: 'Thông báo'` above.
+      notificationsPrompt: {
+        systemBlockedTitle: 'Thông báo đang bị chặn',
+        systemBlockedBody: 'Thông báo đang bị chặn trong Cài đặt iOS. Mở Cài đặt để bật lại nhé.',
+        systemBlockedAction: 'Mở Cài đặt',
+      },
+      detail: {
+        on: 'Bật',
+        off: 'Tắt',
+        system: 'Theo hệ thống',
+        free: 'Miễn phí',
+        version: 'v{{version}}',
+      },
+      signOutAlert: {
+        title: 'Đăng xuất?',
+        body: 'Bạn sẽ cần đăng nhập lại để xem các khoảnh khắc của hai đứa.',
+        cancel: 'Huỷ',
+        confirm: 'Đăng xuất',
+      },
+    },
+    // Sprint 61 T340 — invite-code bottom sheet opened from settings list.
+    invite: {
+      title: 'Mã mời của bạn',
+      subtitle: 'Gửi mã này cho người ấy để cùng vào Memoura.',
+      codeLabel: 'mã của bạn',
+      shareCta: 'Chia sẻ',
+      copyCta: 'Sao chép',
+      copied: 'Đã sao chép ✓',
+    },
+    // Sprint 61 T348 — Delete Account confirmation sheet (App Store
+    // 5.1.1(v) mandatory). Text-challenge word must match after trim,
+    // case-sensitive — localized so VN users aren't hit with English-only
+    // friction. DELETE matches the challenge word in en.ts.
+    deleteAccount: {
+      title: 'Xóa tài khoản vĩnh viễn',
+      subtitle:
+        'Tài khoản, khoảnh khắc, thư, ảnh và mọi kỷ niệm của mình sẽ bị xóa hoàn toàn khỏi Memoura. Không thể hoàn tác.',
+      challenge: 'XÓA',
+      inputLabel: 'Gõ "{{word}}" để xác nhận',
+      placeholder: 'Gõ {{word}}',
+      confirmCta: 'Xóa vĩnh viễn',
+      confirming: 'Đang xóa…',
+      cancel: 'Huỷ',
+      errors: {
+        network: 'Không xóa được tài khoản. Kiểm tra mạng rồi thử lại.',
+      },
+    },
+    // Sprint 61 T355 — anniversary date-picker bottom sheet. Opens from
+    // the "Kỷ niệm & ngày quan trọng" settings row. Single date, local
+    // YYYY-MM-DD, max = today.
+    anniversary: {
+      title: 'Kỷ niệm của hai đứa',
+      subtitle: 'Chọn ngày hai đứa mình bắt đầu — ngày sẽ hiện trên thẻ “Đôi mình”.',
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+      notSet: 'Chưa đặt',
+      errors: {
+        network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
+      },
+    },
+    // Sprint 61 T342 — edit couple-name bottom sheet. Opens from the
+    // "Tên gọi của mình" settings row.
+    coupleName: {
+      title: 'Tên gọi của mình',
+      subtitle: 'Đặt một cái tên chung cho hai đứa — có thể đổi bất cứ lúc nào.',
+      label: 'Tên gọi',
+      placeholder: 'Ví dụ: Minh & Linh',
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+      errors: {
+        nameRequired: 'Nhập tên giúp mình nhé.',
+        network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
+      },
+    },
+    // Sprint 61 T357+T358 — merged edit-identity bottom sheet (name + slogan).
+    // Replaces coupleName above as the active sheet for the "Tên gọi của
+    // mình" row; the coupleName keys stay in place so CoupleNameSheet.tsx
+    // doesn't break until the legacy file is removed.
+    editIdentity: {
+      title: 'Tên gọi & slogan',
+      subtitle: 'Đặt tên gọi chung và một câu slogan ngắn cho hai bạn.',
+      fields: {
+        name: {
+          label: 'Tên gọi',
+          placeholder: 'Ví dụ: Minh & Linh',
+        },
+        slogan: {
+          label: 'Slogan (tuỳ chọn)',
+          placeholder: 'Một câu ngắn cho hai bạn…',
+        },
+      },
+      counter: '{{count}}/{{max}}',
+      errors: {
+        nameRequired: 'Chưa có tên gọi. Hãy điền một tên.',
+        sloganTooLong: 'Slogan tối đa 80 ký tự.',
+        saveFailed: 'Có lỗi xảy ra. Hãy thử lại.',
+      },
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+    },
+    // Sprint 61 T341 — edit-profile bottom sheet (name + avatar). Opens from
+    // the hero self-avatar and the "Chỉnh sửa hồ sơ" settings row.
+    editProfile: {
+      title: 'Chỉnh sửa hồ sơ',
+      subtitle: 'Cập nhật tên hiển thị và ảnh đại diện của mình.',
+      nameLabel: 'Tên của mình',
+      namePlaceholder: 'Ví dụ: Minh',
+      avatarAdd: 'Thêm ảnh đại diện',
+      avatarChange: 'Đổi ảnh',
+      avatarUploading: 'Đang tải ảnh…',
+      save: 'Lưu',
+      saving: 'Đang lưu…',
+      errors: {
+        nameRequired: 'Nhập tên giúp mình nhé.',
+        avatarFailed: 'Tải ảnh không thành công. Thử lại nha.',
+        network: 'Có lỗi xảy ra. Kiểm tra mạng rồi thử lại.',
+      },
+    },
+    // Sprint 61 T356 — Theme picker bottom sheet (Light / Dark / System).
+    // Opened from the "Giao diện" settings row. `option.*` labels the three
+    // Pressable rows inside the sheet; `current.*` is the detail string
+    // shown on the settings row itself (identical wording, kept as a
+    // sibling so future divergence stays easy).
+    theme: {
+      title: 'Giao diện',
+      subtitle: 'Chọn cách ứng dụng hiển thị. "Theo hệ thống" sẽ đổi theo cài đặt thiết bị.',
+      option: {
+        light: 'Sáng',
+        dark: 'Tối',
+        system: 'Theo hệ thống',
+      },
+      current: {
+        light: 'Sáng',
+        dark: 'Tối',
+        system: 'Theo hệ thống',
+      },
+    },
     palette: 'Bảng màu',
     mode: 'Chế độ',
     typeSystem: 'Kiểu chữ',

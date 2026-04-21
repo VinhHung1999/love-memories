@@ -54,6 +54,9 @@
 | ID | Date | Observation | Source | Impact |
 |----|------|-------------|--------|--------|
 | OBS-001 | | | | |
+| OBS-002 | 2026-04-21 | Scroll-clip LẦN 6 cost ~5h across multiple build cycles + a dead dev-client detour because we had no runtime telemetry on the real device. Fix attempts relied on unverified math. Should have baked an on-device log export earlier. | Sprint 61 retro | High — Boss trust, wasted builds |
+| OBS-003 | 2026-04-21 | Dev-client over Cloudflare tunnel layered 3 hidden failure modes (react-native-xcode.sh hardcoded LAN IP, RN default :8081 vs Cloudflare :80/:443 only, iOS ATS blocking non-localhost HTTP). No way to short-circuit early. | Sprint 61 retro | Medium — debugging path |
+| OBS-004 | 2026-04-21 | No explicit "bail after LẦN N" rule → Boss had to manually call off the dev-client chase. Decision points belong in the sprint playbook, not in Boss's lap. | Sprint 61 retro | Medium — process |
 
 **Note (2026-04-14):** Initial observation about "PO ticket ID mismatch" was a misread by SM. PO clarified: backlog IDs (e.g. [314], [315]) and sprint task IDs (e.g. [270], [271]) are two legitimate ID spaces — `add_item_to_sprint` creates a new task with its own ID. PO uses sprint task ID in sprint comms. Not a process issue. SM should verify ID space (backlog vs sprint task) before flagging as mismatch.
 

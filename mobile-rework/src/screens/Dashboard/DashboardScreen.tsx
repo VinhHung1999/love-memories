@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
-import { SafeScreen } from '@/components';
+import { SafeScreen, TabBarSpacer } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 import { ShareCodeCard } from './ShareCodeCard';
 
@@ -18,11 +18,7 @@ export function DashboardScreen() {
 
   return (
     <SafeScreen>
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="pb-10"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-5 pt-4">
           <Text className="font-displayMedium text-ink text-[22px] leading-[28px]">
             {greeting}
@@ -39,6 +35,8 @@ export function DashboardScreen() {
             {t('tabs.home')}
           </Text>
         </View>
+
+        <TabBarSpacer />
       </ScrollView>
     </SafeScreen>
   );

@@ -1,6 +1,6 @@
 import { Heart, Users, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, LinearGradient, ScreenHeader } from '@/components';
@@ -263,16 +263,22 @@ function InviteState({
   );
 }
 
-// L + ? circles overlapping with a 💞 between — quick port of pairing.jsx:31.
+// T350: swap L/? initial circles for the Concept-L heart avatars Boss
+// approved. Layout (180×130 container, two 80×80 offset circles, 💞 between)
+// ports 1:1 from pairing.jsx:31 — only the per-circle content changes from
+// gradient+letter to heart PNG filling the circle.
+const HEART_ROSE = require('../../../assets/images/avatar-heart-rose.png');
+const HEART_BLUE = require('../../../assets/images/avatar-heart-blue.png');
+
 function PairedHearts() {
   return (
     <View className="px-6 pt-6">
       <View className="self-center w-[180px] h-[130px] relative">
-        <View className="absolute left-2.5 top-5 w-20 h-20 rounded-full bg-primary border-[3px] border-bg shadow-hero items-center justify-center">
-          <Text className="font-displayBold text-white text-[32px]">L</Text>
+        <View className="absolute left-2.5 top-5 w-20 h-20 rounded-full bg-surface border-[3px] border-bg shadow-hero overflow-hidden">
+          <Image source={HEART_ROSE} className="w-full h-full" resizeMode="cover" />
         </View>
-        <View className="absolute right-2.5 top-[30px] w-20 h-20 rounded-full bg-accent border-[3px] border-bg shadow-hero items-center justify-center">
-          <Text className="font-displayBold text-white text-[32px]">?</Text>
+        <View className="absolute right-2.5 top-[30px] w-20 h-20 rounded-full bg-surface border-[3px] border-bg shadow-hero overflow-hidden">
+          <Image source={HEART_BLUE} className="w-full h-full" resizeMode="cover" />
         </View>
         <Text className="absolute left-1/2 top-[55px] -translate-x-1/2 text-2xl">💞</Text>
       </View>

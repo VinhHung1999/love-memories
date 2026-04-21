@@ -1,7 +1,7 @@
 # Team Whiteboard
 
-**Sprint:** 60 CLOSED 2026-04-20 — Onboarding + Auth + Pairing (mobile-rework). Shipped 60+ commits T280-T335 on Memoura 2.0.0 build 29. Merged main + prod deployed (memoura-api, memoura-web). Next sprint on hold pending Boss direction.
-**Last Completed:** Sprint 60 — Welcome/Intro/Signup/Login/Forgot/SSO/PairCreate/PairJoin/Personalize/Permissions/OnboardingDone + /join/:code web landing + password-reset BE endpoints — Boss approved 2026-04-20
+**Sprint:** IDLE — awaiting Sprint 62 goal.
+**Last Completed:** Sprint 61 — Pill BottomTab + Profile (hero + 3 stats + 8 settings rows + edit flows) + Privacy/Terms/Delete Account + Notification state machine + T374 blind-buffer tab clearance — Boss approved via Build 39 (ad-hoc, app-store.hungphu.work) 2026-04-21. Board archived at `sprints/archive/sprint-7.md`. T367 + T368 deferred to backlog.
 
 **Big direction (Boss 2026-04-18):** Mobile rebuild from scratch. New source at `mobile-rework/` based on prototype `docs/design/prototype/memoura-v2/`. Drop all modules not in prototype (FoodSpots / Recipes / Expenses / Achievements / Date Planner). BE + web-PWA unchanged. Plan: Sprints 59→65 (~7 sprints, ~80 pts).
 
@@ -15,8 +15,8 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO   | IDLE | Sprint 60 CLOSED. Merged main (afe4e56), prod deployed (memoura-api + memoura-web). Sprint-6.md archived. Running /know-updater next. Awaiting Sprint 61 kickoff. | 2026-04-20 |
-| DEV  | IDLE | Sprint 60 merged + prod deployed. Build 29 live on app-store.hungphu.work. Awaiting Sprint 61. | 2026-04-20 |
+| PO (Lu) | STAND BY | Sprint 61 closed, Build 39 ad-hoc approved. Retro logged, board archived, merged `sprint_61` → `main`. Awaiting Sprint 62 goal from Boss. | 2026-04-21 |
+| DEV (Zu) | STAND BY | Sprint 61 final commit 356004a (T374 +30px spacer). Awaiting next sprint kickoff. | 2026-04-21 |
 
 **Task tracking uses board MD files.** Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md` for product backlog.
 
@@ -27,6 +27,8 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 | ID | Item | Priority | Points |
 |----|------|----------|--------|
 | 153 | B20: Play Store — Android release keystore + signing | P0 | 2 |
+| T367 | BottomSheet A auto-reopen after close B (Profile stale state) | P1 | 3 |
+| T368 | Airy spacing tokens — centralize into theme (Tailwind + vars) | P1 | 3 |
 | 154 | B22: App Store icons (1024x1024) + splash screen | P1 | 3 |
 | 155 | B23: App Store metadata (screenshots, descriptions) | P1 | 3 |
 | 156 | B25: Play Store — Data safety form | P1 | 2 |
@@ -34,7 +36,7 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 | 152 | B16: RN Monthly Recap (Instagram Stories) | P2 | 8 |
 | 151 | B8: RN Love Letters — common BottomSheet | P3 | 2 |
 
-**Total: 7 items, 25 story points**
+**Total: 9 items, 31 story points**
 
 ---
 
@@ -87,6 +89,7 @@ _Sprint 56 — Deploy to Internal App Store, Android Bundle ID Rename (com.hungp
 _Sprint 58 — Google Sign-In multi-platform audience fix (T270) + Sign in with Apple (T271, BE + MOBILE): CLOSED 2026-04-18 (Boss TestFlight E2E pending)_
 _Sprint 59 — mobile-rework bootstrap (Expo SDK 54 scaffold, theme system, fonts, i18n, shared components, Expo Router nav, API client, internal ad-hoc deploy): CLOSED 2026-04-18 (Memoura 2.0.0 (4) on app-store.hungphu.work, approved by Boss)_
 _Sprint 60 — Onboarding + Auth + Pairing (mobile-rework): CLOSED 2026-04-20 (Memoura 2.0.0 (29) + web /join/:code + BE password-reset endpoints, merged main, prod deployed)_
+_Sprint 61 — Pill BottomTab + Profile + Legal/Delete Account (mobile-rework): CLOSED 2026-04-21 (Memoura 2.0.0 (39) ad-hoc — T374 blind +30px TabBarSpacer resolved LẦN 6 scroll-clip, compliance trio shipped, merged main). Board archived sprint-7.md_
 
 ---
 
