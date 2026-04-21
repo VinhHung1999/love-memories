@@ -207,9 +207,8 @@ function Row({ icon, tint, title, subtitle, disabled, onPress }: RowProps) {
       accessibilityLabel={title}
       accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
-      className={`flex-row items-center gap-3 rounded-2xl border border-line-on-surface p-4 ${
-        disabled ? 'opacity-50' : 'active:bg-surface-alt/60'
-      }`}
+      className="flex-row items-center gap-3 rounded-2xl border border-line-on-surface p-4 active:bg-surface-alt/60"
+      style={{ opacity: disabled ? 0.5 : 1 }}
     >
       <View className={`w-12 h-12 rounded-2xl items-center justify-center ${tint}`}>
         {icon}

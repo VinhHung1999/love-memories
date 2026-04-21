@@ -107,14 +107,12 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
           disabled={!vm.canSubmit}
           accessibilityRole="button"
           accessibilityLabel={t('compose.momentCreate.save')}
-          className={`h-10 px-5 rounded-full items-center justify-center ${
-            vm.canSubmit ? 'bg-primary active:bg-primary-deep' : 'bg-surface-alt'
-          }`}
+          className="h-10 px-5 rounded-full items-center justify-center active:opacity-90"
+          style={{ backgroundColor: vm.canSubmit ? c.primary : c.surfaceAlt }}
         >
           <Text
-            className={`font-bodySemibold text-[14px] ${
-              vm.canSubmit ? 'text-white' : 'text-ink-mute'
-            }`}
+            className="font-bodySemibold text-[14px]"
+            style={{ color: vm.canSubmit ? '#ffffff' : c.inkMute }}
           >
             {t('compose.momentCreate.save')}
           </Text>
