@@ -144,6 +144,7 @@ const en: Resources = {
       notFound: 'This moment could not be found.',
       retry: 'Try again',
       justNow: 'Just now',
+      comingSoon: 'Coming soon',
     },
     list: {
       eyebrow: 'Our album',

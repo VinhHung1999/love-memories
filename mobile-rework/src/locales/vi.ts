@@ -166,6 +166,7 @@ const vi = {
       notFound: 'Không tìm thấy khoảnh khắc này.',
       retry: 'Thử lại',
       justNow: 'Vừa xong',
+      comingSoon: 'Sắp có rồi nhé',
     },
     list: {
       eyebrow: 'Album chung',

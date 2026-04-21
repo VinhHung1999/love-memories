@@ -22,6 +22,8 @@ export type MomentDetail = {
   createdAt: string;
   updatedAt: string;
   photos: MomentPhoto[];
+  tags: string[];
+  location: string | null;
 };
 
 type ErrorReason = 'network' | 'notFound' | 'unknown';
