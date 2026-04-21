@@ -183,8 +183,7 @@ export function HeroGallery({
 
       {/* Bottom title + location — sits just above the -28px thumbnail overlap */}
       <View
-        className="absolute left-0 right-0 z-10 px-5"
-        style={{ bottom: 40 }}
+        className="absolute left-0 right-0 bottom-10 z-10 px-5"
         pointerEvents="none"
       >
         <Text

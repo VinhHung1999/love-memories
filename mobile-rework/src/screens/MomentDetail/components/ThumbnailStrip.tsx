@@ -18,8 +18,7 @@ export function ThumbnailStrip({ photos, activeIndex, onSelect }: Props) {
   if (photos.length <= 1) return null;
   return (
     <View
-      className="absolute left-0 right-0 z-10"
-      style={{ bottom: -28 }}
+      className="absolute left-0 right-0 -bottom-7 z-10"
       pointerEvents="box-none"
     >
       <ScrollView
@@ -34,14 +33,10 @@ export function ThumbnailStrip({ photos, activeIndex, onSelect }: Props) {
               key={photo.id}
               onPress={() => onSelect(i)}
               accessibilityRole="imagebutton"
-              className="w-14 h-14 rounded-xl overflow-hidden active:opacity-90"
+              className="w-14 h-14 rounded-xl overflow-hidden shadow-md active:opacity-90"
               style={{
                 borderWidth: isActive ? 2.5 : 2,
                 borderColor: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowRadius: 12,
-                shadowOpacity: 0.25,
               }}
             >
               <Image

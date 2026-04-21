@@ -31,8 +31,7 @@ export function StoriesProgressBar({
   if (count <= 1) return null;
   return (
     <View
-      className="absolute left-4 right-4 flex-row gap-1 z-20"
-      style={{ top: 0 }}
+      className="absolute left-4 right-4 top-0 flex-row gap-1 z-20"
       pointerEvents="none"
     >
       {Array.from({ length: count }).map((_, i) => (
