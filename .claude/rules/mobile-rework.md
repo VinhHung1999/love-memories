@@ -241,6 +241,36 @@ frames. Don't port these from `mobile/` unless PO/Boss explicitly asks.
 - **Mapbox token**: never commit real `pk.*` to Info.plist. Use `$(MAPBOX_ACCESS_TOKEN)`
   placeholder + xcconfig (gitignored).
 - **i18n** `react-i18next` needs `{{n}}` double-brace — single braces render literally.
+- **TabBarSpacer values (Sprint 61 locked)**: floating `PillTabBar` requires a
+  static spacer at the bottom of every tab-scene `ScrollView` / `FlatList` — **120px
+  is insufficient on iPhone 15 Pro Max**. Current values: **150px notched / 116px
+  flat** (`src/components/TabBarSpacer.tsx`). Reached blind after LẦN 6 (Sprint
+  61 T374) because no runtime telemetry — math said 120px cleared the 98px pill
+  but device clipped anyway. If the pill layout changes, bump spacer first and
+  verify on the actual iPhone 15 Pro Max before lowering.
+- **Telemetry-first for device-specific layout bugs**: when a fix depends on
+  runtime `useSafeAreaInsets()` + `useBottomTabBarHeight()` + `onLayout` numbers,
+  bake an on-device log export path (AsyncStorage → "export log" button) BEFORE
+  the 2nd fix attempt. Blind iteration past LẦN 3 = burn Boss trust + TestFlight
+  slots. Sprint 61 LẦN 6 lesson.
+- **Do NOT serve Metro through a Cloudflare tunnel for dev-client debugging**.
+  Every layer of the RN+iOS toolchain fights this path:
+  1. `react-native-xcode.sh` runs `ipconfig getifaddr en0` at archive time and
+     writes that LAN IP into `Memoura.app/ip.txt` — silently ignoring
+     `EXPO_PACKAGER_HOSTNAME` and `REACT_NATIVE_PACKAGER_HOSTNAME`. You have to
+     patch `ip.txt` inside the `.xcarchive` between archive + export.
+  2. `RCTBundleURLProvider` defaults to port `8081` and scheme `http` — but
+     Cloudflare's edge only proxies `:80` and `:443`. `ip.txt` must include the
+     port (`metro-dev.example.com:80`), otherwise RN preflights
+     `http://host:8081/status`, times out, and crashes with
+     `unsanitizedScriptURLString = (null)` / `"No script URL provided"`.
+  3. Even with the port fixed, iOS App Transport Security blocks HTTP to non-
+     localhost domains in Debug builds by default. `NSAllowsLocalNetworking=true`
+     only whitelists `localhost` + RFC1918 LAN ranges — public hostnames need an
+     explicit `NSExceptionDomains` entry with `NSExceptionAllowsInsecureHTTPLoads`.
+  Prefer a simulator (LAN Metro works directly) or LAN Metro to a physical
+  device on the same Wi-Fi. Reserve Cloudflare tunnels for proxying the **API**,
+  not the Metro bundler. Sprint 61 lesson (Builds 37+38 dead).
 
 ## Sprint convention
 
