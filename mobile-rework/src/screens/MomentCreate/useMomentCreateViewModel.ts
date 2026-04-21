@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { apiClient, ApiError } from '@/lib/apiClient';
 import { uploadQueue } from '@/lib/uploadQueue';
+import i18n from '@/locales/i18n';
 import { useMomentsStore } from '@/stores/momentsStore';
 
 // T378 (Sprint 62) — ViewModel for the "new moment" composer. Owns:
@@ -17,8 +18,31 @@ import { useMomentsStore } from '@/stores/momentsStore';
 
 const MAX_PHOTOS = 10;
 const DESCRIPTION_MAX = 2000;
+const TITLE_MAX = 200;
 
 type MomentRow = { id: string };
+
+// T378 fix — backend `createMomentSchema` requires title (1..200), caption
+// optional, date ISO string. Composer UI stays 1-screen (no title input per
+// Boss), so we derive title here: first non-empty line of description trimmed
+// to TITLE_MAX; empty → locale-formatted fallback using takenAt.
+function deriveTitle(description: string, takenAt: Date): string {
+  const firstLine = description.split('\n')[0]?.trim() ?? '';
+  if (firstLine.length >= 1) return firstLine.slice(0, TITLE_MAX);
+  const lang = i18n.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
+  const formatted = (() => {
+    try {
+      return new Intl.DateTimeFormat(lang, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).format(takenAt);
+    } catch {
+      return takenAt.toISOString().slice(0, 10);
+    }
+  })();
+  return i18n.t('compose.momentCreate.autoTitleFallback', { date: formatted });
+}
 
 export type SubmitResult =
   | { ok: true; momentId: string }
@@ -70,9 +94,11 @@ export function useMomentCreateViewModel(initialPhotos: string[]) {
     if (!canSubmit) return { ok: false, reason: 'validation' };
     setSubmitting(true);
     try {
+      const trimmed = description.trim();
       const moment = await apiClient.post<MomentRow>('/api/moments', {
-        description: description.trim() || null,
-        takenAt: takenAt.toISOString(),
+        title: deriveTitle(description, takenAt),
+        caption: trimmed.length > 0 ? trimmed : undefined,
+        date: takenAt.toISOString(),
       });
 
       const momentId = moment.id;

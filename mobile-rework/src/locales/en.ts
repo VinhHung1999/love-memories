@@ -103,6 +103,7 @@ const en: Resources = {
       dateToday: 'Today',
       datePickerConfirm: 'Done',
       submitError: 'Could not save. Please try again.',
+      autoTitleFallback: 'Moment · {{date}}',
     },
     uploadToast: {
       uploading: 'Uploading {{count}} photo(s)…',

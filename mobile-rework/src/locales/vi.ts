@@ -120,6 +120,7 @@ const vi = {
       dateToday: 'Hôm nay',
       datePickerConfirm: 'Xong',
       submitError: 'Không lưu được. Thử lại nhé.',
+      autoTitleFallback: 'Khoảnh khắc {{date}}',
     },
     // T378 — global upload toast copy. Count is passed as {{count}}.
     uploadToast: {
