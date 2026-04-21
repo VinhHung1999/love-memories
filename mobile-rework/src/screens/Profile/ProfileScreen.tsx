@@ -25,7 +25,6 @@ import {
   Text,
   View,
 } from 'react-native';
-
 import {
   AnniversarySheet,
   type AnniversarySheetHandle,
@@ -59,6 +58,7 @@ import { type HeroPerson, type ProfileStats, useProfileViewModel } from './usePr
 export function ProfileScreen() {
   const vm = useProfileViewModel();
   const { t } = useTranslation();
+
   const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
   const editProfileRef = useRef<EditProfileSheetHandle>(null);

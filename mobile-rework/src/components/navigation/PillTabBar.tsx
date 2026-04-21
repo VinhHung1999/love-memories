@@ -123,7 +123,10 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
       pointerEvents="box-none"
       className={`absolute left-0 right-0 bottom-0 ${bottomClass}`}
     >
-      <View pointerEvents="box-none" className="flex-row items-center px-3">
+      <View
+        pointerEvents="box-none"
+        className="flex-row items-center px-3"
+      >
         {/* T361: BlurView dropped — solid bg-bg-elev + shadow-pill matches
             prototype tabbar.jsx:85-91 (bgElev + soft double shadow).
             Text labels removed; active state is a 4px primary dot under the

@@ -16,14 +16,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // v4 ALWAYS resolves className at runtime. Both branches below are static
 // literals in source so Tailwind JIT scans them.
 //
-// Heights match the scroll clearance formula in useTabBarBottomInset.ts:
-//   TAB_BAR_HEIGHT(62) + insets.bottom + 24 airy breathing
-//   → 120 on notched (home-indicator) devices, 86 on flat.
+// T374 (Build 39, LẦN 6 blind) — bumped +30px buffer: 120→150 on notched,
+// 86→116 on flat. Dev-client device QA (T372-measure) was abandoned after
+// Boss vetoed the tunnel/ATS path, so we ship the pessimistic clearance
+// without runtime insets telemetry.
 
 export function TabBarSpacer() {
   const insets = useSafeAreaInsets();
   if (insets.bottom > 0) {
-    return <View className="h-[120px]" />;
+    return <View className="h-[150px]" />;
   }
-  return <View className="h-[86px]" />;
+  return <View className="h-[116px]" />;
 }
