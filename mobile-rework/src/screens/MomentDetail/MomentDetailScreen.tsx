@@ -13,6 +13,7 @@ import {
   ToastAndroid,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { MomentCommentRow } from '@/api/moments';
 import { TabBarSpacer } from '@/components';
@@ -52,6 +53,7 @@ export function MomentDetailScreen({ id }: Props) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const c = useAppColors();
+  const insets = useSafeAreaInsets();
   const { showActionSheetWithOptions } = useActionSheet();
 
   const vm = useMomentDetailViewModel(id);
@@ -201,6 +203,7 @@ export function MomentDetailScreen({ id }: Props) {
           photos={vm.moment.photos}
           initialIndex={lightboxIndex ?? 0}
           onClose={closeLightbox}
+          topInset={insets.top}
         />
       </View>
     </KeyboardAvoidingView>

@@ -49,6 +49,14 @@ type Props = {
   photos: readonly Photo[];
   initialIndex: number;
   onClose: () => void;
+  // T410 — parent-provided safe-area top inset. Relying on SafeAreaView
+  // inside a transparent Modal loses the top padding on first mount (the
+  // Modal's own UIWindow hasn't inherited the host's safe-area context
+  // yet), so the X button hugs the status bar the first time the lightbox
+  // opens. Threading the inset through as a prop + applying it as an
+  // explicit paddingTop on the wrapper guarantees the clearance on every
+  // mount.
+  topInset: number;
 };
 
 const MAX_SCALE = 4;
@@ -57,7 +65,13 @@ const DOUBLE_TAP_SCALE = 2.5;
 const DISMISS_PX = 120;
 const TOAST_MS = 2500;
 
-export function PhotoLightbox({ visible, photos, initialIndex, onClose }: Props) {
+export function PhotoLightbox({
+  visible,
+  photos,
+  initialIndex,
+  onClose,
+  topInset,
+}: Props) {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<Photo>>(null);
@@ -157,13 +171,19 @@ export function PhotoLightbox({ visible, photos, initialIndex, onClose }: Props)
         />
 
         <SafeAreaView
-          edges={['top', 'bottom']}
+          edges={['bottom']}
           className="absolute left-0 right-0 top-0 bottom-0"
           pointerEvents="box-none"
         >
           {/* Close X — visually identical to PairJoinScreen QR close
-              (bg-black/40, pt-6 to clear Dynamic Island, strokeWidth 2.2). */}
-          <View className="px-4 pt-6 flex-row justify-end" pointerEvents="box-none">
+              (bg-black/40, strokeWidth 2.2). Top inset comes from the
+              parent via `topInset` prop (T410) — SafeAreaView's top edge
+              reports 0 on first mount inside a transparent Modal. */}
+          <View
+            className="px-4 flex-row justify-end"
+            pointerEvents="box-none"
+            style={{ paddingTop: topInset + 24 }}
+          >
             <Pressable
               onPress={onClose}
               accessibilityRole="button"
