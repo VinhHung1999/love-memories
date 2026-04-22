@@ -199,6 +199,12 @@ const en: Resources = {
         },
         deleteError: "Couldn't delete. Please try again.",
       },
+      lightbox: {
+        download: 'Save',
+        downloadSuccess: 'Saved to Photos',
+        downloadError: 'Download failed. Please try again.',
+        permissionDenied: 'Photos permission required to save.',
+      },
     },
     list: {
       eyebrow: 'Our album',

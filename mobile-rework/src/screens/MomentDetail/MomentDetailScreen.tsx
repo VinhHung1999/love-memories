@@ -58,7 +58,7 @@ export function MomentDetailScreen({ id }: Props) {
   const vm = useMomentDetailViewModel(id);
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const [lightboxUri, setLightboxUri] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   // T408 — when keyboard opens the user just tapped the ReplyBar; pin them
@@ -73,8 +73,8 @@ export function MomentDetailScreen({ id }: Props) {
   }, []);
 
   const onBack = () => router.back();
-  const openLightbox = (uri: string) => setLightboxUri(uri);
-  const closeLightbox = () => setLightboxUri(null);
+  const openLightbox = (index: number) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(null);
 
   const showComingSoon = useCallback(() => {
     const msg = t('moments.detail.comingSoon');
@@ -198,8 +198,9 @@ export function MomentDetailScreen({ id }: Props) {
         <ReplyBar onSend={vm.postComment} posting={vm.posting} />
 
         <PhotoLightbox
-          visible={lightboxUri !== null}
-          uri={lightboxUri}
+          visible={lightboxIndex !== null}
+          photos={vm.moment.photos}
+          initialIndex={lightboxIndex ?? 0}
           onClose={closeLightbox}
         />
       </View>

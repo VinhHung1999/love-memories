@@ -221,6 +221,12 @@ const vi = {
         },
         deleteError: 'Không xóa được. Thử lại sau nhé.',
       },
+      lightbox: {
+        download: 'Tải về',
+        downloadSuccess: 'Đã lưu vào Ảnh',
+        downloadError: 'Tải về thất bại. Thử lại sau nhé.',
+        permissionDenied: 'Cần cấp quyền truy cập Ảnh để lưu.',
+      },
     },
     list: {
       eyebrow: 'Album chung',

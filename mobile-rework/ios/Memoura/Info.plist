@@ -61,6 +61,8 @@
     <string>Memoura cần vị trí khi em muốn tự động điền địa điểm cho khoảnh khắc.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Memoura cần quyền lưu ảnh để tải khoảnh khắc về máy em.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Memoura cần quyền truy cập ảnh để em chọn ảnh khi thêm khoảnh khắc.</string>
     <key>NSUserActivityTypes</key>

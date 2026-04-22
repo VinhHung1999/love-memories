@@ -77,6 +77,19 @@ const config: ExpoConfig = {
       },
     ],
     [
+      'expo-media-library',
+      {
+        // T406 — Download from photo lightbox saves the current photo to the
+        // iOS Photos app. Read permission reuses the existing photo-picker
+        // copy; add-only permission gets its own prompt the first time the
+        // user taps Download.
+        photosPermission:
+          'Memoura cần quyền truy cập ảnh để em chọn ảnh khi thêm khoảnh khắc.',
+        savePhotosPermission: 'Memoura cần quyền lưu ảnh để tải khoảnh khắc về máy em.',
+        isAccessMediaLocationEnabled: false,
+      },
+    ],
+    [
       'expo-camera',
       {
         // T289 — used by pair-join "Scan their QR code" to read the partner's

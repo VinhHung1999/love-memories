@@ -48,7 +48,7 @@ type Props = {
   onBack: () => void;
   onShare: () => void;
   onMore: () => void;
-  onPhotoPress: (uri: string) => void;
+  onPhotoPress: (index: number) => void;
 };
 
 export function HeroGallery({
@@ -124,9 +124,9 @@ export function HeroGallery({
             offset: width * index,
             index,
           })}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <Pressable
-              onPress={() => onPhotoPress(item.url)}
+              onPress={() => onPhotoPress(index)}
               accessibilityRole="imagebutton"
               accessibilityLabel={item.filename}
               style={{ width, height: HERO_HEIGHT }}
