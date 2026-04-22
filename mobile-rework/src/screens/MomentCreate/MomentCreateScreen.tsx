@@ -3,7 +3,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { Plus, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -20,9 +20,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LinearGradient } from '@/components';
+import { registerCommit } from '@/screens/LocationPicker/locationPickerBus';
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { LocationPickerSheet } from './components/LocationPickerSheet';
 import { LocationPill } from './components/LocationPill';
 import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
@@ -63,9 +63,18 @@ export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
   const [tagEditing, setTagEditing] = useState(false);
   const [tagDraft, setTagDraft] = useState('');
 
-  // T399 — location picker sheet visibility. The VM owns the location value;
-  // this flag only controls whether the sheet is presented.
-  const [pickingLocation, setPickingLocation] = useState(false);
+  // T412 — location picker is now a full-screen route. Push the modal and
+  // register a one-shot commit callback the picker invokes on pick/clear.
+  // Swipe-dismiss or X-close leaves the VM untouched (cancel path).
+  const openLocationPicker = useCallback(() => {
+    registerCommit((result) => {
+      vm.setLocation(result);
+    });
+    router.push({
+      pathname: '/location-picker',
+      params: vm.location ? { current: vm.location } : undefined,
+    });
+  }, [router, vm]);
 
   const partnerName = t('compose.momentCreate.partnerFallback');
 
@@ -288,13 +297,10 @@ export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
 
           {/* T399 — Location pill + interactive tag chips share one wrap row.
               Pill-first matches prototype L107-124 order (📍 before #tags).
-              Tapping the pill opens LocationPickerSheet; clearing happens
-              inside the sheet, not on the pill itself. */}
+              Tapping the pill pushes the full-screen LocationPicker route
+              (T412); clearing happens inside the picker, not on the pill. */}
           <View className="flex-row flex-wrap gap-1.5 px-4 pt-3">
-            <LocationPill
-              value={vm.location}
-              onPress={() => setPickingLocation(true)}
-            />
+            <LocationPill value={vm.location} onPress={openLocationPicker} />
             {vm.tags.map((tag) => (
               <RemovableTagChip
                 key={tag}
@@ -396,19 +402,6 @@ export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
         </Modal>
       ) : null}
 
-      <LocationPickerSheet
-        visible={pickingLocation}
-        value={vm.location}
-        onPick={(placeName) => {
-          vm.setLocation(placeName);
-          setPickingLocation(false);
-        }}
-        onClear={() => {
-          vm.setLocation(null);
-          setPickingLocation(false);
-        }}
-        onClose={() => setPickingLocation(false)}
-      />
     </View>
   );
 }

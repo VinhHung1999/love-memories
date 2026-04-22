@@ -9,8 +9,8 @@ import { useAppColors } from '@/theme/ThemeProvider';
 //   - empty  → dashed border, muted MapPin, "Thêm địa điểm" copy
 //   - picked → solid surface + line border, ink MapPin, place name (1-line
 //              ellipsis at 140px to keep the row compact on small phones)
-// Tap on either state opens the LocationPickerSheet. Clearing happens from
-// inside the sheet (spec §4), not on the pill itself.
+// Tap on either state opens the LocationPicker route (T412). Clearing
+// happens from inside the picker (spec §4), not on the pill itself.
 
 type Props = {
   value: string | null;

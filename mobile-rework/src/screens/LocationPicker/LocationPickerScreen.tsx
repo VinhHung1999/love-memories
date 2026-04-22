@@ -1,50 +1,33 @@
-import {
-  BottomSheetBackdrop,
-  type BottomSheetBackdropProps,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  BottomSheetTextInput,
-  BottomSheetView,
-} from '@gorhom/bottom-sheet';
+import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { Crosshair, MapPin, Trash2, X } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
-import { FullWindowOverlay } from 'react-native-screens';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { type PlaceFeature, reverseGeocode, searchPlaces } from '@/api/location';
 import { useAppColors } from '@/theme/ThemeProvider';
 
-// T399 (Sprint 63) — BottomSheet picker for the Compose location pill.
-// Presentation: fullScreenModal parent needs FullWindowOverlay on iOS or
-// touches get intercepted (documented in mobile-rework rules, burned by
-// Sprint 55 bug).
+import { cancel, commit } from './locationPickerBus';
+
+// T412 — full-screen location picker route. Ports the body of the old
+// LocationPickerSheet BottomSheet into a standard Stack route so the
+// picker owns its own screen (deep-link friendly, simpler nav stack, no
+// FullWindowOverlay carve-out, predictable keyboard behaviour).
 //
-// T404 (Build 55 fix): snapPoint bumped 75% → 90% — Boss had to drag up
-// on every open to reach the search input + result list. 90% leaves just
-// enough top gap to show we're in a sheet without cropping the results.
-//
-// Flow: debounced (400ms) forward geocode as the user types; separate "use
-// current location" button triggers expo-location permission + GPS fix →
-// reverse geocode → apply the first feature's place_name. Results list is
-// capped at 5 (backend clamps limit to 10 but 5 is enough for the row copy).
-//
-// T404 (Build 55 fix): if the input matches a Google Maps share URL
-// (maps.app.goo.gl / google.com/maps / maps.google.com), skip the places
-// API (would 400 on a URL anyway) and try to extract a place name:
-//   - maps.app.goo.gl short URLs are expanded via `fetch().url` which
-//     reads the final URL after redirects.
-//   - /maps/place/NAME/ path segment or ?q=NAME query param is
-//     URL-decoded into a readable name.
-//   - Fallback: paste the raw URL as location text. BE column is string
-//     max 120, so onPick trims before submit.
-// Result renders as a single tappable "Maps link" row instead of the
-// normal search results list.
-//
-// Clear option: rendered as its own destructive-styled row at the top of
-// the list when a value is already set, per spec §4.
+// The Mapbox forward-geocode + GPS flow and the Maps-link short-URL
+// fallback (T404) are carried over unchanged — only the container shifts
+// from BottomSheetModal to SafeAreaView + KeyboardAvoidingView.
 
 const MAPS_URL_RE =
   /^https?:\/\/(?:maps\.app\.goo\.gl|(?:www\.)?google\.com\/maps|maps\.google\.com)/i;
@@ -103,28 +86,13 @@ async function resolveMapsUrl(url: string): Promise<string> {
 }
 
 type Props = {
-  visible: boolean;
-  value: string | null;
-  onPick: (placeName: string) => void;
-  onClear: () => void;
-  onClose: () => void;
+  initialValue: string | null;
 };
 
-function iOSContainer(props: { children?: React.ReactNode }) {
-  return <FullWindowOverlay>{props.children}</FullWindowOverlay>;
-}
-
-export function LocationPickerSheet({
-  visible,
-  value,
-  onPick,
-  onClear,
-  onClose,
-}: Props) {
-  const ref = useRef<BottomSheetModal>(null);
+export function LocationPickerScreen({ initialValue }: Props) {
   const { t } = useTranslation();
   const c = useAppColors();
-  const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlaceFeature[]>([]);
@@ -140,29 +108,6 @@ export function LocationPickerSheet({
   // "Maps link" row instead of the normal places result list.
   const [urlFallback, setUrlFallback] = useState<string | null>(null);
   const [urlResolving, setUrlResolving] = useState(false);
-
-  useEffect(() => {
-    if (visible) {
-      ref.current?.present();
-    } else {
-      ref.current?.dismiss();
-    }
-  }, [visible]);
-
-  // Reset transient state on every open — a stale query/results set from a
-  // previous session bleeds visually for a frame before the first keystroke
-  // clears it.
-  useEffect(() => {
-    if (visible) {
-      setQuery('');
-      setResults([]);
-      setSearching(false);
-      setSearchError(false);
-      setGpsError(null);
-      setUrlFallback(null);
-      setUrlResolving(false);
-    }
-  }, [visible]);
 
   // Debounced forward geocode — 400ms per spec. Bails on empty string and
   // also on an "unchanged" query (Strict Mode double-invoke safe).
@@ -226,23 +171,10 @@ export function LocationPickerSheet({
     };
   }, [query]);
 
-  const renderBackdrop = useCallback(
-    (p: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...p}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        pressBehavior="close"
-        opacity={0.45}
-      />
-    ),
-    [],
-  );
-
-  // @gorhom/bottom-sheet carve-out: native-only props can't take className.
-  const backgroundStyle = { backgroundColor: c.bg };
-  const handleIndicatorStyle = { backgroundColor: c.line };
-  const snapPoints = useMemo(() => ['90%'], []);
+  const onClose = useCallback(() => {
+    cancel();
+    router.back();
+  }, [router]);
 
   const onUseGps = useCallback(async () => {
     setGpsLoading(true);
@@ -266,35 +198,39 @@ export function LocationPickerSheet({
         setGpsLoading(false);
         return;
       }
-      onPick(feature.place_name);
-      setGpsLoading(false);
+      commit(feature.place_name.slice(0, LOCATION_MAX_CHARS));
+      router.back();
     } catch {
       setGpsError('network');
       setGpsLoading(false);
     }
-  }, [onPick]);
+  }, [router]);
 
   const onPickFeature = useCallback(
     (feature: PlaceFeature) => {
-      onPick(feature.place_name.slice(0, LOCATION_MAX_CHARS));
+      commit(feature.place_name.slice(0, LOCATION_MAX_CHARS));
+      router.back();
     },
-    [onPick],
+    [router],
   );
 
   // T404 — picking a Maps-link result. Trim to 120 char BE limit so a
   // very long google.com/maps/place/... URL doesn't reject on submit.
   const onPickUrlFallback = useCallback(() => {
     if (!urlFallback) return;
-    onPick(urlFallback.slice(0, LOCATION_MAX_CHARS));
-  }, [onPick, urlFallback]);
+    commit(urlFallback.slice(0, LOCATION_MAX_CHARS));
+    router.back();
+  }, [router, urlFallback]);
 
   const onClearPress = useCallback(() => {
-    onClear();
-  }, [onClear]);
+    commit(null);
+    router.back();
+  }, [router]);
 
-  const containerComponent = Platform.OS === 'ios' ? iOSContainer : undefined;
-
-  const hasValue = !!value && value.trim().length > 0;
+  const hasValue = useMemo(
+    () => !!initialValue && initialValue.trim().length > 0,
+    [initialValue],
+  );
   const showUrlRow = urlFallback !== null;
   const showInitialState =
     query.trim().length < 1 && !searchError && !urlResolving && !showUrlRow;
@@ -307,20 +243,10 @@ export function LocationPickerSheet({
     results.length === 0;
 
   return (
-    <BottomSheetModal
-      ref={ref}
-      snapPoints={snapPoints}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={backgroundStyle}
-      handleIndicatorStyle={handleIndicatorStyle}
-      containerComponent={containerComponent}
-      keyboardBehavior="interactive"
-      keyboardBlurBehavior="restore"
-      onDismiss={onClose}
-    >
-      <BottomSheetView
+    <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-bg">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
-        style={{ paddingBottom: insets.bottom + 16 }}
       >
         {/* Header */}
         <View className="flex-row items-center justify-between px-5 pt-2 pb-3">
@@ -345,7 +271,7 @@ export function LocationPickerSheet({
             style={{ backgroundColor: c.surface, borderColor: c.lineOnSurface }}
           >
             <MapPin size={15} strokeWidth={2} color={c.inkMute} />
-            <BottomSheetTextInput
+            <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder={t('compose.momentCreate.location.searchPlaceholder')}
@@ -353,6 +279,7 @@ export function LocationPickerSheet({
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
+              autoFocus
               className="flex-1 font-body text-ink text-[15px] p-0"
             />
             {query.length > 0 ? (
@@ -420,7 +347,7 @@ export function LocationPickerSheet({
         ) : null}
 
         {/* Results */}
-        <BottomSheetScrollView
+        <ScrollView
           className="flex-1 mt-3"
           contentContainerClassName="px-5 pb-6"
           keyboardShouldPersistTaps="handled"
@@ -472,9 +399,9 @@ export function LocationPickerSheet({
                 />
               ))
             : null}
-        </BottomSheetScrollView>
-      </BottomSheetView>
-    </BottomSheetModal>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -489,9 +416,6 @@ type MapsLinkRowProps = {
   onPress: () => void;
 };
 
-// T404 — renders the Google-Maps-link "tap to use" row. Primary line shows
-// the parsed place name (or truncated URL if parsing failed); subtitle is
-// a localised hint. Matches ResultRow layout so the list reads uniform.
 function MapsLinkRow({ value, hint, onPress }: MapsLinkRowProps) {
   const c = useAppColors();
   return (
