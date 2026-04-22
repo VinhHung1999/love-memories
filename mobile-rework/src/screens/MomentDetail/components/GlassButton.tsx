@@ -12,6 +12,13 @@ type Props = {
 // hero chrome (back, share, more). `expo-blur` native props (intensity, tint)
 // aren't className-able; the pill clip requires an inline borderRadius +
 // overflow per the BlurView carve-out documented in .claude/rules/mobile-rework.md.
+//
+// T405 — ported exactly to prototype moments.jsx:701 GlassBtn:
+//   background rgba(255,255,255,0.22) + backdrop blur(12) + border white/30.
+// Previous build used tint='systemMaterialDark' + bg-black/10 which smoked
+// the pill out so the white/30 border looked wispy and the photo bled
+// through the center. Light tint + white fill keeps the pill visibly
+// detached from the photo below on both light and dark hero images.
 export function GlassButton({ onPress, accessibilityLabel, children }: Props) {
   return (
     <Pressable
@@ -21,10 +28,10 @@ export function GlassButton({ onPress, accessibilityLabel, children }: Props) {
       className="w-9 h-9 active:opacity-75"
     >
       <BlurView
-        intensity={45}
-        tint="systemMaterialDark"
+        intensity={50}
+        tint="light"
         style={{ borderRadius: 9999, overflow: 'hidden' }}
-        className="w-9 h-9 items-center justify-center border border-white/30 bg-black/10"
+        className="w-9 h-9 items-center justify-center border border-white/30 bg-white/20"
       >
         {children}
       </BlurView>
