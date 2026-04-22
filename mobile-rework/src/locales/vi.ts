@@ -210,7 +210,7 @@ const vi = {
       comments: {
         title: 'Bình luận',
         empty: 'Chưa có bình luận nào. Viết gì đó cho nhau nhé.',
-        placeholder: 'Viết gì đó…',
+        placeholder: 'Viết gì đó cho {{partner}}…',
         sendLabel: 'Gửi',
         postError: 'Không gửi được. Thử lại sau nhé.',
         deleteAlert: {

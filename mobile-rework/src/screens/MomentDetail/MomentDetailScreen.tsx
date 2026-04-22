@@ -1,10 +1,9 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { MomentCommentRow } from '@/api/moments';
 import { TabBarSpacer } from '@/components';
+import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { CommentsSection } from './components/CommentsSection';
@@ -57,21 +57,21 @@ export function MomentDetailScreen({ id }: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
 
   const vm = useMomentDetailViewModel(id);
+  const currentUserName = useAuthStore((s) => s.user?.name ?? null);
 
-  const scrollViewRef = useRef<ScrollView>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // T408 — when keyboard opens the user just tapped the ReplyBar; pin them
-  // to the latest comment so the thread they're replying to stays visible
-  // above the input. Outer KAV (below) handles moving both ScrollView and
-  // ReplyBar above the keyboard; this listener only handles scroll position.
-  useEffect(() => {
-    const sub = Keyboard.addListener('keyboardDidShow', () => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    });
-    return () => sub.remove();
-  }, []);
+  // T414 — prototype placeholder interpolates the partner's name, but the
+  // MomentDetail ViewModel doesn't track partner identity (only the list
+  // screen fetches `/api/couple` lazily for its empty-state whisper). Use
+  // the neutral i18n fallback ("nửa kia" / "your love") until a shared
+  // partner-context hook lands.
+  const partnerName = t('compose.momentCreate.partnerFallback');
+  const userInitial = useMemo(
+    () => (currentUserName ? currentUserName.trim().charAt(0).toUpperCase() : ''),
+    [currentUserName],
+  );
 
   const onBack = () => router.back();
   const openLightbox = (index: number) => setLightboxIndex(index);
@@ -166,10 +166,10 @@ export function MomentDetailScreen({ id }: Props) {
     >
       <View className="flex-1 bg-bg">
         <ScrollView
-          ref={scrollViewRef}
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 0 }}
+          keyboardShouldPersistTaps="handled"
         >
           <HeroGallery
             photos={vm.moment.photos}
@@ -191,12 +191,14 @@ export function MomentDetailScreen({ id }: Props) {
             commentsLoaded={vm.commentsLoaded}
             currentUserId={vm.currentUserId}
             onDeleteComment={vm.removeComment}
+            onPostComment={vm.postComment}
+            posting={vm.posting}
+            partnerName={partnerName}
+            userInitial={userInitial}
             t={t}
           />
           <TabBarSpacer />
         </ScrollView>
-
-        <ReplyBar onSend={vm.postComment} posting={vm.posting} />
 
         <PhotoLightbox
           visible={lightboxIndex !== null}
@@ -219,6 +221,10 @@ type DetailBodyProps = {
   commentsLoaded: boolean;
   currentUserId: string | null;
   onDeleteComment: (commentId: string) => Promise<boolean>;
+  onPostComment: (content: string) => Promise<boolean>;
+  posting: boolean;
+  partnerName: string;
+  userInitial: string;
   t: (k: string, opts?: Record<string, unknown>) => string;
 };
 
@@ -231,6 +237,10 @@ function DetailBody({
   commentsLoaded,
   currentUserId,
   onDeleteComment,
+  onPostComment,
+  posting,
+  partnerName,
+  userInitial,
   t,
 }: DetailBodyProps) {
   const dateLabel = useMemo(
@@ -283,6 +293,13 @@ function DetailBody({
         locale={locale}
         currentUserId={currentUserId}
         onDelete={onDeleteComment}
+      />
+
+      <ReplyBar
+        onSend={onPostComment}
+        posting={posting}
+        partnerName={partnerName}
+        userInitial={userInitial}
       />
     </View>
   );

@@ -188,7 +188,7 @@ const en: Resources = {
       comments: {
         title: 'Comments',
         empty: 'No comments yet. Say something to each other.',
-        placeholder: 'Write something…',
+        placeholder: 'Say something to {{partner}}…',
         sendLabel: 'Send',
         postError: "Couldn't post comment. Please try again.",
         deleteAlert: {

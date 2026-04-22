@@ -1,34 +1,44 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
+import { LinearGradient } from '@/components/Gradient';
 import { useAppColors } from '@/theme/ThemeProvider';
 
-// T401 (Sprint 63) — sticky reply bar at MomentDetail bottom. Prototype
-// moments.jsx L672-696: rounded pill with input + circular send button.
+// T414 (Sprint 63) — redesign to match prototype moments.jsx L672-696.
 //
-// T408 — the inner KeyboardAvoidingView was removed; MomentDetailScreen
-// now wraps the whole screen (ScrollView + this bar) in an outer KAV so
-// comments and input both move above the keyboard. Keeping a second KAV
-// here nested the layouts and only lifted the bar, leaving the freshest
-// comments under the keyboard.
+// Changes from the T401/T408 version:
+//   - Inline inside the ScrollView (no longer sticky-to-bottom). The outer
+//     KeyboardAvoidingView still lifts the whole scroll surface above the
+//     keyboard, and because the input is part of the scroll content RN's
+//     normal focus-into-view flow keeps it visible.
+//   - Drops the border-t + insets.bottom padding — the bar is now a self-
+//     contained rounded card (rounded-[22px], border, padding 8 8 8 14).
+//   - Adds a 24×24 gradient avatar circle with the current user's initial,
+//     matching the prototype's `L` avatar on a heroA→heroB gradient.
+//   - Placeholder now interpolates the partner's name: "Viết gì đó cho
+//     {{partner}}…" / "Say something to {{partner}}…".
 //
-// Lives OUTSIDE the ScrollView so it stays pinned while the user scrolls
-// through comments. Safe-area bottom inset padded in so it doesn't sit
-// under the home indicator.
+// MomentDetailScreen renders this inside DetailBody after CommentsSection.
 
 type Props = {
   onSend: (content: string) => Promise<boolean>;
+  partnerName: string;
+  userInitial: string;
   disabled?: boolean;
   posting?: boolean;
 };
 
-export function ReplyBar({ onSend, disabled, posting }: Props) {
+export function ReplyBar({
+  onSend,
+  partnerName,
+  userInitial,
+  disabled,
+  posting,
+}: Props) {
   const { t } = useTranslation();
   const c = useAppColors();
-  const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
 
   const trimmed = text.trim();
@@ -51,34 +61,44 @@ export function ReplyBar({ onSend, disabled, posting }: Props) {
 
   return (
     <View
-      className="px-4 pt-2 border-t border-line-on-surface bg-bg"
-      style={{ paddingBottom: Math.max(insets.bottom, 10) }}
+      className="mt-4 flex-row items-center gap-2 rounded-[22px] border border-line-on-surface bg-surface pl-[14px] pr-2 py-2"
     >
-      <View className="flex-row items-center gap-2 h-11 rounded-full bg-surface border border-line-on-surface pl-4 pr-1.5">
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          placeholder={t('moments.detail.comments.placeholder')}
-          placeholderTextColor={c.inkMute}
-          editable={!disabled}
-          multiline={false}
-          returnKeyType="send"
-          onSubmitEditing={handleSend}
-          blurOnSubmit={false}
-          className="flex-1 font-body text-ink text-[14px] h-full"
+      <View className="w-6 h-6 rounded-full overflow-hidden items-center justify-center">
+        <LinearGradient
+          colors={[c.heroA, c.heroB]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
         />
-        <Pressable
-          onPress={handleSend}
-          disabled={!canSend}
-          accessibilityRole="button"
-          accessibilityLabel={t('moments.detail.comments.sendLabel')}
-          accessibilityState={{ disabled: !canSend }}
-          className="w-8 h-8 rounded-full items-center justify-center active:opacity-80"
-          style={sendStyle}
-        >
-          <Ionicons name="send" size={14} color={canSend ? '#ffffff' : c.inkMute} />
-        </Pressable>
+        <Text className="font-bodyBold text-white text-[10px]">
+          {userInitial}
+        </Text>
       </View>
+      <TextInput
+        value={text}
+        onChangeText={setText}
+        placeholder={t('moments.detail.comments.placeholder', {
+          partner: partnerName,
+        })}
+        placeholderTextColor={c.inkMute}
+        editable={!disabled}
+        multiline={false}
+        returnKeyType="send"
+        onSubmitEditing={handleSend}
+        blurOnSubmit={false}
+        className="flex-1 font-body text-ink text-[13px] p-0"
+      />
+      <Pressable
+        onPress={handleSend}
+        disabled={!canSend}
+        accessibilityRole="button"
+        accessibilityLabel={t('moments.detail.comments.sendLabel')}
+        accessibilityState={{ disabled: !canSend }}
+        className="w-8 h-8 rounded-full items-center justify-center active:opacity-80"
+        style={sendStyle}
+      >
+        <Ionicons name="send" size={12} color={canSend ? '#ffffff' : c.inkMute} />
+      </Pressable>
     </View>
   );
 }
