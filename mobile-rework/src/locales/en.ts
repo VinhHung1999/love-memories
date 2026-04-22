@@ -146,6 +146,7 @@ const en: Resources = {
           unavailable: 'Could not identify a place from your current position.',
           network: 'Network issue — please try again.',
         },
+        mapLinkHint: 'Tap to use this link as the location',
       },
     },
     uploadToast: {

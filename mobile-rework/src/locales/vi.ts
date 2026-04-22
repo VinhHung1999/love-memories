@@ -164,6 +164,7 @@ const vi = {
           unavailable: 'Không xác định được địa điểm từ vị trí hiện tại.',
           network: 'Mạng đang trục trặc. Thử lại nhé.',
         },
+        mapLinkHint: 'Chạm để dùng liên kết này làm địa điểm',
       },
     },
     // T378 — global upload toast. T391 (Sprint 62): serial upload gate means
