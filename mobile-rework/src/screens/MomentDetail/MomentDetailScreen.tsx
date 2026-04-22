@@ -1,9 +1,19 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useRouter } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, Pressable, ScrollView, Text, ToastAndroid, View } from 'react-native';
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  ToastAndroid,
+  View,
+} from 'react-native';
 
 import type { MomentCommentRow } from '@/api/moments';
 import { TabBarSpacer } from '@/components';
@@ -47,8 +57,20 @@ export function MomentDetailScreen({ id }: Props) {
 
   const vm = useMomentDetailViewModel(id);
 
+  const scrollViewRef = useRef<ScrollView>(null);
   const [lightboxUri, setLightboxUri] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // T408 — when keyboard opens the user just tapped the ReplyBar; pin them
+  // to the latest comment so the thread they're replying to stays visible
+  // above the input. Outer KAV (below) handles moving both ScrollView and
+  // ReplyBar above the keyboard; this listener only handles scroll position.
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => sub.remove();
+  }, []);
 
   const onBack = () => router.back();
   const openLightbox = (uri: string) => setLightboxUri(uri);
@@ -136,45 +158,52 @@ export function MomentDetailScreen({ id }: Props) {
   }
 
   return (
-    <View className="flex-1 bg-bg">
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 0 }}
-      >
-        <HeroGallery
-          photos={vm.moment.photos}
-          title={vm.moment.title}
-          location={vm.moment.location}
-          activeIndex={activeIndex}
-          onIndexChange={setActiveIndex}
-          onBack={onBack}
-          onShare={showComingSoon}
-          onMore={onMore}
-          onPhotoPress={openLightbox}
-        />
-        <DetailBody
-          moment={vm.moment}
-          locale={i18n.language}
-          reactions={vm.reactions}
-          onReact={vm.react}
-          comments={vm.comments}
-          commentsLoaded={vm.commentsLoaded}
-          currentUserId={vm.currentUserId}
-          onDeleteComment={vm.removeComment}
-          t={t}
-        />
-        <TabBarSpacer />
-      </ScrollView>
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <View className="flex-1 bg-bg">
+        <ScrollView
+          ref={scrollViewRef}
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 0 }}
+        >
+          <HeroGallery
+            photos={vm.moment.photos}
+            title={vm.moment.title}
+            location={vm.moment.location}
+            activeIndex={activeIndex}
+            onIndexChange={setActiveIndex}
+            onBack={onBack}
+            onShare={showComingSoon}
+            onMore={onMore}
+            onPhotoPress={openLightbox}
+          />
+          <DetailBody
+            moment={vm.moment}
+            locale={i18n.language}
+            reactions={vm.reactions}
+            onReact={vm.react}
+            comments={vm.comments}
+            commentsLoaded={vm.commentsLoaded}
+            currentUserId={vm.currentUserId}
+            onDeleteComment={vm.removeComment}
+            t={t}
+          />
+          <TabBarSpacer />
+        </ScrollView>
 
-      <ReplyBar onSend={vm.postComment} posting={vm.posting} />
+        <ReplyBar onSend={vm.postComment} posting={vm.posting} />
 
-      <PhotoLightbox
-        visible={lightboxUri !== null}
-        uri={lightboxUri}
-        onClose={closeLightbox}
-      />
-    </View>
+        <PhotoLightbox
+          visible={lightboxUri !== null}
+          uri={lightboxUri}
+          onClose={closeLightbox}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
