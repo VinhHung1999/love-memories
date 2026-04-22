@@ -13,7 +13,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type PlaceFeature, reverseGeocode, searchPlaces } from '@/api/location';
 import { useAppColors } from '@/theme/ThemeProvider';
@@ -93,6 +93,7 @@ export function LocationPickerScreen({ initialValue }: Props) {
   const { t } = useTranslation();
   const c = useAppColors();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlaceFeature[]>([]);
@@ -243,13 +244,20 @@ export function LocationPickerScreen({ initialValue }: Props) {
     results.length === 0;
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-bg">
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-bg">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-5 pt-2 pb-3">
+        {/* Header — T413: paddingTop via insets.top so the title clears the
+            status bar / Dynamic Island when rendered inside a modal route
+            where SafeAreaView top edge is unreliable on first mount. Same
+            pattern as T410 PhotoLightbox; offset +8 keeps the visual gap
+            the original `pt-2` gave. */}
+        <View
+          className="flex-row items-center justify-between px-5 pb-3"
+          style={{ paddingTop: insets.top + 8 }}
+        >
           <Text className="font-displayMedium text-ink text-[20px] leading-[24px]">
             {t('compose.momentCreate.location.sheetTitle')}
           </Text>
