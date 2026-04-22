@@ -1,6 +1,5 @@
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useRouter } from 'expo-router';
-import { MapPin } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -231,7 +230,6 @@ function DetailBody({
   onDeleteComment,
   t,
 }: DetailBodyProps) {
-  const c = useAppColors();
   const dateLabel = useMemo(
     () => formatFullDate(new Date(moment.date), locale),
     [moment.date, locale],
@@ -253,19 +251,6 @@ function DetailBody({
         <Text className="font-body text-ink text-[15px] leading-[24px] mt-4">
           {moment.caption}
         </Text>
-      ) : null}
-
-      {/* T409 — location chip above tag pills. Hero already shows the pin
-          overlaid on the gradient but Boss asked for a readable copy in the
-          calm body area too. MapPin (lucide SVG) avoids the Android Text-glyph
-          baseline-shift lesson from the icon-centering memory. */}
-      {moment.location ? (
-        <View className="mt-4 flex-row items-center gap-1.5">
-          <MapPin size={13} strokeWidth={2} color={c.inkMute} />
-          <Text className="font-body text-ink-soft text-[13px] flex-1">
-            {moment.location}
-          </Text>
-        </View>
       ) : null}
 
       {tags.length > 0 ? (
