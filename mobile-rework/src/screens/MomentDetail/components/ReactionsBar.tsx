@@ -8,8 +8,19 @@ import type { ReactionAggregate } from '../useMomentDetailViewModel';
 // MomentDetail. Renders exactly the 6 prototype emoji (moments.jsx L625-645).
 // Each pill toggles the current user's reaction for that emoji via
 // `useMomentDetailViewModel.react(emoji)`. Selected state flips background
-// to `primarySoft` and bumps text weight — count is hidden when 0 so
-// unreacted pills read as clean emoji chips.
+// to `primarySoft` — count is hidden when 0 so unreacted pills read as
+// clean emoji chips.
+//
+// T407 — prototype cross-check (Build 55):
+//   Prototype wraps the row in a divider band — `borderTop + borderBottom
+//   1px c.line` + `padding: 12px 0` — and pills use `bg c.surfaceAlt`
+//   (not c.surface) + `border c.line`. Ported both bits. Kept the
+//   bg-flip-on-selection instead of prototype's 1.5px border bump because
+//   changing borderWidth at runtime shifts layout by 0.5px and looks
+//   jittery on RN; bg flip reads cleaner and was PO-approved in T400.
+//   Kept count visible when > 0 (prototype mockup omits it, but the
+//   feature exists for partner interaction — losing count loses the
+//   signal of "partner also reacted").
 //
 // NativeWind carve-out: `style` prop ONLY for conditional colors that flip
 // at runtime (bg + border) — rule #2 #3 per .claude/rules/mobile-rework.md.
@@ -23,7 +34,7 @@ type Props = {
 
 export function ReactionsBar({ reactions, onReact, disabled }: Props) {
   return (
-    <View className="flex-row flex-wrap gap-2">
+    <View className="flex-row flex-wrap items-center gap-1.5 py-3 border-t border-b border-line">
       {reactions.map((r) => (
         <ReactionPill
           key={r.emoji}
@@ -50,7 +61,7 @@ function ReactionPill({ emoji, count, reactedByMe, onPress, disabled }: PillProp
   const c = useAppColors();
   const pillStyle = reactedByMe
     ? { backgroundColor: c.primarySoft, borderColor: c.primary }
-    : { backgroundColor: c.surface, borderColor: c.lineOnSurface };
+    : { backgroundColor: c.surfaceAlt, borderColor: c.line };
   return (
     <Pressable
       onPress={onPress}

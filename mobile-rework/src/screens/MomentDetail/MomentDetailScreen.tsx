@@ -282,7 +282,9 @@ function DetailBody({
         </View>
       ) : null}
 
-      <View className="mt-6">
+      {/* T407 — prototype marginTop: 20 (mt-5). ReactionsBar owns its own
+          divider band + vertical padding. */}
+      <View className="mt-5">
         <ReactionsBar reactions={reactions} onReact={onReact} />
       </View>
 
