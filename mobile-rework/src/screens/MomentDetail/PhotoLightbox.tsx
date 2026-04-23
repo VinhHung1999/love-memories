@@ -1,5 +1,19 @@
-import { X } from 'lucide-react-native';
-import { Image, Modal, Pressable, View } from 'react-native';
+import { cacheDirectory, downloadAsync } from 'expo-file-system/legacy';
+import * as MediaLibrary from 'expo-media-library';
+import { Download, X } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  FlatList,
+  Image,
+  Modal,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -13,42 +27,246 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // react-native-awesome-gallery: its active branches target Reanimated 3 and
 // this repo is on Reanimated v4 (same family that crashed Mapbox UserLocation
 // in Sprint 60). A minimal composed Pinch + DoubleTap + Pan dismiss covers
-// the spec (zoom + dismiss) without adding a compat risk.
+// the spec without adding a compat risk.
 //
-// Gestures:
-//   - PinchGesture → scale clamp [1, 4]
-//   - DoubleTap    → toggle scale 1 ↔ 2.5
-//   - Pan          → translateY (dismiss if |dy| > DISMISS_PX AND scale===1)
-// Pan is gated on scale===1 so a zoomed user can't accidentally dismiss
-// while inspecting the photo. Horizontal pagination inside the lightbox is
-// explicitly out of scope — user dismisses and taps a different thumb.
+// T406 (Sprint 63) — upgrade to multi-photo swipe + Download:
+//   - FlatList horizontal pagingEnabled lets users swipe between photos of
+//     the same moment without closing the lightbox. `scrollEnabled` is
+//     flipped off when any photo is zoomed so the user can pan a zoomed
+//     image without accidentally paging.
+//   - Close X matches the PairJoin QR scanner style — bg-black/40,
+//     strokeWidth 2.2, SafeAreaView edges top+bottom, pt-6 extra pad
+//     (Dynamic Island crowding avoidance, see PairJoinScreen L179-182).
+//   - Download button saves the currently-active photo to Photos via
+//     expo-media-library. Photos live on the CDN, so we first
+//     downloadAsync to cacheDirectory, then saveToLibraryAsync. Toast
+//     feedback auto-dismisses in 2.5s.
+
+type Photo = { id: string; url: string; filename?: string };
 
 type Props = {
   visible: boolean;
-  uri: string | null;
+  photos: readonly Photo[];
+  initialIndex: number;
   onClose: () => void;
+  // T410 — parent-provided safe-area top inset. Relying on SafeAreaView
+  // inside a transparent Modal loses the top padding on first mount (the
+  // Modal's own UIWindow hasn't inherited the host's safe-area context
+  // yet), so the X button hugs the status bar the first time the lightbox
+  // opens. Threading the inset through as a prop + applying it as an
+  // explicit paddingTop on the wrapper guarantees the clearance on every
+  // mount.
+  topInset: number;
 };
 
 const MAX_SCALE = 4;
 const MIN_SCALE = 1;
 const DOUBLE_TAP_SCALE = 2.5;
 const DISMISS_PX = 120;
+const TOAST_MS = 2500;
 
-export function PhotoLightbox({ visible, uri, onClose }: Props) {
+export function PhotoLightbox({
+  visible,
+  photos,
+  initialIndex,
+  onClose,
+  topInset,
+}: Props) {
+  const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  const listRef = useRef<FlatList<Photo>>(null);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [anyZoomed, setAnyZoomed] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  // Sync activeIndex whenever the lightbox opens with a different initial
+  // photo. Without this the second open would always land on the previous
+  // session's photo.
+  useEffect(() => {
+    if (!visible) return;
+    setActiveIndex(initialIndex);
+    setAnyZoomed(false);
+    const id = requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({ index: initialIndex, animated: false });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [visible, initialIndex]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), TOAST_MS);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  const onMomentumEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const next = Math.round(offsetX / Math.max(width, 1));
+      if (next !== activeIndex) setActiveIndex(next);
+    },
+    [activeIndex, width],
+  );
+
+  const handleDownload = useCallback(async () => {
+    const photo = photos[activeIndex];
+    if (!photo || downloading) return;
+    setDownloading(true);
+    try {
+      const perm = await MediaLibrary.requestPermissionsAsync(true);
+      if (!perm.granted) {
+        setToast(t('moments.detail.lightbox.permissionDenied'));
+        return;
+      }
+      const filename = photo.filename || `moment-${photo.id}.jpg`;
+      const localUri = `${cacheDirectory ?? ''}${filename}`;
+      const result = await downloadAsync(photo.url, localUri);
+      await MediaLibrary.saveToLibraryAsync(result.uri);
+      setToast(t('moments.detail.lightbox.downloadSuccess'));
+    } catch {
+      setToast(t('moments.detail.lightbox.downloadError'));
+    } finally {
+      setDownloading(false);
+    }
+  }, [activeIndex, downloading, photos, t]);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black">
+        <FlatList
+          ref={listRef}
+          data={photos as Photo[]}
+          keyExtractor={(p) => p.id}
+          horizontal
+          pagingEnabled
+          scrollEnabled={!anyZoomed}
+          showsHorizontalScrollIndicator={false}
+          initialScrollIndex={initialIndex}
+          getItemLayout={(_, idx) => ({
+            length: width,
+            offset: width * idx,
+            index: idx,
+          })}
+          onMomentumScrollEnd={onMomentumEnd}
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              listRef.current?.scrollToIndex({ index: info.index, animated: false });
+            }, 50);
+          }}
+          renderItem={({ item, index }) => (
+            <ZoomablePhoto
+              photo={item}
+              width={width}
+              active={index === activeIndex}
+              onDismiss={onClose}
+              onZoomChange={setAnyZoomed}
+            />
+          )}
+        />
+
+        <SafeAreaView
+          edges={['bottom']}
+          className="absolute left-0 right-0 top-0 bottom-0"
+          pointerEvents="box-none"
+        >
+          {/* Close X — visually identical to PairJoinScreen QR close
+              (bg-black/40, strokeWidth 2.2). Top inset comes from the
+              parent via `topInset` prop (T410) — SafeAreaView's top edge
+              reports 0 on first mount inside a transparent Modal. */}
+          <View
+            className="px-4 flex-row justify-end"
+            pointerEvents="box-none"
+            style={{ paddingTop: topInset + 24 }}
+          >
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+              hitSlop={12}
+              className="w-10 h-10 rounded-full bg-black/40 items-center justify-center active:opacity-80"
+            >
+              <X size={20} color="#FFFFFF" strokeWidth={2.2} />
+            </Pressable>
+          </View>
+
+          <View className="flex-1" pointerEvents="none" />
+
+          <View className="px-4 pb-4 items-center" pointerEvents="box-none">
+            {photos.length > 1 ? (
+              <View className="flex-row gap-1.5 mb-3">
+                {photos.map((p, idx) => (
+                  <View
+                    key={p.id}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{
+                      backgroundColor:
+                        idx === activeIndex ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
+                    }}
+                  />
+                ))}
+              </View>
+            ) : null}
+            <Pressable
+              onPress={handleDownload}
+              disabled={downloading || photos.length === 0}
+              accessibilityRole="button"
+              accessibilityLabel={t('moments.detail.lightbox.download')}
+              accessibilityState={{ disabled: downloading }}
+              hitSlop={8}
+              className="flex-row items-center gap-2 rounded-full bg-black/50 px-5 h-11 active:opacity-80"
+            >
+              <Download size={16} color="#FFFFFF" strokeWidth={2.2} />
+              <Text className="font-bodySemibold text-white text-[14px]">
+                {t('moments.detail.lightbox.download')}
+              </Text>
+            </Pressable>
+          </View>
+
+          {toast ? (
+            <View
+              pointerEvents="none"
+              className="absolute left-0 right-0 items-center px-6"
+              style={{ top: 80 }}
+            >
+              <View className="rounded-full bg-black/80 px-4 py-2.5">
+                <Text className="font-bodyMedium text-white text-[13px]">{toast}</Text>
+              </View>
+            </View>
+          ) : null}
+        </SafeAreaView>
+      </View>
+    </Modal>
+  );
+}
+
+type ZoomProps = {
+  photo: Photo;
+  width: number;
+  active: boolean;
+  onDismiss: () => void;
+  onZoomChange: (zoomed: boolean) => void;
+};
+
+function ZoomablePhoto({ photo, width, active, onDismiss, onZoomChange }: ZoomProps) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
-  const resetTransforms = () => {
+  // Reset transforms when this photo scrolls off-screen so the next time
+  // the user swipes back to it, it opens unzoomed + re-centered.
+  useEffect(() => {
+    if (active) return;
     scale.value = 1;
     savedScale.value = 1;
     translateY.value = 0;
-  };
-
-  const handleClose = () => {
-    resetTransforms();
-    onClose();
-  };
+    onZoomChange(false);
+  }, [active, onZoomChange, scale, savedScale, translateY]);
 
   const pinch = Gesture.Pinch()
     .onUpdate((e) => {
@@ -57,6 +275,7 @@ export function PhotoLightbox({ visible, uri, onClose }: Props) {
     })
     .onEnd(() => {
       savedScale.value = scale.value;
+      runOnJS(onZoomChange)(scale.value > 1.01);
     });
 
   const doubleTap = Gesture.Tap()
@@ -66,16 +285,23 @@ export function PhotoLightbox({ visible, uri, onClose }: Props) {
       const next = zoomed ? MIN_SCALE : DOUBLE_TAP_SCALE;
       scale.value = withTiming(next, { duration: 200 });
       savedScale.value = next;
+      runOnJS(onZoomChange)(!zoomed);
     });
 
+  // Pan is vertical-only (activeOffsetY + failOffsetX) so horizontal swipes
+  // reach the parent FlatList's paging. When zoomed, the outer FlatList is
+  // scroll-disabled anyway — but the pan also gates dismiss on scale===1,
+  // so a zoomed pan (which we don't support here) never dismisses.
   const pan = Gesture.Pan()
+    .activeOffsetY([-12, 12])
+    .failOffsetX([-12, 12])
     .onUpdate((e) => {
       if (scale.value <= 1.01) translateY.value = e.translationY;
     })
     .onEnd((e) => {
       const canDismiss = scale.value <= 1.01 && Math.abs(e.translationY) > DISMISS_PX;
       if (canDismiss) {
-        runOnJS(handleClose)();
+        runOnJS(onDismiss)();
       } else {
         translateY.value = withTiming(0, { duration: 200 });
       }
@@ -83,53 +309,21 @@ export function PhotoLightbox({ visible, uri, onClose }: Props) {
 
   const composed = Gesture.Simultaneous(pinch, Gesture.Exclusive(doubleTap, pan));
 
-  const imageStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
-  const backdropStyle = useAnimatedStyle(() => {
-    const distance = Math.min(Math.abs(translateY.value) / DISMISS_PX, 1);
-    return { opacity: 1 - distance * 0.4 };
-  });
-
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={handleClose}
-    >
-      <Animated.View style={backdropStyle} className="flex-1 bg-black">
-        <SafeAreaView className="flex-1" edges={['top']}>
-          <View className="flex-row justify-end px-4 pt-1">
-            <Pressable
-              onPress={handleClose}
-              hitSlop={12}
-              accessibilityRole="button"
-              className="w-10 h-10 rounded-full bg-white/15 items-center justify-center active:opacity-80"
-            >
-              <X size={20} strokeWidth={2.3} color="#ffffff" />
-            </Pressable>
-          </View>
-          <GestureDetector gesture={composed}>
-            <Animated.View className="flex-1">
-              {uri ? (
-                <Animated.View style={imageStyle} className="flex-1">
-                  <Image
-                    source={{ uri }}
-                    resizeMode="contain"
-                    className="w-full h-full"
-                  />
-                </Animated.View>
-              ) : null}
-            </Animated.View>
-          </GestureDetector>
-        </SafeAreaView>
-      </Animated.View>
-    </Modal>
+    <GestureDetector gesture={composed}>
+      <View style={{ width }} className="flex-1 items-center justify-center">
+        <Animated.View style={animatedStyle} className="w-full h-full">
+          <Image
+            source={{ uri: photo.url }}
+            resizeMode="contain"
+            className="w-full h-full"
+          />
+        </Animated.View>
+      </View>
+    </GestureDetector>
   );
 }

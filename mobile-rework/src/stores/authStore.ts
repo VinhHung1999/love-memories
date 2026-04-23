@@ -50,7 +50,16 @@ type Actions = {
     refreshToken: string;
     onboardingComplete: boolean;
   }) => Promise<void>;
-  setAccessToken: (accessToken: string) => Promise<void>;
+  // T403 (Sprint 63 hotfix) — persists BOTH tokens after /auth/refresh. The BE
+  // rotates refreshToken on every refresh call (AuthService.refresh revokes
+  // old, issues new). The previous `setAccessToken` dropped the rotated value,
+  // so after ~30 min of app use we'd call refresh with a revoked token → BE
+  // 401 → `clear()` → Boss logged out. Pass `refreshToken: null` to skip the
+  // rotation update (e.g. if the server ever omits it).
+  setTokens: (tokens: {
+    accessToken: string;
+    refreshToken?: string | null;
+  }) => Promise<void>;
   setUser: (user: AuthUser | null) => void;
   setCoupleId: (coupleId: string | null) => void;
   setOnboardingComplete: (value: boolean) => Promise<void>;
@@ -135,10 +144,11 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     }
   },
 
-  setAccessToken: async (accessToken) => {
-    set({ accessToken });
-    const { user, refreshToken, onboardingComplete } = get();
-    await persist({ user, accessToken, refreshToken, onboardingComplete });
+  setTokens: async ({ accessToken, refreshToken }) => {
+    const nextRefresh = refreshToken ?? get().refreshToken;
+    set({ accessToken, refreshToken: nextRefresh });
+    const { user, onboardingComplete } = get();
+    await persist({ user, accessToken, refreshToken: nextRefresh, onboardingComplete });
   },
 
   setUser: (user) => {

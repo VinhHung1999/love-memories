@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-export const PRESET_EMOJIS = ['❤️', '😂', '😍', '🥺', '🔥', '👏', '😢', '🎉'];
+// T400 (Sprint 63) — mobile-rework renders 6 of these as the reactions row
+// per prototype moments.jsx L625-645: ❤️, 🥺, 😍, 😂, 🔥, ✨. The 9-wide
+// server whitelist keeps the extra legacy entries (👏, 😢, 🎉) valid so
+// the old mobile/ app's existing reactions don't 400 when refetched.
+export const PRESET_EMOJIS = ['❤️', '😂', '😍', '🥺', '🔥', '👏', '😢', '🎉', '✨'];
 
 export const createMomentSchema = z.object({
   title: z.string().min(1).max(200),
@@ -8,7 +12,7 @@ export const createMomentSchema = z.object({
   date: z.string().transform((s) => new Date(s)),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
-  location: z.string().optional(),
+  location: z.string().max(120).nullable().optional(),
   tags: z.array(z.string()).optional().default([]),
   spotifyUrl: z.string().url().startsWith('https://open.spotify.com/').optional().or(z.literal('')),
 });

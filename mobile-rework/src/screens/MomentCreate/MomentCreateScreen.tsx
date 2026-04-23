@@ -3,7 +3,7 @@ import DateTimePicker, {
 } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { Plus, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -20,8 +20,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LinearGradient } from '@/components';
+import { registerCommit } from '@/screens/LocationPicker/locationPickerBus';
 import { useAppColors } from '@/theme/ThemeProvider';
 
+import { LocationPill } from './components/LocationPill';
 import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
 // T385 (Sprint 62 polish) — Boss Build 42 QA feedback pass.
@@ -42,13 +44,14 @@ import { useMomentCreateViewModel } from './useMomentCreateViewModel';
 
 type Props = {
   initialPhotos: string[];
+  editingMomentId?: string;
 };
 
-export function MomentCreateScreen({ initialPhotos }: Props) {
+export function MomentCreateScreen({ initialPhotos, editingMomentId }: Props) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const c = useAppColors();
-  const vm = useMomentCreateViewModel(initialPhotos);
+  const vm = useMomentCreateViewModel(initialPhotos, editingMomentId);
 
   const [pickingDate, setPickingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState<Date>(vm.takenAt);
@@ -59,6 +62,19 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
   // draft exits.
   const [tagEditing, setTagEditing] = useState(false);
   const [tagDraft, setTagDraft] = useState('');
+
+  // T412 — location picker is now a full-screen route. Push the modal and
+  // register a one-shot commit callback the picker invokes on pick/clear.
+  // Swipe-dismiss or X-close leaves the VM untouched (cancel path).
+  const openLocationPicker = useCallback(() => {
+    registerCommit((result) => {
+      vm.setLocation(result);
+    });
+    router.push({
+      pathname: '/location-picker',
+      params: vm.location ? { current: vm.location } : undefined,
+    });
+  }, [router, vm]);
 
   const partnerName = t('compose.momentCreate.partnerFallback');
 
@@ -71,9 +87,12 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     date: dateLabel,
     partner: partnerName,
   });
-  const saveLabel = t('compose.momentCreate.savePartner', {
-    partner: partnerName,
-  });
+  const heroTitle = vm.editMode
+    ? t('compose.momentCreate.editHeroTitle')
+    : t('compose.momentCreate.heroTitle');
+  const saveLabel = vm.editMode
+    ? t('compose.momentCreate.editSaveLabel')
+    : t('compose.momentCreate.savePartner', { partner: partnerName });
 
   const onClose = () => router.back();
 
@@ -85,6 +104,28 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
     }
     Alert.alert(t('compose.momentCreate.submitError'));
   };
+
+  // T397 — edit mode hydration failure (404 / network). Show the chrome +
+  // inline message so the user can bail back to MomentDetail; rather than
+  // a blank white screen.
+  if (vm.loadError) {
+    return (
+      <View className="flex-1 bg-bg items-center justify-center px-8">
+        <Text className="font-body text-ink text-[15px] text-center">
+          {t('compose.momentCreate.editLoadError')}
+        </Text>
+        <Pressable
+          onPress={onClose}
+          accessibilityRole="button"
+          className="mt-5 px-5 h-10 rounded-full bg-surface border border-line-on-surface items-center justify-center active:opacity-80"
+        >
+          <Text className="font-bodySemibold text-ink text-[14px]">
+            {t('compose.momentCreate.close')}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   const openDatePicker = () => {
     setDateDraft(vm.takenAt);
@@ -167,7 +208,7 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
                 className="font-displayMedium text-ink text-[20px] leading-[24px]"
                 numberOfLines={1}
               >
-                {t('compose.momentCreate.heroTitle')}
+                {heroTitle}
               </Text>
             </View>
 
@@ -254,10 +295,12 @@ export function MomentCreateScreen({ initialPhotos }: Props) {
             />
           </View>
 
-          {/* Interactive tag chips — tap existing chip to remove, tap "+ tag"
-              to reveal an inline TextInput (T386.9). Empty state = just the
-              dashed + chip. */}
+          {/* T399 — Location pill + interactive tag chips share one wrap row.
+              Pill-first matches prototype L107-124 order (📍 before #tags).
+              Tapping the pill pushes the full-screen LocationPicker route
+              (T412); clearing happens inside the picker, not on the pill. */}
           <View className="flex-row flex-wrap gap-1.5 px-4 pt-3">
+            <LocationPill value={vm.location} onPress={openLocationPicker} />
             {vm.tags.map((tag) => (
               <RemovableTagChip
                 key={tag}

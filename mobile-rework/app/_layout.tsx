@@ -1,3 +1,4 @@
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
@@ -79,20 +80,27 @@ export default function RootLayout() {
               sheets inherit the same `vars()` scope descendants consume. First
               needed by Sprint 61 T344 ComingSoonSheet; additional sheets in
               T340–T342 reuse the same provider. */}
-          <BottomSheetModalProvider>
-            <RootStack />
-            {/* T377: single global instance. Any screen calls
-                useCameraSheetStore.getState().open() to present it — no ref
-                drilling through the nav tree. */}
-            <CameraActionSheet />
-            {/* T378: single global toast that tracks uploadQueue entries so
-                photo uploads keep flagging progress / errors after the
-                composer modal dismisses. Mounted inside
-                BottomSheetModalProvider and above RootStack so it floats over
-                every route (tabs + modals). */}
-            <UploadProgressToast />
-            <StatusBar style="auto" />
-          </BottomSheetModalProvider>
+          {/* T397/T398 (Sprint 63) — @expo/react-native-action-sheet renders
+              native UIAlertController on iOS / BottomSheetDialog on Android.
+              Sits inside ThemeProvider + above BottomSheetModalProvider so
+              Detail's more-dots menu (Edit/Delete) uses a true native sheet,
+              not a @gorhom/bottom-sheet portal. */}
+          <ActionSheetProvider>
+            <BottomSheetModalProvider>
+              <RootStack />
+              {/* T377: single global instance. Any screen calls
+                  useCameraSheetStore.getState().open() to present it — no ref
+                  drilling through the nav tree. */}
+              <CameraActionSheet />
+              {/* T378: single global toast that tracks uploadQueue entries so
+                  photo uploads keep flagging progress / errors after the
+                  composer modal dismisses. Mounted inside
+                  BottomSheetModalProvider and above RootStack so it floats over
+                  every route (tabs + modals). */}
+              <UploadProgressToast />
+              <StatusBar style="auto" />
+            </BottomSheetModalProvider>
+          </ActionSheetProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

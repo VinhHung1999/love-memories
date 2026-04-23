@@ -31,7 +31,7 @@ let refreshInFlight: Promise<string | null> | null = null;
 async function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
-    const { refreshToken, setAccessToken, clear } = useAuthStore.getState();
+    const { refreshToken, setTokens, clear } = useAuthStore.getState();
     if (!refreshToken) return null;
     try {
       const res = await fetch(`${env.apiUrl}/api/auth/refresh`, {
@@ -43,12 +43,22 @@ async function refreshAccessToken(): Promise<string | null> {
         await clear();
         return null;
       }
-      const data = (await res.json()) as { accessToken?: string };
+      // T403 (Sprint 63 hotfix) — BE rotates refreshToken on every call
+      // (AuthService.refresh: revoke old, issue new). Persist both or the
+      // next refresh fires with a revoked token → 401 → forced logout after
+      // ~30 min of app use.
+      const data = (await res.json()) as {
+        accessToken?: string;
+        refreshToken?: string;
+      };
       if (!data.accessToken) {
         await clear();
         return null;
       }
-      await setAccessToken(data.accessToken);
+      await setTokens({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken ?? null,
+      });
       return data.accessToken;
     } catch {
       return null;

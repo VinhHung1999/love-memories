@@ -77,6 +77,19 @@ const config: ExpoConfig = {
       },
     ],
     [
+      'expo-media-library',
+      {
+        // T406 — Download from photo lightbox saves the current photo to the
+        // iOS Photos app. Read permission reuses the existing photo-picker
+        // copy; add-only permission gets its own prompt the first time the
+        // user taps Download.
+        photosPermission:
+          'Memoura cần quyền truy cập ảnh để em chọn ảnh khi thêm khoảnh khắc.',
+        savePhotosPermission: 'Memoura cần quyền lưu ảnh để tải khoảnh khắc về máy em.',
+        isAccessMediaLocationEnabled: false,
+      },
+    ],
+    [
       'expo-camera',
       {
         // T289 — used by pair-join "Scan their QR code" to read the partner's
@@ -84,6 +97,18 @@ const config: ExpoConfig = {
         // permissions interaction is the OS prompt on first scan tap.
         cameraPermission: 'Memoura cần camera để em quét mã QR của người ấy.',
         recordAudioAndroid: false,
+      },
+    ],
+    [
+      'expo-location',
+      {
+        // T399 — used by the moment compose location picker only. Foreground-
+        // only (when-in-use) is sufficient; we never background-track, never
+        // store lat/lng (place name only per Sprint 63 spec).
+        locationWhenInUsePermission:
+          'Memoura cần vị trí khi em muốn tự động điền địa điểm cho khoảnh khắc.',
+        isIosBackgroundLocationEnabled: false,
+        isAndroidBackgroundLocationEnabled: false,
       },
     ],
     'expo-apple-authentication',

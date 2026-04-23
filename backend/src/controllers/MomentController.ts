@@ -101,8 +101,11 @@ export const addComment = [
 
 export const deleteComment = asyncHandler(
   async (req: Request<CommentParam & ParamsDictionary>, res: Response) => {
-    const { coupleId } = (req as AuthRequest).user! as { userId: string; coupleId: string };
-    await MomentService.deleteComment(req.params.commentId, coupleId);
+    const { userId, coupleId } = (req as AuthRequest).user! as {
+      userId: string;
+      coupleId: string;
+    };
+    await MomentService.deleteComment(req.params.commentId, userId, coupleId);
     res.status(204).send();
   },
 );
