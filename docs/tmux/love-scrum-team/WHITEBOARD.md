@@ -1,8 +1,8 @@
 # Team Whiteboard
 
-**Sprint:** 🔥 **Sprint 62 ACTIVE** — Moments CORE (mobile-rework). 5 task / 14 pts. Board: `sprints/active/sprint-8.md`. Spec: `docs/specs/sprint-62-moments-core.md`. Branch: `sprint_62`. Kick-off 2026-04-21.
-**Last Completed:** Sprint 61 — Pill BottomTab + Profile (hero + 3 stats + 8 settings rows + edit flows) + Privacy/Terms/Delete Account + Notification state machine + T374 blind-buffer tab clearance — Boss approved via Build 39 (ad-hoc, app-store.hungphu.work) 2026-04-21. Board archived at `sprints/archive/sprint-7.md`. T367 + T368 deferred to backlog.
-**Future sprints (planned, not active):** Sprint 63 Moments CRUD+tags (`sprints/planning/sprint-9.md`) · Sprint 64 Partner interaction (`sprints/planning/sprint-10.md`).
+**Sprint:** 🟡 **Sprint 64 PLANNED** — Audio memo + Photobooth full flow (mobile-rework). Board: `sprints/active/sprint-10.md`. Spec TBD.
+**Last Completed:** Sprint 63 — Moments Detail redesign + CRUD + partner interaction (mobile-rework) · 19 cards · 43 pts · Boss approved Build 60 (ad-hoc, app-store.hungphu.work) 2026-04-24 · merged `sprint_63` → `main` (commit `893b800`) · BE prod deployed (T402 validator) · Sprint 62 bundle shipped as part of Build 60. Board archived at `sprints/archive/sprint-9.md`.
+**Future sprint:** Sprint 64 Audio memo + Photobooth + **T387 Moment author 'by' pill** deferred from Sprint 63 backlog.
 
 **Big direction (Boss 2026-04-18):** Mobile rebuild from scratch. New source at `mobile-rework/` based on prototype `docs/design/prototype/memoura-v2/`. Drop all modules not in prototype (FoodSpots / Recipes / Expenses / Achievements / Date Planner). BE + web-PWA unchanged. Plan: Sprints 59→65 (~7 sprints, ~80 pts).
 
@@ -16,8 +16,8 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO (Lu) | ACTIVE | Sprint 62 kicked off — 5 cards T375-T379 in `sprints/active/sprint-8.md`. Spec written. Board CLI rolled out (both prompts updated). Awaiting Zu ACK. | 2026-04-21 |
-| DEV (Zu) | STAND BY | Sprint 62 assignment in flight — spec path + board CLI heads-up sent. | 2026-04-21 |
+| PO (Lu) | SPRINT 63 CLOSED | Merged `sprint_63` → `main` (893b800). BE prod deployed. Sprint 64 plan at `sprints/active/sprint-10.md`. Awaiting Boss kick-off. | 2026-04-24 |
+| DEV (Zu) | STAND BY | Sprint 63 shipped (18 cards · 41 pts mobile-rework + T402 BE). Awaiting Sprint 64 assignment. | 2026-04-24 |
 
 **Task tracking uses board MD files.** Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md` for product backlog.
 
@@ -91,6 +91,8 @@ _Sprint 58 — Google Sign-In multi-platform audience fix (T270) + Sign in with 
 _Sprint 59 — mobile-rework bootstrap (Expo SDK 54 scaffold, theme system, fonts, i18n, shared components, Expo Router nav, API client, internal ad-hoc deploy): CLOSED 2026-04-18 (Memoura 2.0.0 (4) on app-store.hungphu.work, approved by Boss)_
 _Sprint 60 — Onboarding + Auth + Pairing (mobile-rework): CLOSED 2026-04-20 (Memoura 2.0.0 (29) + web /join/:code + BE password-reset endpoints, merged main, prod deployed)_
 _Sprint 61 — Pill BottomTab + Profile + Legal/Delete Account (mobile-rework): CLOSED 2026-04-21 (Memoura 2.0.0 (39) ad-hoc — T374 blind +30px TabBarSpacer resolved LẦN 6 scroll-clip, compliance trio shipped, merged main). Board archived sprint-7.md_
+_Sprint 62 — Moments CORE (mobile-rework): CLOSED 2026-04-21 (5 cards T375-T379 + 7 Boss-feedback iteration tasks T389-T395; bundled prod via Sprint 63 Build 60 per Boss rule). Board archived sprint-8.md_
+_Sprint 63 — Moments Detail redesign + CRUD + partner interaction (mobile-rework): CLOSED 2026-04-24 (19 cards · 43 pts — Memoura 2.0.0 (60) ad-hoc + BE prod T402 validator + mobile refresh-token rotation T403 + LocationPicker full-screen route T412 + 11 polish tasks; Sprint 62 bundled in same build; merged main commit 893b800). Board archived sprint-9.md_
 
 ---
 
