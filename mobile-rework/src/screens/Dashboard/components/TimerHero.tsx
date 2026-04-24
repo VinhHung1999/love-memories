@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
 import Animated, {
@@ -270,19 +271,53 @@ function HeartDot({ color }: { color: string }) {
     transform: [{ scale: scale.value }],
   }));
 
+  // D34 (Sprint 64 Build 72) — heart center + glyph fix.
+  //
+  // Before: layout container was 46×46 with a visible rgba(255,255,255,0.2)
+  // ring AS the outer View, and a 38×38 inner circle. That made the heart
+  // OCCUPY 46px of row width — 8px wider than prototype dashboard.jsx L206
+  // (which is a 38×38 circle with the outer glow faked via boxShadow
+  // `0 0 0 4px rgba(255,255,255,0.2)` that doesn't add layout space). The
+  // extra 8px shifted the heart off the true midpoint between the two 56×56
+  // avatars — Boss: "Trái tim chưa có ngay giữa".
+  //
+  // Fix: the OUTER layout container is now 38×38 (matches prototype width).
+  // The 46×46 glow ring is drawn as an absolute-positioned sibling at
+  // top: -4, left: -4 so it doesn't participate in flex sizing — row math
+  // is now identical to the prototype's boxShadow ring trick.
+  //
+  // The ♥ glyph also changed: previously `<Text style={fontFamily: Fraunces
+  // displayBold}>♥</Text>` which rendered the ♥ codepoint through a serif
+  // display font — Fraunces' heart glyph is thin and slightly pointed,
+  // nothing like the prototype's chunky browser-default ♥ at fontWeight:900.
+  // Switched to `<Ionicons name="heart" />` which is a consistent filled
+  // heart across iOS/Android and reads like the prototype.
   return (
-    // D9: outer white ring — 4px rgba(255,255,255,0.2) per prototype L211
-    <View className="rounded-full items-center justify-center" style={{ width: 46, height: 46, backgroundColor: 'rgba(255,255,255,0.2)' }}>
+    <View style={{ width: 38, height: 38, position: 'relative' }}>
+      {/* Outer glow ring — fakes prototype's boxShadow 0 0 0 4px
+          rgba(255,255,255,0.2). Absolute so it doesn't expand row width. */}
+      <View
+        className="absolute rounded-full"
+        style={{ width: 46, height: 46, top: -4, left: -4, backgroundColor: 'rgba(255,255,255,0.2)' }}
+      />
       <Animated.View
-        style={animatedStyle}
-        className="w-[38px] h-[38px] rounded-full items-center justify-center bg-white/95 shadow-hero"
+        style={[
+          animatedStyle,
+          {
+            width: 38,
+            height: 38,
+            borderRadius: 19,
+            backgroundColor: 'rgba(255,255,255,0.96)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#000',
+            shadowOpacity: 0.2,
+            shadowOffset: { width: 0, height: 8 },
+            shadowRadius: 20,
+          },
+        ]}
       >
-        <Text
-          className="font-displayBold text-[18px]"
-          style={{ color, lineHeight: 24 }}  // D9: lineHeight 20→24 clears ascender clip
-        >
-          ♥
-        </Text>
+        <Ionicons name="heart" size={18} color={color} />
       </Animated.View>
     </View>
   );

@@ -2,7 +2,9 @@ import { Images, ImagePlus } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
+import { AuthorPill } from '@/screens/Moments/components/AuthorPill';
 import type { MomentRow } from '@/screens/Moments/useMomentsViewModel';
+import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T375 — Dashboard has-data block. Eyebrow + one "latest moment" hero card.
@@ -26,6 +28,7 @@ export function LatestMomentCard({
   onPress,
 }: Props) {
   const c = useAppColors();
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
   const photoCount = moment.photos.length;
   const cover = moment.photos[0] ?? null;
 
@@ -64,6 +67,18 @@ export function LatestMomentCard({
               </Text>
             </View>
           ) : null}
+
+          {/* D35 (Sprint 64 Build 72) — "by <author>" pill top-left. Re-uses
+              the same AuthorPill T387 shipped for Moments list + day hero,
+              so the Dashboard's "Khoảnh khắc gần đây" card now tells Boss
+              at a glance who logged the latest moment. */}
+          <View className="absolute top-3 left-3">
+            <AuthorPill
+              authorId={moment.author.id}
+              authorName={moment.author.name}
+              currentUserId={currentUserId}
+            />
+          </View>
         </View>
 
         {/* Copy */}
