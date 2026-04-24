@@ -95,9 +95,11 @@ export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
           setInitialIso(currentIso ? toLocalIso(seed) : null);
           setNetworkError(false);
           setSubmitting(false);
+          console.debug('[T367 Anniversary] open→present');
           bsRef.current?.present();
         },
         close: () => {
+          console.debug('[T367 Anniversary] close→dismiss');
           bsRef.current?.dismiss();
         },
       }),
@@ -148,6 +150,8 @@ export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
         backdropComponent={renderBackdrop}
         backgroundStyle={backgroundStyle}
         handleIndicatorStyle={handleIndicatorStyle}
+        onChange={(idx) => console.debug(`[T367 Anniversary] onChange idx=${idx}`)}
+        onDismiss={() => console.debug('[T367 Anniversary] onDismiss')}
       >
         <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
           <View className="px-6 pt-2">

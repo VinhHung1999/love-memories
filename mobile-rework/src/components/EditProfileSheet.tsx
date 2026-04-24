@@ -96,9 +96,11 @@ export const EditProfileSheet = forwardRef<EditProfileSheetHandle>((_props, ref)
         setFormError(null);
         setSubmitting(false);
         setAvatarUploading(false);
+        console.debug('[T367 EditProfile] open→present');
         bsRef.current?.present();
       },
       close: () => {
+        console.debug('[T367 EditProfile] close→dismiss');
         bsRef.current?.dismiss();
       },
     }),
@@ -218,6 +220,8 @@ export const EditProfileSheet = forwardRef<EditProfileSheetHandle>((_props, ref)
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
+      onChange={(idx) => console.debug(`[T367 EditProfile] onChange idx=${idx}`)}
+      onDismiss={() => console.debug('[T367 EditProfile] onDismiss')}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">

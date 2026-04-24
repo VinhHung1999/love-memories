@@ -34,9 +34,11 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
     () => ({
       open: (next) => {
         setSubtitle(next);
+        console.debug('[T367 ComingSoon] open→present');
         bsRef.current?.present();
       },
       close: () => {
+        console.debug('[T367 ComingSoon] close→dismiss');
         bsRef.current?.dismiss();
       },
     }),
@@ -71,7 +73,11 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onDismiss={() => setSubtitle(undefined)}
+      onChange={(idx) => console.debug(`[T367 ComingSoon] onChange idx=${idx}`)}
+      onDismiss={() => {
+        console.debug('[T367 ComingSoon] onDismiss');
+        setSubtitle(undefined);
+      }}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">

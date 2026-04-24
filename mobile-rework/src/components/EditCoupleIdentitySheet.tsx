@@ -117,9 +117,14 @@ export const EditCoupleIdentitySheet = forwardRef<
         setSloganError(null);
         setBothFailed(false);
         setSubmitting(false);
+        // T367 recon — log every present() call path so we can tell an
+        // auto-reopen (onChange 0 without a preceding "open→present") from a
+        // legit user tap.
+        console.debug('[T367 EditCoupleIdentity] open→present');
         bsRef.current?.present();
       },
       close: () => {
+        console.debug('[T367 EditCoupleIdentity] close→dismiss');
         bsRef.current?.dismiss();
       },
     }),
@@ -272,6 +277,8 @@ export const EditCoupleIdentitySheet = forwardRef<
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
+      onChange={(idx) => console.debug(`[T367 EditCoupleIdentity] onChange idx=${idx}`)}
+      onDismiss={() => console.debug('[T367 EditCoupleIdentity] onDismiss')}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">
