@@ -1,7 +1,19 @@
 import multer from 'multer';
 
 const imageFilter = (_req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  // D38 (Sprint 64 Build 75): accept HEIC/HEIF from iOS cameras. The default
+  // iPhone format for new photos is HEIC; photos picked via expo-image-picker
+  // arrive here with mimetype `image/heic` (sometimes `image/heif`). The old
+  // whitelist rejected them as "Only image files are allowed" and the mobile
+  // upload silently retried forever in the upload queue.
+  const allowed = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/heic',
+    'image/heif',
+  ];
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {

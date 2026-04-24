@@ -38,6 +38,25 @@ const TAG_MAX = 40;
 
 type MomentRow = { id: string };
 
+// D38 (Sprint 64 Build 75) — map common iOS/Android photo extensions to the
+// right Content-Type. The old branching (`ext === 'png' ? 'image/png' :
+// 'image/jpeg'`) silently mislabeled HEIC/HEIF photos as JPEG; after Boss's
+// iPhone upgraded to iOS-default HEIC captures the server still received
+// `image/jpeg` in the multipart header but the bytes were HEIC. Multer's
+// filter logged a reject in some paths, and CDN processing degraded in
+// others. Mapping each known extension to its real MIME lets the BE
+// whitelist (which now includes HEIC/HEIF) accept exactly what the file is.
+function mimeFromExt(ext: string): string {
+  switch (ext.toLowerCase()) {
+    case 'png':  return 'image/png';
+    case 'webp': return 'image/webp';
+    case 'gif':  return 'image/gif';
+    case 'heic': return 'image/heic';
+    case 'heif': return 'image/heif';
+    default:     return 'image/jpeg';
+  }
+}
+
 // T385 (Sprint 62 polish) — Boss wants the literal prototype: explicit title
 // input 34px. VM now owns `title` state; canSubmit gates on non-empty title.
 // `deriveTitle` kept only as a defensive fallback inside POST — in normal flow
@@ -251,7 +270,7 @@ export function useMomentCreateViewModel(
           const filename =
             uri.split('/').pop() || `moment-${Date.now()}-${index}.jpg`;
           const ext = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
-          const type = ext === 'png' ? 'image/png' : 'image/jpeg';
+          const type = mimeFromExt(ext);
           const id = `moment-edit-${editingMomentId}-${index}-${Date.now()}`;
           uploadQueue.enqueue({
             id,
@@ -292,7 +311,7 @@ export function useMomentCreateViewModel(
       photos.forEach((uri, index) => {
         const filename = uri.split('/').pop() || `moment-${Date.now()}-${index}.jpg`;
         const ext = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
-        const type = ext === 'png' ? 'image/png' : 'image/jpeg';
+        const type = mimeFromExt(ext);
         const id = `moment-${momentId}-${index}-${Date.now()}`;
         uploadQueue.enqueue({
           id,
