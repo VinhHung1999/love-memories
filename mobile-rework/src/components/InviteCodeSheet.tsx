@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { env } from '@/config/env';
 import { formatInviteCode, toInvitePayload } from '@/lib/formatInviteCode';
+import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T340 (Sprint 61) — invite-code bottom sheet for the Profile settings list.
@@ -37,6 +38,7 @@ const COPIED_RESET_MS = 1600;
 
 export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) => {
   const bsRef = useRef<BottomSheetModal>(null);
+  const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
   const { t } = useTranslation();
   const c = useAppColors();
   const insets = useSafeAreaInsets();
@@ -51,13 +53,14 @@ export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) =
       open: (next) => {
         setCode(next);
         setCopied(false);
+        markOpen();
         bsRef.current?.present();
       },
       close: () => {
         bsRef.current?.dismiss();
       },
     }),
-    [],
+    [markOpen],
   );
 
   useEffect(
@@ -110,11 +113,17 @@ export const InviteCodeSheet = forwardRef<InviteCodeSheetHandle>((_props, ref) =
   return (
     <BottomSheetModal
       ref={bsRef}
+      stackBehavior="push"
+      enableDismissOnClose={false}
       enableDynamicSizing
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onDismiss={() => setCopied(false)}
+      onChange={onChangeGate}
+      onDismiss={() => {
+        markDismissed();
+        setCopied(false);
+      }}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">

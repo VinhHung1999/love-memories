@@ -17,6 +17,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { apiClient } from '@/lib/apiClient';
+import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { Button } from './Button';
@@ -50,6 +51,7 @@ type Props = {
 export const CoupleNameSheet = forwardRef<CoupleNameSheetHandle, Props>(
   ({ onSaved }, ref) => {
     const bsRef = useRef<BottomSheetModal>(null);
+    const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
     const { t } = useTranslation();
     const c = useAppColors();
     const insets = useSafeAreaInsets();
@@ -68,13 +70,14 @@ export const CoupleNameSheet = forwardRef<CoupleNameSheetHandle, Props>(
           setInitialName(seed);
           setFormError(null);
           setSubmitting(false);
+          markOpen();
           bsRef.current?.present();
         },
         close: () => {
           bsRef.current?.dismiss();
         },
       }),
-      [],
+      [markOpen],
     );
 
     const renderBackdrop = useCallback(
@@ -128,6 +131,8 @@ export const CoupleNameSheet = forwardRef<CoupleNameSheetHandle, Props>(
     return (
       <BottomSheetModal
         ref={bsRef}
+        stackBehavior="push"
+      enableDismissOnClose={false}
         enableDynamicSizing
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
@@ -135,6 +140,8 @@ export const CoupleNameSheet = forwardRef<CoupleNameSheetHandle, Props>(
         backdropComponent={renderBackdrop}
         backgroundStyle={backgroundStyle}
         handleIndicatorStyle={handleIndicatorStyle}
+        onChange={onChangeGate}
+        onDismiss={markDismissed}
       >
         <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
           <View className="px-6 pt-2">

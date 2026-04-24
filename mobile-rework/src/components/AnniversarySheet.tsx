@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Platform, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { t367Log } from '@/devtools/t367Log';
+import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors, useAppMode } from '@/theme/ThemeProvider';
 
 import { Button } from './Button';
@@ -73,6 +73,7 @@ function parseLocalIso(iso: string | null): Date {
 export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
   ({ onSaved }, ref) => {
     const bsRef = useRef<BottomSheetModal>(null);
+    const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
     const { t } = useTranslation();
     const c = useAppColors();
     const mode = useAppMode();
@@ -96,15 +97,14 @@ export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
           setInitialIso(currentIso ? toLocalIso(seed) : null);
           setNetworkError(false);
           setSubmitting(false);
-          t367Log('Anniversary', 'open-present');
+          markOpen();
           bsRef.current?.present();
         },
         close: () => {
-          t367Log('Anniversary', 'close-dismiss');
           bsRef.current?.dismiss();
         },
       }),
-      [],
+      [markOpen],
     );
 
     const renderBackdrop = useCallback(
@@ -147,12 +147,14 @@ export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
     return (
       <BottomSheetModal
         ref={bsRef}
+        stackBehavior="push"
+      enableDismissOnClose={false}
         enableDynamicSizing
         backdropComponent={renderBackdrop}
         backgroundStyle={backgroundStyle}
         handleIndicatorStyle={handleIndicatorStyle}
-        onChange={(idx) => t367Log('Anniversary', 'onChange', idx)}
-        onDismiss={() => t367Log('Anniversary', 'onDismiss')}
+      onChange={onChangeGate}
+        onDismiss={markDismissed}
       >
         <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
           <View className="px-6 pt-2">

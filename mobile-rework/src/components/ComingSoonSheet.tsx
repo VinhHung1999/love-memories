@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { t367Log } from '@/devtools/t367Log';
+import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { Button } from './Button';
 
@@ -29,21 +29,21 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
   const { t } = useTranslation();
   const c = useAppColors();
   const insets = useSafeAreaInsets();
+  const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
 
   useImperativeHandle(
     ref,
     () => ({
       open: (next) => {
         setSubtitle(next);
-        t367Log('ComingSoon', 'open-present');
+        markOpen();
         bsRef.current?.present();
       },
       close: () => {
-        t367Log('ComingSoon', 'close-dismiss');
         bsRef.current?.dismiss();
       },
     }),
-    [],
+    [markOpen],
   );
 
   const renderBackdrop = useCallback(
@@ -70,13 +70,15 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
   return (
     <BottomSheetModal
       ref={bsRef}
+      stackBehavior="push"
+      enableDismissOnClose={false}
       enableDynamicSizing
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onChange={(idx) => t367Log('ComingSoon', 'onChange', idx)}
+      onChange={onChangeGate}
       onDismiss={() => {
-        t367Log('ComingSoon', 'onDismiss');
+        markDismissed();
         setSubtitle(undefined);
       }}
     >
