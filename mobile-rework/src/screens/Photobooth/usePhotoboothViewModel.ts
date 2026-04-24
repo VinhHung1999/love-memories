@@ -247,9 +247,14 @@ export function usePhotoboothViewModel() {
   const onClose = useCallback(() => { router.back(); }, [router]);
 
   const onReset = useCallback(() => {
+    // D36 (Sprint 64 Build 74): full reset back to the count-picker entry.
+    // Now wired to every back button in capture / edit / share steps
+    // (previously only the "↺ Làm dải mới" button used this). Also reset
+    // layout to 'grid-4' so the user lands on a clean count selection.
     setShots([]); setShotIndex(0); setCountdown(0);
     setStickers([]); setCaption('memoura ♥');
     setFrame('polaroid'); setFilter('none');
+    setLayout('grid-4');
     setStep('mode');
   }, []);
 

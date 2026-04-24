@@ -357,7 +357,12 @@ function CaptureStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) 
       <Animated.View className="absolute inset-0 bg-white" style={{ opacity: vm.flashOpacity }} pointerEvents="none" />
 
       <View className="absolute left-0 right-0 flex-row items-center justify-between px-4" style={{ top: insets.top + 12 }}>
-        <Pressable onPress={vm.onClose} className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} hitSlop={8}>
+        {/* D36 (Sprint 64 Build 74): X in capture step resets to the
+            count-picker (mode) instead of dismissing. Only the X on the
+            mode step itself exits Photobooth. Boss: "bấm x là thoát luôn
+            thì hong hay" — users in the middle of a strip expected a
+            step-back, not a full dismiss. */}
+        <Pressable onPress={vm.onReset} className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} hitSlop={8}>
           <Text className="text-white text-base">✕</Text>
         </Pressable>
         <View className="flex-row gap-2">
@@ -402,7 +407,7 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
       {/* Header */}
       <View style={{ paddingTop: insets.top + 8 }} className="px-5 flex-row items-center justify-between pb-3 border-b border-line-on-surface">
         <View className="flex-row items-center gap-3">
-          <Pressable onPress={vm.onRetake} className="w-9 h-9 rounded-full items-center justify-center bg-surface border border-line-on-surface" hitSlop={8}>
+          <Pressable onPress={vm.onReset} className="w-9 h-9 rounded-full items-center justify-center bg-surface border border-line-on-surface" hitSlop={8}>
             <Text className="text-ink text-sm">←</Text>
           </Pressable>
           <View>

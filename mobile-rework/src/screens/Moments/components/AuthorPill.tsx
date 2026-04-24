@@ -27,7 +27,14 @@ export function AuthorPill({ authorId, authorName, currentUserId }: Props) {
   const initial = authorName.trim().charAt(0).toUpperCase() || '·';
 
   return (
-    <View className="flex-row items-center gap-1.5 rounded-full bg-white/[0.92] shadow-chip pl-[5px] pr-2.5 py-[5px]">
+    // D37 (Sprint 64 Build 74): was `bg-white/[0.92]` which kept the pill
+    // white in dark mode and made the dark `text-ink` content melt into the
+    // pill on a dark-photo cover. Switch to `bg-surface/[0.92]` so the pill
+    // fill tracks the theme (near-white in light mode, dark charcoal in
+    // dark mode) — `text-ink` on `surface` has the right contrast in both.
+    // The inner 20×20 gradient initial badge stays white-on-gradient since
+    // the LinearGradient uses brand tokens that work against any theme.
+    <View className="flex-row items-center gap-1.5 rounded-full bg-surface/[0.92] shadow-chip pl-[5px] pr-2.5 py-[5px]">
       <LinearGradient
         colors={gradientColors as unknown as readonly [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
