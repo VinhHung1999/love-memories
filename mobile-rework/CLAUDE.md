@@ -42,7 +42,7 @@ assets/
 2. **NativeWind only — ZERO `style` prop.** No `StyleSheet.create`. All styling via `className`. Only exception: `Animated.Value` transforms/opacity.
 3. **Theme via `useAppColors()` / `useTypeSystem()` / `useDensity()`.** No hardcoded hex values outside `src/theme/tokens.ts`.
 4. **i18n double-brace interpolation** — `{{n}}`, never `{n}`. All strings in `src/locales/`.
-5. **Fonts via Tailwind class** — `font-body`, `font-display`, `font-displayItalic`, `font-script`. Dancing Script is Letters-only.
+5. **Fonts via Tailwind class** — `font-body`, `font-display`, `font-displayItalic`, `font-script`. Dancing Script scope: **Letters screen** + **Dashboard Timer Hero accents** (timerLabel row + anniversary countdown footer, per prototype `dashboard.jsx` L266 + L333 — Sprint 64 T415 carve-out).
 6. **Prototype > memory rules > DEV judgment.** Always cross-check `docs/design/prototype/memoura-v2/`. Ask PO before deviating.
 7. **`style` prop is banned** even for quick hacks — file an issue, don't work around NativeWind.
 
@@ -67,7 +67,7 @@ Dev flavor dropped in Sprint 59 (f626215) — avoided registering a second App S
 - Type system: **serif** (Fraunces display + Be Vietnam Pro body)
 - Density: **airy**
 - Language: **vi**
-- Dancing Script: **Letters screen only**
+- Dancing Script: **Letters screen + Dashboard Timer Hero accents** (Sprint 64 T415)
 
 ## Drop list (NOT in scope)
 

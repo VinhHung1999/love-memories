@@ -61,7 +61,9 @@ prototype before coding a screen.
 4. **i18n double-brace interpolation — `{{n}}`, never `{n}`.** All strings in
    `src/locales/{vi,en}.ts`. Default lang `vi` (Boss-locked).
 5. **Fonts via Tailwind class** — `font-body`, `font-display`, `font-displayItalic`,
-   `font-script`. Dancing Script is **Letters screen only**.
+   `font-script`. Dancing Script scope: **Letters screen** + **Dashboard Timer Hero
+   accents** (timerLabel row + anniversary countdown footer, per prototype
+   `dashboard.jsx` L266 + L333 — Sprint 64 T415 carve-out).
 6. **Prototype > memory rules > DEV judgment.** Always cross-check
    `docs/design/prototype/memoura-v2/`. Ask PO before deviating.
 7. **Mobile UI does NOT follow web.** Mobile has its own design language — same data
