@@ -10,7 +10,6 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
-import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors, useThemeControls } from '@/theme/ThemeProvider';
 import type { ModePref } from '@/stores/themeStore';
 
@@ -43,7 +42,6 @@ export type ThemeSheetHandle = {
 
 export const ThemeSheet = forwardRef<ThemeSheetHandle>((_props, ref) => {
   const bsRef = useRef<BottomSheetModal>(null);
-  const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
   const { t } = useTranslation();
   const c = useAppColors();
   const insets = useSafeAreaInsets();
@@ -53,14 +51,13 @@ export const ThemeSheet = forwardRef<ThemeSheetHandle>((_props, ref) => {
     ref,
     () => ({
       open: () => {
-        markOpen();
         bsRef.current?.present();
       },
       close: () => {
         bsRef.current?.dismiss();
       },
     }),
-    [markOpen],
+    [],
   );
 
   const renderBackdrop = useCallback(
@@ -93,14 +90,10 @@ export const ThemeSheet = forwardRef<ThemeSheetHandle>((_props, ref) => {
   return (
     <BottomSheetModal
       ref={bsRef}
-      stackBehavior="push"
-      enableDismissOnClose={false}
       enableDynamicSizing
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onChange={onChangeGate}
-      onDismiss={markDismissed}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">

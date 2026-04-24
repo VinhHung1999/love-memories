@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { Button } from './Button';
@@ -57,7 +56,6 @@ type Props = {
 export const DeleteAccountSheet = forwardRef<DeleteAccountSheetHandle, Props>(
   ({ onConfirm }, ref) => {
     const bsRef = useRef<BottomSheetModal>(null);
-    const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
     const { t } = useTranslation();
     const c = useAppColors();
     const insets = useSafeAreaInsets();
@@ -80,14 +78,13 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetHandle, Props>(
           setChallenge('');
           setFormError(null);
           setSubmitting(false);
-          markOpen();
           bsRef.current?.present();
         },
         close: () => {
           bsRef.current?.dismiss();
         },
       }),
-      [markOpen],
+      [],
     );
 
     // Backdrop dismiss must be disabled while the DELETE is in flight —
@@ -130,8 +127,6 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetHandle, Props>(
     return (
       <BottomSheetModal
         ref={bsRef}
-        stackBehavior="push"
-      enableDismissOnClose={false}
         enableDynamicSizing
         enablePanDownToClose={!submitting}
         keyboardBehavior="interactive"
@@ -140,8 +135,6 @@ export const DeleteAccountSheet = forwardRef<DeleteAccountSheetHandle, Props>(
         backdropComponent={renderBackdrop}
         backgroundStyle={backgroundStyle}
         handleIndicatorStyle={handleIndicatorStyle}
-        onChange={onChangeGate}
-        onDismiss={markDismissed}
       >
         <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
           <View className="px-6 pt-2">

@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { Button } from './Button';
 
@@ -29,21 +28,19 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
   const { t } = useTranslation();
   const c = useAppColors();
   const insets = useSafeAreaInsets();
-  const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
 
   useImperativeHandle(
     ref,
     () => ({
       open: (next) => {
         setSubtitle(next);
-        markOpen();
         bsRef.current?.present();
       },
       close: () => {
         bsRef.current?.dismiss();
       },
     }),
-    [markOpen],
+    [],
   );
 
   const renderBackdrop = useCallback(
@@ -70,17 +67,11 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
   return (
     <BottomSheetModal
       ref={bsRef}
-      stackBehavior="push"
-      enableDismissOnClose={false}
       enableDynamicSizing
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onChange={onChangeGate}
-      onDismiss={() => {
-        markDismissed();
-        setSubtitle(undefined);
-      }}
+      onDismiss={() => setSubtitle(undefined)}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">

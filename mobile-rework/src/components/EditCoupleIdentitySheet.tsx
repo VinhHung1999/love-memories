@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next';
 import { Text, type TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useIntentOpenGate } from '@/hooks/useIntentOpenGate';
 import { apiClient } from '@/lib/apiClient';
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -86,7 +85,6 @@ export const EditCoupleIdentitySheet = forwardRef<
   Props
 >(({ onSavedName, onSavedSlogan }, ref) => {
   const bsRef = useRef<BottomSheetModal>(null);
-  const { markOpen, markDismissed, onChangeGate } = useIntentOpenGate(bsRef);
   // BottomSheetTextInput is typed against react-native-gesture-handler's
   // TextInput re-export — structurally equivalent to RN's at runtime (both
   // expose .focus()) but the two type names don't unify. We only call
@@ -119,17 +117,13 @@ export const EditCoupleIdentitySheet = forwardRef<
         setSloganError(null);
         setBothFailed(false);
         setSubmitting(false);
-        // T367 recon — log every present() call path so we can tell an
-        // auto-reopen (onChange 0 without a preceding "open→present") from a
-        // legit user tap.
-        markOpen();
         bsRef.current?.present();
       },
       close: () => {
         bsRef.current?.dismiss();
       },
     }),
-    [markOpen],
+    [],
   );
 
   const renderBackdrop = useCallback(
@@ -271,8 +265,6 @@ export const EditCoupleIdentitySheet = forwardRef<
   return (
     <BottomSheetModal
       ref={bsRef}
-      stackBehavior="push"
-      enableDismissOnClose={false}
       enableDynamicSizing
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
@@ -280,8 +272,6 @@ export const EditCoupleIdentitySheet = forwardRef<
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onChange={onChangeGate}
-      onDismiss={markDismissed}
     >
       <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
         <View className="px-6 pt-2">
