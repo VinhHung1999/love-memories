@@ -77,13 +77,16 @@ function StripComposite({
   const frameBg = vm.frame === 'rose' ? c.primarySoft : FRAME_BG[vm.frame];
   const pad = hasFrame ? 16 : 0;
   // D32: the chin (white band under photos) is now a dedicated container
-  // with its own fixed height + justifyContent:'center' below the photo
-  // grid. Dropping stripCard paddingBottom to 0 means the chin View owns
-  // the entire below-photos region, so the caption/date row can sit
-  // vertically centered inside it instead of being pinned against the
-  // photo-grid edge.
+  // with its own fixed height + justifyContent below the photo grid.
+  // Dropping stripCard paddingBottom to 0 means the chin View owns the
+  // entire below-photos region.
+  // D33: chin height 40 → 44 to absorb the taller caption lineHeight
+  // (16 → 20, see caption Text styles below). Layout also switched from
+  // justifyContent:'center' to flex-end + paddingBottom:10 so the row
+  // leans toward the chin's bottom edge — Boss Build-71 feedback
+  // "cho cả hàng kêt cả cái date đi xuống xíu đi".
   const bottomPad = 0;
-  const chinHeight = hasFrame ? 40 : 0;
+  const chinHeight = hasFrame ? 44 : 0;
 
   return (
     <View
@@ -169,14 +172,14 @@ function StripComposite({
           single row with `alignItems: 'baseline'` + lineHeight: 16 so
           the DancingScript / Courier mixed baselines align. */}
       {hasFrame ? (
-        <View style={{ height: chinHeight, justifyContent: 'center', paddingHorizontal: 4 }}>
+        <View style={{ height: chinHeight, justifyContent: 'flex-end', paddingBottom: 10, paddingHorizontal: 4 }}>
         {vm.frame === 'filmstrip' ? (
           <Text
             style={{
               textAlign: 'center',
               fontFamily: 'DancingScript_700Bold',
               fontSize: 14,
-              lineHeight: 16,
+              lineHeight: 20,
               color: '#fff',
             }}
           >
@@ -188,7 +191,7 @@ function StripComposite({
               style={{
                 fontFamily: 'DancingScript_700Bold',
                 fontSize: 14,
-                lineHeight: 16,
+                lineHeight: 20,
                 color: c.primary,
               }}
             >
@@ -197,7 +200,7 @@ function StripComposite({
             <Text
               style={{
                 fontSize: 9,
-                lineHeight: 16,
+                lineHeight: 20,
                 color: c.inkMute,
                 fontFamily: 'Courier',
               }}
