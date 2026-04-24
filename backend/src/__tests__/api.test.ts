@@ -349,6 +349,48 @@ describe('Account Deletion', () => {
     await prisma.couple.delete({ where: { id: couple.id } });
   });
 
+  it('DELETE /api/auth/account non-last-member reassigns authored moments to partner', async () => {
+    const hashed = await hashPassword('reassignpass');
+    const couple = await prisma.couple.create({ data: { name: 'Reassign Couple' } });
+    const userA = await prisma.user.create({
+      data: { email: 'reassign-a@lovescrum.test', password: hashed, name: 'Reassign A', coupleId: couple.id },
+    });
+    const userB = await prisma.user.create({
+      data: { email: 'reassign-b@lovescrum.test', password: hashed, name: 'Reassign B', coupleId: couple.id },
+    });
+    const momentA = await prisma.moment.create({
+      data: { coupleId: couple.id, authorId: userA.id, title: 'A authored', date: new Date() },
+    });
+    const momentB = await prisma.moment.create({
+      data: { coupleId: couple.id, authorId: userB.id, title: 'B authored', date: new Date() },
+    });
+    const { generateToken } = await import('../utils/auth');
+    const tokenA = generateToken(userA.id, couple.id);
+
+    const res = await request(app)
+      .delete('/api/auth/account')
+      .set({ Authorization: `Bearer ${tokenA}` })
+      .send({ password: 'reassignpass' });
+    expect(res.status).toBe(204);
+
+    // userA deleted
+    expect(await prisma.user.findUnique({ where: { id: userA.id } })).toBeNull();
+    // userB still present
+    expect(await prisma.user.findUnique({ where: { id: userB.id } })).not.toBeNull();
+    // momentA authorId reassigned to userB (not deleted, not orphaned)
+    const reassigned = await prisma.moment.findUnique({ where: { id: momentA.id } });
+    expect(reassigned).not.toBeNull();
+    expect(reassigned!.authorId).toBe(userB.id);
+    // momentB untouched
+    const untouched = await prisma.moment.findUnique({ where: { id: momentB.id } });
+    expect(untouched!.authorId).toBe(userB.id);
+
+    // Cleanup
+    await prisma.moment.deleteMany({ where: { coupleId: couple.id } });
+    await prisma.user.delete({ where: { id: userB.id } });
+    await prisma.couple.delete({ where: { id: couple.id } });
+  });
+
   it('DELETE /api/auth/account as last member deletes user and couple', async () => {
     const hashed = await hashPassword('solopass');
     const couple = await prisma.couple.create({ data: { name: 'Solo Couple' } });
