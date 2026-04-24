@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -40,7 +40,6 @@ export function ReplyBar({
   const { t } = useTranslation();
   const c = useAppColors();
   const [text, setText] = useState('');
-  const inputRef = useRef<TextInput>(null);
 
   const trimmed = text.trim();
   const canSend = !disabled && !posting && trimmed.length > 0;
@@ -49,7 +48,6 @@ export function ReplyBar({
     if (!canSend) return;
     const content = trimmed;
     setText('');
-    inputRef.current?.blur();
     const ok = await onSend(content);
     if (!ok) {
       setText(content);
@@ -77,7 +75,6 @@ export function ReplyBar({
         </Text>
       </View>
       <TextInput
-        ref={inputRef}
         value={text}
         onChangeText={setText}
         placeholder={t('moments.detail.comments.placeholder', {

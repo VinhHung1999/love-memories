@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Share } from 'react-native';
+import { Alert, Animated, Share } from 'react-native';
 import type { View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
@@ -184,18 +184,31 @@ export function usePhotoboothViewModel() {
   }, []);
 
   // T421: capture strip, save to library, navigate to moment-create
+  // D23: Alert feedback on success / permission deny / error so Boss sees
+  // the save actually landed in Photos.
   const onSaveToLibrary = useCallback(async () => {
     if (!stripRef.current || isSaving) return;
     setIsSaving(true);
     try {
       const compositeUri = await captureRef(stripRef, { format: 'jpg', quality: 0.92 });
-      if (!mediaPermission?.granted) {
+      let granted = mediaPermission?.granted;
+      if (!granted) {
         const res = await requestMediaPermission();
-        if (res.granted) await MediaLibrary.saveToLibraryAsync(compositeUri);
-      } else {
-        await MediaLibrary.saveToLibraryAsync(compositeUri);
+        granted = res.granted;
       }
-    } catch { /* silent */ }
+      if (!granted) {
+        Alert.alert(
+          'Không lưu được',
+          'Ứng dụng cần quyền truy cập Photos để lưu dải ảnh. Hãy mở Cài đặt để cấp quyền.',
+        );
+        setIsSaving(false);
+        return;
+      }
+      await MediaLibrary.saveToLibraryAsync(compositeUri);
+      Alert.alert('Đã lưu vào Photos');
+    } catch {
+      Alert.alert('Không lưu được', 'Đã xảy ra lỗi, vui lòng thử lại.');
+    }
     setIsSaving(false);
   }, [isSaving, mediaPermission, requestMediaPermission]);
 

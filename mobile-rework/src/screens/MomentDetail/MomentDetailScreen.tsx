@@ -162,7 +162,7 @@ export function MomentDetailScreen({ id }: Props) {
     <KeyboardAvoidingView
       className="flex-1"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={insets.top}
+      keyboardVerticalOffset={0}
     >
       <View className="flex-1 bg-bg">
         <ScrollView

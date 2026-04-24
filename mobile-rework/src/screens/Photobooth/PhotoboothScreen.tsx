@@ -76,7 +76,7 @@ function StripComposite({
   const hasFrame = vm.frame !== 'none';
   const frameBg = vm.frame === 'rose' ? c.primarySoft : FRAME_BG[vm.frame];
   const pad = hasFrame ? 16 : 0;
-  const bottomPad = hasFrame ? 40 : 0;
+  const bottomPad = hasFrame ? 16 : 0;
 
   return (
     <View
@@ -334,7 +334,7 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
   const dim = STRIP_DIMS[vm.layout];
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-bg" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <View className="flex-1 bg-bg">
       {/* Header */}
       <View style={{ paddingTop: insets.top + 8 }} className="px-5 flex-row items-center justify-between pb-3 border-b border-line-on-surface">
         <View className="flex-row items-center gap-3">
@@ -358,13 +358,20 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
         <StripComposite vm={vm} dim={dim} />
       </ScrollView>
 
-      {/* EditDock — PB6: paddingBottom = safeArea.bottom + 16 */}
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 16 }}>
+      {/* EditDock — PB6: paddingBottom = safeArea.bottom + 16
+          D21: KAV on the dock itself (not EditStep root) so caption TextInput
+          lifts above keyboard. Outer EditStep KAV removed — it couldn't lift
+          the absolute-positioned dock reliably; wrapping the dock directly
+          does. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 16 }}
+      >
         <EditPanel vm={vm} />
         <ToolSwitcher activeTool={vm.activeTool} setActiveTool={vm.setActiveTool} />
-      </View>
+      </KeyboardAvoidingView>
 
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
