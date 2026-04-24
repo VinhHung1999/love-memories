@@ -44,7 +44,7 @@ export const AuthField = forwardRef<TextInput, Props>(function AuthField(
         {icon ? <View className="mr-2.5">{icon}</View> : null}
         <TextInput
           ref={ref}
-          className="flex-1 font-bodyMedium text-[15px] text-ink"
+          className="flex-1 font-bodyMedium text-[15px] leading-[22px] text-ink"
           placeholderTextColor={c.inkMute}
           onFocus={(e) => {
             setFocused(true);
