@@ -207,10 +207,19 @@ export function usePhotoboothViewModel() {
       if (mediaPermission?.granted) {
         await MediaLibrary.saveToLibraryAsync(compositeUri).catch(() => {});
       }
-      router.replace({
-        pathname: '/(modal)/moment-create',
-        params: { initialPhotos: JSON.stringify([compositeUri]) },
-      });
+      // D15 fix: photobooth is at root-stack level (not inside (modal)). Using
+      // router.replace('/(modal)/moment-create') from a root route replaces the
+      // root entry with a modal-group route, corrupting the nav stack and
+      // potentially triggering the auth gate → login redirect. Fix: dismiss
+      // photobooth first, then push moment-create as a fresh modal after the
+      // dismiss animation settles (same 180ms timing as CameraActionSheet).
+      router.back();
+      setTimeout(() => {
+        router.push({
+          pathname: '/(modal)/moment-create',
+          params: { initialPhotos: JSON.stringify([compositeUri]) },
+        });
+      }, 180);
     } catch { setIsSaving(false); }
   }, [isSaving, mediaPermission, router]);
 

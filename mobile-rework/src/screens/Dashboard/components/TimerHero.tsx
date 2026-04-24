@@ -96,10 +96,10 @@ export function TimerHero({
           Without position:'absolute', the 180×180 SVG renders in normal flow and
           pushes the content View down = D7 excess space above the avatar row. */}
       <Svg
-        width={180}
-        height={180}
+        width={220}
+        height={220}
         viewBox="0 0 24 24"
-        style={{ position: 'absolute', right: -30, top: -20, opacity: 0.14, transform: [{ rotate: '-12deg' }] }}
+        style={{ position: 'absolute', right: -30, top: -20, opacity: 0.22, transform: [{ rotate: '-12deg' }] }}
       >
         <Path
           d="M12 21s-8-5.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-8 11-8 11"
@@ -145,9 +145,9 @@ export function TimerHero({
         {/* Giant day count */}
         <View className="mt-[6px] flex-row items-baseline">
           <Text
-            className="font-displayBoldItalic text-white text-[88px] leading-[96px]"
+            className="font-displayBoldItalic text-white text-[88px] leading-[90px]"
             style={{
-              letterSpacing: -2,
+              letterSpacing: 0,
               textShadowColor: 'rgba(0,0,0,0.25)',
               textShadowRadius: 30,
               textShadowOffset: { width: 0, height: 6 },
@@ -160,8 +160,8 @@ export function TimerHero({
           </Text>
         </View>
 
-        {/* Y / M / D breakdown strip — 3 blurred chips */}
-        <View className="mt-[14px] flex-row gap-2">
+        {/* Y / M / D breakdown strip — D13: mt-[14px]→[6px], tight under 88pt */}
+        <View className="mt-[6px] flex-row gap-2">
           <BreakdownCell n={time.y} label={yearsUnit} />
           <BreakdownCell n={time.m} label={monthsUnit} />
           <BreakdownCell n={time.d} label={daysUnit} />

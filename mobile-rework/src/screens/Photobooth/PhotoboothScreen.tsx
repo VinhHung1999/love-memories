@@ -2,7 +2,7 @@ import { CameraView } from 'expo-camera';
 import { Download, Share2, Zap } from 'lucide-react-native';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Image, PanResponder, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Animated, Image, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
@@ -148,16 +148,16 @@ function StripComposite({
         ))}
       </View>
 
-      {/* Caption strip — PB9 DRAFT: tap to inline-edit (TODO-Boss-confirm) */}
+      {/* Caption strip — D19: plain View (PB9 tap-to-edit reverted) */}
       {hasFrame ? (
-        <Pressable onPress={vm.onEditCaption} style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
-          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 16, color: vm.frame === 'filmstrip' ? '#fff' : c.primary, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.12)', paddingBottom: 1 }}>
+        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 16, color: vm.frame === 'filmstrip' ? '#fff' : c.primary }}>
             {vm.caption}
           </Text>
           <Text style={{ fontSize: 9, color: vm.frame === 'filmstrip' ? 'rgba(255,255,255,0.5)' : c.inkMute, fontFamily: 'Courier' }}>
             {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           </Text>
-        </Pressable>
+        </View>
       ) : null}
     </View>
   );
@@ -334,7 +334,7 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
   const dim = STRIP_DIMS[vm.layout];
 
   return (
-    <View className="flex-1 bg-bg">
+    <KeyboardAvoidingView className="flex-1 bg-bg" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {/* Header */}
       <View style={{ paddingTop: insets.top + 8 }} className="px-5 flex-row items-center justify-between pb-3 border-b border-line-on-surface">
         <View className="flex-row items-center gap-3">
@@ -351,8 +351,10 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
         </Pressable>
       </View>
 
-      {/* Strip preview — not captured here, just preview */}
-      <ScrollView className="flex-1" contentContainerStyle={{ alignItems: 'center', paddingTop: 24, paddingBottom: 200 }} showsVerticalScrollIndicator={false}>
+      {/* D17: bounces=false prevents elastic scroll from stealing PanResponder
+          touch events during sticker drag (scroll absorbs the gesture before
+          the sticker's PanResponder can respond). */}
+      <ScrollView className="flex-1" contentContainerStyle={{ alignItems: 'center', paddingTop: 24, paddingBottom: 200 }} showsVerticalScrollIndicator={false} bounces={false}>
         <StripComposite vm={vm} dim={dim} />
       </ScrollView>
 
@@ -362,43 +364,14 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
         <ToolSwitcher activeTool={vm.activeTool} setActiveTool={vm.setActiveTool} />
       </View>
 
-      {/* PB9 DRAFT: caption inline edit overlay (TODO-Boss-confirm) */}
-      {vm.captionEditing ? (
-        <Pressable
-          className="absolute inset-0 items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}
-          onPress={vm.onConfirmCaption}
-        >
-          <Pressable
-            onPress={() => {}}
-            className="rounded-2xl p-5 mx-6 w-full"
-            style={{ backgroundColor: c.surface }}
-          >
-            <Text className="font-bodyBold text-ink text-[15px] mb-3">Chú thích dải ảnh</Text>
-            <TextInput
-              autoFocus
-              value={vm.caption}
-              onChangeText={vm.setCaption}
-              maxLength={40}
-              className="font-script text-[16px] pb-2"
-              style={{ color: c.primary, borderBottomWidth: 1, borderBottomColor: c.primary }}
-              placeholderTextColor={c.inkMute}
-              placeholder="memoura ♥"
-            />
-            <Pressable onPress={vm.onConfirmCaption} className="mt-4 rounded-xl py-3 items-center" style={{ backgroundColor: c.primary }}>
-              <Text className="font-bodyBold text-white text-[14px]">Xong</Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      ) : null}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 function EditPanel({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
   const c = useAppColors();
   return (
-    <View style={{ minHeight: 100, paddingHorizontal: 16, paddingTop: 12 }}>
+    <View style={{ minHeight: 100, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
       {vm.activeTool === 'filter' && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
           {FILTERS.map((f: FilterCfg) => {
@@ -441,12 +414,19 @@ function EditPanel({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
         </View>
       )}
       {vm.activeTool === 'text' && (
-        // PB9 Option A: caption field removed; tap caption text on strip to edit inline
-        <View className="items-center justify-center py-4">
-          <Text className="font-body text-ink-mute text-[13px]">
-            Tap chú thích trên ảnh để chỉnh sửa ✏️
-          </Text>
-        </View>
+        // D19: caption TextInput restored (PB9 Option A reverted). D14: no iOS
+        // underline (underlineColorAndroid='transparent' + borderBottomWidth:0).
+        // KAV in EditStep handles keyboard lift.
+        <TextInput
+          value={vm.caption}
+          onChangeText={vm.setCaption}
+          maxLength={40}
+          className="rounded-xl px-4 py-3 font-body text-ink text-[14px]"
+          style={{ borderWidth: 1, borderColor: c.line, backgroundColor: c.bg, borderBottomWidth: 0 }}
+          underlineColorAndroid="transparent"
+          placeholder="Viết chú thích…"
+          placeholderTextColor={c.inkMute}
+        />
       )}
     </View>
   );
