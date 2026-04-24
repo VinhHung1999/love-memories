@@ -222,9 +222,21 @@ export function useMomentCreateViewModel(
         // the endpoint treat it as "unchanged", so clearing or swapping a
         // pin in edit mode silently no-op'd. Sparse update semantics mean
         // an explicit null clears; an explicit string replaces.
+        //
+        // D31 (Sprint 64 Build 71): caption sent as plain (trimmed) string,
+        // even when empty. Previously we sent `null` for empty, but the BE
+        // `createMomentSchema.caption` was `z.string().optional()` (not
+        // nullable), so the `null` was silently rejected with a Zod 400 —
+        // the whole PUT failed and Boss saw "can't save moment unless I
+        // add a description". The BE schema has been fixed to
+        // `.nullable().optional()` in this same commit, but sending "" is
+        // the belt-and-suspenders fix: empty string is a valid `z.string()`
+        // so it works against OLD BE builds still in prod during the
+        // rolling deploy window. Empty-string caption reads identically
+        // to null in the UI (`row.caption ?? ''`).
         await updateMoment(editingMomentId, {
           title: finalTitle,
-          caption: trimmedDesc.length > 0 ? trimmedDesc : null,
+          caption: trimmedDesc,
           date: takenAt.toISOString(),
           tags,
           location: location && location.trim().length > 0 ? location : null,

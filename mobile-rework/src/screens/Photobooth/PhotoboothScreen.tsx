@@ -76,7 +76,14 @@ function StripComposite({
   const hasFrame = vm.frame !== 'none';
   const frameBg = vm.frame === 'rose' ? c.primarySoft : FRAME_BG[vm.frame];
   const pad = hasFrame ? 16 : 0;
-  const bottomPad = hasFrame ? 16 : 0;
+  // D32: the chin (white band under photos) is now a dedicated container
+  // with its own fixed height + justifyContent:'center' below the photo
+  // grid. Dropping stripCard paddingBottom to 0 means the chin View owns
+  // the entire below-photos region, so the caption/date row can sit
+  // vertically centered inside it instead of being pinned against the
+  // photo-grid edge.
+  const bottomPad = 0;
+  const chinHeight = hasFrame ? 40 : 0;
 
   return (
     <View
@@ -148,23 +155,24 @@ function StripComposite({
         ))}
       </View>
 
-      {/* Caption + date — D30: Boss overrides the prototype L672-692
-          split (centered caption + absolute-stamp date). Boss wants both
-          texts on ONE horizontal line but visually baseline-aligned.
-          Earlier D20/D28 used the same row with `alignItems: 'center'`
-          which center-aligns text BOXES — with DancingScript 14pt vs
-          Courier 9pt the box heights differ, so the text baselines sat
-          at different y-pixels and Boss read that as "không ngay hàng".
-          Fix: `alignItems: 'baseline'` + explicit `lineHeight: 16` on
-          both Texts so the two fonts share a single baseline row
-          regardless of font-metric differences. Filmstrip still skips
-          the date (prototype-L686 rule — Boss only overrode the layout,
-          not the filmstrip-no-date rule). */}
+      {/* Chin — D32: a dedicated fixed-height container (40px) whose
+          only job is to vertically-center the caption+date row inside
+          the white band below the photo grid. Before: caption sat 4px
+          below photos with 16px of dead space underneath (stripCard
+          paddingBottom) — Boss read as "row bám top of chin". Fix:
+          stripCard paddingBottom is 0, this chin View owns the whole
+          below-photos region, and `justifyContent: 'center'` anchors
+          the row at the chin's vertical midline.
+
+          D30 inner layout preserved: filmstrip renders just the caption
+          centered in white; every other frame shows caption + date in a
+          single row with `alignItems: 'baseline'` + lineHeight: 16 so
+          the DancingScript / Courier mixed baselines align. */}
       {hasFrame ? (
-        vm.frame === 'filmstrip' ? (
+        <View style={{ height: chinHeight, justifyContent: 'center', paddingHorizontal: 4 }}>
+        {vm.frame === 'filmstrip' ? (
           <Text
             style={{
-              marginTop: 4,
               textAlign: 'center',
               fontFamily: 'DancingScript_700Bold',
               fontSize: 14,
@@ -175,7 +183,7 @@ function StripComposite({
             {vm.caption}
           </Text>
         ) : (
-          <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <Text
               style={{
                 fontFamily: 'DancingScript_700Bold',
@@ -197,7 +205,8 @@ function StripComposite({
               {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </Text>
           </View>
-        )
+        )}
+        </View>
       ) : null}
     </View>
   );
