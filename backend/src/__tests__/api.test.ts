@@ -81,6 +81,8 @@ jest.mock('apple-signin-auth', () => ({
 let token: string;
 let partnerToken: string;
 let testCoupleId: string;
+let testUserId: string;
+let testPartnerId: string;
 
 // Create test couple + users directly via Prisma (bypasses whitelist) and generate tokens
 beforeAll(async () => {
@@ -134,6 +136,8 @@ beforeAll(async () => {
   });
   token = generateToken(user.id, testCoupleId);
   partnerToken = generateToken(partner.id, testCoupleId);
+  testUserId = user.id;
+  testPartnerId = partner.id;
 
   // Give test couple an active subscription so existing tests aren't blocked by free tier limits
   await prisma.subscription.upsert({
@@ -356,7 +360,7 @@ describe('Account Deletion', () => {
 
     // Add a moment so we verify couple data is cleaned up
     const moment = await prisma.moment.create({
-      data: { coupleId: couple.id, title: 'Solo Moment', date: new Date() },
+      data: { coupleId: couple.id, authorId: soloUser.id, title: 'Solo Moment', date: new Date() },
     });
 
     const res = await request(app)
@@ -602,6 +606,58 @@ describe('Moments CRUD', () => {
     momentId = res.body.id;
   });
 
+  // T387 — author 'by' pill
+  it('POST /api/moments stamps author from req.user, never from body (T387)', async () => {
+    const res = await request(app)
+      .post('/api/moments')
+      .set(auth())
+      .send({
+        title: 'Author stamp check',
+        date: '2024-07-01',
+        // Client tries to spoof another user — must be ignored, server uses req.user.id
+        authorId: testPartnerId,
+      } as Record<string, unknown>);
+    expect(res.status).toBe(201);
+    expect(res.body.author).toBeDefined();
+    expect(res.body.author.id).toBe(testUserId);
+    expect(res.body.author.name).toBe('Test User');
+    // Security — only id + name leak out
+    expect(res.body.author.email).toBeUndefined();
+    expect(res.body.author.password).toBeUndefined();
+    expect(res.body.author.avatar).toBeUndefined();
+    // Clean up this extra moment so later assertions about list length stay stable
+    await prisma.moment.delete({ where: { id: res.body.id } });
+  });
+
+  it('GET /api/moments includes author { id, name } on every row (T387)', async () => {
+    const res = await request(app).get('/api/moments').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBeGreaterThan(0);
+    for (const m of res.body) {
+      expect(m.author).toBeDefined();
+      expect(typeof m.author.id).toBe('string');
+      expect(typeof m.author.name).toBe('string');
+      expect(m.author.email).toBeUndefined();
+      expect(m.author.password).toBeUndefined();
+    }
+  });
+
+  it('GET /api/moments/:id includes author { id, name } (T387)', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}`).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.author).toBeDefined();
+    expect(res.body.author.id).toBe(testUserId);
+    expect(res.body.author.name).toBe('Test User');
+    expect(res.body.author.email).toBeUndefined();
+  });
+
+  it('Partner sees same moment with the real author (not themselves) (T387)', async () => {
+    const res = await request(app).get(`/api/moments/${momentId}`).set(partnerAuth());
+    expect(res.status).toBe(200);
+    expect(res.body.author.id).toBe(testUserId);
+    expect(res.body.author.id).not.toBe(testPartnerId);
+  });
+
   it('GET /api/moments lists moments', async () => {
     const res = await request(app).get('/api/moments').set(auth());
     expect(res.status).toBe(200);
@@ -711,7 +767,7 @@ describe('Food Spots CRUD', () => {
 describe('Map Pins', () => {
   beforeAll(async () => {
     await prisma.moment.create({
-      data: { coupleId: testCoupleId, title: 'Map Moment', date: new Date(), latitude: 10.77, longitude: 106.69, tags: [] },
+      data: { coupleId: testCoupleId, authorId: testUserId, title: 'Map Moment', date: new Date(), latitude: 10.77, longitude: 106.69, tags: [] },
     });
     await prisma.foodSpot.create({
       data: { coupleId: testCoupleId, name: 'Map Spot', latitude: 10.78, longitude: 106.70, tags: [] },
@@ -2457,6 +2513,7 @@ describe('Subscription', () => {
 
 describe('Free Tier Limits', () => {
   let freeCoupleId: string;
+  let freeUserId: string;
   let freeUserToken: string;
 
   beforeAll(async () => {
@@ -2467,6 +2524,7 @@ describe('Free Tier Limits', () => {
     const user = await prisma.user.create({
       data: { email: 'free@lovescrum.test', password: hashed, name: 'Free User', coupleId: freeCoupleId },
     });
+    freeUserId = user.id;
     freeUserToken = generateToken(user.id, freeCoupleId);
   });
 
@@ -2496,6 +2554,7 @@ describe('Free Tier Limits', () => {
     await prisma.moment.createMany({
       data: Array.from({ length: 9 }, (_, i) => ({
         coupleId: freeCoupleId,
+        authorId: freeUserId,
         title: `Bulk Moment ${i + 2}`,
         date: new Date(),
       })),
@@ -2571,7 +2630,7 @@ describe('coupleId Isolation — Couple A cannot access Couple B data', () => {
 
     // Create couple A resources
     const moment = await prisma.moment.create({
-      data: { coupleId: coupleA.id, title: 'A Moment', date: new Date(), tags: [] },
+      data: { coupleId: coupleA.id, authorId: userA.id, title: 'A Moment', date: new Date(), tags: [] },
     });
     momentId = moment.id;
 
@@ -2716,6 +2775,14 @@ describe('coupleId Isolation — Couple A cannot access Couple B data', () => {
   });
 
   afterAll(async () => {
+    // T387 — Moment FK-RESTRICTs authorId → users.id, so userA/userB
+    // owning moments would block the user delete below. Drop owned
+    // moments (+ children) by nested author-email filter first.
+    const authorFilter = { author: { email: { in: ['userA@isolation.test', 'userB@isolation.test'] } } };
+    await prisma.momentComment.deleteMany({ where: { moment: authorFilter } });
+    await prisma.momentReaction.deleteMany({ where: { moment: authorFilter } });
+    await prisma.momentPhoto.deleteMany({ where: { moment: authorFilter } });
+    await prisma.moment.deleteMany({ where: authorFilter });
     await prisma.user.deleteMany({
       where: { email: { in: ['userA@isolation.test', 'userB@isolation.test'] } },
     });
