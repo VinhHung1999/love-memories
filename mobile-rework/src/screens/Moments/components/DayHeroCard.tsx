@@ -2,9 +2,11 @@ import { Images } from 'lucide-react-native';
 import { Image, Pressable, Text, View } from 'react-native';
 
 import { LinearGradient } from '@/components';
+import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import type { MomentRow } from '../useMomentsViewModel';
+import { AuthorPill } from './AuthorPill';
 
 // T384 — hero card for the selected day when there's ≥1 moment. 200px photo
 // header (real cover photo or primary-gradient fallback) with count chip;
@@ -17,6 +19,7 @@ type Props = {
 
 export function DayHeroCard({ moment, onPress }: Props) {
   const c = useAppColors();
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
   const cover = moment.photos[0];
   const photoCount = moment.photos.length;
 
@@ -39,6 +42,14 @@ export function DayHeroCard({ moment, onPress }: Props) {
             className="w-full h-full"
           />
         )}
+        {/* T387 — author pill top-left per prototype moments2.jsx L355-376. */}
+        <View className="absolute top-3 left-3">
+          <AuthorPill
+            authorId={moment.author.id}
+            authorName={moment.author.name}
+            currentUserId={currentUserId}
+          />
+        </View>
         {photoCount > 1 ? (
           <View
             className="absolute bottom-3 right-3 flex-row items-center gap-1 px-2 py-1 rounded-lg"

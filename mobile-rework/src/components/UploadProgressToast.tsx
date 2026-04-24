@@ -5,6 +5,7 @@ import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUploadQueueStore } from '@/lib/uploadQueue';
+import { useAppColors } from '@/theme/ThemeProvider';
 
 // T378 (Sprint 62) — global toast mounted once in app/_layout.tsx inside
 // BottomSheetModalProvider. Subscribes to the upload queue and surfaces an
@@ -29,6 +30,13 @@ export function UploadProgressToast() {
   const clearAll = useUploadQueueStore((s) => s.clearAll);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  // D37 (Sprint 64 Build 74): icons and ActivityIndicator colors need to
+  // follow the theme-flipped pill. `bg-ink` flips dark-in-light / light-in-
+  // dark; content color uses `c.bg` which is always the opposite — so we
+  // get (dark pill + light content) in light mode and (light pill + dark
+  // content) in dark mode, both high contrast. Hardcoded `#ffffff` broke
+  // the contrast the moment the user flipped to dark mode.
+  const c = useAppColors();
 
   const { uploadingCount, errorIds, successCount, total, displayCurrent } = useMemo(() => {
     const entries = Object.values(uploads);
@@ -87,17 +95,17 @@ export function UploadProgressToast() {
         }`}
       >
         {stillUploading ? (
-          <ActivityIndicator size="small" color="#ffffff" />
+          <ActivityIndicator size="small" color={c.bg} />
         ) : hasErrors ? (
-          <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center">
-            <Text className="font-bodySemibold text-white text-[13px]">!</Text>
+          <View className="w-5 h-5 rounded-full bg-bg/20 items-center justify-center">
+            <Text className="font-bodySemibold text-bg text-[13px]">!</Text>
           </View>
         ) : (
-          <CheckCircle2 size={18} color="#ffffff" strokeWidth={2} />
+          <CheckCircle2 size={18} color={c.bg} strokeWidth={2} />
         )}
         <Text
           numberOfLines={1}
-          className="font-bodyMedium text-white text-[13px] leading-[18px] flex-shrink"
+          className="font-bodyMedium text-bg text-[13px] leading-[18px] flex-shrink"
         >
           {stillUploading
             ? t('compose.uploadToast.uploading', { current: displayCurrent, total })
@@ -110,10 +118,10 @@ export function UploadProgressToast() {
             onPress={onRetryAll}
             accessibilityRole="button"
             accessibilityLabel={t('compose.uploadToast.retry')}
-            className="flex-row items-center gap-1 rounded-full bg-white/15 px-3 py-1 active:bg-white/25"
+            className="flex-row items-center gap-1 rounded-full bg-bg/15 px-3 py-1 active:bg-bg/25"
           >
-            <RotateCw size={12} color="#ffffff" strokeWidth={2.25} />
-            <Text className="font-bodySemibold text-white text-[12px]">
+            <RotateCw size={12} color={c.bg} strokeWidth={2.25} />
+            <Text className="font-bodySemibold text-bg text-[12px]">
               {t('compose.uploadToast.retry')}
             </Text>
           </Pressable>
@@ -124,9 +132,9 @@ export function UploadProgressToast() {
             hitSlop={10}
             accessibilityRole="button"
             accessibilityLabel={t('compose.uploadToast.dismiss')}
-            className="w-6 h-6 rounded-full items-center justify-center active:bg-white/10"
+            className="w-6 h-6 rounded-full items-center justify-center active:bg-bg/10"
           >
-            <X size={14} color="#ffffff" strokeWidth={2.25} />
+            <X size={14} color={c.bg} strokeWidth={2.25} />
           </Pressable>
         ) : null}
       </View>

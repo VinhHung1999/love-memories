@@ -45,6 +45,7 @@ const vi = {
       min: 'phút',
       s: 'giây',
     },
+    countdown: '{{n}} ngày nữa là kỷ niệm ♥',
     dailyQTitle: 'Hỏi nhau hôm nay',
     dailyQ: 'Nếu được tặng nhau một buổi chiều bất kỳ, mình muốn cùng làm gì nhỉ?',
     dailyQCta: 'Trả lời',
@@ -107,13 +108,29 @@ const vi = {
       pickLibrary: 'Chọn từ thư viện',
       pickLibrarySub: 'Thêm tối đa {{max}} ảnh đã có',
       photobooth: 'Photo Booth',
-      photoboothSub: 'Sắp ra mắt 💝',
+      photoboothSub: '4 ảnh · đếm ngược 3 giây',
       permission: {
         cameraDenied: 'Memoura cần quyền truy cập máy ảnh để chụp khoảnh khắc. Mở Cài đặt để bật nhé.',
         libraryDenied: 'Memoura cần quyền truy cập thư viện ảnh để thêm khoảnh khắc. Mở Cài đặt để bật nhé.',
         openSettings: 'Mở Cài đặt',
         cancel: 'Để sau',
       },
+    },
+    // T404 — photobooth screen
+    photobooth: {
+      headline: 'Dải ảnh của riêng hai đứa',
+      captureNow: 'Chụp ngay bây giờ',
+      captureNowSub: '4 ảnh · đếm ngược 3 giây',
+      fromGallery: 'Từ thư viện',
+      fromGallerySub: 'Chọn 1–4 ảnh có sẵn',
+      shotCounter: '{{current}} / {{total}}',
+      start: 'Bắt đầu',
+      accept: 'Dùng ngay 💌',
+      retake: 'Chụp lại',
+      saving: 'Đang lưu…',
+      permCamera: 'Memoura cần quyền máy ảnh để chụp Photo Booth.',
+      permLibrary: 'Memoura cần quyền lưu ảnh để lưu dải ảnh.',
+      grant: 'Cấp quyền',
     },
     // T378 — create moment screen (photos + description + date). Submit
     // dismisses the modal immediately and hands upload off to uploadQueue

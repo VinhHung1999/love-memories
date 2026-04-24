@@ -23,6 +23,14 @@ export type MomentReactionRow = {
   createdAt: string;
 };
 
+// T387 — BE stamps authorId on create from req.user and includes
+// author {id, name} on list/get responses. Used by AuthorPill to pick
+// the gradient variant (currentUser → heroA/heroB, partner → secondary/primary).
+export type MomentAuthor = {
+  id: string;
+  name: string;
+};
+
 export type MomentDetailRow = {
   id: string;
   title: string;
@@ -34,6 +42,7 @@ export type MomentDetailRow = {
   tags: string[];
   location: string | null;
   reactions?: MomentReactionRow[];
+  author: MomentAuthor;
 };
 
 export type UpdateMomentPayload = {

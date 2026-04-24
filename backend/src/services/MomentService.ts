@@ -3,6 +3,8 @@ import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 import { createNotification, getPartnerUserId } from '../utils/notifications';
 import { AppError } from '../types/errors';
 
+const authorSelect = { select: { id: true, name: true } } as const;
+
 const momentIncludeFull = {
   photos: true,
   audios: { orderBy: { createdAt: 'asc' as const } },
@@ -11,12 +13,13 @@ const momentIncludeFull = {
     include: { user: { select: { name: true, avatar: true } } },
   },
   reactions: { orderBy: { createdAt: 'asc' as const } },
+  author: authorSelect,
 };
 
 export async function list(coupleId: string) {
   return prisma.moment.findMany({
     where: { coupleId },
-    include: { photos: true, audios: true },
+    include: { photos: true, audios: true, author: authorSelect },
     orderBy: { date: 'desc' },
   });
 }
@@ -36,8 +39,8 @@ export async function create(
   data: Record<string, unknown>,
 ) {
   const moment = await prisma.moment.create({
-    data: { ...(data as any), coupleId },
-    include: { photos: true },
+    data: { ...(data as any), coupleId, authorId: currentUserId },
+    include: { photos: true, author: authorSelect },
   });
   // Notify partner (fire-and-forget after response)
   void (async () => {
@@ -64,7 +67,7 @@ export async function update(id: string, coupleId: string, data: Record<string, 
   return prisma.moment.update({
     where: { id },
     data: data as object,
-    include: { photos: true },
+    include: { photos: true, author: authorSelect },
   });
 }
 

@@ -1,53 +1,34 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 
-import { SafeScreen, TabBarSpacer } from '@/components';
-import { useCameraSheetStore } from '@/stores/cameraSheetStore';
+import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
-
-import { EmptyHero } from './components/EmptyHero';
+import type { HeroPerson } from './useDashboardViewModel';
 import {
   LatestMomentCard,
   formatRelative,
 } from './components/LatestMomentCard';
+import { TimerHero } from './components/TimerHero';
 import { ShareCodeCard } from './ShareCodeCard';
 import { useDashboardViewModel } from './useDashboardViewModel';
 
-// T307 (Sprint 60) — created the greeting + ShareCodeCard shell.
-// T375 (Sprint 62) — plugged in useDashboardViewModel so the home tab now
-// branches empty ↔ has-data:
-//   count === 0 → <EmptyHero /> (polaroid hero + 2 CTA, both open Camera
-//                 BottomSheet via useCameraSheetStore — T377)
-//   count  >  0 → <LatestMomentCard /> (top moment, tap → moment-detail)
-// ShareCodeCard stays above both — it unmounts itself once the partner joins,
-// so paired couples only see greeting + moments section. Reactive refresh
-// is handled upstream by useMomentsViewModel subscribing to
-// momentsStore.version (T378 bumps after POST + each photo upload).
+// T307 (Sprint 60) — greeting + ShareCodeCard shell.
+// T375 (Sprint 62) — empty ↔ latest-moment branch on hero slot.
+// T415 (Sprint 64) — TimerHero (cinematic count-up + avatars + anniversary) added
+// ABOVE LatestMomentCard. Both are now visible: TimerHero always, LatestMomentCard
+// only when there is at least one moment (guard: vm.latest != null).
+// Build-61 hotfix: D5 CoupleAvatars + greeting row, D6 LatestMomentCard restored.
 
 export function DashboardScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const c = useAppColors();
   const vm = useDashboardViewModel();
 
   const greeting = vm.userName
     ? t('home.greeting', { name: vm.userName })
     : t('tabs.home');
-
-  const openCameraSheet = useCallback(() => {
-    useCameraSheetStore.getState().open();
-  }, []);
-
-  // T381 — direct push to moment-create (skip sheet). Empty photos array so
-  // the composer lands on the native picker path via "+" cell inside.
-  const openMomentCreate = useCallback(() => {
-    router.push({
-      pathname: '/(modal)/moment-create',
-      params: { initialPhotos: JSON.stringify([]) },
-    });
-  }, [router]);
 
   const openDetail = useCallback(
     (id: string) => {
@@ -59,54 +40,110 @@ export function DashboardScreen() {
   const justNow = t('moments.detail.justNow');
   const relativeLabel = useMemo(() => {
     if (!vm.latest) return '';
-    return formatRelative(
-      new Date(vm.latest.createdAt),
-      i18n.language,
-      justNow,
-    );
+    return formatRelative(new Date(vm.latest.createdAt), i18n.language, justNow);
   }, [vm.latest, i18n.language, justNow]);
-
-  const showInitialLoader = vm.loading && vm.count === 0 && !vm.error;
 
   return (
     <SafeScreen>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-5 pt-4">
-          <Text className="font-displayMedium text-ink text-[22px] leading-[28px]">
-            {greeting}
-          </Text>
-          <Text className="mt-1 font-body text-ink-mute text-[13px]">
-            {t('home.greetingTime')}
-          </Text>
+        {/* D5a: greeting row — CoupleAvatars left + text right (flex-1 min-w-0 so long names truncate) */}
+        <View className="px-5 pt-4 flex-row items-center gap-[10px]">
+          <CoupleAvatars you={vm.you} partner={vm.partner} />
+          <View className="flex-1 min-w-0">
+            <Text
+              className="font-displayMedium text-ink text-[22px] leading-[28px]"
+              numberOfLines={1}
+            >
+              {greeting}
+            </Text>
+            <Text className="mt-1 font-body text-ink-mute text-[13px]">
+              {t('home.greetingTime')}
+            </Text>
+          </View>
         </View>
 
         <ShareCodeCard />
 
-        {showInitialLoader ? (
-          <View className="py-10 items-center justify-center">
-            <ActivityIndicator color={c.primary} />
-          </View>
-        ) : vm.latest ? (
+        <TimerHero
+          you={vm.you}
+          partner={vm.partner}
+          anniversary={vm.anniversaryDate}
+          timerLabel={t('home.timerLabel')}
+          daysUnit={t('home.units.d')}
+          yearsUnit={t('home.units.y')}
+          monthsUnit={t('home.units.m')}
+          countdownLabel={(n) => t('home.countdown', { n })}
+        />
+
+        {/* D6: LatestMomentCard restored below TimerHero. Only shown when there is
+            at least one moment. Empty state is intentionally omitted on Dashboard —
+            the Moments tab handles the empty-first-moment CTA. */}
+        {vm.latest ? (
           <LatestMomentCard
             moment={vm.latest}
-            eyebrow={t('home.latest.eyebrow')}
+            eyebrow={t('home.latestFrom', { partner: vm.partner?.name ?? '' })}
             relativeLabel={relativeLabel}
             onPress={openDetail}
           />
-        ) : (
-          <EmptyHero
-            title={t('home.empty.title')}
-            subtitle={t('home.empty.subtitle')}
-            primaryLabel={t('home.empty.ctaPrimary')}
-            secondaryLabel={t('home.empty.ctaSecondary')}
-            polaroidCaption={t('home.empty.polaroidCaption')}
-            onAddMoment={openMomentCreate}
-            onOpenCamera={openCameraSheet}
-          />
-        )}
+        ) : null}
 
         <TabBarSpacer />
       </ScrollView>
     </SafeScreen>
+  );
+}
+
+// D5b: CoupleAvatars — 50×36 container with two 32×32 overlapping circles.
+// Shows real avatar photos when available (you.avatarUrl / partner.avatarUrl),
+// falls back to gradient initial circles matching prototype L62-80.
+function CoupleAvatars({
+  you,
+  partner,
+}: {
+  you: HeroPerson;
+  partner: HeroPerson | null;
+}) {
+  const c = useAppColors();
+
+  return (
+    <View className="w-[50px] h-[36px]">
+      {/* L circle — left:0, top:0 */}
+      <View
+        className="absolute w-8 h-8 rounded-full overflow-hidden items-center justify-center"
+        style={{ left: 0, top: 0, borderWidth: 2, borderColor: c.bg }}
+      >
+        <LinearGradient
+          colors={[c.heroA, c.heroB]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+        {you.avatarUrl ? (
+          <Image source={{ uri: you.avatarUrl }} className="absolute inset-0 w-full h-full" resizeMode="cover" />
+        ) : (
+          <Text className="font-bodyBold text-white text-[13px] relative">{you.initial}</Text>
+        )}
+      </View>
+
+      {/* M circle — right:0, top:4 */}
+      <View
+        className="absolute w-8 h-8 rounded-full overflow-hidden items-center justify-center"
+        style={{ right: 0, top: 4, borderWidth: 2, borderColor: c.bg }}
+      >
+        <LinearGradient
+          colors={[c.secondary, c.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+        {partner?.avatarUrl ? (
+          <Image source={{ uri: partner.avatarUrl }} className="absolute inset-0 w-full h-full" resizeMode="cover" />
+        ) : (
+          <Text className="font-bodyBold text-white text-[13px] relative">
+            {partner?.initial ?? '·'}
+          </Text>
+        )}
+      </View>
+    </View>
   );
 }

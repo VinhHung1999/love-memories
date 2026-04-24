@@ -29,7 +29,7 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       <View className={`h-12 rounded-2xl px-4 justify-center bg-surface border ${borderClass}`}>
         <TextInput
           ref={ref}
-          className="font-body text-base text-ink flex-1"
+          className="font-body text-base text-ink"
           placeholderTextColor={colors.inkMute}
           onFocus={(e) => {
             setFocused(true);

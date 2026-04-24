@@ -320,6 +320,18 @@ export async function deleteAccount(userId: string, coupleId: string, password: 
       await tx.loveLetter.deleteMany({
         where: { OR: [{ senderId: userId }, { recipientId: userId }] },
       });
+      // T387: reassign moments authored by leaver to the remaining partner.
+      // moments.authorId has FK RESTRICT — tx.user.delete would fail otherwise.
+      const partner = await tx.user.findFirst({
+        where: { coupleId, id: { not: userId } },
+        select: { id: true },
+      });
+      if (partner) {
+        await tx.moment.updateMany({
+          where: { authorId: userId, coupleId },
+          data: { authorId: partner.id },
+        });
+      }
       // Delete user (notifications/push subs/mobile tokens/refresh tokens cascade)
       await tx.user.delete({ where: { id: userId } });
     });

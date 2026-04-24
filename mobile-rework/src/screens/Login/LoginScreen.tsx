@@ -1,6 +1,6 @@
 import { Lock, Mail } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AuthBigBtn,
@@ -13,6 +13,9 @@ import {
 } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { useLoginViewModel } from './useLoginViewModel';
+
+const HEART_ROSE = require('../../../assets/images/avatar-heart-rose.png');
+const HEART_BLUE = require('../../../assets/images/avatar-heart-blue.png');
 
 // Ports `LogInScreen` from docs/design/prototype/memoura-v2/auth.jsx:191.
 // Soft top wash (accentSoft → bg). Avatar pair visual + form + forgot link
@@ -165,32 +168,17 @@ export function LoginScreen() {
   );
 }
 
-// Two overlapping circular gradient avatars per prototype:222-238.
+// T419: heart photo avatars — matches PairCreate PairedHearts pattern
+// but login-sized (w-14 h-14 vs w-20 h-20 onboarding). flex-row overlap
+// kept identical to original gradient circles so layout doesn't shift.
 function AvatarPair() {
-  const c = useAppColors();
   return (
     <View className="flex-row justify-center items-center mb-6">
-      {/* T291 (bug #4-5): pair-avatar separator was `border-white`, which
-          looked harsh on the cream `bg-bg`. Using `border-bg` matches the
-          PairCreate PairedHearts convention — ring picks up the page colour
-          so the avatars feel carved out rather than outlined in pure white. */}
-      <View className="w-14 h-14 rounded-full overflow-hidden items-center justify-center border-2 border-bg shadow-hero z-10">
-        <LinearGradient
-          colors={[c.primary, c.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="absolute inset-0"
-        />
-        <Text className="font-displayMediumItalic text-white text-[22px]">L</Text>
+      <View className="w-14 h-14 rounded-full overflow-hidden border-2 border-bg shadow-hero z-10">
+        <Image source={HEART_ROSE} className="w-full h-full" resizeMode="cover" />
       </View>
-      <View className="w-14 h-14 rounded-full overflow-hidden items-center justify-center border-2 border-bg shadow-hero -ml-3.5">
-        <LinearGradient
-          colors={[c.accent, c.primary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="absolute inset-0"
-        />
-        <Text className="font-displayMediumItalic text-white text-[22px]">M</Text>
+      <View className="w-14 h-14 rounded-full overflow-hidden border-2 border-bg shadow-hero -ml-3.5">
+        <Image source={HEART_BLUE} className="w-full h-full" resizeMode="cover" />
       </View>
     </View>
   );

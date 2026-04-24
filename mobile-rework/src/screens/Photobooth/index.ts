@@ -1,0 +1,1 @@
+export { PhotoboothScreen } from './PhotoboothScreen';

@@ -30,6 +30,13 @@ export type MomentPhoto = {
   filename: string;
 };
 
+// T387 — author echoed from BE so the AuthorPill can pick its gradient
+// variant (currentUser.id === author.id → heroA→heroB, else partner).
+export type MomentAuthor = {
+  id: string;
+  name: string;
+};
+
 export type MomentDetail = {
   id: string;
   title: string;
@@ -41,6 +48,7 @@ export type MomentDetail = {
   tags: string[];
   location: string | null;
   reactions: MomentReactionRow[];
+  author: MomentAuthor;
 };
 
 // T400 — prototype mobile picks 6 of the BE's 9-whitelist in this order.

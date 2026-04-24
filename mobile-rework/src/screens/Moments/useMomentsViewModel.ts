@@ -38,6 +38,12 @@ export type MomentPhoto = {
   filename: string;
 };
 
+// T387 — BE `GET /api/moments` includes `author: {id, name}` per row.
+export type MomentAuthor = {
+  id: string;
+  name: string;
+};
+
 export type MomentRow = {
   id: string;
   title: string;
@@ -46,6 +52,7 @@ export type MomentRow = {
   createdAt: string;
   updatedAt: string;
   photos: MomentPhoto[];
+  author: MomentAuthor;
 };
 
 export type DayCell = {

@@ -52,6 +52,7 @@ model User {
   updatedAt           DateTime             @updatedAt
   couple              Couple?              @relation(fields: [coupleId], references: [id])
   comments            MomentComment[]
+  authoredMoments     Moment[]             @relation("UserAuthoredMoments")
   notifications       Notification[]
   pushSubscriptions   PushSubscription[]
   mobilePushTokens    MobilePushToken[]
@@ -190,6 +191,7 @@ model Notification {
 model Moment {
   id          String           @id @default(uuid())
   coupleId    String
+  authorId    String
   title       String
   caption     String?
   date        DateTime
@@ -201,12 +203,14 @@ model Moment {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   couple      Couple          @relation(fields: [coupleId], references: [id])
+  author      User             @relation("UserAuthoredMoments", fields: [authorId], references: [id])
   photos      MomentPhoto[]
   audios      MomentAudio[]
   comments    MomentComment[]
   reactions   MomentReaction[]
 
   @@index([coupleId])
+  @@index([authorId])
   @@map("moments")
 }
 
