@@ -195,11 +195,16 @@ One answer per user per question per couple.
 | location | String? | | Address/place name |
 | tags | String[] | | Array of tag strings |
 | spotifyUrl | String? | | Spotify track URL |
+| authorId | String | FK → User `ON DELETE RESTRICT` | Sprint 64 T387 — records who logged the moment; cannot orphan |
 | createdAt | DateTime | `@default(now())` | |
 | updatedAt | DateTime | `@updatedAt` | |
 
-**Relations:** photos[], audios[], comments[], reactions[]
+**Relations:** author, photos[], audios[], comments[], reactions[]
 **Cascade on delete:** photos, audios, comments, reactions
+**Indexes:** `@@index([authorId])`
+**FK policy:** `authorId` uses `ON DELETE RESTRICT`. `AuthService.deleteAccount`
+reassigns moments to the remaining partner before `user.delete` on a non-last-member
+account deletion; last-member deletion unlinks the couple which cascades moments.
 
 ---
 

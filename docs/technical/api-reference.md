@@ -584,7 +584,7 @@ Proxy CDN image for shared item (CORS bypass).
 
 ### `GET /api/moments`
 
-List all moments, newest first, with photos and audios.
+List all moments, newest first, with photos, audios, and author.
 
 **Response (200):**
 ```json
@@ -592,17 +592,22 @@ List all moments, newest first, with photos and audios.
   "id": "uuid", "title": "...", "caption": "...", "date": "ISO",
   "latitude": 10.8, "longitude": 106.7, "location": "...",
   "tags": ["tag1"], "spotifyUrl": "...",
+  "authorId": "uuid",
+  "author": { "id": "uuid", "name": "Hùng" },
   "photos": [{ "id": "uuid", "filename": "...", "url": "...", "createdAt": "ISO" }],
   "audios": [{ "id": "uuid", "filename": "...", "url": "...", "duration": 15.5, "createdAt": "ISO" }],
   "createdAt": "ISO", "updatedAt": "ISO"
 }]
 ```
 
+`author` is the couple member who created the moment (Sprint 64 T387). Mobile
+renders this as the `AuthorPill` overlay on the cover photo.
+
 ---
 
 ### `GET /api/moments/:id`
 
-Get single moment with comments, reactions, photos, audios.
+Get single moment with comments, reactions, photos, audios, author.
 
 **Response (200):** Same as list item plus:
 ```json
@@ -616,7 +621,8 @@ Get single moment with comments, reactions, photos, audios.
 
 ### `POST /api/moments`
 
-Create a new moment.
+Create a new moment. `authorId` is set server-side from the authenticated user —
+clients never pass it.
 
 **Request:**
 ```json
@@ -634,7 +640,7 @@ Create a new moment.
 
 All fields except `title` and `date` are optional.
 
-**Response (201):** Created moment object
+**Response (201):** Created moment object (includes `author: { id, name }`)
 
 **Notification:** Sends to partner
 
