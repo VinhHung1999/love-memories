@@ -148,44 +148,56 @@ function StripComposite({
         ))}
       </View>
 
-      {/* Caption — D29: match prototype photobooth.jsx L672-692. The
-          original space-between row pinned the caption to the LEFT and
-          the date to the RIGHT, so the caption was visually off-center
-          relative to the polaroid's photo column. Prototype centers the
-          caption as a block and renders the date as a small stamp
-          absolutely positioned in the polaroid's bottom-right corner
-          (skipped entirely on filmstrip). D28 spacing carries over:
-          marginTop: 4, fontSize: 14. */}
+      {/* Caption + date — D30: Boss overrides the prototype L672-692
+          split (centered caption + absolute-stamp date). Boss wants both
+          texts on ONE horizontal line but visually baseline-aligned.
+          Earlier D20/D28 used the same row with `alignItems: 'center'`
+          which center-aligns text BOXES — with DancingScript 14pt vs
+          Courier 9pt the box heights differ, so the text baselines sat
+          at different y-pixels and Boss read that as "không ngay hàng".
+          Fix: `alignItems: 'baseline'` + explicit `lineHeight: 16` on
+          both Texts so the two fonts share a single baseline row
+          regardless of font-metric differences. Filmstrip still skips
+          the date (prototype-L686 rule — Boss only overrode the layout,
+          not the filmstrip-no-date rule). */}
       {hasFrame ? (
-        <Text
-          style={{
-            marginTop: 4,
-            textAlign: 'center',
-            fontFamily: 'DancingScript_700Bold',
-            fontSize: 14,
-            color: vm.frame === 'filmstrip' ? '#fff' : c.primary,
-          }}
-        >
-          {vm.caption}
-        </Text>
-      ) : null}
-
-      {/* Date stamp — absolute bottom-right inside the strip frame.
-          Skipped on filmstrip per prototype L686 (filmstrip is meant to
-          look like raw negatives, no paper-date). */}
-      {hasFrame && vm.frame !== 'filmstrip' ? (
-        <Text
-          style={{
-            position: 'absolute',
-            bottom: 6,
-            right: 10,
-            fontSize: 9,
-            color: c.inkMute,
-            fontFamily: 'Courier',
-          }}
-        >
-          {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-        </Text>
+        vm.frame === 'filmstrip' ? (
+          <Text
+            style={{
+              marginTop: 4,
+              textAlign: 'center',
+              fontFamily: 'DancingScript_700Bold',
+              fontSize: 14,
+              lineHeight: 16,
+              color: '#fff',
+            }}
+          >
+            {vm.caption}
+          </Text>
+        ) : (
+          <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+            <Text
+              style={{
+                fontFamily: 'DancingScript_700Bold',
+                fontSize: 14,
+                lineHeight: 16,
+                color: c.primary,
+              }}
+            >
+              {vm.caption}
+            </Text>
+            <Text
+              style={{
+                fontSize: 9,
+                lineHeight: 16,
+                color: c.inkMute,
+                fontFamily: 'Courier',
+              }}
+            >
+              {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </Text>
+          </View>
+        )
       ) : null}
     </View>
   );
