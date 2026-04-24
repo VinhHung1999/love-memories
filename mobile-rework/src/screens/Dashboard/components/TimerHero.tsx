@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -45,6 +45,7 @@ type Props = {
   yearsUnit: string;
   monthsUnit: string;
   countdownLabel: (days: number) => string;
+  // D5b: avatar URLs passed from DashboardScreen via vm.you/partner.avatarUrl
 };
 
 export function TimerHero({
@@ -86,21 +87,29 @@ export function TimerHero({
         className="absolute inset-0"
       />
 
-      {/* Giant heart watermark — plain Text glyph rotated. Matches prototype's
-          180×180 SVG at 8% opacity; Text is lighter than an SVG and reads the
-          same on iOS + Android. */}
-      <Text
-        className="absolute -top-2 -right-2 text-white/10 text-[180px] font-displayBold"
-        style={{ transform: [{ rotate: '-12deg' }] }}
+      {/* Giant heart watermark — SVG path, opacity 0.08, matches prototype
+          L175-179: width/height 180, right:-30 top:-20, rotate -12deg.
+          Using SVG Path so the fill is guaranteed #fff regardless of theme;
+          Text glyph was picking up a dark red color on some palette configs. */}
+      <Svg
+        width={180}
+        height={180}
+        viewBox="0 0 24 24"
+        className="absolute"
+        style={{ right: -30, top: -20, opacity: 0.08, transform: [{ rotate: '-12deg' }] }}
       >
-        ♥
-      </Text>
+        <Path
+          d="M12 21s-8-5.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-8 11-8 11"
+          fill="#fff"
+        />
+      </Svg>
 
       <View className="relative px-[22px] py-[22px]">
         {/* Top row: you avatar · dashed link · heart · dashed link · partner avatar · LIVE pill */}
         <View className="flex-row items-center">
           <AvatarTile
             initial={you.initial}
+            avatarUrl={you.avatarUrl}
             gradient={[c.secondary, c.heroA]}
           />
           <DashedCurve direction="up" />
@@ -108,6 +117,7 @@ export function TimerHero({
           <DashedCurve direction="down" />
           <AvatarTile
             initial={partner?.initial ?? '?'}
+            avatarUrl={partner?.avatarUrl ?? null}
             gradient={[c.accent, c.primary]}
           />
 
@@ -116,8 +126,8 @@ export function TimerHero({
           <LivePill />
         </View>
 
-        {/* Names + Dancing Script timer label */}
-        <View className="mt-[18px] flex-row items-baseline flex-wrap">
+        {/* Names + Dancing Script timer label — D3 fix: no wrap, single baseline row */}
+        <View className="mt-[18px] flex-row items-baseline">
           <Text
             className="font-displayMedium text-white text-[18px]"
             numberOfLines={1}
@@ -132,7 +142,7 @@ export function TimerHero({
         {/* Giant day count */}
         <View className="mt-[6px] flex-row items-baseline">
           <Text
-            className="font-displayBold text-white text-[88px] leading-[80px]"
+            className="font-displayBoldItalic text-white text-[88px] leading-[96px]"
             style={{
               letterSpacing: -4,
               textShadowColor: 'rgba(0,0,0,0.25)',
@@ -175,9 +185,11 @@ export function TimerHero({
 
 function AvatarTile({
   initial,
+  avatarUrl,
   gradient,
 }: {
   initial: string;
+  avatarUrl: string | null;
   gradient: [string, string];
 }) {
   return (
@@ -191,15 +203,21 @@ function AvatarTile({
         end={{ x: 1, y: 1 }}
         className="absolute inset-0"
       />
-      <LinearGradient
-        colors={['rgba(255,255,255,0.55)', 'transparent']}
-        start={{ x: 0.2, y: 0.1 }}
-        end={{ x: 0.8, y: 0.7 }}
-        className="absolute inset-0"
-      />
-      <Text className="relative font-displayBold text-white text-[26px]">
-        {initial}
-      </Text>
+      {avatarUrl ? (
+        <Image source={{ uri: avatarUrl }} className="absolute inset-0 w-full h-full" resizeMode="cover" />
+      ) : (
+        <>
+          <LinearGradient
+            colors={['rgba(255,255,255,0.55)', 'transparent']}
+            start={{ x: 0.2, y: 0.1 }}
+            end={{ x: 0.8, y: 0.7 }}
+            className="absolute inset-0"
+          />
+          <Text className="relative font-displayBold text-white text-[26px]">
+            {initial}
+          </Text>
+        </>
+      )}
     </View>
   );
 }
