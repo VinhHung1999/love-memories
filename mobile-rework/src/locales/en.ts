@@ -33,6 +33,7 @@ const en: Resources = {
       min: 'min',
       s: 'sec',
     },
+    countdown: '{{n}} days to anniversary ♥',
     dailyQTitle: 'Today, just for us',
     dailyQ: 'If we could borrow any afternoon, what would we do together?',
     dailyQCta: 'Answer',

@@ -45,6 +45,7 @@ const vi = {
       min: 'phút',
       s: 'giây',
     },
+    countdown: '{{n}} ngày nữa là kỷ niệm ♥',
     dailyQTitle: 'Hỏi nhau hôm nay',
     dailyQ: 'Nếu được tặng nhau một buổi chiều bất kỳ, mình muốn cùng làm gì nhỉ?',
     dailyQCta: 'Trả lời',
