@@ -147,7 +147,7 @@ export function CameraActionSheet() {
   const onPhotobooth = useCallback(() => {
     close();
     setTimeout(() => {
-      router.push('/(modal)/photobooth');
+      router.push('/photobooth');
     }, 180);
   }, [close, router]);
 

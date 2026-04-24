@@ -96,7 +96,7 @@ export function TimerHero({
         height={180}
         viewBox="0 0 24 24"
         className="absolute"
-        style={{ right: -30, top: -20, opacity: 0.08, transform: [{ rotate: '-12deg' }] }}
+        style={{ right: -30, top: -20, opacity: 0.14, transform: [{ rotate: '-12deg' }] }}
       >
         <Path
           d="M12 21s-8-5.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-8 11-8 11"
@@ -144,7 +144,7 @@ export function TimerHero({
           <Text
             className="font-displayBoldItalic text-white text-[88px] leading-[96px]"
             style={{
-              letterSpacing: -4,
+              letterSpacing: -2,
               textShadowColor: 'rgba(0,0,0,0.25)',
               textShadowRadius: 30,
               textShadowOffset: { width: 0, height: 6 },
@@ -252,10 +252,15 @@ function HeartDot({ color }: { color: string }) {
   const scale = useSharedValue(1);
 
   useEffect(() => {
+    // D9: double-pulse heartbeat matching prototype memoHeartBeat keyframes:
+    //   0% → 15% → 30% → 45% → 60% → rest (1800ms total)
     scale.value = withRepeat(
       withSequence(
-        withTiming(1.08, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.15, { duration: 270, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 270, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.1,  { duration: 270, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 270, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.0,  { duration: 720 }),  // rest to fill 1800ms
       ),
       -1,
       false,
@@ -267,17 +272,20 @@ function HeartDot({ color }: { color: string }) {
   }));
 
   return (
-    <Animated.View
-      style={animatedStyle}
-      className="w-[38px] h-[38px] rounded-full items-center justify-center bg-white/95 shadow-hero"
-    >
-      <Text
-        className="font-displayBold text-[18px]"
-        style={{ color, lineHeight: 20 }}
+    // D9: outer white ring — 4px rgba(255,255,255,0.2) per prototype L211
+    <View className="rounded-full items-center justify-center" style={{ width: 46, height: 46, backgroundColor: 'rgba(255,255,255,0.2)' }}>
+      <Animated.View
+        style={animatedStyle}
+        className="w-[38px] h-[38px] rounded-full items-center justify-center bg-white/95 shadow-hero"
       >
-        ♥
-      </Text>
-    </Animated.View>
+        <Text
+          className="font-displayBold text-[18px]"
+          style={{ color, lineHeight: 24 }}  // D9: lineHeight 20→24 clears ascender clip
+        >
+          ♥
+        </Text>
+      </Animated.View>
+    </View>
   );
 }
 
