@@ -119,6 +119,13 @@ function RootStack() {
       {/* T386.7 — moment-detail lives outside (modal) as a full-screen card
           push (Boss Build-44 feedback). Default stack card presentation. */}
       <Stack.Screen name="moment-detail" />
+      {/* T367 recon harness — __DEV__-only route reachable via
+          `memoura://t367-harness` deep link. Skipped by useAuthGate so it
+          bypasses the login funnel; production builds tree-shake the file
+          because the component renders nothing useful without the debug
+          instrumentation. Remove along with the rest of T367 telemetry
+          when the fix ships. */}
+      {__DEV__ ? <Stack.Screen name="t367-harness" /> : null}
     </Stack>
   );
 }
@@ -172,6 +179,12 @@ function useAuthGate() {
     const screen = seg[1];
     const onPreAuthScreen =
       inAuthGroup && typeof screen === 'string' && PRE_AUTH_SCREENS.includes(screen);
+
+    // T367 recon harness — __DEV__-only route at `/t367-harness`. Bypass the
+    // gate entirely so we can deep-link into it without signing in. Guarded
+    // by __DEV__ so production builds can't reach it even if someone crafts
+    // the URL.
+    if (__DEV__ && seg[0] === 't367-harness') return;
 
     if (!authed) {
       // Unauthed: only allowed inside the (auth) group. Anything else

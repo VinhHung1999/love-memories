@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t367Log } from '@/devtools/t367Log';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { Button } from './Button';
 
@@ -34,11 +35,11 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
     () => ({
       open: (next) => {
         setSubtitle(next);
-        console.debug('[T367 ComingSoon] open→present');
+        t367Log('ComingSoon', 'open-present');
         bsRef.current?.present();
       },
       close: () => {
-        console.debug('[T367 ComingSoon] close→dismiss');
+        t367Log('ComingSoon', 'close-dismiss');
         bsRef.current?.dismiss();
       },
     }),
@@ -73,9 +74,9 @@ export const ComingSoonSheet = forwardRef<ComingSoonSheetHandle>((_props, ref) =
       backdropComponent={renderBackdrop}
       backgroundStyle={backgroundStyle}
       handleIndicatorStyle={handleIndicatorStyle}
-      onChange={(idx) => console.debug(`[T367 ComingSoon] onChange idx=${idx}`)}
+      onChange={(idx) => t367Log('ComingSoon', 'onChange', idx)}
       onDismiss={() => {
-        console.debug('[T367 ComingSoon] onDismiss');
+        t367Log('ComingSoon', 'onDismiss');
         setSubtitle(undefined);
       }}
     >

@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Platform, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t367Log } from '@/devtools/t367Log';
 import { useAppColors, useAppMode } from '@/theme/ThemeProvider';
 
 import { Button } from './Button';
@@ -95,11 +96,11 @@ export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
           setInitialIso(currentIso ? toLocalIso(seed) : null);
           setNetworkError(false);
           setSubmitting(false);
-          console.debug('[T367 Anniversary] open→present');
+          t367Log('Anniversary', 'open-present');
           bsRef.current?.present();
         },
         close: () => {
-          console.debug('[T367 Anniversary] close→dismiss');
+          t367Log('Anniversary', 'close-dismiss');
           bsRef.current?.dismiss();
         },
       }),
@@ -150,8 +151,8 @@ export const AnniversarySheet = forwardRef<AnniversarySheetHandle, Props>(
         backdropComponent={renderBackdrop}
         backgroundStyle={backgroundStyle}
         handleIndicatorStyle={handleIndicatorStyle}
-        onChange={(idx) => console.debug(`[T367 Anniversary] onChange idx=${idx}`)}
-        onDismiss={() => console.debug('[T367 Anniversary] onDismiss')}
+        onChange={(idx) => t367Log('Anniversary', 'onChange', idx)}
+        onDismiss={() => t367Log('Anniversary', 'onDismiss')}
       >
         <BottomSheetView style={{ paddingBottom: insets.bottom + 16 }}>
           <View className="px-6 pt-2">
