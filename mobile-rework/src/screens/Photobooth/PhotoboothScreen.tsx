@@ -1,15 +1,14 @@
 import { CameraView } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
-import { Animated, Image, Pressable, Text, View } from 'react-native';
+import { Animated, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
-import type { BoothLayout } from './usePhotoboothViewModel';
-import { usePhotoboothViewModel } from './usePhotoboothViewModel';
+import type { BoothFrame, BoothLayout, BoothSticker, EditTool, FilterCfg, FrameCfg } from './usePhotoboothViewModel';
+import { FILTERS, FRAMES, STICKERS, usePhotoboothViewModel } from './usePhotoboothViewModel';
 
-// T404 — Photobooth full flow. MVVM per mobile-rework rules.
-// Build-61 hotfix: PB1 full-screen (no top insets), PB2 layout picker
-// (grid-4/col-4/single), PB3 shutter flash+haptic, PB4 symmetric strip.
+// T404 (Sprint 64) Photobooth — MVVM, full prototype parity.
+// State machine: mode → capture/gallery → edit (T420) → share (T421)
 // Prototype: docs/design/prototype/memoura-v2/photobooth.jsx
 
 export function PhotoboothScreen() {
@@ -17,45 +16,153 @@ export function PhotoboothScreen() {
 
   return (
     <View className="flex-1">
-      {vm.step === 'mode' && <ModeStep vm={vm} />}
+      {vm.step === 'mode'    && <ModeStep vm={vm} />}
       {vm.step === 'capture' && <CaptureStep vm={vm} />}
-      {vm.step === 'review' && <ReviewStep vm={vm} />}
+      {vm.step === 'edit'    && <EditStep vm={vm} />}
+      {vm.step === 'share'   && <ShareStep vm={vm} />}
     </View>
   );
 }
 
 // ─── Layout config ──────────────────────────────────────────────────────────
 
-type LayoutCfg = { id: BoothLayout; name: string; cols: number; rows: number; count: number };
+type LayoutCfg = { id: BoothLayout; name: string; cols: number; count: number };
 
 const LAYOUTS: LayoutCfg[] = [
-  { id: 'grid-4', name: 'Lưới 4',  cols: 2, rows: 2, count: 4 },
-  { id: 'col-4',  name: 'Dọc 4',   cols: 1, rows: 4, count: 4 },
-  { id: 'single', name: 'Đơn',     cols: 1, rows: 1, count: 1 },
+  { id: 'grid-4', name: 'Lưới 4', cols: 2, count: 4 },
+  { id: 'col-4',  name: 'Dọc 4',  cols: 1, count: 4 },
+  { id: 'single', name: 'Đơn',    cols: 1, count: 1 },
 ];
 
-// PB2: small glyph icon showing the grid shape
+const STRIP_DIMS: Record<BoothLayout, { cols: number; cellW: number; cellH: number; stripW: number; stripH: number }> = {
+  'grid-4': { cols: 2, cellW: 138, cellH: 166, stripW: 292, stripH: 348 },
+  'col-4':  { cols: 1, cellW: 224, cellH: 140, stripW: 224, stripH: 584 },
+  'single': { cols: 1, cellW: 240, cellH: 290, stripW: 240, stripH: 290 },
+};
+
 function LayoutGlyph({ cfg, active }: { cfg: LayoutCfg; active: boolean }) {
   const color = active ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)';
-  const cells = Array.from({ length: cfg.count });
+  return (
+    <View style={{ width: 32, height: 32, flexDirection: 'row', flexWrap: 'wrap', gap: 2, alignContent: 'center', justifyContent: 'center' }}>
+      {Array.from({ length: cfg.count }).map((_, i) => (
+        <View key={i} style={{ width: cfg.cols === 1 ? 20 : 12, height: cfg.count <= 2 ? 12 : 6, backgroundColor: color, borderRadius: 2 }} />
+      ))}
+    </View>
+  );
+}
+
+// ─── Shared strip component (inside ViewShot ref) ───────────────────────────
+
+const FRAME_BG: Record<BoothFrame, string> = {
+  polaroid:  '#ffffff',
+  filmstrip: '#1a1a1a',
+  rose:      '',       // filled dynamically from c.primarySoft
+  none:      'transparent',
+};
+
+function StripComposite({
+  vm,
+  innerRef,
+  dim,
+}: {
+  vm: ReturnType<typeof usePhotoboothViewModel>;
+  innerRef?: React.RefObject<View | null>;
+  dim: typeof STRIP_DIMS['grid-4'];
+}) {
+  const c = useAppColors();
+  const filterCfg = FILTERS.find((f) => f.id === vm.filter) ?? FILTERS[0]!;
+  const hasFrame = vm.frame !== 'none';
+  const frameBg = vm.frame === 'rose' ? c.primarySoft : FRAME_BG[vm.frame];
+  const pad = hasFrame ? 16 : 0;
+  const bottomPad = hasFrame ? 40 : 0;
+
   return (
     <View
+      ref={innerRef}
       style={{
-        width: 32, height: 32,
-        flexDirection: 'row', flexWrap: 'wrap',
-        gap: 2, alignContent: 'center', justifyContent: 'center',
+        backgroundColor: frameBg,
+        paddingTop: pad,
+        paddingLeft: pad,
+        paddingRight: pad,
+        paddingBottom: bottomPad,
+        borderRadius: vm.frame === 'filmstrip' ? 4 : 12,
+        ...(hasFrame ? {
+          shadowColor: '#000',
+          shadowOpacity: 0.18,
+          shadowOffset: { width: 0, height: 8 },
+          shadowRadius: 20,
+        } : {}),
+        overflow: 'hidden',
       }}
     >
-      {cells.map((_, i) => (
-        <View
-          key={i}
-          style={{
-            width: cfg.cols === 1 ? 20 : 12,
-            height: cfg.rows <= 2 ? 12 : 6,
-            backgroundColor: color,
-            borderRadius: 2,
-          }}
-        />
+      {/* Film sprocket holes */}
+      {vm.frame === 'filmstrip' && (
+        <>
+          <FilmHoles side="left" />
+          <FilmHoles side="right" />
+        </>
+      )}
+
+      {/* Photo grid */}
+      <View
+        style={{
+          width: dim.stripW,
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: dim.cols === 2 ? 16 : 8,
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        {Array.from({ length: vm.totalShots }).map((_, i) => (
+          <View key={i} style={{ width: dim.cellW, height: dim.cellH, borderRadius: vm.frame === 'filmstrip' ? 2 : 6, overflow: 'hidden' }}>
+            {vm.shots[i] ? (
+              <>
+                <Image source={{ uri: vm.shots[i] }} style={{ width: dim.cellW, height: dim.cellH }} resizeMode="cover" />
+                {filterCfg.tint ? (
+                  <View style={{ position: 'absolute', inset: 0, backgroundColor: filterCfg.tint }} />
+                ) : null}
+              </>
+            ) : (
+              <View style={{ width: dim.cellW, height: dim.cellH, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 24 }}>📷</Text>
+              </View>
+            )}
+          </View>
+        ))}
+
+        {/* Sticker overlay */}
+        {vm.stickers.map((s) => (
+          <Pressable
+            key={s.id}
+            onPress={() => vm.removeSticker(s.id)}
+            style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%` }}
+          >
+            <Text style={{ fontSize: 28 }}>{s.emoji}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* Caption strip */}
+      {hasFrame ? (
+        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 16, color: vm.frame === 'filmstrip' ? '#fff' : c.primary }}>
+            {vm.caption}
+          </Text>
+          <Text style={{ fontSize: 9, color: vm.frame === 'filmstrip' ? 'rgba(255,255,255,0.5)' : c.inkMute, fontFamily: 'Courier' }}>
+            {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function FilmHoles({ side }: { side: 'left' | 'right' }) {
+  return (
+    <View style={{ position: 'absolute', [side]: 4, top: 4, bottom: 4, width: 10, flexDirection: 'column', justifyContent: 'space-around' }}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <View key={i} style={{ width: 10, height: 6, borderRadius: 2, backgroundColor: '#000' }} />
       ))}
     </View>
   );
@@ -66,69 +173,36 @@ function LayoutGlyph({ cfg, active }: { cfg: LayoutCfg; active: boolean }) {
 function ModeStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
   const { t } = useTranslation();
   const c = useAppColors();
-  // PB1: no top insets — full-screen gradient, content starts behind status bar
   const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1">
-      <LinearGradient
-        colors={[c.heroA, c.heroB, c.heroC]}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-        className="absolute inset-0"
-      />
-      <View
-        style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderBottomLeftRadius: 320, borderBottomRightRadius: 320 }}
-        className="absolute top-0 left-0 right-0 h-72"
-      />
+      <LinearGradient colors={[c.heroA, c.heroB, c.heroC]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} className="absolute inset-0" />
+      <View style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderBottomLeftRadius: 320, borderBottomRightRadius: 320 }} className="absolute top-0 left-0 right-0 h-72" />
 
-      {/* PB1: use insets.top only for safe area, no extra +8 buffer */}
       <View style={{ paddingTop: insets.top, paddingHorizontal: 20, flex: 1 }}>
-        {/* Header */}
         <View className="flex-row items-center gap-3 mb-6 mt-2">
-          <Pressable
-            onPress={vm.onClose}
-            className="w-9 h-9 rounded-full items-center justify-center"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
-            hitSlop={8}
-          >
+          <Pressable onPress={vm.onClose} className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }} hitSlop={8}>
             <Text className="text-white text-base font-bodyMedium">✕</Text>
           </Pressable>
           <Text className="font-displayMedium text-white text-[22px]">Photo Booth</Text>
         </View>
+        <Text className="font-script text-white/90 text-2xl leading-8 mb-6">{t('compose.photobooth.headline')}</Text>
 
-        {/* Headline */}
-        <Text className="font-script text-white/90 text-2xl leading-8 mb-6">
-          {t('compose.photobooth.headline')}
-        </Text>
-
-        {/* Mode cards */}
         <View className="gap-3 mb-6">
           <ModeCard emoji="📷" title={t('compose.photobooth.captureNow')} sub={t('compose.photobooth.captureNowSub')} onPress={vm.onStartCamera} />
           <ModeCard emoji="🖼" title={t('compose.photobooth.fromGallery')} sub={t('compose.photobooth.fromGallerySub')} onPress={vm.onPickGallery} />
         </View>
 
-        {/* PB2: Layout picker — 3 buttons matching prototype L145-165 */}
-        <Text className="font-bodySemibold text-white/75 text-[11px] uppercase tracking-widest mb-3">
-          Bố cục
-        </Text>
+        <Text className="font-bodySemibold text-white/75 text-[11px] uppercase tracking-widest mb-3">Bố cục</Text>
         <View className="flex-row gap-2">
           {LAYOUTS.map((l) => {
             const active = vm.layout === l.id;
             return (
-              <Pressable
-                key={l.id}
-                onPress={() => vm.setLayout(l.id)}
-                className="flex-1 rounded-2xl py-2.5 items-center gap-1.5 active:opacity-80"
-                style={{ backgroundColor: active ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.18)' }}
-              >
+              <Pressable key={l.id} onPress={() => vm.setLayout(l.id)} className="flex-1 rounded-2xl py-2.5 items-center gap-1.5 active:opacity-80"
+                style={{ backgroundColor: active ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.18)' }}>
                 <LayoutGlyph cfg={l} active={active} />
-                <Text
-                  className="font-bodyBold text-[10px] uppercase tracking-widest"
-                  style={{ color: active ? c.primary : '#fff' }}
-                >
-                  {l.name}
-                </Text>
+                <Text className="font-bodyBold text-[10px] uppercase tracking-widest" style={{ color: active ? c.primary : '#fff' }}>{l.name}</Text>
               </Pressable>
             );
           })}
@@ -140,11 +214,7 @@ function ModeStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
 
 function ModeCard({ emoji, title, sub, onPress }: { emoji: string; title: string; sub: string; onPress: () => void }) {
   return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center gap-4 rounded-3xl p-5 active:opacity-80"
-      style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-    >
+    <Pressable onPress={onPress} className="flex-row items-center gap-4 rounded-3xl p-5 active:opacity-80" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
       <Text className="text-3xl">{emoji}</Text>
       <View className="flex-1">
         <Text className="font-bodyBold text-white text-[16px] leading-[22px]">{title}</Text>
@@ -166,176 +236,223 @@ function CaptureStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) 
     <View className="flex-1 bg-black">
       <CameraView ref={vm.cameraRef} className="flex-1" facing="front" />
 
-      {/* PB3: white flash overlay — Animated so it can fire outside of worklet */}
-      <Animated.View
-        className="absolute inset-0 bg-white"
-        style={{ opacity: vm.flashOpacity }}
-        pointerEvents="none"
-      />
+      <Animated.View className="absolute inset-0 bg-white" style={{ opacity: vm.flashOpacity }} pointerEvents="none" />
 
-      {/* Top bar */}
-      <View
-        className="absolute left-0 right-0 flex-row items-center justify-between px-4"
-        style={{ top: insets.top + 12 }}
-      >
-        <Pressable
-          onPress={vm.onClose}
-          className="w-9 h-9 rounded-full items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-          hitSlop={8}
-        >
+      <View className="absolute left-0 right-0 flex-row items-center justify-between px-4" style={{ top: insets.top + 12 }}>
+        <Pressable onPress={vm.onClose} className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} hitSlop={8}>
           <Text className="text-white text-base">✕</Text>
         </Pressable>
-
-        {/* Shot progress bars */}
         <View className="flex-row gap-2">
           {Array.from({ length: vm.totalShots }).map((_, i) => (
-            <View
-              key={i}
-              className="h-1 w-10 rounded-full"
-              style={{
-                backgroundColor:
-                  i < vm.shots.length ? '#fff'
-                    : i === vm.shotIndex && isCapturing ? 'rgba(255,255,255,0.6)'
-                    : 'rgba(255,255,255,0.25)',
-              }}
-            />
+            <View key={i} className="h-1 w-10 rounded-full" style={{ backgroundColor: i < vm.shots.length ? '#fff' : i === vm.shotIndex && isCapturing ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }} />
           ))}
         </View>
-
-        <Text
-          className="font-bodyBold text-white text-xs rounded-full"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 10, paddingVertical: 5 }}
-        >
+        <Text className="font-bodyBold text-white text-xs rounded-full" style={{ backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 10, paddingVertical: 5 }}>
           {t('compose.photobooth.shotCounter', { current: vm.shots.length + (isCapturing ? 1 : 0), total: vm.totalShots })}
         </Text>
       </View>
 
-      {/* Countdown */}
       {vm.countdown > 0 && (
         <View className="absolute inset-0 items-center justify-center" pointerEvents="none">
-          <Text
-            className="font-displayBold text-white"
-            style={{ fontSize: 120, opacity: 0.9, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 12 }}
-          >
+          <Text className="font-displayBold text-white" style={{ fontSize: 120, opacity: 0.9, textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 12 }}>
             {vm.countdown}
           </Text>
         </View>
       )}
 
-      {/* Bottom */}
       <View className="absolute left-0 right-0 items-center" style={{ bottom: insets.bottom + 24 }}>
         {canStart && (
-          <Pressable
-            onPress={vm.onStartCountdown}
-            className="rounded-full px-10 py-4 active:opacity-80"
-            style={{ backgroundColor: '#fff' }}
-          >
-            <Text className="font-bodyBold text-[16px]" style={{ color: '#000' }}>
-              {t('compose.photobooth.start')}
-            </Text>
+          <Pressable onPress={vm.onStartCountdown} className="rounded-full px-10 py-4 active:opacity-80" style={{ backgroundColor: '#fff' }}>
+            <Text className="font-bodyBold text-[16px]" style={{ color: '#000' }}>{t('compose.photobooth.start')}</Text>
           </Pressable>
         )}
-        {isCapturing && (
-          <View className="w-16 h-16 rounded-full items-center justify-center border-4 border-white" />
-        )}
+        {isCapturing && <View className="w-16 h-16 rounded-full items-center justify-center border-4 border-white" />}
       </View>
     </View>
   );
 }
 
-// ─── Review step ─────────────────────────────────────────────────────────────
+// ─── Edit step (T420) ────────────────────────────────────────────────────────
 
-// PB4: cell dims per prototype StripPreview L598-611
-const STRIP_DIMS: Record<BoothLayout, { cols: number; cellW: number; cellH: number; stripW: number }> = {
-  'grid-4': { cols: 2, cellW: 138, cellH: 166, stripW: 292 },  // 2×138 + 16gap = 292; symmetric p-4 on card
-  'col-4':  { cols: 1, cellW: 224, cellH: 140, stripW: 224 },
-  'single': { cols: 1, cellW: 240, cellH: 290, stripW: 240 },
-};
-
-function ReviewStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
-  const { t } = useTranslation();
+function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
   const dim = STRIP_DIMS[vm.layout];
-  const today = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   return (
     <View className="flex-1 bg-bg">
-      <View style={{ paddingTop: insets.top + 12 }} className="px-5 flex-row items-center gap-3 pb-4">
-        <Pressable
-          onPress={vm.onRetake}
-          className="w-9 h-9 rounded-full items-center justify-center bg-surface border border-line-on-surface"
-          hitSlop={8}
-        >
-          <Text className="text-ink text-sm">←</Text>
+      {/* Header */}
+      <View style={{ paddingTop: insets.top + 8 }} className="px-5 flex-row items-center justify-between pb-3 border-b border-line-on-surface">
+        <View className="flex-row items-center gap-3">
+          <Pressable onPress={vm.onRetake} className="w-9 h-9 rounded-full items-center justify-center bg-surface border border-line-on-surface" hitSlop={8}>
+            <Text className="text-ink text-sm">←</Text>
+          </Pressable>
+          <View>
+            <Text className="font-displayMedium text-ink text-[18px]">Chỉnh dải ảnh</Text>
+            <Text className="font-body text-ink-mute text-[11px]">Màu · khung · nhãn dán</Text>
+          </View>
+        </View>
+        <Pressable onPress={vm.onProceedToShare} className="rounded-full px-4 py-2 active:opacity-80" style={{ backgroundColor: c.primary }}>
+          <Text className="font-bodyBold text-white text-[13px]">Tiếp →</Text>
         </Pressable>
-        <Text className="font-displayMedium text-ink text-[20px]">Photo Booth</Text>
       </View>
 
-      <View className="flex-1 items-center justify-center px-6">
-        {/* PB4: ViewShot-capturable strip with symmetric padding */}
-        <View
-          ref={vm.stripRef}
-          className="bg-white rounded-2xl p-4 pb-10"
-          style={{
-            shadowColor: '#000',
-            shadowOpacity: 0.18,
-            shadowOffset: { width: 0, height: 8 },
-            shadowRadius: 20,
-          }}
-        >
-          {/* Photo grid — symmetric: 2×cellW + 1×gap = stripW, p-4 on both sides */}
-          <View
-            style={{
-              width: dim.stripW,
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: dim.cols === 2 ? 16 : 8,
-              justifyContent: 'center',
-            }}
-          >
-            {Array.from({ length: vm.totalShots }).map((_, i) => (
-              <View
-                key={i}
-                className="rounded-lg overflow-hidden"
-                style={{ width: dim.cellW, height: dim.cellH }}
-              >
-                {vm.shots[i] ? (
-                  <Image source={{ uri: vm.shots[i] }} className="w-full h-full" resizeMode="cover" />
-                ) : (
-                  <View className="w-full h-full bg-surface items-center justify-center">
-                    <Text className="text-2xl">📷</Text>
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
+      {/* Strip preview — not captured here, just preview */}
+      <ScrollView className="flex-1" contentContainerStyle={{ alignItems: 'center', paddingTop: 24, paddingBottom: 200 }} showsVerticalScrollIndicator={false}>
+        <StripComposite vm={vm} dim={dim} />
+      </ScrollView>
 
-          {/* Polaroid caption */}
-          <View className="mt-3 flex-row items-center justify-between px-1">
-            <Text className="font-script text-[16px]" style={{ color: c.primary }}>memoura ♥</Text>
-            <Text className="font-body text-[10px]" style={{ color: c.inkMute, fontFamily: 'Courier' }}>{today}</Text>
-          </View>
+      {/* EditDock */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 8 }}>
+        <EditPanel vm={vm} />
+        <ToolSwitcher activeTool={vm.activeTool} setActiveTool={vm.setActiveTool} />
+      </View>
+    </View>
+  );
+}
+
+function EditPanel({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
+  const c = useAppColors();
+  return (
+    <View style={{ minHeight: 100, paddingHorizontal: 16, paddingTop: 12 }}>
+      {vm.activeTool === 'filter' && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+          {FILTERS.map((f: FilterCfg) => {
+            const active = vm.filter === f.id;
+            return (
+              <Pressable key={f.id} onPress={() => vm.setFilter(f.id)} className="items-center gap-1" style={{ flexShrink: 0 }}>
+                <View style={{ width: 56, height: 56, borderRadius: 12, overflow: 'hidden', borderWidth: active ? 3 : 3, borderColor: active ? c.primary : 'transparent' }}>
+                  <View style={{ flex: 1, backgroundColor: f.tint ?? '#e0d0c0' }} />
+                </View>
+                <Text style={{ fontFamily: 'BeVietnamPro_600SemiBold', fontSize: 10, color: active ? c.primary : c.inkMute }}>{f.label}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
+      {vm.activeTool === 'frame' && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+          {FRAMES.map((f: FrameCfg) => {
+            const active = vm.frame === f.id;
+            const bg = f.id === 'filmstrip' ? '#1a1a1a' : f.id === 'none' ? 'transparent' : f.id === 'rose' ? c.primarySoft : '#fff';
+            return (
+              <Pressable key={f.id} onPress={() => vm.setFrame(f.id)} className="items-center gap-1.5" style={{ flexShrink: 0, padding: 8, borderRadius: 14, borderWidth: active ? 2 : 1, borderColor: active ? c.primary : c.line, minWidth: 74, backgroundColor: c.bg }}>
+                <View style={{ width: 44, height: 54, backgroundColor: bg, borderRadius: 3, overflow: 'hidden', borderWidth: f.id === 'none' ? 1.5 : 0, borderStyle: f.id === 'none' ? 'dashed' : 'solid', borderColor: c.line, padding: 4 }}>
+                  <View style={{ flex: 1, backgroundColor: '#c9a27a', borderRadius: 2 }} />
+                </View>
+                <Text style={{ fontFamily: 'BeVietnamPro_600SemiBold', fontSize: 10, color: c.ink }}>{f.label}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
+      {vm.activeTool === 'sticker' && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {STICKERS.map((s) => (
+            <Pressable key={s} onPress={() => vm.addSticker(s)} className="items-center justify-center rounded-xl active:opacity-70"
+              style={{ width: 42, height: 42, backgroundColor: c.bg }}>
+              <Text style={{ fontSize: 22 }}>{s}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {vm.activeTool === 'text' && (
+        <TextInput
+          value={vm.caption}
+          onChangeText={vm.setCaption}
+          maxLength={40}
+          className="rounded-xl px-4 py-3 font-body text-ink text-[14px]"
+          style={{ borderWidth: 1, borderColor: c.line, backgroundColor: c.bg }}
+          placeholder="Viết chú thích…"
+          placeholderTextColor={c.inkMute}
+        />
+      )}
+    </View>
+  );
+}
+
+function ToolSwitcher({ activeTool, setActiveTool }: { activeTool: EditTool; setActiveTool: (t: EditTool) => void }) {
+  const c = useAppColors();
+  const tools: [EditTool, string, string][] = [
+    ['filter', 'Màu', '🎨'],
+    ['frame', 'Viền', '▢'],
+    ['sticker', 'Sticker', '✨'],
+    ['text', 'Chữ', 'T'],
+  ];
+
+  return (
+    <View className="flex-row border-t border-line-on-surface pt-2 px-2">
+      {tools.map(([tool, label, icon]) => {
+        const active = activeTool === tool;
+        return (
+          <Pressable key={tool} onPress={() => setActiveTool(tool)} className="flex-1 items-center gap-1 py-1">
+            <View className="w-8 h-8 rounded-full items-center justify-center" style={{ backgroundColor: active ? c.primarySoft : 'transparent' }}>
+              <Text className="text-sm font-bodyBold" style={{ color: active ? c.primary : c.inkMute }}>{icon}</Text>
+            </View>
+            <Text className="text-[10px] font-bodyBold" style={{ color: active ? c.primary : c.inkMute }}>{label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+// ─── Share step (T421) ───────────────────────────────────────────────────────
+
+function ShareStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
+  const c = useAppColors();
+  const insets = useSafeAreaInsets();
+  const dim = STRIP_DIMS[vm.layout];
+
+  return (
+    <View className="flex-1 bg-bg">
+      <View style={{ paddingTop: insets.top + 8 }} className="px-5 flex-row items-center gap-3 pb-4 border-b border-line-on-surface">
+        <Pressable onPress={vm.onRetake} className="w-9 h-9 rounded-full items-center justify-center bg-surface border border-line-on-surface" hitSlop={8}>
+          <Text className="text-ink text-sm">←</Text>
+        </Pressable>
+        <View>
+          <Text className="font-displayMedium text-ink text-[18px]">Sẵn sàng chia sẻ</Text>
+          <Text className="font-body text-ink-mute text-[11px]">Lưu về máy hoặc gửi vào Moment</Text>
         </View>
       </View>
 
+      <ScrollView className="flex-1" contentContainerStyle={{ alignItems: 'center', paddingVertical: 32 }} showsVerticalScrollIndicator={false}>
+        {/* Tilted strip preview — -3deg per prototype L428 */}
+        <View style={{ transform: [{ rotate: '-3deg' }] }}>
+          <StripComposite vm={vm} innerRef={vm.stripRef} dim={dim} />
+        </View>
+      </ScrollView>
+
+      {/* Action buttons */}
       <View className="px-5 gap-3" style={{ paddingBottom: insets.bottom + 20 }}>
+        {/* Primary: Dùng ngay */}
         <Pressable
-          onPress={vm.onAccept}
+          onPress={vm.onUseNow}
           disabled={vm.isSaving}
-          className="rounded-2xl py-4 items-center active:opacity-80"
+          className="rounded-2xl py-4 items-center flex-row justify-center gap-2 active:opacity-80"
           style={{ backgroundColor: c.primary, opacity: vm.isSaving ? 0.6 : 1 }}
         >
+          <Text className="text-lg">💌</Text>
           <Text className="font-bodyBold text-white text-[15px]">
-            {vm.isSaving ? t('compose.photobooth.saving') : t('compose.photobooth.accept')}
+            {vm.isSaving ? 'Đang lưu…' : 'Dùng ngay'}
           </Text>
         </Pressable>
-        <Pressable
-          onPress={vm.onRetake}
-          className="rounded-2xl py-4 items-center border border-line-on-surface active:opacity-70"
-        >
-          <Text className="font-bodyMedium text-ink-soft text-[15px]">{t('compose.photobooth.retake')}</Text>
+
+        {/* Secondary: save + share row */}
+        <View className="flex-row gap-3">
+          <Pressable onPress={vm.onSaveToLibrary} className="flex-1 rounded-2xl py-3.5 items-center flex-row justify-center gap-1.5 border border-line-on-surface active:opacity-70" style={{ backgroundColor: c.surface }}>
+            <Text className="text-base">⬇</Text>
+            <Text className="font-bodySemibold text-ink text-[13px]">Lưu ảnh</Text>
+          </Pressable>
+          <Pressable onPress={vm.onNativeShare} className="flex-1 rounded-2xl py-3.5 items-center flex-row justify-center gap-1.5 border border-line-on-surface active:opacity-70" style={{ backgroundColor: c.surface }}>
+            <Text className="text-base">↗</Text>
+            <Text className="font-bodySemibold text-ink text-[13px]">Chia sẻ</Text>
+          </Pressable>
+        </View>
+
+        {/* Reset */}
+        <Pressable onPress={vm.onReset} className="py-3 items-center active:opacity-70">
+          <Text className="font-bodySemibold text-ink-soft text-[13px]">↺ Làm dải mới</Text>
         </Pressable>
       </View>
     </View>
