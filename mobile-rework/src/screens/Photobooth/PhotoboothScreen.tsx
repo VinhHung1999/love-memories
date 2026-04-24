@@ -148,10 +148,15 @@ function StripComposite({
         ))}
       </View>
 
-      {/* Caption strip — D19: plain View (PB9 tap-to-edit reverted) */}
+      {/* Caption strip — D19: plain View (PB9 tap-to-edit reverted).
+          D28: trim the polaroid "chin" — Boss Build 67 feedback said the
+          white band under the photo grid was still too tall. Drop caption
+          marginTop 10 → 4 (tighter gap to photos) and caption fontSize
+          16 → 14 (tighter Dancing Script line-height). Strip bottomPad
+          stays at 16 per D20. */}
       {hasFrame ? (
-        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
-          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 16, color: vm.frame === 'filmstrip' ? '#fff' : c.primary }}>
+        <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 14, color: vm.frame === 'filmstrip' ? '#fff' : c.primary }}>
             {vm.caption}
           </Text>
           <Text style={{ fontSize: 9, color: vm.frame === 'filmstrip' ? 'rgba(255,255,255,0.5)' : c.inkMute, fontFamily: 'Courier' }}>
@@ -372,15 +377,24 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
 
       {/* EditDock — PB6: paddingBottom = safeArea.bottom + 16
           D21: KAV on the dock itself (not EditStep root) so caption TextInput
-          lifts above keyboard. Outer EditStep KAV removed — it couldn't lift
-          the absolute-positioned dock reliably; wrapping the dock directly
-          does. */}
+          lifts above keyboard.
+          D27: KAV with behavior='padding' REPLACES the paddingBottom of its
+          OWN style with its dynamically computed bottomHeight every render
+          (see RN 0.81 KeyboardAvoidingView.js — `StyleSheet.compose(style,
+          { paddingBottom: bottomHeight })`). When the keyboard is closed
+          bottomHeight is 0, so the static `insets.bottom + 16` we put on
+          the KAV was silently overridden and the ToolSwitcher row landed
+          right on the home-indicator on iPhone 15 Pro Max. Fix: KAV holds
+          ONLY position + behavior; the visible styling (bg, border,
+          paddingBottom) moves to an inner `<View>` which KAV can't touch. */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 16 }}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}
       >
-        <EditPanel vm={vm} />
-        <ToolSwitcher activeTool={vm.activeTool} setActiveTool={vm.setActiveTool} />
+        <View style={{ backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 16 }}>
+          <EditPanel vm={vm} />
+          <ToolSwitcher activeTool={vm.activeTool} setActiveTool={vm.setActiveTool} />
+        </View>
       </KeyboardAvoidingView>
 
     </View>
