@@ -175,6 +175,7 @@ export function MomentDetailScreen({ id }: Props) {
             photos={vm.moment.photos}
             title={vm.moment.title}
             location={vm.moment.location}
+            author={vm.moment.author}
             activeIndex={activeIndex}
             onIndexChange={setActiveIndex}
             onBack={onBack}

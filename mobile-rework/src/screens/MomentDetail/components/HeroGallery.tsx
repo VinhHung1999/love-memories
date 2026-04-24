@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AuthorPill } from '@/screens/Moments/components/AuthorPill';
+import { useAuthStore } from '@/stores/authStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { GlassButton } from './GlassButton';
@@ -39,10 +41,13 @@ const HERO_HEIGHT = 520;
 
 type Photo = { id: string; url: string; filename: string };
 
+type Author = { id: string; name: string };
+
 type Props = {
   photos: Photo[];
   title: string;
   location: string | null;
+  author: Author;
   activeIndex: number;
   onIndexChange: (index: number) => void;
   onBack: () => void;
@@ -55,6 +60,7 @@ export function HeroGallery({
   photos,
   title,
   location,
+  author,
   activeIndex,
   onIndexChange,
   onBack,
@@ -65,6 +71,7 @@ export function HeroGallery({
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const c = useAppColors();
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
   const listRef = useRef<FlatList<Photo>>(null);
 
   const hasPhotos = photos.length > 0;
@@ -181,11 +188,23 @@ export function HeroGallery({
         </View>
       </View>
 
-      {/* Bottom title + location — sits just above the -28px thumbnail overlap */}
+      {/* Bottom author + title + location — sits just above the -28px
+          thumbnail overlap. T387 places AuthorPill above the title,
+          matching prototype moments.jsx L472-493 where the author row
+          leads the bottom overlay. Pill wrapper re-enables touches via
+          pointerEvents="auto" on the pill slot (outer parent is 'none'
+          for the title block). */}
       <View
         className="absolute left-0 right-0 bottom-10 z-10 px-5"
-        pointerEvents="none"
+        pointerEvents="box-none"
       >
+        <View className="flex-row mb-2.5">
+          <AuthorPill
+            authorId={author.id}
+            authorName={author.name}
+            currentUserId={currentUserId}
+          />
+        </View>
         <Text
           className="font-displayMedium text-white text-[30px] leading-[34px]"
           style={{ textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 20 }}
