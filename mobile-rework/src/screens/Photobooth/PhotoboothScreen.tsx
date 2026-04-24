@@ -148,21 +148,44 @@ function StripComposite({
         ))}
       </View>
 
-      {/* Caption strip — D19: plain View (PB9 tap-to-edit reverted).
-          D28: trim the polaroid "chin" — Boss Build 67 feedback said the
-          white band under the photo grid was still too tall. Drop caption
-          marginTop 10 → 4 (tighter gap to photos) and caption fontSize
-          16 → 14 (tighter Dancing Script line-height). Strip bottomPad
-          stays at 16 per D20. */}
+      {/* Caption — D29: match prototype photobooth.jsx L672-692. The
+          original space-between row pinned the caption to the LEFT and
+          the date to the RIGHT, so the caption was visually off-center
+          relative to the polaroid's photo column. Prototype centers the
+          caption as a block and renders the date as a small stamp
+          absolutely positioned in the polaroid's bottom-right corner
+          (skipped entirely on filmstrip). D28 spacing carries over:
+          marginTop: 4, fontSize: 14. */}
       {hasFrame ? (
-        <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
-          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 14, color: vm.frame === 'filmstrip' ? '#fff' : c.primary }}>
-            {vm.caption}
-          </Text>
-          <Text style={{ fontSize: 9, color: vm.frame === 'filmstrip' ? 'rgba(255,255,255,0.5)' : c.inkMute, fontFamily: 'Courier' }}>
-            {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-          </Text>
-        </View>
+        <Text
+          style={{
+            marginTop: 4,
+            textAlign: 'center',
+            fontFamily: 'DancingScript_700Bold',
+            fontSize: 14,
+            color: vm.frame === 'filmstrip' ? '#fff' : c.primary,
+          }}
+        >
+          {vm.caption}
+        </Text>
+      ) : null}
+
+      {/* Date stamp — absolute bottom-right inside the strip frame.
+          Skipped on filmstrip per prototype L686 (filmstrip is meant to
+          look like raw negatives, no paper-date). */}
+      {hasFrame && vm.frame !== 'filmstrip' ? (
+        <Text
+          style={{
+            position: 'absolute',
+            bottom: 6,
+            right: 10,
+            fontSize: 9,
+            color: c.inkMute,
+            fontFamily: 'Courier',
+          }}
+        >
+          {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+        </Text>
       ) : null}
     </View>
   );
