@@ -164,6 +164,13 @@ function StripComposite({
 }
 
 // PB7: draggable sticker. PB8: tap=select shows X delete button.
+// D25: PanResponder is memoized in useRef (created ONCE at mount). Its
+// closures — sticker.x/y, stripW, stripH, onMove, onSelect — are frozen
+// at first render, so after the user drags a sticker to a new position
+// the next drag reads the ORIGINAL position from the stale closure and
+// the sticker snaps back to the pre-first-drag origin. Fix: stash the
+// latest props on a ref that we write every render, and have handlers
+// read from `latestRef.current` instead of the closure scope.
 function StickerView({ sticker, selected, onSelect, onRemove, onMove, stripW, stripH }: {
   sticker: { id: string; emoji: string; x: number; y: number };
   selected: boolean;
@@ -174,22 +181,27 @@ function StickerView({ sticker, selected, onSelect, onRemove, onMove, stripW, st
   stripH: number;
 }) {
   const startPos = useRef({ x: sticker.x, y: sticker.y });
+  const latestRef = useRef({ sticker, stripW, stripH, onMove, onSelect });
+  latestRef.current = { sticker, stripW, stripH, onMove, onSelect };
 
   const panResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => {
-      startPos.current = { x: sticker.x, y: sticker.y };
+      const { sticker: s } = latestRef.current;
+      startPos.current = { x: s.x, y: s.y };
     },
     onPanResponderMove: (_, gs) => {
+      const { stripW: w, stripH: h, onMove: move } = latestRef.current;
       // Convert pixel delta → percentage of strip dimensions
-      const newX = startPos.current.x + (gs.dx / stripW) * 100;
-      const newY = startPos.current.y + (gs.dy / stripH) * 100;
-      onMove(newX, newY);
+      const newX = startPos.current.x + (gs.dx / w) * 100;
+      const newY = startPos.current.y + (gs.dy / h) * 100;
+      move(newX, newY);
     },
     onPanResponderRelease: (_, gs) => {
+      const { onSelect: select } = latestRef.current;
       const dist = Math.abs(gs.dx) + Math.abs(gs.dy);
-      if (dist < 4) onSelect(); // tap without drag = select
+      if (dist < 4) select(); // tap without drag = select
     },
   })).current;
 
@@ -234,7 +246,7 @@ function ModeStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
       <LinearGradient colors={[c.heroA, c.heroB, c.heroC]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} className="absolute inset-0" />
       <View style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderBottomLeftRadius: 320, borderBottomRightRadius: 320 }} className="absolute top-0 left-0 right-0 h-72" />
 
-      <View style={{ paddingTop: insets.top, paddingHorizontal: 20, flex: 1 }}>
+      <View style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16, paddingHorizontal: 20, flex: 1 }}>
         <View className="flex-row items-center gap-3 mb-6 mt-2">
           <Pressable onPress={vm.onClose} className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }} hitSlop={8}>
             <Text className="text-white text-base font-bodyMedium">✕</Text>
