@@ -1,10 +1,12 @@
 import { CameraView } from 'expo-camera';
+import { Download, Share2, Zap } from 'lucide-react-native';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Animated, Image, PanResponder, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
-import type { BoothFrame, BoothLayout, BoothSticker, EditTool, FilterCfg, FrameCfg } from './usePhotoboothViewModel';
+import type { BoothFrame, BoothLayout, EditTool, FilterCfg, FrameCfg } from './usePhotoboothViewModel';
 import { FILTERS, FRAMES, STICKERS, usePhotoboothViewModel } from './usePhotoboothViewModel';
 
 // T404 (Sprint 64) Photobooth — MVVM, full prototype parity.
@@ -131,28 +133,80 @@ function StripComposite({
           </View>
         ))}
 
-        {/* Sticker overlay */}
+        {/* Sticker overlay — PB7: PanResponder drag, PB8: tap=select, X=remove */}
         {vm.stickers.map((s) => (
-          <Pressable
+          <StickerView
             key={s.id}
-            onPress={() => vm.removeSticker(s.id)}
-            style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%` }}
-          >
-            <Text style={{ fontSize: 28 }}>{s.emoji}</Text>
-          </Pressable>
+            sticker={s}
+            selected={vm.selectedStickerId === s.id}
+            onSelect={() => vm.selectSticker(s.id)}
+            onRemove={() => vm.removeSticker(s.id)}
+            onMove={(x, y) => vm.moveStickerTo(s.id, x, y)}
+            stripW={dim.stripW}
+            stripH={dim.stripH}
+          />
         ))}
       </View>
 
-      {/* Caption strip */}
+      {/* Caption strip — PB9 DRAFT: tap to inline-edit (TODO-Boss-confirm) */}
       {hasFrame ? (
-        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
-          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 16, color: vm.frame === 'filmstrip' ? '#fff' : c.primary }}>
+        <Pressable onPress={vm.onEditCaption} style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <Text style={{ fontFamily: 'DancingScript_700Bold', fontSize: 16, color: vm.frame === 'filmstrip' ? '#fff' : c.primary, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.12)', paddingBottom: 1 }}>
             {vm.caption}
           </Text>
           <Text style={{ fontSize: 9, color: vm.frame === 'filmstrip' ? 'rgba(255,255,255,0.5)' : c.inkMute, fontFamily: 'Courier' }}>
             {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           </Text>
-        </View>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+// PB7: draggable sticker. PB8: tap=select shows X delete button.
+function StickerView({ sticker, selected, onSelect, onRemove, onMove, stripW, stripH }: {
+  sticker: { id: string; emoji: string; x: number; y: number };
+  selected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+  onMove: (x: number, y: number) => void;
+  stripW: number;
+  stripH: number;
+}) {
+  const startPos = useRef({ x: sticker.x, y: sticker.y });
+
+  const panResponder = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => {
+      startPos.current = { x: sticker.x, y: sticker.y };
+    },
+    onPanResponderMove: (_, gs) => {
+      // Convert pixel delta → percentage of strip dimensions
+      const newX = startPos.current.x + (gs.dx / stripW) * 100;
+      const newY = startPos.current.y + (gs.dy / stripH) * 100;
+      onMove(newX, newY);
+    },
+    onPanResponderRelease: (_, gs) => {
+      const dist = Math.abs(gs.dx) + Math.abs(gs.dy);
+      if (dist < 4) onSelect(); // tap without drag = select
+    },
+  })).current;
+
+  return (
+    <View
+      {...panResponder.panHandlers}
+      style={{ position: 'absolute', left: `${sticker.x}%`, top: `${sticker.y}%` }}
+    >
+      <Text style={{ fontSize: 28 }}>{sticker.emoji}</Text>
+      {selected ? (
+        <Pressable
+          onPress={onRemove}
+          style={{ position: 'absolute', top: -8, right: -8, width: 18, height: 18, borderRadius: 9, backgroundColor: '#ff3b30', alignItems: 'center', justifyContent: 'center' }}
+          hitSlop={6}
+        >
+          <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800', lineHeight: 14 }}>✕</Text>
+        </Pressable>
       ) : null}
     </View>
   );
@@ -302,11 +356,41 @@ function EditStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
         <StripComposite vm={vm} dim={dim} />
       </ScrollView>
 
-      {/* EditDock */}
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 8 }}>
+      {/* EditDock — PB6: paddingBottom = safeArea.bottom + 16 */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: insets.bottom + 16 }}>
         <EditPanel vm={vm} />
         <ToolSwitcher activeTool={vm.activeTool} setActiveTool={vm.setActiveTool} />
       </View>
+
+      {/* PB9 DRAFT: caption inline edit overlay (TODO-Boss-confirm) */}
+      {vm.captionEditing ? (
+        <Pressable
+          className="absolute inset-0 items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}
+          onPress={vm.onConfirmCaption}
+        >
+          <Pressable
+            onPress={() => {}}
+            className="rounded-2xl p-5 mx-6 w-full"
+            style={{ backgroundColor: c.surface }}
+          >
+            <Text className="font-bodyBold text-ink text-[15px] mb-3">Chú thích dải ảnh</Text>
+            <TextInput
+              autoFocus
+              value={vm.caption}
+              onChangeText={vm.setCaption}
+              maxLength={40}
+              className="font-script text-[16px] pb-2"
+              style={{ color: c.primary, borderBottomWidth: 1, borderBottomColor: c.primary }}
+              placeholderTextColor={c.inkMute}
+              placeholder="memoura ♥"
+            />
+            <Pressable onPress={vm.onConfirmCaption} className="mt-4 rounded-xl py-3 items-center" style={{ backgroundColor: c.primary }}>
+              <Text className="font-bodyBold text-white text-[14px]">Xong</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -357,15 +441,12 @@ function EditPanel({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
         </View>
       )}
       {vm.activeTool === 'text' && (
-        <TextInput
-          value={vm.caption}
-          onChangeText={vm.setCaption}
-          maxLength={40}
-          className="rounded-xl px-4 py-3 font-body text-ink text-[14px]"
-          style={{ borderWidth: 1, borderColor: c.line, backgroundColor: c.bg }}
-          placeholder="Viết chú thích…"
-          placeholderTextColor={c.inkMute}
-        />
+        // PB9 Option A: caption field removed; tap caption text on strip to edit inline
+        <View className="items-center justify-center py-4">
+          <Text className="font-body text-ink-mute text-[13px]">
+            Tap chú thích trên ảnh để chỉnh sửa ✏️
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -425,27 +506,27 @@ function ShareStep({ vm }: { vm: ReturnType<typeof usePhotoboothViewModel> }) {
 
       {/* Action buttons */}
       <View className="px-5 gap-3" style={{ paddingBottom: insets.bottom + 20 }}>
-        {/* Primary: Dùng ngay */}
+        {/* Primary: Dùng ngay — PB10: Zap lucide icon */}
         <Pressable
           onPress={vm.onUseNow}
           disabled={vm.isSaving}
           className="rounded-2xl py-4 items-center flex-row justify-center gap-2 active:opacity-80"
           style={{ backgroundColor: c.primary, opacity: vm.isSaving ? 0.6 : 1 }}
         >
-          <Text className="text-lg">💌</Text>
+          <Zap size={16} color="#fff" strokeWidth={2} />
           <Text className="font-bodyBold text-white text-[15px]">
             {vm.isSaving ? 'Đang lưu…' : 'Dùng ngay'}
           </Text>
         </Pressable>
 
-        {/* Secondary: save + share row */}
+        {/* Secondary: save + share row — PB10: Download + Share2 lucide icons */}
         <View className="flex-row gap-3">
           <Pressable onPress={vm.onSaveToLibrary} className="flex-1 rounded-2xl py-3.5 items-center flex-row justify-center gap-1.5 border border-line-on-surface active:opacity-70" style={{ backgroundColor: c.surface }}>
-            <Text className="text-base">⬇</Text>
+            <Download size={14} color={c.ink} strokeWidth={2} />
             <Text className="font-bodySemibold text-ink text-[13px]">Lưu ảnh</Text>
           </Pressable>
           <Pressable onPress={vm.onNativeShare} className="flex-1 rounded-2xl py-3.5 items-center flex-row justify-center gap-1.5 border border-line-on-surface active:opacity-70" style={{ backgroundColor: c.surface }}>
-            <Text className="text-base">↗</Text>
+            <Share2 size={14} color={c.ink} strokeWidth={2} />
             <Text className="font-bodySemibold text-ink text-[13px]">Chia sẻ</Text>
           </Pressable>
         </View>

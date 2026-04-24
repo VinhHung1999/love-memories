@@ -91,12 +91,15 @@ export function TimerHero({
           L175-179: width/height 180, right:-30 top:-20, rotate -12deg.
           Using SVG Path so the fill is guaranteed #fff regardless of theme;
           Text glyph was picking up a dark red color on some palette configs. */}
+      {/* position:'absolute' must be in the style object — react-native-svg's Svg
+          is not a standard RN View so NativeWind className="absolute" is ignored.
+          Without position:'absolute', the 180×180 SVG renders in normal flow and
+          pushes the content View down = D7 excess space above the avatar row. */}
       <Svg
         width={180}
         height={180}
         viewBox="0 0 24 24"
-        className="absolute"
-        style={{ right: -30, top: -20, opacity: 0.14, transform: [{ rotate: '-12deg' }] }}
+        style={{ position: 'absolute', right: -30, top: -20, opacity: 0.14, transform: [{ rotate: '-12deg' }] }}
       >
         <Path
           d="M12 21s-8-5.5-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-8 11-8 11"

@@ -68,6 +68,10 @@ export function usePhotoboothViewModel() {
   const [stickers, setStickers] = useState<BoothSticker[]>([]);
   const [caption, setCaption] = useState('memoura ♥');
   const [activeTool, setActiveTool] = useState<EditTool>('filter');
+  // PB8: selected sticker id (shows X delete button)
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  // PB9 DRAFT (TODO-Boss-confirm): caption inline edit mode
+  const [captionEditing, setCaptionEditing] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const stripRef = useRef<View>(null);
@@ -158,7 +162,22 @@ export function usePhotoboothViewModel() {
 
   const removeSticker = useCallback((id: string) => {
     setStickers((prev) => prev.filter((s) => s.id !== id));
+    setSelectedStickerId(null);
   }, []);
+
+  // PB7 DRAFT: update sticker position after drag (x/y in strip % coordinates)
+  const moveStickerTo = useCallback((id: string, x: number, y: number) => {
+    setStickers((prev) => prev.map((s) => s.id === id ? { ...s, x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) } : s));
+  }, []);
+
+  // PB8: tap to select/deselect; X button calls removeSticker
+  const selectSticker = useCallback((id: string) => {
+    setSelectedStickerId((prev) => (prev === id ? null : id));
+  }, []);
+
+  // PB9 DRAFT (TODO-Boss-confirm): tap caption text → inline edit overlay
+  const onEditCaption = useCallback(() => { setCaptionEditing(true); }, []);
+  const onConfirmCaption = useCallback(() => { setCaptionEditing(false); }, []);
 
   const onProceedToShare = useCallback(() => {
     setStep('share');
@@ -225,9 +244,13 @@ export function usePhotoboothViewModel() {
     // T420 edit
     frame, setFrame,
     filter, setFilter,
-    stickers, addSticker, removeSticker,
+    stickers, addSticker, removeSticker, moveStickerTo,
     caption, setCaption,
     activeTool, setActiveTool,
+    // PB8
+    selectedStickerId, selectSticker,
+    // PB9 DRAFT
+    captionEditing, onEditCaption, onConfirmCaption,
     // actions
     onStartCamera,
     onStartCountdown,
