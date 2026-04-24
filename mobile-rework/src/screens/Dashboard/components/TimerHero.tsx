@@ -71,19 +71,15 @@ export function TimerHero({
         className="absolute inset-0"
       />
 
-      {/* Ambient lighting: top-left warm glow + bottom-right shadow pool.
-          RN LinearGradient doesn't do radial, so we stack two semi-transparent
-          overlays with opposing start/end points to fake the feel. */}
+      {/* Ambient lighting: top-left warm glow. D26 (Build 66): the
+          bottom-right rgba(0,0,0,0.28) shadow-pool overlay was removed —
+          Boss wanted the day count to sit directly on the hero gradient
+          without a darkened scrim underneath. The warm glow on the top-
+          left stays to preserve the soft "lit from above" feel. */}
       <LinearGradient
         colors={['rgba(255,255,255,0.32)', 'transparent']}
         start={{ x: 0.15, y: 0 }}
         end={{ x: 0.6, y: 0.55 }}
-        className="absolute inset-0"
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.28)']}
-        start={{ x: 0.4, y: 0.45 }}
-        end={{ x: 0.95, y: 1 }}
         className="absolute inset-0"
       />
 
