@@ -22,10 +22,7 @@ import { useAppColors } from '@/theme/ThemeProvider';
 // Offers three paths to start a moment:
 //   1. Chụp ảnh   → ImagePicker.launchCameraAsync (single shot, quality 0.8)
 //   2. Chọn thư viện → launchImageLibraryAsync (multi-select, up to MAX_PHOTOS)
-//   3. Photobooth — DIMMED STUB until Sprint 64 lands the full flow
-//      (prototype camera-sheet.jsx shows this row active, but Boss chốt via
-//      Telegram 2026-04-21 rằng Photobooth chưa làm → giữ row dimmed +
-//      "Sắp ra mắt 💝" subtitle; spec > prototype when Boss disagrees).
+//   3. Photobooth — T404 (Sprint 64) → router.push('/(modal)/photobooth')
 //
 // Mounting: single instance lives in app/_layout.tsx inside
 // BottomSheetModalProvider → subscribes to useCameraSheetStore(isOpen) and
@@ -148,10 +145,11 @@ export function CameraActionSheet() {
   }, [close, showSettingsAlert, navigateToCreate]);
 
   const onPhotobooth = useCallback(() => {
-    // Sprint 64 parity — tap is intentional no-op. Sheet stays open so the
-    // user can pick another row; to exit they tap backdrop / swipe down. (A
-    // prior iteration auto-closed after 800ms but QA found it confusing.)
-  }, []);
+    close();
+    setTimeout(() => {
+      router.push('/(modal)/photobooth');
+    }, 180);
+  }, [close, router]);
 
   const containerComponent = Platform.OS === 'ios' ? iOSContainer : undefined;
 
@@ -190,11 +188,10 @@ export function CameraActionSheet() {
             onPress={onLibrary}
           />
           <Row
-            icon={<Sparkles size={22} color={c.inkMute} strokeWidth={1.75} />}
-            tint="bg-surface-alt"
+            icon={<Sparkles size={22} color={c.primary} strokeWidth={1.75} />}
+            tint="bg-primary-soft"
             title={t('compose.cameraSheet.photobooth')}
             subtitle={t('compose.cameraSheet.photoboothSub')}
-            disabled
             onPress={onPhotobooth}
           />
         </View>
