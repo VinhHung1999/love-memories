@@ -85,10 +85,14 @@ export function NotifRow({ notification, agoLabel, onPress }: Props) {
         : c.accentSoft;
 
   return (
+    // D72b (Sprint 65 Build 95 hot-fix): added `mb-1.5` between rows so
+    // unread cards don't dính dính nhau visually. D72c — bumped unread
+    // background to a soft `shadow-card` lift so the card pops against
+    // the bg without needing a heavier shadow on every row.
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      className="flex-row items-start gap-3 mx-5 px-3.5 py-3 rounded-2xl active:opacity-90"
+      className="flex-row items-start gap-3 mx-5 px-3.5 py-3 rounded-2xl mb-1.5 active:opacity-90"
       style={{
         backgroundColor: notification.read ? 'transparent' : c.surface,
         borderWidth: 1,
@@ -125,10 +129,17 @@ export function NotifRow({ notification, agoLabel, onPress }: Props) {
       </View>
 
       {!notification.read ? (
+        // D72c — unread dot now sits inside a soft primary-soft halo so
+        // it reads as a "fresh" pip rather than a stray bullet point.
         <View
-          className="w-2 h-2 rounded-full mt-3"
-          style={{ backgroundColor: c.primary }}
-        />
+          className="w-3 h-3 rounded-full mt-3 items-center justify-center"
+          style={{ backgroundColor: c.primarySoft }}
+        >
+          <View
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: c.primary }}
+          />
+        </View>
       ) : null}
     </Pressable>
   );

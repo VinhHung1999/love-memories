@@ -7,7 +7,7 @@ import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -115,6 +115,47 @@ export default function RootLayout() {
     return dispose;
   }, [authHydrated, accessToken]);
 
+  // D76 (Sprint 65 Build 95 hot-fix): map BE notification.link strings
+  // (e.g. `/letters/{id}`, `/moments/{id}`, `/monthly-recap`) to the
+  // app's actual Expo Router paths. The earlier code passed the BE
+  // link straight to `router.push`, which doesn't match any registered
+  // route — push silently falls back to the initial tabs entry, so
+  // Boss saw every notification tap drop him on Home regardless of
+  // origin.
+  //
+  // Also wires the cold-start path: if the user taps a push while the
+  // app is killed, Expo doesn't fire `addNotificationResponseReceived
+  // Listener` — it stashes the response and we fetch it via
+  // `getLastNotificationResponseAsync()` once the navigation tree is
+  // mounted. Run it inside the same effect, deferred by one
+  // animation frame so the Stack has finished its initial render.
+  const dispatchNotificationLink = useCallback(
+    (link: string | null | undefined) => {
+      if (!link) return;
+      const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
+      const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
+      if (letterMatch) {
+        router.push({
+          pathname: '/letter-read',
+          params: { id: letterMatch[1] },
+        });
+      } else if (momentMatch) {
+        router.push({
+          pathname: '/moment-detail',
+          params: { id: momentMatch[1] },
+        });
+      } else if (link === '/monthly-recap') {
+        router.push('/monthly-recap');
+      } else if (link === '/notifications') {
+        router.push('/notifications');
+      }
+      // Unknown links no-op — better than dropping the user on a
+      // mismatched route. Recap / daily-plan links land here today
+      // since the rework has no dedicated screens for them yet.
+    },
+    [router],
+  );
+
   useEffect(() => {
     const received = Notifications.addNotificationReceivedListener(() => {
       useNotificationsStore.getState().invalidate();
@@ -124,26 +165,27 @@ export default function RootLayout() {
         const data = resp.notification.request.content.data as
           | { link?: string; type?: string }
           | undefined;
-        const link = data?.link;
-        if (!link) return;
-        const segs = link.split('/').filter(Boolean);
-        if (segs.length === 0) return;
-        const head = segs[0];
-        const id = segs[1];
-        if (head === 'letters' && id) {
-          router.push({ pathname: '/letter-read', params: { id } });
-        } else if (head === 'moments' && id) {
-          router.push({ pathname: '/moment-detail', params: { id } });
-        } else if (head === 'monthly-recap') {
-          router.push('/monthly-recap');
-        }
+        dispatchNotificationLink(data?.link);
       },
     );
+
+    // Cold-start: app killed → tap push → app launches with the response
+    // stashed. Drain it after the next frame so the Stack is mounted.
+    let cancelled = false;
+    void Notifications.getLastNotificationResponseAsync().then((resp) => {
+      if (cancelled || !resp) return;
+      const data = resp.notification.request.content.data as
+        | { link?: string; type?: string }
+        | undefined;
+      requestAnimationFrame(() => dispatchNotificationLink(data?.link));
+    });
+
     return () => {
+      cancelled = true;
       received.remove();
       response.remove();
     };
-  }, [router]);
+  }, [dispatchNotificationLink]);
 
   const allReady =
     (fontsLoaded || fontError) && i18nReady && authHydrated && themeHydrated;
