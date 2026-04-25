@@ -1,6 +1,6 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Pause, Play } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { proxyAudio } from '@/lib/proxyUrl';
@@ -32,6 +32,31 @@ export function AudioInline({ audioUrl, durationSeconds }: Props) {
   const playableUri = useMemo(() => proxyAudio(audioUrl), [audioUrl]);
   const player = useAudioPlayer({ uri: playableUri });
   const status = useAudioPlayerStatus(player);
+
+  // D59 (Sprint 65 Build 83 hot-fix): explicitly replace the player source
+  // on mount + when the URI changes. expo-audio sometimes hands back a
+  // player that hasn't started fetching the remote URL until you call
+  // replace() on it — particularly on iOS for HTTPS sources. Force the
+  // load so `isLoaded` flips true without waiting for a play() trigger.
+  useEffect(() => {
+    if (!playableUri) return;
+    try {
+      player.replace({ uri: playableUri });
+    } catch {
+      /* swallow — player will retry on next interaction */
+    }
+  }, [playableUri, player]);
+
+  if (__DEV__) {
+    // Log on every render keyed by isLoaded transitions so Boss can pull
+    // from Console.app: "[audio-inline] uri … isLoaded false / true".
+    console.debug('[audio-inline]', {
+      uri: playableUri,
+      isLoaded: status.isLoaded,
+      duration: status.duration,
+      playing: status.playing,
+    });
+  }
 
   // expo-audio reports duration in seconds. Prefer the player-reported value
   // once it has loaded the asset; fall back to the BE-stored hint while the

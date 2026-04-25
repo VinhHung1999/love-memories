@@ -1,6 +1,6 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Pause, Play, Trash2 } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import type { LetterAudio } from '@/api/letters';
@@ -31,6 +31,25 @@ export function AudioPreview({ audio, onRemove }: Props) {
   const playableUri = useMemo(() => proxyAudio(audio.url), [audio.url]);
   const player = useAudioPlayer({ uri: playableUri });
   const status = useAudioPlayerStatus(player);
+
+  // D59 — same explicit-replace + diagnostic log as AudioInline.
+  useEffect(() => {
+    if (!playableUri) return;
+    try {
+      player.replace({ uri: playableUri });
+    } catch {
+      /* swallow */
+    }
+  }, [playableUri, player]);
+
+  if (__DEV__) {
+    console.debug('[audio-preview]', {
+      uri: playableUri,
+      isLoaded: status.isLoaded,
+      duration: status.duration,
+      playing: status.playing,
+    });
+  }
   const total =
     status.duration && status.duration > 0
       ? status.duration
