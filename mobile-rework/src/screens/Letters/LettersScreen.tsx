@@ -141,7 +141,12 @@ export function LettersScreen() {
         onSelect={vm.setActiveTab}
       />
       <ScrollView
-        contentContainerClassName="px-5 pt-4 pb-2"
+        // D64 (Sprint 65 Build 86 hot-fix): pt-4 → pt-6. The Sent tab's
+        // first letter often lands on a lighter palette (butter / sunset /
+        // mint), so the LetterHeroCard's 160px gradient header reads tight
+        // against the TabsBar above. Two extra mm of breathing room keeps
+        // the row from feeling "lẻm vào".
+        contentContainerClassName="px-5 pt-6 pb-2"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
