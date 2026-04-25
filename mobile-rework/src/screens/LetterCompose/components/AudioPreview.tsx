@@ -60,6 +60,8 @@ export function AudioPreview({ audio, onRemove }: Props) {
       return;
     }
     try {
+      // D63a-redo2 — same setSubscriptionDuration fix as AudioInline.
+      audioPlayer.setSubscriptionDuration(0.1);
       await audioPlayer.startPlayer(audio.url);
       ownsListener.current = true;
       setIsPlaying(true);

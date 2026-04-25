@@ -71,6 +71,14 @@ export function AudioInline({ audioUrl, durationSeconds }: Props) {
       return;
     }
     try {
+      // D63a-redo2 (Sprint 65 Build 88 hot-fix): explicit
+      // setSubscriptionDuration so the playback listener actually fires
+      // on RNARP v4.5+nitro. The new nitro bridge appears to leave the
+      // listener idle until a subscription duration is set; legacy v3.x
+      // worked without it because the older bridge defaulted to a
+      // non-zero tick. 100ms gives a smooth progress bar without
+      // hammering the JS thread.
+      audioPlayer.setSubscriptionDuration(0.1);
       await audioPlayer.startPlayer(audioUrl);
       ownsListener.current = true;
       setIsPlaying(true);

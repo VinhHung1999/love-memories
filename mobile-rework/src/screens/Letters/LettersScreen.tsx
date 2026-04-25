@@ -157,6 +157,16 @@ export function LettersScreen() {
         onSelect={onSelectTab}
       />
       <ScrollView
+        // D64-redo2 (Sprint 65 Build 88 hot-fix): brute-force remount the
+        // ScrollView per active tab. Setting a `key` on the component
+        // forces React to unmount + remount on every tab swap, which
+        // gives the native iOS UIScrollView a clean contentOffset = 0
+        // for the new feed. The earlier scrollTo({y:0}) approach hit a
+        // timing race against the new feed's first layout pass on the
+        // Sent tab and the offset never actually reset. Trade-off:
+        // RefreshControl in-flight state is dropped per tab swap, which
+        // is acceptable since pull-to-refresh is per-tab anyway.
+        key={activeTab}
         ref={scrollRef}
         // D64 (Sprint 65 Build 86 hot-fix): pt-4 → pt-6. The Sent tab's
         // first letter often lands on a lighter palette (butter / sunset /
