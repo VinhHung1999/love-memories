@@ -4,7 +4,7 @@ import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { router as imperativeRouter, Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -106,7 +106,6 @@ export default function RootLayout() {
   //     immediately even if the user is already looking at the
   //     screen.
   const accessToken = useAuthStore((s) => s.accessToken);
-  const router = useRouter();
   useEffect(() => {
     if (!authHydrated) return;
     if (!accessToken) return;
@@ -129,43 +128,84 @@ export default function RootLayout() {
   // `getLastNotificationResponseAsync()` once the navigation tree is
   // mounted. Run it inside the same effect, deferred by one
   // animation frame so the Stack has finished its initial render.
+  // D77 (Sprint 65 Build 96 hot-fix): verbose logging at every step so
+  // a Console.app capture from Boss's device pinpoints whether the
+  // listener fires, what payload arrives, and which branch the
+  // dispatcher hits. Build 96's deep-link dispatch silently fell
+  // through to home for both letter + moment pushes; without device
+  // logs we couldn't tell whether the listener fires, the regex
+  // matches, or `router.push` silently no-ops. Also swap to the
+  // imperative `router` from 'expo-router' so the dispatch isn't
+  // sensitive to closure / re-render timing on the `useRouter` hook
+  // — the imperative router is a singleton bound to the app navigator
+  // so it's safe to call from any context.
   const dispatchNotificationLink = useCallback(
-    (link: string | null | undefined) => {
+    (link: string | null | undefined, source: string) => {
+      if (__DEV__) {
+        console.debug('[notif] dispatch', { source, link });
+      }
       if (!link) return;
       const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
       const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
+      let target: string | null = null;
       if (letterMatch) {
-        router.push({
-          pathname: '/letter-read',
-          params: { id: letterMatch[1] },
-        });
+        target = `letter:${letterMatch[1]}`;
+        // setTimeout(50) wraps router.push in case the navigator hasn't
+        // finished resolving the warm-foreground transition. Cheap
+        // belt-and-suspenders for any nav-tree timing race.
+        setTimeout(() => {
+          imperativeRouter.push({
+            pathname: '/letter-read',
+            params: { id: letterMatch[1] },
+          });
+        }, 50);
       } else if (momentMatch) {
-        router.push({
-          pathname: '/moment-detail',
-          params: { id: momentMatch[1] },
-        });
+        target = `moment:${momentMatch[1]}`;
+        setTimeout(() => {
+          imperativeRouter.push({
+            pathname: '/moment-detail',
+            params: { id: momentMatch[1] },
+          });
+        }, 50);
       } else if (link === '/monthly-recap') {
-        router.push('/monthly-recap');
+        target = 'monthly-recap';
+        setTimeout(() => imperativeRouter.push('/monthly-recap'), 50);
       } else if (link === '/notifications') {
-        router.push('/notifications');
+        target = 'notifications';
+        setTimeout(() => imperativeRouter.push('/notifications'), 50);
+      } else {
+        target = 'unmatched';
       }
-      // Unknown links no-op — better than dropping the user on a
-      // mismatched route. Recap / daily-plan links land here today
-      // since the rework has no dedicated screens for them yet.
+      if (__DEV__) {
+        console.debug('[notif] dispatch matched', { target });
+      }
     },
-    [router],
+    [],
   );
 
   useEffect(() => {
-    const received = Notifications.addNotificationReceivedListener(() => {
+    if (__DEV__) {
+      console.debug('[notif] listeners registering');
+    }
+    const received = Notifications.addNotificationReceivedListener((n) => {
+      if (__DEV__) {
+        console.debug('[notif] received', {
+          data: n.request.content.data,
+        });
+      }
       useNotificationsStore.getState().invalidate();
     });
     const response = Notifications.addNotificationResponseReceivedListener(
       (resp) => {
+        if (__DEV__) {
+          console.debug('[notif] response (warm tap)', {
+            content: JSON.stringify(resp.notification.request.content),
+          });
+        }
         const data = resp.notification.request.content.data as
           | { link?: string; type?: string }
           | undefined;
-        dispatchNotificationLink(data?.link);
+        dispatchNotificationLink(data?.link, 'warm-response');
       },
     );
 
@@ -174,10 +214,17 @@ export default function RootLayout() {
     let cancelled = false;
     void Notifications.getLastNotificationResponseAsync().then((resp) => {
       if (cancelled || !resp) return;
+      if (__DEV__) {
+        console.debug('[notif] cold-start drain', {
+          content: JSON.stringify(resp.notification.request.content),
+        });
+      }
       const data = resp.notification.request.content.data as
         | { link?: string; type?: string }
         | undefined;
-      requestAnimationFrame(() => dispatchNotificationLink(data?.link));
+      requestAnimationFrame(() =>
+        dispatchNotificationLink(data?.link, 'cold-start'),
+      );
     });
 
     return () => {
