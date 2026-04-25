@@ -345,17 +345,42 @@ export function useLetterComposeViewModel(params: ComposeParams) {
         }
         setState((prev) => ({ ...prev, audio: null }));
       }
-      const filename = `letter-${id}-${Date.now()}.m4a`;
+
+      // D50 (Sprint 65 Build 78 hot-fix): defensive normalization for the
+      // recorder URI before we hand it to RN FormData.
+      //   • iOS expo-audio sometimes returns URIs without the `file://`
+      //     prefix; the RN FormData polyfill on iOS reads the file from
+      //     disk via `uri`, and missing prefix = silent read failure.
+      //   • RecordingPresets.HIGH_QUALITY produces `.m4a` with audio/mp4 on
+      //     both iOS + Android, but if the recorder is reconfigured to a
+      //     different format we should still send the right MIME instead of
+      //     hardcoding mp4. The BE audio whitelist (backend/middleware/
+      //     upload.ts) accepts: audio/webm, audio/mp4, audio/mpeg, audio/
+      //     ogg, audio/wav — fall back to audio/mp4 for unknown extensions.
+      const normalizedUri = uri.startsWith('file://') ? uri : `file://${uri}`;
+      const lastDot = uri.lastIndexOf('.');
+      const ext =
+        lastDot >= 0 ? uri.slice(lastDot + 1).toLowerCase() : 'm4a';
+      const type = audioMimeFromExt(ext);
+      const filename = `letter-${id}-${Date.now()}.${ext}`;
       const queueId = `letter-audio-${id}-${Date.now()}`;
+      if (__DEV__) {
+        console.debug('[letter-audio] enqueue', {
+          uri: normalizedUri,
+          filename,
+          type,
+          durationMs,
+        });
+      }
       uploadQueue.enqueue({
         id: queueId,
         label: filename,
         kind: 'audio',
         uploadFn: () =>
           uploadLetterAudio(id, {
-            uri,
+            uri: normalizedUri,
             name: filename,
-            type: 'audio/mp4',
+            type,
           }),
         onSuccess: (result) => {
           const created = result as LetterAudio;
@@ -487,6 +512,31 @@ export function useLetterComposeViewModel(params: ComposeParams) {
     saveDraftAndExit,
     discardDraft,
   };
+}
+
+// D50 (Sprint 65 Build 78 hot-fix): map recorder URI extensions to the BE
+// audio whitelist. The BE accepts audio/webm, audio/mp4, audio/mpeg,
+// audio/ogg, audio/wav; everything else falls back to audio/mp4 (the
+// HIGH_QUALITY preset default) so multer can still validate.
+function audioMimeFromExt(ext: string): string {
+  switch (ext) {
+    case 'm4a':
+    case 'mp4':
+    case 'aac':
+      return 'audio/mp4';
+    case 'mp3':
+    case 'mpeg':
+      return 'audio/mpeg';
+    case 'wav':
+      return 'audio/wav';
+    case 'ogg':
+    case 'oga':
+      return 'audio/ogg';
+    case 'webm':
+      return 'audio/webm';
+    default:
+      return 'audio/mp4';
+  }
 }
 
 // Map common image extensions → MIME for FormData. Lifted from MomentCreate
