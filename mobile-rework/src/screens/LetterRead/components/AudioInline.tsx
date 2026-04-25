@@ -1,16 +1,23 @@
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Pause, Play } from 'lucide-react-native';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import audioPlayer, {
+  type PlayBackType,
+} from 'react-native-audio-recorder-player';
 
-import { proxyAudio } from '@/lib/proxyUrl';
 import { useAppColors } from '@/theme/ThemeProvider';
 
-// T422 (Sprint 65) — inline audio player for letter voice memos. Single
-// audio entity per letter (BE LoveLetterService.uploadAudio enforces 1 max).
-// expo-audio replaces the deprecated expo-av in SDK 54+. The hook
-// auto-releases the AudioPlayer on unmount, so closing the LetterRead modal
-// stops playback without manual cleanup.
+// T422 (Sprint 65) — inline audio player for letter voice memos.
+// D62 (Sprint 65 Build 85 hot-fix): switched from expo-audio's
+// useAudioPlayer to react-native-audio-recorder-player. expo-audio v1.1.1
+// silently failed to load HTTPS streams against Boss's device through
+// Builds 81-85 (D52→D60 ladder); the RNARP startPlayer/stopPlayer +
+// addPlayBackListener pattern has shipped in legacy mobile/ since Sprint
+// 30 and works against the same CDN URLs. RNARP is a SINGLETON — only
+// one audio plays at a time. AudioPreview uses the same lib; the two
+// components never overlap in practice (compose vs read are different
+// routes), but the cleanup in useEffect's unmount handler stops the
+// player so a stale listener can't leak across screens.
 
 type Props = {
   audioUrl: string;
@@ -26,72 +33,75 @@ function formatClock(seconds: number): string {
 
 export function AudioInline({ audioUrl, durationSeconds }: Props) {
   const c = useAppColors();
-  // D56 (Sprint 65 Build 81 hot-fix): route the CDN URL through the BE's
-  // public audio proxy so iOS expo-audio gets a clean `audio/mp4`
-  // Content-Type. See @/lib/proxyUrl for the rationale.
-  const playableUri = useMemo(() => proxyAudio(audioUrl), [audioUrl]);
-  const player = useAudioPlayer({ uri: playableUri });
-  const status = useAudioPlayerStatus(player);
+  const [isPlaying, setIsPlaying] = useState(false);
+  // Ms values straight from the RNARP listener — duration kept here too
+  // because BE may not have populated letter_audio.duration on legacy
+  // rows; the listener fills the gap as soon as playback starts.
+  const [currentMs, setCurrentMs] = useState(0);
+  const [durationMs, setDurationMs] = useState(
+    durationSeconds && durationSeconds > 0
+      ? Math.round(durationSeconds * 1000)
+      : 0,
+  );
+  const ownsListener = useRef(false);
 
-  // D59 (Sprint 65 Build 83 hot-fix): explicitly replace the player source
-  // on mount + when the URI changes. expo-audio sometimes hands back a
-  // player that hasn't started fetching the remote URL until you call
-  // replace() on it — particularly on iOS for HTTPS sources. Force the
-  // load so `isLoaded` flips true without waiting for a play() trigger.
+  // Hard-stop any active playback when the component unmounts so a
+  // stale listener doesn't keep firing setState on an unmounted tree.
   useEffect(() => {
-    if (!playableUri) return;
+    return () => {
+      if (ownsListener.current) {
+        audioPlayer.removePlayBackListener();
+        void audioPlayer.stopPlayer().catch(() => {});
+        ownsListener.current = false;
+      }
+    };
+  }, []);
+
+  const onTogglePlay = useCallback(async () => {
+    if (isPlaying) {
+      await audioPlayer.stopPlayer().catch(() => {});
+      audioPlayer.removePlayBackListener();
+      ownsListener.current = false;
+      setIsPlaying(false);
+      setCurrentMs(0);
+      return;
+    }
     try {
-      player.replace({ uri: playableUri });
+      await audioPlayer.startPlayer(audioUrl);
+      ownsListener.current = true;
+      setIsPlaying(true);
+      audioPlayer.addPlayBackListener((e: PlayBackType) => {
+        setCurrentMs(e.currentPosition);
+        if (e.duration > 0 && e.duration !== durationMs) {
+          setDurationMs(e.duration);
+        }
+        if (e.duration > 0 && e.currentPosition >= e.duration) {
+          audioPlayer.removePlayBackListener();
+          ownsListener.current = false;
+          setIsPlaying(false);
+          setCurrentMs(0);
+        }
+      });
     } catch {
-      /* swallow — player will retry on next interaction */
+      ownsListener.current = false;
+      setIsPlaying(false);
     }
-  }, [playableUri, player]);
+  }, [audioUrl, durationMs, isPlaying]);
 
-  if (__DEV__) {
-    // Log on every render keyed by isLoaded transitions so Boss can pull
-    // from Console.app: "[audio-inline] uri … isLoaded false / true".
-    console.debug('[audio-inline]', {
-      uri: playableUri,
-      isLoaded: status.isLoaded,
-      duration: status.duration,
-      playing: status.playing,
-    });
-  }
-
-  // expo-audio reports duration in seconds. Prefer the player-reported value
-  // once it has loaded the asset; fall back to the BE-stored hint while the
-  // remote audio is still buffering.
-  const total =
-    status.duration && status.duration > 0
-      ? status.duration
-      : durationSeconds ?? 0;
-  const current = status.currentTime ?? 0;
+  const total = durationMs / 1000;
+  const current = currentMs / 1000;
   const progress = total > 0 ? Math.min(1, current / total) : 0;
-
-  // D58 (Sprint 65 Build 82 hot-fix): gate play() behind status.isLoaded.
-  // expo-audio fetches the remote URL asynchronously; tapping play before
-  // metadata loads is a silent no-op (no error surfaced, button looks
-  // dead). When `isLoaded` is false the press becomes a no-op intentionally
-  // so the user can retap once the player is ready.
-  const onTogglePlay = () => {
-    if (!status.isLoaded) return;
-    if (status.playing) {
-      player.pause();
-    } else {
-      player.play();
-    }
-  };
 
   return (
     <View className="flex-row items-center gap-3 mt-6 px-3.5 py-3 rounded-2xl bg-surface-alt">
       <Pressable
-        onPress={onTogglePlay}
+        onPress={() => void onTogglePlay()}
         accessibilityRole="button"
-        accessibilityLabel={status.playing ? 'Pause' : 'Play'}
+        accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
         className="w-10 h-10 rounded-full items-center justify-center active:opacity-80"
         style={{ backgroundColor: c.primary }}
       >
-        {status.playing ? (
+        {isPlaying ? (
           <Pause size={16} strokeWidth={2.4} color="#ffffff" />
         ) : (
           <Play size={16} strokeWidth={2.4} color="#ffffff" />

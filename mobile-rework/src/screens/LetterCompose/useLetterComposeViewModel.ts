@@ -386,16 +386,27 @@ export function useLetterComposeViewModel(params: ComposeParams) {
           durationMs,
         });
       }
+      // D61 — pass durationMs/1000 to BE so letter_audio.duration is
+      // populated (BE LoveLetterController parseFloat's the multipart
+      // `duration` field). Default 0 if recorder emitted a 0ms event
+      // means the column stays NULL — that's the only acceptable miss
+      // since we can't fabricate a duration we don't have.
+      const durationSecondsForUpload =
+        durationMs > 0 ? durationMs / 1000 : null;
       uploadQueue.enqueue({
         id: queueId,
         label: filename,
         kind: 'audio',
         uploadFn: () =>
-          uploadLetterAudio(id, {
-            uri: targetUri,
-            name: filename,
-            type,
-          }),
+          uploadLetterAudio(
+            id,
+            {
+              uri: targetUri,
+              name: filename,
+              type,
+            },
+            durationSecondsForUpload,
+          ),
         onSuccess: (result) => {
           const created = result as LetterAudio;
           setState((prev) => ({

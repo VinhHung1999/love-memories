@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/apiClient';
+import { apiClient, apiFetch } from '@/lib/apiClient';
 
 // T421 (Sprint 65) — typed wrappers around BE love-letters routes
 // (mounted at /api/love-letters in backend/src/routes/index.ts).
@@ -131,12 +131,30 @@ export function deleteLetterPhoto(letterId: string, photoId: string) {
 // BE audio route uses `upload.single('audio')`; only one voice memo per
 // letter (LoveLetterService.uploadAudio enforces) — re-recording requires
 // deleteLetterAudio first.
-export function uploadLetterAudio(letterId: string, file: UploadFile) {
-  return apiClient.upload<LetterAudio>(
-    `/api/love-letters/${letterId}/audio`,
-    'audio',
-    file,
-  );
+//
+// D61 (Sprint 65 Build 85 hot-fix): the BE controller (LoveLetterController.
+// uploadAudio L98) reads `duration` from the multipart body and parseFloat's
+// it into the LetterAudio.duration column (seconds). Mobile previously
+// posted only the file, so the column came back NULL on every record and
+// the AudioInline preview rendered "0:00 / 0:00" even when the recorder
+// emitted a real durationMs. Append the duration when we know it. Build the
+// FormData manually so we can attach more than one field; apiClient.upload
+// is single-field only.
+export function uploadLetterAudio(
+  letterId: string,
+  file: UploadFile,
+  durationSeconds?: number | null,
+) {
+  const form = new FormData();
+  form.append('audio', file as unknown as Blob);
+  if (durationSeconds && durationSeconds > 0) {
+    form.append('duration', String(durationSeconds));
+  }
+  return apiFetch<LetterAudio>(`/api/love-letters/${letterId}/audio`, {
+    method: 'POST',
+    body: form,
+    skipJsonContentType: true,
+  });
 }
 
 export function deleteLetterAudio(letterId: string, audioId: string) {
