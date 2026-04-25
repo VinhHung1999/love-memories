@@ -81,12 +81,14 @@ export function LetterHeroCard({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      // D64-redo3 (Sprint 65 Build 90 hot-fix): dropped `shadow-card` —
-      // its 8px-radius soft shadow was spreading upward into the 24px
-      // pt-6 buffer and visually nibbling the TabsBar chip's bottom edge
-      // ("lụm 1 miếng" per Boss). The 26px radius + border already give
-      // the card enough definition; no elevation needed at this density.
-      className="rounded-[26px] overflow-hidden bg-surface border border-line-on-surface mb-3.5 active:opacity-90"
+      // D64-redo4 (Sprint 65 Build 91 hot-fix): shadow-card restored.
+      // Boss clarified the "lụm" wasn't the hero shadow at all — it was
+      // the ScrollView itself flashing over the TabsBar during the brute
+      // `key={activeTab}` remount (D64-redo2). The shadow was a wrong
+      // suspect; re-adding so the card keeps the soft elevation that
+      // separates it from the bg gradient on the Sent tab's lighter
+      // palettes (butter / mint).
+      className="rounded-[26px] overflow-hidden bg-surface border border-line-on-surface shadow-card mb-3.5 active:opacity-90"
     >
       <LinearGradient
         colors={grad as unknown as readonly [string, string, ...string[]]}

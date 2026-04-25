@@ -70,18 +70,23 @@ export function LettersScreen() {
   const partnerName = vm.partnerName ?? t('letters.partnerFallback');
   const currentName = vm.currentUserName ?? t('letters.currentUserFallback');
 
-  // D64-redo (Sprint 65 Build 87 hot-fix): the previous pt-4 → pt-6 bump
-  // didn't fix the "lẹm vào" gap on Sent because the real cause was the
-  // ScrollView preserving its scroll offset across tab swaps. User
-  // scrolls Inbox a touch, switches to Sent → the new feed's first hero
-  // card is rendered with a ~50px content offset, so its top border
-  // sits behind the TabsBar. Reset scroll to 0 every time the active
-  // tab changes so each tab opens at the top.
+  // D64-redo4 (Sprint 65 Build 91 hot-fix): the brute `key={activeTab}`
+  // remount caused a one-frame flash where the unmounted ScrollView's
+  // pixels overlapped the TabsBar chip bottoms — Boss saw this as
+  // "lẹm filter, ScrollView lẽm vào". Switch back to a soft scroll
+  // reset: keep the same ScrollView mounted across tab swaps, set
+  // activeTab, then on the next animation frame call
+  // `scrollTo({y: 0, animated: false})`. The rAF defers the call until
+  // after the new feed's first layout pass so the offset reset lands
+  // on the correct contentSize. Inbox is fine because it's the initial
+  // mount with offset already 0; Sent / Drafts get the explicit reset.
   const scrollRef = useRef<ScrollView>(null);
   const onSelectTab = useCallback(
     (next: LettersTab) => {
       vm.setActiveTab(next);
-      scrollRef.current?.scrollTo({ y: 0, animated: false });
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+      });
     },
     [vm],
   );
@@ -157,17 +162,20 @@ export function LettersScreen() {
         onSelect={onSelectTab}
       />
       <ScrollView
-        // D64-redo2 (Sprint 65 Build 88 hot-fix): brute-force remount the
-        // ScrollView per active tab. Setting a `key` on the component
-        // forces React to unmount + remount on every tab swap, which
-        // gives the native iOS UIScrollView a clean contentOffset = 0
-        // for the new feed. The earlier scrollTo({y:0}) approach hit a
-        // timing race against the new feed's first layout pass on the
-        // Sent tab and the offset never actually reset. Trade-off:
-        // RefreshControl in-flight state is dropped per tab swap, which
-        // is acceptable since pull-to-refresh is per-tab anyway.
-        key={activeTab}
+        // D64-redo4 (Sprint 65 Build 91 hot-fix): drop `key={activeTab}`
+        // (Build 88 brute remount). Boss confirmed the "lụm filter"
+        // wasn't shadow bleed (D64-redo3 wrong) and wasn't scroll offset
+        // alone — it was the ScrollView's unmount/remount flash painting
+        // over the TabsBar before layout settled. Keep one mounted
+        // ScrollView; reset scroll via rAF after the tab-state flips
+        // (see `onSelectTab` above).
         ref={scrollRef}
+        // contentInsetAdjustmentBehavior='never' pins the iOS automatic
+        // inset adjustment — without it the ScrollView's first paint
+        // can briefly inherit a parent's safe-area inset and visibly
+        // shift downward, making the TabsBar above feel like it gets
+        // "eaten" by the content.
+        contentInsetAdjustmentBehavior="never"
         // D64 (Sprint 65 Build 86 hot-fix): pt-4 → pt-6. The Sent tab's
         // first letter often lands on a lighter palette (butter / sunset /
         // mint), so the LetterHeroCard's 160px gradient header reads tight
