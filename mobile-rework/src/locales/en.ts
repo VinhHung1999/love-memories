@@ -358,6 +358,43 @@ const en: Resources = {
       },
     },
   },
+  // T425 (Sprint 65) — Notifications inbox.
+  notifications: {
+    title: 'Notifications',
+    subtitle: {
+      new: '{{count}} new',
+      allCaught: 'All caught up',
+    },
+    tabs: {
+      all: 'All',
+      us: 'Us',
+      reminders: 'Reminders',
+    },
+    markAllRead: 'Mark all read',
+    groups: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      earlier: 'Earlier',
+    },
+    anniv: {
+      eyebrow: 'Coming up',
+      title: '{{count}} days until your anniversary',
+      subtitle: 'Memoura is preparing a special recap for the two of you ♥',
+      cta: 'See details',
+    },
+    empty: {
+      title: 'No notifications yet',
+      subtitle: 'When there’s a new moment, letter, or comment, you’ll see it here.',
+    },
+    error: {
+      message: 'Couldn’t load notifications. Try again?',
+      retry: 'Retry',
+    },
+    settings: {
+      title: 'Notification settings',
+      subtitle: 'Choose what you want to hear about',
+    },
+  },
   auth: {
     welcomeTitle: 'Welcome to Memoura',
     welcomeSub: 'A quiet home for the small things you two keep.',

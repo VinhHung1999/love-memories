@@ -145,6 +145,10 @@ function RootStack() {
           pushes as a full-screen card (Boss feedback: read mode shouldn't be
           a modal sheet). Same pattern as moment-detail. */}
       <Stack.Screen name="letter-read" />
+      {/* T425 (Sprint 65) — Notifications inbox top-level route. Push
+          transition (not modal) per Lu Q4. Reuses the same back-gesture
+          + auth-gate skip wiring as moment-detail / letter-read. */}
+      <Stack.Screen name="notifications" />
     </Stack>
   );
 }
@@ -218,6 +222,7 @@ function useAuthGate() {
     if (seg[0] === 'moment-detail') return;
     if (seg[0] === 'photobooth') return;
     if (seg[0] === 'letter-read') return;
+    if (seg[0] === 'notifications') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

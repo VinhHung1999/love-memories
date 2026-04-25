@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, View } from 'react-native';
 
+import { BellButton } from '@/components/BellButton';
 import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
@@ -46,7 +47,8 @@ export function DashboardScreen() {
   return (
     <SafeScreen>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* D5a: greeting row — CoupleAvatars left + text right (flex-1 min-w-0 so long names truncate) */}
+        {/* D5a: greeting row — CoupleAvatars left + text right (flex-1 min-w-0 so long names truncate).
+            T425 (Sprint 65) — BellButton appended trailing slot per Lu Q1 (no separate top bar). */}
         <View className="px-5 pt-4 flex-row items-center gap-[10px]">
           <CoupleAvatars you={vm.you} partner={vm.partner} />
           <View className="flex-1 min-w-0">
@@ -60,6 +62,7 @@ export function DashboardScreen() {
               {t('home.greetingTime')}
             </Text>
           </View>
+          <BellButton />
         </View>
 
         <ShareCodeCard />

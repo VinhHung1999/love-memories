@@ -385,6 +385,43 @@ const vi = {
       },
     },
   },
+  // T425 (Sprint 65) — Notifications inbox.
+  notifications: {
+    title: 'Thông báo',
+    subtitle: {
+      new: '{{count}} thông báo mới',
+      allCaught: 'Mình đã xem hết rồi',
+    },
+    tabs: {
+      all: 'Tất cả',
+      us: 'Đôi mình',
+      reminders: 'Nhắc nhở',
+    },
+    markAllRead: 'Đánh dấu đã đọc',
+    groups: {
+      today: 'Hôm nay',
+      yesterday: 'Hôm qua',
+      earlier: 'Trước đó',
+    },
+    anniv: {
+      eyebrow: 'Sắp tới',
+      title: 'Còn {{count}} ngày nữa là kỷ niệm',
+      subtitle: 'Memoura đang chuẩn bị một recap đặc biệt cho hai mình ♥',
+      cta: 'Xem chi tiết',
+    },
+    empty: {
+      title: 'Chưa có thông báo nào',
+      subtitle: 'Khi có khoảnh khắc, lá thư hay bình luận mới, mình sẽ thấy ở đây.',
+    },
+    error: {
+      message: 'Không tải được thông báo. Mình thử lại nhé?',
+      retry: 'Thử lại',
+    },
+    settings: {
+      title: 'Cài đặt thông báo',
+      subtitle: 'Chọn những gì mình muốn được nhắc',
+    },
+  },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',
     welcomeSub: 'Nơi giữ lại những điều bé nhỏ của hai đứa.',

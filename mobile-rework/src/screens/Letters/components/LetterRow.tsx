@@ -21,6 +21,14 @@ type Props = {
   trailingLabel: string;
   draftMode?: boolean;
   draftChipLabel?: string;
+  // D68 (Sprint 65 Build 92 hot-fix): when the letter shipped with the
+  // single-space title placeholder (Compose ships drafts via the BE Zod
+  // min(1) bypass), the row used to render an empty title slot. Mirror
+  // D65 in LetterHeroCard / PaperCard — fall back to the Dancing
+  // Script "Gửi {recipientName}," greeting. Caller resolves the right
+  // name (Inbox → currentUser, Sent → partner, Drafts → partner).
+  greetingPrefix: string;
+  recipientDisplayName: string;
   onPress: () => void;
 };
 
@@ -29,12 +37,15 @@ export function LetterRow({
   trailingLabel,
   draftMode,
   draftChipLabel,
+  greetingPrefix,
+  recipientDisplayName,
   onPress,
 }: Props) {
   const c = useAppColors();
   const palette = paletteFor(letter);
   const grad = PAL_GRADIENTS[palette];
   const moodGlyph = letter.mood ?? '✉️';
+  const titleIsEmpty = letter.title.trim().length === 0;
 
   return (
     <Pressable
@@ -60,12 +71,21 @@ export function LetterRow({
               </Text>
             </View>
           ) : null}
-          <Text
-            numberOfLines={1}
-            className="flex-1 font-displayMedium text-ink text-[15px] leading-[18px]"
-          >
-            {letter.title || ' '}
-          </Text>
+          {titleIsEmpty ? (
+            <Text
+              numberOfLines={1}
+              className="flex-1 font-script text-ink text-[18px] leading-[20px]"
+            >
+              {greetingPrefix} {recipientDisplayName},
+            </Text>
+          ) : (
+            <Text
+              numberOfLines={1}
+              className="flex-1 font-displayMedium text-ink text-[15px] leading-[18px]"
+            >
+              {letter.title}
+            </Text>
+          )}
         </View>
         {letter.content ? (
           <Text

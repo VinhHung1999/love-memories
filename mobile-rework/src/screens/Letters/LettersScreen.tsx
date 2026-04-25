@@ -387,6 +387,9 @@ function Feed({
             trailingLabel={relativeAgo(letter.updatedAt, locale)}
             draftMode
             draftChipLabel={draftChipLabel}
+            // Drafts are letters the user is sending TO partner.
+            greetingPrefix={greetingPrefix}
+            recipientDisplayName={partnerName}
             onPress={() => onEditDraft(letter.id)}
           />
         ))}
@@ -449,6 +452,10 @@ function Feed({
           key={letter.id}
           letter={letter}
           trailingLabel={trailingFor(letter)}
+          // D68 — non-hero rows reuse the same greeting fallback rule
+          // as the hero card (Inbox → currentUser, Sent → partner).
+          greetingPrefix={greetingPrefix}
+          recipientDisplayName={heroRecipientName}
           onPress={() => onOpen(letter.id)}
         />
       ))}
