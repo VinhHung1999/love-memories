@@ -147,14 +147,29 @@ export function LetterHeroCard({
           </Text>
         </View>
 
-        <Text
-          className="font-displayMedium text-ink text-[22px] leading-[26px]"
-          numberOfLines={2}
-        >
-          {letter.title}
-        </Text>
+        {/* D65 (Sprint 65 Build 86 hot-fix): the BE Zod schema requires
+            title.min(1), so the Compose flow seeds a single-space
+            placeholder and the user can ship a letter without ever
+            typing a title. Treat that as "use the greeting" — render
+            the Dancing Script "Gửi {recipient}" line in the title slot
+            instead of an empty display row. */}
+        {letter.title.trim().length > 0 ? (
+          <Text
+            className="font-displayMedium text-ink text-[22px] leading-[26px]"
+            numberOfLines={2}
+          >
+            {letter.title}
+          </Text>
+        ) : (
+          <Text
+            className="font-script text-ink text-[26px] leading-[30px]"
+            numberOfLines={1}
+          >
+            {greetingPrefix} {recipientDisplayName},
+          </Text>
+        )}
 
-        {letter.content ? (
+        {letter.content.trim().length > 0 ? (
           <Text
             className="font-body text-ink-soft text-[13px] leading-[19px] mt-1.5"
             numberOfLines={2}

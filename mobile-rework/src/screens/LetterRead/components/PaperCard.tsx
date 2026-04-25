@@ -30,9 +30,19 @@ const LINE_COUNT = 32; // covers ~900px of card height; trims via overflow-hidde
 type Props = {
   letter: LetterRow;
   signaturePrefix: string; // "—" before the signature
+  // D65 (Sprint 65 Build 86 hot-fix): used as the title fallback when
+  // the letter shipped with the placeholder title. Caller resolves to
+  // the right name (currentUser for inbox, partner for sent).
+  greetingPrefix: string;
+  recipientDisplayName: string;
 };
 
-export function PaperCard({ letter, signaturePrefix }: Props) {
+export function PaperCard({
+  letter,
+  signaturePrefix,
+  greetingPrefix,
+  recipientDisplayName,
+}: Props) {
   return (
     <View
       className="mt-6 mx-5 rounded-[20px] px-6 pt-7 pb-6 shadow-elevated overflow-hidden"
@@ -71,12 +81,25 @@ export function PaperCard({ letter, signaturePrefix }: Props) {
         </View>
       ) : null}
 
-      <Text
-        className="font-displayMedium text-[26px] leading-[30px] mb-4"
-        style={{ color: PAPER_INK }}
-      >
-        {letter.title}
-      </Text>
+      {/* D65 — empty / placeholder title falls back to the Dancing Script
+          greeting "Gửi {recipient},". The BE Zod schema requires
+          title.min(1) so the Compose flow ships single-space placeholders
+          when the user never typed a title. */}
+      {letter.title.trim().length > 0 ? (
+        <Text
+          className="font-displayMedium text-[26px] leading-[30px] mb-4"
+          style={{ color: PAPER_INK }}
+        >
+          {letter.title}
+        </Text>
+      ) : (
+        <Text
+          className="font-script text-[34px] leading-[38px] mb-4"
+          style={{ color: PAPER_INK }}
+        >
+          {greetingPrefix} {recipientDisplayName},
+        </Text>
+      )}
 
       <Text
         className="font-body text-[15px] leading-[24px]"

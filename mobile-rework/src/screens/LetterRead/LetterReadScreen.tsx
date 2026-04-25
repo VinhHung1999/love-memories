@@ -179,6 +179,10 @@ export function LetterReadScreen({ id }: Props) {
         <PaperCard
           letter={letter}
           signaturePrefix={t('letters.read.signaturePrefix')}
+          greetingPrefix={t('letters.heroGreeting')}
+          recipientDisplayName={
+            letter.recipient.name ?? t('letters.partnerFallback')
+          }
         />
         <ReplyCard
           eyebrow={t('letters.read.reply.eyebrow')}
