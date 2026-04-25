@@ -38,7 +38,10 @@ export function AudioPreview({ audio, onRemove }: Props) {
   const current = status.currentTime ?? 0;
   const progress = total > 0 ? Math.min(1, current / total) : 0;
 
+  // D58 (Sprint 65 Build 82 hot-fix): same isLoaded gate as AudioInline —
+  // tapping play before metadata loads silently no-ops.
   const onToggle = () => {
+    if (!status.isLoaded) return;
     if (status.playing) player.pause();
     else player.play();
   };

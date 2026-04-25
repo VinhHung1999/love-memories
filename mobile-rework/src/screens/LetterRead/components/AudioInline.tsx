@@ -43,7 +43,13 @@ export function AudioInline({ audioUrl, durationSeconds }: Props) {
   const current = status.currentTime ?? 0;
   const progress = total > 0 ? Math.min(1, current / total) : 0;
 
+  // D58 (Sprint 65 Build 82 hot-fix): gate play() behind status.isLoaded.
+  // expo-audio fetches the remote URL asynchronously; tapping play before
+  // metadata loads is a silent no-op (no error surfaced, button looks
+  // dead). When `isLoaded` is false the press becomes a no-op intentionally
+  // so the user can retap once the player is ready.
   const onTogglePlay = () => {
+    if (!status.isLoaded) return;
     if (status.playing) {
       player.pause();
     } else {

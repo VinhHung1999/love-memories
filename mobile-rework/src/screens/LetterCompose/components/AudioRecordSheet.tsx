@@ -136,13 +136,22 @@ export const AudioRecordSheet = forwardRef<AudioRecordSheetHandle, Props>(
 
     const stopAndEmit = useCallback(async () => {
       if (!recState.isRecording && !recState.canRecord) return;
+      // D58 (Sprint 65 Build 82 hot-fix): capture the running duration
+      // BEFORE awaiting recorder.stop(). expo-audio's poller resets
+      // recState.durationMillis to 0 the instant the recorder transitions
+      // out of `isRecording`, so reading it after the await yields 0 ms
+      // for a 5-second clip. The pre-stop value is the truth; fall back
+      // to the post-stop value only if the user tapped Stop before the
+      // poller's first tick.
+      const preStopMs = recState.durationMillis ?? 0;
       try {
         await recorder.stop();
       } catch {
         /* swallow */
       }
       const uri = recorder.uri;
-      const durationMs = recState.durationMillis ?? 0;
+      const durationMs =
+        preStopMs > 0 ? preStopMs : recState.durationMillis ?? 0;
       if (uri) {
         onComplete(uri, durationMs);
       }

@@ -1,5 +1,6 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -47,6 +48,22 @@ export default function RootLayout() {
     void useThemeStore.getState().hydrate();
     // Configure Google Sign-In once at boot. Idempotent — repeats no-op.
     configureGoogleSignIn();
+    // D57 (Sprint 65 Build 82 hot-fix): seed the iOS audio session category
+    // at app boot so AVPlayer routes to the device speaker even when the
+    // hardware silent switch is on. Without this, expo-audio playback
+    // appeared to do nothing on Boss's device for letters with audio
+    // attachments — the player loaded the asset (BE proxy + file are
+    // valid) but iOS's default Ambient/undefined category silently muted
+    // output. AudioRecordSheet flips `allowsRecording: true` while
+    // recording and resets to `false` on dismiss; the playback baseline
+    // sits here so every entry point inherits a consistent session.
+    void setAudioModeAsync({
+      allowsRecording: false,
+      playsInSilentMode: true,
+      interruptionMode: 'mixWithOthers',
+    }).catch(() => {
+      /* swallow: bad audio session at boot shouldn't crash the app */
+    });
   }, []);
 
   const allReady =
