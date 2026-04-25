@@ -28,21 +28,23 @@ export const upload = multer({
 });
 
 const audioFilter = (_req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  // D53 (Sprint 65 Build 81 hot-fix): log every incoming audio multipart so
-  // we can see exactly what mimetype the mobile FormData layer landed on.
-  // Build 81 audio uploads still rejected with "Only audio files are
-  // allowed" — D52 file-copy-to-.m4a didn't help, so iOS RN must be
-  // inferring the mimetype from file magic bytes, not the URI extension.
-  // This log + a Boss retest exposes the actual rejected mimetype so we can
-  // either expand the whitelist (add audio/x-caf etc.) or chase a true
-  // mobile-side container fix. Remove once the audio path is stable.
-  console.log('[audio-upload]', {
-    mimetype: file.mimetype,
-    originalname: file.originalname,
-    fieldname: file.fieldname,
-    encoding: file.encoding,
-  });
-  const allowed = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav'];
+  // D55 (Sprint 65 Build 81 hot-fix): added audio/x-m4a + audio/x-aac to
+  // the whitelist. iOS RN FormData on Build 81 inferred the multipart
+  // Content-Type as `audio/x-m4a` (the legacy / non-RFC variant) once the
+  // recorder file was renamed to .m4a (D52 mobile copy-to-.m4a). The
+  // canonical RFC4337 mimetype is audio/mp4, but every iOS RN client this
+  // project will see ships the `audio/x-m4a` variant — accept both. The
+  // diagnostic console.log from D53 is removed; the audio path is stable
+  // once the variants land.
+  const allowed = [
+    'audio/webm',
+    'audio/mp4',
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/wav',
+    'audio/x-m4a',
+    'audio/x-aac',
+  ];
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
