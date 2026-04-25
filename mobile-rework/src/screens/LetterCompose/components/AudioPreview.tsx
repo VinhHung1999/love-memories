@@ -31,11 +31,12 @@ function formatClock(seconds: number): string {
 export function AudioPreview({ audio, onRemove }: Props) {
   const c = useAppColors();
   const [isPlaying, setIsPlaying] = useState(false);
-  // D63a — same single-progress-state pattern as AudioInline.
-  const [progress, setProgress] = useState(0);
-  const [currentSec, setCurrentSec] = useState(0);
-  const [totalSec, setTotalSec] = useState(
-    audio.duration && audio.duration > 0 ? audio.duration : 0,
+  // D63a-redo — same render-derived progress pattern as AudioInline.
+  const [currentMs, setCurrentMs] = useState(0);
+  const [durMs, setDurMs] = useState(
+    audio.duration && audio.duration > 0
+      ? Math.round(audio.duration * 1000)
+      : 0,
   );
   const ownsListener = useRef(false);
 
@@ -55,8 +56,7 @@ export function AudioPreview({ audio, onRemove }: Props) {
       audioPlayer.removePlayBackListener();
       ownsListener.current = false;
       setIsPlaying(false);
-      setProgress(0);
-      setCurrentSec(0);
+      setCurrentMs(0);
       return;
     }
     try {
@@ -64,19 +64,21 @@ export function AudioPreview({ audio, onRemove }: Props) {
       ownsListener.current = true;
       setIsPlaying(true);
       audioPlayer.addPlayBackListener((e: PlayBackType) => {
-        const dur = e.duration;
-        const cur = e.currentPosition;
-        if (dur > 0) {
-          setProgress(Math.min(1, cur / dur));
-          setTotalSec(dur / 1000);
+        if (__DEV__) {
+          console.debug('[audio-tick:preview]', {
+            cur: e.currentPosition,
+            dur: e.duration,
+          });
         }
-        setCurrentSec(cur / 1000);
-        if (dur > 0 && cur >= dur) {
+        setCurrentMs(e.currentPosition);
+        if (e.duration > 0) {
+          setDurMs(e.duration);
+        }
+        if (e.duration > 0 && e.currentPosition >= e.duration) {
           audioPlayer.removePlayBackListener();
           ownsListener.current = false;
           setIsPlaying(false);
-          setProgress(0);
-          setCurrentSec(0);
+          setCurrentMs(0);
         }
       });
     } catch {
@@ -85,8 +87,9 @@ export function AudioPreview({ audio, onRemove }: Props) {
     }
   }, [audio.url, isPlaying]);
 
-  const total = totalSec;
-  const current = currentSec;
+  const total = durMs / 1000;
+  const current = currentMs / 1000;
+  const progress = durMs > 0 ? Math.min(1, currentMs / durMs) : 0;
 
   return (
     <View className="mt-3 flex-row items-center gap-3 px-3.5 py-3 rounded-2xl bg-surface-alt">

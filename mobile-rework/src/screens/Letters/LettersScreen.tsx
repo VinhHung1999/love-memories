@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -70,6 +70,22 @@ export function LettersScreen() {
   const partnerName = vm.partnerName ?? t('letters.partnerFallback');
   const currentName = vm.currentUserName ?? t('letters.currentUserFallback');
 
+  // D64-redo (Sprint 65 Build 87 hot-fix): the previous pt-4 → pt-6 bump
+  // didn't fix the "lẹm vào" gap on Sent because the real cause was the
+  // ScrollView preserving its scroll offset across tab swaps. User
+  // scrolls Inbox a touch, switches to Sent → the new feed's first hero
+  // card is rendered with a ~50px content offset, so its top border
+  // sits behind the TabsBar. Reset scroll to 0 every time the active
+  // tab changes so each tab opens at the top.
+  const scrollRef = useRef<ScrollView>(null);
+  const onSelectTab = useCallback(
+    (next: LettersTab) => {
+      vm.setActiveTab(next);
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    },
+    [vm],
+  );
+
   const tabsConfig = useMemo(
     () =>
       TAB_ORDER.map((key) => ({
@@ -138,9 +154,10 @@ export function LettersScreen() {
       <TabsBar
         tabs={tabsConfig}
         active={activeTab}
-        onSelect={vm.setActiveTab}
+        onSelect={onSelectTab}
       />
       <ScrollView
+        ref={scrollRef}
         // D64 (Sprint 65 Build 86 hot-fix): pt-4 → pt-6. The Sent tab's
         // first letter often lands on a lighter palette (butter / sunset /
         // mint), so the LetterHeroCard's 160px gradient header reads tight
