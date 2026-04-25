@@ -34,80 +34,93 @@ function formatClock(seconds: number): string {
 export function AudioInline({ audioUrl, durationSeconds }: Props) {
   const c = useAppColors();
   const [isPlaying, setIsPlaying] = useState(false);
-  // D63a-redo (Sprint 65 Build 87 hot-fix): track ms values directly +
-  // compute progress in the render. Build 87's wiring split progress as
-  // its own state and only updated it inside the `dur > 0` branch — when
-  // RNARP's first ticks reported `duration: 0` (still buffering), the
-  // bar stayed at 0 even though `currentPosition` was incrementing.
-  // Holding only the raw values + deriving progress per render keeps the
-  // bar honest the moment either ms updates.
   const [currentMs, setCurrentMs] = useState(0);
   const [durMs, setDurMs] = useState(
     durationSeconds && durationSeconds > 0
       ? Math.round(durationSeconds * 1000)
       : 0,
   );
+  // D63a-redo3 (Sprint 65 Build 89 hot-fix): pivot off RNARP's playback
+  // listener entirely. The v4.5+nitro bridge leaves the listener idle no
+  // matter what subscription duration we set, so progress never moved
+  // through Builds 86-89. The Murmur app pattern (journaling-app/app/
+  // entry-result.tsx:79-108) sidesteps the listener and computes elapsed
+  // time on a `setInterval(100ms)` polling loop rooted at a `Date.now()`
+  // timestamp captured when playback starts. RNARP keeps doing the
+  // actual audio I/O (startPlayer + stopPlayer); the bar / clock is a
+  // pure JS-side derivation. The listener is still attached as a backup
+  // — if RNARP ever delivers a tick we use it to refine `durMs` (in
+  // case the BE-stored prop was NULL), but progress no longer waits on
+  // it. Keeps `[audio-tick]` __DEV__ log on the listener side so a
+  // future device capture confirms whether v4.5+nitro starts firing.
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimestampRef = useRef(0);
   const ownsListener = useRef(false);
+
+  const teardown = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (ownsListener.current) {
+      audioPlayer.removePlayBackListener();
+      ownsListener.current = false;
+    }
+  }, []);
 
   // Hard-stop any active playback when the component unmounts so a
   // stale listener doesn't keep firing setState on an unmounted tree.
   useEffect(() => {
     return () => {
-      if (ownsListener.current) {
-        audioPlayer.removePlayBackListener();
-        void audioPlayer.stopPlayer().catch(() => {});
-        ownsListener.current = false;
-      }
+      teardown();
+      void audioPlayer.stopPlayer().catch(() => {});
     };
-  }, []);
+  }, [teardown]);
 
   const onTogglePlay = useCallback(async () => {
     if (isPlaying) {
+      teardown();
       await audioPlayer.stopPlayer().catch(() => {});
-      audioPlayer.removePlayBackListener();
-      ownsListener.current = false;
       setIsPlaying(false);
       setCurrentMs(0);
       return;
     }
     try {
-      // D63a-redo2 (Sprint 65 Build 88 hot-fix): explicit
-      // setSubscriptionDuration so the playback listener actually fires
-      // on RNARP v4.5+nitro. The new nitro bridge appears to leave the
-      // listener idle until a subscription duration is set; legacy v3.x
-      // worked without it because the older bridge defaulted to a
-      // non-zero tick. 100ms gives a smooth progress bar without
-      // hammering the JS thread.
       audioPlayer.setSubscriptionDuration(0.1);
       await audioPlayer.startPlayer(audioUrl);
       ownsListener.current = true;
       setIsPlaying(true);
+      setCurrentMs(0);
+      startTimestampRef.current = Date.now();
+
+      // Backup listener — refine durMs if RNARP ever decides to fire.
       audioPlayer.addPlayBackListener((e: PlayBackType) => {
         if (__DEV__) {
-          // [audio-tick] line surfaces in Console.app on a connected
-          // iPhone — Boss can pull it to verify the listener actually
-          // fires + see real (cur, dur) values.
           console.debug('[audio-tick]', {
             cur: e.currentPosition,
             dur: e.duration,
           });
         }
-        setCurrentMs(e.currentPosition);
-        if (e.duration > 0) {
-          setDurMs(e.duration);
-        }
-        if (e.duration > 0 && e.currentPosition >= e.duration) {
-          audioPlayer.removePlayBackListener();
-          ownsListener.current = false;
+        if (e.duration > 0) setDurMs(e.duration);
+      });
+
+      // Source of truth: client-computed elapsed time.
+      intervalRef.current = setInterval(() => {
+        const elapsedMs = Date.now() - startTimestampRef.current;
+        if (durMs > 0 && elapsedMs >= durMs) {
+          teardown();
+          void audioPlayer.stopPlayer().catch(() => {});
           setIsPlaying(false);
           setCurrentMs(0);
+          return;
         }
-      });
+        setCurrentMs(elapsedMs);
+      }, 100);
     } catch {
-      ownsListener.current = false;
+      teardown();
       setIsPlaying(false);
     }
-  }, [audioUrl, isPlaying]);
+  }, [audioUrl, durMs, isPlaying, teardown]);
 
   const total = durMs / 1000;
   const current = currentMs / 1000;

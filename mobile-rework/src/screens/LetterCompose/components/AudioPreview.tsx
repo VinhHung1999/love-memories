@@ -31,40 +31,51 @@ function formatClock(seconds: number): string {
 export function AudioPreview({ audio, onRemove }: Props) {
   const c = useAppColors();
   const [isPlaying, setIsPlaying] = useState(false);
-  // D63a-redo — same render-derived progress pattern as AudioInline.
   const [currentMs, setCurrentMs] = useState(0);
   const [durMs, setDurMs] = useState(
     audio.duration && audio.duration > 0
       ? Math.round(audio.duration * 1000)
       : 0,
   );
+  // D63a-redo3 — same Murmur-style setInterval polling as AudioInline.
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimestampRef = useRef(0);
   const ownsListener = useRef(false);
+
+  const teardown = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (ownsListener.current) {
+      audioPlayer.removePlayBackListener();
+      ownsListener.current = false;
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
-      if (ownsListener.current) {
-        audioPlayer.removePlayBackListener();
-        void audioPlayer.stopPlayer().catch(() => {});
-        ownsListener.current = false;
-      }
+      teardown();
+      void audioPlayer.stopPlayer().catch(() => {});
     };
-  }, []);
+  }, [teardown]);
 
   const onToggle = useCallback(async () => {
     if (isPlaying) {
+      teardown();
       await audioPlayer.stopPlayer().catch(() => {});
-      audioPlayer.removePlayBackListener();
-      ownsListener.current = false;
       setIsPlaying(false);
       setCurrentMs(0);
       return;
     }
     try {
-      // D63a-redo2 — same setSubscriptionDuration fix as AudioInline.
       audioPlayer.setSubscriptionDuration(0.1);
       await audioPlayer.startPlayer(audio.url);
       ownsListener.current = true;
       setIsPlaying(true);
+      setCurrentMs(0);
+      startTimestampRef.current = Date.now();
+
       audioPlayer.addPlayBackListener((e: PlayBackType) => {
         if (__DEV__) {
           console.debug('[audio-tick:preview]', {
@@ -72,22 +83,25 @@ export function AudioPreview({ audio, onRemove }: Props) {
             dur: e.duration,
           });
         }
-        setCurrentMs(e.currentPosition);
-        if (e.duration > 0) {
-          setDurMs(e.duration);
-        }
-        if (e.duration > 0 && e.currentPosition >= e.duration) {
-          audioPlayer.removePlayBackListener();
-          ownsListener.current = false;
+        if (e.duration > 0) setDurMs(e.duration);
+      });
+
+      intervalRef.current = setInterval(() => {
+        const elapsedMs = Date.now() - startTimestampRef.current;
+        if (durMs > 0 && elapsedMs >= durMs) {
+          teardown();
+          void audioPlayer.stopPlayer().catch(() => {});
           setIsPlaying(false);
           setCurrentMs(0);
+          return;
         }
-      });
+        setCurrentMs(elapsedMs);
+      }, 100);
     } catch {
-      ownsListener.current = false;
+      teardown();
       setIsPlaying(false);
     }
-  }, [audio.url, isPlaying]);
+  }, [audio.url, durMs, isPlaying, teardown]);
 
   const total = durMs / 1000;
   const current = currentMs / 1000;
