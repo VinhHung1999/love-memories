@@ -329,6 +329,23 @@ const vi = {
       message: 'Không tải được thư. Mình thử lại nhé?',
       retry: 'Thử lại',
     },
+    // T422 (Sprint 65) — Letter Read overlay strings.
+    read: {
+      fromAuthor: 'Từ {{name}} · viết lúc {{time}}',
+      signaturePrefix: '—',
+      heartComingSoon: 'Tính năng thả tim cho thư đang được Memoura chăm chút. Mình chờ chút nhé.',
+      reply: {
+        eyebrow: 'Viết lại cho mình',
+        body: 'Một lá thư xứng đáng một lá thư…',
+        write: 'Viết thư',
+        heart: 'Thả tim',
+      },
+      error: {
+        message: 'Không mở được lá thư. Mình thử lại nhé?',
+        retry: 'Thử lại',
+        back: 'Quay lại',
+      },
+    },
   },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',

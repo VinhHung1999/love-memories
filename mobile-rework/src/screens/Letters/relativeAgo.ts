@@ -52,6 +52,61 @@ const EN_MONTHS_SHORT = [
   'Dec',
 ];
 
+// Long-form date for the LetterRead accent header — "26 Tháng 3" / "March 26".
+const VI_MONTHS_LONG = [
+  'Tháng 1',
+  'Tháng 2',
+  'Tháng 3',
+  'Tháng 4',
+  'Tháng 5',
+  'Tháng 6',
+  'Tháng 7',
+  'Tháng 8',
+  'Tháng 9',
+  'Tháng 10',
+  'Tháng 11',
+  'Tháng 12',
+];
+
+const EN_MONTHS_LONG = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+export function formatLongDate(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  if (locale.startsWith('vi')) {
+    return `${d.getDate()} ${VI_MONTHS_LONG[d.getMonth()]}`;
+  }
+  return `${EN_MONTHS_LONG[d.getMonth()]} ${d.getDate()}`;
+}
+
+// Short clock time — "23:47" (vi) / "11:47 PM" (en). Used by the LetterRead
+// AuthorBlock subtitle "Từ {Name} · viết lúc {time}".
+export function formatTimeShort(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const hh = d.getHours();
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  if (locale.startsWith('vi')) {
+    return `${String(hh).padStart(2, '0')}:${mm}`;
+  }
+  const period = hh >= 12 ? 'PM' : 'AM';
+  const display = hh % 12 || 12;
+  return `${display}:${mm} ${period}`;
+}
+
 export function formatScheduleDate(iso: string, locale: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;

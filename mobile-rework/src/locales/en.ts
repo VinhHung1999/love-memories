@@ -305,6 +305,23 @@ const en: Resources = {
       message: 'Couldn’t load letters. Try again?',
       retry: 'Retry',
     },
+    // T422 (Sprint 65) — Letter Read overlay strings.
+    read: {
+      fromAuthor: 'From {{name}} · written at {{time}}',
+      signaturePrefix: '—',
+      heartComingSoon: 'Reactions for letters are still in the works. Hang tight.',
+      reply: {
+        eyebrow: 'Write back',
+        body: 'A letter deserves a letter…',
+        write: 'Write a letter',
+        heart: 'React',
+      },
+      error: {
+        message: 'Couldn’t open this letter. Try again?',
+        retry: 'Retry',
+        back: 'Back',
+      },
+    },
   },
   auth: {
     welcomeTitle: 'Welcome to Memoura',
