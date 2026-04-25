@@ -1,3 +1,4 @@
+import { cacheDirectory, copyAsync } from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -346,26 +347,40 @@ export function useLetterComposeViewModel(params: ComposeParams) {
         setState((prev) => ({ ...prev, audio: null }));
       }
 
-      // D51 (Sprint 65 Build 79 hot-fix): match the legacy mobile/api.ts
-      // pattern that's been working in prod since Sprint 30 — hardcode the
-      // FormData name + type to 'memo.m4a' + 'audio/mp4' regardless of the
-      // recorder URI's actual extension. BE multer (audio whitelist:
-      // webm/mp4/mpeg/ogg/wav) only validates the client-declared mimetype
-      // string, not file content, so labelling everything as audio/mp4 is
-      // safe even if expo-audio internally writes a CAF wrapper.
+      // D52 (Sprint 65 Build 80 hot-fix): root cause for "Only audio files
+      // are allowed" reject — iOS RN FormData INFERS the multipart Content-
+      // Type from the URI's file extension, OVERRIDING our hardcoded
+      // `type: 'audio/mp4'`. expo-audio's iOS recorder writes the file with
+      // a CAF container even though the RecordingPresets.HIGH_QUALITY
+      // declares `extension: '.m4a'`, so iOS infers audio/x-caf which BE
+      // multer rejects.
       //
-      // file:// prefix safety is still wired in case the iOS RN FormData
-      // polyfill ever needs the absolute URI form. The dynamic-extension
-      // derivation from D50 is reverted (audioMimeFromExt is still around
-      // for future use; not invoked here).
+      // Fix: copy the recorder file into the cache dir with a forced .m4a
+      // extension before upload. iOS now infers audio/mp4 from the .m4a
+      // suffix, BE accepts (whitelist: webm/mp4/mpeg/ogg/wav), and the
+      // declared `type: 'audio/mp4'` is consistent with the inferred MIME.
+      // Legacy mobile/api.ts works because react-native-audio-recorder-
+      // player writes directly to a .m4a path with no container override.
       const normalizedUri = uri.startsWith('file://') ? uri : `file://${uri}`;
+      const ts = Date.now();
+      const targetUri = `${cacheDirectory ?? ''}letter-audio-${id}-${ts}.m4a`;
+      try {
+        await copyAsync({ from: normalizedUri, to: targetUri });
+      } catch (copyErr) {
+        if (__DEV__) {
+          console.warn('[letter-audio] copyAsync failed', copyErr);
+        }
+        // Fall back to the original URI — it'll most likely still fail the
+        // BE filter but the upload error toast surfaces a signal at least.
+      }
       const filename = 'memo.m4a';
       const type = 'audio/mp4';
-      const queueId = `letter-audio-${id}-${Date.now()}`;
+      const queueId = `letter-audio-${id}-${ts}`;
       if (__DEV__) {
         console.debug('[letter-audio] enqueue', {
           rawUri: uri,
-          uri: normalizedUri,
+          normalizedUri,
+          targetUri,
           filename,
           type,
           durationMs,
@@ -377,7 +392,7 @@ export function useLetterComposeViewModel(params: ComposeParams) {
         kind: 'audio',
         uploadFn: () =>
           uploadLetterAudio(id, {
-            uri: normalizedUri,
+            uri: targetUri,
             name: filename,
             type,
           }),
