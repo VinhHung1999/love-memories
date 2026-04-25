@@ -24,30 +24,32 @@ import { useLettersStore } from '@/stores/lettersStore';
 //
 //   1. No params       → create a fresh DRAFT on mount (placeholder ' ' for
 //                        title + content per Lu Q1; BE Zod requires min(1)).
-//   2. id={draftId}    → load an existing DRAFT and edit it.
+//   2. id={draftId}    → load an existing DRAFT and edit it (Drafts tab tap).
 //   3. replyTo={id}    → fetch the original letter, then create a new DRAFT
 //                        with title='Re: {orig.title}', mood=orig.mood, body
 //                        placeholder ' '. If the orig fetch fails, fall back
 //                        to a fresh empty draft (Lu Q2).
 //
 // Auto-save: title / content / mood mutations debounce 500ms via setTimeout
-// then PUT the field through to the BE. Schedule changes PUT immediately
-// (status flips DRAFT ↔ SCHEDULED on the server side).
+// then PUT the field through to the BE. Photos / audio uploads also live on
+// the draft so the BE has a letterId to attach them to.
 //
-// Send / schedule:
-//   • scheduledAt = null  → PUT /:id with current draft state, then
-//                            PUT /:id/send → status DELIVERED.
-//   • scheduledAt = set   → PUT /:id with scheduledAt + body → SCHEDULED.
-//   Both paths invalidate lettersStore so the Inbox list refetches.
+// Send: PUT /:id with current draft state, then PUT /:id/send → status
+// DELIVERED. Invalidates lettersStore so the Inbox refetches.
+//
+// D40 (Build 76 hot-fix): scheduling is gone. The "Hẹn gửi" attachment chip,
+// ScheduleSheet component, scheduledAt state and SCHEDULED status flip have
+// all been removed. The Send pill is always 'Gửi'. BE still supports
+// SCHEDULED letters but no UI flow creates them anymore.
 //
 // Photos: ImagePicker → uploadQueue.enqueue per file (Q7 Sprint 65 mirror
 // MomentCreate pattern). Audio: expo-audio recorder writes a local URI →
 // uploadQueue.enqueue → POST /:id/audio. Single audio entity per letter
 // (BE LoveLetterService enforces).
 //
-// Discard: dirty = title || content || photos || audio || scheduledAt.
-// Empty back press → DELETE draft + back. Dirty back press → DiscardSheet
-// (Lưu nháp keeps DRAFT, Bỏ → DELETE).
+// Discard: dirty = title || content || photos || audio || mood. Empty back
+// → DELETE draft + back. Dirty back → DiscardSheet (Lưu nháp keeps DRAFT,
+// Bỏ → DELETE).
 
 const MAX_PHOTOS = 5;
 const SAVE_DEBOUNCE_MS = 500;
@@ -55,11 +57,8 @@ const PLACEHOLDER = ' ';
 
 type ErrorReason = 'network' | 'unknown';
 
-export type ScheduleMode = 'now' | 'scheduled';
-
 export type SubmitResult =
   | { ok: true; mode: 'sent' }
-  | { ok: true; mode: 'scheduled'; date: Date }
   | { ok: false; reason: 'empty' | 'network' | 'unknown' };
 
 type State = {
@@ -67,7 +66,6 @@ type State = {
   mood: string | null;
   title: string; // user-visible value (leading-trailing whitespace allowed)
   content: string;
-  scheduledAt: Date | null;
   photos: LetterPhoto[];
   audio: LetterAudio | null;
   partnerName: string | null;
@@ -82,7 +80,6 @@ const INITIAL: State = {
   mood: null,
   title: '',
   content: '',
-  scheduledAt: null,
   photos: [],
   audio: null,
   partnerName: null,
@@ -117,7 +114,6 @@ function rowToState(row: LetterRow, currentUserId: string | null): Partial<State
     mood: row.mood,
     title: visibleFromBe(row.title),
     content: visibleFromBe(row.content),
-    scheduledAt: row.scheduledAt ? new Date(row.scheduledAt) : null,
     photos: row.photos,
     audio: row.audio[0] ?? null,
     partnerName: partner.name,
@@ -277,24 +273,6 @@ export function useLetterComposeViewModel(params: ComposeParams) {
     [queueSave],
   );
 
-  const setScheduledAt = useCallback(async (next: Date | null) => {
-    const id = draftIdRef.current;
-    setState((prev) => ({ ...prev, scheduledAt: next }));
-    if (!id) return;
-    try {
-      const row = await updateLetter(id, {
-        scheduledAt: next ? next.toISOString() : null,
-      });
-      setState((prev) => ({
-        ...prev,
-        scheduledAt: row.scheduledAt ? new Date(row.scheduledAt) : null,
-      }));
-    } catch {
-      // Revert UI on failure to keep server + client aligned.
-      setState((prev) => ({ ...prev, scheduledAt: null }));
-    }
-  }, []);
-
   const pickPhotos = useCallback(async () => {
     const id = draftIdRef.current;
     if (!id) return;
@@ -412,7 +390,6 @@ export function useLetterComposeViewModel(params: ComposeParams) {
       state.content.trim().length > 0 ||
       state.photos.length > 0 ||
       state.audio !== null ||
-      state.scheduledAt !== null ||
       state.mood !== null
     );
   }, [state]);
@@ -433,25 +410,17 @@ export function useLetterComposeViewModel(params: ComposeParams) {
     }
     setState((prev) => ({ ...prev, sending: true }));
     try {
-      // Flush any pending debounce so what we send is what the user sees.
+      // Flush any pending debounce so what we send is what the user sees,
+      // then persist body + mood once before flipping to DELIVERED.
       await flushPending();
-      // Persist final body + mood + scheduledAt in a single PUT — covers the
-      // schedule path entirely; the send path adds one more BE call.
       await updateLetter(id, {
         title: bePayload(state.title),
         content: bePayload(state.content),
         ...(state.mood !== null && { mood: state.mood }),
-        scheduledAt: state.scheduledAt
-          ? state.scheduledAt.toISOString()
-          : null,
+        // D40: scheduledAt: null guarantees the BE doesn't keep a stale
+        // SCHEDULED status from a legacy draft we may have loaded.
+        scheduledAt: null,
       });
-
-      if (state.scheduledAt) {
-        invalidate();
-        setState((prev) => ({ ...prev, sending: false }));
-        return { ok: true, mode: 'scheduled', date: state.scheduledAt };
-      }
-
       await sendLetter(id);
       invalidate();
       setState((prev) => ({ ...prev, sending: false }));
@@ -460,14 +429,7 @@ export function useLetterComposeViewModel(params: ComposeParams) {
       setState((prev) => ({ ...prev, sending: false }));
       return { ok: false, reason: reasonFor(err) };
     }
-  }, [
-    state.title,
-    state.content,
-    state.mood,
-    state.scheduledAt,
-    flushPending,
-    invalidate,
-  ]);
+  }, [state.title, state.content, state.mood, flushPending, invalidate]);
 
   const saveDraftAndExit = useCallback(async () => {
     // Flush pending then leave the DRAFT alive on the server.
@@ -500,7 +462,6 @@ export function useLetterComposeViewModel(params: ComposeParams) {
     mood: state.mood,
     title: state.title,
     content: state.content,
-    scheduledAt: state.scheduledAt,
     photos: state.photos,
     audio: state.audio,
     photosRemaining: MAX_PHOTOS - state.photos.length,
@@ -517,7 +478,6 @@ export function useLetterComposeViewModel(params: ComposeParams) {
     setTitle,
     setContent,
     setMood,
-    setScheduledAt,
     pickPhotos,
     removePhoto,
     setAudioFromRecording,

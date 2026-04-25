@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ChevronRight, Clock, Send, X } from 'lucide-react-native';
+import { ChevronRight, Send, X } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,7 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient, SafeScreen } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { formatScheduleDate } from '../Letters/relativeAgo';
 import {
   AttachmentChips,
   AudioPreview,
@@ -28,8 +27,6 @@ import {
   type DiscardSheetHandle,
   MoodPicker,
   PhotoPreviewRow,
-  ScheduleSheet,
-  type ScheduleSheetHandle,
 } from './components';
 import {
   useLetterComposeViewModel,
@@ -39,36 +36,36 @@ import {
 // T423 (Sprint 65) — Letter Compose screen. Replaces the T421 placeholder.
 // Layout follows prototype `letters.jsx` L433-549:
 //
-//   ScreenHeader (close icon + title + subtitle + Send/Schedule pill)
+//   ScreenHeader (close icon + title + subtitle + Send pill)
 //   ─────────────────────────────────────────
 //   To pill (read-only "Gửi đến {partner}")
 //   MoodPicker (8 emoji 44×44)
 //   Title input (display 20)
 //   Body textarea (body 14, min 200)
 //   "Viết tiếp…" Dancing Script hint
-//   AttachmentChips (Ảnh / Giọng nói / Hẹn gửi)
+//   AttachmentChips (Ảnh / Giọng nói)
 //   PhotoPreviewRow (only when photos)
 //   AudioPreview    (only when audio)
-//   ScheduleStatus  (only when scheduledAt set)
 //
 // Spec validation: cần ít nhất title.trim() OR content.trim() trước khi Send.
-// Send pill text/icon flips Gửi ↔ Hẹn gửi based on scheduledAt.
 //
-// Back press: empty draft → DELETE + back. Dirty draft → DiscardSheet.
+// Back press: empty draft → DELETE + back. Dirty draft → DiscardSheet
+// (Lưu nháp keeps DRAFT, Bỏ → DELETE, Tiếp tục viết cancels).
+//
+// D40 (Build 76 hot-fix): "Hẹn gửi" attachment + ScheduleSheet removed; the
+// Send pill is always 'Gửi'.
 
 type Props = {
   params: ComposeParams;
 };
 
 export function LetterComposeScreen({ params }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const c = useAppColors();
   const insets = useSafeAreaInsets();
-  const locale = i18n.language;
 
   const audioSheetRef = useRef<AudioRecordSheetHandle>(null);
-  const scheduleSheetRef = useRef<ScheduleSheetHandle>(null);
   const discardSheetRef = useRef<DiscardSheetHandle>(null);
 
   const vm = useLetterComposeViewModel(params);
@@ -76,7 +73,6 @@ export function LetterComposeScreen({ params }: Props) {
   const [toast, setToast] = useState<string | null>(null);
 
   const partnerName = vm.partnerName ?? t('letters.partnerFallback');
-  const isScheduling = vm.scheduledAt !== null;
 
   const onBackPress = useCallback(() => {
     if (vm.dirty) {
@@ -108,30 +104,9 @@ export function LetterComposeScreen({ params }: Props) {
       setTimeout(() => setToast(null), 2200);
       return;
     }
-    if (result.mode === 'scheduled') {
-      setToast(
-        t('letters.compose.toast.scheduled', {
-          date: formatScheduleDate(result.date.toISOString(), locale),
-        }),
-      );
-    } else {
-      setToast(
-        t('letters.compose.toast.sent', { partner: partnerName }),
-      );
-    }
+    setToast(t('letters.compose.toast.sent', { partner: partnerName }));
     setTimeout(() => router.back(), 1400);
-  }, [locale, partnerName, router, t, vm]);
-
-  const onConfirmSchedule = useCallback(
-    (date: Date) => {
-      void vm.setScheduledAt(date);
-    },
-    [vm],
-  );
-
-  const onClearSchedule = useCallback(() => {
-    void vm.setScheduledAt(null);
-  }, [vm]);
+  }, [partnerName, router, t, vm]);
 
   if (vm.loading) {
     return (
@@ -170,7 +145,11 @@ export function LetterComposeScreen({ params }: Props) {
         className="flex-1"
         keyboardVerticalOffset={0}
       >
-        <View className="flex-row items-center justify-between gap-3 px-4 pt-2 pb-3">
+        {/* D39 (Build 76 hot-fix): pt bumped 2 → 5 so the close button + title
+            don't kiss the top safe-area edge inside the (modal) presentation.
+            iOS modal presentation collapses the device's top inset, so the
+            extra padding is what gives breathing room. */}
+        <View className="flex-row items-center justify-between gap-3 px-4 pt-5 pb-3">
           <Pressable
             onPress={onBackPress}
             accessibilityRole="button"
@@ -204,15 +183,9 @@ export function LetterComposeScreen({ params }: Props) {
               opacity: vm.canSubmit ? 1 : 0.7,
             }}
           >
-            {isScheduling ? (
-              <Clock size={14} strokeWidth={2.4} color="#ffffff" />
-            ) : (
-              <Send size={14} strokeWidth={2.4} color="#ffffff" />
-            )}
+            <Send size={14} strokeWidth={2.4} color="#ffffff" />
             <Text className="font-bodyBold text-white text-[13px]">
-              {isScheduling
-                ? t('letters.compose.scheduleCta')
-                : t('letters.compose.sendCta')}
+              {t('letters.compose.sendCta')}
             </Text>
             <ChevronRight size={12} strokeWidth={2.6} color="#ffffff" />
           </Pressable>
@@ -282,14 +255,11 @@ export function LetterComposeScreen({ params }: Props) {
           <AttachmentChips
             photosLabel={t('letters.compose.attach.photos')}
             audioLabel={t('letters.compose.attach.audio')}
-            scheduleLabel={t('letters.compose.attach.schedule')}
             hasPhotos={vm.photos.length > 0}
             hasAudio={vm.audio !== null}
-            hasSchedule={vm.scheduledAt !== null}
             photosDisabled={vm.photosRemaining <= 0}
             onPhotos={() => void vm.pickPhotos()}
             onAudio={() => audioSheetRef.current?.open()}
-            onSchedule={() => scheduleSheetRef.current?.open(vm.scheduledAt)}
           />
 
           <PhotoPreviewRow
@@ -305,28 +275,6 @@ export function LetterComposeScreen({ params }: Props) {
               audio={vm.audio}
               onRemove={() => void vm.removeAudio()}
             />
-          ) : null}
-
-          {vm.scheduledAt ? (
-            <View
-              className="mt-3 flex-row items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-accent-soft"
-              style={{ borderWidth: 1, borderStyle: 'dashed', borderColor: c.accent }}
-            >
-              <Clock size={14} strokeWidth={2.2} color={c.accent} />
-              <Text className="flex-1 font-bodySemibold text-ink text-[12px]">
-                {t('letters.compose.scheduledFor', {
-                  date: formatScheduleDate(
-                    vm.scheduledAt.toISOString(),
-                    locale,
-                  ),
-                })}
-              </Text>
-              <Pressable onPress={onClearSchedule} accessibilityRole="button">
-                <Text className="font-bodyBold text-primary text-[11px] uppercase tracking-wider">
-                  {t('letters.compose.scheduleClear')}
-                </Text>
-              </Pressable>
-            </View>
           ) : null}
         </ScrollView>
 
@@ -361,16 +309,6 @@ export function LetterComposeScreen({ params }: Props) {
         onComplete={(uri, durationMs) =>
           void vm.setAudioFromRecording(uri, durationMs)
         }
-      />
-      <ScheduleSheet
-        ref={scheduleSheetRef}
-        title={t('letters.compose.scheduleSheet.title')}
-        hint={t('letters.compose.scheduleSheet.hint')}
-        confirmLabel={t('letters.compose.scheduleSheet.confirm')}
-        clearLabel={t('letters.compose.scheduleSheet.clear')}
-        cancelLabel={t('letters.compose.scheduleSheet.cancel')}
-        onConfirm={onConfirmSchedule}
-        onClear={onClearSchedule}
       />
       <DiscardSheet
         ref={discardSheetRef}

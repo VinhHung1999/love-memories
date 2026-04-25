@@ -299,12 +299,7 @@ const vi = {
     tabs: {
       inbox: 'Hộp thư',
       sent: 'Đã gửi',
-      scheduled: 'Hẹn giờ',
       drafts: 'Nháp',
-    },
-    scheduledCard: {
-      title: '{{count}} thư đang chờ gửi',
-      subtitle: 'Sẽ gửi vào {{date}}',
     },
     empty: {
       cta: 'Viết thư mới',
@@ -315,10 +310,6 @@ const vi = {
       sent: {
         title: 'Mình chưa gửi thư nào',
         subtitle: 'Có những điều khó nói thành lời — viết một lá thư cho {{partner}} nhé.',
-      },
-      scheduled: {
-        title: 'Không có thư nào đang lên lịch',
-        subtitle: 'Viết một lá rồi hẹn ngày — kỷ niệm, sinh nhật, hay một sáng đẹp trời.',
       },
       drafts: {
         title: 'Không có nháp nào',
@@ -340,14 +331,10 @@ const vi = {
       bodyPlaceholder: 'Anh ơi,\n\nSáng nay em dậy sớm…',
       continueHint: 'Viết tiếp…',
       sendCta: 'Gửi',
-      scheduleCta: 'Hẹn gửi',
       photoCounter: 'Ảnh',
-      scheduledFor: 'Sẽ gửi vào {{date}}',
-      scheduleClear: 'Bỏ',
       attach: {
         photos: 'Ảnh',
         audio: 'Giọng nói',
-        schedule: 'Hẹn gửi',
       },
       audioSheet: {
         title: 'Ghi âm cho lá thư',
@@ -355,13 +342,6 @@ const vi = {
         start: 'Bấm để ghi âm',
         stop: 'Bấm để dừng',
         permDenied: 'Memoura cần quyền micro để ghi âm.',
-      },
-      scheduleSheet: {
-        title: 'Hẹn gửi',
-        hint: 'Chọn ngày giờ gửi. Sớm nhất là 5 phút từ bây giờ.',
-        confirm: 'Đặt giờ',
-        clear: 'Bỏ giờ',
-        cancel: 'Huỷ',
       },
       discardSheet: {
         title: 'Lưu hay bỏ thư này?',
@@ -372,7 +352,6 @@ const vi = {
       },
       toast: {
         sent: 'Đã gửi cho {{partner}} ♥',
-        scheduled: 'Hẹn gửi {{date}}',
         error: {
           empty: 'Mình viết một chút trước nhé.',
           network: 'Không gửi được. Mạng có vấn đề?',
@@ -388,12 +367,10 @@ const vi = {
     read: {
       fromAuthor: 'Từ {{name}} · viết lúc {{time}}',
       signaturePrefix: '—',
-      heartComingSoon: 'Tính năng thả tim cho thư đang được Memoura chăm chút. Mình chờ chút nhé.',
       reply: {
         eyebrow: 'Viết lại cho mình',
         body: 'Một lá thư xứng đáng một lá thư…',
         write: 'Viết thư',
-        heart: 'Thả tim',
       },
       error: {
         message: 'Không mở được lá thư. Mình thử lại nhé?',

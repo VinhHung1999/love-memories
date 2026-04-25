@@ -10,10 +10,20 @@ import {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FullWindowOverlay } from 'react-native-screens';
 
 import { useAppColors } from '@/theme/ThemeProvider';
+
+// D46 (Build 76 hot-fix): wrap the sheet in a FullWindowOverlay on iOS so
+// touches reach the buttons. LetterCompose sits inside the (modal) Stack
+// group → @gorhom/bottom-sheet's portal mounts above expo-router's
+// transparentModal native screen, which intercepts touches before they reach
+// the sheet content. CameraActionSheet uses the same workaround.
+function iOSContainer(props: { children?: React.ReactNode }) {
+  return <FullWindowOverlay>{props.children}</FullWindowOverlay>;
+}
 
 // T423 (Sprint 65) — confirm sheet for back-press while compose is dirty.
 // "Lưu nháp" keeps the DRAFT alive on the BE; "Bỏ" deletes it. Cancel
@@ -70,6 +80,7 @@ export const DiscardSheet = forwardRef<DiscardSheetHandle, Props>(
         ref={bsRef}
         enableDynamicSizing
         backdropComponent={renderBackdrop}
+        containerComponent={Platform.OS === 'ios' ? iOSContainer : undefined}
         backgroundStyle={{ backgroundColor: c.bgElev }}
         handleIndicatorStyle={{ backgroundColor: c.lineOnSurface }}
       >

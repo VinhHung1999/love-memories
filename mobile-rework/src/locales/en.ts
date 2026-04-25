@@ -275,12 +275,7 @@ const en: Resources = {
     tabs: {
       inbox: 'Inbox',
       sent: 'Sent',
-      scheduled: 'Scheduled',
       drafts: 'Drafts',
-    },
-    scheduledCard: {
-      title: '{{count}} letter(s) waiting to send',
-      subtitle: 'Delivers {{date}}',
     },
     empty: {
       cta: 'Write a letter',
@@ -291,10 +286,6 @@ const en: Resources = {
       sent: {
         title: 'You haven’t sent a letter',
         subtitle: 'Some things are easier in writing — try one for {{partner}}.',
-      },
-      scheduled: {
-        title: 'Nothing scheduled',
-        subtitle: 'Write one and pick a date — an anniversary, a birthday, a quiet morning.',
       },
       drafts: {
         title: 'No drafts',
@@ -315,14 +306,10 @@ const en: Resources = {
       bodyPlaceholder: 'Darling,\n\nI woke up early today…',
       continueHint: 'Continue…',
       sendCta: 'Send',
-      scheduleCta: 'Schedule',
       photoCounter: 'Photos',
-      scheduledFor: 'Sends on {{date}}',
-      scheduleClear: 'Clear',
       attach: {
         photos: 'Photos',
         audio: 'Voice',
-        schedule: 'Schedule',
       },
       audioSheet: {
         title: 'Record voice memo',
@@ -330,13 +317,6 @@ const en: Resources = {
         start: 'Tap to record',
         stop: 'Tap to stop',
         permDenied: 'Memoura needs mic access to record.',
-      },
-      scheduleSheet: {
-        title: 'Schedule send',
-        hint: 'Pick when to deliver — at least 5 minutes from now.',
-        confirm: 'Set',
-        clear: 'Clear',
-        cancel: 'Cancel',
       },
       discardSheet: {
         title: 'Save or discard?',
@@ -347,7 +327,6 @@ const en: Resources = {
       },
       toast: {
         sent: 'Sent to {{partner}} ♥',
-        scheduled: 'Scheduled for {{date}}',
         error: {
           empty: 'Write something first.',
           network: 'Send failed. Network issue?',
@@ -363,12 +342,10 @@ const en: Resources = {
     read: {
       fromAuthor: 'From {{name}} · written at {{time}}',
       signaturePrefix: '—',
-      heartComingSoon: 'Reactions for letters are still in the works. Hang tight.',
       reply: {
         eyebrow: 'Write back',
         body: 'A letter deserves a letter…',
         write: 'Write a letter',
-        heart: 'React',
       },
       error: {
         message: 'Couldn’t open this letter. Try again?',

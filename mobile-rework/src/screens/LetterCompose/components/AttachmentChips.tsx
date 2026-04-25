@@ -1,40 +1,36 @@
-import { Camera, Clock, Mic } from 'lucide-react-native';
+import { Camera, Mic } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
-// T423 (Sprint 65) — 3-button attachment row at the bottom of the compose
+// T423 (Sprint 65) — 2-button attachment row at the bottom of the compose
 // form. Prototype `letters.jsx` L529-546. Each button:
-//   • equal flex (3 columns)
+//   • equal flex
 //   • 12/10 padding, rounded-2xl, surface bg + line border
 //   • 20px icon, 11px label
 //   • surface-alt bg if a chip's underlying state is "active" (photos
-//     attached / audio attached / scheduledAt set) — gives a subtle hint
-//     without spawning a separate badge.
+//     attached / audio attached) — gives a subtle hint without spawning a
+//     separate badge.
+//
+// D40 (Build 76 hot-fix): the third "Hẹn gửi" chip + ScheduleSheet are gone.
 
 type Props = {
   photosLabel: string;
   audioLabel: string;
-  scheduleLabel: string;
   hasPhotos: boolean;
   hasAudio: boolean;
-  hasSchedule: boolean;
   onPhotos: () => void;
   onAudio: () => void;
-  onSchedule: () => void;
   photosDisabled?: boolean;
 };
 
 export function AttachmentChips({
   photosLabel,
   audioLabel,
-  scheduleLabel,
   hasPhotos,
   hasAudio,
-  hasSchedule,
   onPhotos,
   onAudio,
-  onSchedule,
   photosDisabled,
 }: Props) {
   return (
@@ -52,19 +48,13 @@ export function AttachmentChips({
         active={hasAudio}
         onPress={onAudio}
       />
-      <Chip
-        label={scheduleLabel}
-        icon="schedule"
-        active={hasSchedule}
-        onPress={onSchedule}
-      />
     </View>
   );
 }
 
 type ChipProps = {
   label: string;
-  icon: 'photos' | 'audio' | 'schedule';
+  icon: 'photos' | 'audio';
   active: boolean;
   onPress: () => void;
   disabled?: boolean;
@@ -72,7 +62,7 @@ type ChipProps = {
 
 function Chip({ label, icon, active, onPress, disabled }: ChipProps) {
   const c = useAppColors();
-  const Icon = icon === 'photos' ? Camera : icon === 'audio' ? Mic : Clock;
+  const Icon = icon === 'photos' ? Camera : Mic;
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}

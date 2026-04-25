@@ -51,10 +51,16 @@ export function PaperCard({ letter, signaturePrefix }: Props) {
       </View>
 
       {letter.mood ? (
+        // D43 (Build 76 hot-fix): stamp moved DOWN into the paper (top-3
+        // instead of -top-3.5 outside). Sits inside the 28px notebook line
+        // gap, doesn't get clipped by the rounded corner radius, no longer
+        // overlaps the sheet seam. Bumped to bg-bg-elev (slightly more
+        // contrast against the cream paper than pure PAPER_BG so the dashed
+        // border reads cleanly).
         <View
-          className="absolute -top-3.5 right-5 w-12 h-12 rounded-[10px] items-center justify-center shadow-card"
+          className="absolute top-3 right-4 w-12 h-12 rounded-[10px] items-center justify-center shadow-card"
           style={{
-            backgroundColor: PAPER_BG,
+            backgroundColor: '#FFFDF6',
             transform: [{ rotate: '6deg' }],
             borderWidth: 1,
             borderStyle: 'dashed',

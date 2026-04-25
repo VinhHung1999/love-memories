@@ -29,7 +29,10 @@ import { useLettersStore } from '@/stores/lettersStore';
 // "the other person" is. Solo (unpaired) is OK — Letters tab never displayed
 // without a couple in this UX, but fall back gracefully if it ever is.
 
-export type LettersTab = 'inbox' | 'sent' | 'scheduled' | 'drafts';
+// D45 (Build 76 hot-fix): the 'scheduled' tab was dropped — D40 removed the
+// schedule attachment so no UI flow creates SCHEDULED letters anymore. Any
+// legacy SCHEDULED rows already on the BE remain accessible via /sent only.
+export type LettersTab = 'inbox' | 'sent' | 'drafts';
 
 type ErrorReason = 'network' | 'unknown';
 
@@ -63,11 +66,6 @@ function deliveredAtKey(letter: LetterRow): number {
   // For DELIVERED + READ rows BE always populates deliveredAt; fall back to
   // createdAt only as a defensive default.
   const iso = letter.deliveredAt ?? letter.createdAt;
-  return new Date(iso).getTime();
-}
-
-function scheduledAtKey(letter: LetterRow): number {
-  const iso = letter.scheduledAt ?? letter.createdAt;
   return new Date(iso).getTime();
 }
 
@@ -177,14 +175,10 @@ export function useLettersViewModel() {
     const sentTotal = state.sent.filter(
       (l) => l.status === 'DELIVERED' || l.status === 'READ',
     ).length;
-    const scheduledTotal = state.sent.filter(
-      (l) => l.status === 'SCHEDULED',
-    ).length;
     const draftTotal = state.sent.filter((l) => l.status === 'DRAFT').length;
     return {
       inbox: inboxUnread,
       sent: sentTotal,
-      scheduled: scheduledTotal,
       drafts: draftTotal,
     } as const;
   }, [state.received, state.sent]);
@@ -205,14 +199,6 @@ export function useLettersViewModel() {
     [state.sent],
   );
 
-  const scheduledLetters = useMemo(
-    () =>
-      state.sent
-        .filter((l) => l.status === 'SCHEDULED')
-        .sort((a, b) => scheduledAtKey(a) - scheduledAtKey(b)),
-    [state.sent],
-  );
-
   const draftLetters = useMemo(
     () =>
       state.sent
@@ -227,12 +213,10 @@ export function useLettersViewModel() {
         return inboxLetters;
       case 'sent':
         return sentLetters;
-      case 'scheduled':
-        return scheduledLetters;
       case 'drafts':
         return draftLetters;
     }
-  }, [activeTab, inboxLetters, sentLetters, scheduledLetters, draftLetters]);
+  }, [activeTab, inboxLetters, sentLetters, draftLetters]);
 
   const onRefresh = useCallback(() => {
     void fetchAll('refresh');
@@ -261,7 +245,6 @@ export function useLettersViewModel() {
     // tab letters
     inboxLetters,
     sentLetters,
-    scheduledLetters,
     draftLetters,
     visibleLetters,
 

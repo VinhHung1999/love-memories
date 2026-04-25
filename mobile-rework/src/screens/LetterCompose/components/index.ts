@@ -4,4 +4,3 @@ export { AudioRecordSheet, type AudioRecordSheetHandle } from './AudioRecordShee
 export { DiscardSheet, type DiscardSheetHandle } from './DiscardSheet';
 export { MoodPicker } from './MoodPicker';
 export { PhotoPreviewRow } from './PhotoPreviewRow';
-export { ScheduleSheet, type ScheduleSheetHandle } from './ScheduleSheet';

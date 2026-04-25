@@ -20,10 +20,26 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FullWindowOverlay } from 'react-native-screens';
 
 import { useAppColors } from '@/theme/ThemeProvider';
+
+// D46 (Build 76 hot-fix): same FullWindowOverlay workaround as DiscardSheet —
+// LetterCompose lives inside the (modal) presentation, and the sheet portal
+// renders above the native transparentModal screen container which would
+// otherwise intercept all mic-button touches on iOS.
+function iOSContainer(props: { children?: React.ReactNode }) {
+  return <FullWindowOverlay>{props.children}</FullWindowOverlay>;
+}
 
 // T423 (Sprint 65) — record sheet for letter voice memos. expo-audio's
 // useAudioRecorder hook auto-disposes on unmount; the dismiss flow stops the
@@ -151,17 +167,30 @@ export const AudioRecordSheet = forwardRef<AudioRecordSheetHandle, Props>(
     }, [recState.durationMillis, recState.isRecording, stopAndEmit]);
 
     const onStart = async () => {
-      const perm = await requestRecordingPermissionsAsync();
-      if (!perm.granted) {
+      try {
+        const perm = await requestRecordingPermissionsAsync();
+        if (!perm.granted) {
+          setPermDenied(true);
+          return;
+        }
+        await setAudioModeAsync({
+          allowsRecording: true,
+          playsInSilentMode: true,
+        });
+        await recorder.prepareToRecordAsync();
+        recorder.record();
+      } catch (err) {
+        // D41 (Build 76 hot-fix): surface any audio-session / prepare /
+        // record failure as a permission-denied banner so the user has a
+        // visible signal instead of silent no-op. The original silent
+        // failure on Boss's device traced back to D46 (touches blocked by
+        // the iOS transparentModal screen container) — this catch is
+        // belt-and-suspenders for any future expo-audio session issue.
+        if (__DEV__) {
+          console.warn('[AudioRecordSheet] onStart failed', err);
+        }
         setPermDenied(true);
-        return;
       }
-      await setAudioModeAsync({
-        allowsRecording: true,
-        playsInSilentMode: true,
-      });
-      await recorder.prepareToRecordAsync();
-      recorder.record();
     };
 
     // Make sure we don't leave a recording running if the user swipes the
@@ -203,6 +232,7 @@ export const AudioRecordSheet = forwardRef<AudioRecordSheetHandle, Props>(
         ref={bsRef}
         enableDynamicSizing
         backdropComponent={renderBackdrop}
+        containerComponent={Platform.OS === 'ios' ? iOSContainer : undefined}
         onDismiss={onSheetDismiss}
         backgroundStyle={{ backgroundColor: c.bgElev }}
         handleIndicatorStyle={{ backgroundColor: c.lineOnSurface }}

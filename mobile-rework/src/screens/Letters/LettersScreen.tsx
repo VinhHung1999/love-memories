@@ -18,7 +18,6 @@ import {
   EmptyState,
   LetterHeroCard,
   LetterRow,
-  ScheduledCard,
 } from './components';
 import { formatScheduleDate, relativeAgo } from './relativeAgo';
 import { useLettersViewModel, type LettersTab } from './useLettersViewModel';
@@ -26,16 +25,20 @@ import { useLettersViewModel, type LettersTab } from './useLettersViewModel';
 // T421 (Sprint 65) — Letters Inbox screen. Replaces the Sprint 59 stub at
 // app/(tabs)/letters.tsx (which only rendered a centred title). Layout
 // mirrors prototype `letters.jsx` L52-137: eyebrow + title + Write CTA in
-// the header row, 4 chip tabs with count badges, then a per-tab feed
-// (hero envelope or scheduled banner first, compact rows below).
+// the header row, 3 chip tabs with count badges, then a per-tab feed.
 //
 // Tap behaviour (Lu approved Q4 + spec acceptance):
-//   • Inbox / Sent / Scheduled letter → router.push('/letter-read?id=…')
-//   • Draft letter                    → router.push('/letter-compose?id=…')
-//     (edit mode; T423 wires the prefill)
-//   • Write trailing CTA              → router.push('/letter-compose')
+//   • Inbox / Sent letter   → router.push('/letter-read?id=…')
+//   • Draft letter          → router.push('/letter-compose?id=…')
+//   • Write trailing CTA    → router.push('/letter-compose')
+//
+// D45 (Build 76 hot-fix): the 'scheduled' tab + ScheduledCard banner were
+// dropped after D40 removed the schedule attachment. Tab order trimmed to
+// inbox / sent / drafts.
 
-const TAB_ORDER: LettersTab[] = ['inbox', 'sent', 'scheduled', 'drafts'];
+// D45 (Build 76 hot-fix): 'scheduled' tab removed (D40 dropped the
+// schedule attachment so no UI flow creates SCHEDULED letters anymore).
+const TAB_ORDER: LettersTab[] = ['inbox', 'sent', 'drafts'];
 
 export function LettersScreen() {
   const { t, i18n } = useTranslation();
@@ -160,23 +163,6 @@ export function LettersScreen() {
           ctaLabel={t('letters.tapToOpen')}
           greetingPrefix={t('letters.heroGreeting')}
           draftChipLabel={t('letters.draftChip')}
-          scheduledTitle={
-            vm.scheduledLetters.length > 0
-              ? t('letters.scheduledCard.title', {
-                  count: vm.scheduledLetters.length,
-                })
-              : ''
-          }
-          scheduledSubtitle={
-            vm.scheduledLetters[0]?.scheduledAt
-              ? t('letters.scheduledCard.subtitle', {
-                  date: formatScheduleDate(
-                    vm.scheduledLetters[0].scheduledAt,
-                    locale,
-                  ),
-                })
-              : ''
-          }
           emptyTitle={t(`letters.empty.${activeTab}.title`, {
             partner: partnerName,
           })}
@@ -314,8 +300,6 @@ type FeedProps = {
   ctaLabel: string;
   greetingPrefix: string;
   draftChipLabel: string;
-  scheduledTitle: string;
-  scheduledSubtitle: string;
   emptyTitle: string;
   emptySubtitle: string;
   emptyCta: { label: string; onPress: () => void } | null;
@@ -335,8 +319,6 @@ function Feed({
   ctaLabel,
   greetingPrefix,
   draftChipLabel,
-  scheduledTitle,
-  scheduledSubtitle,
   emptyTitle,
   emptySubtitle,
   emptyCta,
@@ -372,12 +354,7 @@ function Feed({
     );
   }
 
-  // Scheduled tab — summary banner first, then the same hero+compact pattern
-  // as Inbox / Sent below (spec: scheduled gets the ScheduledCard ON TOP, the
-  // hero envelope still applies to the first scheduled letter).
-  const showScheduledBanner = tab === 'scheduled' && scheduledTitle.length > 0;
-
-  // Inbox / Sent / Scheduled — first row is the hero envelope card; rest are compact.
+  // Inbox / Sent — first row is the hero envelope card; rest are compact.
   const [hero, ...rest] = letters;
   if (!hero) return null;
 
@@ -399,6 +376,10 @@ function Feed({
     locale,
   );
 
+  // Defensive trailing-label resolver: D45 dropped the Scheduled tab, but a
+  // legacy SCHEDULED row could still surface via /sent (BE never deletes
+  // them). Fall back to the schedule date when present so the row reads as
+  // "delivers in the future" instead of "x ngày trước".
   const trailingFor = (letter: typeof hero) => {
     if (letter.status === 'SCHEDULED' && letter.scheduledAt) {
       return formatScheduleDate(letter.scheduledAt, locale);
@@ -408,9 +389,6 @@ function Feed({
 
   return (
     <View>
-      {showScheduledBanner ? (
-        <ScheduledCard title={scheduledTitle} subtitle={scheduledSubtitle} />
-      ) : null}
       <LetterHeroCard
         letter={hero}
         recipientDisplayName={heroRecipientName}

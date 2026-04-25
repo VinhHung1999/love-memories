@@ -124,6 +124,10 @@ function RootStack() {
           ignored because the parent group is already presentation:'modal'.
           Promoted to root stack, same pattern as moment-detail. */}
       <Stack.Screen name="photobooth" options={{ presentation: 'fullScreenModal' }} />
+      {/* D42 (Build 76 hot-fix) — letter-read promoted out of (modal) so it
+          pushes as a full-screen card (Boss feedback: read mode shouldn't be
+          a modal sheet). Same pattern as moment-detail. */}
+      <Stack.Screen name="letter-read" />
     </Stack>
   );
 }
@@ -196,6 +200,7 @@ function useAuthGate() {
     if (inModalGroup) return;
     if (seg[0] === 'moment-detail') return;
     if (seg[0] === 'photobooth') return;
+    if (seg[0] === 'letter-read') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

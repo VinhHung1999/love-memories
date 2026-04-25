@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -14,11 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  ComingSoonSheet,
-  type ComingSoonSheetHandle,
-  LinearGradient,
-} from '@/components';
+import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import {
@@ -61,7 +57,6 @@ export function LetterReadScreen({ id }: Props) {
   const c = useAppColors();
   const insets = useSafeAreaInsets();
   const locale = i18n.language;
-  const heartSheet = useRef<ComingSoonSheetHandle>(null);
   // Spec L89: light status bar over the gradient hero, auto once the user
   // scrolls past the bg fade (~45% of the gradient height ≈ 220-260px). Cheap
   // boolean toggle — no Animated.Value needed since the only consumer is the
@@ -96,10 +91,6 @@ export function LetterReadScreen({ id }: Props) {
       params: { replyTo: vm.letter.id },
     });
   }, [router, vm.letter]);
-
-  const onReact = useCallback(() => {
-    heartSheet.current?.open(t('letters.read.heartComingSoon'));
-  }, [t]);
 
   if (vm.loading) {
     return (
@@ -193,13 +184,10 @@ export function LetterReadScreen({ id }: Props) {
           eyebrow={t('letters.read.reply.eyebrow')}
           body={t('letters.read.reply.body')}
           writeLabel={t('letters.read.reply.write')}
-          reactLabel={t('letters.read.reply.heart')}
           onWrite={onReply}
-          onReact={onReact}
         />
         <View style={{ height: insets.bottom + 12 }} />
       </ScrollView>
-      <ComingSoonSheet ref={heartSheet} />
       <StatusBar style={scrolledPastHero ? 'auto' : 'light'} />
     </View>
   );
