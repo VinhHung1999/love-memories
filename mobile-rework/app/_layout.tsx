@@ -8,6 +8,7 @@ import { router as imperativeRouter, Stack, useRouter, useSegments } from 'expo-
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -139,20 +140,23 @@ export default function RootLayout() {
   // sensitive to closure / re-render timing on the `useRouter` hook
   // — the imperative router is a singleton bound to the app navigator
   // so it's safe to call from any context.
+  // D78 (Sprint 65 Build 97 hot-fix): on-device Alert.alert popups for
+  // diagnostics. Boss can't capture Console.app (no Mac cable), and
+  // __DEV__ console.debug calls are dropped in release builds anyway —
+  // popups surface the data Boss can read on-screen and screenshot.
+  // REMOVE all D78 alerts once the deep-link path is fixed.
   const dispatchNotificationLink = useCallback(
     (link: string | null | undefined, source: string) => {
-      if (__DEV__) {
-        console.debug('[notif] dispatch', { source, link });
-      }
+      Alert.alert(
+        'D78 dispatch',
+        JSON.stringify({ source, link }, null, 2).slice(0, 500),
+      );
       if (!link) return;
       const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
       const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
       let target: string | null = null;
       if (letterMatch) {
         target = `letter:${letterMatch[1]}`;
-        // setTimeout(50) wraps router.push in case the navigator hasn't
-        // finished resolving the warm-foreground transition. Cheap
-        // belt-and-suspenders for any nav-tree timing race.
         setTimeout(() => {
           imperativeRouter.push({
             pathname: '/letter-read',
@@ -176,32 +180,31 @@ export default function RootLayout() {
       } else {
         target = 'unmatched';
       }
-      if (__DEV__) {
-        console.debug('[notif] dispatch matched', { target });
-      }
+      Alert.alert(
+        'D78 matched',
+        JSON.stringify({ target, link }, null, 2).slice(0, 500),
+      );
     },
     [],
   );
 
   useEffect(() => {
-    if (__DEV__) {
-      console.debug('[notif] listeners registering');
-    }
     const received = Notifications.addNotificationReceivedListener((n) => {
-      if (__DEV__) {
-        console.debug('[notif] received', {
-          data: n.request.content.data,
-        });
-      }
+      Alert.alert(
+        'D78 received',
+        JSON.stringify(n.request.content.data, null, 2).slice(0, 500),
+      );
       useNotificationsStore.getState().invalidate();
     });
     const response = Notifications.addNotificationResponseReceivedListener(
       (resp) => {
-        if (__DEV__) {
-          console.debug('[notif] response (warm tap)', {
-            content: JSON.stringify(resp.notification.request.content),
-          });
-        }
+        Alert.alert(
+          'D78 response',
+          JSON.stringify(resp.notification.request.content, null, 2).slice(
+            0,
+            500,
+          ),
+        );
         const data = resp.notification.request.content.data as
           | { link?: string; type?: string }
           | undefined;
@@ -214,11 +217,13 @@ export default function RootLayout() {
     let cancelled = false;
     void Notifications.getLastNotificationResponseAsync().then((resp) => {
       if (cancelled || !resp) return;
-      if (__DEV__) {
-        console.debug('[notif] cold-start drain', {
-          content: JSON.stringify(resp.notification.request.content),
-        });
-      }
+      Alert.alert(
+        'D78 cold-start',
+        JSON.stringify(resp.notification.request.content, null, 2).slice(
+          0,
+          500,
+        ),
+      );
       const data = resp.notification.request.content.data as
         | { link?: string; type?: string }
         | undefined;
