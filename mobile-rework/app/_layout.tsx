@@ -140,18 +140,27 @@ export default function RootLayout() {
   // sensitive to closure / re-render timing on the `useRouter` hook
   // — the imperative router is a singleton bound to the app navigator
   // so it's safe to call from any context.
-  // D78 (Sprint 65 Build 97 hot-fix): on-device Alert.alert popups for
-  // diagnostics. Boss can't capture Console.app (no Mac cable), and
-  // __DEV__ console.debug calls are dropped in release builds anyway —
-  // popups surface the data Boss can read on-screen and screenshot.
-  // REMOVE all D78 alerts once the deep-link path is fixed.
+  // D80 (Sprint 65 Build 99 hot-fix): consolidated diagnostic. Boss's
+  // Build 99 screenshots showed `content.data = null` AND
+  // `content.userInfo` missing entirely on JS — neither D78 nor D79
+  // surfaced the real payload location. One Alert per listener now
+  // dumps the FULL notification.request (content + trigger +
+  // identifier) so Boss's next screenshot pins down where iOS is
+  // actually stashing our `link` / `type` keys.
+  //
+  // Dispatch fallback chain extended to read from `trigger.payload`
+  // — Expo SDK 54's PushNotificationTrigger exposes the raw APNs
+  // payload there. Once Boss verifies a successful match we revert
+  // every D78/D80 alert in one sweep.
   const dispatchNotificationLink = useCallback(
     (link: string | null | undefined, source: string) => {
-      Alert.alert(
-        'D78 dispatch',
-        JSON.stringify({ source, link }, null, 2).slice(0, 500),
-      );
-      if (!link) return;
+      if (!link) {
+        Alert.alert(
+          'D80 dispatch (no link)',
+          JSON.stringify({ source }, null, 2).slice(0, 500),
+        );
+        return;
+      }
       const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
       const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
       let target: string | null = null;
@@ -181,39 +190,63 @@ export default function RootLayout() {
         target = 'unmatched';
       }
       Alert.alert(
-        'D78 matched',
-        JSON.stringify({ target, link }, null, 2).slice(0, 500),
+        'D80 matched',
+        JSON.stringify({ source, target, link }, null, 2).slice(0, 500),
       );
     },
     [],
   );
 
+  // D80 — extract the link from any path iOS / expo-notifications might
+  // be stashing it (data root, userInfo root, trigger.payload root).
+  // First non-empty match wins. Once we know the real path we'll trim
+  // back to a single read.
+  const extractLink = (req: Notifications.NotificationRequest): string | undefined => {
+    const content = req.content as {
+      data?: { link?: string } | null;
+      userInfo?: { link?: string } | null;
+    };
+    const trigger = req.trigger as {
+      payload?: { link?: string } | null;
+    } | null;
+    return (
+      content.data?.link ??
+      content.userInfo?.link ??
+      trigger?.payload?.link
+    );
+  };
+
   useEffect(() => {
     const received = Notifications.addNotificationReceivedListener((n) => {
       Alert.alert(
-        'D78 received',
-        JSON.stringify(n.request.content.data, null, 2).slice(0, 500),
+        'D80 received',
+        JSON.stringify(
+          {
+            content: n.request.content,
+            trigger: n.request.trigger,
+            identifier: n.request.identifier,
+          },
+          null,
+          2,
+        ).slice(0, 1500),
       );
       useNotificationsStore.getState().invalidate();
     });
     const response = Notifications.addNotificationResponseReceivedListener(
       (resp) => {
         Alert.alert(
-          'D78 response',
-          JSON.stringify(resp.notification.request.content, null, 2).slice(
-            0,
-            500,
-          ),
+          'D80 response',
+          JSON.stringify(
+            {
+              content: resp.notification.request.content,
+              trigger: resp.notification.request.trigger,
+              identifier: resp.notification.request.identifier,
+            },
+            null,
+            2,
+          ).slice(0, 1500),
         );
-        // D79 (Sprint 65 Build 98 hot-fix): expo-notifications on iOS
-        // exposes `content.data = null` for our APNs payload — the raw
-        // APNs userInfo dictionary is the only place `link` + `type`
-        // actually land. Fall back to userInfo when data is empty.
-        const content = resp.notification.request.content as {
-          data?: { link?: string; type?: string } | null;
-          userInfo?: { link?: string; type?: string } | null;
-        };
-        const link = content.data?.link ?? content.userInfo?.link;
+        const link = extractLink(resp.notification.request);
         dispatchNotificationLink(link, 'warm-response');
       },
     );
@@ -224,18 +257,18 @@ export default function RootLayout() {
     void Notifications.getLastNotificationResponseAsync().then((resp) => {
       if (cancelled || !resp) return;
       Alert.alert(
-        'D78 cold-start',
-        JSON.stringify(resp.notification.request.content, null, 2).slice(
-          0,
-          500,
-        ),
+        'D80 cold-start',
+        JSON.stringify(
+          {
+            content: resp.notification.request.content,
+            trigger: resp.notification.request.trigger,
+            identifier: resp.notification.request.identifier,
+          },
+          null,
+          2,
+        ).slice(0, 1500),
       );
-      // D79 — same userInfo fallback for cold-start drain.
-      const content = resp.notification.request.content as {
-        data?: { link?: string; type?: string } | null;
-        userInfo?: { link?: string; type?: string } | null;
-      };
-      const link = content.data?.link ?? content.userInfo?.link;
+      const link = extractLink(resp.notification.request);
       requestAnimationFrame(() =>
         dispatchNotificationLink(link, 'cold-start'),
       );
