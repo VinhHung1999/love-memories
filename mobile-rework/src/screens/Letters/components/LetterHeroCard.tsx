@@ -81,7 +81,12 @@ export function LetterHeroCard({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      className="rounded-[26px] overflow-hidden bg-surface border border-line-on-surface shadow-card mb-3.5 active:opacity-90"
+      // D64-redo3 (Sprint 65 Build 90 hot-fix): dropped `shadow-card` —
+      // its 8px-radius soft shadow was spreading upward into the 24px
+      // pt-6 buffer and visually nibbling the TabsBar chip's bottom edge
+      // ("lụm 1 miếng" per Boss). The 26px radius + border already give
+      // the card enough definition; no elevation needed at this density.
+      className="rounded-[26px] overflow-hidden bg-surface border border-line-on-surface mb-3.5 active:opacity-90"
     >
       <LinearGradient
         colors={grad as unknown as readonly [string, string, ...string[]]}

@@ -24,8 +24,6 @@ import {
   AudioPreview,
   AudioRecordSheet,
   type AudioRecordSheetHandle,
-  DiscardSheet,
-  type DiscardSheetHandle,
   MoodPicker,
   PhotoPreviewRow,
 } from './components';
@@ -50,8 +48,8 @@ import {
 //
 // Spec validation: cần ít nhất title.trim() OR content.trim() trước khi Send.
 //
-// Back press: empty draft → DELETE + back. Dirty draft → DiscardSheet
-// (Lưu nháp keeps DRAFT, Bỏ → DELETE, Tiếp tục viết cancels).
+// Back press (D67 Build 91): dirty draft → AUTO-SAVE + back (no
+// interstitial sheet); empty draft → DELETE + back.
 //
 // D40 (Build 76 hot-fix): "Hẹn gửi" attachment + ScheduleSheet removed; the
 // Send pill is always 'Gửi'.
@@ -67,7 +65,6 @@ export function LetterComposeScreen({ params }: Props) {
   const insets = useSafeAreaInsets();
 
   const audioSheetRef = useRef<AudioRecordSheetHandle>(null);
-  const discardSheetRef = useRef<DiscardSheetHandle>(null);
 
   const vm = useLetterComposeViewModel(params);
 
@@ -99,14 +96,18 @@ export function LetterComposeScreen({ params }: Props) {
     presentSheetAfterKeyboard(() => audioSheetRef.current?.open());
   }, [presentSheetAfterKeyboard]);
 
+  // D67 (Sprint 65 Build 90 hot-fix): X / hardware-back now AUTO-SAVES
+  // dirty drafts without an interstitial sheet (Boss UX: "không cần hỏi").
+  // Empty draft still DELETEs to keep the Drafts tab clean. The
+  // DiscardSheet surface was dropped — see Build 91 commit.
   const onBackPress = useCallback(() => {
     if (vm.dirty) {
-      presentSheetAfterKeyboard(() => discardSheetRef.current?.open());
+      void vm.saveDraftAndExit().finally(closeBack);
       return true;
     }
     void vm.discardDraft().finally(closeBack);
     return true;
-  }, [closeBack, presentSheetAfterKeyboard, vm]);
+  }, [closeBack, vm]);
 
   // Hardware back (Android) + iOS edge-swipe behaviour falls back to default.
   useFocusEffect(
@@ -332,20 +333,6 @@ export function LetterComposeScreen({ params }: Props) {
         onComplete={(uri, durationMs) =>
           void vm.setAudioFromRecording(uri, durationMs)
         }
-      />
-      <DiscardSheet
-        ref={discardSheetRef}
-        title={t('letters.compose.discardSheet.title')}
-        body={t('letters.compose.discardSheet.body')}
-        saveLabel={t('letters.compose.discardSheet.save')}
-        discardLabel={t('letters.compose.discardSheet.discard')}
-        cancelLabel={t('letters.compose.discardSheet.cancel')}
-        onSave={() => {
-          void vm.saveDraftAndExit().finally(closeBack);
-        }}
-        onDiscard={() => {
-          void vm.discardDraft().finally(closeBack);
-        }}
       />
     </SafeScreen>
   );
