@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "apn": "^2.2.0",
     "apple-signin-auth": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
@@ -32,6 +33,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/apn": "^0.0.31",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
