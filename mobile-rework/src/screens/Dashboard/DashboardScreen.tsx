@@ -1,10 +1,14 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, View } from 'react-native';
 
 import { BellButton } from '@/components/BellButton';
 import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
+import {
+  maybePromptNotificationPermissionOnce,
+  registerDevicePushToken,
+} from '@/lib/pushNotifications';
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
 import {
@@ -26,6 +30,20 @@ export function DashboardScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const vm = useDashboardViewModel();
+
+  // D71 (Sprint 65 Build 93 hot-fix): one-shot auto-prompt for
+  // notification permission on Dashboard mount. The helper persists a
+  // flag so we never re-prompt — iOS hides the prompt anyway after the
+  // first denial, but the flag stops `requestPermissionsAsync` spinning
+  // on every Home tab visit. After the prompt resolves we attempt token
+  // registration so a freshly-granted user starts receiving pushes
+  // without a relaunch.
+  useEffect(() => {
+    void (async () => {
+      await maybePromptNotificationPermissionOnce();
+      await registerDevicePushToken();
+    })();
+  }, []);
 
   const greeting = vm.userName
     ? t('home.greeting', { name: vm.userName })

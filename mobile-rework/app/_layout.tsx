@@ -3,6 +3,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
+import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -14,12 +15,33 @@ import '../global.css';
 import { CameraActionSheet } from '@/components/CameraActionSheet';
 import { UploadProgressToast } from '@/components/UploadProgressToast';
 import { parseMemouraUrl } from '@/lib/deepLink';
+import {
+  registerDevicePushToken,
+  subscribeToPushTokenRotation,
+} from '@/lib/pushNotifications';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
 import { useAuthStore } from '@/stores/authStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { fontMap } from '@/theme/fonts';
 import { ThemeProvider } from '@/theme/ThemeProvider';
+
+// D70 (Sprint 65 Build 93 hot-fix): foreground notification behaviour.
+// Without an explicit handler, expo-notifications swallows incoming
+// pushes when the app is foregrounded — the user only sees them on the
+// Notifications screen after a refetch. Setting `shouldShowBanner: true`
+// keeps the iOS native banner showing even with the app open, matching
+// what Boss expects when Hùng + Như are both inside the app and one
+// posts a moment / letter.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -65,6 +87,63 @@ export default function RootLayout() {
       /* swallow: bad audio session at boot shouldn't crash the app */
     });
   }, []);
+
+  // D69 + D70 (Sprint 65 Build 93 hot-fix): push notifications.
+  //   • Register the native APNs / FCM token with the BE once the
+  //     auth store hydrates and the user is signed in. The helper
+  //     short-circuits when the cached token matches the current
+  //     device token, so the call is safe to fire on every cold
+  //     boot and after re-login.
+  //   • Subscribe to iOS APNs token rotation — re-register through
+  //     the same path automatically.
+  //   • addNotificationResponseReceivedListener handles deep-links
+  //     when the user taps a push (background → foreground). Payload
+  //     is `data: { link, type }` from the BE PushService FCM send;
+  //     parse `/letters/<id>` → /letter-read, `/moments/<id>` →
+  //     /moment-detail, `/monthly-recap` → /monthly-recap.
+  //   • addNotificationReceivedListener invalidates the in-app
+  //     notifications inbox so a new push refreshes the bell badge
+  //     immediately even if the user is already looking at the
+  //     screen.
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const router = useRouter();
+  useEffect(() => {
+    if (!authHydrated) return;
+    if (!accessToken) return;
+    void registerDevicePushToken();
+    const dispose = subscribeToPushTokenRotation();
+    return dispose;
+  }, [authHydrated, accessToken]);
+
+  useEffect(() => {
+    const received = Notifications.addNotificationReceivedListener(() => {
+      useNotificationsStore.getState().invalidate();
+    });
+    const response = Notifications.addNotificationResponseReceivedListener(
+      (resp) => {
+        const data = resp.notification.request.content.data as
+          | { link?: string; type?: string }
+          | undefined;
+        const link = data?.link;
+        if (!link) return;
+        const segs = link.split('/').filter(Boolean);
+        if (segs.length === 0) return;
+        const head = segs[0];
+        const id = segs[1];
+        if (head === 'letters' && id) {
+          router.push({ pathname: '/letter-read', params: { id } });
+        } else if (head === 'moments' && id) {
+          router.push({ pathname: '/moment-detail', params: { id } });
+        } else if (head === 'monthly-recap') {
+          router.push('/monthly-recap');
+        }
+      },
+    );
+    return () => {
+      received.remove();
+      response.remove();
+    };
+  }, [router]);
 
   const allReady =
     (fontsLoaded || fontError) && i18nReady && authHydrated && themeHydrated;
