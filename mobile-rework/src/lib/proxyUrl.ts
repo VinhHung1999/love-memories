@@ -1,5 +1,3 @@
-import { env } from '@/config/env';
-
 // D56 (Sprint 65 Build 81 hot-fix) — wraps a CDN audio URL with the BE's
 // public audio proxy so iOS expo-audio can decode the stream.
 //
@@ -22,13 +20,20 @@ import { env } from '@/config/env';
 
 export function proxyAudio(cdnUrl: string | null | undefined): string {
   if (!cdnUrl) return '';
-  // Defensive: don't double-wrap if the URL is already a proxy URL or a
-  // non-CDN absolute path the caller built themselves.
-  if (cdnUrl.includes('/api/proxy-audio')) return cdnUrl;
-  // D59 (Sprint 65 Build 83 hot-fix): use the `/audio.m4a` alias path so
-  // iOS AVPlayer / expo-audio's URL-sniff sees an audio extension and
-  // proceeds to load the AAC stream. The querystring `url=…` is the actual
-  // CDN path the BE fetches; the filename is ignored server-side. See
-  // backend/src/routes/proxy.ts for the dual-mount.
-  return `${env.apiUrl}/api/proxy-audio/audio.m4a?url=${encodeURIComponent(cdnUrl)}`;
+  // D60 (Sprint 65 Build 84 hot-fix): proxy is now a pass-through. Lu
+  // verified the CDN serves `.m4a` files with `Content-Type: audio/mp4`
+  // directly, and the legacy `mobile/screens/LetterRead/useLetterReadView
+  // Model.ts:41` ships in prod by passing the raw CDN URL straight into
+  // react-native-audio-recorder-player.startPlayer(url). The proxy
+  // (D56→D59) was over-engineering: it adds a network hop, removes the
+  // `.m4a` extension iOS AVPlayer wants to URL-sniff (D59 alias), and
+  // hands AVPlayer an HTTPS URL with a querystring which expo-audio
+  // sometimes refuses to load for AAC streaming.
+  //
+  // Helper retained as a no-op so we can rewire it if a future caller
+  // (T425 Notifications audio kind, recap voice memos) needs the proxy
+  // for a non-.m4a CDN path. Today every audio is .m4a → direct works.
+  // The BE `/api/proxy-audio[/:filename]` route stays mounted; only the
+  // mobile callsites stop wrapping.
+  return cdnUrl;
 }
