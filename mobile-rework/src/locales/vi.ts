@@ -284,6 +284,52 @@ const vi = {
       },
     },
   },
+  // T421 (Sprint 65) — Letters Inbox 4-tab + hero envelope + compact rows.
+  // Header eyebrow uses Dancing Script per mobile-rework Hard Rule #5.
+  letters: {
+    eyebrow: 'Chỉ hai mình đọc',
+    title: 'Thư tình',
+    write: 'Viết',
+    heroGreeting: 'Gửi',
+    tapToOpen: 'Chạm để mở →',
+    unreadPill: 'Chưa đọc',
+    draftChip: 'Nháp',
+    partnerFallback: 'người ấy',
+    currentUserFallback: 'mình',
+    tabs: {
+      inbox: 'Hộp thư',
+      sent: 'Đã gửi',
+      scheduled: 'Hẹn giờ',
+      drafts: 'Nháp',
+    },
+    scheduledCard: {
+      title: '{{count}} thư đang chờ gửi',
+      subtitle: 'Sẽ gửi vào {{date}}',
+    },
+    empty: {
+      cta: 'Viết thư mới',
+      inbox: {
+        title: 'Hộp thư còn trống',
+        subtitle: 'Chưa có lá thư nào từ {{partner}}. Khi {{partner}} gửi, mình sẽ thấy ngay ở đây.',
+      },
+      sent: {
+        title: 'Mình chưa gửi thư nào',
+        subtitle: 'Có những điều khó nói thành lời — viết một lá thư cho {{partner}} nhé.',
+      },
+      scheduled: {
+        title: 'Không có thư nào đang lên lịch',
+        subtitle: 'Viết một lá rồi hẹn ngày — kỷ niệm, sinh nhật, hay một sáng đẹp trời.',
+      },
+      drafts: {
+        title: 'Không có nháp nào',
+        subtitle: 'Mọi lá thư đang viết dở sẽ nằm ở đây để mình tiếp tục bất cứ lúc nào.',
+      },
+    },
+    error: {
+      message: 'Không tải được thư. Mình thử lại nhé?',
+      retry: 'Thử lại',
+    },
+  },
   auth: {
     welcomeTitle: 'Chào mừng đến Memoura',
     welcomeSub: 'Nơi giữ lại những điều bé nhỏ của hai đứa.',

@@ -261,6 +261,51 @@ const en: Resources = {
       },
     },
   },
+  // T421 (Sprint 65) — Letters Inbox 4-tab + hero envelope + compact rows.
+  letters: {
+    eyebrow: 'Only us',
+    title: 'Letters',
+    write: 'Write',
+    heroGreeting: 'Dear',
+    tapToOpen: 'Tap to open →',
+    unreadPill: 'Unread',
+    draftChip: 'Draft',
+    partnerFallback: 'them',
+    currentUserFallback: 'you',
+    tabs: {
+      inbox: 'Inbox',
+      sent: 'Sent',
+      scheduled: 'Scheduled',
+      drafts: 'Drafts',
+    },
+    scheduledCard: {
+      title: '{{count}} letter(s) waiting to send',
+      subtitle: 'Delivers {{date}}',
+    },
+    empty: {
+      cta: 'Write a letter',
+      inbox: {
+        title: 'No letters yet',
+        subtitle: 'Nothing from {{partner}} yet. When they write, it shows up here.',
+      },
+      sent: {
+        title: 'You haven’t sent a letter',
+        subtitle: 'Some things are easier in writing — try one for {{partner}}.',
+      },
+      scheduled: {
+        title: 'Nothing scheduled',
+        subtitle: 'Write one and pick a date — an anniversary, a birthday, a quiet morning.',
+      },
+      drafts: {
+        title: 'No drafts',
+        subtitle: 'Letters you start will wait here until you’re ready to send.',
+      },
+    },
+    error: {
+      message: 'Couldn’t load letters. Try again?',
+      retry: 'Retry',
+    },
+  },
   auth: {
     welcomeTitle: 'Welcome to Memoura',
     welcomeSub: 'A quiet home for the small things you two keep.',
