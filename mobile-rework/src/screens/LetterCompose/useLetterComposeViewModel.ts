@@ -350,6 +350,7 @@ export function useLetterComposeViewModel(params: ComposeParams) {
       uploadQueue.enqueue({
         id: queueId,
         label: filename,
+        kind: 'audio',
         uploadFn: () =>
           uploadLetterAudio(id, {
             uri,

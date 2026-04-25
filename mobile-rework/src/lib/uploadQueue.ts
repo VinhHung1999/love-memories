@@ -34,9 +34,16 @@ import { create } from 'zustand';
 
 export type UploadStatus = 'uploading' | 'success' | 'error';
 
+// D48 (Sprint 65 Build 77 hot-fix): the `kind` field tags the entry so the
+// UploadProgressToast can pick the right copy ("Đang tải ảnh" vs "Đang tải
+// giọng nói"). Defaults to 'photo' for backward compat with all existing
+// MomentCreate / LetterCompose photo enqueues.
+export type UploadKind = 'photo' | 'audio';
+
 export type UploadEntry = {
   id: string;
   label: string;
+  kind: UploadKind;
   status: UploadStatus;
   error?: string;
   attempts: number;
@@ -46,6 +53,7 @@ export type UploadEntry = {
 export type EnqueueInput = {
   id: string;
   label: string;
+  kind?: UploadKind;
   uploadFn: () => Promise<unknown>;
   maxRetries?: number;
   onSuccess?: (result: unknown) => void;
@@ -140,20 +148,42 @@ export const useUploadQueueStore = create<State & Actions>((set, get) => {
 
   return {
     uploads: {},
-    enqueue: ({ id, label, uploadFn, maxRetries = 2, onSuccess, onFailure }) => {
+    enqueue: ({
+      id,
+      label,
+      kind = 'photo',
+      uploadFn,
+      maxRetries = 2,
+      onSuccess,
+      onFailure,
+    }) => {
       const write = (entry: UploadEntry) =>
         set((s) => ({ uploads: { ...s.uploads, [id]: entry } }));
 
       // T394 — eager pre-seed so pending entries count toward `total` in the
       // toast. Without this, 4 of 5 photos sit in `pending[]` with no store
       // entry, and the toast renders "1/1" until each run() starts.
-      write({ id, label, status: 'uploading', attempts: 0, maxRetries });
+      write({ id, label, kind, status: 'uploading', attempts: 0, maxRetries });
 
       const run = async (attempt: number) => {
-        write({ id, label, status: 'uploading', attempts: attempt, maxRetries });
+        write({
+          id,
+          label,
+          kind,
+          status: 'uploading',
+          attempts: attempt,
+          maxRetries,
+        });
         try {
           const result = await uploadFn();
-          write({ id, label, status: 'success', attempts: attempt, maxRetries });
+          write({
+            id,
+            label,
+            kind,
+            status: 'success',
+            attempts: attempt,
+            maxRetries,
+          });
           onSuccess?.(result);
           retryTasks.delete(id);
           scheduleBatchDismissIfIdle();
@@ -169,6 +199,7 @@ export const useUploadQueueStore = create<State & Actions>((set, get) => {
           write({
             id,
             label,
+            kind,
             status: 'error',
             error: err instanceof Error ? err.message : 'Upload failed',
             attempts: attempt,

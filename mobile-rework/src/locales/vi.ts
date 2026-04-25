@@ -191,6 +191,12 @@ const vi = {
       uploading: 'Đang tải lên {{current}}/{{total}} ảnh',
       done: 'Đã tải {{count}} ảnh',
       failed: 'Không tải được {{failed}}/{{total}} ảnh',
+      // D48 (Sprint 65 Build 77 hot-fix): voice memo variant — toast picks the
+      // audio copy when every active entry has kind='audio' so the user
+      // doesn't see "Đang tải ảnh" while a recording is uploading.
+      uploadingAudio: 'Đang tải lên giọng nói…',
+      doneAudio: 'Đã tải xong giọng nói',
+      failedAudio: 'Không tải được giọng nói',
       retry: 'Thử lại',
       dismiss: 'Đóng',
     },

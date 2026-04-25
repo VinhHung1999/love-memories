@@ -169,6 +169,10 @@ const en: Resources = {
       uploading: 'Uploading {{current}}/{{total}} photos',
       done: 'Uploaded {{count}} photos',
       failed: 'Failed {{failed}}/{{total}} photos',
+      // D48 (Sprint 65 Build 77 hot-fix): voice memo variant.
+      uploadingAudio: 'Uploading voice memo…',
+      doneAudio: 'Voice memo uploaded',
+      failedAudio: 'Voice memo upload failed',
       retry: 'Retry',
       dismiss: 'Dismiss',
     },

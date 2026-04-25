@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   BackHandler,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -74,16 +75,24 @@ export function LetterComposeScreen({ params }: Props) {
 
   const partnerName = vm.partnerName ?? t('letters.partnerFallback');
 
+  // D49 (Sprint 65 Build 77 hot-fix): dismiss the keyboard BEFORE navigating
+  // back so the modal slide-down animation isn't competing with the on-screen
+  // keyboard's collapse. Without this iOS leaves a blank rectangle where the
+  // keyboard was while the modal animates out.
+  const closeBack = useCallback(() => {
+    Keyboard.dismiss();
+    router.back();
+  }, [router]);
+
   const onBackPress = useCallback(() => {
     if (vm.dirty) {
+      Keyboard.dismiss();
       discardSheetRef.current?.open();
       return true;
     }
-    void vm.discardDraft().finally(() => {
-      router.back();
-    });
+    void vm.discardDraft().finally(closeBack);
     return true;
-  }, [router, vm]);
+  }, [closeBack, vm]);
 
   // Hardware back (Android) + iOS edge-swipe behaviour falls back to default.
   useFocusEffect(
@@ -105,8 +114,8 @@ export function LetterComposeScreen({ params }: Props) {
       return;
     }
     setToast(t('letters.compose.toast.sent', { partner: partnerName }));
-    setTimeout(() => router.back(), 1400);
-  }, [partnerName, router, t, vm]);
+    setTimeout(closeBack, 1400);
+  }, [closeBack, partnerName, t, vm]);
 
   if (vm.loading) {
     return (
@@ -126,7 +135,7 @@ export function LetterComposeScreen({ params }: Props) {
             {t('letters.compose.error.message')}
           </Text>
           <Pressable
-            onPress={() => router.back()}
+            onPress={closeBack}
             className="mt-5 px-5 h-10 rounded-full bg-surface border border-line-on-surface items-center justify-center active:opacity-80"
           >
             <Text className="font-bodySemibold text-ink text-[14px]">
@@ -318,10 +327,10 @@ export function LetterComposeScreen({ params }: Props) {
         discardLabel={t('letters.compose.discardSheet.discard')}
         cancelLabel={t('letters.compose.discardSheet.cancel')}
         onSave={() => {
-          void vm.saveDraftAndExit().finally(() => router.back());
+          void vm.saveDraftAndExit().finally(closeBack);
         }}
         onDiscard={() => {
-          void vm.discardDraft().finally(() => router.back());
+          void vm.discardDraft().finally(closeBack);
         }}
       />
     </SafeScreen>
