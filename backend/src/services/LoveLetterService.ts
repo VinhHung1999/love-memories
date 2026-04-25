@@ -122,11 +122,13 @@ export async function create(
       where: { id: userId },
       select: { name: true },
     });
+    const senderName = senderUser?.name ?? 'Người ấy';
+    const preview = letterContentPreview(letter.content);
     await createNotification(
       partner.id,
       'love_letter',
-      `Thư tình mới từ ${senderUser?.name ?? 'người ấy'} 💌`,
-      data.title,
+      `${senderName} vừa gửi cho bạn 1 lá thư 💌`,
+      preview,
       `/letters/${letter.id}`,
     ).catch(() => {});
   }
@@ -196,15 +198,29 @@ export async function send(id: string, userId: string, coupleId: string) {
     where: { id: userId },
     select: { name: true },
   });
+  const senderName = senderUser?.name ?? 'Người ấy';
+  const preview = letterContentPreview(updated.content);
   await createNotification(
     letter.recipientId,
     'love_letter',
-    `Thư tình mới từ ${senderUser?.name ?? 'người ấy'} 💌`,
-    letter.title,
+    `${senderName} vừa gửi cho bạn 1 lá thư 💌`,
+    preview,
     `/letters/${letter.id}`,
   ).catch(() => {});
 
   return updated;
+}
+
+// D72a (Sprint 65 Build 95 hot-fix): notification preview helper for
+// letter copy. The BE Zod schema requires title.min(1) + content.min(1)
+// so the mobile draft-first flow ships a single-space placeholder when
+// the user never typed anything. Trim before slicing so the placeholder
+// drops out cleanly to the fallback copy.
+function letterContentPreview(content: string): string {
+  const trimmed = (content ?? '').trim();
+  if (trimmed.length === 0) return 'Một lá thư mới';
+  if (trimmed.length <= 80) return trimmed;
+  return `${trimmed.slice(0, 80)}…`;
 }
 
 export async function markRead(id: string, userId: string, coupleId: string) {

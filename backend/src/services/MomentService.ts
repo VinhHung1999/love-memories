@@ -49,16 +49,37 @@ export async function create(
       (await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }))
         ?.name ?? 'Ai đó';
     if (otherUserId) {
+      // D73 (Sprint 65 Build 95 hot-fix): conversational push copy.
+      // Title leads with the actor's name + verb + emoji; body holds the
+      // moment title (or caption preview if the user shipped without a
+      // title and the BE auto-derived one feels generic).
+      const captionPreview = momentCaptionPreview(moment.caption, moment.title);
       await createNotification(
         otherUserId,
         'new_moment',
-        'Kỷ niệm mới',
-        `${author} đã thêm kỷ niệm: ${moment.title}`,
+        `${author} vừa thêm khoảnh khắc 📸`,
+        captionPreview,
         `/moments/${moment.id}`,
       );
     }
   })();
   return moment;
+}
+
+// D73 — preview helper for moment captions / titles in push payloads.
+// Falls back to the title when caption is empty, then to a generic
+// fallback when both are empty.
+function momentCaptionPreview(
+  caption: string | null | undefined,
+  title: string | null | undefined,
+): string {
+  const cap = (caption ?? '').trim();
+  if (cap.length > 0) {
+    return cap.length > 80 ? `${cap.slice(0, 80)}…` : cap;
+  }
+  const ti = (title ?? '').trim();
+  if (ti.length > 0) return ti.length > 80 ? `${ti.slice(0, 80)}…` : ti;
+  return 'Một khoảnh khắc mới';
 }
 
 export async function update(id: string, coupleId: string, data: Record<string, unknown>) {
@@ -157,13 +178,16 @@ export async function addComment(
   if (userId && coupleId) {
     void (async () => {
       const otherUserId = await getPartnerUserId(userId, coupleId);
-      const preview = content.length > 50 ? `${content.slice(0, 50)}…` : content;
+      const trimmed = content.trim();
+      const preview =
+        trimmed.length > 80 ? `${trimmed.slice(0, 80)}…` : trimmed;
       if (otherUserId) {
+        // D73 — conversational push copy.
         await createNotification(
           otherUserId,
           'new_comment',
-          'Bình luận mới',
-          `${author} bình luận: ${preview}`,
+          `${author} vừa bình luận 💬`,
+          `"${preview}"`,
           `/moments/${momentId}`,
         );
       }
@@ -226,11 +250,14 @@ export async function toggleReaction(
     void (async () => {
       const otherUserId = await getPartnerUserId(userId, coupleId);
       if (otherUserId) {
+        // D73 — conversational push copy. Reactions don't carry a body
+        // beyond the headline, so the message is empty (a single space
+        // because some clients render an empty string as "(null)").
         await createNotification(
           otherUserId,
           'new_reaction',
-          'Cảm xúc mới',
-          `${author} đã ${emoji} kỷ niệm của bạn`,
+          `${author} ${emoji} khoảnh khắc của bạn`,
+          ' ',
           `/moments/${momentId}`,
         );
       }
