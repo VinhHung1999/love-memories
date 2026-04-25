@@ -1,7 +1,9 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Pause, Play } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { proxyAudio } from '@/lib/proxyUrl';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T422 (Sprint 65) — inline audio player for letter voice memos. Single
@@ -24,7 +26,11 @@ function formatClock(seconds: number): string {
 
 export function AudioInline({ audioUrl, durationSeconds }: Props) {
   const c = useAppColors();
-  const player = useAudioPlayer({ uri: audioUrl });
+  // D56 (Sprint 65 Build 81 hot-fix): route the CDN URL through the BE's
+  // public audio proxy so iOS expo-audio gets a clean `audio/mp4`
+  // Content-Type. See @/lib/proxyUrl for the rationale.
+  const playableUri = useMemo(() => proxyAudio(audioUrl), [audioUrl]);
+  const player = useAudioPlayer({ uri: playableUri });
   const status = useAudioPlayerStatus(player);
 
   // expo-audio reports duration in seconds. Prefer the player-reported value

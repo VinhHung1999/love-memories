@@ -1,8 +1,10 @@
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { Pause, Play, Trash2 } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import type { LetterAudio } from '@/api/letters';
+import { proxyAudio } from '@/lib/proxyUrl';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T423 (Sprint 65) — inline preview shown after a voice memo has been
@@ -23,7 +25,11 @@ function formatClock(seconds: number): string {
 
 export function AudioPreview({ audio, onRemove }: Props) {
   const c = useAppColors();
-  const player = useAudioPlayer({ uri: audio.url });
+  // D56 (Sprint 65 Build 81 hot-fix): route the CDN URL through the BE's
+  // public audio proxy so iOS expo-audio gets a clean `audio/mp4`
+  // Content-Type. See @/lib/proxyUrl for the rationale.
+  const playableUri = useMemo(() => proxyAudio(audio.url), [audio.url]);
+  const player = useAudioPlayer({ uri: playableUri });
   const status = useAudioPlayerStatus(player);
   const total =
     status.duration && status.duration > 0

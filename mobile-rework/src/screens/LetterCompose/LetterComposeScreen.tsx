@@ -84,15 +84,29 @@ export function LetterComposeScreen({ params }: Props) {
     router.back();
   }, [router]);
 
+  // D54 (Sprint 65 Build 81 hot-fix): same idea for any BottomSheet present
+  // call inside the Compose modal — dismiss the keyboard first, wait one
+  // animation frame so iOS finishes the keyboard collapse, then present the
+  // sheet. Without the delay the sheet animates UP while the keyboard is
+  // still collapsing DOWN, leaving a visual seam at the bottom of the
+  // sheet.
+  const presentSheetAfterKeyboard = useCallback((open: () => void) => {
+    Keyboard.dismiss();
+    setTimeout(open, 100);
+  }, []);
+
+  const onPresentAudio = useCallback(() => {
+    presentSheetAfterKeyboard(() => audioSheetRef.current?.open());
+  }, [presentSheetAfterKeyboard]);
+
   const onBackPress = useCallback(() => {
     if (vm.dirty) {
-      Keyboard.dismiss();
-      discardSheetRef.current?.open();
+      presentSheetAfterKeyboard(() => discardSheetRef.current?.open());
       return true;
     }
     void vm.discardDraft().finally(closeBack);
     return true;
-  }, [closeBack, vm]);
+  }, [closeBack, presentSheetAfterKeyboard, vm]);
 
   // Hardware back (Android) + iOS edge-swipe behaviour falls back to default.
   useFocusEffect(
@@ -268,7 +282,7 @@ export function LetterComposeScreen({ params }: Props) {
             hasAudio={vm.audio !== null}
             photosDisabled={vm.photosRemaining <= 0}
             onPhotos={() => void vm.pickPhotos()}
-            onAudio={() => audioSheetRef.current?.open()}
+            onAudio={onPresentAudio}
           />
 
           <PhotoPreviewRow
