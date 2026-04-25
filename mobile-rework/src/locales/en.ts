@@ -305,6 +305,60 @@ const en: Resources = {
       message: 'Couldn’t load letters. Try again?',
       retry: 'Retry',
     },
+    // T423 (Sprint 65) — Letter Compose strings.
+    compose: {
+      title: 'New letter',
+      subtitle: 'To {{partner}}',
+      to: 'To',
+      moodLabel: 'Mood',
+      titlePlaceholder: 'To the one I love…',
+      bodyPlaceholder: 'Darling,\n\nI woke up early today…',
+      continueHint: 'Continue…',
+      sendCta: 'Send',
+      scheduleCta: 'Schedule',
+      photoCounter: 'Photos',
+      scheduledFor: 'Sends on {{date}}',
+      scheduleClear: 'Clear',
+      attach: {
+        photos: 'Photos',
+        audio: 'Voice',
+        schedule: 'Schedule',
+      },
+      audioSheet: {
+        title: 'Record voice memo',
+        hint: 'Tap to start — up to 60 seconds.',
+        start: 'Tap to record',
+        stop: 'Tap to stop',
+        permDenied: 'Memoura needs mic access to record.',
+      },
+      scheduleSheet: {
+        title: 'Schedule send',
+        hint: 'Pick when to deliver — at least 5 minutes from now.',
+        confirm: 'Set',
+        clear: 'Clear',
+        cancel: 'Cancel',
+      },
+      discardSheet: {
+        title: 'Save or discard?',
+        body: 'You\'ve written a bit. Save the draft to continue later, or discard?',
+        save: 'Save draft',
+        discard: 'Discard',
+        cancel: 'Keep writing',
+      },
+      toast: {
+        sent: 'Sent to {{partner}} ♥',
+        scheduled: 'Scheduled for {{date}}',
+        error: {
+          empty: 'Write something first.',
+          network: 'Send failed. Network issue?',
+          unknown: 'Something broke. Try again.',
+        },
+      },
+      error: {
+        message: 'Couldn’t start a new letter. Try later.',
+        back: 'Back',
+      },
+    },
     // T422 (Sprint 65) — Letter Read overlay strings.
     read: {
       fromAuthor: 'From {{name}} · written at {{time}}',

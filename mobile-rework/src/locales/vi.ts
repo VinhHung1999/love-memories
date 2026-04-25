@@ -329,6 +329,61 @@ const vi = {
       message: 'Không tải được thư. Mình thử lại nhé?',
       retry: 'Thử lại',
     },
+    // T423 (Sprint 65) — Letter Compose strings (mood + title + body +
+    // photos + audio + schedule + discard).
+    compose: {
+      title: 'Thư mới',
+      subtitle: 'Gửi cho {{partner}}',
+      to: 'Gửi đến',
+      moodLabel: 'Tâm trạng',
+      titlePlaceholder: 'Gửi người của em…',
+      bodyPlaceholder: 'Anh ơi,\n\nSáng nay em dậy sớm…',
+      continueHint: 'Viết tiếp…',
+      sendCta: 'Gửi',
+      scheduleCta: 'Hẹn gửi',
+      photoCounter: 'Ảnh',
+      scheduledFor: 'Sẽ gửi vào {{date}}',
+      scheduleClear: 'Bỏ',
+      attach: {
+        photos: 'Ảnh',
+        audio: 'Giọng nói',
+        schedule: 'Hẹn gửi',
+      },
+      audioSheet: {
+        title: 'Ghi âm cho lá thư',
+        hint: 'Bấm để bắt đầu — tối đa 60 giây.',
+        start: 'Bấm để ghi âm',
+        stop: 'Bấm để dừng',
+        permDenied: 'Memoura cần quyền micro để ghi âm.',
+      },
+      scheduleSheet: {
+        title: 'Hẹn gửi',
+        hint: 'Chọn ngày giờ gửi. Sớm nhất là 5 phút từ bây giờ.',
+        confirm: 'Đặt giờ',
+        clear: 'Bỏ giờ',
+        cancel: 'Huỷ',
+      },
+      discardSheet: {
+        title: 'Lưu hay bỏ thư này?',
+        body: 'Mình đã viết một chút rồi. Lưu nháp để viết tiếp sau, hay bỏ luôn?',
+        save: 'Lưu nháp',
+        discard: 'Bỏ',
+        cancel: 'Tiếp tục viết',
+      },
+      toast: {
+        sent: 'Đã gửi cho {{partner}} ♥',
+        scheduled: 'Hẹn gửi {{date}}',
+        error: {
+          empty: 'Mình viết một chút trước nhé.',
+          network: 'Không gửi được. Mạng có vấn đề?',
+          unknown: 'Lỗi rồi. Mình thử lại nhé.',
+        },
+      },
+      error: {
+        message: 'Không tạo được thư mới. Mình thử lại sau nhé.',
+        back: 'Quay lại',
+      },
+    },
     // T422 (Sprint 65) — Letter Read overlay strings.
     read: {
       fromAuthor: 'Từ {{name}} · viết lúc {{time}}',

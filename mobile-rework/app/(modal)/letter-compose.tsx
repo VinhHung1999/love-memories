@@ -1,18 +1,18 @@
-import { Text, View } from 'react-native';
-import { SafeScreen } from '@/components';
+import { useLocalSearchParams } from 'expo-router';
 
-// T421 (Sprint 65) — placeholder so the LettersScreen Write button + draft
-// edit nav have a target while T423 (Letter Compose) is still in the queue.
-// T423 replaces this stub with the real compose screen.
+import { LetterComposeScreen } from '@/screens/LetterCompose/LetterComposeScreen';
 
-export default function LetterCompose() {
+// T423 (Sprint 65) — replaces the T421 placeholder. Three entry modes are
+// keyed off the route params:
+//   • no params       → fresh draft
+//   • ?id=…           → edit existing draft (Drafts tab tap)
+//   • ?replyTo=…      → reply prefill (Letter Read overlay's "Viết thư" CTA)
+
+export default function LetterComposeRoute() {
+  const params = useLocalSearchParams<{ id?: string; replyTo?: string }>();
   return (
-    <SafeScreen>
-      <View className="flex-1 items-center justify-center">
-        <Text className="font-bodyMedium text-ink">
-          LetterCompose — coming in T423
-        </Text>
-      </View>
-    </SafeScreen>
+    <LetterComposeScreen
+      params={{ id: params.id, replyTo: params.replyTo }}
+    />
   );
 }
