@@ -346,26 +346,25 @@ export function useLetterComposeViewModel(params: ComposeParams) {
         setState((prev) => ({ ...prev, audio: null }));
       }
 
-      // D50 (Sprint 65 Build 78 hot-fix): defensive normalization for the
-      // recorder URI before we hand it to RN FormData.
-      //   • iOS expo-audio sometimes returns URIs without the `file://`
-      //     prefix; the RN FormData polyfill on iOS reads the file from
-      //     disk via `uri`, and missing prefix = silent read failure.
-      //   • RecordingPresets.HIGH_QUALITY produces `.m4a` with audio/mp4 on
-      //     both iOS + Android, but if the recorder is reconfigured to a
-      //     different format we should still send the right MIME instead of
-      //     hardcoding mp4. The BE audio whitelist (backend/middleware/
-      //     upload.ts) accepts: audio/webm, audio/mp4, audio/mpeg, audio/
-      //     ogg, audio/wav — fall back to audio/mp4 for unknown extensions.
+      // D51 (Sprint 65 Build 79 hot-fix): match the legacy mobile/api.ts
+      // pattern that's been working in prod since Sprint 30 — hardcode the
+      // FormData name + type to 'memo.m4a' + 'audio/mp4' regardless of the
+      // recorder URI's actual extension. BE multer (audio whitelist:
+      // webm/mp4/mpeg/ogg/wav) only validates the client-declared mimetype
+      // string, not file content, so labelling everything as audio/mp4 is
+      // safe even if expo-audio internally writes a CAF wrapper.
+      //
+      // file:// prefix safety is still wired in case the iOS RN FormData
+      // polyfill ever needs the absolute URI form. The dynamic-extension
+      // derivation from D50 is reverted (audioMimeFromExt is still around
+      // for future use; not invoked here).
       const normalizedUri = uri.startsWith('file://') ? uri : `file://${uri}`;
-      const lastDot = uri.lastIndexOf('.');
-      const ext =
-        lastDot >= 0 ? uri.slice(lastDot + 1).toLowerCase() : 'm4a';
-      const type = audioMimeFromExt(ext);
-      const filename = `letter-${id}-${Date.now()}.${ext}`;
+      const filename = 'memo.m4a';
+      const type = 'audio/mp4';
       const queueId = `letter-audio-${id}-${Date.now()}`;
       if (__DEV__) {
         console.debug('[letter-audio] enqueue', {
+          rawUri: uri,
           uri: normalizedUri,
           filename,
           type,
@@ -514,30 +513,11 @@ export function useLetterComposeViewModel(params: ComposeParams) {
   };
 }
 
-// D50 (Sprint 65 Build 78 hot-fix): map recorder URI extensions to the BE
-// audio whitelist. The BE accepts audio/webm, audio/mp4, audio/mpeg,
-// audio/ogg, audio/wav; everything else falls back to audio/mp4 (the
-// HIGH_QUALITY preset default) so multer can still validate.
-function audioMimeFromExt(ext: string): string {
-  switch (ext) {
-    case 'm4a':
-    case 'mp4':
-    case 'aac':
-      return 'audio/mp4';
-    case 'mp3':
-    case 'mpeg':
-      return 'audio/mpeg';
-    case 'wav':
-      return 'audio/wav';
-    case 'ogg':
-    case 'oga':
-      return 'audio/ogg';
-    case 'webm':
-      return 'audio/webm';
-    default:
-      return 'audio/mp4';
-  }
-}
+// D50→D51 — the dynamic audioMimeFromExt() helper from Build 79 was reverted
+// to the legacy hardcoded 'audio/mp4' label per Lu's BE-multer analysis (BE
+// validates the declared mimetype string only, not file content). Helper
+// retained-as-comment so we can rewire it if a future preset adds a non-
+// MP4 codec; deleted from runtime to silence the unused-vars warning.
 
 // Map common image extensions → MIME for FormData. Lifted from MomentCreate
 // (D38 Sprint 64 lesson — iOS HEIC default needs the right MIME or BE
