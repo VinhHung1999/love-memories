@@ -31,11 +31,11 @@ function formatClock(seconds: number): string {
 export function AudioPreview({ audio, onRemove }: Props) {
   const c = useAppColors();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentMs, setCurrentMs] = useState(0);
-  const [durationMs, setDurationMs] = useState(
-    audio.duration && audio.duration > 0
-      ? Math.round(audio.duration * 1000)
-      : 0,
+  // D63a — same single-progress-state pattern as AudioInline.
+  const [progress, setProgress] = useState(0);
+  const [currentSec, setCurrentSec] = useState(0);
+  const [totalSec, setTotalSec] = useState(
+    audio.duration && audio.duration > 0 ? audio.duration : 0,
   );
   const ownsListener = useRef(false);
 
@@ -55,7 +55,8 @@ export function AudioPreview({ audio, onRemove }: Props) {
       audioPlayer.removePlayBackListener();
       ownsListener.current = false;
       setIsPlaying(false);
-      setCurrentMs(0);
+      setProgress(0);
+      setCurrentSec(0);
       return;
     }
     try {
@@ -63,26 +64,29 @@ export function AudioPreview({ audio, onRemove }: Props) {
       ownsListener.current = true;
       setIsPlaying(true);
       audioPlayer.addPlayBackListener((e: PlayBackType) => {
-        setCurrentMs(e.currentPosition);
-        if (e.duration > 0 && e.duration !== durationMs) {
-          setDurationMs(e.duration);
+        const dur = e.duration;
+        const cur = e.currentPosition;
+        if (dur > 0) {
+          setProgress(Math.min(1, cur / dur));
+          setTotalSec(dur / 1000);
         }
-        if (e.duration > 0 && e.currentPosition >= e.duration) {
+        setCurrentSec(cur / 1000);
+        if (dur > 0 && cur >= dur) {
           audioPlayer.removePlayBackListener();
           ownsListener.current = false;
           setIsPlaying(false);
-          setCurrentMs(0);
+          setProgress(0);
+          setCurrentSec(0);
         }
       });
     } catch {
       ownsListener.current = false;
       setIsPlaying(false);
     }
-  }, [audio.url, durationMs, isPlaying]);
+  }, [audio.url, isPlaying]);
 
-  const total = durationMs / 1000;
-  const current = currentMs / 1000;
-  const progress = total > 0 ? Math.min(1, current / total) : 0;
+  const total = totalSec;
+  const current = currentSec;
 
   return (
     <View className="mt-3 flex-row items-center gap-3 px-3.5 py-3 rounded-2xl bg-surface-alt">
@@ -100,10 +104,8 @@ export function AudioPreview({ audio, onRemove }: Props) {
         )}
       </Pressable>
       <View className="flex-1 min-w-0">
-        <View
-          className="h-1.5 rounded-full overflow-hidden"
-          style={{ backgroundColor: c.lineOnSurface }}
-        >
+        {/* D63b — track to bg-ink/15 for cross-surface contrast. */}
+        <View className="h-1.5 rounded-full overflow-hidden bg-ink/15">
           <View
             className="h-full rounded-full"
             style={{

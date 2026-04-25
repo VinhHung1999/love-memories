@@ -34,14 +34,15 @@ function formatClock(seconds: number): string {
 export function AudioInline({ audioUrl, durationSeconds }: Props) {
   const c = useAppColors();
   const [isPlaying, setIsPlaying] = useState(false);
-  // Ms values straight from the RNARP listener — duration kept here too
-  // because BE may not have populated letter_audio.duration on legacy
-  // rows; the listener fills the gap as soon as playback starts.
-  const [currentMs, setCurrentMs] = useState(0);
-  const [durationMs, setDurationMs] = useState(
-    durationSeconds && durationSeconds > 0
-      ? Math.round(durationSeconds * 1000)
-      : 0,
+  // D63a (Sprint 65 Build 86 hot-fix): legacy mobile/ stores progress as a
+  // single 0..1 state and updates it from the RNARP listener directly;
+  // mirroring that here avoids the stale-closure trap of comparing
+  // `e.duration !== durationMs` against a captured render value, and
+  // avoids the "stuck at 0" failure when the BE row has duration=NULL.
+  const [progress, setProgress] = useState(0);
+  const [currentSec, setCurrentSec] = useState(0);
+  const [totalSec, setTotalSec] = useState(
+    durationSeconds && durationSeconds > 0 ? durationSeconds : 0,
   );
   const ownsListener = useRef(false);
 
@@ -63,7 +64,8 @@ export function AudioInline({ audioUrl, durationSeconds }: Props) {
       audioPlayer.removePlayBackListener();
       ownsListener.current = false;
       setIsPlaying(false);
-      setCurrentMs(0);
+      setProgress(0);
+      setCurrentSec(0);
       return;
     }
     try {
@@ -71,26 +73,29 @@ export function AudioInline({ audioUrl, durationSeconds }: Props) {
       ownsListener.current = true;
       setIsPlaying(true);
       audioPlayer.addPlayBackListener((e: PlayBackType) => {
-        setCurrentMs(e.currentPosition);
-        if (e.duration > 0 && e.duration !== durationMs) {
-          setDurationMs(e.duration);
+        const dur = e.duration;
+        const cur = e.currentPosition;
+        if (dur > 0) {
+          setProgress(Math.min(1, cur / dur));
+          setTotalSec(dur / 1000);
         }
-        if (e.duration > 0 && e.currentPosition >= e.duration) {
+        setCurrentSec(cur / 1000);
+        if (dur > 0 && cur >= dur) {
           audioPlayer.removePlayBackListener();
           ownsListener.current = false;
           setIsPlaying(false);
-          setCurrentMs(0);
+          setProgress(0);
+          setCurrentSec(0);
         }
       });
     } catch {
       ownsListener.current = false;
       setIsPlaying(false);
     }
-  }, [audioUrl, durationMs, isPlaying]);
+  }, [audioUrl, isPlaying]);
 
-  const total = durationMs / 1000;
-  const current = currentMs / 1000;
-  const progress = total > 0 ? Math.min(1, current / total) : 0;
+  const total = totalSec;
+  const current = currentSec;
 
   return (
     <View className="flex-row items-center gap-3 mt-6 px-3.5 py-3 rounded-2xl bg-surface-alt">
@@ -108,10 +113,13 @@ export function AudioInline({ audioUrl, durationSeconds }: Props) {
         )}
       </Pressable>
       <View className="flex-1 min-w-0">
-        <View
-          className="h-1.5 rounded-full overflow-hidden"
-          style={{ backgroundColor: c.lineOnSurface }}
-        >
+        {/* D63b (Sprint 65 Build 86 hot-fix): track switched from
+            `c.lineOnSurface` to `bg-ink/15` so the bar reads against the
+            surfaceAlt / cream paper backgrounds in light mode. lineOnSurface
+            is precomposed on white surface; on surfaceAlt cream / Evolve
+            terracotta the contrast collapses to near-invisible. ink/15
+            stays high-contrast on any surface in both light and dark. */}
+        <View className="h-1.5 rounded-full overflow-hidden bg-ink/15">
           <View
             className="h-full rounded-full"
             style={{
