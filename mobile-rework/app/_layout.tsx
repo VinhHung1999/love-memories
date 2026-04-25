@@ -8,7 +8,6 @@ import { router as imperativeRouter, Stack, useRouter, useSegments } from 'expo-
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -140,32 +139,26 @@ export default function RootLayout() {
   // sensitive to closure / re-render timing on the `useRouter` hook
   // — the imperative router is a singleton bound to the app navigator
   // so it's safe to call from any context.
-  // D80 (Sprint 65 Build 99 hot-fix): consolidated diagnostic. Boss's
-  // Build 99 screenshots showed `content.data = null` AND
-  // `content.userInfo` missing entirely on JS — neither D78 nor D79
-  // surfaced the real payload location. One Alert per listener now
-  // dumps the FULL notification.request (content + trigger +
-  // identifier) so Boss's next screenshot pins down where iOS is
-  // actually stashing our `link` / `type` keys.
-  //
-  // Dispatch fallback chain extended to read from `trigger.payload`
-  // — Expo SDK 54's PushNotificationTrigger exposes the raw APNs
-  // payload there. Once Boss verifies a successful match we revert
-  // every D78/D80 alert in one sweep.
+  // D81 (Sprint 65 Build 100 verified) — production-clean push deep-link
+  // dispatch. Keys to remember:
+  //   • iOS expo-notifications stashes the custom APNs payload at
+  //     `request.trigger.payload`, NOT `content.data` (always null)
+  //     or `content.userInfo` (missing on the JS layer in SDK 54).
+  //     `extractLink()` falls through data → userInfo → trigger.payload
+  //     so the same code works on Android (which uses content.data) and
+  //     any future Expo SDK that lifts the custom keys into data.
+  //   • Imperative `router` from 'expo-router' (singleton) dispatches
+  //     reliably from the listener context regardless of render timing.
+  //   • `setTimeout(50)` cushion gives the navigator a tick after a
+  //     warm-tap wake before the push completes.
+  //   • `requestAnimationFrame` defer for cold-start drain so the Stack
+  //     finishes its first render before we navigate.
   const dispatchNotificationLink = useCallback(
-    (link: string | null | undefined, source: string) => {
-      if (!link) {
-        Alert.alert(
-          'D80 dispatch (no link)',
-          JSON.stringify({ source }, null, 2).slice(0, 500),
-        );
-        return;
-      }
+    (link: string | null | undefined) => {
+      if (!link) return;
       const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
       const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
-      let target: string | null = null;
       if (letterMatch) {
-        target = `letter:${letterMatch[1]}`;
         setTimeout(() => {
           imperativeRouter.push({
             pathname: '/letter-read',
@@ -173,7 +166,6 @@ export default function RootLayout() {
           });
         }, 50);
       } else if (momentMatch) {
-        target = `moment:${momentMatch[1]}`;
         setTimeout(() => {
           imperativeRouter.push({
             pathname: '/moment-detail',
@@ -181,27 +173,20 @@ export default function RootLayout() {
           });
         }, 50);
       } else if (link === '/monthly-recap') {
-        target = 'monthly-recap';
         setTimeout(() => imperativeRouter.push('/monthly-recap'), 50);
       } else if (link === '/notifications') {
-        target = 'notifications';
         setTimeout(() => imperativeRouter.push('/notifications'), 50);
-      } else {
-        target = 'unmatched';
       }
-      Alert.alert(
-        'D80 matched',
-        JSON.stringify({ source, target, link }, null, 2).slice(0, 500),
-      );
+      // Unknown links no-op — better than dropping the user on a
+      // mismatched route. Recap / daily-plan links land here today
+      // since the rework has no dedicated screens for them yet.
     },
     [],
   );
 
-  // D80 — extract the link from any path iOS / expo-notifications might
-  // be stashing it (data root, userInfo root, trigger.payload root).
-  // First non-empty match wins. Once we know the real path we'll trim
-  // back to a single read.
-  const extractLink = (req: Notifications.NotificationRequest): string | undefined => {
+  const extractLink = (
+    req: Notifications.NotificationRequest,
+  ): string | undefined => {
     const content = req.content as {
       data?: { link?: string } | null;
       userInfo?: { link?: string } | null;
@@ -217,37 +202,13 @@ export default function RootLayout() {
   };
 
   useEffect(() => {
-    const received = Notifications.addNotificationReceivedListener((n) => {
-      Alert.alert(
-        'D80 received',
-        JSON.stringify(
-          {
-            content: n.request.content,
-            trigger: n.request.trigger,
-            identifier: n.request.identifier,
-          },
-          null,
-          2,
-        ).slice(0, 1500),
-      );
+    const received = Notifications.addNotificationReceivedListener(() => {
       useNotificationsStore.getState().invalidate();
     });
     const response = Notifications.addNotificationResponseReceivedListener(
       (resp) => {
-        Alert.alert(
-          'D80 response',
-          JSON.stringify(
-            {
-              content: resp.notification.request.content,
-              trigger: resp.notification.request.trigger,
-              identifier: resp.notification.request.identifier,
-            },
-            null,
-            2,
-          ).slice(0, 1500),
-        );
         const link = extractLink(resp.notification.request);
-        dispatchNotificationLink(link, 'warm-response');
+        dispatchNotificationLink(link);
       },
     );
 
@@ -256,22 +217,8 @@ export default function RootLayout() {
     let cancelled = false;
     void Notifications.getLastNotificationResponseAsync().then((resp) => {
       if (cancelled || !resp) return;
-      Alert.alert(
-        'D80 cold-start',
-        JSON.stringify(
-          {
-            content: resp.notification.request.content,
-            trigger: resp.notification.request.trigger,
-            identifier: resp.notification.request.identifier,
-          },
-          null,
-          2,
-        ).slice(0, 1500),
-      );
       const link = extractLink(resp.notification.request);
-      requestAnimationFrame(() =>
-        dispatchNotificationLink(link, 'cold-start'),
-      );
+      requestAnimationFrame(() => dispatchNotificationLink(link));
     });
 
     return () => {
