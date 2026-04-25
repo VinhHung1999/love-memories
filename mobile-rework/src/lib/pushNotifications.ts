@@ -25,6 +25,34 @@ import { registerMobilePushToken } from '@/api/push';
 const LAST_TOKEN_KEY = '@memoura/push/lastToken/v1';
 const PERM_PROMPTED_KEY = '@memoura/push/permPrompted/v1';
 
+// D74 (Sprint 65 Build 94 EMERGENCY hot-fix): module-level guards to
+// prevent the infinite-loop that hammered the BE with 30+ POST
+// /api/push/mobile-subscribe calls per second on Build 94.
+//
+// Root cause: `Notifications.getDevicePushTokenAsync()` synchronously
+// dispatches the registered `addPushTokenListener` callback with the
+// same token. Our listener called `registerDevicePushToken()` again,
+// which fetched the token, which dispatched the listener, which …
+// Cache short-circuit lived behind an `await AsyncStorage.getItem`
+// that the racing call out-paced — all callers entered the POST
+// branch before any of them set the cache, and the BE rate limiter
+// kicked in at 429.
+//
+// Defence in depth:
+//   1. `inFlight` — module flag so concurrent callers return early.
+//   2. `lastRegisteredToken` — in-memory cache, sync read before any
+//      await, populated immediately after a successful POST.
+//   3. `lastRegisterAt` — 60-second throttle as a belt-and-suspenders
+//      against any future race we miss.
+//   4. The token-rotation listener now compares against
+//      `lastRegisteredToken` before re-firing register, so the
+//      `getDevicePushTokenAsync`-triggered self-fire short-circuits at
+//      the listener, not deeper inside register().
+let inFlight = false;
+let lastRegisteredToken: string | null = null;
+let lastRegisterAt = 0;
+const MIN_REGISTER_INTERVAL_MS = 60_000;
+
 type PermStatus = 'granted' | 'denied' | 'undetermined';
 
 export async function getNotificationPermissionStatus(): Promise<PermStatus> {
@@ -63,23 +91,46 @@ export async function maybePromptNotificationPermissionOnce(): Promise<void> {
 }
 
 // D69 — fetch + register the native push token with the BE. Safe to
-// call multiple times; cached token short-circuits the BE round-trip.
+// call multiple times; cached token + in-flight flag short-circuit
+// duplicate calls.
 export async function registerDevicePushToken(): Promise<void> {
+  // D74 — sync guards BEFORE any await. The infinite loop came from
+  // multiple callers entering the body before the first cache write
+  // landed; a sync flag closes the door immediately.
+  if (inFlight) return;
+  if (
+    lastRegisteredToken !== null &&
+    Date.now() - lastRegisterAt < MIN_REGISTER_INTERVAL_MS
+  ) {
+    return;
+  }
+  inFlight = true;
   try {
     const status = await getNotificationPermissionStatus();
     if (status !== 'granted') return;
     const tokenRes = await Notifications.getDevicePushTokenAsync();
     const token = tokenRes.data;
     if (!token) return;
+    if (lastRegisteredToken === token) return;
     const cached = await AsyncStorage.getItem(LAST_TOKEN_KEY);
-    if (cached === token) return;
+    if (cached === token) {
+      // First call this session but token unchanged — populate the
+      // in-memory cache so future calls bail at the sync guard.
+      lastRegisteredToken = token;
+      lastRegisterAt = Date.now();
+      return;
+    }
     await registerMobilePushToken({
       token,
       deviceType: Platform.OS === 'ios' ? 'ios' : 'android',
     });
+    lastRegisteredToken = token;
+    lastRegisterAt = Date.now();
     await AsyncStorage.setItem(LAST_TOKEN_KEY, token);
   } catch {
     /* swallow — push registration shouldn't break app boot */
+  } finally {
+    inFlight = false;
   }
 }
 
@@ -87,7 +138,12 @@ export async function registerDevicePushToken(): Promise<void> {
 // auto-re-registers. Returns the disposer so the caller can unsubscribe
 // on logout if needed.
 export function subscribeToPushTokenRotation(): () => void {
-  const sub = Notifications.addPushTokenListener(() => {
+  const sub = Notifications.addPushTokenListener((next) => {
+    // D74 — `getDevicePushTokenAsync()` dispatches this listener with
+    // the same token, which re-triggered register() and infinite-
+    // looped through the BE. Compare against the in-memory cache so
+    // we only react when iOS actually rotates the token.
+    if (lastRegisteredToken && next?.data === lastRegisteredToken) return;
     void registerDevicePushToken();
   });
   return () => sub.remove();
@@ -96,6 +152,10 @@ export function subscribeToPushTokenRotation(): () => void {
 // Helper used at logout to invalidate the cached token so the next
 // login re-registers cleanly.
 export async function clearCachedPushToken(): Promise<void> {
+  // D74 — also wipe the in-memory cache so a fresh login re-registers
+  // immediately rather than waiting for the throttle window.
+  lastRegisteredToken = null;
+  lastRegisterAt = 0;
   try {
     await AsyncStorage.removeItem(LAST_TOKEN_KEY);
   } catch {
