@@ -205,10 +205,16 @@ export default function RootLayout() {
             500,
           ),
         );
-        const data = resp.notification.request.content.data as
-          | { link?: string; type?: string }
-          | undefined;
-        dispatchNotificationLink(data?.link, 'warm-response');
+        // D79 (Sprint 65 Build 98 hot-fix): expo-notifications on iOS
+        // exposes `content.data = null` for our APNs payload — the raw
+        // APNs userInfo dictionary is the only place `link` + `type`
+        // actually land. Fall back to userInfo when data is empty.
+        const content = resp.notification.request.content as {
+          data?: { link?: string; type?: string } | null;
+          userInfo?: { link?: string; type?: string } | null;
+        };
+        const link = content.data?.link ?? content.userInfo?.link;
+        dispatchNotificationLink(link, 'warm-response');
       },
     );
 
@@ -224,11 +230,14 @@ export default function RootLayout() {
           500,
         ),
       );
-      const data = resp.notification.request.content.data as
-        | { link?: string; type?: string }
-        | undefined;
+      // D79 — same userInfo fallback for cold-start drain.
+      const content = resp.notification.request.content as {
+        data?: { link?: string; type?: string } | null;
+        userInfo?: { link?: string; type?: string } | null;
+      };
+      const link = content.data?.link ?? content.userInfo?.link;
       requestAnimationFrame(() =>
-        dispatchNotificationLink(data?.link, 'cold-start'),
+        dispatchNotificationLink(link, 'cold-start'),
       );
     });
 
