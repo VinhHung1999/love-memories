@@ -50,7 +50,14 @@ export function AnswerInput({
       className="mx-5 mt-3.5 rounded-[22px] px-4 pt-4 pb-3"
       style={{
         backgroundColor: c.surface,
-        borderWidth: focused ? 2 : 1,
+        // T432-F1 follow-up (Build 104): keep borderWidth FIXED at 2 and
+        // only flip borderColor on focus. The 1→2 transition shifted the
+        // inner content box by 1px on every side; iOS RN treated the
+        // first tap as landing outside the post-shift target and sent an
+        // immediate blur, locking the textarea out of focus on every
+        // subsequent tap. Shadows don't affect layout, so the focused
+        // glow can stay conditional.
+        borderWidth: 2,
         borderColor: focused ? c.primary : c.lineOnSurface,
         shadowColor: focused ? c.primary : 'transparent',
         shadowOpacity: focused ? 0.27 : 0,
