@@ -1,4 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
@@ -80,13 +79,11 @@ export function useDailyQuestionsViewModel(): DailyQuestionsVM {
     void fetchAll('initial');
   }, [fetchAll]);
 
-  // Keep the screen fresh when partner answer arrives via push and the user
-  // taps back into the tab.
-  useFocusEffect(
-    useCallback(() => {
-      void fetchAll('refresh');
-    }, [fetchAll]),
-  );
+  // T433 RESCUE — useFocusEffect was firing during the iOS keyboard
+  // show/hide cycle (react-native-screens v3+ side effect), kicking off a
+  // background fetchAll → setState → re-render race that blurred the
+  // textarea on every focus attempt. Pull-to-refresh + post-submit
+  // refetch already cover the partner-answer-arrival update path.
 
   const submit = useCallback(
     async (text: string): Promise<{ ok: boolean; message?: string }> => {

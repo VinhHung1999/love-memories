@@ -106,7 +106,6 @@ export function DailyQuestionsScreen() {
               <UnansweredView
                 today={vm.today}
                 history={vm.history}
-                myInitial={myInitial}
                 myName={vm.myName}
                 partnerInitial={partnerInitial}
                 partnerName={partnerName}
@@ -130,7 +129,6 @@ export function DailyQuestionsScreen() {
 type UnansweredProps = {
   today: DailyQuestionToday;
   history: DailyQuestionHistoryItem[];
-  myInitial: string;
   myName: string;
   partnerInitial: string;
   partnerName: string;
@@ -143,7 +141,6 @@ type UnansweredProps = {
 function UnansweredView({
   today,
   history,
-  myInitial,
   myName,
   partnerInitial,
   partnerName,
@@ -176,18 +173,13 @@ function UnansweredView({
           duplicates the "Chưa trả lời" state already shown by the locked
           partner reveal below. */}
 
-      {/* (2) Input card */}
+      {/* (2) Input card — naked (T433 RESCUE) */}
       <AnswerInput
-        myInitial={myInitial}
-        myName={myName || t('dailyQuestions.yourAnswer')}
-        inputName={t('dailyQuestions.inputName')}
         placeholder={
           partnerName
             ? t('dailyQuestions.inputPlaceholder', { partner: partnerName })
             : t('dailyQuestions.inputPlaceholderSolo')
         }
-        charsLeftLabel={(n) => t('dailyQuestions.charsLeft', { n })}
-        writingTip={t('dailyQuestions.writingTip')}
         sendLabel={t('dailyQuestions.send')}
         submitting={submitting}
         onSubmit={onSubmit}
