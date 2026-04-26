@@ -1,7 +1,7 @@
-import { useRouter } from 'expo-router';
-import { Plus } from 'lucide-react-native';
-import { useCallback, useMemo, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useRouter } from "expo-router";
+import { Plus } from "lucide-react-native";
+import { useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Pressable,
@@ -9,18 +9,14 @@ import {
   ScrollView,
   Text,
   View,
-} from 'react-native';
+} from "react-native";
 
-import { SafeScreen, TabBarSpacer } from '@/components';
-import { useAppColors } from '@/theme/ThemeProvider';
+import { SafeScreen, TabBarSpacer } from "@/components";
+import { useAppColors } from "@/theme/ThemeProvider";
 
-import {
-  EmptyState,
-  LetterHeroCard,
-  LetterRow,
-} from './components';
-import { formatScheduleDate, relativeAgo } from './relativeAgo';
-import { useLettersViewModel, type LettersTab } from './useLettersViewModel';
+import { EmptyState, LetterHeroCard, LetterRow } from "./components";
+import { formatScheduleDate, relativeAgo } from "./relativeAgo";
+import { useLettersViewModel, type LettersTab } from "./useLettersViewModel";
 
 // T421 (Sprint 65) — Letters Inbox screen. Replaces the Sprint 59 stub at
 // app/(tabs)/letters.tsx (which only rendered a centred title). Layout
@@ -38,7 +34,7 @@ import { useLettersViewModel, type LettersTab } from './useLettersViewModel';
 
 // D45 (Build 76 hot-fix): 'scheduled' tab removed (D40 dropped the
 // schedule attachment so no UI flow creates SCHEDULED letters anymore).
-const TAB_ORDER: LettersTab[] = ['inbox', 'sent', 'drafts'];
+const TAB_ORDER: LettersTab[] = ["inbox", "sent", "drafts"];
 
 export function LettersScreen() {
   const { t, i18n } = useTranslation();
@@ -48,27 +44,27 @@ export function LettersScreen() {
   const locale = i18n.language;
 
   const goCompose = useCallback(() => {
-    router.push('/letter-compose');
+    router.push("/letter-compose");
   }, [router]);
 
   const openLetter = useCallback(
     (id: string) => {
-      router.push({ pathname: '/letter-read', params: { id } });
+      router.push({ pathname: "/letter-read", params: { id } });
     },
     [router],
   );
 
   const editDraft = useCallback(
     (id: string) => {
-      router.push({ pathname: '/letter-compose', params: { id } });
+      router.push({ pathname: "/letter-compose", params: { id } });
     },
     [router],
   );
 
   const tabsCount = vm.counts;
   const activeTab = vm.activeTab;
-  const partnerName = vm.partnerName ?? t('letters.partnerFallback');
-  const currentName = vm.currentUserName ?? t('letters.currentUserFallback');
+  const partnerName = vm.partnerName ?? t("letters.partnerFallback");
+  const currentName = vm.currentUserName ?? t("letters.currentUserFallback");
 
   // D64-redo4 (Sprint 65 Build 91 hot-fix): the brute `key={activeTab}`
   // remount caused a one-frame flash where the unmounted ScrollView's
@@ -107,11 +103,11 @@ export function LettersScreen() {
 
   if (isLoading) {
     return (
-      <SafeScreen edges={['top']}>
+      <SafeScreen edges={["top"]}>
         <Header
-          eyebrow={t('letters.eyebrow')}
-          title={t('letters.title')}
-          ctaLabel={t('letters.write')}
+          eyebrow={t("letters.eyebrow")}
+          title={t("letters.title")}
+          ctaLabel={t("letters.write")}
           onCta={goCompose}
         />
         <View className="flex-1 items-center justify-center">
@@ -123,16 +119,16 @@ export function LettersScreen() {
 
   if (isError) {
     return (
-      <SafeScreen edges={['top']}>
+      <SafeScreen edges={["top"]}>
         <Header
-          eyebrow={t('letters.eyebrow')}
-          title={t('letters.title')}
-          ctaLabel={t('letters.write')}
+          eyebrow={t("letters.eyebrow")}
+          title={t("letters.title")}
+          ctaLabel={t("letters.write")}
           onCta={goCompose}
         />
         <View className="flex-1 items-center justify-center px-8">
           <Text className="font-bodyMedium text-ink text-[15px] text-center">
-            {t('letters.error.message')}
+            {t("letters.error.message")}
           </Text>
           <Pressable
             onPress={() => void vm.reload()}
@@ -140,7 +136,7 @@ export function LettersScreen() {
             className="mt-5 px-5 h-10 rounded-full bg-primary items-center justify-center active:bg-primary-deep"
           >
             <Text className="font-bodySemibold text-white text-[14px]">
-              {t('letters.error.retry')}
+              {t("letters.error.retry")}
             </Text>
           </Pressable>
         </View>
@@ -149,18 +145,14 @@ export function LettersScreen() {
   }
 
   return (
-    <SafeScreen edges={['top']}>
+    <SafeScreen edges={["top"]}>
       <Header
-        eyebrow={t('letters.eyebrow')}
-        title={t('letters.title')}
-        ctaLabel={t('letters.write')}
+        eyebrow={t("letters.eyebrow")}
+        title={t("letters.title")}
+        ctaLabel={t("letters.write")}
         onCta={goCompose}
       />
-      <TabsBar
-        tabs={tabsConfig}
-        active={activeTab}
-        onSelect={onSelectTab}
-      />
+      <TabsBar tabs={tabsConfig} active={activeTab} onSelect={onSelectTab} />
       <ScrollView
         // D64-redo4 (Sprint 65 Build 91 hot-fix): drop `key={activeTab}`
         // (Build 88 brute remount). Boss confirmed the "lụm filter"
@@ -181,7 +173,7 @@ export function LettersScreen() {
         // mint), so the LetterHeroCard's 160px gradient header reads tight
         // against the TabsBar above. Two extra mm of breathing room keeps
         // the row from feeling "lẻm vào".
-        contentContainerClassName="px-5 pt-6 pb-2"
+        contentContainerClassName="px-5 pt-2 pb-2"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -199,10 +191,10 @@ export function LettersScreen() {
           currentUserName={currentName}
           partnerAvatarUrl={vm.partnerAvatar}
           currentUserId={vm.currentUserId}
-          unreadPillLabel={t('letters.unreadPill')}
-          ctaLabel={t('letters.tapToOpen')}
-          greetingPrefix={t('letters.heroGreeting')}
-          draftChipLabel={t('letters.draftChip')}
+          unreadPillLabel={t("letters.unreadPill")}
+          ctaLabel={t("letters.tapToOpen")}
+          greetingPrefix={t("letters.heroGreeting")}
+          draftChipLabel={t("letters.draftChip")}
           emptyTitle={t(`letters.empty.${activeTab}.title`, {
             partner: partnerName,
           })}
@@ -210,9 +202,9 @@ export function LettersScreen() {
             partner: partnerName,
           })}
           emptyCta={
-            activeTab === 'inbox'
+            activeTab === "inbox"
               ? null
-              : { label: t('letters.empty.cta'), onPress: goCompose }
+              : { label: t("letters.empty.cta"), onPress: goCompose }
           }
           onOpen={openLetter}
           onEditDraft={editDraft}
@@ -270,6 +262,7 @@ function TabsBar({ tabs, active, onSelect }: TabsBarProps) {
       showsHorizontalScrollIndicator={false}
       contentContainerClassName="px-5 gap-1.5"
       className="grow-0 mt-3"
+      style={{ paddingBottom: 12 }}
     >
       {tabs.map((tab) => (
         <TabChip
@@ -318,7 +311,7 @@ function TabChip({ label, count, active, onPress }: TabChipProps) {
         >
           <Text
             className="font-bodyBold text-[10px] leading-[12px]"
-            style={{ color: active ? '#ffffff' : c.primary }}
+            style={{ color: active ? "#ffffff" : c.primary }}
           >
             {count}
           </Text>
@@ -330,7 +323,7 @@ function TabChip({ label, count, active, onPress }: TabChipProps) {
 
 type FeedProps = {
   tab: LettersTab;
-  letters: ReturnType<typeof useLettersViewModel>['visibleLetters'];
+  letters: ReturnType<typeof useLettersViewModel>["visibleLetters"];
   locale: string;
   partnerName: string;
   currentUserName: string;
@@ -377,7 +370,7 @@ function Feed({
   }
 
   // Drafts tab — never a hero, all rows compact with 'Nháp' chip prefix.
-  if (tab === 'drafts') {
+  if (tab === "drafts") {
     return (
       <View>
         {letters.map((letter) => (
@@ -403,28 +396,23 @@ function Feed({
 
   // Q3 (Lu approved): Inbox hero greets the recipient (currentUser);
   // Sent hero greets the partner (recipient of the letter the user sent).
-  const heroRecipientName =
-    tab === 'inbox' ? currentUserName : partnerName;
+  const heroRecipientName = tab === "inbox" ? currentUserName : partnerName;
 
   // Q5 (Lu approved): mini-avatar = sender's avatar/initial.
   // Inbox hero sender is the partner (sender on the letter row).
   // Sent hero sender is the current user (currentUserId === hero.sender.id).
-  const isHeroSelf =
-    currentUserId !== null && hero.sender.id === currentUserId;
+  const isHeroSelf = currentUserId !== null && hero.sender.id === currentUserId;
   const heroSenderName = hero.sender.name ?? heroRecipientName;
   const heroSenderAvatar =
     hero.sender.avatar ?? (isHeroSelf ? null : partnerAvatarUrl);
-  const heroAgo = relativeAgo(
-    hero.deliveredAt ?? hero.createdAt,
-    locale,
-  );
+  const heroAgo = relativeAgo(hero.deliveredAt ?? hero.createdAt, locale);
 
   // Defensive trailing-label resolver: D45 dropped the Scheduled tab, but a
   // legacy SCHEDULED row could still surface via /sent (BE never deletes
   // them). Fall back to the schedule date when present so the row reads as
   // "delivers in the future" instead of "x ngày trước".
   const trailingFor = (letter: typeof hero) => {
-    if (letter.status === 'SCHEDULED' && letter.scheduledAt) {
+    if (letter.status === "SCHEDULED" && letter.scheduledAt) {
       return formatScheduleDate(letter.scheduledAt, locale);
     }
     return relativeAgo(letter.deliveredAt ?? letter.createdAt, locale);
@@ -438,7 +426,7 @@ function Feed({
         senderDisplayName={heroSenderName}
         senderAvatarUrl={heroSenderAvatar}
         agoLabel={
-          hero.status === 'SCHEDULED' && hero.scheduledAt
+          hero.status === "SCHEDULED" && hero.scheduledAt
             ? formatScheduleDate(hero.scheduledAt, locale)
             : heroAgo
         }
