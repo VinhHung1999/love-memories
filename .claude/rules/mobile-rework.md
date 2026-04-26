@@ -18,6 +18,9 @@ prototype before coding a screen.
 - Zustand + AsyncStorage
 - react-i18next + expo-localization
 - @gorhom/bottom-sheet v5
+- expo-audio v1.1.x — recorder only (Sprint 65 D62)
+- react-native-audio-recorder-player v4.5 + react-native-nitro-modules — playback only (Sprint 65 D62 swap from expo-audio because expo-audio HTTPS streaming on iOS unreliable for remote CDN URLs)
+- expo-notifications — push permissions + listeners (Sprint 65 D69-D80)
 
 ## Hard rules (Boss-enforced, non-negotiable)
 
@@ -219,10 +222,80 @@ import 'expo-router/entry';
 
 Otherwise `ReferenceError: document is not defined` at module load on Android.
 
+## Push notifications (Sprint 65 — shipped)
+
+End-to-end stack: BE direct APNs via `node-apn` + `.p8` key (Boss provides `AuthKey_<keyId>.p8` deployed at `~/deployments/<env>/memoura-api/AuthKey.p8`, env vars `APNS_KEY_PATH/APNS_KEY_ID/APNS_TEAM_ID/APNS_BUNDLE_ID/APNS_PRODUCTION`). Mobile registers iOS APNs hex token via `Notifications.getDevicePushTokenAsync()` → `POST /api/push/mobile-subscribe`. **APNS_PRODUCTION matches IPA build type, NOT backend env**: ad-hoc / TestFlight / Release IPA → `production: true`; Xcode debug build only → `production: false`. Mismatch returns `BadDeviceToken` 400 silently.
+
+**Token register dedup (Sprint 65 D74)** — `addPushTokenListener` fires with same token immediately after `getDevicePushTokenAsync()` resolves, causing infinite re-register loop without guards. Use module-level `inFlight` boolean + `lastRegisteredToken` in-memory + 60s throttle + listener `next.data === lastRegisteredToken` skip. AsyncStorage cache check alone races and fails to dedup.
+
+**Deep-link extraction (Sprint 65 D80)** — On iOS, expo-notifications exposes APNs custom payload at `notification.request.trigger.payload`, NOT `content.data` (which is `null`) and NOT `content.userInfo` (which doesn't exist on JS layer). Extract pattern:
+```ts
+const link = content.data?.link ?? trigger?.payload?.link;
+```
+Same for cold-start (`getLastNotificationResponseAsync()`) and warm tap (`addNotificationResponseReceivedListener`). Wrap router.push in `setTimeout(50)` for warm tap, `requestAnimationFrame` for cold start.
+
+**In-app foreground banner** — `Notifications.setNotificationHandler({ shouldShowBanner: true, ... })` shows iOS native banner top when app foreground. Auto-prompt permission on Dashboard mount once via `AsyncStorage` flag `@memoura/push/permPrompted`.
+
+**Diagnostic in release IPA** — `__DEV__ === false` so `console.log` doesn't fire. Use `Alert.alert('label', JSON.stringify({content, trigger, identifier}, null, 2).slice(0, 1500))` to inspect notification structure on a real-device release build when no Mac/Console.app available. Sweep-revert alerts after diagnosis.
+
+## Audio recording + playback (Sprint 65 — shipped)
+
+**Recording (Compose voice memo):** `expo-audio` v1.1.x `useAudioRecorder` + `RecordingPresets.HIGH_QUALITY` + `setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true })`. iOS produces `.caf` underlying file; rename to `.m4a` via `FileSystem.copyAsync` before FormData upload (BE multer rejects `.caf` extension). Capture `recState.durationMillis` SYNCHRONOUSLY before `await recorder.stop()` — polled state hook lags and resets on stop.
+
+**Playback (LetterRead inline + Compose preview):** `react-native-audio-recorder-player` v4.5 + `react-native-nitro-modules` peer. `expo-audio` `useAudioPlayer({ uri: httpsUrl })` on iOS fails silently for remote HTTPS audio (`status.isLoaded` never true) — RNARP works directly with raw CDN URL. Use Murmur-style `setInterval(100ms)` polling Date.now() for progress bar — RNARP `addPlayBackListener` may not fire reliably on SDK 54 + nitro.
+
+**Upload (D38 + D52 + D55 carry):** mobile FormData append `audio` file with `name: 'memo.m4a'` + `type: 'audio/mp4'` + APNs hex tokens. iOS RN FormData ignores declared `type` and infers from file extension → `audio/x-m4a` variant for `.m4a`. BE multer whitelist must include `audio/x-m4a` + `audio/x-aac`. Append `duration` field to FormData (BE expects `req.body.duration` parseFloat → letter_audio.duration column). Always prepend `file://` to URI before FormData (RN iOS silently fails on raw paths).
+
 ## Drop list (NOT in scope for rework)
 
-FoodSpots, Recipes, Expenses, Achievements, Date Planner, What-to-eat, Photobooth
-frames. Don't port these from `mobile/` unless PO/Boss explicitly asks.
+FoodSpots, Recipes, Expenses, Achievements, Date Planner, What-to-eat. Don't port
+these from `mobile/` unless PO/Boss explicitly asks. (Photobooth IS in scope —
+shipped Sprint 64 as standalone route `app/photobooth.tsx` + MVVM folder
+`src/screens/Photobooth/`.)
+
+## Photobooth (Sprint 64 — shipped)
+
+Standalone route `app/photobooth.tsx` mounting `PhotoboothScreen` +
+`usePhotoboothViewModel`. 4-step flow: **ModeStep** (count picker 2/3/4) →
+**CaptureStep** → **EditStep** → **ShareStep**.
+
+Navigation back-reset rule: `←` / `X` at steps 2-4 → `onReset()` returns to
+ModeStep (clears capturedPhotos, captions, stickers, shotIndex, resets layout to
+grid-4). `X` at ModeStep → exits Photobooth entirely (the only true dismiss).
+
+Polaroid chin (caption + date row): `alignItems: 'baseline'` so DancingScript 14 +
+Courier 9 sit on the same baseline, `lineHeight: 20` on the caption so the `♥`
+ascender is not clipped, chin height 44 + `justifyContent: 'flex-end'` +
+`paddingBottom: 10` so the row leans bottom. Filmstrip layouts skip the date row
+entirely (Boss override of prototype).
+
+Sticker drag uses PanResponder with a `latestRef` reassigned per render (cheaper
+than recreating PanResponder each render; avoids the stale-closure bug where
+drag-2 restarts from drag-1's origin instead of its drop position).
+
+Dashboard Timer Hero (T415) uses Dancing Script font carve-out + a `HeartDot`
+whose outer glow is an absolute sibling, not a child consuming flex width — keeps
+the heart centered between the two `AvatarPair` portraits.
+
+Haptic shutter feedback via `expo-haptics` (T420).
+
+## AuthorPill — shared component
+
+`src/screens/Moments/components/AuthorPill.tsx` is the one-and-only "By [name]"
+badge. Used in `DayHeroCard`, `LatestMomentCard` (Dashboard RecentMoments), and
+MomentDetail hero. Theme-aware (`bg-surface/[0.92]`) — **do NOT hardcode
+`bg-white`**, otherwise it breaks dark mode (D37 regression). Same lesson applies
+to the upload-progress toast: use `text-bg` / `c.bg` icons so it flips against
+`bg-ink` in dark mode.
+
+## Photo upload MIME (Sprint 64 D38)
+
+iOS camera defaults to HEIC. `useMomentCreateViewModel` uses a `mimeFromExt()`
+helper to map file extension → correct MIME before
+`FormData.append('photo', { uri, name, type })`. **Do NOT fall back to
+`image/jpeg`** — HEIC uploaded with a JPEG MIME fails on the CDN (format sniff)
+and on the BE filter (see `backend.md`). Avatar uploads already consume
+`asset.mimeType` from expo-image-picker so they didn't need the mobile change.
 
 ## Known bug patterns
 

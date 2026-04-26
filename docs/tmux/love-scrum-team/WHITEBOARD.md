@@ -1,8 +1,8 @@
 # Team Whiteboard
 
-**Sprint:** 🟡 **Sprint 64 PLANNED** — Audio memo + Photobooth full flow (mobile-rework). Board: `sprints/active/sprint-10.md`. Spec TBD.
-**Last Completed:** Sprint 63 — Moments Detail redesign + CRUD + partner interaction (mobile-rework) · 19 cards · 43 pts · Boss approved Build 60 (ad-hoc, app-store.hungphu.work) 2026-04-24 · merged `sprint_63` → `main` (commit `893b800`) · BE prod deployed (T402 validator) · Sprint 62 bundle shipped as part of Build 60. Board archived at `sprints/archive/sprint-9.md`.
-**Future sprint:** Sprint 64 Audio memo + Photobooth + **T387 Moment author 'by' pill** deferred from Sprint 63 backlog.
+**Sprint:** ⚪ **Sprint 65 CLOSED 2026-04-26** — Letters full UI (Inbox 4-tab + Read overlay + Compose mood/title/body/photos/audio) + Notifications inbox + **Push notifications LIVE end-to-end** (out-app banner + in-app banner + deep-link routing). Merged `sprint_65` → `main` (commit `aec66c3`). BE prod deployed via `deploy up memoura-api --env prod`. Board archived `sprints/archive/sprint-11.md`. **T424 dual flavor DEFERRED Sprint 66** (đợi Boss C2 Apple Dev App ID `.dev` + C4 dev.memoura.app AASA).
+**Last Completed:** Sprint 65 (2026-04-26) — 4/5 cards Done (T421/T422/T423/T425) · 19pt shipped + T424 5pt deferred · 28 builds (76→102 + 2 emergency 95+98) · 43 patches D39-D82 · 1 lib swap (RNARP playback) · 7 BE deploys · Push notifications LIVE via BE direct APNs `.p8` native (no Firebase for iOS, Firebase Admin kept for web push). **Final root cause D80:** `notification.request.trigger.payload` is where iOS expo-notifications stores APNs custom payload (not `content.data` or `content.userInfo`) — Build 100 breakthrough screenshot.
+**Future sprint:** Sprint 66 — **T424 dual flavor build** (B-dual-flavor P0·5pt — `com.hungphu.memoura.dev` "Memoura Dev" cài song song với prod, blocked Boss C2 Apple Dev App ID + C4 AASA serve) + **B-deploy-mobile-rework-wrapper** (P3·1pt — 11 CWD slips trên Sprint 65, fix wrapper `cd mobile-rework && ./deploy-appstore.sh`) + Sprint 65 polish carry (B-letter-reactions P2, B-anniv-notif-be P3, B-letter-draft-empty-post P3, B-moment-hero-tags-location P2, B-moment-tag-add-plus-icon P3). App Store/Play Store submission defer Sprint 67+ sau khi dual flavor verify ổn.
 
 **Big direction (Boss 2026-04-18):** Mobile rebuild from scratch. New source at `mobile-rework/` based on prototype `docs/design/prototype/memoura-v2/`. Drop all modules not in prototype (FoodSpots / Recipes / Expenses / Achievements / Date Planner). BE + web-PWA unchanged. Plan: Sprints 59→65 (~7 sprints, ~80 pts).
 
@@ -16,8 +16,8 @@ Team collapsed from 6 roles (PO/SM/TL/WEB/BE/MOBILE) to 2 roles (PO/DEV) to redu
 
 | Role | Status | Current Task | Last Update |
 |------|--------|--------------|-------------|
-| PO (Lu) | SPRINT 63 CLOSED | Merged `sprint_63` → `main` (893b800). BE prod deployed. Sprint 64 plan at `sprints/active/sprint-10.md`. Awaiting Boss kick-off. | 2026-04-24 |
-| DEV (Zu) | STAND BY | Sprint 63 shipped (18 cards · 41 pts mobile-rework + T402 BE). Awaiting Sprint 64 assignment. | 2026-04-24 |
+| PO (Lu) | SPRINT 65 CLOSED | Sprint 65 merged main (aec66c3) + BE prod deployed + DB notification backfill prod port 5433 + sprint-11.md archived. Awaiting Boss Sprint 66 kickoff (T424 dual flavor priority). | 2026-04-26 02:35 |
+| DEV (Zu) | STANDBY | Build 102 prod-clean shipped (D82 notif preview short+quoted + drop 3-dot menu). Sprint 65 trilogy + audio E2E + push deep-link locked. Cool down chờ Sprint 66 spec hoặc hot-fix carry. | 2026-04-26 02:30 |
 
 **Task tracking uses board MD files.** Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/sprints/active/sprint-{N}.md` for sprint board. Read `~/Documents/Note/HungVault/brain2/wiki/projects/love-scrum/docs/board/backlog.md` for product backlog.
 
@@ -93,6 +93,8 @@ _Sprint 60 — Onboarding + Auth + Pairing (mobile-rework): CLOSED 2026-04-20 (M
 _Sprint 61 — Pill BottomTab + Profile + Legal/Delete Account (mobile-rework): CLOSED 2026-04-21 (Memoura 2.0.0 (39) ad-hoc — T374 blind +30px TabBarSpacer resolved LẦN 6 scroll-clip, compliance trio shipped, merged main). Board archived sprint-7.md_
 _Sprint 62 — Moments CORE (mobile-rework): CLOSED 2026-04-21 (5 cards T375-T379 + 7 Boss-feedback iteration tasks T389-T395; bundled prod via Sprint 63 Build 60 per Boss rule). Board archived sprint-8.md_
 _Sprint 63 — Moments Detail redesign + CRUD + partner interaction (mobile-rework): CLOSED 2026-04-24 (19 cards · 43 pts — Memoura 2.0.0 (60) ad-hoc + BE prod T402 validator + mobile refresh-token rotation T403 + LocationPicker full-screen route T412 + 11 polish tasks; Sprint 62 bundled in same build; merged main commit 893b800). Board archived sprint-9.md_
+_Sprint 64 — Dashboard Timer Hero + Moments author pill + Photobooth + iOS HEIC upload (mobile-rework + BE): CLOSED 2026-04-25 (5 cards T404/T415/T387/T367/T416 · 14pt + 18 hot-fix patches D20-D38 chained from Boss live testing — Memoura 2.0.0 (75) ad-hoc + BE prod (HEIC whitelist + T387 author endpoint + DB migration moments.authorId FK with 4-step backfill, applied prod 5433) + Web prod (ShareViewer/Terms tweaks); merged sprint_64 → main commit 6b40dde). Board archived sprint-10.md_
+_Sprint 65 — Letters full UI + Notifications inbox + Push notifications LIVE end-to-end (mobile-rework + BE): CLOSED 2026-04-26 (4/5 cards T421/T422/T423/T425 · 19pt + T424 dual flavor 5pt deferred + 43 hot-fix patches D39-D82 + 28 builds (76→102) + 1 lib swap RNARP playback + 7 BE deploys + BE direct APNs `.p8` native push — Memoura 2.0.0 (102) ad-hoc + BE prod (LoveLetterService notif preview quote-wrapped + Moment/Comment/Reaction conversational copy + node-apn lib + DB notification message backfill prod 5433); merged sprint_65 → main commit aec66c3). Board archived sprint-11.md_
 
 ---
 
