@@ -7,7 +7,6 @@ import {
   getDailyQuestionStreak,
   getDailyQuestionToday,
 } from '@/api/dailyQuestions';
-import { type VibeKey, getTodayVibe } from '@/api/dailyVibes';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import {
   type MomentRow,
@@ -64,9 +63,6 @@ export type DashboardVM = {
   // then) — until that point treat the partner-pending pill as "unknown".
   partnerHasAnswered: boolean;
   myHasAnswered: boolean;
-  // Sprint 66 T436 — current VN-day vibe (read-only on Dashboard;
-  // selection happens on DailyQuestionsScreen).
-  vibe: VibeKey | null;
 };
 
 function toInitial(name: string | null | undefined): string {
@@ -82,7 +78,6 @@ export function useDashboardViewModel(): DashboardVM {
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
   const [todayQuestion, setTodayQuestion] = useState<DailyQuestionToday | null>(null);
   const [streak, setStreak] = useState<DailyQuestionStreak | null>(null);
-  const [vibe, setVibe] = useState<VibeKey | null>(null);
 
   const loadCouple = useCallback(async () => {
     if (!user?.coupleId) {
@@ -109,18 +104,15 @@ export function useDashboardViewModel(): DashboardVM {
     if (!user?.coupleId) {
       setTodayQuestion(null);
       setStreak(null);
-      setVibe(null);
       return;
     }
     try {
-      const [today, streakRes, vibeRes] = await Promise.all([
+      const [today, streakRes] = await Promise.all([
         getDailyQuestionToday(),
         getDailyQuestionStreak(),
-        getTodayVibe(),
       ]);
       setTodayQuestion(today);
       setStreak(streakRes);
-      setVibe(vibeRes?.vibeKey ?? null);
     } catch {
       // 404 (no questions seeded), 500, or network — keep last good values.
       // The card hides itself when todayQuestion stays null.
@@ -183,7 +175,6 @@ export function useDashboardViewModel(): DashboardVM {
       completedToday: streak?.completedToday ?? false,
       partnerHasAnswered,
       myHasAnswered,
-      vibe,
     };
   }, [
     user?.id,
@@ -197,6 +188,5 @@ export function useDashboardViewModel(): DashboardVM {
     moments.reload,
     todayQuestion,
     streak,
-    vibe,
   ]);
 }

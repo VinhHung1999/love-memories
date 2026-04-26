@@ -9,11 +9,6 @@ import {
   getDailyQuestionToday,
   submitDailyQuestionAnswer,
 } from '@/api/dailyQuestions';
-import {
-  type VibeKey,
-  getTodayVibe,
-  setTodayVibe as apiSetTodayVibe,
-} from '@/api/dailyVibes';
 import { ApiError } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -40,9 +35,6 @@ export type DailyQuestionsVM = {
   refresh: () => Promise<void>;
   submit: (text: string) => Promise<{ ok: boolean; message?: string }>;
   submitting: boolean;
-  // Sprint 66 T436 — daily vibe (single per couple per VN day).
-  vibe: VibeKey | null;
-  selectVibe: (key: VibeKey) => void;
 };
 
 const HISTORY_PAGE_SIZE = 12;
@@ -52,7 +44,6 @@ export function useDailyQuestionsViewModel(): DailyQuestionsVM {
   const [today, setToday] = useState<DailyQuestionToday | null>(null);
   const [streak, setStreak] = useState<DailyQuestionStreak | null>(null);
   const [history, setHistory] = useState<DailyQuestionHistoryItem[]>([]);
-  const [vibe, setVibe] = useState<VibeKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<'network' | 'unknown' | null>(null);
@@ -63,18 +54,16 @@ export function useDailyQuestionsViewModel(): DailyQuestionsVM {
     else setRefreshing(true);
     setError(null);
     try {
-      const [t, s, h, v] = await Promise.all([
+      const [t, s, h] = await Promise.all([
         getDailyQuestionToday(),
         getDailyQuestionStreak(),
         getDailyQuestionHistory(1, HISTORY_PAGE_SIZE),
-        getTodayVibe(),
       ]);
       setToday(t);
       setStreak(s);
       // History includes the current day — drop it so the "earlier" list
       // doesn't duplicate the hero question card.
       setHistory(h.items.filter((it) => it.question.id !== t.question.id));
-      setVibe(v?.vibeKey ?? null);
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       // 401 will already have triggered the apiClient refresh interceptor
@@ -85,19 +74,6 @@ export function useDailyQuestionsViewModel(): DailyQuestionsVM {
       setRefreshing(false);
     }
   }, []);
-
-  // Sprint 66 T436 — optimistic single-select. Tap → flip immediately,
-  // POST in background, rollback on real failure.
-  const selectVibe = useCallback(
-    (key: VibeKey) => {
-      const previous = vibe;
-      setVibe(key);
-      apiSetTodayVibe(key).catch(() => {
-        setVibe(previous);
-      });
-    },
-    [vibe],
-  );
 
   useEffect(() => {
     void fetchAll('initial');
@@ -157,7 +133,5 @@ export function useDailyQuestionsViewModel(): DailyQuestionsVM {
     submit,
     submitting,
     refresh,
-    vibe,
-    selectVibe,
   };
 }
