@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import apn from 'apn';
 import webpush from 'web-push';
 import prisma from '../utils/prisma';
 
@@ -8,27 +10,34 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY || '',
 );
 
-// Firebase Admin — lazy singleton
-let firebaseAdmin: typeof import('firebase-admin') | null = null;
-async function getFirebaseAdmin() {
-  if (firebaseAdmin) return firebaseAdmin;
+// D75 (Sprint 65 Build 95 hot-fix): direct APNs via the `apn` library,
+// replacing the Firebase Admin send path. Mobile clients register via
+// `Notifications.getDevicePushTokenAsync()` which returns the raw APNs
+// hex token (NOT an FCM registration token), and Firebase Admin's
+// `messaging().send({ token })` only accepts FCM-formatted tokens —
+// every send we tried before this fix returned `messaging/invalid-
+// argument`. Switch to `apn.Provider` so we talk to APNs directly with
+// the raw token. Apple .p8 key + IDs come from env (Lu set on dev +
+// prod 2026-04-26).
+let apnProviderSingleton: apn.Provider | null = null;
+function getApnProvider(): apn.Provider | null {
+  if (apnProviderSingleton) return apnProviderSingleton;
+  const keyPath = process.env.APNS_KEY_PATH;
+  const keyId = process.env.APNS_KEY_ID;
+  const teamId = process.env.APNS_TEAM_ID;
+  if (!keyPath || !keyId || !teamId) return null;
   try {
-    firebaseAdmin = (await import('firebase-admin')).default;
-    if (firebaseAdmin.apps.length === 0) {
-      const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-      if (serviceAccountJson) {
-        const credential = firebaseAdmin.credential.cert(JSON.parse(serviceAccountJson));
-        firebaseAdmin.initializeApp({ credential });
-      } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-        firebaseAdmin.initializeApp();
-      } else {
-        firebaseAdmin = null;
-        return null;
-      }
-    }
-    return firebaseAdmin;
+    apnProviderSingleton = new apn.Provider({
+      token: {
+        key: fs.readFileSync(keyPath),
+        keyId,
+        teamId,
+      },
+      production: process.env.APNS_PRODUCTION === 'true',
+    });
+    return apnProviderSingleton;
   } catch {
-    firebaseAdmin = null;
+    apnProviderSingleton = null;
     return null;
   }
 }
@@ -89,37 +98,38 @@ export async function sendPushNotification(userId: string, title: string, body: 
   }
 }
 
-// Note: Notification — Send FCM push to all mobile devices of a user.
+// Note: Notification — Send APNs push to all mobile devices of a user.
+// D75 (Sprint 65 Build 95 hot-fix): direct APNs via `apn.Provider`. The
+// previous Firebase Admin path rejected every send because the mobile
+// client registers raw APNs hex tokens, not FCM tokens. APNs response
+// `reason: 'BadDeviceToken' | 'Unregistered'` triggers a token prune
+// so a user who reinstalled stops getting failed sends forever.
 export async function sendMobilePushNotification(userId: string, title: string, body: string, link?: string): Promise<void> {
   try {
-    const admin = await getFirebaseAdmin();
-    if (!admin) return;
+    const provider = getApnProvider();
+    if (!provider) return;
+    const topic = process.env.APNS_BUNDLE_ID;
+    if (!topic) return;
 
     const tokens = await prisma.mobilePushToken.findMany({ where: { userId } });
     if (tokens.length === 0) return;
 
-    const results = await Promise.allSettled(
-      tokens.map((t) =>
-        admin.messaging().send({
-          token: t.token,
-          notification: { title, body },
-          data: { link: link ?? '/', type: 'notification' },
-          apns: { payload: { aps: { sound: 'default', badge: 1 } } },
-          android: { priority: 'high' as const, notification: { sound: 'default', channelId: 'default' } },
-        }),
-      ),
-    );
+    const note = new apn.Notification();
+    note.alert = { title, body };
+    note.sound = 'default';
+    note.topic = topic;
+    note.payload = { link: link ?? '/', type: 'notification' };
+    note.contentAvailable = true;
 
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
-      if (result.status === 'rejected') {
-        const errorCode = (result.reason as any)?.code;
-        if (
-          errorCode === 'messaging/registration-token-not-registered' ||
-          errorCode === 'messaging/invalid-registration-token'
-        ) {
-          await prisma.mobilePushToken.deleteMany({ where: { token: tokens[i].token } });
-        }
+    const tokenStrings = tokens.map((t) => t.token);
+    const result = await provider.send(note, tokenStrings);
+
+    for (const fail of result.failed) {
+      const reason = (fail.response as { reason?: string } | undefined)?.reason;
+      if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
+        await prisma.mobilePushToken.deleteMany({
+          where: { token: fail.device },
+        });
       }
     }
   } catch {

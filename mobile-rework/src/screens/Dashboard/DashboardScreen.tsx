@@ -1,9 +1,14 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, View } from 'react-native';
 
+import { BellButton } from '@/components/BellButton';
 import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
+import {
+  maybePromptNotificationPermissionOnce,
+  registerDevicePushToken,
+} from '@/lib/pushNotifications';
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
 import {
@@ -26,6 +31,20 @@ export function DashboardScreen() {
   const router = useRouter();
   const vm = useDashboardViewModel();
 
+  // D71 (Sprint 65 Build 93 hot-fix): one-shot auto-prompt for
+  // notification permission on Dashboard mount. The helper persists a
+  // flag so we never re-prompt — iOS hides the prompt anyway after the
+  // first denial, but the flag stops `requestPermissionsAsync` spinning
+  // on every Home tab visit. After the prompt resolves we attempt token
+  // registration so a freshly-granted user starts receiving pushes
+  // without a relaunch.
+  useEffect(() => {
+    void (async () => {
+      await maybePromptNotificationPermissionOnce();
+      await registerDevicePushToken();
+    })();
+  }, []);
+
   const greeting = vm.userName
     ? t('home.greeting', { name: vm.userName })
     : t('tabs.home');
@@ -46,7 +65,8 @@ export function DashboardScreen() {
   return (
     <SafeScreen>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* D5a: greeting row — CoupleAvatars left + text right (flex-1 min-w-0 so long names truncate) */}
+        {/* D5a: greeting row — CoupleAvatars left + text right (flex-1 min-w-0 so long names truncate).
+            T425 (Sprint 65) — BellButton appended trailing slot per Lu Q1 (no separate top bar). */}
         <View className="px-5 pt-4 flex-row items-center gap-[10px]">
           <CoupleAvatars you={vm.you} partner={vm.partner} />
           <View className="flex-1 min-w-0">
@@ -60,6 +80,7 @@ export function DashboardScreen() {
               {t('home.greetingTime')}
             </Text>
           </View>
+          <BellButton />
         </View>
 
         <ShareCodeCard />

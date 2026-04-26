@@ -191,6 +191,12 @@ const vi = {
       uploading: 'Đang tải lên {{current}}/{{total}} ảnh',
       done: 'Đã tải {{count}} ảnh',
       failed: 'Không tải được {{failed}}/{{total}} ảnh',
+      // D48 (Sprint 65 Build 77 hot-fix): voice memo variant — toast picks the
+      // audio copy when every active entry has kind='audio' so the user
+      // doesn't see "Đang tải ảnh" while a recording is uploading.
+      uploadingAudio: 'Đang tải lên giọng nói…',
+      doneAudio: 'Đã tải xong giọng nói',
+      failedAudio: 'Không tải được giọng nói',
       retry: 'Thử lại',
       dismiss: 'Đóng',
     },
@@ -282,6 +288,138 @@ const vi = {
         multiple: 'Nhiều khoảnh khắc',
         dayCount: '{{count}} ngày',
       },
+    },
+  },
+  // T421 (Sprint 65) — Letters Inbox 4-tab + hero envelope + compact rows.
+  // Header eyebrow uses Dancing Script per mobile-rework Hard Rule #5.
+  letters: {
+    eyebrow: 'Chỉ hai mình đọc',
+    title: 'Thư tình',
+    write: 'Viết',
+    heroGreeting: 'Gửi',
+    tapToOpen: 'Chạm để mở →',
+    unreadPill: 'Chưa đọc',
+    draftChip: 'Nháp',
+    partnerFallback: 'người ấy',
+    currentUserFallback: 'mình',
+    tabs: {
+      inbox: 'Hộp thư',
+      sent: 'Đã gửi',
+      drafts: 'Nháp',
+    },
+    empty: {
+      cta: 'Viết thư mới',
+      inbox: {
+        title: 'Hộp thư còn trống',
+        subtitle: 'Chưa có lá thư nào từ {{partner}}. Khi {{partner}} gửi, mình sẽ thấy ngay ở đây.',
+      },
+      sent: {
+        title: 'Mình chưa gửi thư nào',
+        subtitle: 'Có những điều khó nói thành lời — viết một lá thư cho {{partner}} nhé.',
+      },
+      drafts: {
+        title: 'Không có nháp nào',
+        subtitle: 'Mọi lá thư đang viết dở sẽ nằm ở đây để mình tiếp tục bất cứ lúc nào.',
+      },
+    },
+    error: {
+      message: 'Không tải được thư. Mình thử lại nhé?',
+      retry: 'Thử lại',
+    },
+    // T423 (Sprint 65) — Letter Compose strings (mood + title + body +
+    // photos + audio + schedule + discard).
+    compose: {
+      title: 'Thư mới',
+      subtitle: 'Gửi cho {{partner}}',
+      to: 'Gửi đến',
+      moodLabel: 'Tâm trạng',
+      titlePlaceholder: 'Gửi người của em…',
+      bodyPlaceholder: 'Anh ơi,\n\nSáng nay em dậy sớm…',
+      continueHint: 'Viết tiếp…',
+      sendCta: 'Gửi',
+      photoCounter: 'Ảnh',
+      attach: {
+        photos: 'Ảnh',
+        audio: 'Giọng nói',
+      },
+      audioSheet: {
+        title: 'Ghi âm cho lá thư',
+        hint: 'Bấm để bắt đầu — tối đa 60 giây.',
+        start: 'Bấm để ghi âm',
+        stop: 'Bấm để dừng',
+        permDenied: 'Memoura cần quyền micro để ghi âm.',
+      },
+      discardSheet: {
+        title: 'Lưu hay bỏ thư này?',
+        body: 'Mình đã viết một chút rồi. Lưu nháp để viết tiếp sau, hay bỏ luôn?',
+        save: 'Lưu nháp',
+        discard: 'Bỏ',
+        cancel: 'Tiếp tục viết',
+      },
+      toast: {
+        sent: 'Đã gửi cho {{partner}} ♥',
+        error: {
+          empty: 'Mình viết một chút trước nhé.',
+          network: 'Không gửi được. Mạng có vấn đề?',
+          unknown: 'Lỗi rồi. Mình thử lại nhé.',
+        },
+      },
+      error: {
+        message: 'Không tạo được thư mới. Mình thử lại sau nhé.',
+        back: 'Quay lại',
+      },
+    },
+    // T422 (Sprint 65) — Letter Read overlay strings.
+    read: {
+      fromAuthor: 'Từ {{name}} · viết lúc {{time}}',
+      signaturePrefix: '—',
+      reply: {
+        eyebrow: 'Viết lại cho mình',
+        body: 'Một lá thư xứng đáng một lá thư…',
+        write: 'Viết thư',
+      },
+      error: {
+        message: 'Không mở được lá thư. Mình thử lại nhé?',
+        retry: 'Thử lại',
+        back: 'Quay lại',
+      },
+    },
+  },
+  // T425 (Sprint 65) — Notifications inbox.
+  notifications: {
+    title: 'Thông báo',
+    subtitle: {
+      new: '{{count}} thông báo mới',
+      allCaught: 'Mình đã xem hết rồi',
+    },
+    tabs: {
+      all: 'Tất cả',
+      us: 'Đôi mình',
+      reminders: 'Nhắc nhở',
+    },
+    markAllRead: 'Đánh dấu đã đọc',
+    groups: {
+      today: 'Hôm nay',
+      yesterday: 'Hôm qua',
+      earlier: 'Trước đó',
+    },
+    anniv: {
+      eyebrow: 'Sắp tới',
+      title: 'Còn {{count}} ngày nữa là kỷ niệm',
+      subtitle: 'Memoura đang chuẩn bị một recap đặc biệt cho hai mình ♥',
+      cta: 'Xem chi tiết',
+    },
+    empty: {
+      title: 'Chưa có thông báo nào',
+      subtitle: 'Khi có khoảnh khắc, lá thư hay bình luận mới, mình sẽ thấy ở đây.',
+    },
+    error: {
+      message: 'Không tải được thông báo. Mình thử lại nhé?',
+      retry: 'Thử lại',
+    },
+    settings: {
+      title: 'Cài đặt thông báo',
+      subtitle: 'Chọn những gì mình muốn được nhắc',
     },
   },
   auth: {

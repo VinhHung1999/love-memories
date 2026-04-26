@@ -1,11 +1,13 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
 import * as Linking from 'expo-linking';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { router as imperativeRouter, Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,12 +15,33 @@ import '../global.css';
 import { CameraActionSheet } from '@/components/CameraActionSheet';
 import { UploadProgressToast } from '@/components/UploadProgressToast';
 import { parseMemouraUrl } from '@/lib/deepLink';
+import {
+  registerDevicePushToken,
+  subscribeToPushTokenRotation,
+} from '@/lib/pushNotifications';
 import { configureGoogleSignIn } from '@/lib/socialAuth';
 import { initI18n } from '@/locales/i18n';
 import { useAuthStore } from '@/stores/authStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { fontMap } from '@/theme/fonts';
 import { ThemeProvider } from '@/theme/ThemeProvider';
+
+// D70 (Sprint 65 Build 93 hot-fix): foreground notification behaviour.
+// Without an explicit handler, expo-notifications swallows incoming
+// pushes when the app is foregrounded — the user only sees them on the
+// Notifications screen after a refetch. Setting `shouldShowBanner: true`
+// keeps the iOS native banner showing even with the app open, matching
+// what Boss expects when Hùng + Như are both inside the app and one
+// posts a moment / letter.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -47,7 +70,163 @@ export default function RootLayout() {
     void useThemeStore.getState().hydrate();
     // Configure Google Sign-In once at boot. Idempotent — repeats no-op.
     configureGoogleSignIn();
+    // D57 (Sprint 65 Build 82 hot-fix): seed the iOS audio session category
+    // at app boot so AVPlayer routes to the device speaker even when the
+    // hardware silent switch is on. Without this, expo-audio playback
+    // appeared to do nothing on Boss's device for letters with audio
+    // attachments — the player loaded the asset (BE proxy + file are
+    // valid) but iOS's default Ambient/undefined category silently muted
+    // output. AudioRecordSheet flips `allowsRecording: true` while
+    // recording and resets to `false` on dismiss; the playback baseline
+    // sits here so every entry point inherits a consistent session.
+    void setAudioModeAsync({
+      allowsRecording: false,
+      playsInSilentMode: true,
+      interruptionMode: 'mixWithOthers',
+    }).catch(() => {
+      /* swallow: bad audio session at boot shouldn't crash the app */
+    });
   }, []);
+
+  // D69 + D70 (Sprint 65 Build 93 hot-fix): push notifications.
+  //   • Register the native APNs / FCM token with the BE once the
+  //     auth store hydrates and the user is signed in. The helper
+  //     short-circuits when the cached token matches the current
+  //     device token, so the call is safe to fire on every cold
+  //     boot and after re-login.
+  //   • Subscribe to iOS APNs token rotation — re-register through
+  //     the same path automatically.
+  //   • addNotificationResponseReceivedListener handles deep-links
+  //     when the user taps a push (background → foreground). Payload
+  //     is `data: { link, type }` from the BE PushService FCM send;
+  //     parse `/letters/<id>` → /letter-read, `/moments/<id>` →
+  //     /moment-detail, `/monthly-recap` → /monthly-recap.
+  //   • addNotificationReceivedListener invalidates the in-app
+  //     notifications inbox so a new push refreshes the bell badge
+  //     immediately even if the user is already looking at the
+  //     screen.
+  const accessToken = useAuthStore((s) => s.accessToken);
+  useEffect(() => {
+    if (!authHydrated) return;
+    if (!accessToken) return;
+    void registerDevicePushToken();
+    const dispose = subscribeToPushTokenRotation();
+    return dispose;
+  }, [authHydrated, accessToken]);
+
+  // D76 (Sprint 65 Build 95 hot-fix): map BE notification.link strings
+  // (e.g. `/letters/{id}`, `/moments/{id}`, `/monthly-recap`) to the
+  // app's actual Expo Router paths. The earlier code passed the BE
+  // link straight to `router.push`, which doesn't match any registered
+  // route — push silently falls back to the initial tabs entry, so
+  // Boss saw every notification tap drop him on Home regardless of
+  // origin.
+  //
+  // Also wires the cold-start path: if the user taps a push while the
+  // app is killed, Expo doesn't fire `addNotificationResponseReceived
+  // Listener` — it stashes the response and we fetch it via
+  // `getLastNotificationResponseAsync()` once the navigation tree is
+  // mounted. Run it inside the same effect, deferred by one
+  // animation frame so the Stack has finished its initial render.
+  // D77 (Sprint 65 Build 96 hot-fix): verbose logging at every step so
+  // a Console.app capture from Boss's device pinpoints whether the
+  // listener fires, what payload arrives, and which branch the
+  // dispatcher hits. Build 96's deep-link dispatch silently fell
+  // through to home for both letter + moment pushes; without device
+  // logs we couldn't tell whether the listener fires, the regex
+  // matches, or `router.push` silently no-ops. Also swap to the
+  // imperative `router` from 'expo-router' so the dispatch isn't
+  // sensitive to closure / re-render timing on the `useRouter` hook
+  // — the imperative router is a singleton bound to the app navigator
+  // so it's safe to call from any context.
+  // D81 (Sprint 65 Build 100 verified) — production-clean push deep-link
+  // dispatch. Keys to remember:
+  //   • iOS expo-notifications stashes the custom APNs payload at
+  //     `request.trigger.payload`, NOT `content.data` (always null)
+  //     or `content.userInfo` (missing on the JS layer in SDK 54).
+  //     `extractLink()` falls through data → userInfo → trigger.payload
+  //     so the same code works on Android (which uses content.data) and
+  //     any future Expo SDK that lifts the custom keys into data.
+  //   • Imperative `router` from 'expo-router' (singleton) dispatches
+  //     reliably from the listener context regardless of render timing.
+  //   • `setTimeout(50)` cushion gives the navigator a tick after a
+  //     warm-tap wake before the push completes.
+  //   • `requestAnimationFrame` defer for cold-start drain so the Stack
+  //     finishes its first render before we navigate.
+  const dispatchNotificationLink = useCallback(
+    (link: string | null | undefined) => {
+      if (!link) return;
+      const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
+      const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
+      if (letterMatch) {
+        setTimeout(() => {
+          imperativeRouter.push({
+            pathname: '/letter-read',
+            params: { id: letterMatch[1] },
+          });
+        }, 50);
+      } else if (momentMatch) {
+        setTimeout(() => {
+          imperativeRouter.push({
+            pathname: '/moment-detail',
+            params: { id: momentMatch[1] },
+          });
+        }, 50);
+      } else if (link === '/monthly-recap') {
+        setTimeout(() => imperativeRouter.push('/monthly-recap'), 50);
+      } else if (link === '/notifications') {
+        setTimeout(() => imperativeRouter.push('/notifications'), 50);
+      }
+      // Unknown links no-op — better than dropping the user on a
+      // mismatched route. Recap / daily-plan links land here today
+      // since the rework has no dedicated screens for them yet.
+    },
+    [],
+  );
+
+  const extractLink = (
+    req: Notifications.NotificationRequest,
+  ): string | undefined => {
+    const content = req.content as {
+      data?: { link?: string } | null;
+      userInfo?: { link?: string } | null;
+    };
+    const trigger = req.trigger as {
+      payload?: { link?: string } | null;
+    } | null;
+    return (
+      content.data?.link ??
+      content.userInfo?.link ??
+      trigger?.payload?.link
+    );
+  };
+
+  useEffect(() => {
+    const received = Notifications.addNotificationReceivedListener(() => {
+      useNotificationsStore.getState().invalidate();
+    });
+    const response = Notifications.addNotificationResponseReceivedListener(
+      (resp) => {
+        const link = extractLink(resp.notification.request);
+        dispatchNotificationLink(link);
+      },
+    );
+
+    // Cold-start: app killed → tap push → app launches with the response
+    // stashed. Drain it after the next frame so the Stack is mounted.
+    let cancelled = false;
+    void Notifications.getLastNotificationResponseAsync().then((resp) => {
+      if (cancelled || !resp) return;
+      const link = extractLink(resp.notification.request);
+      requestAnimationFrame(() => dispatchNotificationLink(link));
+    });
+
+    return () => {
+      cancelled = true;
+      received.remove();
+      response.remove();
+    };
+  }, [dispatchNotificationLink]);
 
   const allReady =
     (fontsLoaded || fontError) && i18nReady && authHydrated && themeHydrated;
@@ -124,6 +303,14 @@ function RootStack() {
           ignored because the parent group is already presentation:'modal'.
           Promoted to root stack, same pattern as moment-detail. */}
       <Stack.Screen name="photobooth" options={{ presentation: 'fullScreenModal' }} />
+      {/* D42 (Build 76 hot-fix) — letter-read promoted out of (modal) so it
+          pushes as a full-screen card (Boss feedback: read mode shouldn't be
+          a modal sheet). Same pattern as moment-detail. */}
+      <Stack.Screen name="letter-read" />
+      {/* T425 (Sprint 65) — Notifications inbox top-level route. Push
+          transition (not modal) per Lu Q4. Reuses the same back-gesture
+          + auth-gate skip wiring as moment-detail / letter-read. */}
+      <Stack.Screen name="notifications" />
     </Stack>
   );
 }
@@ -196,6 +383,8 @@ function useAuthGate() {
     if (inModalGroup) return;
     if (seg[0] === 'moment-detail') return;
     if (seg[0] === 'photobooth') return;
+    if (seg[0] === 'letter-read') return;
+    if (seg[0] === 'notifications') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

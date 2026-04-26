@@ -113,6 +113,17 @@ const config: ExpoConfig = {
     ],
     'expo-apple-authentication',
     [
+      'expo-audio',
+      {
+        // T422 (Sprint 65) — Letter Read overlay plays back voice memos
+        // attached to letters. Recording permission is wired here too so
+        // T423 Letter Compose's voice-memo recorder doesn't need a second
+        // plugin entry. Foreground-only; no background audio.
+        microphonePermission:
+          'Memoura cần quyền micro để em ghi âm giọng nói cho lá thư.',
+      },
+    ],
+    [
       '@react-native-google-signin/google-signin',
       {
         // REVERSED iOS OAuth client ID — must match the Google Cloud iOS client

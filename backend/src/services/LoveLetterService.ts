@@ -122,11 +122,13 @@ export async function create(
       where: { id: userId },
       select: { name: true },
     });
+    const senderName = senderUser?.name ?? 'Người ấy';
+    const preview = letterContentPreview(letter.content);
     await createNotification(
       partner.id,
       'love_letter',
-      `Thư tình mới từ ${senderUser?.name ?? 'người ấy'} 💌`,
-      data.title,
+      `${senderName} vừa gửi cho bạn 1 lá thư 💌`,
+      preview,
       `/letters/${letter.id}`,
     ).catch(() => {});
   }
@@ -196,15 +198,36 @@ export async function send(id: string, userId: string, coupleId: string) {
     where: { id: userId },
     select: { name: true },
   });
+  const senderName = senderUser?.name ?? 'Người ấy';
+  const preview = letterContentPreview(updated.content);
   await createNotification(
     letter.recipientId,
     'love_letter',
-    `Thư tình mới từ ${senderUser?.name ?? 'người ấy'} 💌`,
-    letter.title,
+    `${senderName} vừa gửi cho bạn 1 lá thư 💌`,
+    preview,
     `/letters/${letter.id}`,
   ).catch(() => {});
 
   return updated;
+}
+
+// D72a (Sprint 65 Build 95 hot-fix): notification preview helper for
+// letter copy. The BE Zod schema requires title.min(1) + content.min(1)
+// so the mobile draft-first flow ships a single-space placeholder when
+// the user never typed anything. Trim before slicing so the placeholder
+// drops out cleanly to the fallback copy.
+//
+// D82a (Sprint 65 Build 102 hot-fix): Boss wants letter push body trimmed
+// to ~10 chars and wrapped in double quotes so the lock-screen preview
+// reads like a snippet ('"Anh nè, sá..."') instead of the full opening
+// sentence. Empty-content fallback stays unquoted ('Một lá thư mới')
+// so the no-body case still reads like a system line.
+function letterContentPreview(content: string): string {
+  const trimmed = (content ?? '').trim();
+  if (trimmed.length === 0) return 'Một lá thư mới';
+  const slice = trimmed.slice(0, 10).trim();
+  const ellipsis = trimmed.length > 10 ? '...' : '';
+  return `"${slice}${ellipsis}"`;
 }
 
 export async function markRead(id: string, userId: string, coupleId: string) {

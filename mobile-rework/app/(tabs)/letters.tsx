@@ -1,14 +1,6 @@
-import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
-import { SafeScreen } from '@/components';
+import { LettersScreen } from '@/screens/Letters/LettersScreen';
 
-export default function Letters() {
-  const { t } = useTranslation();
-  return (
-    <SafeScreen>
-      <View className="flex-1 items-center justify-center">
-        <Text className="font-displayMedium text-2xl text-ink">{t('tabs.letters')}</Text>
-      </View>
-    </SafeScreen>
-  );
-}
+// T421 (Sprint 65) — replaces the Sprint 59 stub. Full inbox 4-tab list lives
+// in src/screens/Letters/.
+
+export default LettersScreen;

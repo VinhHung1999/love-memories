@@ -169,6 +169,10 @@ const en: Resources = {
       uploading: 'Uploading {{current}}/{{total}} photos',
       done: 'Uploaded {{count}} photos',
       failed: 'Failed {{failed}}/{{total}} photos',
+      // D48 (Sprint 65 Build 77 hot-fix): voice memo variant.
+      uploadingAudio: 'Uploading voice memo…',
+      doneAudio: 'Voice memo uploaded',
+      failedAudio: 'Voice memo upload failed',
       retry: 'Retry',
       dismiss: 'Dismiss',
     },
@@ -259,6 +263,136 @@ const en: Resources = {
         multiple: 'Multiple',
         dayCount: '{{count}} day(s)',
       },
+    },
+  },
+  // T421 (Sprint 65) — Letters Inbox 4-tab + hero envelope + compact rows.
+  letters: {
+    eyebrow: 'Only us',
+    title: 'Letters',
+    write: 'Write',
+    heroGreeting: 'Dear',
+    tapToOpen: 'Tap to open →',
+    unreadPill: 'Unread',
+    draftChip: 'Draft',
+    partnerFallback: 'them',
+    currentUserFallback: 'you',
+    tabs: {
+      inbox: 'Inbox',
+      sent: 'Sent',
+      drafts: 'Drafts',
+    },
+    empty: {
+      cta: 'Write a letter',
+      inbox: {
+        title: 'No letters yet',
+        subtitle: 'Nothing from {{partner}} yet. When they write, it shows up here.',
+      },
+      sent: {
+        title: 'You haven’t sent a letter',
+        subtitle: 'Some things are easier in writing — try one for {{partner}}.',
+      },
+      drafts: {
+        title: 'No drafts',
+        subtitle: 'Letters you start will wait here until you’re ready to send.',
+      },
+    },
+    error: {
+      message: 'Couldn’t load letters. Try again?',
+      retry: 'Retry',
+    },
+    // T423 (Sprint 65) — Letter Compose strings.
+    compose: {
+      title: 'New letter',
+      subtitle: 'To {{partner}}',
+      to: 'To',
+      moodLabel: 'Mood',
+      titlePlaceholder: 'To the one I love…',
+      bodyPlaceholder: 'Darling,\n\nI woke up early today…',
+      continueHint: 'Continue…',
+      sendCta: 'Send',
+      photoCounter: 'Photos',
+      attach: {
+        photos: 'Photos',
+        audio: 'Voice',
+      },
+      audioSheet: {
+        title: 'Record voice memo',
+        hint: 'Tap to start — up to 60 seconds.',
+        start: 'Tap to record',
+        stop: 'Tap to stop',
+        permDenied: 'Memoura needs mic access to record.',
+      },
+      discardSheet: {
+        title: 'Save or discard?',
+        body: 'You\'ve written a bit. Save the draft to continue later, or discard?',
+        save: 'Save draft',
+        discard: 'Discard',
+        cancel: 'Keep writing',
+      },
+      toast: {
+        sent: 'Sent to {{partner}} ♥',
+        error: {
+          empty: 'Write something first.',
+          network: 'Send failed. Network issue?',
+          unknown: 'Something broke. Try again.',
+        },
+      },
+      error: {
+        message: 'Couldn’t start a new letter. Try later.',
+        back: 'Back',
+      },
+    },
+    // T422 (Sprint 65) — Letter Read overlay strings.
+    read: {
+      fromAuthor: 'From {{name}} · written at {{time}}',
+      signaturePrefix: '—',
+      reply: {
+        eyebrow: 'Write back',
+        body: 'A letter deserves a letter…',
+        write: 'Write a letter',
+      },
+      error: {
+        message: 'Couldn’t open this letter. Try again?',
+        retry: 'Retry',
+        back: 'Back',
+      },
+    },
+  },
+  // T425 (Sprint 65) — Notifications inbox.
+  notifications: {
+    title: 'Notifications',
+    subtitle: {
+      new: '{{count}} new',
+      allCaught: 'All caught up',
+    },
+    tabs: {
+      all: 'All',
+      us: 'Us',
+      reminders: 'Reminders',
+    },
+    markAllRead: 'Mark all read',
+    groups: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      earlier: 'Earlier',
+    },
+    anniv: {
+      eyebrow: 'Coming up',
+      title: '{{count}} days until your anniversary',
+      subtitle: 'Memoura is preparing a special recap for the two of you ♥',
+      cta: 'See details',
+    },
+    empty: {
+      title: 'No notifications yet',
+      subtitle: 'When there’s a new moment, letter, or comment, you’ll see it here.',
+    },
+    error: {
+      message: 'Couldn’t load notifications. Try again?',
+      retry: 'Retry',
+    },
+    settings: {
+      title: 'Notification settings',
+      subtitle: 'Choose what you want to hear about',
     },
   },
   auth: {
