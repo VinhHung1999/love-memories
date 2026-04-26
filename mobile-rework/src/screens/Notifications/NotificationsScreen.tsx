@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ChevronLeft, MoreHorizontal } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -393,13 +393,10 @@ function Header({ subtitle, title, backLabel, onBack }: HeaderProps) {
           {subtitle}
         </Text>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="More"
-        className="w-10 h-10 rounded-full items-center justify-center active:opacity-70"
-      >
-        <MoreHorizontal size={20} strokeWidth={2.1} color={c.inkMute} />
-      </Pressable>
+      {/* D82b (Sprint 65 Build 102) — drop 3-dot trailing button. Boss
+          says no function, looked clickable. Trailing slot stays empty
+          so the title row breathes; "Mark all read" lives in the tabs
+          row below the header. */}
     </View>
   );
 }

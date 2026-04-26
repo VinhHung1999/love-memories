@@ -216,11 +216,18 @@ export async function send(id: string, userId: string, coupleId: string) {
 // so the mobile draft-first flow ships a single-space placeholder when
 // the user never typed anything. Trim before slicing so the placeholder
 // drops out cleanly to the fallback copy.
+//
+// D82a (Sprint 65 Build 102 hot-fix): Boss wants letter push body trimmed
+// to ~10 chars and wrapped in double quotes so the lock-screen preview
+// reads like a snippet ('"Anh nè, sá..."') instead of the full opening
+// sentence. Empty-content fallback stays unquoted ('Một lá thư mới')
+// so the no-body case still reads like a system line.
 function letterContentPreview(content: string): string {
   const trimmed = (content ?? '').trim();
   if (trimmed.length === 0) return 'Một lá thư mới';
-  if (trimmed.length <= 80) return trimmed;
-  return `${trimmed.slice(0, 80)}…`;
+  const slice = trimmed.slice(0, 10).trim();
+  const ellipsis = trimmed.length > 10 ? '...' : '';
+  return `"${slice}${ellipsis}"`;
 }
 
 export async function markRead(id: string, userId: string, coupleId: string) {
