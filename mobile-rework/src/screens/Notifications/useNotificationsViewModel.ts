@@ -25,6 +25,7 @@ export type NotifKind =
   | 'place'
   | 'recap'
   | 'daily'
+  | 'qna'
   | 'streak'
   | 'invite'
   | 'anniv'
@@ -49,6 +50,7 @@ const US_KINDS: NotifKind[] = [
 const REMINDER_KINDS: NotifKind[] = [
   'recap',
   'daily',
+  'qna',
   'streak',
   'invite',
   'anniv',
@@ -72,6 +74,12 @@ function kindFromType(type: string): NotifKind {
       return 'recap';
     case 'daily_plan_reminder':
       return 'daily';
+    // T438 (Sprint 66) — Daily Q&A notification types share one kind so
+    // both the cron-fired reminder and the realtime partner-answered ping
+    // get the same "qna" affordance + deep-link target.
+    case 'daily_question_reminder':
+    case 'daily_question_partner_answered':
+      return 'qna';
     case 'achievement_unlocked':
     case 'new_recipe':
     case 'new_date_wish':

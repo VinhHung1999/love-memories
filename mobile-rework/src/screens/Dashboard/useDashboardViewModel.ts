@@ -1,6 +1,12 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  type DailyQuestionStreak,
+  type DailyQuestionToday,
+  getDailyQuestionStreak,
+  getDailyQuestionToday,
+} from '@/api/dailyQuestions';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import {
   type MomentRow,
@@ -48,6 +54,15 @@ export type DashboardVM = {
   coupleName: string | null;
   anniversaryDate: Date | null;
   anniversarySource: 'couple' | 'fallback';
+  // Sprint 66 T428 — Daily Q&A snapshot powering DailyQCard.
+  todayQuestion: DailyQuestionToday | null;
+  streakCount: number;
+  completedToday: boolean;
+  // Whether the partner has answered today's question. Only safely
+  // resolvable AFTER the user has answered (BE locks partnerAnswer until
+  // then) — until that point treat the partner-pending pill as "unknown".
+  partnerHasAnswered: boolean;
+  myHasAnswered: boolean;
 };
 
 function toInitial(name: string | null | undefined): string {
@@ -61,6 +76,8 @@ export function useDashboardViewModel(): DashboardVM {
   const moments = useMomentsViewModel();
 
   const [couple, setCouple] = useState<CoupleResponse | null>(null);
+  const [todayQuestion, setTodayQuestion] = useState<DailyQuestionToday | null>(null);
+  const [streak, setStreak] = useState<DailyQuestionStreak | null>(null);
 
   const loadCouple = useCallback(async () => {
     if (!user?.coupleId) {
@@ -79,14 +96,39 @@ export function useDashboardViewModel(): DashboardVM {
     }
   }, [user?.coupleId]);
 
+  // Sprint 66 T428 — pulls today + streak together so DailyQCard can render
+  // both the current question and the streak chip without a second roundtrip.
+  // Hidden entirely when the user has no couple yet (the BE guards against
+  // requests without coupleId; calling them would 401/400 anyway).
+  const loadDailyQuestion = useCallback(async () => {
+    if (!user?.coupleId) {
+      setTodayQuestion(null);
+      setStreak(null);
+      return;
+    }
+    try {
+      const [today, streakRes] = await Promise.all([
+        getDailyQuestionToday(),
+        getDailyQuestionStreak(),
+      ]);
+      setTodayQuestion(today);
+      setStreak(streakRes);
+    } catch {
+      // 404 (no questions seeded), 500, or network — keep last good values.
+      // The card hides itself when todayQuestion stays null.
+    }
+  }, [user?.coupleId]);
+
   useEffect(() => {
     void loadCouple();
-  }, [loadCouple]);
+    void loadDailyQuestion();
+  }, [loadCouple, loadDailyQuestion]);
 
   useFocusEffect(
     useCallback(() => {
       void loadCouple();
-    }, [loadCouple]),
+      void loadDailyQuestion();
+    }, [loadCouple, loadDailyQuestion]),
   );
 
   return useMemo<DashboardVM>(() => {
@@ -111,6 +153,11 @@ export function useDashboardViewModel(): DashboardVM {
     const anniversaryDate =
       parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
 
+    const myHasAnswered = !!todayQuestion?.myAnswer;
+    // BE only populates partnerAnswer once myAnswer is set. Treat the
+    // partner-pending state as "unknown until you answer first".
+    const partnerHasAnswered = myHasAnswered ? !!todayQuestion?.partnerAnswer : false;
+
     return {
       userName: youName || null,
       latest: moments.moments[0] ?? null,
@@ -123,6 +170,11 @@ export function useDashboardViewModel(): DashboardVM {
       coupleName: couple?.name ?? null,
       anniversaryDate,
       anniversarySource: anniversaryDate ? 'couple' : 'fallback',
+      todayQuestion,
+      streakCount: streak?.currentStreak ?? 0,
+      completedToday: streak?.completedToday ?? false,
+      partnerHasAnswered,
+      myHasAnswered,
     };
   }, [
     user?.id,
@@ -134,5 +186,7 @@ export function useDashboardViewModel(): DashboardVM {
     moments.loading,
     moments.error,
     moments.reload,
+    todayQuestion,
+    streak,
   ]);
 }

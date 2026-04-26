@@ -176,6 +176,11 @@ export default function RootLayout() {
         setTimeout(() => imperativeRouter.push('/monthly-recap'), 50);
       } else if (link === '/notifications') {
         setTimeout(() => imperativeRouter.push('/notifications'), 50);
+      } else if (link === '/daily-questions') {
+        // Sprint 66 T428 — `daily_question_reminder` (cron 8AM VN) and
+        // `daily_question_partner_answered` (BE submitAnswer realtime)
+        // both ship payload.link='/daily-questions'.
+        setTimeout(() => imperativeRouter.push('/daily-questions'), 50);
       }
       // Unknown links no-op — better than dropping the user on a
       // mismatched route. Recap / daily-plan links land here today
@@ -311,6 +316,10 @@ function RootStack() {
           transition (not modal) per Lu Q4. Reuses the same back-gesture
           + auth-gate skip wiring as moment-detail / letter-read. */}
       <Stack.Screen name="notifications" />
+      {/* T428 (Sprint 66) — Daily Q&A full screen. Top-level route entered
+          from DailyQCard tap on Dashboard or via push deep-link
+          (`/daily-questions`). Same auth-gate skip pattern as notifications. */}
+      <Stack.Screen name="daily-questions" />
     </Stack>
   );
 }
@@ -385,6 +394,7 @@ function useAuthGate() {
     if (seg[0] === 'photobooth') return;
     if (seg[0] === 'letter-read') return;
     if (seg[0] === 'notifications') return;
+    if (seg[0] === 'daily-questions') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

@@ -33,6 +33,7 @@ model Couple {
   shareLinks         ShareLink[]
   subscription       Subscription?
   dailyStreak        DailyQuestionStreak?
+  dailyVibes         DailyVibe[]
 
   @@map("couples")
 }
@@ -686,6 +687,25 @@ model DailyQuestionStreak {
   couple           Couple    @relation(fields: [coupleId], references: [id])
 
   @@map("daily_question_streaks")
+}
+
+// Sprint 66 T435 — single per-couple "vibe" chip per VN day. Reset at
+// VN midnight (no row for today = no vibe selected). vibeKey is one of
+// the 5 fixed presets defined in DailyVibeService.VIBE_KEYS; the BE
+// validates the value before upsert.
+model DailyVibe {
+  id          String   @id @default(uuid())
+  coupleId    String
+  vibeKey     String
+  dayKey      String   // YYYY-MM-DD in Asia/Ho_Chi_Minh
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  couple      Couple   @relation(fields: [coupleId], references: [id])
+
+  @@unique([coupleId, dayKey])
+  @@index([coupleId])
+  @@map("daily_vibes")
 }
 
 model ShareLink {

@@ -148,6 +148,11 @@ export default function NotificationsScreen() {
           // weekly recap screen yet, monthly is the closest analog.
           router.push('/monthly-recap');
           return;
+        case 'qna':
+          // T438 (Sprint 66) — daily-question reminders + partner-answered
+          // both deep-link to the full Daily Q&A screen.
+          router.push('/daily-questions');
+          return;
         case 'daily':
         case 'streak':
         case 'invite':

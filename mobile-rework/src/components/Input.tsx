@@ -13,35 +13,72 @@ export const Input = forwardRef<TextInput, Props>(function Input(
   { label, error, hint, className, onFocus, onBlur, ...rest },
   ref,
 ) {
-  const colors = useAppColors();
+  const c = useAppColors();
   const [focused, setFocused] = useState(false);
-  const borderClass = error
-    ? 'border-primary-deep'
+  const borderColor = error
+    ? c.primaryDeep
     : focused
-      ? 'border-primary'
-      : 'border-line-on-surface';
+      ? c.primary
+      : c.lineOnSurface;
 
+  // T439 (Sprint 66): pivot to the proven EditProfileSheet pattern. The old
+  // wrapper `<View h-12 justify-center>` with a child TextInput let the
+  // input's natural text-block grow on type — RN iOS default vertical
+  // padding shifts between empty + typed states, and Android adds extra
+  // `includeFontPadding`; the parent stretched + the caret jittered every
+  // keystroke (fired on plain ASCII too, not just diacritics — Boss
+  // confirm 2026-04-26).
+  //
+  // Fix: drop the parent wrapper. Apply padding/border/bg directly on the
+  // TextInput style. Height derives from `paddingVertical + fontSize +
+  // lineHeight` and stays constant across the empty → 1-char → full-text
+  // lifecycle. Pattern verified shipping in EditProfileSheet:279-289.
+  // Label / error / hint slots stay above + below the TextInput.
   return (
     <View className={className}>
       {label ? (
         <Text className="font-bodyMedium text-sm text-ink-soft mb-2">{label}</Text>
       ) : null}
-      <View className={`h-12 rounded-2xl px-4 justify-center bg-surface border ${borderClass}`}>
-        <TextInput
-          ref={ref}
-          className="font-body text-base text-ink"
-          placeholderTextColor={colors.inkMute}
-          onFocus={(e) => {
-            setFocused(true);
-            onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            onBlur?.(e);
-          }}
-          {...rest}
-        />
-      </View>
+      {/* T444 REVISED (Sprint 66, Build 114) — Boss directive: stay on
+          RN core TextInput (no BottomSheetTextInput swap, no different
+          component). Try a combination not yet tested: padding-only
+          height derivation (no `height` set, no wrapper container) +
+          four single-line guard props that haven't been combined
+          together before:
+            • multiline={false}            — explicit single-line.
+            • numberOfLines={1}            — strict 1 line.
+            • scrollEnabled={false}        — disable RN's internal
+              auto-scroll inside the input (a known reflow trigger).
+            • maxFontSizeMultiplier={1}    — opt out of accessibility
+              font scaling so the rendered glyph metric can't shift
+              between empty + typed states from system font scaling. */}
+      <TextInput
+        ref={ref}
+        placeholderTextColor={c.inkMute}
+        multiline={false}
+        numberOfLines={1}
+        scrollEnabled={false}
+        maxFontSizeMultiplier={1}
+        style={{
+          paddingVertical: 14,
+          paddingHorizontal: 18,
+          borderWidth: 1.5,
+          borderRadius: 16,
+          borderColor,
+          backgroundColor: c.surface,
+          color: c.ink,
+          fontSize: 15,
+        }}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+        {...rest}
+      />
       {error ? (
         <Text className="font-body text-xs text-primary-deep mt-1">{error}</Text>
       ) : hint ? (
