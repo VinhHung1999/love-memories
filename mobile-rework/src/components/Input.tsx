@@ -42,24 +42,22 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       <TextInput
         ref={ref}
         placeholderTextColor={c.inkMute}
-        // T440 (Sprint 66, Build 110): match the EditProfileSheet pattern
-        // 1:1. Build 109 added an explicit `lineHeight: 20` "for safety"
-        // which on iOS reflows the rendered text bbox between empty and
-        // typed states (font-intrinsic line metric ≠ 20) — that was the
-        // last source of height jitter on plain ASCII. Drop it entirely;
-        // let the font's natural line metric decide. Android-only props
-        // (includeFontPadding / textAlignVertical) are no-ops on iOS so
-        // also dropped to keep parity with the proven Profile shape.
+        // T441 (Sprint 66, Build 111): pivot to legacy `mobile/` Input
+        // pattern that has been shipping without jitter. Key change:
+        // hardcode height via className (`h-[50px]`) so RN iOS auto-
+        // vertical-centres the text inside a fixed box. No
+        // `paddingVertical`, no explicit `fontFamily`/`fontSize`/
+        // `lineHeight` in style — those force RN to re-derive the text
+        // bbox between empty + typed states, which was the actual
+        // jitter source. RN defaults handle font + line metrics
+        // consistently across input states. Only the runtime colours
+        // (border / bg / text) need to live in `style` since they
+        // depend on `useAppColors()`.
+        className="h-[50px] px-[18px] rounded-2xl border-[1.5px]"
         style={{
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          fontFamily: 'BeVietnamPro_400Regular',
-          fontSize: 15,
           backgroundColor: c.surface,
           color: c.ink,
           borderColor,
-          borderWidth: 1,
-          borderRadius: 16,
         }}
         onFocus={(e) => {
           setFocused(true);
