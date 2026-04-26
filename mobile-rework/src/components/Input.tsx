@@ -42,22 +42,25 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       <TextInput
         ref={ref}
         placeholderTextColor={c.inkMute}
-        // T441 (Sprint 66, Build 111): pivot to legacy `mobile/` Input
-        // pattern that has been shipping without jitter. Key change:
-        // hardcode height via className (`h-[50px]`) so RN iOS auto-
-        // vertical-centres the text inside a fixed box. No
-        // `paddingVertical`, no explicit `fontFamily`/`fontSize`/
-        // `lineHeight` in style — those force RN to re-derive the text
-        // bbox between empty + typed states, which was the actual
-        // jitter source. RN defaults handle font + line metrics
-        // consistently across input states. Only the runtime colours
-        // (border / bg / text) need to live in `style` since they
-        // depend on `useAppColors()`.
-        className="h-[50px] px-[18px] rounded-2xl border-[1.5px]"
+        // T442 (Sprint 66, Build 112) — Boss directive: Input.tsx
+        // TextInput uses ONLY the style prop, NO className. Hypothesis:
+        // NativeWind v4's `cssInterop` layer wraps TextInput and can
+        // race the empty→typed render cycle when geometry is split
+        // between className → runtime style + the style prop's own
+        // values, surfacing as height jitter on every keystroke.
+        // Putting all geometry inside a single style object (height,
+        // padding, border, radius, colours) gives RN one stable layout
+        // computation per render and removes the cssInterop surface
+        // entirely from the TextInput. Wrapper View label/error/hint
+        // can keep className — only TextInput is affected.
         style={{
+          height: 50,
+          paddingHorizontal: 18,
+          borderWidth: 1.5,
+          borderRadius: 16,
+          borderColor,
           backgroundColor: c.surface,
           color: c.ink,
-          borderColor,
         }}
         onFocus={(e) => {
           setFocused(true);
