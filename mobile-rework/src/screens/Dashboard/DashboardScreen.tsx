@@ -11,6 +11,7 @@ import {
 } from '@/lib/pushNotifications';
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
+import { DailyQCard } from './components/DailyQCard';
 import {
   LatestMomentCard,
   formatRelative,
@@ -94,6 +95,30 @@ export function DashboardScreen() {
           yearsUnit={t('home.units.y')}
           monthsUnit={t('home.units.m')}
           countdownLabel={(n) => t('home.countdown', { n })}
+        />
+
+        {/* T426 (Sprint 66) — DailyQCard renders between TimerHero and
+            LatestMomentCard. Hides itself if vm.todayQuestion is null
+            (couple unpaired, BE empty, or fetch error). */}
+        <DailyQCard
+          today={vm.todayQuestion}
+          streakCount={vm.streakCount}
+          myHasAnswered={vm.myHasAnswered}
+          partnerHasAnswered={vm.partnerHasAnswered}
+          partnerName={vm.partner?.name ?? null}
+          labels={{
+            title: t('home.dailyQTitle'),
+            cta: t('home.dailyQCta'),
+            streak: t('home.dailyQStreak', { days: vm.streakCount }),
+            partnerPending: t('home.dailyQPartnerPending', {
+              partner: vm.partner?.name ?? '',
+            }),
+            bothAnswered: t('home.dailyQBothAnswered'),
+            youPending: t('home.dailyQYouPending', {
+              partner: vm.partner?.name ?? '',
+            }),
+          }}
+          onPress={() => router.push('/daily-questions')}
         />
 
         {/* D6: LatestMomentCard restored below TimerHero. Only shown when there is

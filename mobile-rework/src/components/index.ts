@@ -15,6 +15,7 @@ export {
 export { DividerWith } from './DividerWith';
 export { EditProfileSheet, type EditProfileSheetHandle } from './EditProfileSheet';
 export { LinearGradient } from './Gradient';
+export { HeaderChip, type HeaderChipVariant } from './HeaderChip';
 export { Input } from './Input';
 export { InviteCodeSheet, type InviteCodeSheetHandle } from './InviteCodeSheet';
 export { PendingPairBanner } from './PendingPairBanner';
