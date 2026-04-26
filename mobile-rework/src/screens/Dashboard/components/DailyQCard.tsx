@@ -7,17 +7,22 @@ import { useAppColors } from '@/theme/ThemeProvider';
 // Sprint 66 T426 — Dashboard "Daily Q" card. Bám 1:1 prototype
 // `dashboard.jsx` lines 471-555 (DailyQCard).
 //
-// Layout per prototype:
+// Layout:
 //   • Top row — left: 28×28 accent ?-circle + "Daily Q" label;
-//                right: 🔥 streak HeaderChip
+//                right: 🔥 streak HeaderChip (T434 — hidden when streak=0)
 //   • Question text — display italic 19px, quoted
-//   • Action row — primary "Trả lời" CTA (flex-1) + partner-pending pill
-//                   (or "Both answered ✓" when complete; hidden if user solo)
+//   • Action row (T434 swap):
+//       !myHasAnswered → primary "Trả lời" CTA (flex-1) + optional
+//                        youPending pill ("X answered first") if partner
+//                        already answered.
+//       myHasAnswered  → full-width neutral state pill (surfaceAlt bg,
+//                        inkSoft text). Either "Đã trả lời · chờ X" or
+//                        "Cả hai đã trả lời ✓". CTA button is hidden.
 //   • Corner accent — 120px accentSoft circle, top-right −30/−30
 //
 // The card hides itself entirely when `today` is null (couple not paired,
 // BE empty, or the daily-questions endpoint errored). Tapping anywhere on
-// the card OR the CTA navigates to the full DailyQuestionsScreen.
+// the card navigates to the full DailyQuestionsScreen.
 
 type Props = {
   today: DailyQuestionToday | null;
@@ -40,7 +45,7 @@ type Props = {
 
 export function DailyQCard({
   today,
-  streakCount: _streakCount,
+  streakCount,
   myHasAnswered,
   partnerHasAnswered,
   partnerName,
@@ -51,19 +56,7 @@ export function DailyQCard({
   if (!today) return null;
 
   const questionText = today.question.textVi ?? today.question.text;
-
-  const partnerPill = (() => {
-    if (myHasAnswered && partnerHasAnswered) {
-      return labels.bothAnswered;
-    }
-    if (!myHasAnswered && partnerHasAnswered && partnerName) {
-      return labels.youPending;
-    }
-    if (myHasAnswered && !partnerHasAnswered && partnerName) {
-      return labels.partnerPending;
-    }
-    return null;
-  })();
+  const showStreakChip = streakCount > 0;
 
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={labels.title}>
@@ -85,7 +78,7 @@ export function DailyQCard({
 
         {/* Foreground */}
         <View className="relative">
-          {/* Top row — ?-circle + label · streak chip */}
+          {/* Top row — ?-circle + label · streak chip (T434: hidden when 0) */}
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center gap-2">
               <View
@@ -101,7 +94,9 @@ export function DailyQCard({
                 {labels.title}
               </Text>
             </View>
-            <HeaderChip label={`🔥 ${labels.streak}`} variant="accent" />
+            {showStreakChip ? (
+              <HeaderChip label={`🔥 ${labels.streak}`} variant="accent" />
+            ) : null}
           </View>
 
           {/* Question text */}
@@ -112,43 +107,59 @@ export function DailyQCard({
             {`"${questionText}"`}
           </Text>
 
-          {/* Action row */}
-          <View className="flex-row items-center gap-2.5 mt-4">
+          {/* Action row — T434: split paths so myHasAnswered hides the
+              CTA entirely and shows a single full-width state pill. */}
+          {myHasAnswered ? (
             <View
-              className="flex-1 rounded-[14px] py-3 px-4 items-center"
-              style={{
-                backgroundColor: c.primary,
-                shadowColor: c.primary,
-                shadowOpacity: 0.4,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 4 },
-              }}
+              className="flex-row items-center justify-center gap-2 mt-4 px-3 py-3 rounded-[14px]"
+              style={{ backgroundColor: c.surfaceAlt }}
             >
-              <Text className="font-bodyBold text-white text-[14px]">{labels.cta}</Text>
-            </View>
-            {partnerPill ? (
-              <View
-                className="flex-1 flex-row items-center gap-2 px-3 py-[11px] rounded-[14px]"
-                style={{ backgroundColor: c.surfaceAlt }}
+              <Text
+                className="font-body text-[13px] text-center"
+                style={{ color: c.inkSoft }}
+                numberOfLines={1}
               >
+                {partnerHasAnswered ? labels.bothAnswered : labels.partnerPending}
+              </Text>
+            </View>
+          ) : (
+            <View className="flex-row items-center gap-2.5 mt-4">
+              <View
+                className="flex-1 rounded-[14px] py-3 px-4 items-center"
+                style={{
+                  backgroundColor: c.primary,
+                  shadowColor: c.primary,
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 4 },
+                }}
+              >
+                <Text className="font-bodyBold text-white text-[14px]">{labels.cta}</Text>
+              </View>
+              {partnerHasAnswered && partnerName ? (
                 <View
-                  className="w-[22px] h-[22px] rounded-full items-center justify-center"
-                  style={{ backgroundColor: c.primary }}
+                  className="flex-1 flex-row items-center gap-2 px-3 py-[11px] rounded-[14px]"
+                  style={{ backgroundColor: c.surfaceAlt }}
                 >
-                  <Text className="font-bodyBold text-white text-[10px]">
-                    {(partnerName?.trim()[0] ?? 'M').toUpperCase()}
+                  <View
+                    className="w-[22px] h-[22px] rounded-full items-center justify-center"
+                    style={{ backgroundColor: c.primary }}
+                  >
+                    <Text className="font-bodyBold text-white text-[10px]">
+                      {(partnerName.trim()[0] ?? 'M').toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text
+                    className="flex-1 font-body text-[12px]"
+                    style={{ color: c.inkSoft }}
+                    numberOfLines={1}
+                  >
+                    {labels.youPending}
                   </Text>
                 </View>
-                <Text
-                  className="flex-1 font-body text-[12px]"
-                  style={{ color: c.inkSoft }}
-                  numberOfLines={1}
-                >
-                  {partnerPill}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+              ) : null}
+            </View>
+          )}
         </View>
       </View>
     </Pressable>

@@ -28,6 +28,7 @@ import { inviteRoutes } from './invite';
 import { shareRoutes } from './share';
 import { subscriptionRoutes } from './subscription';
 import { dailyQuestionRoutes } from './dailyQuestions';
+import { dailyVibeRoutes } from './dailyVibes';
 
 const router = Router();
 
@@ -75,5 +76,6 @@ router.use('/invite', requireAuth, inviteRoutes);
 router.use('/share', shareRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/daily-questions', ...rc, dailyQuestionRoutes);
+router.use('/daily-vibes', ...rc, dailyVibeRoutes);
 
 export default router;

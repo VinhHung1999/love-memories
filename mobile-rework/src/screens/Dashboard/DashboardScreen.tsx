@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { BellButton } from '@/components/BellButton';
 import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
@@ -96,6 +96,24 @@ export function DashboardScreen() {
           monthsUnit={t('home.units.m')}
           countdownLabel={(n) => t('home.countdown', { n })}
         />
+
+        {/* T436 (Sprint 66) — small vibe indicator under TimerHero. Self-
+            hides when nothing selected today. Tap → DailyQuestionsScreen
+            where the picker lives. */}
+        {vm.vibe ? (
+          <View className="mx-5 mt-2 flex-row">
+            <Pressable
+              onPress={() => router.push('/daily-questions')}
+              accessibilityRole="button"
+              accessibilityLabel={t(`dailyQuestions.vibe.${vm.vibe}`)}
+              className="px-3 py-1.5 rounded-full bg-primary-soft active:opacity-80"
+            >
+              <Text className="font-body text-primary-deep text-[12px]">
+                {t(`dailyQuestions.vibe.${vm.vibe}`)}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {/* T426 (Sprint 66) — DailyQCard renders between TimerHero and
             LatestMomentCard. Hides itself if vm.todayQuestion is null

@@ -849,6 +849,13 @@ const en: Resources = {
     partnerLockedHint: "Answer first to see {{partner}}'s reply",
     partnerSkeleton: "{{partner}} hasn't answered…",
     todayVibe: "Today's vibe",
+    vibe: {
+      coffee: '☕ coffee',
+      rain: '🌧 soft rain',
+      missing: '💭 missing',
+      trinh: '🎶 Trịnh',
+      sun: '☀️ late sun',
+    },
     yesterdayTitle: "Yesterday's question",
     yesterdayBoth: 'You both answered · tap to revisit',
     history: 'Earlier questions',

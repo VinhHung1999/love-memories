@@ -8,11 +8,13 @@ import { HeaderChip, LinearGradient, SafeScreen, ScreenHeader } from '@/componen
 import { useAppColors } from '@/theme/ThemeProvider';
 import { AnswerInput } from './components/AnswerInput';
 import { PulseDot } from './components/PulseDot';
+import { VibePicker } from './components/VibePicker';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
 import type {
   DailyQuestionHistoryItem,
   DailyQuestionToday,
 } from '@/api/dailyQuestions';
+import { VIBE_KEYS, type VibeKey } from '@/api/dailyVibes';
 
 // Sprint 66 T427 — DailyQuestionsScreen. Renders ONE of two layouts based
 // on `myAnswer` presence:
@@ -52,6 +54,16 @@ export function DailyQuestionsScreen() {
   const streakLabel = vm.streak && vm.streak.currentStreak > 0
     ? `🔥 ${t('dailyQuestions.streak', { n: vm.streak.currentStreak })}`
     : `🔥 ${t('dailyQuestions.streakZero')}`;
+
+  // T436 — vibe label map computed once. i18n keys mirror BE VIBE_KEYS.
+  const vibeLabels = useMemo(
+    () =>
+      VIBE_KEYS.reduce<Record<VibeKey, string>>((acc, key) => {
+        acc[key] = t(`dailyQuestions.vibe.${key}`);
+        return acc;
+      }, { coffee: '', rain: '', missing: '', trinh: '', sun: '' }),
+    [t],
+  );
 
   return (
     <SafeScreen>
@@ -101,6 +113,9 @@ export function DailyQuestionsScreen() {
                 partnerName={partnerName}
                 lang={i18n.language}
                 t={t}
+                vibe={vm.vibe}
+                onSelectVibe={vm.selectVibe}
+                vibeLabels={vibeLabels}
               />
             ) : (
               <UnansweredView
@@ -113,6 +128,9 @@ export function DailyQuestionsScreen() {
                 submitting={vm.submitting}
                 t={t}
                 lang={i18n.language}
+                vibe={vm.vibe}
+                onSelectVibe={vm.selectVibe}
+                vibeLabels={vibeLabels}
               />
             )}
           </>
@@ -136,6 +154,9 @@ type UnansweredProps = {
   submitting: boolean;
   t: ReturnType<typeof useTranslation>['t'];
   lang: string;
+  vibe: VibeKey | null;
+  onSelectVibe: (key: VibeKey) => void;
+  vibeLabels: Record<VibeKey, string>;
 };
 
 function UnansweredView({
@@ -148,6 +169,9 @@ function UnansweredView({
   submitting,
   t,
   lang,
+  vibe,
+  onSelectVibe,
+  vibeLabels,
 }: UnansweredProps) {
   const questionText = today.question.textVi ?? today.question.text;
   const dateLabel = formatTodayBadge(new Date(), lang, t);
@@ -196,10 +220,15 @@ function UnansweredView({
         />
       ) : null}
 
-      {/* T432-F2 (Boss Build 103): Today's vibe chips removed —
-          Boss decided to skip the section entirely. */}
+      {/* (4) Vibe picker — T436 re-added as functional (BE wired). */}
+      <VibePicker
+        label={t('dailyQuestions.todayVibe')}
+        active={vibe}
+        vibeLabels={vibeLabels}
+        onSelect={onSelectVibe}
+      />
 
-      {/* (4) Yesterday hint */}
+      {/* (5) Yesterday hint */}
       {yesterday ? (
         <YesterdayHint item={yesterday} title={t('dailyQuestions.yesterdayTitle')} note={t('dailyQuestions.yesterdayBoth')} lang={lang} />
       ) : null}
@@ -218,9 +247,24 @@ type AnsweredProps = {
   partnerName: string;
   lang: string;
   t: ReturnType<typeof useTranslation>['t'];
+  vibe: VibeKey | null;
+  onSelectVibe: (key: VibeKey) => void;
+  vibeLabels: Record<VibeKey, string>;
 };
 
-function AnsweredView({ today, history, partnerInitial, myInitial, myName, partnerName, lang, t }: AnsweredProps) {
+function AnsweredView({
+  today,
+  history,
+  partnerInitial,
+  myInitial,
+  myName,
+  partnerName,
+  lang,
+  t,
+  vibe,
+  onSelectVibe,
+  vibeLabels,
+}: AnsweredProps) {
   const c = useAppColors();
   const questionText = today.question.textVi ?? today.question.text;
   const partnerHasAnswered = !!today.partnerAnswer;
@@ -330,7 +374,16 @@ function AnsweredView({ today, history, partnerInitial, myInitial, myName, partn
         </View>
       </View>
 
-      {/* (4) Earlier history rows */}
+      {/* (4) Vibe picker — same component as Unanswered, between
+          partner answer and history list. */}
+      <VibePicker
+        label={t('dailyQuestions.todayVibe')}
+        active={vibe}
+        vibeLabels={vibeLabels}
+        onSelect={onSelectVibe}
+      />
+
+      {/* (5) Earlier history rows */}
       {history.length > 0 ? (
         <View className="mx-5 mt-6">
           <Text

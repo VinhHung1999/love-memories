@@ -907,6 +907,13 @@ const vi = {
     partnerLockedHint: 'Trả lời xong mình sẽ thấy câu của {{partner}}',
     partnerSkeleton: '{{partner}} chưa trả lời…',
     todayVibe: 'Vibe hôm nay',
+    vibe: {
+      coffee: '☕ cà phê',
+      rain: '🌧 mưa nhẹ',
+      missing: '💭 nhớ',
+      trinh: '🎶 Trịnh',
+      sun: '☀️ nắng chiều',
+    },
     yesterdayTitle: 'Câu hôm qua',
     yesterdayBoth: 'Cả hai đã trả lời · chạm để xem lại',
     history: 'Những câu trước',
