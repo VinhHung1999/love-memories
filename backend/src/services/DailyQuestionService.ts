@@ -2,16 +2,11 @@ import crypto from 'crypto';
 import prisma from '../utils/prisma';
 import { AppError } from '../types/errors';
 import { createNotification, getPartnerUserId } from '../utils/notifications';
+import { dayNumberVN, startOfDayVN } from '../utils/dateVN';
 
-/**
- * Deterministic daily question selection:
- * dayNumber = days since epoch. hash(coupleId + dayNumber) % totalQuestions
- */
-function getDayNumber(): number {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  return Math.floor(Date.now() / msPerDay);
-}
-
+// Question rotation is keyed on the VN calendar day, not raw UTC. Cron at
+// VN midnight (UTC 17:00 prev day) needs `dayNumberVN(now) - 1` to point at
+// what users actually saw "yesterday VN" — see utils/dateVN.ts.
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -26,7 +21,7 @@ export async function getToday(coupleId: string, userId: string) {
   const total = await prisma.dailyQuestion.count();
   if (total === 0) throw new AppError(404, 'No questions available');
 
-  const dayNumber = getDayNumber();
+  const dayNumber = dayNumberVN();
   const key = `${coupleId}-${dayNumber}`;
   const index = hashString(key) % total;
 
@@ -70,37 +65,49 @@ export async function getToday(coupleId: string, userId: string) {
   };
 }
 
-/**
- * Update streak immediately when both partners have answered today's question.
- * Edge case: if lastAnsweredDate is already today, skip (already incremented).
- */
-async function updateStreakOnBothAnswered(coupleId: string): Promise<void> {
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+// Realtime streak update fired when the second partner submits today's
+// answer. Wrapped in a transaction + idempotent against `lastAnsweredDate`
+// so the cron path (updateStreaksForAllCouples) and a near-simultaneous
+// double submit cannot double-increment. Sprint 66 T430.
+//
+// Chain rule: if the previous `lastAnsweredDate` is yesterday VN, continue
+// the chain (+1). Otherwise the chain broke (gap day or first-ever) so we
+// start at 1.
+export async function updateStreakOnBothAnswered(coupleId: string): Promise<void> {
+  const now = new Date();
+  const todayVN = startOfDayVN(now);
+  const yesterdayVN = new Date(todayVN.getTime() - 24 * 60 * 60 * 1000);
 
-  const existing = await prisma.dailyQuestionStreak.findUnique({ where: { coupleId } });
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.dailyQuestionStreak.findUnique({ where: { coupleId } });
 
-  // Already updated today — don't double-increment
-  if (existing?.lastAnsweredDate && existing.lastAnsweredDate >= todayStart) return;
+    // Already counted today (cron beat us, or both partners' submit handlers
+    // raced) — leave the row untouched.
+    if (existing?.lastAnsweredDate && existing.lastAnsweredDate.getTime() === todayVN.getTime()) {
+      return;
+    }
 
-  const newCurrent = (existing?.currentStreak ?? 0) + 1;
-  const newLongest = Math.max(existing?.longestStreak ?? 0, newCurrent);
-  const today = new Date();
+    const continuing =
+      existing?.lastAnsweredDate &&
+      existing.lastAnsweredDate.getTime() === yesterdayVN.getTime();
+    const newCurrent = continuing ? (existing!.currentStreak ?? 0) + 1 : 1;
+    const newLongest = Math.max(existing?.longestStreak ?? 0, newCurrent);
 
-  await prisma.dailyQuestionStreak.upsert({
-    where: { coupleId },
-    create: {
-      id: crypto.randomUUID(),
-      coupleId,
-      currentStreak: newCurrent,
-      longestStreak: newLongest,
-      lastAnsweredDate: today,
-    },
-    update: {
-      currentStreak: newCurrent,
-      longestStreak: newLongest,
-      lastAnsweredDate: today,
-    },
+    await tx.dailyQuestionStreak.upsert({
+      where: { coupleId },
+      create: {
+        id: crypto.randomUUID(),
+        coupleId,
+        currentStreak: newCurrent,
+        longestStreak: newLongest,
+        lastAnsweredDate: todayVN,
+      },
+      update: {
+        currentStreak: newCurrent,
+        longestStreak: newLongest,
+        lastAnsweredDate: todayVN,
+      },
+    });
   });
 }
 
@@ -143,14 +150,16 @@ export async function submitAnswer(questionId: string, coupleId: string, userId:
   return response;
 }
 
-/**
- * Returns today's question ID for a given couple.
- * Used by CronService to check who hasn't answered yet.
- */
-export async function getTodayQuestionId(coupleId: string): Promise<string | null> {
+// Resolves the question shown to `coupleId` on the given VN dayNumber. Sole
+// entry point for the `(coupleId, day) → questionId` lookup used by today's
+// fetch, the cron sweep, and tests.
+export async function getQuestionIdForDay(
+  coupleId: string,
+  dayNumber: number,
+): Promise<string | null> {
   const total = await prisma.dailyQuestion.count();
   if (total === 0) return null;
-  const key = `${coupleId}-${getDayNumber()}`;
+  const key = `${coupleId}-${dayNumber}`;
   const index = hashString(key) % total;
   const questions = await prisma.dailyQuestion.findMany({
     orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
@@ -159,6 +168,14 @@ export async function getTodayQuestionId(coupleId: string): Promise<string | nul
     select: { id: true },
   });
   return questions[0]?.id ?? null;
+}
+
+/**
+ * Returns today's question ID for a given couple.
+ * Used by CronService to check who hasn't answered yet.
+ */
+export async function getTodayQuestionId(coupleId: string): Promise<string | null> {
+  return getQuestionIdForDay(coupleId, dayNumberVN());
 }
 
 /**
@@ -190,13 +207,28 @@ export async function getStreak(coupleId: string) {
   };
 }
 
-/**
- * Called by cron at midnight: checks if both partners answered yesterday's question.
- * Increments or resets streak accordingly.
- */
-export async function updateStreaksForAllCouples(): Promise<void> {
+// Cron at VN midnight (Asia/Ho_Chi_Minh '0 0 * * *') — sweeps every couple
+// for what happened "yesterday VN". Two outcomes per couple:
+//
+//   bothAnswered yesterday VN
+//     → if existing.lastAnsweredDate already == yesterdayVN, the realtime
+//       path beat us; leave it (idempotent — no double-increment).
+//     → else continue/start the chain: +1 if previous lastAnsweredDate is
+//       day-before-yesterday VN; otherwise fresh chain at 1.
+//
+//   not bothAnswered yesterday VN
+//     → reset currentStreak to 0, clear lastAnsweredDate. The chain broke.
+//
+// Sprint 66 T429 (VN tz) + T430 (idempotent + reset chain).
+export async function updateStreaksForAllCouples(now: Date = new Date()): Promise<void> {
+  const todayVN = startOfDayVN(now);
   const msPerDay = 24 * 60 * 60 * 1000;
-  const yesterdayNumber = Math.floor(Date.now() / msPerDay) - 1;
+  const yesterdayVN = new Date(todayVN.getTime() - msPerDay);
+  const dayBeforeYesterdayVN = new Date(todayVN.getTime() - 2 * msPerDay);
+  const yesterdayNumber = dayNumberVN(now) - 1;
+
+  const total = await prisma.dailyQuestion.count();
+  if (total === 0) return;
 
   const couples = await prisma.couple.findMany({
     include: { users: { select: { id: true } } },
@@ -205,17 +237,9 @@ export async function updateStreaksForAllCouples(): Promise<void> {
   for (const couple of couples) {
     if (couple.users.length < 2) continue;
 
-    // Get yesterday's question for this couple
-    const total = await prisma.dailyQuestion.count();
-    if (total === 0) continue;
+    // Lookup the question users actually saw on yesterday VN.
     const key = `${couple.id}-${yesterdayNumber}`;
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      const char = key.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash;
-    }
-    const index = Math.abs(hash) % total;
+    const index = hashString(key) % total;
     const questions = await prisma.dailyQuestion.findMany({
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
       skip: index,
@@ -225,7 +249,6 @@ export async function updateStreaksForAllCouples(): Promise<void> {
     const questionId = questions[0]?.id;
     if (!questionId) continue;
 
-    // Check if both partners answered yesterday's question
     const responses = await prisma.dailyQuestionResponse.findMany({
       where: { questionId, coupleId: couple.id },
       select: { userId: true },
@@ -233,27 +256,54 @@ export async function updateStreaksForAllCouples(): Promise<void> {
     const answeredIds = new Set(responses.map((r) => r.userId));
     const bothAnswered = couple.users.every((u) => answeredIds.has(u.id));
 
-    // Calculate yesterday date for lastAnsweredDate
-    const yesterday = new Date(yesterdayNumber * msPerDay);
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.dailyQuestionStreak.findUnique({
+        where: { coupleId: couple.id },
+      });
 
-    const existing = await prisma.dailyQuestionStreak.findUnique({ where: { coupleId: couple.id } });
-    const newCurrent = bothAnswered ? (existing?.currentStreak ?? 0) + 1 : 0;
-    const newLongest = Math.max(existing?.longestStreak ?? 0, newCurrent);
+      if (bothAnswered) {
+        // Realtime already counted this — bail out cleanly.
+        if (
+          existing?.lastAnsweredDate &&
+          existing.lastAnsweredDate.getTime() === yesterdayVN.getTime()
+        ) {
+          return;
+        }
 
-    await prisma.dailyQuestionStreak.upsert({
-      where: { coupleId: couple.id },
-      create: {
-        id: crypto.randomUUID(),
-        coupleId: couple.id,
-        currentStreak: newCurrent,
-        longestStreak: newLongest,
-        lastAnsweredDate: bothAnswered ? yesterday : null,
-      },
-      update: {
-        currentStreak: newCurrent,
-        longestStreak: newLongest,
-        lastAnsweredDate: bothAnswered ? yesterday : undefined,
-      },
+        const continuing =
+          existing?.lastAnsweredDate &&
+          existing.lastAnsweredDate.getTime() === dayBeforeYesterdayVN.getTime();
+        const newCurrent = continuing ? (existing!.currentStreak ?? 0) + 1 : 1;
+        const newLongest = Math.max(existing?.longestStreak ?? 0, newCurrent);
+
+        await tx.dailyQuestionStreak.upsert({
+          where: { coupleId: couple.id },
+          create: {
+            id: crypto.randomUUID(),
+            coupleId: couple.id,
+            currentStreak: newCurrent,
+            longestStreak: newLongest,
+            lastAnsweredDate: yesterdayVN,
+          },
+          update: {
+            currentStreak: newCurrent,
+            longestStreak: newLongest,
+            lastAnsweredDate: yesterdayVN,
+          },
+        });
+        return;
+      }
+
+      // Chain broken — reset.
+      if (!existing) return; // never had a streak; nothing to reset
+      if (existing.currentStreak === 0 && existing.lastAnsweredDate === null) return;
+      await tx.dailyQuestionStreak.update({
+        where: { coupleId: couple.id },
+        data: {
+          currentStreak: 0,
+          lastAnsweredDate: null,
+        },
+      });
     });
   }
 }
