@@ -301,20 +301,20 @@ and on the BE filter (see `backend.md`). Avatar uploads already consume
 
 ## Known bug patterns
 
-- **`src/components/Input.tsx` height jitter (Sprint 66 — UNSOLVED)**: typing into Input
-  on Login/Signup/Profile-Edit causes the visible row to grow/shrink per character —
-  's' (no ascender) renders shorter than 'h' (ascender), and text drifts off
-  vertical-center. Password input is unaffected (secureTextEntry uniform bullets).
-  Sprint 66 ran 5 attempts (T440-T444) — drop `lineHeight`, hardcode `h-[50px]`,
-  drop className entirely, wrap in `overflow:hidden` container, padding-only +
-  `multiline:false / numberOfLines:1 / scrollEnabled:false / maxFontSizeMultiplier:1`
-  combo. None resolved on-device. **Boss took over the fix at end of Sprint 66**;
-  the file currently ships with the T444 padding-only + 4-guards shape but is
-  known-broken. **Do not iterate further without device-side instrumentation
-  (onLayout telemetry to a Text overlay, or React DevTools layout inspector).**
-  Profile BottomSheet inputs (`EditProfileSheet.tsx`) work fine using
-  `BottomSheetTextInput` from gorhom + explicit `paddingVertical: 14, fontSize:
-  15` — that's the proven shape if standalone is needed elsewhere.
+- **TextInput height jitter from explicit `text-[size] leading-[N]` (Sprint 66 — RESOLVED 5997131)**:
+  iOS RN re-derives the TextInput's content bbox between empty and typed states
+  when both font size AND lineHeight are forced via NativeWind classes — 's' (no
+  ascender) renders smaller than 'h' (ascender), height grows per keystroke.
+  **Fix is one-liner**: drop `text-[15px] leading-[22px]` from the TextInput
+  className. Keep `font-bodyMedium text-ink flex-1` only — let the font's
+  intrinsic line metric decide. Boss applied to `src/components/AuthField.tsx`
+  (Login/Signup) commit `5997131`. **Lesson** — Sprint 66 chased this for 5
+  builds (T440-T444) on the wrong component (`Input.tsx` instead of
+  `AuthField.tsx`); always grep where the broken screen actually imports from
+  before iterating. Auth screens use `AuthField`; bottom-sheet edit forms use
+  `Input`/`BottomSheetTextInput`; Daily Q answer field uses `AnswerInput`. The
+  same one-liner fix applies if any of these regress: drop forced text-size +
+  lineHeight on the TextInput when typing causes the row to breathe.
 - **NativeWind v4 conditional `className` → "Couldn't find a navigation context"**:
   the most misleading error in this project. Toggling classes across ternary
   branches of a `className` template literal (especially interactive modifiers
