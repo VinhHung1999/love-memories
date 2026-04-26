@@ -58,6 +58,12 @@ export function DailyQuestionsScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
+        // T432-F1 (Boss Build 103): default ScrollView behaviour eats the
+        // first tap on the AnswerInput textarea — keyboard dismisses + the
+        // input blurs before focus locks. `'handled'` lets nested touchables
+        // (Send button, future tap-to-revisit history rows) receive taps,
+        // while still dismissing the keyboard on empty-space taps.
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={vm.refreshing}
@@ -146,7 +152,6 @@ function UnansweredView({
   t,
   lang,
 }: UnansweredProps) {
-  const c = useAppColors();
   const questionText = today.question.textVi ?? today.question.text;
   const dateLabel = formatTodayBadge(new Date(), lang, t);
   const nameDisplay = partnerName || t('dailyQuestions.partnerLockedNotYet');
@@ -167,35 +172,11 @@ function UnansweredView({
         partnerInitial={partnerInitial}
       />
 
-      {/* (2) Partner thinking card */}
-      {partnerName ? (
-        <View
-          className="mx-5 mt-3.5 px-4 py-3.5 rounded-[18px] flex-row items-center gap-3"
-          style={{ backgroundColor: c.surfaceAlt, borderWidth: 1, borderColor: c.lineOnSurface }}
-        >
-          <View
-            className="w-[38px] h-[38px] rounded-xl items-center justify-center"
-            style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.lineOnSurface }}
-          >
-            <Lock size={18} strokeWidth={1.8} color={c.ink} />
-          </View>
-          <View className="flex-1 min-w-0">
-            <Text className="font-bodyBold text-[13px]" style={{ color: c.ink }}>
-              {t('dailyQuestions.partnerThinking', { partner: nameDisplay })}
-            </Text>
-            <Text className="font-body text-[12px] mt-0.5" style={{ color: c.inkSoft }}>
-              {t('dailyQuestions.partnerThinkingHint', { partner: nameDisplay })}
-            </Text>
-          </View>
-          <View className="flex-row gap-[3px]">
-            <PulseDot color={c.inkMute} delay={0} />
-            <PulseDot color={c.inkMute} delay={150} />
-            <PulseDot color={c.inkMute} delay={300} />
-          </View>
-        </View>
-      ) : null}
+      {/* T432-F4 (Boss Build 103): partner thinking card removed —
+          duplicates the "Chưa trả lời" state already shown by the locked
+          partner reveal below. */}
 
-      {/* (3) Input card */}
+      {/* (2) Input card */}
       <AnswerInput
         myInitial={myInitial}
         myName={myName || t('dailyQuestions.yourAnswer')}
@@ -207,15 +188,12 @@ function UnansweredView({
         }
         charsLeftLabel={(n) => t('dailyQuestions.charsLeft', { n })}
         writingTip={t('dailyQuestions.writingTip')}
-        voiceLabel={t('dailyQuestions.voice')}
-        photoLabel={t('dailyQuestions.photo')}
-        hintsLabel={t('dailyQuestions.hints')}
         sendLabel={t('dailyQuestions.send')}
         submitting={submitting}
         onSubmit={onSubmit}
       />
 
-      {/* (4) Locked partner reveal */}
+      {/* (3) Locked partner reveal */}
       {partnerName ? (
         <LockedPartnerCard
           partnerName={nameDisplay}
@@ -226,10 +204,10 @@ function UnansweredView({
         />
       ) : null}
 
-      {/* (5) Today's vibe chips — visual only */}
-      <TodayVibeChips lang={lang} title={t('dailyQuestions.todayVibe')} />
+      {/* T432-F2 (Boss Build 103): Today's vibe chips removed —
+          Boss decided to skip the section entirely. */}
 
-      {/* (6) Yesterday hint */}
+      {/* (4) Yesterday hint */}
       {yesterday ? (
         <YesterdayHint item={yesterday} title={t('dailyQuestions.yesterdayTitle')} note={t('dailyQuestions.yesterdayBoth')} lang={lang} />
       ) : null}
@@ -557,47 +535,6 @@ function LockedPartnerCard({
         >
           {hint}
         </Text>
-      </View>
-    </View>
-  );
-}
-
-function TodayVibeChips({ lang, title }: { lang: string; title: string }) {
-  const c = useAppColors();
-  const chips = lang === 'vi'
-    ? ['☕ cà phê', '🌧 mưa nhẹ', '💭 nhớ', '🎶 Trịnh', '☀️ nắng chiều']
-    : ['☕ coffee', '🌧 soft rain', '💭 missing', '🎶 Trịnh', '☀️ late sun'];
-
-  return (
-    <View className="mx-5 mt-6">
-      <Text
-        className="font-bodyBold text-[11px] uppercase mb-2.5"
-        style={{ color: c.inkMute, letterSpacing: 1.4 }}
-      >
-        {title}
-      </Text>
-      <View className="flex-row flex-wrap gap-1.5">
-        {chips.map((chip, i) => {
-          const isAccent = i === 0 || i === 3;
-          return (
-            <View
-              key={chip}
-              className="px-3 py-1.5 rounded-full"
-              style={{
-                backgroundColor: isAccent ? c.primarySoft : c.surface,
-                borderWidth: 1,
-                borderColor: c.lineOnSurface,
-              }}
-            >
-              <Text
-                className="font-body text-[12px]"
-                style={{ color: isAccent ? c.primaryDeep : c.inkSoft }}
-              >
-                {chip}
-              </Text>
-            </View>
-          );
-        })}
       </View>
     </View>
   );

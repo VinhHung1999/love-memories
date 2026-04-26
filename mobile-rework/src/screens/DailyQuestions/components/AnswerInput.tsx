@@ -1,4 +1,4 @@
-import { Image as ImageIcon, Mic, Send, Sparkles } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
@@ -8,9 +8,10 @@ import { useAppColors } from '@/theme/ThemeProvider';
 // Sprint 66 T427 — the "Em trả lời" input card. Bám 1:1 prototype
 // `recap.jsx:1069-1172` (DailyQUnansweredScreen input area).
 //
-// Bottom action row tools (voice / photo / hints) are rendered per
-// prototype but DISABLED for Sprint 66 — placeholder for future media
-// answer support (Lu 2026-04-26 confirmed scope).
+// T432-F3 (Boss Build 103) — voice / photo / hints placeholder buttons
+// removed entirely. Boss decided to skip the media-answer affordance
+// rather than render disabled placeholders. The action row now hosts
+// just the Send button at the right edge.
 
 const MAX_CHARS = 280;
 const MIN_CHARS = 3;
@@ -22,9 +23,6 @@ type Props = {
   placeholder: string;
   charsLeftLabel: (n: number) => string;
   writingTip: string;
-  voiceLabel: string;
-  photoLabel: string;
-  hintsLabel: string;
   sendLabel: string;
   submitting: boolean;
   onSubmit: (text: string) => void;
@@ -37,9 +35,6 @@ export function AnswerInput({
   placeholder,
   charsLeftLabel,
   writingTip,
-  voiceLabel,
-  photoLabel,
-  hintsLabel,
   sendLabel,
   submitting,
   onSubmit,
@@ -120,20 +115,11 @@ export function AnswerInput({
         </Text>
       ) : null}
 
-      {/* Action row */}
+      {/* Action row — Send only (T432-F3). */}
       <View
-        className="flex-row items-center gap-2 mt-3.5 pt-3"
+        className="flex-row items-center justify-end mt-3.5 pt-3"
         style={{ borderTopWidth: 1, borderTopColor: c.lineOnSurface }}
       >
-        {/* Disabled placeholder tools — voice / photo / hints. */}
-        <ToolChip icon={<Mic size={14} strokeWidth={1.8} color={c.ink} />} label={voiceLabel} />
-        <ToolChip icon={<ImageIcon size={14} strokeWidth={1.8} color={c.ink} />} label={photoLabel} />
-        <ToolChip
-          icon={<Sparkles size={14} strokeWidth={1.8} color={c.primaryDeep} />}
-          label={hintsLabel}
-          accent
-        />
-        <View className="flex-1" />
         <Pressable
           onPress={() => {
             if (!canSend) return;
@@ -161,35 +147,6 @@ export function AnswerInput({
           <Send size={12} strokeWidth={2.5} color={canSend ? '#ffffff' : c.inkMute} />
         </Pressable>
       </View>
-    </View>
-  );
-}
-
-function ToolChip({
-  icon,
-  label,
-  accent = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  accent?: boolean;
-}) {
-  const c = useAppColors();
-  return (
-    <View
-      className="flex-row items-center gap-1.5 px-2.5 py-2 rounded-xl"
-      style={{
-        backgroundColor: accent ? c.primarySoft : c.surfaceAlt,
-        opacity: 0.85,
-      }}
-    >
-      {icon}
-      <Text
-        className="font-bodySemibold text-[11px]"
-        style={{ color: accent ? c.primaryDeep : c.ink }}
-      >
-        {label}
-      </Text>
     </View>
   );
 }
