@@ -1,4 +1,3 @@
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useState } from 'react';
 import { Text, TextInput, TextInputProps, View } from 'react-native';
 import { useAppColors } from '@/theme/ThemeProvider';
@@ -40,35 +39,35 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       {label ? (
         <Text className="font-bodyMedium text-sm text-ink-soft mb-2">{label}</Text>
       ) : null}
-      {/* T444 (Sprint 66, Build 114) — Boss-directed RADICAL pivot.
-          Builds 109-113 all attacked the same angle (TextInput auto-
-          grows on glyph height, fight it via padding / lineHeight /
-          overflow:hidden parent). All failed. EditProfileSheet inputs
-          DO render stable — only difference: they use Gorhom's
-          `BottomSheetTextInput`. Try it standalone here.
-          BottomSheetModalProvider is mounted at root (app/_layout.tsx),
-          so the context is globally available even outside an actual
-          sheet. Force `multiline={false}` + `numberOfLines={1}` so the
-          component absolutely cannot reflow on glyph height. If this
-          throws or crashes outside a sheet context, revert + try a
-          different surface (e.g. react-native-paper). */}
-      <BottomSheetTextInput
-        // T444 — forwardRef typed against RN core TextInput; gorhom's
-        // wrapper expects its own gesture-handler TextInput type. Cast
-        // through `any` to keep the public Input API stable while the
-        // BottomSheetTextInput experiment is in flight.
-        ref={ref as any}
+      {/* T444 REVISED (Sprint 66, Build 114) — Boss directive: stay on
+          RN core TextInput (no BottomSheetTextInput swap, no different
+          component). Try a combination not yet tested: padding-only
+          height derivation (no `height` set, no wrapper container) +
+          four single-line guard props that haven't been combined
+          together before:
+            • multiline={false}            — explicit single-line.
+            • numberOfLines={1}            — strict 1 line.
+            • scrollEnabled={false}        — disable RN's internal
+              auto-scroll inside the input (a known reflow trigger).
+            • maxFontSizeMultiplier={1}    — opt out of accessibility
+              font scaling so the rendered glyph metric can't shift
+              between empty + typed states from system font scaling. */}
+      <TextInput
+        ref={ref}
         placeholderTextColor={c.inkMute}
         multiline={false}
         numberOfLines={1}
+        scrollEnabled={false}
+        maxFontSizeMultiplier={1}
         style={{
-          height: 50,
+          paddingVertical: 14,
           paddingHorizontal: 18,
           borderWidth: 1.5,
           borderRadius: 16,
           borderColor,
           backgroundColor: c.surface,
           color: c.ink,
+          fontSize: 15,
         }}
         onFocus={(e) => {
           setFocused(true);
