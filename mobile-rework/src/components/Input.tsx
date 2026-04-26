@@ -42,21 +42,24 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       <TextInput
         ref={ref}
         placeholderTextColor={c.inkMute}
+        // T440 (Sprint 66, Build 110): match the EditProfileSheet pattern
+        // 1:1. Build 109 added an explicit `lineHeight: 20` "for safety"
+        // which on iOS reflows the rendered text bbox between empty and
+        // typed states (font-intrinsic line metric ≠ 20) — that was the
+        // last source of height jitter on plain ASCII. Drop it entirely;
+        // let the font's natural line metric decide. Android-only props
+        // (includeFontPadding / textAlignVertical) are no-ops on iOS so
+        // also dropped to keep parity with the proven Profile shape.
         style={{
           paddingHorizontal: 16,
           paddingVertical: 14,
           fontFamily: 'BeVietnamPro_400Regular',
           fontSize: 15,
-          lineHeight: 20,
           backgroundColor: c.surface,
           color: c.ink,
           borderColor,
           borderWidth: 1,
           borderRadius: 16,
-          // Android-only: drop extra glyph padding so diacritic runs don't
-          // alter the rendered text-block height. iOS ignores this prop.
-          includeFontPadding: false,
-          textAlignVertical: 'center',
         }}
         onFocus={(e) => {
           setFocused(true);
