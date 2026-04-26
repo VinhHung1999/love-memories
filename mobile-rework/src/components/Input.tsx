@@ -39,39 +39,44 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       {label ? (
         <Text className="font-bodyMedium text-sm text-ink-soft mb-2">{label}</Text>
       ) : null}
-      <TextInput
-        ref={ref}
-        placeholderTextColor={c.inkMute}
-        // T442 (Sprint 66, Build 112) — Boss directive: Input.tsx
-        // TextInput uses ONLY the style prop, NO className. Hypothesis:
-        // NativeWind v4's `cssInterop` layer wraps TextInput and can
-        // race the empty→typed render cycle when geometry is split
-        // between className → runtime style + the style prop's own
-        // values, surfacing as height jitter on every keystroke.
-        // Putting all geometry inside a single style object (height,
-        // padding, border, radius, colours) gives RN one stable layout
-        // computation per render and removes the cssInterop surface
-        // entirely from the TextInput. Wrapper View label/error/hint
-        // can keep className — only TextInput is affected.
+      {/* T443 (Sprint 66, Build 113) — Boss diagnosed the smoking gun:
+          's' (no ascender) → small box, 'h' (ascender) → larger box.
+          The TextInput's glyph bbox is auto-growing per-character even
+          with style.height:50. RN iOS does not strict-clamp height on
+          the TextInput itself; the only reliable clamp is a parent
+          View with `overflow: 'hidden'` + `justifyContent: 'center'`
+          to vertical-centre the (now invisibly-growing) TextInput
+          inside a hard-locked 50px box. Border + radius live on the
+          container so it can clip the child cleanly. */}
+      <View
         style={{
           height: 50,
-          paddingHorizontal: 18,
-          borderWidth: 1.5,
+          overflow: 'hidden',
           borderRadius: 16,
+          borderWidth: 1.5,
           borderColor,
           backgroundColor: c.surface,
-          color: c.ink,
+          justifyContent: 'center',
         }}
-        onFocus={(e) => {
-          setFocused(true);
-          onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setFocused(false);
-          onBlur?.(e);
-        }}
-        {...rest}
-      />
+      >
+        <TextInput
+          ref={ref}
+          placeholderTextColor={c.inkMute}
+          style={{
+            paddingHorizontal: 18,
+            color: c.ink,
+          }}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          {...rest}
+        />
+      </View>
       {error ? (
         <Text className="font-body text-xs text-primary-deep mt-1">{error}</Text>
       ) : hint ? (
