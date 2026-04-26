@@ -1,3 +1,4 @@
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useState } from 'react';
 import { Text, TextInput, TextInputProps, View } from 'react-native';
 import { useAppColors } from '@/theme/ThemeProvider';
@@ -39,44 +40,46 @@ export const Input = forwardRef<TextInput, Props>(function Input(
       {label ? (
         <Text className="font-bodyMedium text-sm text-ink-soft mb-2">{label}</Text>
       ) : null}
-      {/* T443 (Sprint 66, Build 113) — Boss diagnosed the smoking gun:
-          's' (no ascender) → small box, 'h' (ascender) → larger box.
-          The TextInput's glyph bbox is auto-growing per-character even
-          with style.height:50. RN iOS does not strict-clamp height on
-          the TextInput itself; the only reliable clamp is a parent
-          View with `overflow: 'hidden'` + `justifyContent: 'center'`
-          to vertical-centre the (now invisibly-growing) TextInput
-          inside a hard-locked 50px box. Border + radius live on the
-          container so it can clip the child cleanly. */}
-      <View
+      {/* T444 (Sprint 66, Build 114) — Boss-directed RADICAL pivot.
+          Builds 109-113 all attacked the same angle (TextInput auto-
+          grows on glyph height, fight it via padding / lineHeight /
+          overflow:hidden parent). All failed. EditProfileSheet inputs
+          DO render stable — only difference: they use Gorhom's
+          `BottomSheetTextInput`. Try it standalone here.
+          BottomSheetModalProvider is mounted at root (app/_layout.tsx),
+          so the context is globally available even outside an actual
+          sheet. Force `multiline={false}` + `numberOfLines={1}` so the
+          component absolutely cannot reflow on glyph height. If this
+          throws or crashes outside a sheet context, revert + try a
+          different surface (e.g. react-native-paper). */}
+      <BottomSheetTextInput
+        // T444 — forwardRef typed against RN core TextInput; gorhom's
+        // wrapper expects its own gesture-handler TextInput type. Cast
+        // through `any` to keep the public Input API stable while the
+        // BottomSheetTextInput experiment is in flight.
+        ref={ref as any}
+        placeholderTextColor={c.inkMute}
+        multiline={false}
+        numberOfLines={1}
         style={{
           height: 50,
-          overflow: 'hidden',
-          borderRadius: 16,
+          paddingHorizontal: 18,
           borderWidth: 1.5,
+          borderRadius: 16,
           borderColor,
           backgroundColor: c.surface,
-          justifyContent: 'center',
+          color: c.ink,
         }}
-      >
-        <TextInput
-          ref={ref}
-          placeholderTextColor={c.inkMute}
-          style={{
-            paddingHorizontal: 18,
-            color: c.ink,
-          }}
-          onFocus={(e) => {
-            setFocused(true);
-            onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            onBlur?.(e);
-          }}
-          {...rest}
-        />
-      </View>
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+        {...rest}
+      />
       {error ? (
         <Text className="font-body text-xs text-primary-deep mt-1">{error}</Text>
       ) : hint ? (
