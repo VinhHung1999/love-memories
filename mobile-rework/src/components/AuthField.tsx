@@ -1,11 +1,11 @@
-import { forwardRef, useState, type ReactNode } from 'react';
-import { Text, TextInput, type TextInputProps, View } from 'react-native';
-import { useAppColors } from '@/theme/ThemeProvider';
+import { forwardRef, useState, type ReactNode } from "react";
+import { Text, TextInput, type TextInputProps, View } from "react-native";
+import { useAppColors } from "@/theme/ThemeProvider";
 
 // Ports `AuthField` from docs/design/prototype/memoura-v2/auth.jsx:5.
 // Labeled rounded input with focus border, leading icon glyph, optional trailing slot.
 
-type Props = Omit<TextInputProps, 'style'> & {
+type Props = Omit<TextInputProps, "style"> & {
   label?: string;
   icon?: ReactNode;
   trailing?: ReactNode;
@@ -20,13 +20,13 @@ export const AuthField = forwardRef<TextInput, Props>(function AuthField(
   const c = useAppColors();
   const [focused, setFocused] = useState(false);
   const borderClass = error
-    ? 'border-primary-deep'
+    ? "border-primary-deep"
     : focused
-      ? 'border-primary'
-      : 'border-line-on-surface';
+      ? "border-primary"
+      : "border-line-on-surface";
 
   return (
-    <View className={`mb-3.5 ${className ?? ''}`}>
+    <View className={`mb-3.5 ${className ?? ""}`}>
       {label ? (
         <Text className="font-bodyBold text-ink-mute text-[11px] uppercase tracking-[1.2px] mb-1.5 pl-1">
           {label}
@@ -44,7 +44,7 @@ export const AuthField = forwardRef<TextInput, Props>(function AuthField(
         {icon ? <View className="mr-2.5">{icon}</View> : null}
         <TextInput
           ref={ref}
-          className="flex-1 font-bodyMedium text-[15px] leading-[22px] text-ink"
+          className="flex-1 font-bodyMedium text-ink"
           placeholderTextColor={c.inkMute}
           onFocus={(e) => {
             setFocused(true);
@@ -59,7 +59,9 @@ export const AuthField = forwardRef<TextInput, Props>(function AuthField(
         {trailing ? <View className="ml-2">{trailing}</View> : null}
       </View>
       {error ? (
-        <Text className="font-body text-xs text-primary-deep mt-1.5 pl-1">{error}</Text>
+        <Text className="font-body text-xs text-primary-deep mt-1.5 pl-1">
+          {error}
+        </Text>
       ) : null}
     </View>
   );
