@@ -48,6 +48,11 @@ const PICK: IconForKind = (kind) => {
       return { Icon: Sparkles, tone: 'accent' };
     case 'daily':
       return { Icon: HelpCircle, tone: 'accent' };
+    // T438 (Sprint 66) — Daily Q&A reminder + partner-answered share the
+    // HelpCircle ? glyph; tone keeps the calm accent surface so it sits
+    // naturally beside the existing 'daily' plan-reminder row.
+    case 'qna':
+      return { Icon: HelpCircle, tone: 'accent' };
     case 'streak':
       return { Icon: Flame, tone: 'secondary' };
     case 'invite':
