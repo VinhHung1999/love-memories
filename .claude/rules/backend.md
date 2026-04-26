@@ -113,8 +113,40 @@ Registered in `src/services/CronService.ts` via `CronService.registerCrons()`:
 | Date reminder  | 6 AM daily       | Asia/Ho_Chi_Minh |
 | Monthly recap  | last day 9 AM    | Asia/Ho_Chi_Minh |
 | Weekly recap   | Mon 9 AM         | Asia/Ho_Chi_Minh |
+| Daily Q reminder | 8 AM daily     | Asia/Ho_Chi_Minh |
+| Daily Q streak | midnight daily   | Asia/Ho_Chi_Minh |
 
 All crons use `Asia/Ho_Chi_Minh`.
+
+## VN day-number math (Sprint 66 T429)
+
+Use `src/utils/dateVN.ts` for ANY feature keyed on the VN calendar day —
+streak counters, daily question rotation, day-bucketed records, "today vs
+yesterday" comparisons. Helpers:
+
+| Function          | Purpose                                              |
+| ----------------- | ---------------------------------------------------- |
+| `dayNumberVN(d?)` | Days-since-epoch in VN (UTC+7 fixed offset)          |
+| `toLocalIso(d?)`  | `'YYYY-MM-DD'` for the VN day containing `d`         |
+| `parseLocalIso`   | UTC instant of VN midnight on a given ISO date       |
+| `startOfDayVN(d?)`| UTC instant of VN midnight (round-trip via toLocalIso)|
+
+**Why:** raw `Date.now() / msPerDay` is UTC-keyed. A cron at VN midnight
+(`Asia/Ho_Chi_Minh '0 0 * * *'`) fires at UTC 17:00 of the previous UTC
+day, so `floor(Date.now()/msPerDay) - 1` points at the WRONG question /
+record for "yesterday VN." The `dayNumberVN` helper applies +7h offset
+before the floor; cron and realtime paths now agree on which VN day they
+mean. Sprint 66 streak reset bug — couples in VN had their streak reset
+to 0 every night because the cron used UTC day numbers.
+
+**Race-safe streak pattern:** wrap upserts in `prisma.$transaction` and
+guard idempotency on `lastAnsweredDate.getTime() === <expectedVN>.getTime()`
+so realtime + cron paths can both fire for the same logical event without
+double-incrementing. See `DailyQuestionService.updateStreakOnBothAnswered`
++ `updateStreaksForAllCouples` for the canonical shape.
+
+VN has no DST → fixed +7h offset is sufficient. If we ever need
+non-VN couples, swap to `Intl.DateTimeFormat` with the requested zone.
 
 ## Push notifications (Sprint 65 — shipped)
 

@@ -228,6 +228,8 @@ End-to-end stack: BE direct APNs via `node-apn` + `.p8` key (Boss provides `Auth
 
 **Token register dedup (Sprint 65 D74)** — `addPushTokenListener` fires with same token immediately after `getDevicePushTokenAsync()` resolves, causing infinite re-register loop without guards. Use module-level `inFlight` boolean + `lastRegisteredToken` in-memory + 60s throttle + listener `next.data === lastRegisteredToken` skip. AsyncStorage cache check alone races and fails to dedup.
 
+**Re-register on Dashboard mount (Sprint 66 push verify)** — iOS regenerates the APNs device token on every fresh install. The OLD token persists in BE `mobile_push_tokens` until APNs returns `BadDeviceToken` and PushService prunes. Symptom: in-app inbox shows the notif (DB save works), no out-app banner. Mitigation: Dashboard ViewModel calls `getDevicePushTokenAsync()` + `POST /api/push/mobile-subscribe` on mount (not first-launch only). BE side `PushService.sendMobilePushNotification` already prunes `BadDeviceToken`/`Unregistered` automatically. Diagnostic: `SELECT createdAt FROM mobile_push_tokens WHERE userId = '...'` — if latest row predates last reinstall, that's the bug; user just needs to open app once.
+
 **Deep-link extraction (Sprint 65 D80)** — On iOS, expo-notifications exposes APNs custom payload at `notification.request.trigger.payload`, NOT `content.data` (which is `null`) and NOT `content.userInfo` (which doesn't exist on JS layer). Extract pattern:
 ```ts
 const link = content.data?.link ?? trigger?.payload?.link;
@@ -299,6 +301,20 @@ and on the BE filter (see `backend.md`). Avatar uploads already consume
 
 ## Known bug patterns
 
+- **`src/components/Input.tsx` height jitter (Sprint 66 — UNSOLVED)**: typing into Input
+  on Login/Signup/Profile-Edit causes the visible row to grow/shrink per character —
+  's' (no ascender) renders shorter than 'h' (ascender), and text drifts off
+  vertical-center. Password input is unaffected (secureTextEntry uniform bullets).
+  Sprint 66 ran 5 attempts (T440-T444) — drop `lineHeight`, hardcode `h-[50px]`,
+  drop className entirely, wrap in `overflow:hidden` container, padding-only +
+  `multiline:false / numberOfLines:1 / scrollEnabled:false / maxFontSizeMultiplier:1`
+  combo. None resolved on-device. **Boss took over the fix at end of Sprint 66**;
+  the file currently ships with the T444 padding-only + 4-guards shape but is
+  known-broken. **Do not iterate further without device-side instrumentation
+  (onLayout telemetry to a Text overlay, or React DevTools layout inspector).**
+  Profile BottomSheet inputs (`EditProfileSheet.tsx`) work fine using
+  `BottomSheetTextInput` from gorhom + explicit `paddingVertical: 14, fontSize:
+  15` — that's the proven shape if standalone is needed elsewhere.
 - **NativeWind v4 conditional `className` → "Couldn't find a navigation context"**:
   the most misleading error in this project. Toggling classes across ternary
   branches of a `className` template literal (especially interactive modifiers
