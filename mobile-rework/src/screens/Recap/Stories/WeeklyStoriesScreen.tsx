@@ -14,10 +14,25 @@ import { useAuthStore } from '@/stores/authStore';
 import { composeWeeklySlides } from './composeWeekly';
 import { RecapStoriesScreen } from './RecapStoriesScreen';
 import type { WeeklyRecapResponse } from '../types';
-import { isValidWeekStr, previousWeekStr } from '../utils';
+import {
+  defaultWeekStr,
+  formatWeekRange,
+  isValidWeekStr,
+  offsetWeekStr,
+} from '../utils';
 
 type CoupleUserLite = { id: string; name: string | null; avatar: string | null };
 type CoupleLite = { id: string; users: CoupleUserLite[] };
+
+// Quick "Tuần 17 · 2026" / "Week 17 · 2026" label from a YYYY-Www string,
+// used when the BE response can't be reached for the fallback toast.
+function labelWeek(weekStr: string, isVi: boolean): string {
+  const m = /^(\d{4})-W(\d{2})$/.exec(weekStr);
+  if (!m) return weekStr;
+  const year = m[1];
+  const week = String(Number(m[2]));
+  return isVi ? `Tuần ${week} · ${year}` : `Week ${week} · ${year}`;
+}
 
 export function WeeklyStoriesScreen() {
   const router = useRouter();
@@ -25,43 +40,79 @@ export function WeeklyStoriesScreen() {
   const { t, i18n } = useTranslation();
   const user = useAuthStore((s) => s.user);
 
-  const weekStr = useMemo(() => {
+  // Sprint 67 D4 — day-based default (Fri/Sat/Sun → current week; otherwise
+  // previous full week). Explicit `?week=` always wins.
+  const initialWeekStr = useMemo(() => {
     const raw = Array.isArray(params.week) ? params.week[0] : params.week;
-    return isValidWeekStr(raw) ? raw : previousWeekStr();
+    return isValidWeekStr(raw) ? raw : defaultWeekStr();
   }, [params.week]);
+  const [weekStr, setWeekStr] = useState<string>(initialWeekStr);
+  useEffect(() => {
+    setWeekStr(initialWeekStr);
+  }, [initialWeekStr]);
 
   const [stage, setStage] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [data, setData] = useState<WeeklyRecapResponse | null>(null);
   const [partner, setPartner] = useState<CoupleUserLite | null>(null);
   const [coupleId, setCoupleId] = useState<string | null>(null);
 
+  // Walk back at most 12 weeks (~3 months) looking for a populated period.
+  const FALLBACK_LIMIT = 12;
+
   useEffect(() => {
     let cancelled = false;
+    let fallbackHops = 0;
+    let target = weekStr;
+
     setStage('loading');
-    Promise.all([
-      apiClient.get<WeeklyRecapResponse>(`/api/recap/weekly?week=${weekStr}`),
-      apiClient.get<CoupleLite>('/api/couple').catch(() => null),
-    ])
-      .then(([res, couple]) => {
-        if (cancelled) return;
-        setData(res);
-        setCoupleId(couple?.id ?? null);
-        setPartner(
-          couple && user ? couple.users.find((u) => u.id !== user.id) ?? null : null,
-        );
-        const isEmpty =
-          res.moments.count === 0 &&
-          res.loveLetters.sent + res.loveLetters.received === 0 &&
-          res.questions.count === 0;
-        setStage(isEmpty ? 'empty' : 'ready');
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setStage('error');
-      });
+
+    const tryFetch = (): void => {
+      Promise.all([
+        apiClient.get<WeeklyRecapResponse>(`/api/recap/weekly?week=${target}`),
+        apiClient.get<CoupleLite>('/api/couple').catch(() => null),
+      ])
+        .then(([res, couple]) => {
+          if (cancelled) return;
+          const isEmpty =
+            res.moments.count === 0 &&
+            res.loveLetters.sent + res.loveLetters.received === 0 &&
+            res.questions.count === 0;
+          if (isEmpty && fallbackHops < FALLBACK_LIMIT) {
+            fallbackHops += 1;
+            target = offsetWeekStr(target, -1);
+            tryFetch();
+            return;
+          }
+          setData(res);
+          setCoupleId(couple?.id ?? null);
+          setPartner(
+            couple && user ? couple.users.find((u) => u.id !== user.id) ?? null : null,
+          );
+          if (fallbackHops > 0) {
+            const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+            const requested = labelWeek(weekStr, isVi);
+            const landed =
+              formatWeekRange(res.startDate, res.endDate, isVi ? 'vi' : 'en') ||
+              labelWeek(target, isVi);
+            Alert.alert(
+              t('recap.weekly.fallback.title'),
+              t('recap.weekly.fallback.body', { requested, landed }),
+            );
+            setWeekStr(target);
+          }
+          setStage(isEmpty ? 'empty' : 'ready');
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setStage('error');
+        });
+    };
+
+    tryFetch();
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStr, user]);
 
   const onClose = useCallback(() => {

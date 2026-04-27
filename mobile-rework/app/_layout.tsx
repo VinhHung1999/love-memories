@@ -189,8 +189,8 @@ export default function RootLayout() {
         setTimeout(() => {
           imperativeRouter.push(
             month
-              ? { pathname: '/(modal)/recap/monthly', params: { month } }
-              : '/(modal)/recap/monthly',
+              ? { pathname: '/recap/monthly', params: { month } }
+              : '/recap/monthly',
           );
         }, 50);
       } else if (recapWeekMatch) {
@@ -198,18 +198,18 @@ export default function RootLayout() {
         setTimeout(() => {
           imperativeRouter.push(
             week
-              ? { pathname: '/(modal)/recap/weekly', params: { week } }
-              : '/(modal)/recap/weekly',
+              ? { pathname: '/recap/weekly', params: { week } }
+              : '/recap/weekly',
           );
         }, 50);
       } else if (link === '/monthly-recap') {
         // Legacy alias — same destination, no month param (ViewModel falls
         // back to previous full month). Drop this branch once BE flips.
-        setTimeout(() => imperativeRouter.push('/(modal)/recap/monthly'), 50);
+        setTimeout(() => imperativeRouter.push('/recap/monthly'), 50);
       } else if (link === '/weekly-recap') {
         // T457 legacy alias — BE CronService still emits this path until
         // B-be-weekly-recap-link-update flips it.
-        setTimeout(() => imperativeRouter.push('/(modal)/recap/weekly'), 50);
+        setTimeout(() => imperativeRouter.push('/recap/weekly'), 50);
       } else if (link === '/notifications') {
         setTimeout(() => imperativeRouter.push('/notifications'), 50);
       } else if (link === '/daily-questions') {
@@ -358,6 +358,19 @@ function RootStack() {
       {/* T458 (Sprint 67) — RecapArchive list (12 months + 12 weeks).
           Reachable from Profile "Lưu trữ recap" row. Push transition. */}
       <Stack.Screen name="recap-archive" />
+      {/* D4 (Sprint 67 hot-fix 2026-04-27) — Stories monthly + weekly
+          promoted out of `(modal)` group so `fullScreenModal` actually
+          wins (parent group's `presentation: 'modal'` would otherwise
+          force a sheet card). Same lesson as Photobooth PB5 + letter-read
+          D42 + moment-detail T386.7. */}
+      <Stack.Screen
+        name="recap/monthly/index"
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+      <Stack.Screen
+        name="recap/weekly/index"
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
     </Stack>
   );
 }
@@ -434,6 +447,7 @@ function useAuthGate() {
     if (seg[0] === 'notifications') return;
     if (seg[0] === 'daily-questions') return;
     if (seg[0] === 'recap-archive') return;
+    if (seg[0] === 'recap') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

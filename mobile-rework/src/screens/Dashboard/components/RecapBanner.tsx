@@ -25,16 +25,18 @@ type Props = {
 
 // Return the YYYY-MM string the banner should target on a given date, or
 // null when the banner is outside its render window.
+//
+// Sprint 67 D4 (2026-04-27) — TẠM CHEAT: always return previous full month
+// so the banner pins on Dashboard every day, not just the 28-3 window.
+// Boss needs to see the banner mid-month to decide the permanent rule
+// (option 1 expand window / 2 always-visible-data-driven /
+// 3 always-visible / 4 keep 6-day). Revert this `return early` block once
+// Boss picks one. Original day-window math kept below as reference.
 export function recapBannerTarget(now: Date = new Date()): string | null {
-  const day = now.getDate();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-based
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  // Days 1-3 → previous month.
-  if (day <= 3) {
-    let py = year;
-    let pm = month - 1; // 0-based
+  // CHEAT: always show the previous full month banner.
+  {
+    let py = now.getFullYear();
+    let pm = now.getMonth() - 1; // 0-based
     if (pm < 0) {
       py -= 1;
       pm = 11;
@@ -42,12 +44,21 @@ export function recapBannerTarget(now: Date = new Date()): string | null {
     return `${py}-${String(pm + 1).padStart(2, '0')}`;
   }
 
-  // Last 3 days of current month → current month.
-  if (day >= daysInMonth - 2) {
-    return `${year}-${String(month + 1).padStart(2, '0')}`;
-  }
-
-  return null;
+  // ── Original 6-day window (kept for easy revert) ─────────────────────
+  // const day = now.getDate();
+  // const year = now.getFullYear();
+  // const month = now.getMonth();
+  // const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // if (day <= 3) {
+  //   let py = year;
+  //   let pm = month - 1;
+  //   if (pm < 0) { py -= 1; pm = 11; }
+  //   return `${py}-${String(pm + 1).padStart(2, '0')}`;
+  // }
+  // if (day >= daysInMonth - 2) {
+  //   return `${year}-${String(month + 1).padStart(2, '0')}`;
+  // }
+  // return null;
 }
 
 export function RecapBanner({ monthStr, kicker, title, sub }: Props) {
@@ -56,7 +67,7 @@ export function RecapBanner({ monthStr, kicker, title, sub }: Props) {
 
   const onPress = () => {
     router.push({
-      pathname: '/(modal)/recap/monthly',
+      pathname: '/recap/monthly',
       params: { month: monthStr },
     });
   };

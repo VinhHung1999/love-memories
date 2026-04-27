@@ -1,7 +1,6 @@
-// Sprint 67 T460 + D2 — DEFAULT entry for weekly recap. Stories first.
-//
-// D2: Same fullScreenModal override pattern as monthly so Stories
-// shell renders edge-to-edge, status bar hidden.
+// Sprint 67 D4 — Stories weekly recap promoted out of `(modal)` group so
+// `presentation: 'fullScreenModal'` actually wins. See app/recap/monthly/
+// index.tsx for full rationale.
 
 import { Stack } from 'expo-router';
 

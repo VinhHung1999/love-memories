@@ -22,6 +22,35 @@ export function previousMonthStr(now: Date = new Date()): string {
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
+// Sprint 67 D4 — current calendar month as YYYY-MM. Used by the day-based
+// default rule below.
+export function currentMonthStr(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// Sprint 67 D4 — day-based default: when the user is in the last few days
+// of the month (>= 28) we assume they want a "this month so far" recap,
+// otherwise the previous full month (Spotify-Wrapped style). Used as the
+// initial month for MonthlyStoriesScreen when no `?month=` param is passed.
+// 28 chosen so February (which can end on day 28) and the last days of any
+// month all fall into the "current" bucket.
+export function defaultMonthStr(now: Date = new Date()): string {
+  return now.getDate() >= 28 ? currentMonthStr(now) : previousMonthStr(now);
+}
+
+// Sprint 67 D4 — month before the given YYYY-MM string, used by the empty-
+// fallback retry to walk backwards until something with data turns up.
+export function offsetMonthStr(monthStr: string, deltaMonths: number): string {
+  const [yearRaw, monthRaw] = monthStr.split('-');
+  const year = Number(yearRaw);
+  const month = Number(monthRaw); // 1-based
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return monthStr;
+  const total = year * 12 + (month - 1) + deltaMonths;
+  const newYear = Math.floor(total / 12);
+  const newMonth = (total % 12 + 12) % 12 + 1;
+  return `${newYear}-${String(newMonth).padStart(2, '0')}`;
+}
+
 const VI_MONTH_NAMES = [
   'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
   'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
@@ -94,6 +123,40 @@ export function previousWeekStr(now: Date = new Date()): string {
   const seven = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const { year, week } = isoWeekFromDate(seven);
   return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+// Sprint 67 D4 — current ISO week as YYYY-Www.
+export function currentWeekStr(now: Date = new Date()): string {
+  const { year, week } = isoWeekFromDate(now);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+// Sprint 67 D4 — day-based default for weekly: when the user is in the back
+// half of the week (Fri/Sat/Sun, ISO day 5-7) we assume they want a "this
+// week so far" recap; otherwise the previous full week.
+export function defaultWeekStr(now: Date = new Date()): string {
+  const isoDay = now.getDay() === 0 ? 7 : now.getDay(); // Sun=7
+  return isoDay >= 5 ? currentWeekStr(now) : previousWeekStr(now);
+}
+
+// Sprint 67 D4 — week before the given YYYY-Www string, used by the empty-
+// fallback retry. Walks back via raw 7-day arithmetic so ISO year boundaries
+// resolve through `isoWeekFromDate`.
+export function offsetWeekStr(weekStr: string, deltaWeeks: number): string {
+  const m = /^(\d{4})-W(\d{2})$/.exec(weekStr);
+  if (!m) return weekStr;
+  const year = Number(m[1]);
+  const week = Number(m[2]);
+  // Anchor on Thursday of the given ISO week (ISO 8601 anchor day) so we
+  // round-trip through isoWeekFromDate cleanly across year boundaries.
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7;
+  const week1Monday = new Date(jan4.getTime() - (jan4Day - 1) * 86_400_000);
+  const targetMonday = new Date(
+    week1Monday.getTime() + (week - 1 + deltaWeeks) * 7 * 86_400_000,
+  );
+  const { year: ny, week: nw } = isoWeekFromDate(targetMonday);
+  return `${ny}-W${String(nw).padStart(2, '0')}`;
 }
 
 // Format a "weekly cover" date range from BE response startDate/endDate

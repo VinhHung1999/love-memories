@@ -15,7 +15,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { composeMonthlySlides } from './composeMonthly';
 import { RecapStoriesScreen } from './RecapStoriesScreen';
 import type { MonthlyRecapResponse } from '../types';
-import { isValidMonthStr, previousMonthStr } from '../utils';
+import {
+  defaultMonthStr,
+  describeMonth,
+  isValidMonthStr,
+  offsetMonthStr,
+} from '../utils';
 
 type CoupleUserLite = { id: string; name: string | null; avatar: string | null };
 type CoupleLite = { id: string; users: CoupleUserLite[] };
@@ -26,43 +31,97 @@ export function MonthlyStoriesScreen() {
   const { t, i18n } = useTranslation();
   const user = useAuthStore((s) => s.user);
 
-  const monthStr = useMemo(() => {
+  // Sprint 67 D4 — day-based default (>= 28 of month → current month so the
+  // user gets a "this month so far" recap on the cusp; otherwise previous
+  // full month, Spotify-Wrapped style). Explicit `?month=` always wins.
+  const initialMonthStr = useMemo(() => {
     const raw = Array.isArray(params.month) ? params.month[0] : params.month;
-    return isValidMonthStr(raw) ? raw : previousMonthStr();
+    return isValidMonthStr(raw) ? raw : defaultMonthStr();
   }, [params.month]);
+  // The fetch month can advance via the empty-fallback retry below — once
+  // the initial month comes back empty we walk backwards a month at a time
+  // (capped) until we land on something with data, then surface a toast so
+  // the user knows we substituted.
+  const [monthStr, setMonthStr] = useState<string>(initialMonthStr);
+  // Reset the fetch target when the route param changes (e.g. user picks a
+  // specific month from RecapArchive).
+  useEffect(() => {
+    setMonthStr(initialMonthStr);
+  }, [initialMonthStr]);
 
   const [stage, setStage] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [data, setData] = useState<MonthlyRecapResponse | null>(null);
   const [partner, setPartner] = useState<CoupleUserLite | null>(null);
   const [coupleId, setCoupleId] = useState<string | null>(null);
 
+  // Walk back at most this many months looking for a non-empty period.
+  // Higher than 1 so a user reinstalling mid-March (with empty Feb but data
+  // back in January) still lands on a populated recap. Cap at 12 so we
+  // never iterate forever in a brand-new account with zero history.
+  const FALLBACK_LIMIT = 12;
+
   useEffect(() => {
     let cancelled = false;
+    let fallbackHops = 0;
+    let target = monthStr;
+
     setStage('loading');
-    Promise.all([
-      apiClient.get<MonthlyRecapResponse>(`/api/recap/monthly?month=${monthStr}`),
-      apiClient.get<CoupleLite>('/api/couple').catch(() => null),
-    ])
-      .then(([res, couple]) => {
-        if (cancelled) return;
-        setData(res);
-        setCoupleId(couple?.id ?? null);
-        setPartner(
-          couple && user ? couple.users.find((u) => u.id !== user.id) ?? null : null,
-        );
-        const isEmpty =
-          res.moments.count === 0 &&
-          res.loveLetters.sent + res.loveLetters.received === 0 &&
-          res.questions.count === 0;
-        setStage(isEmpty ? 'empty' : 'ready');
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setStage('error');
-      });
+
+    const tryFetch = (): void => {
+      Promise.all([
+        apiClient.get<MonthlyRecapResponse>(`/api/recap/monthly?month=${target}`),
+        apiClient.get<CoupleLite>('/api/couple').catch(() => null),
+      ])
+        .then(([res, couple]) => {
+          if (cancelled) return;
+          const isEmpty =
+            res.moments.count === 0 &&
+            res.loveLetters.sent + res.loveLetters.received === 0 &&
+            res.questions.count === 0;
+          if (isEmpty && fallbackHops < FALLBACK_LIMIT) {
+            // Walk back one month and try again. Don't update React state
+            // mid-walk — keep the spinner up so the user doesn't see a
+            // flash of the empty state.
+            fallbackHops += 1;
+            target = offsetMonthStr(target, -1);
+            tryFetch();
+            return;
+          }
+          setData(res);
+          setCoupleId(couple?.id ?? null);
+          setPartner(
+            couple && user ? couple.users.find((u) => u.id !== user.id) ?? null : null,
+          );
+          if (fallbackHops > 0) {
+            // We substituted — surface the swap so the user understands
+            // why the period reads differently than the route asked for.
+            const requested = describeMonth(monthStr);
+            const landed = describeMonth(target);
+            const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+            Alert.alert(
+              t('recap.monthly.fallback.title'),
+              t('recap.monthly.fallback.body', {
+                requested: isVi ? requested.formatted.vi : requested.formatted.en,
+                landed: isVi ? landed.formatted.vi : landed.formatted.en,
+              }),
+            );
+            setMonthStr(target);
+          }
+          setStage(isEmpty ? 'empty' : 'ready');
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setStage('error');
+        });
+    };
+
+    tryFetch();
     return () => {
       cancelled = true;
     };
+    // We intentionally exclude i18n + t from the dep array — the effect
+    // owns the fetch lifecycle and shouldn't re-fire on language flips.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthStr, user]);
 
   const onClose = useCallback(() => {

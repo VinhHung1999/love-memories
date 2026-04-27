@@ -60,7 +60,7 @@ const vi = {
     recapSub: '{{moments}} khoảnh khắc · {{letters}} lá thư · {{trips}} chuyến đi',
     recapCta: 'Xem lại',
     // Sprint 67 T455 — Dashboard banner pin (last 3 days of month + first 3
-    // of next month). Tap → /(modal)/recap/monthly?month=YYYY-MM.
+    // of next month). Tap → /recap/monthly?month=YYYY-MM.
     recapBanner: {
       kicker: 'RECAP · {{name}}',
       title: '{{name}} của mình',
@@ -1030,6 +1030,13 @@ const vi = {
         body: 'Có lỗi xảy ra khi tải dữ liệu. Thử lại sau nhé.',
         retry: 'Thử lại',
       },
+      // Sprint 67 D4 — toast surfaced when the requested month had no
+      // moments / letters / Q&A and the screen walked back to the most
+      // recent month with data.
+      fallback: {
+        title: 'Đã chuyển sang tháng có dữ liệu',
+        body: '{{requested}} chưa có khoảnh khắc nào — mình hiện {{landed}} thay nhé.',
+      },
       closeLabel: 'Đóng',
     },
     // Sprint 67 T460 — Stories composer labels (shared across monthly +
@@ -1104,6 +1111,10 @@ const vi = {
         title: 'Không tải được recap',
         body: 'Có lỗi xảy ra khi tải dữ liệu. Thử lại sau nhé.',
         retry: 'Thử lại',
+      },
+      fallback: {
+        title: 'Đã chuyển sang tuần có dữ liệu',
+        body: '{{requested}} chưa có khoảnh khắc nào — mình hiện {{landed}} thay nhé.',
       },
       closeLabel: 'Đóng',
     },

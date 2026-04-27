@@ -37,11 +37,19 @@ export function StatSlide({ slide }: Props) {
       ) : (
         <PhotoMosaicBackdrop photos={photos} />
       )}
-      <View className="flex-1 items-start justify-center px-7">
-        <AnimatedCounter
-          value={slide.value}
-          className={`font-displayBold text-[180px] leading-[170px] tracking-tight ${numberClass}`}
-        />
+      <View className="flex-1 items-start justify-center overflow-visible px-7">
+        {/* Sprint 67 D4 — bumped `leading` from 170 → 210 so Fraunces'
+            tall ascenders (4, 7, '6'/'9' loops) don't get cropped at the
+            top. Rule of thumb for display-size text: leading ≥ 1.15×
+            font-size. The `py-1` + `overflow-visible` + container
+            `overflow-visible` give the glyph box room to breathe even
+            when iOS rounds the inline-text bounding rect tight. */}
+        <View className="overflow-visible py-1">
+          <AnimatedCounter
+            value={slide.value}
+            className={`font-displayBold text-[180px] leading-[210px] tracking-tight ${numberClass}`}
+          />
+        </View>
         <Text className="mt-2 font-bodySemibold text-[14px] uppercase tracking-[2.5px] text-white/95">
           {slide.label}
         </Text>

@@ -84,6 +84,11 @@ export type Slide =
       excerpt: string;
       ctaLabel: string;           // 'Đọc lại'
       thumbPhotoUrl?: string;     // used by polaroid + postcard variants
+      // D4 — sender name surfaced separately from `kicker` so the
+      // paper-sheet signature can render in Dancing Script ("— Hùng")
+      // matching the LetterReadScreen tone. Kicker stays for the corner
+      // caption ("Từ Hùng · 22.04").
+      senderName: string;         // 'Hùng'
     }
   | {
       kind: 'topQuestion';

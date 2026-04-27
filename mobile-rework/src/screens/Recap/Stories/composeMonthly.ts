@@ -233,6 +233,10 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
       excerpt: lh.excerpt,
       ctaLabel: labels.letterCta,
       thumbPhotoUrl: thumb,
+      // D4 — pass the raw sender name through so PaperBody can render
+      // the Dancing-Script signature ("— Hùng") in addition to the
+      // baked-in kicker caption.
+      senderName: lh.senderName,
     });
   }
 

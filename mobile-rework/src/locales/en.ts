@@ -962,6 +962,10 @@ const en: Resources = {
         body: 'Something went wrong. Try again in a bit.',
         retry: 'Retry',
       },
+      fallback: {
+        title: 'Switched to a month with data',
+        body: '{{requested}} had no moments — showing {{landed}} instead.',
+      },
       closeLabel: 'Close',
     },
     stories: {
@@ -1032,6 +1036,10 @@ const en: Resources = {
         title: "Couldn't load recap",
         body: 'Something went wrong. Try again in a bit.',
         retry: 'Retry',
+      },
+      fallback: {
+        title: 'Switched to a week with data',
+        body: '{{requested}} had no moments — showing {{landed}} instead.',
       },
       closeLabel: 'Close',
     },

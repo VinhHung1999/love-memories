@@ -133,7 +133,7 @@ export function useRecapArchiveViewModel(): RecapArchiveViewModel {
   const onOpenMonth = useCallback(
     (monthStr: string) => {
       router.push({
-        pathname: '/(modal)/recap/monthly',
+        pathname: '/recap/monthly',
         params: { month: monthStr },
       });
     },
@@ -143,7 +143,7 @@ export function useRecapArchiveViewModel(): RecapArchiveViewModel {
   const onOpenWeek = useCallback(
     (weekStr: string) => {
       router.push({
-        pathname: '/(modal)/recap/weekly',
+        pathname: '/recap/weekly',
         params: { week: weekStr },
       });
     },

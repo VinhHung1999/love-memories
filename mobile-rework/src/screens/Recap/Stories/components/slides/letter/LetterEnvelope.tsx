@@ -1,7 +1,8 @@
-// Letter variant 3 — Vintage envelope. Top half = airmail-striped
-// envelope card with stamp corner + handwritten "PAR AVION" feel.
-// Bottom half = excerpt sheet peeking out from under the envelope
-// with tear-edge top.
+// Letter variant 3 — Vintage envelope on top, paper-cream excerpt sheet
+// peeking out below. D4 refactor: the bottom "excerpt sheet" is now a
+// real PaperSheet (cream + notebook lines + Dancing-Script signature),
+// matching LetterReadScreen so the airmail envelope reads as the
+// physical wrapper around an actual letter.
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowRight } from 'lucide-react-native';
@@ -9,6 +10,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
+import { PAPER_INK, PaperBody, PaperSheet } from './PaperSheet';
 import type { Slide } from '../../../types';
 
 type LetterSlide = Extract<Slide, { kind: 'letter' }>;
@@ -29,7 +31,7 @@ export function LetterEnvelope({
         end={{ x: 0, y: 1 }}
         style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
       />
-      <View className="flex-1 justify-center px-6" style={{ gap: 18 }}>
+      <View className="flex-1 justify-center px-5" style={{ gap: 14 }}>
         {/* Envelope card */}
         <View className="overflow-hidden rounded-md border border-line bg-white shadow-elevated">
           {/* Airmail stripe */}
@@ -75,25 +77,25 @@ export function LetterEnvelope({
           </View>
         </View>
 
-        {/* Excerpt sheet */}
-        <View
-          className="bg-bg-elev p-5 shadow-card"
-          style={{
-            // Tear-edge top via clipPath isn't native — fake it with a
-            // dashed top border which still reads as "torn" against
-            // the envelope above.
-            borderTopWidth: 2,
-            borderTopColor: c.lineSoft,
-            borderStyle: 'dashed',
-          }}
+        {/* Excerpt sheet — real cream paper with notebook rules. */}
+        <PaperSheet
+          approxHeight={320}
+          className="rounded-[14px] px-5 pb-5 pt-5 shadow-card"
         >
           <Text
-            className="font-body text-[14px] leading-[22px] text-ink-soft"
-            numberOfLines={6}
+            className="font-bodyBold text-[9px] uppercase tracking-[2.5px]"
+            style={{ color: PAPER_INK }}
           >
-            {slide.excerpt}
+            ✉ Trích thư
           </Text>
-        </View>
+          <View className="mt-2">
+            <PaperBody
+              excerpt={slide.excerpt}
+              senderName={slide.senderName}
+              numberOfLines={7}
+            />
+          </View>
+        </PaperSheet>
 
         <Pressable
           accessibilityRole="button"

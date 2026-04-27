@@ -149,9 +149,9 @@ export default function NotificationsScreen() {
           // (`kind` lumps both into 'recap'). Weekly Mon-cron → weekly
           // route; monthly first-of-next-month cron → monthly route.
           if (n.type === 'weekly_recap') {
-            router.push('/(modal)/recap/weekly');
+            router.push('/recap/weekly');
           } else {
-            router.push('/(modal)/recap/monthly');
+            router.push('/recap/monthly');
           }
           return;
         case 'qna':
@@ -175,7 +175,7 @@ export default function NotificationsScreen() {
   const onAnnivTap = useCallback(() => {
     // T457: anniversary banner now opens the editorial monthly recap
     // (the previous /monthly-recap route is now a redirect).
-    router.push('/(modal)/recap/monthly');
+    router.push('/recap/monthly');
   }, [router]);
 
   const onSettingsTap = useCallback(() => {
