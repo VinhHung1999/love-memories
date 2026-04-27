@@ -179,11 +179,11 @@ export function MonthlyStoriesScreen() {
         placesHeadline: (count) => t('recap.stories.placesHeadline', { count }),
         placesCaption: (count) => t('recap.stories.placesCaption', { count }),
         firstsKicker: t('recap.monthly.section.firsts.title'),
-        // D8 — LettersCollection slide labels.
-        lettersCollectionKicker: (count) =>
-          t('recap.stories.lettersCollection.kicker', { count }),
-        lettersCollectionHeadline: t('recap.stories.lettersCollection.headline'),
-        lettersCollectionCta: t('recap.stories.lettersCollection.cta'),
+        // D9 — LettersDeck slide labels.
+        lettersDeckKicker: (count) =>
+          t('recap.stories.lettersDeck.kicker', { count }),
+        lettersDeckHeadline: t('recap.stories.lettersDeck.headline'),
+        lettersDeckEmpty: t('recap.stories.lettersDeck.empty'),
         letterKicker: (sender, date) =>
           t('recap.monthly.section.letterHighlight.kicker', { sender, date }),
         topQuestionMeta: (count) =>

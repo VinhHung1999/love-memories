@@ -994,11 +994,11 @@ const en: Resources = {
         headline: 'One more look',
         caption: 'Showing {{showing}} of {{of}} photos',
       },
-      // Sprint 67 D8 — LettersCollection slide labels.
-      lettersCollection: {
+      // Sprint 67 D9 — LettersDeck stacked-cards slide labels.
+      lettersDeck: {
         kicker: 'LETTERS · {{count}}',
-        headline: 'What we wrote',
-        cta: 'Open in Inbox',
+        headline: 'A pile of love letters',
+        empty: 'No letters this period…',
       },
     },
     weekly: {

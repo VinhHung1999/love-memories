@@ -35,10 +35,11 @@ export type MonthlyComposeContext = {
     placesHeadline: (count: number) => string;
     placesCaption: (count: number) => string;
     firstsKicker: string;          // 'Lần đầu của mình'
-    // D8 — LettersCollection slide labels (replaces per-letter labels).
-    lettersCollectionKicker: (count: number) => string; // 'THƯ TÌNH · 4 lá'
-    lettersCollectionHeadline: string;                  // 'Mình viết cho nhau'
-    lettersCollectionCta: string;                       // 'Đọc lại trong Inbox'
+    // D9 — LettersDeck slide labels (stacked-card swipe deck). The
+    // D8 lettersCollection labels were dropped along with the slide.
+    lettersDeckKicker: (count: number) => string;       // 'THƯ TÌNH · 4 lá'
+    lettersDeckHeadline: string;                        // 'Một chồng thư trong tháng'
+    lettersDeckEmpty: string;                           // 'Tháng này chưa có thư nào…'
     letterKicker: (sender: string, date: string) => string;
     topQuestionMeta: (count: number) => string;
     closingTitleWithPartner: (partner: string) => string;
@@ -85,21 +86,9 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   const statBackdropPhotos = allPhotos.slice(0, 9); // stat 3x3 mosaic
   const reelPhotos = allPhotos.slice(0, 9);
 
-  // D8 — letter photos pool: flatten every letter's photos[] (BE caps
-  // 4 each) so the BigStat letters slide backdrop pulls from real
-  // letter attachments instead of the moment pool. Falls back to moment
-  // pool when no letters have photos so the slide doesn't drop to the
-  // cream gradient again (D6 lesson).
-  const letterPhotos = [
-    ...new Set(
-      data.letters
-        .flatMap((l) => l.photos ?? [])
-        .filter(Boolean),
-    ),
-  ];
-  const letterBackdrop = letterPhotos.length > 0
-    ? letterPhotos.slice(0, 9)
-    : statBackdropPhotos;
+  // D9 — letter-photos pool + letterBackdrop dropped (D8) along with
+  // the BigStat letters slide. The new LettersDeck slide owns letter
+  // visuals — no separate stat or backdrop card needed.
 
   const slides: Slide[] = [];
 
@@ -127,20 +116,9 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
       sub: labels.statSubMoments,
     });
   }
-  const totalLetters = data.loveLetters.sent + data.loveLetters.received;
-  if (totalLetters > 0) {
-    slides.push({
-      kind: 'stat',
-      // D8 — backdrop pulls from letterPhotos (real letter attachments)
-      // when present, falling back to the moment pool only when no
-      // letter carries an attachment. Boss intent: BigStat letters
-      // should feel like letters, not moments.
-      bgPhotoUrls: letterBackdrop,
-      value: totalLetters,
-      label: labels.statLetters,
-      tone: 'secondary',
-    });
-  }
+  // D9 — BigStat letters slide DROPPED. Boss intent 2026-04-28: merge
+  // count + content into the LettersDeck slide below — the deck size
+  // is itself the count, no separate stat card needed.
   if (data.totalPhotoCount > 0) {
     slides.push({
       kind: 'stat',
@@ -222,43 +200,40 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
     });
   }
 
-  // D8 — single LettersCollection slide consolidating ALL letters.
-  // Replaces the D2-D7 pattern of per-letter slides with paginated
-  // variants (Classic/Polaroid/Envelope/Postcard). Boss directive
-  // 2026-04-27: "phải hiển thị TOÀN BỘ mấy cái lá thư" — all letters
-  // together, read-style, in one slide. Falls back to letterHighlight
-  // for the BE deploy-gap (older BE without `letters[]`).
+  // D9 — LettersDeck stacked-card slide. Replaces D8's
+  // LettersCollection vertical list with a Tinder-style stack: top
+  // card = full read-style letter, peek cards behind tilted. Always
+  // emits the slide (even when 0 letters) so the deck slot stays in
+  // the deck and shows an empty-state card. Falls back to
+  // letterHighlight when only that's populated (older BE crossover).
   const letterPool = data.letters.length > 0
     ? data.letters
     : data.letterHighlight
       ? [data.letterHighlight]
       : [];
-  if (letterPool.length > 0) {
-    const collectionItems = letterPool.map((lh) => {
-      const dateLabel = lh.deliveredAt
-        ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
-            day: '2-digit',
-            month: '2-digit',
-          })
-        : '';
-      return {
-        id: lh.id,
-        kicker: labels.letterKicker(lh.senderName, dateLabel),
-        title: lh.title,
-        // BE deploy-gap fallback: older response had only `excerpt`.
-        content: (lh.content ?? lh.excerpt) || '',
-        senderName: lh.senderName,
-        thumb: lh.photos?.[0],
-      };
-    });
-    slides.push({
-      kind: 'lettersCollection',
-      kicker: labels.lettersCollectionKicker(letterPool.length),
-      headline: labels.lettersCollectionHeadline,
-      ctaLabel: labels.lettersCollectionCta,
-      letters: collectionItems,
-    });
-  }
+  const deckItems = letterPool.map((lh) => {
+    const dateLabel = lh.deliveredAt
+      ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+          day: '2-digit',
+          month: '2-digit',
+        })
+      : '';
+    return {
+      id: lh.id,
+      kicker: labels.letterKicker(lh.senderName, dateLabel),
+      title: lh.title,
+      content: (lh.content ?? lh.excerpt) || '',
+      senderName: lh.senderName,
+      thumb: lh.photos?.[0],
+    };
+  });
+  slides.push({
+    kind: 'lettersDeck',
+    kicker: labels.lettersDeckKicker(deckItems.length),
+    headline: labels.lettersDeckHeadline,
+    emptyText: deckItems.length === 0 ? labels.lettersDeckEmpty : undefined,
+    letters: deckItems,
+  });
 
   // Top question — skip if null
   if (data.topQuestion) {

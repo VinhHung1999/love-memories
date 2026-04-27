@@ -32,10 +32,10 @@ export type WeeklyComposeContext = {
     actionsDetail: string;
     photoReelHeadline: string;
     photoReelCaption: (showing: number, of: number) => string;
-    // D8 — LettersCollection slide labels (parity with monthly).
-    lettersCollectionKicker: (count: number) => string;
-    lettersCollectionHeadline: string;
-    lettersCollectionCta: string;
+    // D9 — LettersDeck slide labels (parity with monthly).
+    lettersDeckKicker: (count: number) => string;
+    lettersDeckHeadline: string;
+    lettersDeckEmpty: string;
     letterKicker: (sender: string, date: string) => string;
   };
   handlers: {
@@ -71,19 +71,8 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   const coverPhotos = [...new Set(allPhotos)].slice(0, 4);
   const statBackdrop = [...new Set(allPhotos)].slice(0, 9);
 
-  // D8 — letter photos pool for the BigStat letters backdrop. Falls
-  // back to the moment pool when no letter carries an attachment
-  // (D6 lesson: never let the slide drop to the cream gradient).
-  const letterPhotos = [
-    ...new Set(
-      data.letters
-        .flatMap((l) => l.photos ?? [])
-        .filter(Boolean),
-    ),
-  ];
-  const letterBackdrop = letterPhotos.length > 0
-    ? letterPhotos.slice(0, 9)
-    : statBackdrop;
+  // D9 — letter-photos pool dropped along with the BigStat letters
+  // slide. The LettersDeck slide owns letter visuals end-to-end.
 
   const slides: Slide[] = [];
 
@@ -113,17 +102,12 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   // Letters or daily-Q stat — pick whichever is more meaningful for the
   // week (letters > 0 wins; otherwise daily Q if > 0). Keeps the deck
   // short.
+  // D9 — BigStat letters slide DROPPED along with monthly. The
+  // questions stat (when no letters in the week) is preserved as
+  // the secondary stat slot so weekly recaps without letters still
+  // surface a meaningful stat between moments + photoReel.
   const totalLetters = data.loveLetters.sent + data.loveLetters.received;
-  if (totalLetters > 0) {
-    slides.push({
-      kind: 'stat',
-      // D8 — letter-attachment pool first, fall back to moment pool.
-      bgPhotoUrls: letterBackdrop,
-      value: totalLetters,
-      label: labels.statLetters,
-      tone: 'secondary',
-    });
-  } else if (data.questions.count > 0) {
+  if (totalLetters === 0 && data.questions.count > 0) {
     slides.push({
       kind: 'stat',
       bgPhotoUrls: statBackdrop,
@@ -159,39 +143,37 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
     });
   }
 
-  // D8 — LettersCollection slide for weekly: same consolidated read-
-  // style stack as monthly. Slot before the photo reel so the warm
-  // letter content reads inline with the rest of the week's narrative.
+  // D9 — LettersDeck stacked-card slide for weekly. Always emits
+  // (even with 0 letters) so the deck slot stays in the deck and
+  // shows an empty state — keeps the slot visible across periods.
   const letterPool = data.letters.length > 0
     ? data.letters
     : data.letterHighlight
       ? [data.letterHighlight]
       : [];
-  if (letterPool.length > 0) {
-    const collectionItems = letterPool.map((lh) => {
-      const dateLabel = lh.deliveredAt
-        ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
-            day: '2-digit',
-            month: '2-digit',
-          })
-        : '';
-      return {
-        id: lh.id,
-        kicker: labels.letterKicker(lh.senderName, dateLabel),
-        title: lh.title,
-        content: (lh.content ?? lh.excerpt) || '',
-        senderName: lh.senderName,
-        thumb: lh.photos?.[0],
-      };
-    });
-    slides.push({
-      kind: 'lettersCollection',
-      kicker: labels.lettersCollectionKicker(letterPool.length),
-      headline: labels.lettersCollectionHeadline,
-      ctaLabel: labels.lettersCollectionCta,
-      letters: collectionItems,
-    });
-  }
+  const deckItems = letterPool.map((lh) => {
+    const dateLabel = lh.deliveredAt
+      ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+          day: '2-digit',
+          month: '2-digit',
+        })
+      : '';
+    return {
+      id: lh.id,
+      kicker: labels.letterKicker(lh.senderName, dateLabel),
+      title: lh.title,
+      content: (lh.content ?? lh.excerpt) || '',
+      senderName: lh.senderName,
+      thumb: lh.photos?.[0],
+    };
+  });
+  slides.push({
+    kind: 'lettersDeck',
+    kicker: labels.lettersDeckKicker(deckItems.length),
+    headline: labels.lettersDeckHeadline,
+    emptyText: deckItems.length === 0 ? labels.lettersDeckEmpty : undefined,
+    letters: deckItems,
+  });
 
   // PhotoReel for weekly when there are 4+ unique photos.
   if (allPhotos.length >= 4) {

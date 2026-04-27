@@ -176,11 +176,11 @@ export function WeeklyStoriesScreen() {
         photoReelHeadline: t('recap.stories.photoReel.headline'),
         photoReelCaption: (showing, of) =>
           t('recap.stories.photoReel.caption', { showing, of }),
-        // D8 — LettersCollection labels (parity with monthly).
-        lettersCollectionKicker: (count) =>
-          t('recap.stories.lettersCollection.kicker', { count }),
-        lettersCollectionHeadline: t('recap.stories.lettersCollection.headline'),
-        lettersCollectionCta: t('recap.stories.lettersCollection.cta'),
+        // D9 — LettersDeck labels (parity with monthly).
+        lettersDeckKicker: (count) =>
+          t('recap.stories.lettersDeck.kicker', { count }),
+        lettersDeckHeadline: t('recap.stories.lettersDeck.headline'),
+        lettersDeckEmpty: t('recap.stories.lettersDeck.empty'),
         letterKicker: (sender, date) =>
           t('recap.monthly.section.letterHighlight.kicker', { sender, date }),
       },

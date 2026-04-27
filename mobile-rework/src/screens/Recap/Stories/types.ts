@@ -73,15 +73,19 @@ export type Slide =
       title: string;              // moment title
     }
   | {
-      // Sprint 67 D8 — replaces the per-letter slide pattern (Sprint 67
-      // D2 → D7) with one consolidated slide that vertically stacks
-      // ALL letters in a single PaperSheet ScrollView. Boss intent
-      // 2026-04-27: "phải hiển thị TOÀN BỘ mấy cái lá thư" — all
-      // letters together, read-style, in one place.
-      kind: 'lettersCollection';
-      kicker: string;             // 'THƯ TÌNH · {{count}}'
-      headline: string;           // 'Mình viết cho nhau'
-      ctaLabel: string;           // 'Đọc lại trong Inbox'
+      // Sprint 67 D9 — Stacked-deck letter slide. Replaces the
+      // D8 vertical-list LettersCollection with a Tinder-style stack:
+      // top card = full read-style letter, peek cards behind tilted
+      // deterministically. Boss confirm 2026-04-28: "nhiều cái letter
+      // read chồng lên nhau dàn ra như 1 chồng thư vậy á" — letters
+      // stacked like a real pile of mail. Top card swipe → flip out,
+      // next promotes. Last card swipe → advance to next Stories slide.
+      kind: 'lettersDeck';
+      kicker: string;             // 'THƯ TÌNH · 4 lá'
+      headline: string;           // 'Một chồng thư trong tháng'
+      // Empty-state copy when zero letters in the period (composer
+      // still emits the slide so the deck slot stays visible).
+      emptyText?: string;         // 'Tháng này chưa có thư nào…'
       letters: {
         id: string;
         kicker: string;           // 'Từ Hùng · 22.04'

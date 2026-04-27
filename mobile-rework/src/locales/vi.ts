@@ -1068,12 +1068,12 @@ const vi = {
         headline: 'Nhìn lại một lần nữa',
         caption: 'Đang xem {{showing}} trong {{of}} ảnh',
       },
-      // Sprint 67 D8 — LettersCollection slide labels (consolidated
-      // letters slide replaces per-letter slides).
-      lettersCollection: {
+      // Sprint 67 D9 — LettersDeck stacked-cards slide labels
+      // (replaces D8's lettersCollection vertical list).
+      lettersDeck: {
         kicker: 'THƯ TÌNH · {{count}} lá',
-        headline: 'Mình viết cho nhau',
-        cta: 'Đọc lại trong Inbox',
+        headline: 'Một chồng thư trong tháng',
+        empty: 'Tháng này chưa có thư nào…',
       },
     },
     // Sprint 67 T456 — compact weekly editorial. 5 sections.

@@ -15,14 +15,13 @@ import {
   ClosingSlide,
   CoverSlide,
   FirstsSlide,
-  LettersCollectionSlide,
+  LettersDeckSlide,
   PhotoReelSlide,
   PlacesSlide,
   StatSlide,
   TopMomentSlide,
   TopQuestionSlide,
 } from './components/slides';
-import { useRouter } from 'expo-router';
 import type { Slide } from './types';
 import { useStoriesController } from './useStoriesController';
 
@@ -38,14 +37,14 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
   // D2 — actions slide disables tap zones + auto-advance so the user
   // can tap Save / Share / Detail buttons without the tap-to-advance
   // overlay swallowing the touch.
-  // D7 → D8 — same treatment for the consolidated LettersCollection
-  // slide: full body content for every letter lives inside a stacked
-  // ScrollView (read-screen style), so tap zones would intercept
-  // drag-to-scroll AND the 6-second auto-advance would cut Boss off
-  // mid-letter. Reader-controlled pacing matches Boss's "kiểu read"
-  // expectation.
+  // D7 → D9 — same treatment for the LettersDeck slide: each card
+  // hosts a vertical ScrollView for long letter bodies AND a Pan
+  // gesture for horizontal swipe-flip between cards. Tap zones would
+  // intercept the swipe; auto-advance would yank cards out from under
+  // the reader. The deck calls `controller.next()` itself when the
+  // last card is swiped (see SlideRouter `onAdvance` wiring below).
   const isInteractiveSlide =
-    active?.kind === 'actionsTray' || active?.kind === 'lettersCollection';
+    active?.kind === 'actionsTray' || active?.kind === 'lettersDeck';
   useEffect(() => {
     if (isInteractiveSlide) controller.pause();
     else controller.resume();
@@ -59,14 +58,23 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
         closeAccessibilityLabel={t('recap.weekly.closeLabel')}
         interactive={isInteractiveSlide}
       >
-        {active ? <SlideRouter slide={active} /> : null}
+        {active ? (
+          <SlideRouter slide={active} onAdvance={controller.next} />
+        ) : null}
       </StoriesShell>
     </View>
   );
 }
 
-function SlideRouter({ slide }: { slide: Slide }) {
-  const router = useRouter();
+function SlideRouter({
+  slide,
+  onAdvance,
+}: {
+  slide: Slide;
+  /** Stories controller's `next()` — handed down so the LettersDeck
+   *  can fold the last card-swipe into the global advance. */
+  onAdvance: () => void;
+}) {
   switch (slide.kind) {
     case 'cover':
       return <CoverSlide slide={slide} />;
@@ -78,16 +86,8 @@ function SlideRouter({ slide }: { slide: Slide }) {
       return <PlacesSlide slide={slide} />;
     case 'firsts':
       return <FirstsSlide slide={slide} />;
-    case 'lettersCollection':
-      return (
-        <LettersCollectionSlide
-          slide={slide}
-          // D8 — CTA bounces to the Letters tab inbox where the user
-          // can re-open + reply. Stories session stays alive (push
-          // not replace) so swipe-back returns to the slide.
-          onOpen={() => router.push('/(tabs)/letters')}
-        />
-      );
+    case 'lettersDeck':
+      return <LettersDeckSlide slide={slide} onAdvance={onAdvance} />;
     case 'topQuestion':
       return <TopQuestionSlide slide={slide} />;
     case 'photoReel':
