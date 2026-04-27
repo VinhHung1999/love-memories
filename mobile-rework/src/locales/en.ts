@@ -675,6 +675,8 @@ const en: Resources = {
       appearance: 'Appearance',
       memouraPlus: 'Memoura+',
       replayTour: 'Replay tour',
+      monthlyRecap: 'Monthly recap (preview)',
+      monthlyRecapDetail: 'Open recap',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       version: 'Version',
@@ -863,6 +865,33 @@ const en: Resources = {
     emptyTitle: 'No question yet',
     emptyBody: 'Memoura is preparing your first question. Check back soon.',
     submitError: 'Could not send your answer. Try again.',
+  },
+  recap: {
+    monthly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        titleLine1: 'Our',
+        titleLine2: '{{name}}',
+        coverKicker: 'Looking back · {{days}} days',
+        scrollHint: 'scroll',
+        stat: {
+          moments: 'moments',
+          letters: 'letters',
+          trips: 'trips',
+        },
+      },
+      loading: 'Loading recap…',
+      empty: {
+        title: 'A quiet month 🐶',
+        body: 'No moments yet this month. Add one together!',
+      },
+      error: {
+        title: "Couldn't load recap",
+        body: 'Something went wrong. Try again in a bit.',
+        retry: 'Retry',
+      },
+      closeLabel: 'Close',
+    },
   },
 };
 

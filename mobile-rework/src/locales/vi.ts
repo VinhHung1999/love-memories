@@ -710,6 +710,11 @@ const vi = {
       appearance: 'Giao diện',
       memouraPlus: 'Memoura+',
       replayTour: 'Xem lại hướng dẫn',
+      // Sprint 67 T452 stub trigger — temporary entry to MonthlyRecapScreen
+      // until T455 ships the Dashboard RecapBanner. Removed when banner is
+      // wired up.
+      monthlyRecap: 'Recap tháng (preview)',
+      monthlyRecapDetail: 'Mở recap thử',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',
@@ -921,6 +926,37 @@ const vi = {
     emptyTitle: 'Chưa có câu hỏi',
     emptyBody: 'Memoura đang chuẩn bị câu hỏi đầu tiên cho hai đứa. Quay lại sau nhé.',
     submitError: 'Không gửi được câu trả lời. Thử lại nhé.',
+  },
+  // Sprint 67 T452 — Editorial recap. Section keys for the cover only ship in
+  // this sprint; T453 / T454 add nested keys for sections 01-09 + actions
+  // on top of `recap.monthly.section.*`.
+  recap: {
+    monthly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        // VI hero title is "Tháng {N}\ncủa mình" — line2 is fixed.
+        titleLine1: 'Tháng {{n}}',
+        titleLine2: 'của mình',
+        coverKicker: 'Nhìn lại · {{days}} ngày',
+        scrollHint: 'cuộn xuống',
+        stat: {
+          moments: 'khoảnh khắc',
+          letters: 'thư tình',
+          trips: 'chuyến đi',
+        },
+      },
+      loading: 'Đang tải recap…',
+      empty: {
+        title: 'Tháng yên ắng quá 🐶',
+        body: 'Chưa có khoảnh khắc nào tháng này. Cùng tạo nhé!',
+      },
+      error: {
+        title: 'Không tải được recap',
+        body: 'Có lỗi xảy ra khi tải dữ liệu. Thử lại sau nhé.',
+        retry: 'Thử lại',
+      },
+      closeLabel: 'Đóng',
+    },
   },
 };
 

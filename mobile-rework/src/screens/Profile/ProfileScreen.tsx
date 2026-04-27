@@ -1,5 +1,6 @@
 import {
   Bell,
+  BookOpen,
   Cake,
   FileText,
   Gem,
@@ -13,6 +14,7 @@ import {
   Trash2,
   UsersRound,
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -58,6 +60,7 @@ import { type HeroPerson, type ProfileStats, useProfileViewModel } from './usePr
 export function ProfileScreen() {
   const vm = useProfileViewModel();
   const { t } = useTranslation();
+  const router = useRouter();
 
   const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
@@ -107,6 +110,14 @@ export function ProfileScreen() {
   const onReplayTourPress = useCallback(() => {
     comingSoonRef.current?.open();
   }, []);
+
+  // Sprint 67 T452 — temporary entry to MonthlyRecapScreen. Removed in T455
+  // when the Dashboard RecapBanner takes over (banner only renders on the
+  // last 3 days of the month, so this stub stays useful for QA / mid-month
+  // testing through the sprint).
+  const onMonthlyRecapPress = useCallback(() => {
+    router.push('/(modal)/recap/monthly');
+  }, [router]);
 
   const onSignOutPress = useCallback(() => {
     Alert.alert(
@@ -219,6 +230,15 @@ export function ProfileScreen() {
                   icon={HandHelping}
                   label={t('profile.settingsList.replayTour')}
                   onPress={onReplayTourPress}
+                />
+                {/* Sprint 67 T452 stub — temporary preview row for the new
+                    MonthlyRecapScreen. Replaced by Dashboard RecapBanner in
+                    T455. */}
+                <SettingsRow
+                  icon={BookOpen}
+                  label={t('profile.settingsList.monthlyRecap')}
+                  detail={t('profile.settingsList.monthlyRecapDetail')}
+                  onPress={onMonthlyRecapPress}
                 />
                 <SettingsRow
                   icon={LogOut}
