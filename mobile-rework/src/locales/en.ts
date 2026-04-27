@@ -684,6 +684,7 @@ const en: Resources = {
       monthlyRecapDetail: 'Open recap',
       weeklyRecap: 'Weekly recap (preview)',
       weeklyRecapDetail: 'Open recap',
+      recapArchive: 'Recap archive',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       version: 'Version',
@@ -1011,6 +1012,13 @@ const en: Resources = {
       },
       closeLabel: 'Close',
     },
+  },
+  recapArchive: {
+    title: 'Recap archive',
+    introBody: 'Past 12 months + 12 weeks. Tap to open a recap.',
+    monthsTitle: 'By month',
+    weeksTitle: 'By week',
+    weekLabel: 'Week {{n}}',
   },
 };
 

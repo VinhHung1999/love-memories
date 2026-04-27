@@ -126,6 +126,11 @@ export function ProfileScreen() {
     router.push('/(modal)/recap/weekly');
   }, [router]);
 
+  // Sprint 67 T458 — RecapArchive list. Permanent entry (not a stub).
+  const onRecapArchivePress = useCallback(() => {
+    router.push('/recap-archive');
+  }, [router]);
+
   const onSignOutPress = useCallback(() => {
     Alert.alert(
       t('profile.settingsList.signOutAlert.title'),
@@ -255,6 +260,13 @@ export function ProfileScreen() {
                   label={t('profile.settingsList.weeklyRecap')}
                   detail={t('profile.settingsList.weeklyRecapDetail')}
                   onPress={onWeeklyRecapPress}
+                />
+                {/* Sprint 67 T458 — permanent RecapArchive list (12 months
+                    + 12 weeks). */}
+                <SettingsRow
+                  icon={BookOpen}
+                  label={t('profile.settingsList.recapArchive')}
+                  onPress={onRecapArchivePress}
                 />
                 <SettingsRow
                   icon={LogOut}

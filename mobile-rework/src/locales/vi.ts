@@ -724,6 +724,7 @@ const vi = {
       monthlyRecapDetail: 'Mở recap thử',
       weeklyRecap: 'Recap tuần (preview)',
       weeklyRecapDetail: 'Mở recap thử',
+      recapArchive: 'Lưu trữ recap',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',
@@ -1081,6 +1082,14 @@ const vi = {
       },
       closeLabel: 'Đóng',
     },
+  },
+  // Sprint 67 T458 — Recap archive list reachable from Profile.
+  recapArchive: {
+    title: 'Lưu trữ recap',
+    introBody: '12 tháng + 12 tuần gần nhất. Chạm vào để mở recap.',
+    monthsTitle: 'Theo tháng',
+    weeksTitle: 'Theo tuần',
+    weekLabel: 'Tuần {{n}}',
   },
 };
 

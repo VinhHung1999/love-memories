@@ -355,6 +355,9 @@ function RootStack() {
           from DailyQCard tap on Dashboard or via push deep-link
           (`/daily-questions`). Same auth-gate skip pattern as notifications. */}
       <Stack.Screen name="daily-questions" />
+      {/* T458 (Sprint 67) — RecapArchive list (12 months + 12 weeks).
+          Reachable from Profile "Lưu trữ recap" row. Push transition. */}
+      <Stack.Screen name="recap-archive" />
     </Stack>
   );
 }
@@ -430,6 +433,7 @@ function useAuthGate() {
     if (seg[0] === 'letter-read') return;
     if (seg[0] === 'notifications') return;
     if (seg[0] === 'daily-questions') return;
+    if (seg[0] === 'recap-archive') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth
