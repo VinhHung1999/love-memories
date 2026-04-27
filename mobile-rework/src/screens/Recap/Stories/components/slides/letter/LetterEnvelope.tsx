@@ -10,7 +10,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { PAPER_INK, PaperBody, PaperSheet } from './PaperSheet';
+import { PAPER_INK, PaperSheet, PaperSignature } from './PaperSheet';
 import type { Slide } from '../../../types';
 
 type LetterSlide = Extract<Slide, { kind: 'letter' }>;
@@ -88,13 +88,15 @@ export function LetterEnvelope({
           >
             ✉ Trích thư
           </Text>
-          <View className="mt-2">
-            <PaperBody
-              excerpt={slide.excerpt}
-              senderName={slide.senderName}
-              numberOfLines={7}
-            />
-          </View>
+          {/* D5 — STATIC className. */}
+          <Text
+            className="mt-2 font-body text-[15px] leading-[24px]"
+            style={{ color: PAPER_INK }}
+            numberOfLines={7}
+          >
+            {slide.excerpt}
+          </Text>
+          <PaperSignature senderName={slide.senderName} />
         </PaperSheet>
 
         <Pressable

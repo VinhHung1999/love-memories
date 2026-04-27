@@ -6,6 +6,15 @@
 // read vào". Centralised so all 4 variants stay in lockstep when the
 // paper recipe changes.
 //
+// D5 (2026-04-27) — body Text used to live inside a `PaperBody` helper
+// that took a `bodyClassName` param. NativeWind v4 silently dropped the
+// templated className (`font-body ${bodyClassName}`) so excerpts
+// rendered with no font/size/leading and were invisible against the
+// cream paper. **Static className strings only** — each variant inlines
+// its own body Text + signature Text rather than passing classes
+// through a wrapper. Same lesson as Sprint 61 AuthField crash:
+// NativeWind v4 needs literal class strings at the JSX site.
+//
 // Carve-out from "no `style` prop" rule: the cream colour + line ink
 // are not theme-derived (paper is its own visual identity, doesn't
 // flip in dark mode — matches PaperCard precedent), and absolute-
@@ -57,48 +66,27 @@ export function PaperSheet({ children, approxHeight = 360, className }: Props) {
   );
 }
 
-// Shared paper-body block: excerpt body in readable body font + Dancing-
-// Script signature. Variants compose this inside their `PaperSheet` so
-// all 4 read like the same hand-written letter.
-type BodyProps = {
-  /** The 100-200 char excerpt — kept in readable body font. */
-  excerpt: string;
-  /** Sender name for the signature line. */
+// Dancing-Script signature line — the ONE shared bit kept as a helper
+// because every variant draws it identically (rotate -3°, primaryDeep
+// ink). Body excerpt stays inline at the variant call-site so each
+// variant can size its own font without passing dynamic className
+// strings through this helper (NW v4 silently drops them).
+type SignatureProps = {
   senderName: string;
-  /** "—" signature dash prefix. */
   signaturePrefix?: string;
-  /** Override line-clamp (default 8). */
-  numberOfLines?: number;
-  /** Override body font size class — default `text-[15px] leading-[24px]`. */
-  bodyClassName?: string;
 };
 
-export function PaperBody({
-  excerpt,
-  senderName,
-  signaturePrefix = '—',
-  numberOfLines = 8,
-  bodyClassName = 'text-[15px] leading-[24px]',
-}: BodyProps) {
+export function PaperSignature({ senderName, signaturePrefix = '—' }: SignatureProps) {
   return (
-    <>
-      <Text
-        className={`font-body ${bodyClassName}`}
-        style={{ color: PAPER_INK }}
-        numberOfLines={numberOfLines}
-      >
-        {excerpt}
-      </Text>
-      <Text
-        className="mt-4 font-script text-[28px] leading-[32px]"
-        style={{
-          color: PAPER_SIGNATURE_INK,
-          transform: [{ rotate: '-3deg' }],
-          alignSelf: 'flex-start',
-        }}
-      >
-        {signaturePrefix} {senderName}
-      </Text>
-    </>
+    <Text
+      className="mt-4 font-script text-[28px] leading-[32px]"
+      style={{
+        color: PAPER_SIGNATURE_INK,
+        transform: [{ rotate: '-3deg' }],
+        alignSelf: 'flex-start',
+      }}
+    >
+      {signaturePrefix} {senderName}
+    </Text>
   );
 }

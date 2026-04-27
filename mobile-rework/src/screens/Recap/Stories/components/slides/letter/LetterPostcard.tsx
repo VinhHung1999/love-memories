@@ -9,7 +9,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { PAPER_INK, PAPER_INK_MUTE, PaperBody, PaperSheet } from './PaperSheet';
+import { PAPER_INK, PAPER_INK_MUTE, PaperSheet, PaperSignature } from './PaperSheet';
 import type { Slide } from '../../../types';
 
 type LetterSlide = Extract<Slide, { kind: 'letter' }>;
@@ -67,14 +67,16 @@ export function LetterPostcard({
             >
               {slide.title}
             </Text>
-            <View className="mt-2">
-              <PaperBody
-                excerpt={slide.excerpt}
-                senderName={slide.senderName}
-                numberOfLines={5}
-                bodyClassName="text-[12px] leading-[18px]"
-              />
-            </View>
+            {/* D5 — STATIC className per variant size (compact for postcard
+                column). */}
+            <Text
+              className="mt-2 font-body text-[12px] leading-[18px]"
+              style={{ color: PAPER_INK }}
+              numberOfLines={5}
+            >
+              {slide.excerpt}
+            </Text>
+            <PaperSignature senderName={slide.senderName} />
           </PaperSheet>
         </View>
 

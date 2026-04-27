@@ -10,7 +10,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { PAPER_INK, PaperBody, PaperSheet } from './PaperSheet';
+import { PAPER_INK, PaperSheet, PaperSignature } from './PaperSheet';
 import type { Slide } from '../../../types';
 
 type LetterSlide = Extract<Slide, { kind: 'letter' }>;
@@ -65,14 +65,15 @@ export function LetterPolaroid({
           >
             ✉ Trích thư
           </Text>
-          <View className="mt-2">
-            <PaperBody
-              excerpt={slide.excerpt}
-              senderName={slide.senderName}
-              numberOfLines={6}
-              bodyClassName="text-[14px] leading-[22px]"
-            />
-          </View>
+          {/* D5 — STATIC className per variant size. */}
+          <Text
+            className="mt-2 font-body text-[14px] leading-[22px]"
+            style={{ color: PAPER_INK }}
+            numberOfLines={6}
+          >
+            {slide.excerpt}
+          </Text>
+          <PaperSignature senderName={slide.senderName} />
         </PaperSheet>
 
         <Pressable

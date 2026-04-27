@@ -10,7 +10,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
-import { PAPER_INK, PAPER_INK_MUTE, PaperBody, PaperSheet } from './PaperSheet';
+import { PAPER_INK, PAPER_INK_MUTE, PaperSheet, PaperSignature } from './PaperSheet';
 import type { Slide } from '../../../types';
 
 type LetterSlide = Extract<Slide, { kind: 'letter' }>;
@@ -66,9 +66,21 @@ export function LetterClassic({
           >
             {slide.title}
           </Text>
-          <View className="mt-4">
-            <PaperBody excerpt={slide.excerpt} senderName={slide.senderName} />
-          </View>
+          {/* D5 — body Text inlined with STATIC className. Was wrapped in
+              PaperBody which used `className={`font-body ${bodyClassName}`}`
+              template literal — NW v4 dropped the styles and Boss saw
+              "trắng tinh" letter slides on build 123. Same family as the
+              contentContainerClassName silent-drop and the
+              conditional-className crash: NW v4 needs literal class
+              strings at the JSX site. */}
+          <Text
+            className="mt-4 font-body text-[15px] leading-[24px]"
+            style={{ color: PAPER_INK }}
+            numberOfLines={8}
+          >
+            {slide.excerpt}
+          </Text>
+          <PaperSignature senderName={slide.senderName} />
         </PaperSheet>
 
         <Pressable
