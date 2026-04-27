@@ -101,9 +101,37 @@ export function DashboardScreen() {
 
         {/* T437 RM — vibe mini-chip removed. */}
 
-        {/* T426 (Sprint 66) — DailyQCard renders between TimerHero and
-            LatestMomentCard. Hides itself if vm.todayQuestion is null
-            (couple unpaired, BE empty, or fetch error). */}
+        {/* T446 (Sprint 67) + T447 (Sprint 67) — Moment slot is the
+            primary "what's new" surface and now sits ABOVE DailyQCard
+            per Boss directive 2026-04-27. Renders LatestMomentCard
+            when the couple has at least one moment, EmptyHero
+            otherwise (Sprint 62 T375 polaroid stack + 2 CTA pair).
+            EmptyHero primary tap → /moment-create directly (skip the
+            camera sheet — user signaled clear intent). Secondary tap
+            → opens the global Camera bottom sheet for source choice. */}
+        {vm.latest ? (
+          <LatestMomentCard
+            moment={vm.latest}
+            eyebrow={t('home.latestFrom', { partner: vm.partner?.name ?? '' })}
+            relativeLabel={relativeLabel}
+            onPress={openDetail}
+          />
+        ) : (
+          <EmptyHero
+            title={t('home.empty.title')}
+            subtitle={t('home.empty.subtitle')}
+            primaryLabel={t('home.empty.ctaPrimary')}
+            secondaryLabel={t('home.empty.ctaSecondary')}
+            polaroidCaption={t('home.empty.polaroidCaption')}
+            onAddMoment={() => router.push('/moment-create')}
+            onOpenCamera={() => useCameraSheetStore.getState().open()}
+          />
+        )}
+
+        {/* T426 (Sprint 66) + T447 (Sprint 67) — DailyQCard now sits
+            BELOW the Moment slot. Hides itself entirely when
+            vm.todayQuestion is null (couple unpaired, BE empty, or
+            fetch error). */}
         <DailyQCard
           today={vm.todayQuestion}
           streakCount={vm.streakCount}
@@ -124,33 +152,6 @@ export function DashboardScreen() {
           }}
           onPress={() => router.push('/daily-questions')}
         />
-
-        {/* T446 (Sprint 67) — Dashboard now renders EmptyHero when the
-            couple has no moments yet (vm.latest === null). Sprint 62
-            T375 built EmptyHero but only the Moments tab consumed it;
-            Boss wants it on Dashboard too so a fresh couple lands on
-            an obvious CTA instead of a blank slot below TimerHero.
-            Primary tap → /moment-create directly (skip the camera
-            sheet — user signaled clear intent). Secondary tap → opens
-            the global Camera bottom sheet for source choice. */}
-        {vm.latest ? (
-          <LatestMomentCard
-            moment={vm.latest}
-            eyebrow={t('home.latestFrom', { partner: vm.partner?.name ?? '' })}
-            relativeLabel={relativeLabel}
-            onPress={openDetail}
-          />
-        ) : (
-          <EmptyHero
-            title={t('home.empty.title')}
-            subtitle={t('home.empty.subtitle')}
-            primaryLabel={t('home.empty.ctaPrimary')}
-            secondaryLabel={t('home.empty.ctaSecondary')}
-            polaroidCaption={t('home.empty.polaroidCaption')}
-            onAddMoment={() => router.push('/moment-create')}
-            onOpenCamera={() => useCameraSheetStore.getState().open()}
-          />
-        )}
 
         <TabBarSpacer />
       </ScrollView>
