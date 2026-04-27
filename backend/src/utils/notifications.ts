@@ -5,6 +5,10 @@ import { sendPushNotification, sendMobilePushNotification } from '../services/Pu
 // dispatch push to ALL channels: Web Push (PWA) + FCM (mobile iOS/Android).
 // This is non-blocking: errors are caught silently so the main operation
 // (creating a moment, recipe, etc.) is never affected by notification failures.
+// Sprint 67 hot-fix — structured logging across the notification path
+// (DB insert + web push + mobile push) for prod observability. Outer
+// catch keeps the silent-fail guarantee for callers, but the error is
+// now logged before being swallowed.
 export async function createNotification(
   userId: string,
   type: string,
@@ -12,18 +16,39 @@ export async function createNotification(
   message: string,
   link?: string,
 ): Promise<void> {
+  console.log(
+    '[NOTI] start',
+    JSON.stringify({
+      userId,
+      type,
+      titlePreview: title.slice(0, 40),
+      link: link ?? null,
+    }),
+  );
   try {
     // Note: Notification — Save to database (appears in NotificationsScreen)
-    await prisma.notification.create({
+    const created = await prisma.notification.create({
       data: { userId, type, title, message, link: link ?? null },
     });
-    // Note: Notification — Send to Web Push (browser/PWA) + FCM (mobile) in parallel
+    console.log(
+      '[NOTI] db_inserted',
+      JSON.stringify({ notificationId: created.id, userId, type }),
+    );
+    // Note: Notification — Send to Web Push (browser/PWA) + APNs (mobile) in parallel
     await Promise.allSettled([
       sendPushNotification(userId, title, message, link),
       sendMobilePushNotification(userId, title, message, link),
     ]);
-  } catch {
-    // Non-blocking — notification failures must not break main operations
+  } catch (e) {
+    console.error(
+      '[NOTI] error',
+      JSON.stringify({
+        userId,
+        type,
+        message: (e as Error).message,
+        stack: (e as Error).stack?.split('\n').slice(0, 4).join(' | '),
+      }),
+    );
   }
 }
 

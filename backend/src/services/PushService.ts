@@ -71,9 +71,21 @@ export async function mobileUnsubscribe(token: string) {
 }
 
 // Note: Notification — Send Web Push to all browser subscriptions of a user.
+//
+// Sprint 67 hot-fix — structured logging for prod debug. All log lines
+// JSON-stringified for greppable pm2 output. Behaviour unchanged; only
+// observability added.
 export async function sendPushNotification(userId: string, title: string, body: string, link?: string): Promise<void> {
   try {
     const subs = await prisma.pushSubscription.findMany({ where: { userId } });
+    console.log(
+      '[PUSH-WEB] start',
+      JSON.stringify({ userId, subCount: subs.length, link: link ?? '/' }),
+    );
+    if (subs.length === 0) {
+      console.log('[PUSH-WEB] result', JSON.stringify({ userId, subCount: 0 }));
+      return;
+    }
     const payload = JSON.stringify({
       title,
       body,
@@ -81,20 +93,47 @@ export async function sendPushNotification(userId: string, title: string, body: 
       badge: '/icon-192.png',
       data: { url: link ?? '/' },
     });
+    let sent = 0;
+    let removed410 = 0;
+    const failures: { endpointHost: string; status?: number; message?: string }[] = [];
     await Promise.allSettled(
-      subs.map((sub) =>
-        webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          payload,
-        ).catch(async (err) => {
-          if (err.statusCode === 410) {
-            await prisma.pushSubscription.deleteMany({ where: { endpoint: sub.endpoint } });
+      subs.map(async (sub) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            payload,
+          );
+          sent += 1;
+        } catch (err) {
+          const status = (err as { statusCode?: number }).statusCode;
+          const message = (err as Error).message;
+          let host = '?';
+          try {
+            host = new URL(sub.endpoint).host;
+          } catch {
+            /* ignore parse */
           }
-        }),
-      ),
+          failures.push({ endpointHost: host, status, message });
+          if (status === 410) {
+            await prisma.pushSubscription.deleteMany({ where: { endpoint: sub.endpoint } });
+            removed410 += 1;
+          }
+        }
+      }),
     );
-  } catch {
-    // Non-blocking
+    console.log(
+      '[PUSH-WEB] result',
+      JSON.stringify({ userId, subCount: subs.length, sent, removed410, failures }),
+    );
+  } catch (e) {
+    console.error(
+      '[PUSH-WEB] error',
+      JSON.stringify({
+        userId,
+        message: (e as Error).message,
+        stack: (e as Error).stack?.split('\n').slice(0, 4).join(' | '),
+      }),
+    );
   }
 }
 
@@ -107,12 +146,40 @@ export async function sendPushNotification(userId: string, title: string, body: 
 export async function sendMobilePushNotification(userId: string, title: string, body: string, link?: string): Promise<void> {
   try {
     const provider = getApnProvider();
-    if (!provider) return;
     const topic = process.env.APNS_BUNDLE_ID;
-    if (!topic) return;
+    if (!provider) {
+      console.log(
+        '[PUSH-MOBILE] start',
+        JSON.stringify({ userId, skipped: 'no_provider' }),
+      );
+      return;
+    }
+    if (!topic) {
+      console.log(
+        '[PUSH-MOBILE] start',
+        JSON.stringify({ userId, skipped: 'no_topic' }),
+      );
+      return;
+    }
 
     const tokens = await prisma.mobilePushToken.findMany({ where: { userId } });
-    if (tokens.length === 0) return;
+    console.log(
+      '[PUSH-MOBILE] start',
+      JSON.stringify({
+        userId,
+        topic,
+        prod: process.env.APNS_PRODUCTION,
+        tokenCount: tokens.length,
+        link: link ?? '/',
+      }),
+    );
+    if (tokens.length === 0) {
+      console.log(
+        '[PUSH-MOBILE] result',
+        JSON.stringify({ userId, sent: 0, failed: 0, prunedZombies: 0 }),
+      );
+      return;
+    }
 
     const note = new apn.Notification();
     note.alert = { title, body };
@@ -124,15 +191,41 @@ export async function sendMobilePushNotification(userId: string, title: string, 
     const tokenStrings = tokens.map((t) => t.token);
     const result = await provider.send(note, tokenStrings);
 
+    let prunedZombies = 0;
     for (const fail of result.failed) {
       const reason = (fail.response as { reason?: string } | undefined)?.reason;
       if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
         await prisma.mobilePushToken.deleteMany({
           where: { token: fail.device },
         });
+        prunedZombies += 1;
       }
     }
-  } catch {
-    // Non-blocking
+
+    console.log(
+      '[PUSH-MOBILE] result',
+      JSON.stringify({
+        userId,
+        sent: result.sent.length,
+        failed: result.failed.length,
+        prunedZombies,
+        sentDevices: result.sent.map((s) => s.device.slice(0, 16)),
+        failures: result.failed.map((f) => ({
+          device: f.device.slice(0, 16),
+          status: f.status,
+          reason: (f.response as { reason?: string } | undefined)?.reason,
+          error: (f as { error?: { message?: string } }).error?.message,
+        })),
+      }),
+    );
+  } catch (e) {
+    console.error(
+      '[PUSH-MOBILE] error',
+      JSON.stringify({
+        userId,
+        message: (e as Error).message,
+        stack: (e as Error).stack?.split('\n').slice(0, 6).join(' | '),
+      }),
+    );
   }
 }
