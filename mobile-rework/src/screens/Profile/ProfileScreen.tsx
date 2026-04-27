@@ -111,22 +111,9 @@ export function ProfileScreen() {
     comingSoonRef.current?.open();
   }, []);
 
-  // Sprint 67 T452 — temporary entry to MonthlyRecapScreen. Removed in T455
-  // when the Dashboard RecapBanner takes over (banner only renders on the
-  // last 3 days of the month, so this stub stays useful for QA / mid-month
-  // testing through the sprint).
-  const onMonthlyRecapPress = useCallback(() => {
-    router.push('/(modal)/recap/monthly');
-  }, [router]);
-
-  // Sprint 67 T456 — temporary entry to WeeklyRecapScreen. The push noti
-  // (T457) is the proper trigger; this row stays for sprint QA only and
-  // should drop in cleanup.
-  const onWeeklyRecapPress = useCallback(() => {
-    router.push('/(modal)/recap/weekly');
-  }, [router]);
-
-  // Sprint 67 T458 — RecapArchive list. Permanent entry (not a stub).
+  // Sprint 67 T458 — RecapArchive list. Permanent entry — month/week
+  // taps inside the archive open the new MonthlyRecapScreen /
+  // WeeklyRecapScreen, so we no longer need the T452/T456 preview stubs.
   const onRecapArchivePress = useCallback(() => {
     router.push('/recap-archive');
   }, [router]);
@@ -243,26 +230,9 @@ export function ProfileScreen() {
                   label={t('profile.settingsList.replayTour')}
                   onPress={onReplayTourPress}
                 />
-                {/* Sprint 67 T452 stub — temporary preview row for the new
-                    MonthlyRecapScreen. Replaced by Dashboard RecapBanner in
-                    T455. */}
-                <SettingsRow
-                  icon={BookOpen}
-                  label={t('profile.settingsList.monthlyRecap')}
-                  detail={t('profile.settingsList.monthlyRecapDetail')}
-                  onPress={onMonthlyRecapPress}
-                />
-                {/* Sprint 67 T456 stub — temporary preview row for the new
-                    WeeklyRecapScreen. Push noti (T457) is the proper
-                    trigger; row stays for QA only. */}
-                <SettingsRow
-                  icon={BookOpen}
-                  label={t('profile.settingsList.weeklyRecap')}
-                  detail={t('profile.settingsList.weeklyRecapDetail')}
-                  onPress={onWeeklyRecapPress}
-                />
                 {/* Sprint 67 T458 — permanent RecapArchive list (12 months
-                    + 12 weeks). */}
+                    + 12 weeks). T452/T456 preview stubs removed in
+                    sprint cleanup — archive is the discoverable entry. */}
                 <SettingsRow
                   icon={BookOpen}
                   label={t('profile.settingsList.recapArchive')}

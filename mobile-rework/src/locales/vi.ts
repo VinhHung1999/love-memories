@@ -717,13 +717,8 @@ const vi = {
       appearance: 'Giao diện',
       memouraPlus: 'Memoura+',
       replayTour: 'Xem lại hướng dẫn',
-      // Sprint 67 T452 stub trigger — temporary entry to MonthlyRecapScreen
-      // until T455 ships the Dashboard RecapBanner. Removed when banner is
-      // wired up.
-      monthlyRecap: 'Recap tháng (preview)',
-      monthlyRecapDetail: 'Mở recap thử',
-      weeklyRecap: 'Recap tuần (preview)',
-      weeklyRecapDetail: 'Mở recap thử',
+      // Sprint 67 T458 — permanent archive of past recaps (12 months + 12
+      // weeks). Replaced the temporary T452/T456 preview stubs.
       recapArchive: 'Lưu trữ recap',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',

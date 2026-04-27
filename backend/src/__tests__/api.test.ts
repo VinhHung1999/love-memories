@@ -2904,16 +2904,14 @@ describe('Daily Questions', () => {
   const dqCoupleId = 'test-dq-couple';
   let dqToken: string;
   let dqPartnerToken: string;
-  let seedQuestionId: string;
 
   beforeAll(async () => {
     // Seed one question
-    const q = await prisma.dailyQuestion.upsert({
+    await prisma.dailyQuestion.upsert({
       where: { id: 'test-q-1' },
       update: {},
       create: { id: 'test-q-1', text: 'Test question?', category: 'general', order: 999 },
     });
-    seedQuestionId = q.id;
 
     // Couple + 2 users for DQ tests
     await prisma.couple.upsert({
