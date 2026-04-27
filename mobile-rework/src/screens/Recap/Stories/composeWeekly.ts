@@ -30,6 +30,8 @@ export type WeeklyComposeContext = {
     actionsSave: string;
     actionsShare: string;
     actionsDetail: string;
+    photoReelHeadline: string;
+    photoReelCaption: (showing: number, of: number) => string;
   };
   handlers: {
     onSave: () => void;
@@ -52,15 +54,24 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   const coupleNamesScript =
     [user?.name, partner?.name].filter(Boolean).join(' & ') || '·';
 
-  const coverPhoto =
-    data.topMoments[0]?.thumbnail ?? data.moments.highlights[0]?.photoUrl;
+  // Sprint 67 D1 — flatten weekly highlight photos for cover collage +
+  // stat backdrop. Weekly highlights expose `photoUrl` (single) per row,
+  // so we just collect them.
+  const allPhotos = [
+    ...new Set(
+      data.moments.highlights.map((m) => m.photoUrl).filter(Boolean) as string[],
+    ),
+    ...(data.topMoments[0]?.thumbnail ? [data.topMoments[0].thumbnail] : []),
+  ];
+  const coverPhotos = [...new Set(allPhotos)].slice(0, 4);
+  const statBackdrop = [...new Set(allPhotos)].slice(0, 9);
 
   const slides: Slide[] = [];
 
   // Cover
   slides.push({
     kind: 'cover',
-    bgPhotoUrl: coverPhoto,
+    bgPhotoUrls: coverPhotos.length > 0 ? coverPhotos : undefined,
     kicker: `RECAP · ${period.toUpperCase()}`,
     titleLine1: labels.coverTitleLine1,
     titleLine2: range,
@@ -73,7 +84,7 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   if (data.moments.count > 0) {
     slides.push({
       kind: 'stat',
-      bgPhotoUrl: coverPhoto,
+      bgPhotoUrls: statBackdrop,
       value: data.moments.count,
       label: labels.statMoments,
       tone: 'primary',
@@ -100,7 +111,9 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
     });
   }
 
-  // Top moment of the week
+  // Top moment of the week — primary photo + filmstrip from any other
+  // weekly photos (weekly highlights only carry one photoUrl each, so
+  // filmstrip just reuses the rest of allPhotos).
   const top = data.topMoments[0];
   if (top && top.thumbnail) {
     const sub = [
@@ -110,15 +123,27 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
     ]
       .filter(Boolean)
       .join(' · ');
+    const filmstrip = allPhotos.filter((p) => p !== top.thumbnail).slice(0, 5);
     slides.push({
       kind: 'topMoment',
       momentId: top.id,
       bgPhotoUrl: top.thumbnail,
+      filmstrip,
       rank: 1,
       title: top.title,
       sub,
       palette: top.palette,
       ctaLabel: labels.topMomentCta,
+    });
+  }
+
+  // PhotoReel for weekly when there are 4+ unique photos.
+  if (allPhotos.length >= 4) {
+    slides.push({
+      kind: 'photoReel',
+      headline: labels.photoReelHeadline,
+      caption: labels.photoReelCaption(data.totalPhotoCount, Math.min(9, allPhotos.length)),
+      photos: allPhotos.slice(0, 9),
     });
   }
 

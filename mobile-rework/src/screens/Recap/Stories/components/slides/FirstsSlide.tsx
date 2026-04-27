@@ -1,8 +1,10 @@
-// Sprint 67 T459 — Firsts slide. Optional photo dim + 🎉 sticker pinned
-// upper-right rotated, Dancing Script kicker, moment title centered.
+// Sprint 67 T459 + D1 — Firsts slide. Main photo (Ken Burns) + 2-3
+// corner mosaic thumbnails from the same moment so the slide feels
+// like a memory snapshot, not a single hero. Keeps the rotated
+// emoji sticker + Dancing Script kicker.
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -15,6 +17,8 @@ type Props = { slide: FirstsSlide };
 
 export function FirstsSlide({ slide }: Props) {
   const c = useAppColors();
+  const mosaic = slide.mosaic ?? [];
+
   return (
     <View className="flex-1">
       {slide.bgPhotoUrl ? (
@@ -34,6 +38,32 @@ export function FirstsSlide({ slide }: Props) {
       >
         <Text className="text-[88px]">{slide.sticker}</Text>
       </View>
+
+      {/* Mosaic thumbnails — top-right quadrant, slightly tilted */}
+      {mosaic.length > 0 ? (
+        <View
+          className="absolute right-5"
+          style={{ top: 220, gap: 8, alignItems: 'flex-end' }}
+        >
+          {mosaic.slice(0, 3).map((uri, i) => (
+            <View
+              key={i}
+              className="overflow-hidden rounded-md border-[3px] border-white shadow-elevated"
+              style={{
+                width: 78 - i * 6,
+                height: 78 - i * 6,
+                transform: [{ rotate: `${(i % 2 === 0 ? -4 : 5)}deg` }],
+              }}
+            >
+              <Image
+                source={{ uri }}
+                resizeMode="cover"
+                className="h-full w-full"
+              />
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       <View className="flex-1 justify-end px-7 pb-24">
         <Text className="font-script text-[40px] leading-[44px] text-white">

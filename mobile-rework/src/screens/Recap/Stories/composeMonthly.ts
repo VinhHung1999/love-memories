@@ -44,6 +44,8 @@ export type MonthlyComposeContext = {
     actionsSave: string;
     actionsShare: string;
     actionsDetail: string;
+    photoReelHeadline: string;
+    photoReelCaption: (showing: number, of: number) => string;
   };
   handlers: {
     onSave: () => void;
@@ -67,16 +69,25 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   const coupleNamesScript =
     [user?.name, partner?.name].filter(Boolean).join(' & ') || '·';
 
-  const coverPhoto = data.topMoments[0]?.thumbnail ?? data.moments.highlights[0]?.photos?.[0] ?? undefined;
-  const statPhotoA = data.moments.highlights[1]?.photos?.[0] ?? coverPhoto;
-  const statPhotoB = data.moments.highlights[2]?.photos?.[0] ?? coverPhoto;
+  // Sprint 67 D1 — flatten all highlight photos into a global pool so
+  // every photo-rich slide pulls visual variety from across the whole
+  // period instead of leaning on the same single hero. dedupe + cap so
+  // no slide stalls on missing thumbnails.
+  const allPhotos = [
+    ...new Set(
+      data.moments.highlights.flatMap((m) => m.photos ?? []).filter(Boolean),
+    ),
+  ];
+  const coverPhotos = allPhotos.slice(0, 4); // cover collage 2x2
+  const statBackdropPhotos = allPhotos.slice(0, 9); // stat 3x3 mosaic
+  const reelPhotos = allPhotos.slice(0, 9);
 
   const slides: Slide[] = [];
 
   // Cover
   slides.push({
     kind: 'cover',
-    bgPhotoUrl: coverPhoto,
+    bgPhotoUrls: coverPhotos.length > 0 ? coverPhotos : undefined,
     kicker: `RECAP · ${period.toUpperCase()}`,
     titleLine1: isVi ? md.monthNameVi : 'Our',
     titleLine2: isVi ? 'của mình' : md.monthNameEn,
@@ -90,7 +101,7 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   if (data.moments.count > 0) {
     slides.push({
       kind: 'stat',
-      bgPhotoUrl: statPhotoA,
+      bgPhotoUrls: statBackdropPhotos,
       value: data.moments.count,
       label: labels.statMoments,
       tone: 'primary',
@@ -109,14 +120,14 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   if (data.totalPhotoCount > 0) {
     slides.push({
       kind: 'stat',
-      bgPhotoUrl: statPhotoB,
+      bgPhotoUrls: statBackdropPhotos,
       value: data.totalPhotoCount,
       label: labels.statPhotos,
       tone: 'accent',
     });
   }
 
-  // Top moment showcase — only first one, full-bleed
+  // Top moment showcase — primary photo + filmstrip from the same moment
   const top = data.topMoments[0];
   if (top && top.thumbnail) {
     const sub = [
@@ -126,10 +137,15 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
     ]
       .filter(Boolean)
       .join(' · ');
+    // Filmstrip: pull all photos from the matching highlight (excluding
+    // the primary thumbnail to avoid duplicating the hero).
+    const matching = data.moments.highlights.find((m) => m.id === top.id);
+    const filmstrip = matching?.photos.filter((p) => p !== top.thumbnail) ?? [];
     slides.push({
       kind: 'topMoment',
       momentId: top.id,
       bgPhotoUrl: top.thumbnail,
+      filmstrip: filmstrip.slice(0, 5),
       rank: 1,
       title: top.title,
       sub,
@@ -138,20 +154,25 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
     });
   }
 
-  // Places
+  // Places — Polaroid stack per place. Each cell carries up to 3
+  // photos picked from any moment in the highlights pool (BE
+  // highlights doesn't expose location, so we round-robin photos from
+  // the global pool to avoid empty cells).
   if (data.places.length > 0) {
     const headline = labels.placesHeadline(data.places.length);
     const caption = labels.placesCaption(data.places.length);
-    const thumbnails = data.places.slice(0, 4).map((p) => {
-      // Find first moment in highlights with matching location for a
-      // photo thumbnail; otherwise fall back to gradient placeholder.
-      const matched = data.moments.highlights.find(
-        (m) =>
-          // highlights don't carry location, so we approximate by index
-          // — the highlights are already date-desc; just pull a photo.
-          m.photos.length > 0,
-      );
-      return { name: p.name, photoUrl: matched?.photos?.[0] };
+    const thumbnails = data.places.slice(0, 4).map((p, idx) => {
+      // Allocate 3 photos per place, offset by index so cells don't all
+      // show the same triplet. Wrap mod allPhotos.length for safety.
+      const start = (idx * 3) % Math.max(1, allPhotos.length);
+      const photos = allPhotos.length > 0
+        ? [
+            allPhotos[start % allPhotos.length]!,
+            allPhotos[(start + 1) % allPhotos.length]!,
+            allPhotos[(start + 2) % allPhotos.length]!,
+          ]
+        : [];
+      return { name: p.name, photos };
     });
     slides.push({
       kind: 'places',
@@ -161,14 +182,16 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
     });
   }
 
-  // Firsts — pick the first one for a focused slide
+  // Firsts — main photo + 2-3 corner mosaic from the same moment
   const firstFirst = data.firsts[0];
   if (firstFirst) {
     const matchedMoment = data.moments.highlights.find((m) => m.id === firstFirst.id);
+    const photos = matchedMoment?.photos ?? [];
     slides.push({
       kind: 'firsts',
       firstId: firstFirst.id,
-      bgPhotoUrl: matchedMoment?.photos?.[0],
+      bgPhotoUrl: photos[0],
+      mosaic: photos.slice(1, 4),
       sticker: '🎉',
       kicker: labels.firstsKicker,
       title: firstFirst.title,
@@ -205,6 +228,18 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
       meta: labels.topQuestionMeta(data.topQuestion.count),
       initialA,
       initialB,
+    });
+  }
+
+  // PhotoReel — 3x3 mosaic of up to 9 best photos. Slot before
+  // Closing so the user sees the literal "this is what we made"
+  // grid before the warm signoff.
+  if (reelPhotos.length >= 4) {
+    slides.push({
+      kind: 'photoReel',
+      headline: labels.photoReelHeadline,
+      caption: labels.photoReelCaption(data.totalPhotoCount, reelPhotos.length),
+      photos: reelPhotos,
     });
   }
 

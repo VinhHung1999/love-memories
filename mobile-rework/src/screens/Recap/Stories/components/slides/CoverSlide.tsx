@@ -1,12 +1,15 @@
-// Sprint 67 T459 — Cover slide. Optional photo full-bleed (Ken Burns) +
-// dark gradient. Display title 56px (smaller than the editorial cover
-// to leave room for chrome). Couple avatars + Dancing Script names line.
+// Sprint 67 T459 + D1 — Cover slide.
+//
+// D1: collage background via CollageBackground (1 = single Ken Burns,
+// 2-3 = tilted stack, 4+ = 2x2 grid). Falls back to hero gradient when
+// `bgPhotoUrls` is empty.
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
+import { CollageBackground } from '../CollageBackground';
 import { KenBurnsBackground } from '../KenBurnsBackground';
 import type { Slide, StoriesPerson } from '../../types';
 
@@ -16,17 +19,21 @@ type Props = { slide: CoverSlide };
 
 export function CoverSlide({ slide }: Props) {
   const c = useAppColors();
+  const photos = slide.bgPhotoUrls ?? [];
+
   return (
     <View className="flex-1">
-      {slide.bgPhotoUrl ? (
-        <KenBurnsBackground uri={slide.bgPhotoUrl} dim={0.5} />
-      ) : (
+      {photos.length === 0 ? (
         <LinearGradient
           colors={[c.heroA, c.heroB, c.heroC]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
         />
+      ) : photos.length === 1 ? (
+        <KenBurnsBackground uri={photos[0]!} dim={0.5} />
+      ) : (
+        <CollageBackground photos={photos} dim={0.5} />
       )}
       <View className="flex-1 justify-end px-7 pb-20">
         <Text className="font-bodyBold text-[11px] uppercase tracking-[1.5px] text-white/85">

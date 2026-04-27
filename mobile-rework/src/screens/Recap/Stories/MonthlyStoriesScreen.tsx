@@ -134,6 +134,9 @@ export function MonthlyStoriesScreen() {
           ? t('recap.monthly.actions.shareLabel', { partner: partner.name })
           : t('recap.monthly.actions.shareLabelSolo'),
         actionsDetail: t('recap.stories.actions.detail'),
+        photoReelHeadline: t('recap.stories.photoReel.headline'),
+        photoReelCaption: (showing, of) =>
+          t('recap.stories.photoReel.caption', { showing, of }),
       },
       handlers: { onSave, onShare, onDetail },
     });

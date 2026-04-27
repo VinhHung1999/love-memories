@@ -15,6 +15,7 @@ import {
   CoverSlide,
   FirstsSlide,
   LetterSlide,
+  PhotoReelSlide,
   PlacesSlide,
   StatSlide,
   TopMomentSlide,
@@ -62,6 +63,8 @@ function SlideRouter({ slide }: { slide: Slide }) {
       return <LetterSlide slide={slide} />;
     case 'topQuestion':
       return <TopQuestionSlide slide={slide} />;
+    case 'photoReel':
+      return <PhotoReelSlide slide={slide} />;
     case 'closing':
       return <ClosingSlide slide={slide} />;
     case 'actionsTray':

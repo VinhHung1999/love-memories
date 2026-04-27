@@ -1,11 +1,11 @@
-// Sprint 67 T459 — Top moment showcase slide. Full-bleed photo (Ken
-// Burns), heavy bottom dim gradient, ranked chip top-left, title +
-// sub at bottom, tappable bottom card → MomentDetail via deep-link.
+// Sprint 67 T459 + D1 — Top moment showcase. Primary photo full-bleed
+// + bottom filmstrip of up to 5 thumbnails (per Boss D1 feedback).
+// Filmstrip skipped when `filmstrip` is empty / single-photo moment.
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { PAL_GRADIENTS } from '@/theme/palettes';
 
@@ -19,6 +19,7 @@ type Props = { slide: TopMomentSlide };
 export function TopMomentSlide({ slide }: Props) {
   const router = useRouter();
   const grad = PAL_GRADIENTS[slide.palette];
+  const filmstrip = slide.filmstrip ?? [];
 
   const onTapDetail = () => {
     router.push({ pathname: '/moment-detail', params: { id: slide.momentId } });
@@ -40,8 +41,29 @@ export function TopMomentSlide({ slide }: Props) {
         </LinearGradient>
       </View>
 
-      {/* Bottom info card */}
-      <View className="absolute bottom-16 left-5 right-5">
+      {/* Bottom card + filmstrip */}
+      <View className="absolute bottom-12 left-5 right-5">
+        {filmstrip.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 6, paddingRight: 12 }}
+            className="mb-3"
+          >
+            {filmstrip.slice(0, 5).map((uri, i) => (
+              <View
+                key={i}
+                className="h-[52px] w-[52px] overflow-hidden rounded-md border border-white/40"
+              >
+                <Image
+                  source={{ uri }}
+                  resizeMode="cover"
+                  className="h-full w-full"
+                />
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
         <View className="overflow-hidden rounded-3xl bg-black/45 p-5">
           <Text
             className="font-displayMedium text-[26px] leading-[30px] text-white"

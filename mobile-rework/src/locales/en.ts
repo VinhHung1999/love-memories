@@ -986,6 +986,10 @@ const en: Resources = {
         body: "Save it or send it. Want the long form? Open the editorial scroll below.",
         signoff: 'See you next recap 🐾',
       },
+      photoReel: {
+        headline: 'One more look',
+        caption: 'Showing {{showing}} of {{of}} photos',
+      },
     },
     weekly: {
       cover: {

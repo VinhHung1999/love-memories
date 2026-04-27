@@ -16,7 +16,10 @@ export type StoriesPerson = { initial: string; gradientKey: 'A' | 'B' };
 export type Slide =
   | {
       kind: 'cover';
-      bgPhotoUrl?: string;        // optional photo full-bleed; falls back to hero gradient
+      // Sprint 67 D1 — collage support. 1 photo = single full-bleed, 2-3 =
+      // tilted stack, 4+ = 2x2 collage. Falls back to hero gradient when
+      // empty.
+      bgPhotoUrls?: string[];
       kicker: string;             // 'RECAP · Tháng 3, 2026' / 'RECAP · Tuần 17, 21-27 thg 4'
       titleLine1: string;         // 'Tuần này' / 'Tháng 3'
       titleLine2: string;         // 'của mình' / '2026'
@@ -26,7 +29,10 @@ export type Slide =
     }
   | {
       kind: 'stat';
-      bgPhotoUrl?: string;        // dim 40% behind the number
+      // Sprint 67 D1 — backdrop = 3x3 grid of dim photos behind the
+      // number. `bgPhotoUrls` overrides single `bgPhotoUrl`. Empty = the
+      // gradient fallback.
+      bgPhotoUrls?: string[];
       value: number | string;     // 48 → counts up; '2.1k' → renders literal
       label: string;              // 'KHOẢNH KHẮC'
       tone: 'primary' | 'secondary' | 'accent';
@@ -35,7 +41,12 @@ export type Slide =
   | {
       kind: 'topMoment';
       momentId: string;
-      bgPhotoUrl: string;         // full-bleed
+      // Sprint 67 D1 — primary photo + filmstrip thumbnails. The primary
+      // (`bgPhotoUrl`) goes full-bleed Ken Burns; `filmstrip` shows a
+      // bottom strip of up to 5 thumbnails. Falls back gracefully if
+      // filmstrip is empty.
+      bgPhotoUrl: string;
+      filmstrip?: string[];
       rank: 1 | 2 | 3;
       title: string;
       sub: string;                // 'Đà Lạt · 12 ảnh · 6 tim'
@@ -46,12 +57,17 @@ export type Slide =
       kind: 'places';
       headline: string;           // 'Mình đã đến 4 nơi'
       caption: string;            // '6 địa điểm tháng này'
-      thumbnails: { name: string; photoUrl?: string }[]; // up to 4 collage
+      // Sprint 67 D1 — Polaroid-stack support. Each place can carry up to
+      // 3 photos for a tilted fanned layout; cells with `photos` empty
+      // fall back to a soft gradient placeholder.
+      thumbnails: { name: string; photos: string[] }[]; // up to 4 cells
     }
   | {
       kind: 'firsts';
       firstId: string;
-      bgPhotoUrl?: string;
+      bgPhotoUrl?: string;        // primary photo behind text
+      // Sprint 67 D1 — 2-3 corner mosaic thumbnails next to the main.
+      mosaic?: string[];
       sticker: string;            // '🎉'
       kicker: string;             // 'Lần đầu của mình'
       title: string;              // moment title
@@ -70,6 +86,12 @@ export type Slide =
       meta: string;               // 'Mình đã hỏi nhau 4 lần trong tháng'
       initialA: string;
       initialB: string;
+    }
+  | {
+      kind: 'photoReel';          // Sprint 67 D1 — full-screen 3x3 mosaic
+      headline: string;           // 'Cả tháng / tuần qua một lần nữa'
+      caption: string;            // '12 trong 48 ảnh' / similar
+      photos: string[];           // up to 9
     }
   | {
       kind: 'closing';

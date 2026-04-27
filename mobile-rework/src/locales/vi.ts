@@ -1056,6 +1056,11 @@ const vi = {
         body: 'Lưu lại hoặc chia sẻ với người ấy. Nếu muốn xem chi tiết từng phần, mở scroll editorial bên dưới.',
         signoff: 'Hẹn recap kế tiếp 🐾',
       },
+      // Sprint 67 D1 — Photo reel mosaic slide.
+      photoReel: {
+        headline: 'Nhìn lại một lần nữa',
+        caption: 'Đang xem {{showing}} trong {{of}} ảnh',
+      },
     },
     // Sprint 67 T456 — compact weekly editorial. 5 sections.
     weekly: {
