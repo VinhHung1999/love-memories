@@ -32,6 +32,11 @@ export type WeeklyComposeContext = {
     actionsDetail: string;
     photoReelHeadline: string;
     photoReelCaption: (showing: number, of: number) => string;
+    // D8 — LettersCollection slide labels (parity with monthly).
+    lettersCollectionKicker: (count: number) => string;
+    lettersCollectionHeadline: string;
+    lettersCollectionCta: string;
+    letterKicker: (sender: string, date: string) => string;
   };
   handlers: {
     onSave: () => void;
@@ -66,6 +71,20 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   const coverPhotos = [...new Set(allPhotos)].slice(0, 4);
   const statBackdrop = [...new Set(allPhotos)].slice(0, 9);
 
+  // D8 — letter photos pool for the BigStat letters backdrop. Falls
+  // back to the moment pool when no letter carries an attachment
+  // (D6 lesson: never let the slide drop to the cream gradient).
+  const letterPhotos = [
+    ...new Set(
+      data.letters
+        .flatMap((l) => l.photos ?? [])
+        .filter(Boolean),
+    ),
+  ];
+  const letterBackdrop = letterPhotos.length > 0
+    ? letterPhotos.slice(0, 9)
+    : statBackdrop;
+
   const slides: Slide[] = [];
 
   // Cover
@@ -98,10 +117,8 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   if (totalLetters > 0) {
     slides.push({
       kind: 'stat',
-      // D6 — same fix as composeMonthly: original D1 omitted the
-      // backdrop on the secondary-tone stats so they fell through to
-      // the cream gradient. Reuse the global photo pool.
-      bgPhotoUrls: statBackdrop,
+      // D8 — letter-attachment pool first, fall back to moment pool.
+      bgPhotoUrls: letterBackdrop,
       value: totalLetters,
       label: labels.statLetters,
       tone: 'secondary',
@@ -139,6 +156,40 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
       sub,
       palette: top.palette,
       ctaLabel: labels.topMomentCta,
+    });
+  }
+
+  // D8 — LettersCollection slide for weekly: same consolidated read-
+  // style stack as monthly. Slot before the photo reel so the warm
+  // letter content reads inline with the rest of the week's narrative.
+  const letterPool = data.letters.length > 0
+    ? data.letters
+    : data.letterHighlight
+      ? [data.letterHighlight]
+      : [];
+  if (letterPool.length > 0) {
+    const collectionItems = letterPool.map((lh) => {
+      const dateLabel = lh.deliveredAt
+        ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+            day: '2-digit',
+            month: '2-digit',
+          })
+        : '';
+      return {
+        id: lh.id,
+        kicker: labels.letterKicker(lh.senderName, dateLabel),
+        title: lh.title,
+        content: (lh.content ?? lh.excerpt) || '',
+        senderName: lh.senderName,
+        thumb: lh.photos?.[0],
+      };
+    });
+    slides.push({
+      kind: 'lettersCollection',
+      kicker: labels.lettersCollectionKicker(letterPool.length),
+      headline: labels.lettersCollectionHeadline,
+      ctaLabel: labels.lettersCollectionCta,
+      letters: collectionItems,
     });
   }
 

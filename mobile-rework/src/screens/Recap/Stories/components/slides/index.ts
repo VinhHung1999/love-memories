@@ -2,7 +2,7 @@ export { ActionsTraySlide } from './ActionsTraySlide';
 export { ClosingSlide } from './ClosingSlide';
 export { CoverSlide } from './CoverSlide';
 export { FirstsSlide } from './FirstsSlide';
-export { LetterSlide } from './LetterSlide';
+export { LettersCollectionSlide } from './LettersCollectionSlide';
 export { PhotoReelSlide } from './PhotoReelSlide';
 export { PlacesSlide } from './PlacesSlide';
 export { StatSlide } from './StatSlide';

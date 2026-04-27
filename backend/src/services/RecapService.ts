@@ -138,6 +138,11 @@ type AugmentLetter = {
   senderId: string;
   deliveredAt: Date | null;
   sender: { id: string; name: string };
+  // Sprint 67 D8 — letter attachments. Mobile Stories uses these for
+  // (a) the BigStat letters slide backdrop (so it pulls from letters,
+  // not moments) and (b) optional thumbnails inside the consolidated
+  // LettersCollection slide. Empty when the letter shipped text-only.
+  photos: { url: string }[];
 };
 
 type RecapAugment = {
@@ -174,6 +179,8 @@ type RecapAugment = {
     // continues to use `excerpt`; only the new mobile Stories
     // experience consumes `content`.
     content: string;
+    // Sprint 67 D8 — attached photo URLs for parity with letters[].
+    photos: string[];
     senderId: string;
     senderName: string;
     deliveredAt: string | null;
@@ -182,11 +189,15 @@ type RecapAugment = {
   // Stories shell can render multiple letter slides with variant
   // rotation. letterHighlight stays for editorial scroll backward-
   // compat (= letters[0] when present).
+  // Sprint 67 D8 — photos[] joined from letter_photos so the Stories
+  // BigStat letters slide can mosaic from real letter attachments
+  // instead of borrowing the moment photo pool.
   letters: {
     id: string;
     title: string;
     excerpt: string;
     content: string;
+    photos: string[];
     senderId: string;
     senderName: string;
     deliveredAt: string | null;
@@ -309,6 +320,8 @@ async function buildAugment(
     // average <1KB so payload bloat is negligible vs the 200-char
     // excerpt.
     content: l.content,
+    // D8 — flatten LetterPhoto[] → string[] of URLs.
+    photos: l.photos.map((p) => p.url),
     senderId: l.senderId,
     senderName: l.sender.name,
     deliveredAt: l.deliveredAt?.toISOString() ?? null,
@@ -407,6 +420,11 @@ export async function getWeekly(weekStr: string | undefined, userId: string, cou
           senderId: true,
           deliveredAt: true,
           sender: { select: { id: true, name: true } },
+          // D8 — attached photos for the LettersCollection slide + the
+          // BigStat letters backdrop. Bounded `take: 4` per letter
+          // keeps the payload small (worst case 16 letter photos for
+          // monthly recap, ~6KB).
+          photos: { select: { url: true }, take: 4 },
         },
       }),
       prisma.goal.findMany({
@@ -510,6 +528,11 @@ export async function getMonthly(monthStr: string | undefined, userId: string, c
           senderId: true,
           deliveredAt: true,
           sender: { select: { id: true, name: true } },
+          // D8 — attached photos for the LettersCollection slide + the
+          // BigStat letters backdrop. Bounded `take: 4` per letter
+          // keeps the payload small (worst case 16 letter photos for
+          // monthly recap, ~6KB).
+          photos: { select: { url: true }, take: 4 },
         },
       }),
       prisma.goal.findMany({

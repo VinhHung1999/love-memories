@@ -176,6 +176,13 @@ export function WeeklyStoriesScreen() {
         photoReelHeadline: t('recap.stories.photoReel.headline'),
         photoReelCaption: (showing, of) =>
           t('recap.stories.photoReel.caption', { showing, of }),
+        // D8 — LettersCollection labels (parity with monthly).
+        lettersCollectionKicker: (count) =>
+          t('recap.stories.lettersCollection.kicker', { count }),
+        lettersCollectionHeadline: t('recap.stories.lettersCollection.headline'),
+        lettersCollectionCta: t('recap.stories.lettersCollection.cta'),
+        letterKicker: (sender, date) =>
+          t('recap.monthly.section.letterHighlight.kicker', { sender, date }),
       },
       handlers: { onSave, onShare, onDetail },
     });

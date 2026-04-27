@@ -35,7 +35,10 @@ export type MonthlyComposeContext = {
     placesHeadline: (count: number) => string;
     placesCaption: (count: number) => string;
     firstsKicker: string;          // 'Lần đầu của mình'
-    letterCta: string;             // 'Đọc lại'
+    // D8 — LettersCollection slide labels (replaces per-letter labels).
+    lettersCollectionKicker: (count: number) => string; // 'THƯ TÌNH · 4 lá'
+    lettersCollectionHeadline: string;                  // 'Mình viết cho nhau'
+    lettersCollectionCta: string;                       // 'Đọc lại trong Inbox'
     letterKicker: (sender: string, date: string) => string;
     topQuestionMeta: (count: number) => string;
     closingTitleWithPartner: (partner: string) => string;
@@ -82,6 +85,22 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   const statBackdropPhotos = allPhotos.slice(0, 9); // stat 3x3 mosaic
   const reelPhotos = allPhotos.slice(0, 9);
 
+  // D8 — letter photos pool: flatten every letter's photos[] (BE caps
+  // 4 each) so the BigStat letters slide backdrop pulls from real
+  // letter attachments instead of the moment pool. Falls back to moment
+  // pool when no letters have photos so the slide doesn't drop to the
+  // cream gradient again (D6 lesson).
+  const letterPhotos = [
+    ...new Set(
+      data.letters
+        .flatMap((l) => l.photos ?? [])
+        .filter(Boolean),
+    ),
+  ];
+  const letterBackdrop = letterPhotos.length > 0
+    ? letterPhotos.slice(0, 9)
+    : statBackdropPhotos;
+
   const slides: Slide[] = [];
 
   // Cover
@@ -112,12 +131,11 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   if (totalLetters > 0) {
     slides.push({
       kind: 'stat',
-      // D6 — letters stat carried no backdrop in the original D1 design,
-      // so it fell back to the cream `[c.bg, c.surface]` gradient and
-      // Boss saw a "trắng tinh" slide between the photo-mosaic moments
-      // and photos stats. Reuse the same global photo pool — visual
-      // continuity beats the "secondary tone needs its own bg" intent.
-      bgPhotoUrls: statBackdropPhotos,
+      // D8 — backdrop pulls from letterPhotos (real letter attachments)
+      // when present, falling back to the moment pool only when no
+      // letter carries an attachment. Boss intent: BigStat letters
+      // should feel like letters, not moments.
+      bgPhotoUrls: letterBackdrop,
       value: totalLetters,
       label: labels.statLetters,
       tone: 'secondary',
@@ -204,49 +222,41 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
     });
   }
 
-  // Letter slides — D2: render up to 4 letters with deterministic
-  // variant per id-hash so a 4-letter month reads as 4 distinct cards.
-  // Falls back to letterHighlight when `letters[]` is empty (older
-  // mobile + new BE crossover during deploy gap).
+  // D8 — single LettersCollection slide consolidating ALL letters.
+  // Replaces the D2-D7 pattern of per-letter slides with paginated
+  // variants (Classic/Polaroid/Envelope/Postcard). Boss directive
+  // 2026-04-27: "phải hiển thị TOÀN BỘ mấy cái lá thư" — all letters
+  // together, read-style, in one slide. Falls back to letterHighlight
+  // for the BE deploy-gap (older BE without `letters[]`).
   const letterPool = data.letters.length > 0
     ? data.letters
     : data.letterHighlight
       ? [data.letterHighlight]
       : [];
-  const variants = ['classic', 'polaroid', 'envelope', 'postcard'] as const;
-  for (const lh of letterPool.slice(0, 4)) {
-    const dateLabel = lh.deliveredAt
-      ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
-          day: '2-digit',
-          month: '2-digit',
-        })
-      : '';
-    // Deterministic variant from letter id hash so the same letter
-    // always picks the same look.
-    let h = 0;
-    for (let i = 0; i < lh.id.length; i++) h = (h * 31 + lh.id.charCodeAt(i)) >>> 0;
-    const variant = variants[h % variants.length]!;
-    // Pull a thumbnail from the global pool (offset by hash so each
-    // letter draws a different photo).
-    const thumb =
-      allPhotos.length > 0 ? allPhotos[h % allPhotos.length] : undefined;
+  if (letterPool.length > 0) {
+    const collectionItems = letterPool.map((lh) => {
+      const dateLabel = lh.deliveredAt
+        ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+            day: '2-digit',
+            month: '2-digit',
+          })
+        : '';
+      return {
+        id: lh.id,
+        kicker: labels.letterKicker(lh.senderName, dateLabel),
+        title: lh.title,
+        // BE deploy-gap fallback: older response had only `excerpt`.
+        content: (lh.content ?? lh.excerpt) || '',
+        senderName: lh.senderName,
+        thumb: lh.photos?.[0],
+      };
+    });
     slides.push({
-      kind: 'letter',
-      letterId: lh.id,
-      variant,
-      kicker: labels.letterKicker(lh.senderName, dateLabel),
-      title: lh.title,
-      excerpt: lh.excerpt,
-      ctaLabel: labels.letterCta,
-      thumbPhotoUrl: thumb,
-      // D4 — pass the raw sender name through so PaperBody can render
-      // the Dancing-Script signature ("— Hùng") in addition to the
-      // baked-in kicker caption.
-      senderName: lh.senderName,
-      // D7 — full body for the Stories ScrollView. Fall back to the
-      // truncated excerpt during the BE deploy-gap (older BE without
-      // the `content` field surfaces undefined here).
-      content: lh.content ?? lh.excerpt,
+      kind: 'lettersCollection',
+      kicker: labels.lettersCollectionKicker(letterPool.length),
+      headline: labels.lettersCollectionHeadline,
+      ctaLabel: labels.lettersCollectionCta,
+      letters: collectionItems,
     });
   }
 

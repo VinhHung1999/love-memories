@@ -15,13 +15,14 @@ import {
   ClosingSlide,
   CoverSlide,
   FirstsSlide,
-  LetterSlide,
+  LettersCollectionSlide,
   PhotoReelSlide,
   PlacesSlide,
   StatSlide,
   TopMomentSlide,
   TopQuestionSlide,
 } from './components/slides';
+import { useRouter } from 'expo-router';
 import type { Slide } from './types';
 import { useStoriesController } from './useStoriesController';
 
@@ -37,13 +38,14 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
   // D2 — actions slide disables tap zones + auto-advance so the user
   // can tap Save / Share / Detail buttons without the tap-to-advance
   // overlay swallowing the touch.
-  // D7 — same treatment for letter slides: full body content lives
-  // inside a ScrollView (read-screen style), so the tap zones would
-  // intercept drag-to-scroll touches AND the 6-second auto-advance
-  // would cut Boss off mid-letter. Reader-controlled pacing matches
-  // Boss's "kiểu read" expectation.
+  // D7 → D8 — same treatment for the consolidated LettersCollection
+  // slide: full body content for every letter lives inside a stacked
+  // ScrollView (read-screen style), so tap zones would intercept
+  // drag-to-scroll AND the 6-second auto-advance would cut Boss off
+  // mid-letter. Reader-controlled pacing matches Boss's "kiểu read"
+  // expectation.
   const isInteractiveSlide =
-    active?.kind === 'actionsTray' || active?.kind === 'letter';
+    active?.kind === 'actionsTray' || active?.kind === 'lettersCollection';
   useEffect(() => {
     if (isInteractiveSlide) controller.pause();
     else controller.resume();
@@ -64,6 +66,7 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
 }
 
 function SlideRouter({ slide }: { slide: Slide }) {
+  const router = useRouter();
   switch (slide.kind) {
     case 'cover':
       return <CoverSlide slide={slide} />;
@@ -75,8 +78,16 @@ function SlideRouter({ slide }: { slide: Slide }) {
       return <PlacesSlide slide={slide} />;
     case 'firsts':
       return <FirstsSlide slide={slide} />;
-    case 'letter':
-      return <LetterSlide slide={slide} />;
+    case 'lettersCollection':
+      return (
+        <LettersCollectionSlide
+          slide={slide}
+          // D8 — CTA bounces to the Letters tab inbox where the user
+          // can re-open + reply. Stories session stays alive (push
+          // not replace) so swipe-back returns to the slide.
+          onOpen={() => router.push('/(tabs)/letters')}
+        />
+      );
     case 'topQuestion':
       return <TopQuestionSlide slide={slide} />;
     case 'photoReel':

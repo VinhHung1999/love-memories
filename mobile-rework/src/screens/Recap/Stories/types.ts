@@ -73,28 +73,23 @@ export type Slide =
       title: string;              // moment title
     }
   | {
-      kind: 'letter';
-      letterId: string;
-      // D2 — 4 visual variants cycled per letter id (composer assigns
-      // from id-hash). Lets a recap with multiple letters read as a
-      // stack of distinct cards instead of repeating one design.
-      variant: 'classic' | 'polaroid' | 'envelope' | 'postcard';
-      kicker: string;             // 'Từ Hùng · 22.04'
-      title: string;
-      excerpt: string;
-      ctaLabel: string;           // 'Đọc lại'
-      thumbPhotoUrl?: string;     // used by polaroid + postcard variants
-      // D4 — sender name surfaced separately from `kicker` so the
-      // paper-sheet signature can render in Dancing Script ("— Hùng")
-      // matching the LetterReadScreen tone. Kicker stays for the corner
-      // caption ("Từ Hùng · 22.04").
-      senderName: string;         // 'Hùng'
-      // D7 — full body of the letter (BE returns alongside the truncated
-      // `excerpt`). 4 letter variants render this inside a ScrollView so
-      // the user reads the whole letter Stories-style without bouncing
-      // out to LetterReadScreen. Falls back to `excerpt` when the BE
-      // hasn't redeployed yet (deploy-gap).
-      content: string;
+      // Sprint 67 D8 — replaces the per-letter slide pattern (Sprint 67
+      // D2 → D7) with one consolidated slide that vertically stacks
+      // ALL letters in a single PaperSheet ScrollView. Boss intent
+      // 2026-04-27: "phải hiển thị TOÀN BỘ mấy cái lá thư" — all
+      // letters together, read-style, in one place.
+      kind: 'lettersCollection';
+      kicker: string;             // 'THƯ TÌNH · {{count}}'
+      headline: string;           // 'Mình viết cho nhau'
+      ctaLabel: string;           // 'Đọc lại trong Inbox'
+      letters: {
+        id: string;
+        kicker: string;           // 'Từ Hùng · 22.04'
+        title: string;
+        content: string;          // full body (BE field, D7)
+        senderName: string;
+        thumb?: string;           // first letter photo if any
+      }[];
     }
   | {
       kind: 'topQuestion';

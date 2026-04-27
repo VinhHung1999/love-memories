@@ -994,6 +994,12 @@ const en: Resources = {
         headline: 'One more look',
         caption: 'Showing {{showing}} of {{of}} photos',
       },
+      // Sprint 67 D8 — LettersCollection slide labels.
+      lettersCollection: {
+        kicker: 'LETTERS · {{count}}',
+        headline: 'What we wrote',
+        cta: 'Open in Inbox',
+      },
     },
     weekly: {
       cover: {

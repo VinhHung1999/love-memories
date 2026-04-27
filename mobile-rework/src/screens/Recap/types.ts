@@ -44,6 +44,10 @@ export type RecapLetterHighlight = {
   // ScrollView (read-screen style). Web editorial scroll keeps using
   // `excerpt`.
   content: string;
+  // Sprint 67 D8 — attached photo URLs (BE caps at 4 per letter).
+  // LettersCollection slide shows them as a thumbnail strip and the
+  // BigStat letters backdrop pools them across all letters.
+  photos: string[];
   senderId: string;
   senderName: string;
   deliveredAt: string | null;
