@@ -978,7 +978,13 @@ const en: Resources = {
       },
       actions: {
         save: 'Save as 30s video',
-        detail: 'See more',
+        saveSub: 'Coming soon — turn this recap into a reel',
+        shareSub: 'Copy link for your partner',
+        detail: 'See full editorial',
+        kicker: 'Before you go…',
+        headline: 'One you might want to keep',
+        body: "Save it or send it. Want the long form? Open the editorial scroll below.",
+        signoff: 'See you next recap 🐾',
       },
     },
     weekly: {

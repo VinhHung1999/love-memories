@@ -1048,7 +1048,13 @@ const vi = {
       },
       actions: {
         save: 'Lưu thành video 30 giây',
-        detail: 'Xem chi tiết',
+        saveSub: 'Sắp có — chia sẻ recap thành reel ngắn',
+        shareSub: 'Sao chép link cho người ấy',
+        detail: 'Xem chi tiết tất cả',
+        kicker: 'Trước khi đi…',
+        headline: 'Một tay mình muốn giữ',
+        body: 'Lưu lại hoặc chia sẻ với người ấy. Nếu muốn xem chi tiết từng phần, mở scroll editorial bên dưới.',
+        signoff: 'Hẹn recap kế tiếp 🐾',
       },
     },
     // Sprint 67 T456 — compact weekly editorial. 5 sections.
