@@ -165,6 +165,11 @@ export default function RootLayout() {
       const recapMonthMatch = link.match(
         /^\/recap\/monthly(?:\?month=(\d{4}-\d{2}))?$/,
       );
+      // T457 (Sprint 67) — weekly recap deep-link. ISO week format
+      // YYYY-Www captured into the route param.
+      const recapWeekMatch = link.match(
+        /^\/recap\/weekly(?:\?week=(\d{4}-W\d{2}))?$/,
+      );
       if (letterMatch) {
         setTimeout(() => {
           imperativeRouter.push({
@@ -188,10 +193,23 @@ export default function RootLayout() {
               : '/(modal)/recap/monthly',
           );
         }, 50);
+      } else if (recapWeekMatch) {
+        const week = recapWeekMatch[1];
+        setTimeout(() => {
+          imperativeRouter.push(
+            week
+              ? { pathname: '/(modal)/recap/weekly', params: { week } }
+              : '/(modal)/recap/weekly',
+          );
+        }, 50);
       } else if (link === '/monthly-recap') {
         // Legacy alias — same destination, no month param (ViewModel falls
         // back to previous full month). Drop this branch once BE flips.
         setTimeout(() => imperativeRouter.push('/(modal)/recap/monthly'), 50);
+      } else if (link === '/weekly-recap') {
+        // T457 legacy alias — BE CronService still emits this path until
+        // B-be-weekly-recap-link-update flips it.
+        setTimeout(() => imperativeRouter.push('/(modal)/recap/weekly'), 50);
       } else if (link === '/notifications') {
         setTimeout(() => imperativeRouter.push('/notifications'), 50);
       } else if (link === '/daily-questions') {

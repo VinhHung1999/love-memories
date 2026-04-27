@@ -144,9 +144,15 @@ export default function NotificationsScreen() {
           }
           return;
         case 'recap':
-          // weekly_recap maps the same route — rework has no dedicated
-          // weekly recap screen yet, monthly is the closest analog.
-          router.push('/monthly-recap');
+          // T457 (Sprint 67): split weekly + monthly. `n.type` is the
+          // canonical BE notification type and survives the kind collapse
+          // (`kind` lumps both into 'recap'). Weekly Mon-cron → weekly
+          // route; monthly first-of-next-month cron → monthly route.
+          if (n.type === 'weekly_recap') {
+            router.push('/(modal)/recap/weekly');
+          } else {
+            router.push('/(modal)/recap/monthly');
+          }
           return;
         case 'qna':
           // T438 (Sprint 66) — daily-question reminders + partner-answered
@@ -167,7 +173,9 @@ export default function NotificationsScreen() {
   );
 
   const onAnnivTap = useCallback(() => {
-    router.push('/monthly-recap');
+    // T457: anniversary banner now opens the editorial monthly recap
+    // (the previous /monthly-recap route is now a redirect).
+    router.push('/(modal)/recap/monthly');
   }, [router]);
 
   const onSettingsTap = useCallback(() => {
