@@ -12,12 +12,14 @@ import {
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
 import { useCameraSheetStore } from '@/stores/cameraSheetStore';
+import { describeMonth } from '@/screens/Recap/utils';
 import { DailyQCard } from './components/DailyQCard';
 import { EmptyHero } from './components/EmptyHero';
 import {
   LatestMomentCard,
   formatRelative,
 } from './components/LatestMomentCard';
+import { RecapBanner, recapBannerTarget } from './components/RecapBanner';
 import { TimerHero } from './components/TimerHero';
 import { ShareCodeCard } from './ShareCodeCard';
 import { useDashboardViewModel } from './useDashboardViewModel';
@@ -64,6 +66,26 @@ export function DashboardScreen() {
     if (!vm.latest) return '';
     return formatRelative(new Date(vm.latest.createdAt), i18n.language, justNow);
   }, [vm.latest, i18n.language, justNow]);
+
+  // T455: Dashboard recap banner. Visible only inside the render window
+  // (last 3 days of the month + first 3 days of the next). recapBannerTarget
+  // returns the right YYYY-MM target or null when out-of-window.
+  const recapTarget = useMemo(() => recapBannerTarget(), []);
+  const recapMd = recapTarget ? describeMonth(recapTarget) : null;
+  const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+  const recapBannerKicker = recapMd
+    ? t('home.recapBanner.kicker', {
+        n: recapMd.monthNumber,
+        name: isVi ? recapMd.monthNameVi : recapMd.monthNameEn,
+      })
+    : '';
+  const recapBannerTitle = recapMd
+    ? t('home.recapBanner.title', {
+        n: recapMd.monthNumber,
+        name: isVi ? recapMd.monthNameVi : recapMd.monthNameEn,
+      })
+    : '';
+  const recapBannerSub = t('home.recapBanner.sub');
 
   return (
     <SafeScreen>
@@ -152,6 +174,15 @@ export function DashboardScreen() {
           }}
           onPress={() => router.push('/daily-questions')}
         />
+
+        {recapTarget ? (
+          <RecapBanner
+            monthStr={recapTarget}
+            kicker={recapBannerKicker}
+            title={recapBannerTitle}
+            sub={recapBannerSub}
+          />
+        ) : null}
 
         <TabBarSpacer />
       </ScrollView>

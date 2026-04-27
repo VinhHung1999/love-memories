@@ -59,6 +59,13 @@ const vi = {
     recapTitle: 'Tháng {{month}} của mình',
     recapSub: '{{moments}} khoảnh khắc · {{letters}} lá thư · {{trips}} chuyến đi',
     recapCta: 'Xem lại',
+    // Sprint 67 T455 — Dashboard banner pin (last 3 days of month + first 3
+    // of next month). Tap → /(modal)/recap/monthly?month=YYYY-MM.
+    recapBanner: {
+      kicker: 'RECAP · {{name}}',
+      title: '{{name}} của mình',
+      sub: 'Nhìn lại tháng vừa qua',
+    },
     modulesTitle: 'Cùng nhau',
     modules: {
       moments: 'Khoảnh khắc',

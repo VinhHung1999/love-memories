@@ -54,6 +54,11 @@ const en: Resources = {
       dailyQ: 'Questions',
       recap: 'Recap',
     },
+    recapBanner: {
+      kicker: 'RECAP · {{name}}',
+      title: 'Our {{name}}',
+      sub: 'Look back at this month',
+    },
     quickAdd: 'Capture now',
     shareCode: {
       title: 'Invite your partner to Memoura',

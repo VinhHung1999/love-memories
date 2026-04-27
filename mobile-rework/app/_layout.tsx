@@ -158,6 +158,13 @@ export default function RootLayout() {
       if (!link) return;
       const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
       const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
+      // T455 (Sprint 67) — editorial recap lives at /recap/monthly[?month=...].
+      // Accept BOTH the new path and the legacy `/monthly-recap` (still
+      // emitted by BE CronService until B-be-monthly-recap-link-update
+      // flips it).
+      const recapMonthMatch = link.match(
+        /^\/recap\/monthly(?:\?month=(\d{4}-\d{2}))?$/,
+      );
       if (letterMatch) {
         setTimeout(() => {
           imperativeRouter.push({
@@ -172,8 +179,19 @@ export default function RootLayout() {
             params: { id: momentMatch[1] },
           });
         }, 50);
+      } else if (recapMonthMatch) {
+        const month = recapMonthMatch[1];
+        setTimeout(() => {
+          imperativeRouter.push(
+            month
+              ? { pathname: '/(modal)/recap/monthly', params: { month } }
+              : '/(modal)/recap/monthly',
+          );
+        }, 50);
       } else if (link === '/monthly-recap') {
-        setTimeout(() => imperativeRouter.push('/monthly-recap'), 50);
+        // Legacy alias — same destination, no month param (ViewModel falls
+        // back to previous full month). Drop this branch once BE flips.
+        setTimeout(() => imperativeRouter.push('/(modal)/recap/monthly'), 50);
       } else if (link === '/notifications') {
         setTimeout(() => imperativeRouter.push('/notifications'), 50);
       } else if (link === '/daily-questions') {
@@ -183,8 +201,7 @@ export default function RootLayout() {
         setTimeout(() => imperativeRouter.push('/daily-questions'), 50);
       }
       // Unknown links no-op — better than dropping the user on a
-      // mismatched route. Recap / daily-plan links land here today
-      // since the rework has no dedicated screens for them yet.
+      // mismatched route. Daily-plan etc still land here.
     },
     [],
   );
