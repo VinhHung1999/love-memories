@@ -881,6 +881,33 @@ const en: Resources = {
         },
       },
       loading: 'Loading recap…',
+      section: {
+        byNumbers: {
+          title: 'By the numbers',
+          moments: 'moments',
+          letters: 'letters',
+          trips: 'trips',
+          words: 'words written',
+          daysStreak: 'day streak',
+          questions: 'Daily Q · {{count}} questions',
+        },
+        heatmap: {
+          title: 'The rhythm of our month',
+          hint: 'Not a single day without something to say',
+          legendLess: 'less',
+          legendMore: 'more',
+          busiestPrefix: 'busiest day',
+        },
+        topMoments: {
+          title: 'Three moments that stayed',
+          photos: '{{count}} photos',
+          reactions: '{{count}} hearts',
+        },
+        mood: {
+          title: 'Mood over days',
+          placeholder: "Vibes is on its way — once it's on, you'll see the five most-felt moods of the month here.",
+        },
+      },
       empty: {
         title: 'A quiet month 🐶',
         body: 'No moments yet this month. Add one together!',

@@ -50,12 +50,69 @@ export type CoverViewModel = {
   scrollHint: string; // 'cuộn xuống' / 'scroll'
 };
 
+// Section 01 — by the numbers
+export type ByNumbersStat = {
+  value: string;
+  label: string;
+  bgClassName: string;
+  colorClassName: string;
+  circleClassName: string;
+  size?: 'big' | 'default';
+};
+
+export type ByNumbersViewModel = {
+  kicker: string;
+  title: string;
+  stats: [ByNumbersStat, ByNumbersStat, ByNumbersStat, ByNumbersStat];
+  streak: { count: number; streakLabel: string; questionsLabel: string } | null;
+};
+
+// Section 02 — heatmap
+export type HeatmapViewModel = {
+  kicker: string;
+  title: string;
+  hint: string;
+  legendLess: string;
+  legendMore: string;
+  busiestPrefix: string;
+  momentsLabel: string;
+  data: number[];
+};
+
+// Section 03 — top moments
+export type TopMomentVM = {
+  id: string;
+  rank: 1 | 2 | 3;
+  palette: import('@/theme/palettes').PaletteKey;
+  title: string;
+  sub: string;
+};
+
+export type TopMomentsViewModel = {
+  kicker: string;
+  title: string;
+  big: TopMomentVM | null;
+  small: TopMomentVM[];
+};
+
+// Section 04 — mood (placeholder for v1, Vibes idle)
+export type MoodViewModel = {
+  kicker: string;
+  title: string;
+  body: string;
+};
+
 export type MonthlyRecapViewModel = {
   stage: MonthlyRecapStage;
   monthStr: string;
   data: MonthlyRecapResponse | null;
   errorMessage: string | null;
   cover: CoverViewModel | null;
+  // Sections 01-04 (T453). Sections 05-09 + actions land in T454.
+  byNumbers: ByNumbersViewModel | null;
+  heatmap: HeatmapViewModel | null;
+  topMoments: TopMomentsViewModel | null;
+  mood: MoodViewModel;
   closeLabel: string;
   loadingLabel: string;
   emptyTitle: string;
@@ -214,12 +271,127 @@ export function useMonthlyRecapViewModel(): MonthlyRecapViewModel {
     };
   }, [requestedMonth, i18n.language, t, user, partner, data]);
 
+  // ─── Section 01 — by the numbers ──────────────────────────────────────
+  const byNumbers = useMemo<ByNumbersViewModel | null>(() => {
+    if (!data) return null;
+    const totalLetters = data.loveLetters.sent + data.loveLetters.received;
+    const stats: ByNumbersViewModel['stats'] = [
+      {
+        value: formatCompactNumber(data.moments.count),
+        label: t('recap.monthly.section.byNumbers.moments'),
+        bgClassName: 'bg-primary-soft',
+        colorClassName: 'text-primary',
+        circleClassName: 'bg-primary',
+        size: 'big',
+      },
+      {
+        value: formatCompactNumber(totalLetters),
+        label: t('recap.monthly.section.byNumbers.letters'),
+        bgClassName: 'bg-secondary-soft',
+        colorClassName: 'text-secondary',
+        circleClassName: 'bg-secondary',
+      },
+      {
+        value: formatCompactNumber(data.trips),
+        label: t('recap.monthly.section.byNumbers.trips'),
+        bgClassName: 'bg-accent-soft',
+        colorClassName: 'text-accent',
+        circleClassName: 'bg-accent',
+      },
+      {
+        value: formatCompactNumber(data.words.count),
+        label: t('recap.monthly.section.byNumbers.words'),
+        bgClassName: 'bg-primary-soft',
+        colorClassName: 'text-primary-deep',
+        circleClassName: 'bg-primary-deep',
+      },
+    ];
+
+    const streak = data.streak.current > 0
+      ? {
+          count: data.streak.current,
+          streakLabel: t('recap.monthly.section.byNumbers.daysStreak'),
+          questionsLabel: t('recap.monthly.section.byNumbers.questions', {
+            count: data.questions.count,
+          }),
+        }
+      : null;
+
+    return {
+      kicker: '01',
+      title: t('recap.monthly.section.byNumbers.title'),
+      stats,
+      streak,
+    };
+  }, [data, t]);
+
+  // ─── Section 02 — heatmap ─────────────────────────────────────────────
+  const heatmap = useMemo<HeatmapViewModel | null>(() => {
+    if (!data) return null;
+    return {
+      kicker: '02',
+      title: t('recap.monthly.section.heatmap.title'),
+      hint: t('recap.monthly.section.heatmap.hint'),
+      legendLess: t('recap.monthly.section.heatmap.legendLess'),
+      legendMore: t('recap.monthly.section.heatmap.legendMore'),
+      busiestPrefix: t('recap.monthly.section.heatmap.busiestPrefix'),
+      momentsLabel: t('recap.monthly.section.byNumbers.moments'),
+      data: data.heatmap,
+    };
+  }, [data, t]);
+
+  // ─── Section 03 — top moments podium ──────────────────────────────────
+  const topMoments = useMemo<TopMomentsViewModel | null>(() => {
+    if (!data || data.topMoments.length === 0) return null;
+    const fmt = (m: typeof data.topMoments[number]): TopMomentVM => ({
+      id: m.id,
+      rank: 1,
+      palette: m.palette,
+      title: m.title,
+      sub: [
+        m.location,
+        m.photoCount > 0
+          ? t('recap.monthly.section.topMoments.photos', { count: m.photoCount })
+          : null,
+        m.reactionCount > 0
+          ? t('recap.monthly.section.topMoments.reactions', { count: m.reactionCount })
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    });
+    const ranked = data.topMoments.slice(0, 3).map((m, idx) => ({
+      ...fmt(m),
+      rank: (idx + 1) as 1 | 2 | 3,
+    }));
+    return {
+      kicker: '03',
+      title: t('recap.monthly.section.topMoments.title'),
+      big: ranked[0] ?? null,
+      small: ranked.slice(1),
+    };
+  }, [data, t]);
+
+  // ─── Section 04 — mood placeholder (Vibes idle, Boss directive) ──────
+  const mood: MoodViewModel = useMemo(
+    () => ({
+      kicker: '04',
+      title: t('recap.monthly.section.mood.title'),
+      body: t('recap.monthly.section.mood.placeholder'),
+    }),
+    [t],
+  );
+
   return {
     stage,
     monthStr: requestedMonth,
     data,
     errorMessage,
     cover,
+    byNumbers,
+    heatmap,
+    topMoments,
+    mood,
     closeLabel: t('recap.monthly.closeLabel'),
     loadingLabel: t('recap.monthly.loading'),
     emptyTitle: t('recap.monthly.empty.title'),

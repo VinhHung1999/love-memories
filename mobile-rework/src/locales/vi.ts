@@ -946,6 +946,34 @@ const vi = {
         },
       },
       loading: 'Đang tải recap…',
+      // Sprint 67 T453 — sections 01-04 keys.
+      section: {
+        byNumbers: {
+          title: 'Bằng những con số',
+          moments: 'khoảnh khắc',
+          letters: 'thư tình',
+          trips: 'chuyến đi',
+          words: 'từ đã viết',
+          daysStreak: 'ngày trả lời liền',
+          questions: 'Daily Q · {{count}} câu hỏi',
+        },
+        heatmap: {
+          title: 'Nhịp của tháng này',
+          hint: 'Ngày nào mình cũng có gì đó để nói với nhau',
+          legendLess: 'ít',
+          legendMore: 'nhiều',
+          busiestPrefix: 'ngày sôi nổi nhất',
+        },
+        topMoments: {
+          title: '3 khoảnh khắc đọng lại',
+          photos: '{{count}} ảnh',
+          reactions: '{{count}} tim',
+        },
+        mood: {
+          title: 'Tâm trạng qua ngày',
+          placeholder: 'Tính năng Vibes đang trên đường về — khi nào bật, mình sẽ thấy 5 vùng tâm trạng phổ biến nhất tháng này.',
+        },
+      },
       empty: {
         title: 'Tháng yên ắng quá 🐶',
         body: 'Chưa có khoảnh khắc nào tháng này. Cùng tạo nhé!',

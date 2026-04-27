@@ -1,6 +1,6 @@
-// Sprint 67 T452 — MonthlyRecapScreen view. Owns ONLY layout + presentation
-// of the cover (T452 scope) plus loading / empty / error states. Sections
-// 01-09 land in T453 + T454 below the cover.
+// Sprint 67 T452 — MonthlyRecapScreen view. T453 added sections 01-04
+// below the cover (by-numbers + heatmap + top moments + mood placeholder).
+// Sections 05-09 + bottom actions land in T454.
 //
 // Spec acceptance:
 //  • Renders Cover with real BE data after fetch resolves
@@ -14,11 +14,24 @@
 
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
-import { CloseFloatingButton, RecapCover } from './components';
+import {
+  BigStatCard,
+  CloseFloatingButton,
+  HeatmapGrid,
+  MoodPlaceholder,
+  RecapCover,
+  RecapSection,
+  StreakCallout,
+  TopMomentCard,
+} from './components';
 import { useMonthlyRecapViewModel } from './useMonthlyRecapViewModel';
 
 export function MonthlyRecapScreen() {
   const vm = useMonthlyRecapViewModel();
+
+  // Sections render on `ready` only. `empty` keeps the cover but suppresses
+  // the body sections (no data to show); `error` shows the retry shell.
+  const showSections = vm.stage === 'ready';
 
   return (
     <View className="flex-1 bg-bg">
@@ -66,8 +79,107 @@ export function MonthlyRecapScreen() {
           </View>
         ) : null}
 
-        {/* T453 + T454 sections will mount below this comment in subsequent
-            commits. Cover must remain at the top of the scroll regardless. */}
+        {showSections && vm.byNumbers ? (
+          <RecapSection kicker={vm.byNumbers.kicker} title={vm.byNumbers.title}>
+            <View className="mt-3.5" style={{ gap: 10 }}>
+              <BigStatCard
+                value={vm.byNumbers.stats[0].value}
+                label={vm.byNumbers.stats[0].label}
+                bgClassName={vm.byNumbers.stats[0].bgClassName}
+                colorClassName={vm.byNumbers.stats[0].colorClassName}
+                circleClassName={vm.byNumbers.stats[0].circleClassName}
+                size="big"
+              />
+              <View className="flex-row" style={{ gap: 10 }}>
+                <View className="flex-1">
+                  <BigStatCard
+                    value={vm.byNumbers.stats[1].value}
+                    label={vm.byNumbers.stats[1].label}
+                    bgClassName={vm.byNumbers.stats[1].bgClassName}
+                    colorClassName={vm.byNumbers.stats[1].colorClassName}
+                    circleClassName={vm.byNumbers.stats[1].circleClassName}
+                  />
+                </View>
+                <View className="flex-1">
+                  <BigStatCard
+                    value={vm.byNumbers.stats[2].value}
+                    label={vm.byNumbers.stats[2].label}
+                    bgClassName={vm.byNumbers.stats[2].bgClassName}
+                    colorClassName={vm.byNumbers.stats[2].colorClassName}
+                    circleClassName={vm.byNumbers.stats[2].circleClassName}
+                  />
+                </View>
+                <View className="flex-1">
+                  <BigStatCard
+                    value={vm.byNumbers.stats[3].value}
+                    label={vm.byNumbers.stats[3].label}
+                    bgClassName={vm.byNumbers.stats[3].bgClassName}
+                    colorClassName={vm.byNumbers.stats[3].colorClassName}
+                    circleClassName={vm.byNumbers.stats[3].circleClassName}
+                  />
+                </View>
+              </View>
+            </View>
+            {vm.byNumbers.streak ? (
+              <StreakCallout
+                streakCount={vm.byNumbers.streak.count}
+                streakLabel={vm.byNumbers.streak.streakLabel}
+                questionsLabel={vm.byNumbers.streak.questionsLabel}
+              />
+            ) : null}
+          </RecapSection>
+        ) : null}
+
+        {showSections && vm.heatmap ? (
+          <RecapSection kicker={vm.heatmap.kicker} title={vm.heatmap.title}>
+            <HeatmapGrid
+              heatmap={vm.heatmap.data}
+              hint={vm.heatmap.hint}
+              legendLess={vm.heatmap.legendLess}
+              legendMore={vm.heatmap.legendMore}
+              busiestPrefix={vm.heatmap.busiestPrefix}
+              momentsLabel={vm.heatmap.momentsLabel}
+            />
+          </RecapSection>
+        ) : null}
+
+        {showSections && vm.topMoments && vm.topMoments.big ? (
+          <RecapSection kicker={vm.topMoments.kicker} title={vm.topMoments.title}>
+            <View className="mt-3.5" style={{ gap: 10 }}>
+              <TopMomentCard
+                id={vm.topMoments.big.id}
+                rank={vm.topMoments.big.rank}
+                palette={vm.topMoments.big.palette}
+                title={vm.topMoments.big.title}
+                sub={vm.topMoments.big.sub}
+                size="big"
+              />
+              {vm.topMoments.small.length > 0 ? (
+                <View className="flex-row" style={{ gap: 10 }}>
+                  {vm.topMoments.small.map((m) => (
+                    <View key={m.id} className="flex-1">
+                      <TopMomentCard
+                        id={m.id}
+                        rank={m.rank}
+                        palette={m.palette}
+                        title={m.title}
+                        sub={m.sub}
+                      />
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          </RecapSection>
+        ) : null}
+
+        {showSections ? (
+          <RecapSection kicker={vm.mood.kicker} title={vm.mood.title}>
+            <MoodPlaceholder body={vm.mood.body} />
+          </RecapSection>
+        ) : null}
+
+        {/* T454 will mount sections 05-09 + actions below this comment. */}
       </ScrollView>
 
       <CloseFloatingButton
