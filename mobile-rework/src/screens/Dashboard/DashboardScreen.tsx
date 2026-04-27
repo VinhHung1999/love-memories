@@ -11,7 +11,9 @@ import {
 } from '@/lib/pushNotifications';
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
+import { useCameraSheetStore } from '@/stores/cameraSheetStore';
 import { DailyQCard } from './components/DailyQCard';
+import { EmptyHero } from './components/EmptyHero';
 import {
   LatestMomentCard,
   formatRelative,
@@ -123,9 +125,14 @@ export function DashboardScreen() {
           onPress={() => router.push('/daily-questions')}
         />
 
-        {/* D6: LatestMomentCard restored below TimerHero. Only shown when there is
-            at least one moment. Empty state is intentionally omitted on Dashboard —
-            the Moments tab handles the empty-first-moment CTA. */}
+        {/* T446 (Sprint 67) — Dashboard now renders EmptyHero when the
+            couple has no moments yet (vm.latest === null). Sprint 62
+            T375 built EmptyHero but only the Moments tab consumed it;
+            Boss wants it on Dashboard too so a fresh couple lands on
+            an obvious CTA instead of a blank slot below TimerHero.
+            Primary tap → /moment-create directly (skip the camera
+            sheet — user signaled clear intent). Secondary tap → opens
+            the global Camera bottom sheet for source choice. */}
         {vm.latest ? (
           <LatestMomentCard
             moment={vm.latest}
@@ -133,7 +140,17 @@ export function DashboardScreen() {
             relativeLabel={relativeLabel}
             onPress={openDetail}
           />
-        ) : null}
+        ) : (
+          <EmptyHero
+            title={t('home.empty.title')}
+            subtitle={t('home.empty.subtitle')}
+            primaryLabel={t('home.empty.ctaPrimary')}
+            secondaryLabel={t('home.empty.ctaSecondary')}
+            polaroidCaption={t('home.empty.polaroidCaption')}
+            onAddMoment={() => router.push('/moment-create')}
+            onOpenCamera={() => useCameraSheetStore.getState().open()}
+          />
+        )}
 
         <TabBarSpacer />
       </ScrollView>
