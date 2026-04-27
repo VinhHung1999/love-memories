@@ -5,6 +5,7 @@
 // `slides[index]` to its slide variant component. Composer logic
 // (T460) builds the slide list from BE recap data.
 
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
@@ -33,6 +34,15 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
   const { t } = useTranslation();
   const controller = useStoriesController(slides.length, onClose);
   const active = slides[controller.index] ?? null;
+  // D2 — actions slide disables tap zones + auto-advance so the user
+  // can tap Save / Share / Detail buttons without the tap-to-advance
+  // overlay swallowing the touch. Pause is keyed off the active slide;
+  // navigating away resumes automatically.
+  const isActionsSlide = active?.kind === 'actionsTray';
+  useEffect(() => {
+    if (isActionsSlide) controller.pause();
+    else controller.resume();
+  }, [isActionsSlide, controller]);
 
   return (
     <View className="flex-1 bg-black">
@@ -40,6 +50,7 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
         controller={controller}
         onClose={onClose}
         closeAccessibilityLabel={t('recap.weekly.closeLabel')}
+        interactive={isActionsSlide}
       >
         {active ? <SlideRouter slide={active} /> : null}
       </StoriesShell>

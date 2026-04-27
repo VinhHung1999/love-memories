@@ -31,6 +31,12 @@ type Props = {
   controller: StoriesController;
   onClose: () => void;
   closeAccessibilityLabel: string;
+  // D2 (2026-04-27): when true, the tap-zone overlay no longer captures
+  // touches (pointerEvents='box-none') and auto-advance pauses. Used
+  // for the ActionsTray slide so Save / Share / Detail buttons inside
+  // the slide receive taps + the user has time to read all 3 CTAs.
+  // Swipe-down close + the top-right close pill still work.
+  interactive?: boolean;
   children: React.ReactNode;
 };
 
@@ -38,6 +44,7 @@ export function StoriesShell({
   controller,
   onClose,
   closeAccessibilityLabel,
+  interactive = false,
   children,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -112,25 +119,30 @@ export function StoriesShell({
 
           {/* Tap zones overlay (above slide content, below progress bars
               + close button). pointerEvents='box-only' so the gesture
-              detector still wins for vertical drags above this layer. */}
-          <View className="absolute inset-0 flex-row" pointerEvents="box-none">
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Previous"
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut(controller.prev)}
-              onTouchMove={swallow}
-              style={{ flex: 35 }}
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Next"
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut(controller.next)}
-              onTouchMove={swallow}
-              style={{ flex: 65 }}
-            />
-          </View>
+              detector still wins for vertical drags above this layer.
+              D2: when interactive=true (ActionsTray), wrapper falls
+              back to box-none so touches fall through to the slide's
+              own buttons; tap zones not rendered at all. */}
+          {interactive ? null : (
+            <View className="absolute inset-0 flex-row" pointerEvents="box-none">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Previous"
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut(controller.prev)}
+                onTouchMove={swallow}
+                style={{ flex: 35 }}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Next"
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut(controller.next)}
+                onTouchMove={swallow}
+                style={{ flex: 65 }}
+              />
+            </View>
+          )}
 
           {/* Top chrome */}
           <View

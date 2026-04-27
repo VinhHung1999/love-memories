@@ -172,6 +172,18 @@ type RecapAugment = {
     senderName: string;
     deliveredAt: string | null;
   } | null;
+  // Sprint 67 D2 — surface up to 4 longest letters so the mobile
+  // Stories shell can render multiple letter slides with variant
+  // rotation. letterHighlight stays for editorial scroll backward-
+  // compat (= letters[0] when present).
+  letters: {
+    id: string;
+    title: string;
+    excerpt: string;
+    senderId: string;
+    senderName: string;
+    deliveredAt: string | null;
+  }[];
   firsts: { id: string; title: string; date: string }[];
   moodBuckets: never[];
 };
@@ -270,27 +282,27 @@ async function buildAugment(
     }
   }
 
-  // letterHighlight: longest content, tie → first delivered.
-  let letterHighlight: RecapAugment['letterHighlight'] = null;
-  if (loveLetters.length > 0) {
-    const winner = loveLetters.reduce((best, cur) => {
-      if (cur.content.length > best.content.length) return cur;
-      if (cur.content.length === best.content.length) {
-        const a = cur.deliveredAt?.getTime() ?? Number.POSITIVE_INFINITY;
-        const b = best.deliveredAt?.getTime() ?? Number.POSITIVE_INFINITY;
-        if (a < b) return cur;
-      }
-      return best;
-    });
-    letterHighlight = {
-      id: winner.id,
-      title: winner.title,
-      excerpt: makeExcerpt(winner.content),
-      senderId: winner.senderId,
-      senderName: winner.sender.name,
-      deliveredAt: winner.deliveredAt?.toISOString() ?? null,
-    };
-  }
+  // letters: top 4 by content length (tie → first delivered), each
+  // with a 200-char excerpt. letterHighlight = letters[0] for editorial
+  // backward-compat. Sprint 67 D2.
+  const sortedLetters = [...loveLetters].sort((a, b) => {
+    if (b.content.length !== a.content.length) {
+      return b.content.length - a.content.length;
+    }
+    const at = a.deliveredAt?.getTime() ?? Number.POSITIVE_INFINITY;
+    const bt = b.deliveredAt?.getTime() ?? Number.POSITIVE_INFINITY;
+    return at - bt;
+  });
+  const letters: RecapAugment['letters'] = sortedLetters.slice(0, 4).map((l) => ({
+    id: l.id,
+    title: l.title,
+    excerpt: makeExcerpt(l.content),
+    senderId: l.senderId,
+    senderName: l.sender.name,
+    deliveredAt: l.deliveredAt?.toISOString() ?? null,
+  }));
+  const letterHighlight: RecapAugment['letterHighlight'] =
+    letters.length > 0 ? letters[0]! : null;
 
   // firsts: moments with a 'first' / 'lần đầu' tag.
   const firsts = moments
@@ -338,6 +350,7 @@ async function buildAugment(
     places,
     topQuestion,
     letterHighlight,
+    letters,
     firsts,
     moodBuckets: [],
   };

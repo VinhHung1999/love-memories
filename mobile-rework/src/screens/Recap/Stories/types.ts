@@ -75,10 +75,15 @@ export type Slide =
   | {
       kind: 'letter';
       letterId: string;
+      // D2 — 4 visual variants cycled per letter id (composer assigns
+      // from id-hash). Lets a recap with multiple letters read as a
+      // stack of distinct cards instead of repeating one design.
+      variant: 'classic' | 'polaroid' | 'envelope' | 'postcard';
       kicker: string;             // 'Từ Hùng · 22.04'
       title: string;
       excerpt: string;
       ctaLabel: string;           // 'Đọc lại'
+      thumbPhotoUrl?: string;     // used by polaroid + postcard variants
     }
   | {
       kind: 'topQuestion';

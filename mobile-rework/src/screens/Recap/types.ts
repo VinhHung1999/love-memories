@@ -44,6 +44,12 @@ export type RecapLetterHighlight = {
   deliveredAt: string | null;
 };
 
+// Sprint 67 D2 — top 4 letters in the period (longest content). The
+// editorial scroll keeps using `letterHighlight` (= letters[0]) for
+// backward compat; the Stories shell renders ONE slide per entry with
+// a deterministic visual variant.
+export type RecapLetter = RecapLetterHighlight;
+
 export type RecapFirst = {
   id: string;
   title: string;
@@ -64,6 +70,7 @@ export type RecapAugment = {
   places: RecapPlace[];
   topQuestion: RecapTopQuestion | null;
   letterHighlight: RecapLetterHighlight | null;
+  letters: RecapLetter[];
   firsts: RecapFirst[];
   moodBuckets: never[];
 };

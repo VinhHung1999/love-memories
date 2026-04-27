@@ -198,22 +198,41 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
     });
   }
 
-  // Letter highlight — skip if null
-  if (data.letterHighlight) {
-    const lh = data.letterHighlight;
+  // Letter slides — D2: render up to 4 letters with deterministic
+  // variant per id-hash so a 4-letter month reads as 4 distinct cards.
+  // Falls back to letterHighlight when `letters[]` is empty (older
+  // mobile + new BE crossover during deploy gap).
+  const letterPool = data.letters.length > 0
+    ? data.letters
+    : data.letterHighlight
+      ? [data.letterHighlight]
+      : [];
+  const variants = ['classic', 'polaroid', 'envelope', 'postcard'] as const;
+  for (const lh of letterPool.slice(0, 4)) {
     const dateLabel = lh.deliveredAt
       ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
           day: '2-digit',
           month: '2-digit',
         })
       : '';
+    // Deterministic variant from letter id hash so the same letter
+    // always picks the same look.
+    let h = 0;
+    for (let i = 0; i < lh.id.length; i++) h = (h * 31 + lh.id.charCodeAt(i)) >>> 0;
+    const variant = variants[h % variants.length]!;
+    // Pull a thumbnail from the global pool (offset by hash so each
+    // letter draws a different photo).
+    const thumb =
+      allPhotos.length > 0 ? allPhotos[h % allPhotos.length] : undefined;
     slides.push({
       kind: 'letter',
       letterId: lh.id,
+      variant,
       kicker: labels.letterKicker(lh.senderName, dateLabel),
       title: lh.title,
       excerpt: lh.excerpt,
       ctaLabel: labels.letterCta,
+      thumbPhotoUrl: thumb,
     });
   }
 
