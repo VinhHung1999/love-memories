@@ -358,12 +358,6 @@ function RootStack() {
       {/* T458 (Sprint 67) — RecapArchive list (12 months + 12 weeks).
           Reachable from Profile "Lưu trữ recap" row. Push transition. */}
       <Stack.Screen name="recap-archive" />
-      {/* T459 (Sprint 67) — Stories demo route. Removed in T460 once
-          composer + production routes flip Stories to the default. */}
-      <Stack.Screen
-        name="recap-stories-demo"
-        options={{ presentation: 'fullScreenModal' }}
-      />
     </Stack>
   );
 }
@@ -440,7 +434,6 @@ function useAuthGate() {
     if (seg[0] === 'notifications') return;
     if (seg[0] === 'daily-questions') return;
     if (seg[0] === 'recap-archive') return;
-    if (seg[0] === 'recap-stories-demo') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

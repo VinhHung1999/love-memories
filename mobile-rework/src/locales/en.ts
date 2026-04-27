@@ -681,8 +681,6 @@ const en: Resources = {
       memouraPlus: 'Memoura+',
       replayTour: 'Replay tour',
       recapArchive: 'Recap archive',
-      storiesDemo: 'Recap Stories (preview)',
-      storiesDemoDetail: 'Mock 9 slides',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       version: 'Version',
@@ -965,6 +963,23 @@ const en: Resources = {
         retry: 'Retry',
       },
       closeLabel: 'Close',
+    },
+    stories: {
+      coverScrollHint: 'tap to advance',
+      topMomentCta: 'See more',
+      placesHeadline: 'We visited {{count}} places',
+      placesCaption: '{{count}} locations this period',
+      stat: {
+        moments: 'MOMENTS',
+        letters: 'LETTERS',
+        photos: 'PHOTOS SAVED',
+        questions: 'DAILY Q',
+        momentsSub: 'Each one a marker',
+      },
+      actions: {
+        save: 'Save as 30s video',
+        detail: 'See more',
+      },
     },
     weekly: {
       cover: {

@@ -118,11 +118,6 @@ export function ProfileScreen() {
     router.push('/recap-archive');
   }, [router]);
 
-  // Sprint 67 T459 — Stories demo preview. Removed in T460 sprint
-  // cleanup once the production routes flip Stories to default.
-  const onStoriesDemoPress = useCallback(() => {
-    router.push('/recap-stories-demo');
-  }, [router]);
 
   const onSignOutPress = useCallback(() => {
     Alert.alert(
@@ -243,14 +238,6 @@ export function ProfileScreen() {
                   icon={BookOpen}
                   label={t('profile.settingsList.recapArchive')}
                   onPress={onRecapArchivePress}
-                />
-                {/* Sprint 67 T459 stub — Stories shell preview with mock
-                    slides. Removed in T460 sprint cleanup. */}
-                <SettingsRow
-                  icon={BookOpen}
-                  label={t('profile.settingsList.storiesDemo')}
-                  detail={t('profile.settingsList.storiesDemoDetail')}
-                  onPress={onStoriesDemoPress}
                 />
                 <SettingsRow
                   icon={LogOut}

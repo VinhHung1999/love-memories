@@ -720,9 +720,6 @@ const vi = {
       // Sprint 67 T458 — permanent archive of past recaps (12 months + 12
       // weeks). Replaced the temporary T452/T456 preview stubs.
       recapArchive: 'Lưu trữ recap',
-      // Sprint 67 T459 stub — Stories shell preview. Removed in T460.
-      storiesDemo: 'Recap Stories (preview)',
-      storiesDemoDetail: 'Mock 9 slides',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',
@@ -1034,6 +1031,25 @@ const vi = {
         retry: 'Thử lại',
       },
       closeLabel: 'Đóng',
+    },
+    // Sprint 67 T460 — Stories composer labels (shared across monthly +
+    // weekly Stories deck).
+    stories: {
+      coverScrollHint: 'chạm để xem tiếp',
+      topMomentCta: 'Xem chi tiết',
+      placesHeadline: 'Mình đã đến {{count}} nơi',
+      placesCaption: '{{count}} địa điểm thời gian này',
+      stat: {
+        moments: 'KHOẢNH KHẮC',
+        letters: 'THƯ TÌNH',
+        photos: 'ẢNH ĐÃ LƯU',
+        questions: 'DAILY Q',
+        momentsSub: 'Mỗi tấm là một dấu mốc',
+      },
+      actions: {
+        save: 'Lưu thành video 30 giây',
+        detail: 'Xem chi tiết',
+      },
     },
     // Sprint 67 T456 — compact weekly editorial. 5 sections.
     weekly: {
