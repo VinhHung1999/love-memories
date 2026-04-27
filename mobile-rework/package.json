@@ -4,12 +4,16 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "start": "APP_VARIANT=dev expo start",
+    "android": "APP_VARIANT=dev expo run:android",
+    "ios": "APP_VARIANT=dev expo run:ios",
+    "start:prod": "APP_VARIANT=prod expo start",
+    "ios:prod": "APP_VARIANT=prod expo run:ios",
     "lint": "tsc --noEmit && expo lint",
     "test": "jest",
-    "prebuild": "expo prebuild"
+    "prebuild": "expo prebuild",
+    "prebuild:dev": "APP_VARIANT=dev expo prebuild",
+    "prebuild:prod": "APP_VARIANT=prod expo prebuild"
   },
   "dependencies": {
     "@expo-google-fonts/be-vietnam-pro": "^0.4.1",
