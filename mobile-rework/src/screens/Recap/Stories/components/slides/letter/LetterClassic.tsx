@@ -6,7 +6,7 @@
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowRight, Heart } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -31,16 +31,20 @@ export function LetterClassic({
         end={{ x: 0, y: 1 }}
         style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
       />
-      <View className="flex-1 justify-center px-5">
+      {/* D7 — flex-1 column, no justify-center: paper card now grows to
+          fill the available height and a ScrollView inside lets long
+          letters scroll. The CTA pill drops to a flex-shrink-0 footer so
+          tap-target stays anchored even when content overflows. */}
+      <View className="flex-1 px-5 pb-4 pt-12">
         <PaperSheet
-          approxHeight={520}
-          className="rounded-[20px] px-6 pb-7 pt-7 shadow-elevated"
+          approxHeight={720}
+          className="flex-1 rounded-[20px] px-6 pb-7 pt-7 shadow-elevated"
         >
           {/* Wax-seal heart corner — dashed-border stamp like the original
               Sprint 67 design but inside the paper card so it reads as
               part of the letter, not floating chrome. */}
           <View
-            className="absolute right-4 top-4 h-[58px] w-[48px] items-center justify-center overflow-hidden rounded-md border-2 border-dashed"
+            className="absolute right-4 top-4 z-10 h-[58px] w-[48px] items-center justify-center overflow-hidden rounded-md border-2 border-dashed"
             style={{ borderColor: 'rgba(42,26,30,0.2)', transform: [{ rotate: '8deg' }] }}
           >
             <LinearGradient
@@ -66,27 +70,29 @@ export function LetterClassic({
           >
             {slide.title}
           </Text>
-          {/* D5 — body Text inlined with STATIC className. Was wrapped in
-              PaperBody which used `className={`font-body ${bodyClassName}`}`
-              template literal — NW v4 dropped the styles and Boss saw
-              "trắng tinh" letter slides on build 123. Same family as the
-              contentContainerClassName silent-drop and the
-              conditional-className crash: NW v4 needs literal class
-              strings at the JSX site. */}
-          <Text
-            className="mt-4 font-body text-[15px] leading-[24px]"
-            style={{ color: PAPER_INK }}
-            numberOfLines={8}
+          {/* D7 — full body inside ScrollView so long letters read top-
+              to-bottom (read-screen style). Auto-advance is paused on
+              letter slides via RecapStoriesScreen, so the user controls
+              pacing — tap right edge to advance after reading. */}
+          <ScrollView
+            className="mt-4 flex-1"
+            contentContainerStyle={{ paddingBottom: 8 }}
+            showsVerticalScrollIndicator={false}
           >
-            {slide.excerpt}
-          </Text>
-          <PaperSignature senderName={slide.senderName} />
+            <Text
+              className="font-body text-[15px] leading-[24px]"
+              style={{ color: PAPER_INK }}
+            >
+              {slide.content}
+            </Text>
+            <PaperSignature senderName={slide.senderName} />
+          </ScrollView>
         </PaperSheet>
 
         <Pressable
           accessibilityRole="button"
           onPress={onOpen}
-          className="mt-7 flex-row items-center gap-2 self-center rounded-full bg-ink px-5 py-3 active:opacity-80"
+          className="mt-4 flex-row items-center gap-2 self-center rounded-full bg-ink px-5 py-3 active:opacity-80"
         >
           <Text className="font-bodyBold text-[13px] text-bg">{slide.ctaLabel}</Text>
           <ArrowRight size={14} color={c.bg} strokeWidth={2.4} />

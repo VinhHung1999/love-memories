@@ -39,6 +39,11 @@ export type RecapLetterHighlight = {
   id: string;
   title: string;
   excerpt: string;
+  // Sprint 67 D7 — full body alongside the truncated excerpt so the
+  // Stories letter slide can render the whole letter inside a
+  // ScrollView (read-screen style). Web editorial scroll keeps using
+  // `excerpt`.
+  content: string;
   senderId: string;
   senderName: string;
   deliveredAt: string | null;

@@ -89,6 +89,12 @@ export type Slide =
       // matching the LetterReadScreen tone. Kicker stays for the corner
       // caption ("Từ Hùng · 22.04").
       senderName: string;         // 'Hùng'
+      // D7 — full body of the letter (BE returns alongside the truncated
+      // `excerpt`). 4 letter variants render this inside a ScrollView so
+      // the user reads the whole letter Stories-style without bouncing
+      // out to LetterReadScreen. Falls back to `excerpt` when the BE
+      // hasn't redeployed yet (deploy-gap).
+      content: string;
     }
   | {
       kind: 'topQuestion';

@@ -168,6 +168,12 @@ type RecapAugment = {
     id: string;
     title: string;
     excerpt: string;
+    // Sprint 67 D7 — full body alongside the truncated excerpt so the
+    // Stories letter slide can render the whole letter (read-screen
+    // style) instead of cutting at 200 chars. Web editorial scroll
+    // continues to use `excerpt`; only the new mobile Stories
+    // experience consumes `content`.
+    content: string;
     senderId: string;
     senderName: string;
     deliveredAt: string | null;
@@ -180,6 +186,7 @@ type RecapAugment = {
     id: string;
     title: string;
     excerpt: string;
+    content: string;
     senderId: string;
     senderName: string;
     deliveredAt: string | null;
@@ -297,6 +304,11 @@ async function buildAugment(
     id: l.id,
     title: l.title,
     excerpt: makeExcerpt(l.content),
+    // D7 — full body so the mobile Stories letter slide can render the
+    // entire letter inside a ScrollView (read-screen style). Letters
+    // average <1KB so payload bloat is negligible vs the 200-char
+    // excerpt.
+    content: l.content,
     senderId: l.senderId,
     senderName: l.sender.name,
     deliveredAt: l.deliveredAt?.toISOString() ?? null,

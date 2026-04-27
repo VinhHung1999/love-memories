@@ -6,7 +6,7 @@
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowRight } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -31,7 +31,9 @@ export function LetterEnvelope({
         end={{ x: 0, y: 1 }}
         style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
       />
-      <View className="flex-1 justify-center px-5" style={{ gap: 14 }}>
+      {/* D7 — flex column, envelope header fixed-height, paper sheet
+          grows to fill with internal ScrollView for long letters. */}
+      <View className="flex-1 px-5 pb-4 pt-12" style={{ gap: 14 }}>
         {/* Envelope card */}
         <View className="overflow-hidden rounded-md border border-line bg-white shadow-elevated">
           {/* Airmail stripe */}
@@ -77,10 +79,11 @@ export function LetterEnvelope({
           </View>
         </View>
 
-        {/* Excerpt sheet — real cream paper with notebook rules. */}
+        {/* D7 — letter sheet grows to fill remaining space with
+            internal ScrollView for full content. */}
         <PaperSheet
-          approxHeight={320}
-          className="rounded-[14px] px-5 pb-5 pt-5 shadow-card"
+          approxHeight={620}
+          className="flex-1 rounded-[14px] px-5 pb-5 pt-5 shadow-card"
         >
           <Text
             className="font-bodyBold text-[9px] uppercase tracking-[2.5px]"
@@ -88,15 +91,19 @@ export function LetterEnvelope({
           >
             ✉ Trích thư
           </Text>
-          {/* D5 — STATIC className. */}
-          <Text
-            className="mt-2 font-body text-[15px] leading-[24px]"
-            style={{ color: PAPER_INK }}
-            numberOfLines={7}
+          <ScrollView
+            className="mt-2 flex-1"
+            contentContainerStyle={{ paddingBottom: 8 }}
+            showsVerticalScrollIndicator={false}
           >
-            {slide.excerpt}
-          </Text>
-          <PaperSignature senderName={slide.senderName} />
+            <Text
+              className="font-body text-[15px] leading-[24px]"
+              style={{ color: PAPER_INK }}
+            >
+              {slide.content}
+            </Text>
+            <PaperSignature senderName={slide.senderName} />
+          </ScrollView>
         </PaperSheet>
 
         <Pressable

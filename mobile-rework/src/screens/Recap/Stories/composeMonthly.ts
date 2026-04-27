@@ -243,6 +243,10 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
       // the Dancing-Script signature ("— Hùng") in addition to the
       // baked-in kicker caption.
       senderName: lh.senderName,
+      // D7 — full body for the Stories ScrollView. Fall back to the
+      // truncated excerpt during the BE deploy-gap (older BE without
+      // the `content` field surfaces undefined here).
+      content: lh.content ?? lh.excerpt,
     });
   }
 

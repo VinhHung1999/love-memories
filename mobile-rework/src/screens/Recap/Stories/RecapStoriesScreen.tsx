@@ -36,13 +36,18 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
   const active = slides[controller.index] ?? null;
   // D2 — actions slide disables tap zones + auto-advance so the user
   // can tap Save / Share / Detail buttons without the tap-to-advance
-  // overlay swallowing the touch. Pause is keyed off the active slide;
-  // navigating away resumes automatically.
-  const isActionsSlide = active?.kind === 'actionsTray';
+  // overlay swallowing the touch.
+  // D7 — same treatment for letter slides: full body content lives
+  // inside a ScrollView (read-screen style), so the tap zones would
+  // intercept drag-to-scroll touches AND the 6-second auto-advance
+  // would cut Boss off mid-letter. Reader-controlled pacing matches
+  // Boss's "kiểu read" expectation.
+  const isInteractiveSlide =
+    active?.kind === 'actionsTray' || active?.kind === 'letter';
   useEffect(() => {
-    if (isActionsSlide) controller.pause();
+    if (isInteractiveSlide) controller.pause();
     else controller.resume();
-  }, [isActionsSlide, controller]);
+  }, [isInteractiveSlide, controller]);
 
   return (
     <View className="flex-1 bg-black">
@@ -50,7 +55,7 @@ export function RecapStoriesScreen({ slides, onClose }: Props) {
         controller={controller}
         onClose={onClose}
         closeAccessibilityLabel={t('recap.weekly.closeLabel')}
-        interactive={isActionsSlide}
+        interactive={isInteractiveSlide}
       >
         {active ? <SlideRouter slide={active} /> : null}
       </StoriesShell>
