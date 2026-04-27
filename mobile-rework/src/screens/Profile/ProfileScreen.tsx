@@ -119,6 +119,13 @@ export function ProfileScreen() {
     router.push('/(modal)/recap/monthly');
   }, [router]);
 
+  // Sprint 67 T456 — temporary entry to WeeklyRecapScreen. The push noti
+  // (T457) is the proper trigger; this row stays for sprint QA only and
+  // should drop in cleanup.
+  const onWeeklyRecapPress = useCallback(() => {
+    router.push('/(modal)/recap/weekly');
+  }, [router]);
+
   const onSignOutPress = useCallback(() => {
     Alert.alert(
       t('profile.settingsList.signOutAlert.title'),
@@ -239,6 +246,15 @@ export function ProfileScreen() {
                   label={t('profile.settingsList.monthlyRecap')}
                   detail={t('profile.settingsList.monthlyRecapDetail')}
                   onPress={onMonthlyRecapPress}
+                />
+                {/* Sprint 67 T456 stub — temporary preview row for the new
+                    WeeklyRecapScreen. Push noti (T457) is the proper
+                    trigger; row stays for QA only. */}
+                <SettingsRow
+                  icon={BookOpen}
+                  label={t('profile.settingsList.weeklyRecap')}
+                  detail={t('profile.settingsList.weeklyRecapDetail')}
+                  onPress={onWeeklyRecapPress}
                 />
                 <SettingsRow
                   icon={LogOut}

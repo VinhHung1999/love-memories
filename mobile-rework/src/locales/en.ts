@@ -682,6 +682,8 @@ const en: Resources = {
       replayTour: 'Replay tour',
       monthlyRecap: 'Monthly recap (preview)',
       monthlyRecapDetail: 'Open recap',
+      weeklyRecap: 'Weekly recap (preview)',
+      weeklyRecapDetail: 'Open recap',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       version: 'Version',
@@ -957,6 +959,50 @@ const en: Resources = {
       empty: {
         title: 'A quiet month 🐶',
         body: 'No moments yet this month. Add one together!',
+      },
+      error: {
+        title: "Couldn't load recap",
+        body: 'Something went wrong. Try again in a bit.',
+        retry: 'Retry',
+      },
+      closeLabel: 'Close',
+    },
+    weekly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        titleLine1: 'This week',
+        coverKicker: 'Weekly recap',
+        scrollHint: 'scroll',
+        stat: {
+          moments: 'moments',
+          letters: 'letters',
+          questions: 'Daily Q',
+        },
+      },
+      section: {
+        byNumbers: {
+          title: 'By the numbers',
+          moments: 'moments',
+          letters: 'letters',
+          questions: 'Daily Q',
+        },
+        heatmap: {
+          title: 'This week, day by day',
+          hint: 'A small week — but worth remembering',
+          busiestPrefix: 'busiest day of the week',
+        },
+        topMoment: {
+          title: 'Moment of the week',
+          emptyBody: 'No standout moment this week. Capture one so next week has a story!',
+        },
+      },
+      closing: {
+        body: "A small week, but a warm one. Here's hoping for a few more afternoons together next week.",
+      },
+      loading: 'Loading recap…',
+      empty: {
+        title: 'A quiet week 🐶',
+        body: "No moments, letters, or Daily Qs this week. Make something together!",
       },
       error: {
         title: "Couldn't load recap",

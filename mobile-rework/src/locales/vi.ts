@@ -722,6 +722,8 @@ const vi = {
       // wired up.
       monthlyRecap: 'Recap tháng (preview)',
       monthlyRecapDetail: 'Mở recap thử',
+      weeklyRecap: 'Recap tuần (preview)',
+      weeklyRecapDetail: 'Mở recap thử',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',
@@ -1026,6 +1028,51 @@ const vi = {
       empty: {
         title: 'Tháng yên ắng quá 🐶',
         body: 'Chưa có khoảnh khắc nào tháng này. Cùng tạo nhé!',
+      },
+      error: {
+        title: 'Không tải được recap',
+        body: 'Có lỗi xảy ra khi tải dữ liệu. Thử lại sau nhé.',
+        retry: 'Thử lại',
+      },
+      closeLabel: 'Đóng',
+    },
+    // Sprint 67 T456 — compact weekly editorial. 5 sections.
+    weekly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        titleLine1: 'Tuần này',
+        coverKicker: 'Tổng kết tuần qua',
+        scrollHint: 'cuộn xuống',
+        stat: {
+          moments: 'khoảnh khắc',
+          letters: 'thư',
+          questions: 'Daily Q',
+        },
+      },
+      section: {
+        byNumbers: {
+          title: 'Bằng những con số',
+          moments: 'khoảnh khắc',
+          letters: 'thư',
+          questions: 'Daily Q',
+        },
+        heatmap: {
+          title: 'Nhịp tuần này',
+          hint: 'Một tuần qua, từng ngày của hai đứa',
+          busiestPrefix: 'ngày sôi nổi nhất tuần',
+        },
+        topMoment: {
+          title: 'Khoảnh khắc của tuần',
+          emptyBody: 'Tuần này chưa có khoảnh khắc nổi bật. Chụp một tấm để tuần sau có chuyện kể!',
+        },
+      },
+      closing: {
+        body: 'Một tuần nhỏ thôi, nhưng đủ ấm. Mong tuần sau mình có thêm vài chiều nữa để cùng nhau.',
+      },
+      loading: 'Đang tải recap…',
+      empty: {
+        title: 'Tuần này yên ắng quá 🐶',
+        body: 'Tuần này hai đứa chưa có khoảnh khắc, thư hay Daily Q. Cùng nhau ghi lại gì đó nhé!',
       },
       error: {
         title: 'Không tải được recap',

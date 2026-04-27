@@ -29,6 +29,12 @@ type Props = {
   legendMore: string;
   busiestPrefix: string; // e.g. "ngày sôi nổi nhất"
   momentsLabel: string;  // e.g. "khoảnh khắc"
+  // T456 (Sprint 67): optional per-cell labels. When provided (length must
+  // match heatmap.length), each cell renders `labels[i]` instead of the
+  // 1-based day number. Used by the Weekly recap to show weekday shorts
+  // (T2 / T3 / … / CN). Monthly leaves this undefined and renders day
+  // numbers as before.
+  labels?: string[];
 };
 
 function bucketIntensity(count: number, max: number): 0 | 1 | 2 | 3 | 4 {
@@ -49,12 +55,12 @@ const INTENSITY_OPACITY: Record<0 | 1 | 2 | 3 | 4, number> = {
 };
 
 function HeatCell({
-  day,
+  label,
   intensity,
   isBusy,
   borderColor,
 }: {
-  day: number;
+  label: string | number;
   intensity: 0 | 1 | 2 | 3 | 4;
   isBusy: boolean;
   borderColor: string;
@@ -78,7 +84,7 @@ function HeatCell({
             : 'relative font-bodyBold text-[9px] text-ink-mute'
         }
       >
-        {day}
+        {label}
       </Text>
     </View>
   );
@@ -114,11 +120,14 @@ export function HeatmapGrid({
   legendMore,
   busiestPrefix,
   momentsLabel,
+  labels,
 }: Props) {
   const c = useAppColors();
   const max = heatmap.reduce((m, n) => (n > m ? n : m), 0);
   const busiestDayIdx = heatmap.indexOf(max);
   const busiestDay = busiestDayIdx >= 0 && max > 0 ? busiestDayIdx + 1 : null;
+  const busiestLabel =
+    busiestDay !== null && labels ? labels[busiestDay - 1] ?? busiestDay : busiestDay;
 
   const rows = chunk7(heatmap);
 
@@ -134,10 +143,11 @@ export function HeatmapGrid({
             <View key={rowIdx} className="flex-row" style={{ gap: 6 }}>
               {row.map((value, cellIdx) => {
                 const day = startDay + cellIdx;
+                const cellLabel = labels?.[day - 1] ?? day;
                 return (
                   <HeatCell
                     key={day}
-                    day={day}
+                    label={cellLabel}
                     intensity={bucketIntensity(value, max)}
                     isBusy={day === busiestDay}
                     borderColor={c.ink}
@@ -166,7 +176,7 @@ export function HeatmapGrid({
       {busiestDay !== null ? (
         <View className="mt-3 flex-row items-center gap-2.5 rounded-xl bg-surface-alt px-3 py-2.5">
           <View className="h-7 w-7 items-center justify-center rounded-md bg-primary">
-            <Text className="font-displayBold text-[13px] text-white">{busiestDay}</Text>
+            <Text className="font-displayBold text-[13px] text-white">{busiestLabel}</Text>
           </View>
           <View className="flex-1 flex-row">
             <Text className="font-bodyBold text-[12px] text-ink">{max}</Text>

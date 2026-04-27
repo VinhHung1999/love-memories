@@ -75,3 +75,50 @@ export function nameInitial(name: string | null | undefined): string {
   const first = Array.from(trimmed)[0]!;
   return first.toUpperCase();
 }
+
+// ── ISO week helpers (Sprint 67 T456) ────────────────────────────────────────
+// Mirror of `backend/src/services/RecapService.ts` getISOWeek() so mobile +
+// BE agree on which week a Date sits in.
+
+function isoWeekFromDate(date: Date): { year: number; week: number } {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+  return { year: d.getUTCFullYear(), week };
+}
+
+// Default = previous full ISO week. Matches BE getWeekly()'s default.
+export function previousWeekStr(now: Date = new Date()): string {
+  const seven = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const { year, week } = isoWeekFromDate(seven);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+// Format a "weekly cover" date range from BE response startDate/endDate
+// (`YYYY-MM-DD` strings). Locale-aware short date — "2 - 8 thg 3" / "Mar 2 - 8".
+// Falls back to the raw range string when parsing fails.
+export function formatWeekRange(
+  startISO: string | null | undefined,
+  endISO: string | null | undefined,
+  locale: 'vi' | 'en',
+): string {
+  if (!startISO || !endISO) return '';
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return '';
+  const sameMonth = start.getUTCMonth() === end.getUTCMonth();
+  if (locale === 'vi') {
+    if (sameMonth) {
+      return `${start.getUTCDate()} - ${end.getUTCDate()} thg ${start.getUTCMonth() + 1}`;
+    }
+    return `${start.getUTCDate()} thg ${start.getUTCMonth() + 1} - ${end.getUTCDate()} thg ${end.getUTCMonth() + 1}`;
+  }
+  const monthName = (d: Date) =>
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()]!;
+  if (sameMonth) {
+    return `${monthName(start)} ${start.getUTCDate()} - ${end.getUTCDate()}`;
+  }
+  return `${monthName(start)} ${start.getUTCDate()} - ${monthName(end)} ${end.getUTCDate()}`;
+}
