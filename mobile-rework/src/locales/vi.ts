@@ -973,6 +973,48 @@ const vi = {
           title: 'Tâm trạng qua ngày',
           placeholder: 'Tính năng Vibes đang trên đường về — khi nào bật, mình sẽ thấy 5 vùng tâm trạng phổ biến nhất tháng này.',
         },
+        // Sprint 67 T454 — sections 05-09 + actions.
+        places: {
+          title: 'Nơi mình đã đến',
+          countLabel: 'lần',
+          caption: '{{count}} địa điểm tháng này',
+          captionEmpty: 'Tháng này chưa lưu địa điểm nào',
+          emptyTitle: 'Chưa có dấu chân nào',
+          emptyBody: 'Khi mình thêm địa điểm cho khoảnh khắc, nơi đó sẽ xuất hiện ở đây.',
+        },
+        topQuestion: {
+          title: 'Câu hỏi được nói nhiều nhất',
+          meta: 'Mình đã hỏi nhau {{count}} lần trong tháng',
+          emptyBody: 'Tháng này chưa có Daily Q nào — quay lại sau khi mình trả lời vài câu nhé.',
+        },
+        letterHighlight: {
+          title: 'Một lá thư để giữ',
+          kicker: 'Từ {{sender}} · {{date}}',
+          cta: 'Đọc lại',
+          emptyBody: 'Tháng này chưa có lá thư nào để chọn. Một lá thôi cũng đủ ấm cả tháng.',
+        },
+        firsts: {
+          title: 'Lần đầu của mình',
+          tagLabel: 'lần đầu',
+          emptyBody: 'Chưa có lần đầu nào tháng này — gắn tag #lầnđầu cho moment để xuất hiện ở đây.',
+        },
+        closing: {
+          kicker: 'Lời kết',
+          titleWithPartner: 'Cảm ơn {{partner}}\nvì tháng này.',
+          titleSolo: 'Cảm ơn\nvì tháng này.',
+          body: 'Tháng đi qua nhưng mình vẫn còn nhau. Mong tháng tới mình sẽ có thêm nhiều buổi chiều nữa để ngồi cùng nhau, không vội, không gì cả.',
+        },
+      },
+      actions: {
+        shareLabel: 'Chia sẻ với {{partner}}',
+        shareLabelSolo: 'Chia sẻ recap',
+        saveBookLabel: '📔 Lưu vào Sổ',
+        shareSuccessTitle: 'Đã sao chép link',
+        shareSuccessBody: 'Gửi cho người ấy để cùng xem lại tháng này nhé.',
+        shareErrorTitle: 'Không sao chép được',
+        shareErrorBody: 'Có lỗi xảy ra. Thử lại sau nhé.',
+        saveBookTitle: 'Sắp có ✨',
+        saveBookBody: 'Sổ kỷ niệm đang được Memoura chăm chút — sẽ ra mắt sớm.',
       },
       empty: {
         title: 'Tháng yên ắng quá 🐶',

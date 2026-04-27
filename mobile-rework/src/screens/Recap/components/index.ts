@@ -1,8 +1,14 @@
 export { BigStatCard } from './BigStatCard';
 export { CloseFloatingButton } from './CloseFloatingButton';
+export { ClosingNoteCard } from './ClosingNoteCard';
+export { FirstsList } from './FirstsList';
 export { HeatmapGrid } from './HeatmapGrid';
+export { LetterHighlightCard } from './LetterHighlightCard';
 export { MoodPlaceholder } from './MoodPlaceholder';
+export { PlacesList } from './PlacesList';
+export { RecapActions } from './RecapActions';
 export { RecapCover } from './RecapCover';
 export { RecapSection } from './RecapSection';
 export { StreakCallout } from './StreakCallout';
 export { TopMomentCard } from './TopMomentCard';
+export { TopQuestionCard } from './TopQuestionCard';

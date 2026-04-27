@@ -5,10 +5,13 @@
 // loading / error stages plus the cover-ready strings the View renders. The
 // view stays props-only; all locale + couple-name plumbing happens here.
 
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
 
+import { env } from '@/config/env';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -102,17 +105,89 @@ export type MoodViewModel = {
   body: string;
 };
 
+// Section 05 — places
+export type PlacesViewModel = {
+  kicker: string;
+  title: string;
+  places: import('./types').RecapPlace[];
+  caption: string;
+  emptyTitle: string;
+  emptyBody: string;
+  countLabel: string;
+};
+
+// Section 06 — top question
+export type TopQuestionViewModel = {
+  kicker: string;
+  title: string;
+  card: {
+    text: string;
+    meta: string;
+    initialA: string;
+    initialB: string;
+  } | null;
+  emptyBody: string;
+};
+
+// Section 07 — letter highlight
+export type LetterHighlightViewModel = {
+  kicker: string;
+  title: string;
+  card: {
+    id: string;
+    kicker: string;
+    title: string;
+    excerpt: string;
+    ctaLabel: string;
+  } | null;
+  emptyBody: string;
+};
+
+// Section 08 — firsts list
+export type FirstsViewModel = {
+  kicker: string;
+  title: string;
+  items: import('./types').RecapFirst[];
+  emptyBody: string;
+  tagLabel: string;
+};
+
+// Section 09 — closing note (renders even when other sections are sparse)
+export type ClosingViewModel = {
+  kicker: string;
+  title: string;
+  body: string;
+  signature: string;
+  initialA: string;
+  initialB: string;
+};
+
+// Bottom actions row
+export type ActionsViewModel = {
+  shareLabel: string;
+  shareSubLabel?: string;
+  saveBookLabel: string;
+  onShare: () => void;
+  onSaveBook: () => void;
+};
+
 export type MonthlyRecapViewModel = {
   stage: MonthlyRecapStage;
   monthStr: string;
   data: MonthlyRecapResponse | null;
   errorMessage: string | null;
   cover: CoverViewModel | null;
-  // Sections 01-04 (T453). Sections 05-09 + actions land in T454.
+  // Sections 01-04 (T453). 05-09 + actions (T454).
   byNumbers: ByNumbersViewModel | null;
   heatmap: HeatmapViewModel | null;
   topMoments: TopMomentsViewModel | null;
   mood: MoodViewModel;
+  places: PlacesViewModel | null;
+  topQuestion: TopQuestionViewModel | null;
+  letterHighlight: LetterHighlightViewModel | null;
+  firsts: FirstsViewModel | null;
+  closing: ClosingViewModel | null;
+  actions: ActionsViewModel | null;
   closeLabel: string;
   loadingLabel: string;
   emptyTitle: string;
@@ -147,6 +222,7 @@ export function useMonthlyRecapViewModel(): MonthlyRecapViewModel {
   const [stage, setStage] = useState<MonthlyRecapStage>('loading');
   const [data, setData] = useState<MonthlyRecapResponse | null>(null);
   const [partner, setPartner] = useState<CoupleUserLite | null>(null);
+  const [coupleId, setCoupleId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -164,6 +240,7 @@ export function useMonthlyRecapViewModel(): MonthlyRecapViewModel {
       .then(([res, couple]) => {
         if (cancelled) return;
         setData(res);
+        setCoupleId(couple?.id ?? null);
         if (couple && user) {
           const other = couple.users.find((u) => u.id !== user.id) ?? null;
           setPartner(other);
@@ -382,6 +459,166 @@ export function useMonthlyRecapViewModel(): MonthlyRecapViewModel {
     [t],
   );
 
+  // Cache initials for the section components that paint partner avatars.
+  const initialA = nameInitial(user?.name);
+  const initialB = nameInitial(partner?.name);
+  const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+
+  // ─── Section 05 — places ──────────────────────────────────────────────
+  const places = useMemo<PlacesViewModel | null>(() => {
+    if (!data) return null;
+    const total = data.places.length;
+    const caption = total > 0
+      ? t('recap.monthly.section.places.caption', { count: total })
+      : t('recap.monthly.section.places.captionEmpty');
+    return {
+      kicker: '05',
+      title: t('recap.monthly.section.places.title'),
+      places: data.places,
+      caption,
+      emptyTitle: t('recap.monthly.section.places.emptyTitle'),
+      emptyBody: t('recap.monthly.section.places.emptyBody'),
+      countLabel: t('recap.monthly.section.places.countLabel'),
+    };
+  }, [data, t]);
+
+  // ─── Section 06 — top Q ───────────────────────────────────────────────
+  const topQuestion = useMemo<TopQuestionViewModel | null>(() => {
+    if (!data) return null;
+    if (!data.topQuestion) {
+      return {
+        kicker: '06',
+        title: t('recap.monthly.section.topQuestion.title'),
+        card: null,
+        emptyBody: t('recap.monthly.section.topQuestion.emptyBody'),
+      };
+    }
+    const text = isVi
+      ? data.topQuestion.textVi ?? data.topQuestion.text
+      : data.topQuestion.text;
+    return {
+      kicker: '06',
+      title: t('recap.monthly.section.topQuestion.title'),
+      card: {
+        text: `“${text}”`,
+        meta: t('recap.monthly.section.topQuestion.meta', {
+          count: data.topQuestion.count,
+        }),
+        initialA,
+        initialB,
+      },
+      emptyBody: t('recap.monthly.section.topQuestion.emptyBody'),
+    };
+  }, [data, t, isVi, initialA, initialB]);
+
+  // ─── Section 07 — letter highlight ────────────────────────────────────
+  const letterHighlight = useMemo<LetterHighlightViewModel | null>(() => {
+    if (!data) return null;
+    if (!data.letterHighlight) {
+      return {
+        kicker: '07',
+        title: t('recap.monthly.section.letterHighlight.title'),
+        card: null,
+        emptyBody: t('recap.monthly.section.letterHighlight.emptyBody'),
+      };
+    }
+    const lh = data.letterHighlight;
+    const dateLabel = lh.deliveredAt
+      ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+          day: '2-digit',
+          month: '2-digit',
+        })
+      : '';
+    const kickerStr = t('recap.monthly.section.letterHighlight.kicker', {
+      sender: lh.senderName,
+      date: dateLabel,
+    });
+    return {
+      kicker: '07',
+      title: t('recap.monthly.section.letterHighlight.title'),
+      card: {
+        id: lh.id,
+        kicker: kickerStr,
+        title: lh.title,
+        excerpt: lh.excerpt,
+        ctaLabel: t('recap.monthly.section.letterHighlight.cta'),
+      },
+      emptyBody: t('recap.monthly.section.letterHighlight.emptyBody'),
+    };
+  }, [data, t, isVi]);
+
+  // ─── Section 08 — firsts ──────────────────────────────────────────────
+  const firsts = useMemo<FirstsViewModel | null>(() => {
+    if (!data) return null;
+    return {
+      kicker: '08',
+      title: t('recap.monthly.section.firsts.title'),
+      items: data.firsts,
+      emptyBody: t('recap.monthly.section.firsts.emptyBody'),
+      tagLabel: t('recap.monthly.section.firsts.tagLabel'),
+    };
+  }, [data, t]);
+
+  // ─── Section 09 — closing note ────────────────────────────────────────
+  const closing = useMemo<ClosingViewModel | null>(() => {
+    if (!data) return null;
+    const md = describeMonth(requestedMonth);
+    const partnerName = partner?.name ?? null;
+    const period = isVi ? md.formatted.vi : md.formatted.en;
+    const signature = partnerName
+      ? `${user?.name ?? '·'} & ${partnerName} · ${period}`
+      : `${user?.name ?? '·'} · ${period}`;
+    // Title varies by locale and partner presence.
+    const title = partnerName
+      ? t('recap.monthly.section.closing.titleWithPartner', { partner: partnerName })
+      : t('recap.monthly.section.closing.titleSolo');
+    return {
+      kicker: t('recap.monthly.section.closing.kicker'),
+      title,
+      body: t('recap.monthly.section.closing.body'),
+      signature,
+      initialA,
+      initialB,
+    };
+  }, [data, t, requestedMonth, isVi, user, partner, initialA, initialB]);
+
+  // ─── Bottom actions ───────────────────────────────────────────────────
+  const onShare = useCallback(async () => {
+    if (!coupleId) return;
+    const shareUrl = `${env.appBaseUrl.replace(/\/$/, '')}/recap/${coupleId}/${requestedMonth}`;
+    try {
+      await Clipboard.setStringAsync(shareUrl);
+      Alert.alert(
+        t('recap.monthly.actions.shareSuccessTitle'),
+        t('recap.monthly.actions.shareSuccessBody'),
+      );
+    } catch {
+      Alert.alert(
+        t('recap.monthly.actions.shareErrorTitle'),
+        t('recap.monthly.actions.shareErrorBody'),
+      );
+    }
+  }, [coupleId, requestedMonth, t]);
+
+  const onSaveBook = useCallback(() => {
+    Alert.alert(
+      t('recap.monthly.actions.saveBookTitle'),
+      t('recap.monthly.actions.saveBookBody'),
+    );
+  }, [t]);
+
+  const actions = useMemo<ActionsViewModel | null>(() => {
+    if (!data) return null;
+    return {
+      shareLabel: partner?.name
+        ? t('recap.monthly.actions.shareLabel', { partner: partner.name })
+        : t('recap.monthly.actions.shareLabelSolo'),
+      saveBookLabel: t('recap.monthly.actions.saveBookLabel'),
+      onShare,
+      onSaveBook,
+    };
+  }, [data, partner, t, onShare, onSaveBook]);
+
   return {
     stage,
     monthStr: requestedMonth,
@@ -392,6 +629,12 @@ export function useMonthlyRecapViewModel(): MonthlyRecapViewModel {
     heatmap,
     topMoments,
     mood,
+    places,
+    topQuestion,
+    letterHighlight,
+    firsts,
+    closing,
+    actions,
     closeLabel: t('recap.monthly.closeLabel'),
     loadingLabel: t('recap.monthly.loading'),
     emptyTitle: t('recap.monthly.empty.title'),

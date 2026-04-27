@@ -17,12 +17,18 @@ import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import {
   BigStatCard,
   CloseFloatingButton,
+  ClosingNoteCard,
+  FirstsList,
   HeatmapGrid,
+  LetterHighlightCard,
   MoodPlaceholder,
+  PlacesList,
+  RecapActions,
   RecapCover,
   RecapSection,
   StreakCallout,
   TopMomentCard,
+  TopQuestionCard,
 } from './components';
 import { useMonthlyRecapViewModel } from './useMonthlyRecapViewModel';
 
@@ -179,7 +185,93 @@ export function MonthlyRecapScreen() {
           </RecapSection>
         ) : null}
 
-        {/* T454 will mount sections 05-09 + actions below this comment. */}
+        {showSections && vm.places ? (
+          <RecapSection kicker={vm.places.kicker} title={vm.places.title}>
+            <PlacesList
+              places={vm.places.places}
+              caption={vm.places.caption}
+              emptyTitle={vm.places.emptyTitle}
+              emptyBody={vm.places.emptyBody}
+              countLabel={vm.places.countLabel}
+            />
+          </RecapSection>
+        ) : null}
+
+        {showSections && vm.topQuestion ? (
+          <RecapSection kicker={vm.topQuestion.kicker} title={vm.topQuestion.title}>
+            {vm.topQuestion.card ? (
+              <TopQuestionCard
+                text={vm.topQuestion.card.text}
+                meta={vm.topQuestion.card.meta}
+                initialA={vm.topQuestion.card.initialA}
+                initialB={vm.topQuestion.card.initialB}
+              />
+            ) : (
+              <View className="mt-3.5 rounded-[20px] border border-dashed border-line bg-surface px-5 py-6">
+                <Text className="font-body text-[13px] leading-[20px] text-ink-soft">
+                  {vm.topQuestion.emptyBody}
+                </Text>
+              </View>
+            )}
+          </RecapSection>
+        ) : null}
+
+        {showSections && vm.letterHighlight ? (
+          <RecapSection
+            kicker={vm.letterHighlight.kicker}
+            title={vm.letterHighlight.title}
+          >
+            {vm.letterHighlight.card ? (
+              <LetterHighlightCard
+                id={vm.letterHighlight.card.id}
+                kicker={vm.letterHighlight.card.kicker}
+                title={vm.letterHighlight.card.title}
+                excerpt={vm.letterHighlight.card.excerpt}
+                ctaLabel={vm.letterHighlight.card.ctaLabel}
+              />
+            ) : (
+              <View className="mt-3.5 rounded-[20px] border border-dashed border-line bg-surface px-5 py-6">
+                <Text className="font-body text-[13px] leading-[20px] text-ink-soft">
+                  {vm.letterHighlight.emptyBody}
+                </Text>
+              </View>
+            )}
+          </RecapSection>
+        ) : null}
+
+        {showSections && vm.firsts ? (
+          <RecapSection kicker={vm.firsts.kicker} title={vm.firsts.title}>
+            <FirstsList
+              items={vm.firsts.items}
+              emptyBody={vm.firsts.emptyBody}
+              tagLabel={vm.firsts.tagLabel}
+            />
+          </RecapSection>
+        ) : null}
+
+        {/* Closing note + actions render only when there's data; the closing
+            card uses its own outer padding (no RecapSection wrapper) so the
+            full-bleed gradient reads as a final "spread" of the magazine. */}
+        {showSections && vm.closing ? (
+          <ClosingNoteCard
+            kicker={vm.closing.kicker}
+            title={vm.closing.title}
+            body={vm.closing.body}
+            signature={vm.closing.signature}
+            initialA={vm.closing.initialA}
+            initialB={vm.closing.initialB}
+          />
+        ) : null}
+
+        {showSections && vm.actions ? (
+          <RecapActions
+            shareLabel={vm.actions.shareLabel}
+            shareSubLabel={vm.actions.shareSubLabel}
+            saveBookLabel={vm.actions.saveBookLabel}
+            onShare={vm.actions.onShare}
+            onSaveBook={vm.actions.onSaveBook}
+          />
+        ) : null}
       </ScrollView>
 
       <CloseFloatingButton
