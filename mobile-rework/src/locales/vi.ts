@@ -720,6 +720,9 @@ const vi = {
       // Sprint 67 T458 — permanent archive of past recaps (12 months + 12
       // weeks). Replaced the temporary T452/T456 preview stubs.
       recapArchive: 'Lưu trữ recap',
+      // Sprint 67 T459 stub — Stories shell preview. Removed in T460.
+      storiesDemo: 'Recap Stories (preview)',
+      storiesDemoDetail: 'Mock 9 slides',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',

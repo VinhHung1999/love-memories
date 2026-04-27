@@ -681,6 +681,8 @@ const en: Resources = {
       memouraPlus: 'Memoura+',
       replayTour: 'Replay tour',
       recapArchive: 'Recap archive',
+      storiesDemo: 'Recap Stories (preview)',
+      storiesDemoDetail: 'Mock 9 slides',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       version: 'Version',
