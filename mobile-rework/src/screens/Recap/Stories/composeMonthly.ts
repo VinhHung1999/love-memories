@@ -112,6 +112,12 @@ export function composeMonthlySlides(ctx: MonthlyComposeContext): Slide[] {
   if (totalLetters > 0) {
     slides.push({
       kind: 'stat',
+      // D6 — letters stat carried no backdrop in the original D1 design,
+      // so it fell back to the cream `[c.bg, c.surface]` gradient and
+      // Boss saw a "trắng tinh" slide between the photo-mosaic moments
+      // and photos stats. Reuse the same global photo pool — visual
+      // continuity beats the "secondary tone needs its own bg" intent.
+      bgPhotoUrls: statBackdropPhotos,
       value: totalLetters,
       label: labels.statLetters,
       tone: 'secondary',

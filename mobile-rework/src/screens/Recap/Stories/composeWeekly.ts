@@ -98,6 +98,10 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   if (totalLetters > 0) {
     slides.push({
       kind: 'stat',
+      // D6 — same fix as composeMonthly: original D1 omitted the
+      // backdrop on the secondary-tone stats so they fell through to
+      // the cream gradient. Reuse the global photo pool.
+      bgPhotoUrls: statBackdrop,
       value: totalLetters,
       label: labels.statLetters,
       tone: 'secondary',
@@ -105,6 +109,7 @@ export function composeWeeklySlides(ctx: WeeklyComposeContext): Slide[] {
   } else if (data.questions.count > 0) {
     slides.push({
       kind: 'stat',
+      bgPhotoUrls: statBackdrop,
       value: data.questions.count,
       label: labels.statQuestions,
       tone: 'accent',
