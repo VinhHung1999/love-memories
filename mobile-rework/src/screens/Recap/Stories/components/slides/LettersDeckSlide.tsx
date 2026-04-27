@@ -1,11 +1,23 @@
-// Sprint 67 D9 — Stacked-deck letter slide. Boss confirm 2026-04-28:
-// "nhiều cái letter read chồng lên nhau dàn ra như 1 chồng thư vậy á"
-// — letters render as a Tinder-style pile of cards. Top card = full
-// read-style letter, peek cards behind tilted deterministically per
-// id-hash. Horizontal swipe on the top card flips it out + promotes
-// the next. Last card swipe → caller's `onAdvance` fires (we feed in
-// the Stories controller's `next()` so the deck folds into the
-// auto-advance flow).
+// Sprint 67 D9 + D10 — Stacked-deck letter slide.
+// D9: Boss confirm 2026-04-28 "nhiều cái letter read chồng lên nhau dàn
+//     ra như 1 chồng thư vậy á" — letters render as a Tinder-style pile
+//     of cards. Top card = full read-style letter, peek cards behind
+//     tilted deterministically per id-hash. Horizontal swipe on the top
+//     card flips it out + promotes the next. Last card swipe →
+//     `onAdvance` fires (Stories controller's `next()`) so the deck
+//     folds into the auto-advance flow.
+// D10: Discovery affordances added so users find the swipe gesture:
+//     (a) right-edge 60px Pressable on top card → tap triggers the same
+//         flip-out animation. Boss intent: "bấm phải màn hình thì cái
+//         letter nó tự qua." Pressable sits as a sibling of the
+//         GestureDetector-wrapped Animated.View — Pan's
+//         `activeOffsetX([-15, 15])` axis-lock means a stationary tap
+//         never activates Pan, so Pressable wins.
+//     (b) hint pill "Vuốt sang phải →" Dancing Script italic, fades in
+//         500ms after slide mount, persists 4s, fades out 500ms. Hidden
+//         after the first user gesture (tap OR swipe) via a module-
+//         level `hintSeen` flag so re-mounts within the same app
+//         session never re-show.
 //
 // Architecture notes:
 //   • Reanimated v4 + Gesture.Pan with axis-locked offsets — `activeOffsetX`
@@ -21,19 +33,20 @@
 //     deeper than 4 letters we render a "+N more" badge on the bottom-
 //     most peek card.
 
-import { useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronRight } from 'lucide-react-native';
 
 import { useAppColors } from '@/theme/ThemeProvider';
 
@@ -57,6 +70,12 @@ type Props = {
 const VISIBLE_PEEK = 3; // max peek cards behind the top card
 const SWIPE_THRESHOLD = 110; // px translation to trigger flip-out
 const SWIPE_VELOCITY = 700; // px/s velocity escape hatch
+
+// D10 — module-level flag so the discovery hint shows once per app
+// session. Re-installs reset it (cold start = new module instance);
+// re-opening a recap or hopping between weekly + monthly within the
+// same session keeps the hint hidden after the first interaction.
+let hintSeen = false;
 
 // Stable hash → tilt + nudge per letter id so the pile shape is
 // deterministic across renders.
@@ -223,12 +242,57 @@ function DeckCard({
   const ty = useSharedValue(0);
   const opacity = useSharedValue(1);
 
+  // D10 — discovery hint visibility. Top card only; module-level
+  // `hintSeen` flag dismisses across deck remounts in the session.
+  const [hintActive, setHintActive] = useState<boolean>(isTop && !hintSeen);
+
+  const dismissHint = useCallback(() => {
+    if (!hintSeen) hintSeen = true;
+    setHintActive(false);
+  }, []);
+
+  // Auto-dismiss after the persist window. Total visible time =
+  // 500ms delay + 500ms fade-in + 4000ms persist = 5000ms → fade out.
+  // The visual fade-out is owned by the HintPill component reading
+  // `hintActive`.
+  useEffect(() => {
+    if (!hintActive) return;
+    const t = setTimeout(dismissHint, 5000);
+    return () => clearTimeout(t);
+  }, [hintActive, dismissHint]);
+
+  // D10 — programmatic flip-out so the right-edge tap can replay the
+  // same animation the swipe gesture uses. Direction +1 (right) so
+  // the card flies off the right side, matching the user's expected
+  // motion when they tapped the right edge.
+  const triggerFlipOut = useCallback(
+    (direction: 1 | -1) => {
+      tx.value = withTiming(direction * 600, { duration: 280 });
+      ty.value = withTiming(40 * direction, { duration: 280 });
+      opacity.value = withTiming(0, { duration: 220 }, () => {
+        runOnJS(onSwiped)();
+      });
+    },
+    [tx, ty, opacity, onSwiped],
+  );
+
+  const onTapRightEdge = useCallback(() => {
+    dismissHint();
+    triggerFlipOut(1);
+  }, [dismissHint, triggerFlipOut]);
+
   const pan = useMemo(() => {
     return Gesture.Pan()
       // Axis-lock: only activate past ±15px horizontal; bail on
       // vertical so the inner ScrollView keeps reading rights.
       .activeOffsetX([-15, 15])
       .failOffsetY([-12, 12])
+      // D10 — first horizontal drag dismisses the hint pill. onStart
+      // fires on the UI thread when the gesture activates (past the
+      // 15px threshold), so a stationary touch never trips it.
+      .onStart(() => {
+        runOnJS(dismissHint)();
+      })
       .onUpdate((e) => {
         tx.value = e.translationX;
         ty.value = e.translationY * 0.4; // mild vertical drift while swiping
@@ -250,7 +314,7 @@ function DeckCard({
           ty.value = withSpring(0, { damping: 16, stiffness: 180 });
         }
       });
-  }, [onSwiped, tx, ty, opacity]);
+  }, [onSwiped, tx, ty, opacity, dismissHint]);
 
   const animatedStyle = useAnimatedStyle(() => {
     if (!isTop) {
@@ -299,7 +363,24 @@ function DeckCard({
       ]}
     >
       {isTop ? (
-        <TopCard letter={letter} inkColor={inkColor} />
+        <>
+          <TopCard letter={letter} inkColor={inkColor} />
+          {/* D10 — right-edge tap zone. Sits as a sibling on top of
+              the PaperSheet. Pan's 15px axis-lock means a tap never
+              activates Pan, so onPress fires here. The 60px width
+              keeps the body free for vertical scroll/reading. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Thư kế tiếp"
+            onPress={onTapRightEdge}
+            // hitSlop guards against thumb taps registering just
+            // outside the bounds (Android nested-Pressable lesson).
+            hitSlop={{ top: 8, right: 8, bottom: 8, left: 0 }}
+            className="absolute right-0 top-0 bottom-0 w-[60px]"
+          />
+          {/* D10 — discovery hint, fades in/out via Reanimated. */}
+          <HintPill active={hintActive} />
+        </>
       ) : (
         <PeekCard letter={letter} extraOverlayCount={extraOverlayCount} />
       )}
@@ -309,6 +390,44 @@ function DeckCard({
   if (!isTop) return card;
 
   return <GestureDetector gesture={pan}>{card}</GestureDetector>;
+}
+
+function HintPill({ active }: { active: boolean }) {
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (active) {
+      // 500ms in (after a 500ms breath), persists until dismissed
+      // by parent (auto-timer or first user gesture), then the
+      // `active=false` branch below fades out.
+      opacity.value = withDelay(500, withTiming(1, { duration: 500 }));
+    } else {
+      opacity.value = withTiming(0, { duration: 250 });
+    }
+  }, [active, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        { position: 'absolute', left: 0, right: 0, bottom: 18 },
+        animatedStyle,
+      ]}
+      className="items-center"
+    >
+      <View className="flex-row items-center gap-1.5 rounded-full bg-ink/85 px-4 py-2 shadow-card">
+        <Text
+          className="font-script text-[15px] text-bg"
+          style={{ fontStyle: 'italic' }}
+        >
+          Vuốt sang phải
+        </Text>
+        <ChevronRight size={14} color="#FFFFFF" strokeWidth={2.4} />
+      </View>
+    </Animated.View>
+  );
 }
 
 function TopCard({ letter, inkColor: _ink }: { letter: DeckLetter; inkColor: string }) {
