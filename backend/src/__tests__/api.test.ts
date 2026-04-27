@@ -2360,12 +2360,32 @@ describe('Recap', () => {
     const res = await request(app).get('/api/recap/weekly').set(auth());
     expect(res.status).toBe(200);
     expect(typeof res.body).toBe('object');
+    // Existing keys (web monthly recap page contract — must NOT regress).
+    expect(res.body).toHaveProperty('moments');
+    expect(res.body).toHaveProperty('loveLetters');
+    expect(res.body).toHaveProperty('datePlans');
+    // Mobile-rework augment keys (Sprint 67 T451).
+    expect(res.body).toHaveProperty('streak.current');
+    expect(res.body).toHaveProperty('streak.longest');
+    expect(res.body).toHaveProperty('questions.count');
+    expect(res.body).toHaveProperty('words.count');
+    expect(res.body).toHaveProperty('trips');
+    expect(res.body).toHaveProperty('totalPhotoCount');
+    expect(res.body).toHaveProperty('topMoments');
+    expect(res.body).toHaveProperty('places');
+    expect(res.body).toHaveProperty('firsts');
+    expect(res.body).toHaveProperty('moodBuckets');
+    expect(Array.isArray(res.body.heatmap)).toBe(true);
+    expect(res.body.heatmap).toHaveLength(7);
+    expect(Array.isArray(res.body.topMoments)).toBe(true);
+    expect(res.body.topMoments.length).toBeLessThanOrEqual(3);
   });
 
   it('GET /api/recap/weekly?week=YYYY-Www returns stats for specific week', async () => {
     const res = await request(app).get('/api/recap/weekly?week=2026-W10').set(auth());
     expect(res.status).toBe(200);
     expect(typeof res.body).toBe('object');
+    expect(res.body.week).toBe('2026-W10');
   });
 
   it('GET /api/recap/weekly returns 400 for invalid week format', async () => {
@@ -2377,12 +2397,61 @@ describe('Recap', () => {
     const res = await request(app).get('/api/recap/monthly').set(auth());
     expect(res.status).toBe(200);
     expect(typeof res.body).toBe('object');
+    // Existing web-page contract.
+    expect(res.body).toHaveProperty('moments');
+    expect(res.body).toHaveProperty('cooking');
+    expect(res.body).toHaveProperty('foodSpots');
+    // Mobile-rework augment keys (Sprint 67 T451).
+    expect(res.body).toHaveProperty('streak.current');
+    expect(res.body).toHaveProperty('questions.count');
+    expect(res.body).toHaveProperty('words.count');
+    expect(res.body).toHaveProperty('trips');
+    expect(res.body).toHaveProperty('totalPhotoCount');
+    expect(res.body).toHaveProperty('topMoments');
+    expect(res.body).toHaveProperty('places');
+    expect(res.body).toHaveProperty('topQuestion');
+    expect(res.body).toHaveProperty('letterHighlight');
+    expect(res.body).toHaveProperty('firsts');
+    expect(res.body).toHaveProperty('moodBuckets');
+    expect(Array.isArray(res.body.heatmap)).toBe(true);
+    // Heatmap length = days in default (previous) month, between 28 and 31.
+    expect(res.body.heatmap.length).toBeGreaterThanOrEqual(28);
+    expect(res.body.heatmap.length).toBeLessThanOrEqual(31);
+    expect(Array.isArray(res.body.moodBuckets)).toBe(true);
+    expect(res.body.moodBuckets).toHaveLength(0);
   });
 
   it('GET /api/recap/monthly?month=YYYY-MM returns stats for specific month', async () => {
     const res = await request(app).get('/api/recap/monthly?month=2026-01').set(auth());
     expect(res.status).toBe(200);
     expect(typeof res.body).toBe('object');
+    expect(res.body.month).toBe('2026-01');
+    // January has 31 days.
+    expect(res.body.heatmap).toHaveLength(31);
+  });
+
+  it('GET /api/recap/monthly augment heatmap sums to moment count when in month', async () => {
+    const res = await request(app).get('/api/recap/monthly').set(auth());
+    expect(res.status).toBe(200);
+    const heatmapTotal = (res.body.heatmap as number[]).reduce((a, b) => a + b, 0);
+    // Heatmap counts moments with date in range; equals moments.count (which
+    // also counts only in-range moments via the same query).
+    expect(heatmapTotal).toBe(res.body.moments.count);
+  });
+
+  it('GET /api/recap/monthly topMoments shape', async () => {
+    const res = await request(app).get('/api/recap/monthly').set(auth());
+    expect(res.status).toBe(200);
+    for (const tm of res.body.topMoments as Array<Record<string, unknown>>) {
+      expect(tm).toHaveProperty('id');
+      expect(tm).toHaveProperty('title');
+      expect(tm).toHaveProperty('date');
+      expect(tm).toHaveProperty('photoCount');
+      expect(tm).toHaveProperty('reactionCount');
+      expect(tm).toHaveProperty('palette');
+      // palette is one of the six prototype keys
+      expect(['sunset', 'butter', 'night', 'lilac', 'rose', 'mint']).toContain(tm.palette);
+    }
   });
 
   it('GET /api/recap/monthly returns 400 for invalid month format', async () => {
