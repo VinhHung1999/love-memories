@@ -24,18 +24,10 @@ export const SLOGAN_MAX = 120;
 const NAME_MAX = 60;
 const DATE_RE = /^(\d{2})\.(\d{2})\.(\d{4})$/;
 
-export const NAME_SUGGESTIONS_VI = ['Linh & Minh', 'Hai đứa nhỏ', 'Nhà mình', 'L+M'] as const;
-export const NAME_SUGGESTIONS_EN = ['Linh & Minh', 'Us two', 'Our nest', 'L+M'] as const;
-export const SLOGAN_SUGGESTIONS_VI = [
-  'còn lâu mới hết',
-  'mãi mãi là 2',
-  'một mái, hai trái tim',
-] as const;
-export const SLOGAN_SUGGESTIONS_EN = [
-  'the long way home',
-  'two of us',
-  'us, against the rest',
-] as const;
+// Suggestion strings live in i18n (`onboarding.coupleForm.nameSuggestions` +
+// `sloganSuggestions`) — the screen reads them via `t(..., { returnObjects:
+// true })`. Keep them in locales so VI/EN can diverge per Boss directive
+// 2026-04-28 (generic placeholders, no real-user-flavoured fallbacks).
 
 type CreateCoupleResponse = {
   accessToken: string;
