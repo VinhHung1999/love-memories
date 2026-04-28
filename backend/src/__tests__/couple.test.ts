@@ -9,10 +9,22 @@ jest.mock('../utils/prisma', () => {
   return { __esModule: true, default: instance };
 });
 
+// Sprint 68 T463: mock the push fan-out so we can assert it fired without
+// touching real APNs / VAPID. Both functions resolve to undefined — the
+// caller (createNotification) wraps them in Promise.allSettled and ignores
+// failures, so a noop mock matches the silent-fail contract precisely.
+jest.mock('../services/PushService', () => ({
+  __esModule: true,
+  sendPushNotification: jest.fn().mockResolvedValue(undefined),
+  sendMobilePushNotification: jest.fn().mockResolvedValue(undefined),
+}));
+
+import crypto from 'crypto';
 import request from 'supertest';
 import app from '../index';
 import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
+import * as PushService from '../services/PushService';
 
 let pairedToken: string;
 let unpairedUserA: { id: string; token: string };
@@ -122,5 +134,86 @@ describe('Sprint 68 T462 — POST /api/couple atomic create', () => {
       .send({ name: 'Test', slogan: 'x'.repeat(121) });
 
     expect(res.status).toBe(400);
+  });
+});
+
+describe('Sprint 68 T463 — POST /api/couple/join fires partner_joined push', () => {
+  beforeEach(() => {
+    (PushService.sendMobilePushNotification as jest.Mock).mockClear();
+    (PushService.sendPushNotification as jest.Mock).mockClear();
+  });
+
+  async function setupCreatorAwaitingJoiner() {
+    const hashed = await hashPassword('pw-12345');
+    const creator = await prisma.user.create({
+      data: { email: `creator-${Math.random()}@t463.test`, password: hashed, name: 'Anh Hùng' },
+    });
+    const couple = await prisma.couple.create({
+      data: { name: 'Awaiting Couple', inviteCode: crypto.randomBytes(4).toString('hex') },
+    });
+    await prisma.user.update({ where: { id: creator.id }, data: { coupleId: couple.id } });
+    return {
+      creator,
+      inviteCode: couple.inviteCode!,
+      coupleId: couple.id,
+    };
+  }
+
+  it('inserts notification row + fires push to creator on successful redeem', async () => {
+    const { creator, inviteCode } = await setupCreatorAwaitingJoiner();
+    const joiner = await makeUnpairedUser('joiner-success@t463.test');
+
+    const res = await request(app)
+      .post('/api/couple/join')
+      .set('Authorization', `Bearer ${joiner.token}`)
+      .send({ inviteCode });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.coupleId).toBeDefined();
+
+    const notis = await prisma.notification.findMany({
+      where: { userId: creator.id, type: 'partner_joined' },
+    });
+    expect(notis).toHaveLength(1);
+    expect(notis[0].title).toBe('Có người vừa ghép đôi với em rồi 🐶');
+    expect(notis[0].message).toContain('Unpaired User');
+    expect(notis[0].link).toBe('/(auth)/onboarding-done');
+
+    expect(PushService.sendMobilePushNotification).toHaveBeenCalledTimes(1);
+    expect(PushService.sendMobilePushNotification).toHaveBeenCalledWith(
+      creator.id,
+      'Có người vừa ghép đôi với em rồi 🐶',
+      expect.stringContaining('Unpaired User'),
+      '/(auth)/onboarding-done',
+    );
+  });
+
+  it('still inserts notification row when push send fails silently (no token)', async () => {
+    (PushService.sendMobilePushNotification as jest.Mock).mockRejectedValueOnce(new Error('no token'));
+
+    const { creator, inviteCode } = await setupCreatorAwaitingJoiner();
+    const joiner = await makeUnpairedUser('joiner-no-token@t463.test');
+
+    const res = await request(app)
+      .post('/api/couple/join')
+      .set('Authorization', `Bearer ${joiner.token}`)
+      .send({ inviteCode });
+
+    expect(res.status).toBe(200);
+    const notis = await prisma.notification.findMany({
+      where: { userId: creator.id, type: 'partner_joined' },
+    });
+    expect(notis).toHaveLength(1);
+  });
+
+  it('does NOT fire push when invite code is invalid', async () => {
+    const joiner = await makeUnpairedUser('joiner-bad-code@t463.test');
+    const res = await request(app)
+      .post('/api/couple/join')
+      .set('Authorization', `Bearer ${joiner.token}`)
+      .send({ inviteCode: 'definitely-not-real' });
+
+    expect(res.status).toBe(400);
+    expect(PushService.sendMobilePushNotification).not.toHaveBeenCalled();
   });
 });

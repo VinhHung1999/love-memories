@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import prisma from '../utils/prisma';
 import { AppError } from '../types/errors';
+import { createNotification } from '../utils/notifications';
 
 const coupleInclude = {
   users: { select: { id: true, name: true, email: true, avatar: true } },
@@ -190,12 +191,29 @@ export async function joinCouple(userId: string, inviteCode: string) {
     prisma.user.update({
       where: { id: userId },
       data: { coupleId: couple.id },
-      select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true },
+      select: { id: true, email: true, name: true, avatar: true, color: true, coupleId: true, googleId: true, onboardingComplete: true },
     }),
     prisma.user.findFirst({
       where: { coupleId: couple.id, id: { not: userId } },
-      select: { name: true },
+      select: { id: true, name: true },
     }),
   ]);
+
+  // Sprint 68 T463: notify the creator that their partner just paired in.
+  // createNotification persists the notification row AND fans out web push
+  // + APNs in parallel — silent-fail wrapped, so missing tokens don't block
+  // the redeem response. Link points the recipient at OnboardingDone so a
+  // background tap from the creator's Wait screen lands on the right route.
+  if (partner?.id) {
+    const joinerName = updated.name?.trim() || 'Người ấy';
+    await createNotification(
+      partner.id,
+      'partner_joined',
+      'Có người vừa ghép đôi với em rồi 🐶',
+      `${joinerName} đã vào Memoura cùng em.`,
+      '/(auth)/onboarding-done',
+    );
+  }
+
   return { ...updated, partnerName: partner?.name ?? null };
 }
