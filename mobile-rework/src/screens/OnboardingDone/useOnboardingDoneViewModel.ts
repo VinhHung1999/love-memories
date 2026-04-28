@@ -31,9 +31,22 @@ import { useAuthStore } from '@/stores/authStore';
 
 type CoupleResponse = {
   users: { id: string; name: string | null }[];
+  anniversaryDate: string | null;
 };
 
 type SettingResponse = { key: string; value: string | null };
+
+// Sprint 68 D4prime — render the anniversary as DD.MM.YYYY for the
+// "since" pill. Falls back to the empty string so the screen surfaces a
+// "since today" copy when the value is missing.
+function formatAnniversary(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${d.getFullYear()}`;
+}
 
 export function useOnboardingDoneViewModel() {
   const navigation = useNavigation();
@@ -44,6 +57,7 @@ export function useOnboardingDoneViewModel() {
   const [entering, setEntering] = useState(false);
   const [freshPartnerName, setFreshPartnerName] = useState<string | null>(null);
   const [slogan, setSlogan] = useState<string | null>(null);
+  const [anniversaryLabel, setAnniversaryLabel] = useState<string>('');
 
   // T330 + T468: one-shot bootstrap on mount (when paired). Fetches partner
   // name + couple slogan in parallel. Failures are silent — the partner
@@ -63,6 +77,8 @@ export function useOnboardingDoneViewModel() {
         if (partner?.name?.trim()) {
           setFreshPartnerName(partner.name);
         }
+        const formatted = formatAnniversary(coupleResult.value.anniversaryDate);
+        if (formatted) setAnniversaryLabel(formatted);
       }
       if (sloganResult.status === 'fulfilled') {
         setSlogan(sloganResult.value.value);
@@ -108,6 +124,7 @@ export function useOnboardingDoneViewModel() {
     // (often empty for the joiner path). Screen handles the final fallback.
     partnerName: freshPartnerName ?? pendingPartner?.name ?? null,
     slogan,
+    anniversaryLabel,
     entering,
     onEnter,
   };

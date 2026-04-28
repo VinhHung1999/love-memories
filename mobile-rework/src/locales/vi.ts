@@ -671,13 +671,20 @@ const vi = {
     },
     done: {
       eyebrow: 'mọi thứ sẵn rồi',
-      title: '{{names}},\nchào mừng về nhà.',
+      title: '{{names}},\nchào mừng về\nnhà.',
       titleSelfFallback: 'mình',
       titlePartnerFallback: 'người ấy',
-      body: 'Đây sẽ là nơi giữ lại những gì hai đứa không muốn quên. Bắt đầu bằng khoảnh khắc đầu tiên nhé.',
-      bodyWithSlogan: '{{slogan}} — bắt đầu bằng khoảnh khắc đầu tiên nhé.',
+      status: 'đã ghép đôi',
+      sinceToday: 'từ hôm nay',
+      sinceWithDate: 'từ {{date}}',
+      kicker: 'cùng nhau giữ lại điều đáng giữ ♥',
       cta: 'Vào Memoura',
       finishing: 'Đang vào…',
+      firstThings: {
+        moment: { icon: '📷', title: 'khoảnh khắc đầu', sub: 'lưu ngay' },
+        letter: { icon: '✉️', title: 'lá thư đầu', sub: 'viết tay' },
+        question: { icon: '?', title: 'câu hỏi đầu', sub: 'hôm nay' },
+      },
     },
     intro: {
       next: 'Tiếp',
