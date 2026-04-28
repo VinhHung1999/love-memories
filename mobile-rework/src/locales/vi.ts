@@ -646,23 +646,6 @@ const vi = {
         network: 'Mạng đang trục trặc. Mình thử lại nhé.',
       },
     },
-    permissions: {
-      title: 'Một vài quyền',
-      subtitle: 'Mình có thể đổi sau này',
-      cta: 'Xong rồi, vào nhà',
-      skip: 'Bỏ qua',
-      allow: 'Cho phép',
-      granted: 'Đã bật',
-      denied: 'Đã tắt',
-      notif: {
-        title: 'Thông báo nhẹ nhàng',
-        body: 'Một câu hỏi sáng, một lời chúc tối. Không spam.',
-      },
-      photos: {
-        title: 'Thư viện ảnh',
-        body: 'Để mình chọn ảnh khi thêm khoảnh khắc.',
-      },
-    },
     done: {
       eyebrow: 'mọi thứ sẵn rồi',
       title: '{{names}},\nchào mừng về nhà.',

@@ -1,9 +1,16 @@
 import { Stack } from 'expo-router';
 
-// Order matches Sprint 60 onboarding flow: welcome → intro → signup|login|forgot
-// → pair-create|pair-join → personalize → permissions → onboarding-done.
-// Gesture/back-swipe enabled — auth gate (root _layout) only forces routes when
-// the auth state itself changes, so user can freely navigate inside this group.
+// Sprint 68 T470 — onboarding flow rebuild:
+//   welcome → intro → signup | login | forgot
+//   → personalize → pair-create (PairChoice)
+//     → couple-create → pair-wait → onboarding-done   (creator branch)
+//     → pair-join → onboarding-done                   (joiner branch)
+//
+// The standalone Permissions screen was retired — notif-perm prompts run
+// inline at the Wait screen (creator) and PairJoin redeem (joiner) instead.
+// Gesture/back-swipe enabled by default — the root auth gate only forces
+// routes when auth state itself changes, so the user can freely move
+// inside this group. Per-screen overrides below lock down commit points.
 export default function AuthLayout() {
   return (
     <Stack
@@ -26,40 +33,31 @@ export default function AuthLayout() {
         options={{ gestureEnabled: false, headerBackVisible: false }}
       />
       <Stack.Screen name="forgot-password" />
-      {/* T294 (bug #8): pair-create is a commit point — creating an invite
-          and swiping back would orphan the pair state. Locks gesture + header
-          back; ScreenHeader inside drops its back arrow for the same reason. */}
-      <Stack.Screen
-        name="pair-create"
-        options={{ gestureEnabled: false, headerBackVisible: false }}
-      />
-      <Stack.Screen name="pair-join" />
-      {/* T466 (Sprint 68): CoupleForm — name + slogan + anniversary on one
-          screen so the BE atomic transaction (T462) can persist them
-          together. Gesture allowed: nothing committed until Next is
-          pressed and the POST returns 201. */}
+      {/* Sprint 68 T470 — Personalize is the wizard entry post-login. PUT
+          /api/profile is idempotent so back-swipe is safe; user can edit
+          name / color before committing the couple via CoupleForm. */}
+      <Stack.Screen name="personalize" />
+      {/* T470 — pair-create is now PairChoice ONLY (Create vs Join). The
+          legacy invite-state UI moved to CoupleForm (T466). No commit
+          happens here, so gesture-back to Personalize is allowed. */}
+      <Stack.Screen name="pair-create" />
+      {/* T466 — CoupleForm, name + slogan + anniversary on one screen so
+          the BE atomic transaction (T462) can persist them together.
+          Gesture allowed: nothing committed until Next is pressed and the
+          POST returns 201. */}
       <Stack.Screen name="couple-create" />
-      {/* T466 stub / T467 will flesh out: Wait screen for the creator
-          while the joiner redeems. No back/skip — pair commitment is
-          one-way. T467 replaces the placeholder content. */}
+      <Stack.Screen name="pair-join" />
+      {/* T467 — Wait screen for the creator while the joiner redeems. No
+          back / skip; pair commitment is one-way. */}
       <Stack.Screen
         name="pair-wait"
         options={{ gestureEnabled: false, headerBackVisible: false }}
       />
-      {/* T306 + T331: Personalize behavior differs per entry path.
-          Creator: arrives via router.push from PairCreate (T327). Gesture +
-          back button work natively — nothing committed yet (POST /api/couple
-          fires in onSubmit), so going back is safe.
-          Joiner: arrives via navigation.reset from PairJoin.submitCode — the
-          stack has been cleared to make Personalize the new root. Nothing
-          behind to pop, so no gesture/back is possible even though
-          Stack.Screen defaults say it is. Join is irrevocable. */}
-      <Stack.Screen name="personalize" />
-      <Stack.Screen name="permissions" />
-      {/* T286: lock onboarding-done so the user can't swipe back into the
-          permissions wizard once they've crossed the commit point. The CTA
-          flips onboardingComplete and replace()s into (tabs); after that
-          the auth gate would yank them right back, which would feel buggy. */}
+      {/* T286 + T468 — lock onboarding-done so the user can't swipe back
+          into the wizard once they've crossed the commit point. The CTA
+          flips onboardingComplete and CommonActions.reset's into (tabs);
+          after that the auth gate would yank them right back, which would
+          feel buggy. */}
       <Stack.Screen
         name="onboarding-done"
         options={{ gestureEnabled: false, headerBackVisible: false }}

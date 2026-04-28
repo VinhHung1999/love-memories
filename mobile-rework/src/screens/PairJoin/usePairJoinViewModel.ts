@@ -1,5 +1,6 @@
 import { CommonActions } from '@react-navigation/native';
 import { useCameraPermissions } from 'expo-camera';
+import * as Notifications from 'expo-notifications';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, TextInput } from 'react-native';
@@ -82,6 +83,8 @@ export function usePairJoinViewModel() {
   const params = useLocalSearchParams<{ code?: string }>();
   const setSession = useAuthStore((s) => s.setSession);
   const setPendingPartner = useAuthStore((s) => s.setPendingPartner);
+  const pushPermAsked = useAuthStore((s) => s.pushPermAsked);
+  const setPushPermAsked = useAuthStore((s) => s.setPushPermAsked);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const [cells, setCells] = useState<string[]>(emptyCells);
@@ -272,28 +275,33 @@ export function usePairJoinViewModel() {
             coupleId: res.user.coupleId,
           },
         });
-        // T331 (Build 27): full stack reset, NOT replace. The join is
-        // committed server-side at this point — the user must not be able to
-        // edge-swipe back to the code-entry screen and see a half-undone
-        // state. router.replace was leaving the prior native UIKit screens
-        // in the iOS swipe-back stack even though JS history was rewritten,
-        // so iOS edge-swipe could still pop back to PairJoin. CommonActions
-        // .reset clears the AuthLayout Stack and makes Personalize the new
-        // root entry — there's literally nothing behind to pop.
-        //
-        // Note: route name is 'personalize' (not '(auth)/personalize') —
-        // useNavigation() here returns the AuthLayout Stack, which registers
-        // its screens by file name only. Path-style names only apply to the
-        // ROOT Stack (which sees '(auth)' as a single child).
-        //
-        // Both inviter and joiner walk T286 (Personalize → Permissions →
-        // OnboardingDone). Creator path stays on router.push (T327) so the
-        // creator's swipe-back still works; only the joiner commit point is
-        // reset here.
+        // Sprint 68 T470 — joiner walks Personalize BEFORE pair-join in
+        // the new flow, so the redeem commit goes straight to onboarding-
+        // done (skipping the Wait screen, which is creator-only by
+        // definition). Notif-perm popup fires inline before the reset so
+        // the system dialog shows on the post-redeem screen rather than
+        // racing with the celebration animation. Same authStore.pushPermAsked
+        // gate as the Wait screen (T467) — one ask per session.
+        if (!pushPermAsked) {
+          try {
+            await Notifications.requestPermissionsAsync();
+          } catch {
+            // User declining is fine — the inbox still receives rows even
+            // without permission; banner notifications are the only thing
+            // that go silent.
+          }
+          setPushPermAsked(true);
+        }
+        // CommonActions.reset clears the (auth) Stack and makes
+        // onboarding-done the new root entry — iOS edge-swipe can no
+        // longer return the joiner to a half-undone code-entry screen.
+        // Route name is 'onboarding-done' (file name only — useNavigation
+        // resolves to the AuthLayout Stack, which registers screens by
+        // file name; path-style names apply only to the root Stack).
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
-            routes: [{ name: 'personalize' }],
+            routes: [{ name: 'onboarding-done' }],
           }),
         );
       } catch (err) {
@@ -323,7 +331,7 @@ export function usePairJoinViewModel() {
         setSubmitting(false);
       }
     },
-    [navigation, setSession],
+    [navigation, setSession, pushPermAsked, setPushPermAsked],
   );
 
   const onSubmit = useCallback(() => {

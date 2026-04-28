@@ -1,6 +1,5 @@
-import { CommonActions } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -15,11 +14,12 @@ import { useAuthStore } from '@/stores/authStore';
 // Submit contract:
 //   PUT /api/profile { name, color }   (T471 — name + color in one call)
 //   → setUser refreshes the local copy with the persisted values
-//   → navigate to PairChoice (current file: pair-create.tsx)
+//   → router.push('/(auth)/pair-create')
 //
-// T470 will rework the auth-stack routing — for now, push to pair-create
-// keeps the user moving. Reset + onboarding-complete plumbing belongs to
-// the OnboardingDone screen at the very end of the flow, not here.
+// T470 (Sprint 68): push (not reset) into PairChoice. PUT /api/profile is
+// idempotent so re-submit is safe — the user can edge-swipe back to
+// Personalize to edit their name / color and re-submit before committing
+// the couple. The actual commit point is CoupleForm (T466 → BE T462).
 
 export type ColorKey = 'primary' | 'accent' | 'secondary' | 'primaryDeep';
 
@@ -54,7 +54,7 @@ type AvatarUploadResponse = {
 type FormError = { kind: 'nameRequired' | 'avatarFailed' | 'network' };
 
 export function usePersonalizeViewModel() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -97,17 +97,13 @@ export function usePersonalizeViewModel() {
         });
       }
 
-      // T470 will rework the auth stack — for now CommonActions.reset to
-      // pair-create so edge-swipe-back can't drop the user on a stale
-      // Personalize after their profile patch landed. Reset (not push) is
-      // intentional: Personalize should not appear in the back stack from
-      // PairChoice forward — there's nothing useful to return to.
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'pair-create' }],
-        }),
-      );
+      // T470 (Sprint 68): push into PairChoice instead of reset. PUT
+      // /api/profile is idempotent — letting the user back-swipe and tweak
+      // name / color before committing the couple is safer than locking
+      // them out. Reset only kicks in at the actual commit points
+      // (CoupleForm submit → pair-wait, pair-join redeem → onboarding-done,
+      // OnboardingDone tap → (tabs)).
+      router.push('/(auth)/pair-create');
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError({ kind: 'network' });
@@ -117,7 +113,7 @@ export function usePersonalizeViewModel() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, nick, color, setUser, navigation]);
+  }, [canSubmit, nick, color, setUser, router]);
 
   // T314 carry-over — avatar picker stays user-level. Optimistic preview +
   // background upload; submit doesn't gate on it.

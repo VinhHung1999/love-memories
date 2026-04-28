@@ -615,23 +615,6 @@ const en: Resources = {
         network: 'Network hiccup. Try again in a bit.',
       },
     },
-    permissions: {
-      title: 'A few permissions',
-      subtitle: 'You can change these later',
-      cta: 'Done, take me home',
-      skip: 'Skip',
-      allow: 'Allow',
-      granted: 'On',
-      denied: 'Off',
-      notif: {
-        title: 'Gentle notifications',
-        body: 'A morning question, a goodnight ping. Never spam.',
-      },
-      photos: {
-        title: 'Photo library',
-        body: 'So you can add photos to your moments.',
-      },
-    },
     done: {
       eyebrow: 'all set',
       title: '{{names}},\nwelcome home.',

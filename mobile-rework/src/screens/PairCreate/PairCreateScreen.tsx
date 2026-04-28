@@ -1,45 +1,68 @@
 import { Heart, Users, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, LinearGradient, ScreenHeader } from '@/components';
+import { LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { usePairCreateViewModel } from './usePairCreateViewModel';
 
 type PairAccent = 'primary' | 'accent';
 
-// T289 (Sprint 60 polish) — single screen, three rendered states driven by the
-// VM's `stage` discriminator:
-//   loading → mount-time GET /api/invite/me probe in flight (spinner)
-//   choose  → no invite yet, show Create / Join cards (Skip pill removed per
-//             bug #7 — Boss didn't want it visible at all even when disabled)
-//   invite  → invite ready, show code + QR + Share + Continue + Regenerate
+// Sprint 68 T470 — PairChoice. Two cards, single decision: Create vs Join.
+// Sprint 60's invite-state UI (existing code + QR + Share + Regenerate) is
+// gone — couple creation flow runs through T466 CoupleForm now. The screen
+// stays on the route name `pair-create` to avoid breaking deep-links and
+// gate redirects; the React component is conceptually PairChoice.
 
 export function PairCreateScreen() {
-  const vm = usePairCreateViewModel();
+  const { t } = useTranslation();
+  const { onCreate, onJoin } = usePairCreateViewModel();
 
   return (
     <View className="flex-1 bg-bg">
       <TopWash />
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {vm.stage === 'loading' ? <LoadingState /> : null}
-        {vm.stage === 'choose' ? (
-          <ChooseState error={vm.error} onCreate={vm.onCreate} onJoin={vm.onJoin} />
-        ) : null}
-        {vm.stage === 'invite' ? (
-          <InviteState
-            code={vm.code}
-            formattedCode={vm.formattedCode}
-            qrPayload={vm.qrPayload}
-            regenerating={vm.regenerating}
-            error={vm.error}
-            onShare={vm.onShare}
-            onContinue={vm.onContinue}
-            onRegenerate={vm.onRegenerate}
-          />
-        ) : null}
+        {/* T294 carry-over: no back. Once the user has typed in their
+            profile and reached the chooser, popping back to Personalize
+            is allowed via the navigator gesture (T470 push, not reset),
+            so the header itself doesn't surface a back button. */}
+        <ScreenHeader
+          title={t('onboarding.pairing.choice.title')}
+          subtitle={t('onboarding.pairing.choice.subtitle')}
+        />
+
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <PairedHearts />
+
+          <View className="px-5 pt-4 pb-10">
+            <PairOption
+              accent="primary"
+              Icon={Heart}
+              title={t('onboarding.pairing.choice.create.title')}
+              subtitle={t('onboarding.pairing.choice.create.subtitle')}
+              onPress={onCreate}
+            />
+            <PairOption
+              accent="accent"
+              Icon={Users}
+              title={t('onboarding.pairing.choice.join.title')}
+              subtitle={t('onboarding.pairing.choice.join.subtitle')}
+              onPress={onJoin}
+            />
+
+            <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line-on-surface border-dashed bg-surface-alt px-4 py-3.5">
+              <Text className="text-lg">🔒</Text>
+              <Text className="flex-1 font-body text-ink-soft text-[12.5px] leading-[18px]">
+                {t('onboarding.pairing.choice.lockNote')}
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -59,309 +82,48 @@ function TopWash() {
   );
 }
 
-function LoadingState() {
-  return (
-    <View className="flex-1">
-      {/* T294 (bug #8): no back arrow on the pair flow at all. Once the user
-          lands here, going back orphans the invite probe / stale form state.
-          See _layout.tsx — gestureEnabled is also disabled on this route. */}
-      <ScreenHeader />
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    </View>
-  );
-}
-
-type ChooseProps = {
-  error: { kind: 'network' } | null;
-  onCreate: () => void;
-  onJoin: () => void;
-};
-
-function ChooseState({ error, onCreate, onJoin }: ChooseProps) {
-  const { t } = useTranslation();
-  return (
-    <View className="flex-1">
-      {/* T294 (bug #8): no back — see LoadingState for rationale. */}
-      <ScreenHeader
-        title={t('onboarding.pairing.choice.title')}
-        subtitle={t('onboarding.pairing.choice.subtitle')}
-      />
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <PairedHearts />
-
-        <View className="px-5 pt-4 pb-10">
-        {/* T306: Create forwards to Personalize synchronously — no loading
-            spinner since there's no API call on this tap. */}
-        <PairOption
-          accent="primary"
-          Icon={Heart}
-          title={t('onboarding.pairing.choice.create.title')}
-          subtitle={t('onboarding.pairing.choice.create.subtitle')}
-          onPress={onCreate}
-        />
-        <PairOption
-          accent="accent"
-          Icon={Users}
-          title={t('onboarding.pairing.choice.join.title')}
-          subtitle={t('onboarding.pairing.choice.join.subtitle')}
-          onPress={onJoin}
-        />
-
-        {error ? (
-          <Text className="mt-4 font-body text-primary-deep text-[13px] text-center">
-            {t('onboarding.pairing.errors.network')}
-          </Text>
-        ) : null}
-
-          <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line-on-surface border-dashed bg-surface-alt px-4 py-3.5">
-            <Text className="text-lg">🔒</Text>
-            <Text className="flex-1 font-body text-ink-soft text-[12.5px] leading-[18px]">
-              {t('onboarding.pairing.choice.lockNote')}
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-type InviteProps = {
-  code: string | null;
-  formattedCode: string;
-  qrPayload: string | null;
-  regenerating: boolean;
-  error: { kind: 'network' } | null;
-  onShare: () => void;
-  onContinue: () => void;
-  onRegenerate: () => void;
-};
-
-function InviteState({
-  code,
-  formattedCode,
-  qrPayload,
-  regenerating,
-  error,
-  onShare,
-  onContinue,
-  onRegenerate,
-}: InviteProps) {
-  const { t } = useTranslation();
-  const c = useAppColors();
-  const ready = !!code;
-
-  return (
-    <View className="flex-1">
-      {/* T292 (bug #2): no back arrow once invite is issued. Boss rule: once
-          on the Your Code screen the user has committed; backing out and
-          re-entering would just spawn another invite probe. The gate restores
-          this state automatically via /api/invite/me on next entry, so kill+
-          reopen still lands here without losing the code. */}
-      <ScreenHeader
-        title={t('onboarding.pairing.invite.title')}
-        subtitle={t('onboarding.pairing.invite.subtitle')}
-      />
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="px-5 pt-3 pb-10">
-        <Card variant="elevated" className="px-5 py-8 items-center">
-          <Text className="font-displayItalic uppercase text-primary-deep text-[11px] tracking-[2px] mb-3">
-            {t('onboarding.pairing.invite.codeLabel')}
-          </Text>
-          {ready ? (
-            <Text className="font-displayBold text-ink text-[40px] leading-[44px] tracking-[3px]">
-              {formattedCode}
-            </Text>
-          ) : (
-            <View className="h-[44px] justify-center">
-              <ActivityIndicator />
-            </View>
-          )}
-
-          <View className="mt-6 rounded-2xl bg-bg p-3">
-            {qrPayload ? (
-              <QRCode
-                value={qrPayload}
-                size={192}
-                color={c.ink}
-                backgroundColor={c.bg}
-                quietZone={8}
-                ecl="M"
-              />
-            ) : (
-              <View className="w-[208px] h-[208px] items-center justify-center">
-                <ActivityIndicator />
-              </View>
-            )}
-          </View>
-        </Card>
-
-        <View className="mt-5">
-          <Pressable
-            onPress={ready ? onShare : undefined}
-            accessibilityRole="button"
-            disabled={!ready}
-            className="w-full flex-row items-center justify-center rounded-full py-4 px-5 active:opacity-90"
-            style={
-              ready
-                ? {
-                    backgroundColor: c.surface,
-                    borderWidth: 1,
-                    borderColor: c.lineOnSurface,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 3,
-                    elevation: 2,
-                  }
-                : { backgroundColor: c.surface }
-            }
-          >
-            <Text
-              className="font-bodyBold text-[15px]"
-              style={{ color: ready ? c.ink : c.inkMute }}
-            >
-              {t('onboarding.pairing.invite.shareCta')}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View className="mt-3">
-          <Pressable
-            onPress={ready ? onContinue : undefined}
-            accessibilityRole="button"
-            disabled={!ready}
-            className="w-full flex-row items-center justify-center rounded-full py-4 px-5 active:opacity-90"
-            style={
-              ready
-                ? {
-                    backgroundColor: c.ink,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 12 },
-                    shadowOpacity: 0.18,
-                    shadowRadius: 28,
-                    elevation: 10,
-                  }
-                : { backgroundColor: c.surface }
-            }
-          >
-            <Text
-              className="font-bodyBold text-[15px]"
-              style={{ color: ready ? c.bg : c.inkMute }}
-            >
-              {t('onboarding.pairing.invite.continueCta')}
-            </Text>
-            {ready ? (
-              <Text
-                className="ml-2 font-bodyBold text-[15px]"
-                style={{ color: c.bg }}
-              >
-                →
-              </Text>
-            ) : null}
-          </Pressable>
-        </View>
-
-        <View className="mt-4 items-center">
-          <Pressable
-            onPress={ready && !regenerating ? onRegenerate : undefined}
-            accessibilityRole="button"
-            disabled={!ready || regenerating}
-            hitSlop={8}
-            className="py-2"
-          >
-            <Text className="font-bodyMedium text-primary-deep text-[13px] underline">
-              {regenerating
-                ? t('onboarding.pairing.invite.regenerating')
-                : t('onboarding.pairing.invite.regenerate.cta')}
-            </Text>
-          </Pressable>
-        </View>
-
-          {error ? (
-            <Text className="mt-3 font-body text-primary-deep text-[13px] text-center">
-              {t('onboarding.pairing.errors.network')}
-            </Text>
-          ) : null}
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-// T350: swap L/? initial circles for the Concept-L heart avatars Boss
-// approved. Layout (180×130 container, two 80×80 offset circles, 💞 between)
-// ports 1:1 from pairing.jsx:31 — only the per-circle content changes from
-// gradient+letter to heart PNG filling the circle.
-const HEART_ROSE = require('../../../assets/images/avatar-heart-rose.png');
-const HEART_BLUE = require('../../../assets/images/avatar-heart-blue.png');
-
 function PairedHearts() {
+  const c = useAppColors();
   return (
-    <View className="px-6 pt-6">
-      <View className="self-center w-[180px] h-[130px] relative">
-        <View className="absolute left-2.5 top-5 w-20 h-20 rounded-full bg-surface border-[3px] border-bg shadow-hero overflow-hidden">
-          <Image source={HEART_ROSE} className="w-full h-full" resizeMode="cover" />
-        </View>
-        <View className="absolute right-2.5 top-[30px] w-20 h-20 rounded-full bg-surface border-[3px] border-bg shadow-hero overflow-hidden">
-          <Image source={HEART_BLUE} className="w-full h-full" resizeMode="cover" />
-        </View>
-        <Text className="absolute left-1/2 top-[55px] -translate-x-1/2 text-2xl">💞</Text>
+    <View className="items-center pt-2 pb-1">
+      <View className="flex-row items-center justify-center">
+        <Heart size={48} color={c.primary} fill={c.primary} strokeWidth={0} />
+        <View className="w-2" />
+        <Heart size={48} color={c.accent} fill={c.accent} strokeWidth={0} />
       </View>
     </View>
   );
 }
 
-type OptionProps = {
+type PairOptionProps = {
   accent: PairAccent;
   Icon: LucideIcon;
   title: string;
   subtitle: string;
-  loading?: boolean;
-  disabled?: boolean;
   onPress: () => void;
 };
 
-const ICON_BG: Record<PairAccent, string> = {
-  primary: 'bg-primary/15',
-  accent: 'bg-accent/15',
-};
-
-// T291 (bug #6): emoji glyphs swapped for lucide-react-native vector icons.
-// Per-accent stroke colour resolved off the live theme palette so dark mode
-// still renders crisp 1.8-stroke icons instead of muddy emoji.
-function PairOption({ accent, Icon, title, subtitle, loading, disabled, onPress }: OptionProps) {
+function PairOption({ accent, Icon, title, subtitle, onPress }: PairOptionProps) {
   const c = useAppColors();
-  const stroke = accent === 'primary' ? c.primary : c.accent;
-  const dim = !!disabled || !!loading;
+  const tint = accent === 'primary' ? c.primary : c.accent;
   return (
-    <Card
-      variant="option"
-      onPress={dim ? undefined : onPress}
-      accessibilityState={{ disabled: dim, busy: loading }}
-      className={`flex-row items-center gap-3.5 px-4 py-[18px] mb-2.5 ${dim ? 'opacity-60' : ''}`}
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      hitSlop={6}
+      className="mt-3 flex-row items-center bg-surface rounded-2xl px-4 py-4 border border-line-on-surface active:opacity-90 shadow-chip"
     >
-      <View className={`w-12 h-12 rounded-2xl items-center justify-center ${ICON_BG[accent]}`}>
-        <Icon size={24} strokeWidth={1.8} color={stroke} />
+      <View
+        className="w-11 h-11 rounded-full items-center justify-center mr-3.5"
+        style={{ backgroundColor: tint + '22' }}
+      >
+        <Icon size={22} color={tint} strokeWidth={1.75} />
       </View>
-      <View className="flex-1 min-w-0">
-        {/* T294 (bug #1): leading-[21px] (1.17×) clipped dấu mũ on "Tạo lời
-            mời" / "Có mã rồi"; bumped to 24px (1.33×). */}
-        <Text className="font-displayMedium text-ink text-[18px] leading-[24px]">{title}</Text>
-        <Text className="mt-1 font-body text-ink-mute text-[12.5px] leading-[18px]">
-          {subtitle}
-        </Text>
+      <View className="flex-1">
+        <Text className="font-bodyBold text-ink text-[15px]">{title}</Text>
+        <Text className="font-body text-ink-soft text-[13px] mt-0.5">{subtitle}</Text>
       </View>
-      <Text className="font-bodyMedium text-ink-mute text-lg">→</Text>
-    </Card>
+      <Text className="font-body text-ink-mute text-[18px] ml-2">›</Text>
+    </Pressable>
   );
 }

@@ -407,9 +407,12 @@ function RootStack() {
 // them to the right destination.
 //
 // PRE_AUTH_SCREENS = the (auth) screens shown BEFORE the user has a session.
-// The remaining (auth) screens (pair-create / pair-invite / pair-join /
-// personalize / permissions / onboarding-done) are pairing/onboarding steps,
-// so an authed-not-onboarded user is allowed to stay on those.
+// The remaining (auth) screens (personalize / pair-create / couple-create /
+// pair-wait / pair-join / onboarding-done) are post-auth wizard steps, so an
+// authed-not-onboarded user is allowed to stay on those. The standalone
+// permissions screen was retired in Sprint 68 T470 — notif-perm is now
+// prompted inline at the Wait screen (creator) and at PairJoin redeem
+// (joiner) instead of forcing a wizard wall.
 const PRE_AUTH_SCREENS: readonly string[] = [
   'welcome',
   'intro',
@@ -463,11 +466,14 @@ function useAuthGate() {
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth
-      // (auth) wizard (pair-create / pair-invite / pair-join / personalize /
-      // permissions / onboarding-done). Tabs, pre-auth screens, /index, and
-      // unknown groups all funnel back to pair-create.
+      // (auth) wizard. Sprint 68 T470: the wizard now starts at Personalize
+      // (user-level profile) BEFORE PairChoice — so the funnel redirect
+      // points at /(auth)/personalize, not the old /(auth)/pair-create.
+      // Wizard screens: personalize / pair-create / couple-create /
+      // pair-wait / pair-join / onboarding-done. Tabs, pre-auth screens,
+      // /index, and unknown groups all bounce back to personalize.
       const inWizard = inAuthGroup && !onPreAuthScreen;
-      if (!inWizard) router.replace('/(auth)/pair-create');
+      if (!inWizard) router.replace('/(auth)/personalize');
       return;
     }
 
@@ -481,11 +487,14 @@ function useAuthGate() {
 // the app cold-started from the link or was already running. Pre-fills the join
 // form via T285's `?code=` route param.
 //
-// Sprint 60 T285: if the user isn't authed yet (cold-start from share link
-// before they've ever signed in), stash the code in authStore.pendingPairCode
-// and let useAuthGate route to /(auth)/welcome. After signup/login the gate
-// drops them on /(auth)/pair-create, which consumes pendingPairCode and
-// router.replace's into pair-join with the code as a route param.
+// Sprint 60 T285 (Sprint 68 T470 update): if the user isn't authed yet
+// (cold-start from share link before they've ever signed in), stash the
+// code in authStore.pendingPairCode and let useAuthGate route to
+// /(auth)/welcome. After signup/login the gate drops them on
+// /(auth)/personalize (wizard entry). Once they walk Personalize and land
+// on PairChoice (`/(auth)/pair-create`), that screen consumes
+// pendingPairCode and router.replace's into pair-join with the code as a
+// route param.
 function useDeepLink() {
   const router = useRouter();
   const handledInitial = useRef(false);
