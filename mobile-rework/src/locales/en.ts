@@ -604,6 +604,7 @@ const en: Resources = {
       nickIcon: '\u2736',
       colorLabel: 'Your color',
       previewPlaceholder: 'Me',
+      previewGreeting: 'hi you 🐶',
       cta: 'Almost there',
       saving: 'Saving\u2026',
       avatarAdd: 'Add photo',

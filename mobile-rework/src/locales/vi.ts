@@ -635,6 +635,7 @@ const vi = {
       nickIcon: '✶',
       colorLabel: 'Màu của em',
       previewPlaceholder: 'Mình',
+      previewGreeting: 'chào em 🐶',
       cta: 'Gần xong rồi',
       saving: 'Đang lưu…',
       avatarAdd: 'Thêm ảnh',

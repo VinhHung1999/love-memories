@@ -91,22 +91,17 @@ export function PersonalizeScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <View className="items-center px-5 pt-1 pb-1">
-              <AvatarPicker
+            <View className="px-6 pt-1 pb-1">
+              <LivePreviewPill
                 uri={avatarLocalUri}
                 initial={initial}
+                previewName={previewName}
                 from={from}
                 to={to}
                 uploading={avatarUploading}
                 disabled={submitting}
-                onPress={onPickAvatar}
-                ctaLabel={
-                  avatarUploading
-                    ? t('onboarding.personalize.avatarUploading')
-                    : avatarLocalUri
-                      ? t('onboarding.personalize.avatarChange')
-                      : t('onboarding.personalize.avatarAdd')
-                }
+                onPickAvatar={onPickAvatar}
+                greeting={t('onboarding.personalize.previewGreeting')}
               />
             </View>
 
@@ -168,69 +163,102 @@ export function PersonalizeScreen() {
   );
 }
 
-function AvatarPicker({
+// Sprint 68 D1 (Boss build 131 feedback) — Personalize live preview pill,
+// 1:1 with prototype `pairing.jsx` L300-324. Replaces the standalone 112px
+// AvatarPicker with a horizontal pill: avatar (46px) + nick + Dancing Script
+// greeting. The avatar is the only pressable area — taps fire the image
+// picker. Background gradient uses the same color pair as the swatch (alpha
+// 0x22 ≈ 13.4%).
+function LivePreviewPill({
   uri,
   initial,
+  previewName,
   from,
   to,
   uploading,
   disabled,
-  onPress,
-  ctaLabel,
+  onPickAvatar,
+  greeting,
 }: {
   uri: string | null;
   initial: string;
+  previewName: string;
   from: string;
   to: string;
   uploading: boolean;
   disabled?: boolean;
-  onPress: () => void;
-  ctaLabel: string;
+  onPickAvatar: () => void;
+  greeting: string;
 }) {
   return (
-    <View className="items-center">
-      <View className="w-[112px] h-[112px]">
-        <Pressable
-          onPress={disabled ? undefined : onPress}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !!disabled, busy: uploading }}
-          accessibilityLabel={ctaLabel}
-          hitSlop={8}
-          disabled={disabled}
-          className="w-[112px] h-[112px] rounded-full overflow-hidden border-2 border-bg shadow-hero active:opacity-90"
-          style={{ opacity: disabled ? 0.6 : 1 }}
-        >
-          {uri ? (
-            <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
-          ) : (
-            <>
-              <LinearGradient
-                colors={[from, to]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="absolute inset-0"
-              />
-              <View className="flex-1 items-center justify-center">
-                <Text className="font-displayBold text-white text-[42px]">{initial}</Text>
-              </View>
-            </>
-          )}
-          {uploading ? (
-            <View className="absolute inset-0 items-center justify-center bg-black/35">
-              <ActivityIndicator color="#FFFFFF" />
+    <View
+      className="rounded-[22px] border border-line flex-row items-center px-5 py-4 overflow-hidden"
+    >
+      {/* Soft gradient wash — alpha 0x22 on both stops mirrors prototype
+          `${color[0]}22, ${color[1]}22`. Sits absolutely behind the row so
+          children render in their natural place. */}
+      <View pointerEvents="none" className="absolute inset-0">
+        <LinearGradient
+          colors={[`${from}22`, `${to}22`]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+      </View>
+
+      <Pressable
+        onPress={disabled ? undefined : onPickAvatar}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!disabled, busy: uploading }}
+        accessibilityLabel={greeting}
+        hitSlop={8}
+        disabled={disabled}
+        className="w-[46px] h-[46px] rounded-full overflow-hidden border-2 border-bg shadow-hero active:opacity-90"
+        style={{ opacity: disabled ? 0.6 : 1 }}
+      >
+        {uri ? (
+          <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
+        ) : (
+          <>
+            <LinearGradient
+              colors={[from, to]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
+            />
+            <View className="flex-1 items-center justify-center">
+              <Text className="font-displayBold text-white text-[20px]">{initial}</Text>
             </View>
-          ) : null}
-        </Pressable>
-        {uri && !uploading ? (
-          <View
-            pointerEvents="none"
-            className="absolute -bottom-0.5 -right-0.5 w-9 h-9 rounded-full bg-white items-center justify-center shadow-chip border-2 border-bg"
-          >
-            <Camera size={16} color="#1A1A1A" strokeWidth={2.2} />
+          </>
+        )}
+        {uploading ? (
+          <View className="absolute inset-0 items-center justify-center bg-black/35">
+            <ActivityIndicator color="#FFFFFF" size="small" />
           </View>
         ) : null}
+      </Pressable>
+
+      <View className="flex-1 ml-3.5">
+        <Text
+          className="font-displayItalic text-ink text-[18px] leading-[20px]"
+          numberOfLines={1}
+        >
+          {previewName}
+        </Text>
+        <Text className="font-script text-ink-soft text-[16px] mt-1">{greeting}</Text>
       </View>
-      <Text className="mt-2.5 font-bodyMedium text-ink-soft text-[13px]">{ctaLabel}</Text>
+
+      {uri && !uploading ? (
+        <Pressable
+          onPress={disabled ? undefined : onPickAvatar}
+          accessibilityRole="button"
+          hitSlop={8}
+          disabled={disabled}
+          className="w-9 h-9 rounded-full bg-white items-center justify-center shadow-chip border-2 border-bg ml-2 active:opacity-80"
+        >
+          <Camera size={16} color="#1A1A1A" strokeWidth={2.2} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

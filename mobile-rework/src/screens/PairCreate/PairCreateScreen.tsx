@@ -1,9 +1,9 @@
-import { Heart, Users, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
+import { useAuthStore } from '@/stores/authStore';
 import { usePairCreateViewModel } from './usePairCreateViewModel';
 
 type PairAccent = 'primary' | 'accent';
@@ -16,7 +16,9 @@ type PairAccent = 'primary' | 'accent';
 
 export function PairCreateScreen() {
   const { t } = useTranslation();
+  const userName = useAuthStore((s) => s.user?.name ?? null);
   const { onCreate, onJoin } = usePairCreateViewModel();
+  const initial = (userName?.trim()?.charAt(0) ?? 'L').toUpperCase();
 
   return (
     <View className="flex-1 bg-bg">
@@ -37,19 +39,19 @@ export function PairCreateScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <PairedHearts />
+          <PairedHeartsComposite initial={initial} />
 
           <View className="px-5 pt-4 pb-10">
             <PairOption
               accent="primary"
-              Icon={Heart}
+              icon="✉"
               title={t('onboarding.pairing.choice.create.title')}
               subtitle={t('onboarding.pairing.choice.create.subtitle')}
               onPress={onCreate}
             />
             <PairOption
               accent="accent"
-              Icon={Users}
+              icon="⚘"
               title={t('onboarding.pairing.choice.join.title')}
               subtitle={t('onboarding.pairing.choice.join.subtitle')}
               onPress={onJoin}
@@ -82,14 +84,51 @@ function TopWash() {
   );
 }
 
-function PairedHearts() {
+// Sprint 68 D2 (Boss build 131 feedback) — paired-hearts letter composite,
+// 1:1 with prototype `pairing.jsx` L31-54. Two 80px circles with gradient
+// fills + white display-bold initial / "?" + a 💞 sticker centered between
+// them. Replaces the two flat lucide hearts.
+function PairedHeartsComposite({ initial }: { initial: string }) {
   const c = useAppColors();
   return (
-    <View className="items-center pt-2 pb-1">
-      <View className="flex-row items-center justify-center">
-        <Heart size={48} color={c.primary} fill={c.primary} strokeWidth={0} />
-        <View className="w-2" />
-        <Heart size={48} color={c.accent} fill={c.accent} strokeWidth={0} />
+    <View className="items-center pt-3">
+      <View className="w-[180px] h-[130px]">
+        <View
+          pointerEvents="none"
+          className="absolute left-[10px] top-[20px] w-20 h-20 rounded-full overflow-hidden border-[3px] border-bg shadow-hero"
+        >
+          <LinearGradient
+            colors={[c.primary, c.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="absolute inset-0"
+          />
+          <View className="flex-1 items-center justify-center">
+            <Text className="font-displayBold text-white text-[32px]">{initial}</Text>
+          </View>
+        </View>
+        <View
+          pointerEvents="none"
+          className="absolute right-[10px] top-[30px] w-20 h-20 rounded-full overflow-hidden border-[3px] border-bg shadow-hero"
+        >
+          <LinearGradient
+            colors={[c.accent, c.primary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="absolute inset-0"
+          />
+          <View className="flex-1 items-center justify-center">
+            <Text className="font-displayBold text-white text-[32px]">?</Text>
+          </View>
+        </View>
+        {/* Centered 💞 — translateX -50% via -ml-3 (text glyph ≈ 24px wide
+            so half-width ≈ 12px, expressed as ml-[-12px]). */}
+        <View
+          pointerEvents="none"
+          className="absolute left-[90px] top-[55px] z-10 ml-[-12px]"
+        >
+          <Text className="text-2xl">💞</Text>
+        </View>
       </View>
     </View>
   );
@@ -97,13 +136,15 @@ function PairedHearts() {
 
 type PairOptionProps = {
   accent: PairAccent;
-  Icon: LucideIcon;
+  icon: string;
   title: string;
   subtitle: string;
   onPress: () => void;
 };
 
-function PairOption({ accent, Icon, title, subtitle, onPress }: PairOptionProps) {
+// Sprint 68 D2 — emoji glyph icons (✉ / ⚘) replace the lucide Heart / Users.
+// Tint background stays from the existing palette (primary / accent /22).
+function PairOption({ accent, icon, title, subtitle, onPress }: PairOptionProps) {
   const c = useAppColors();
   const tint = accent === 'primary' ? c.primary : c.accent;
   return (
@@ -117,7 +158,7 @@ function PairOption({ accent, Icon, title, subtitle, onPress }: PairOptionProps)
         className="w-11 h-11 rounded-full items-center justify-center mr-3.5"
         style={{ backgroundColor: tint + '22' }}
       >
-        <Icon size={22} color={tint} strokeWidth={1.75} />
+        <Text className="text-[22px]">{icon}</Text>
       </View>
       <View className="flex-1">
         <Text className="font-bodyBold text-ink text-[15px]">{title}</Text>
