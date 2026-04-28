@@ -3,6 +3,35 @@ import app from '../index';
 import prisma from '../utils/prisma';
 import { hashPassword, generateToken } from '../utils/auth';
 
+// CRITICAL — 2026-04-28 PROD DATA LOSS GUARD.
+// `deploy up memoura-api --env prod` ran `npm test` pre-deploy. The
+// deploy CLI inherits the spawning shell's env, and the shell had
+// DATABASE_URL pointing at prod (Postgres :5433/love_scrum). `dotenv
+// -e .env.development` (the wrapper in package.json's `test` script)
+// does NOT override env vars already set by the shell (memory rule
+// `feedback_shell_database_url_overrides_dotenv`). Jest connected to
+// prod, beforeAll/afterAll's deleteMany() — at the time some unscoped
+// — wiped Boss couple's moments + letters + photos.
+//
+// Hard refuse any DB whose URL doesn't include `_dev`. This is the
+// primary defense and runs BEFORE any prisma client work, so even a
+// misconfigured npm script or deploy CLI cannot reach a prod DB.
+// Defense-in-depth: every deleteMany() in beforeAll/afterAll is also
+// scoped to test fixtures (TEST_COUPLE_ID + TEST_USER_EMAILS).
+if (!process.env.DATABASE_URL?.includes('_dev')) {
+  console.error(
+    `[api.test.ts] REFUSING to run tests against non-dev DB: ${process.env.DATABASE_URL ?? '(unset)'}`,
+  );
+  process.exit(1);
+}
+
+const TEST_COUPLE_ID = 'test-couple';
+const TEST_USER_EMAILS = [
+  'test@lovescrum.test',
+  'partner@lovescrum.test',
+  'invite-test@lovescrum.test',
+];
+
 // Mock CDN so file upload tests don't hit real CDN
 jest.mock('../utils/cdn', () => ({
   uploadToCdn: jest.fn().mockResolvedValue({ filename: 'test-file.jpg', url: 'https://cdn.example.com/test-file.jpg' }),
@@ -86,44 +115,49 @@ let testPartnerId: string;
 
 // Create test couple + users directly via Prisma (bypasses whitelist) and generate tokens
 beforeAll(async () => {
-  // Clean up previous test data referencing this couple
-  await prisma.shareLink.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.emailVerification.deleteMany();
-  await prisma.refreshToken.deleteMany();
-  await prisma.achievement.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.appSetting.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.notification.deleteMany();
-  await prisma.letterPhoto.deleteMany();
-  await prisma.letterAudio.deleteMany();
-  await prisma.loveLetter.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.expense.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.momentComment.deleteMany();
-  await prisma.momentReaction.deleteMany();
-  await prisma.momentPhoto.deleteMany();
-  await prisma.momentAudio.deleteMany();
-  await prisma.moment.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.foodSpotPhoto.deleteMany();
-  await prisma.foodSpot.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.cookingSessionPhoto.deleteMany();
-  await prisma.cookingSessionStep.deleteMany();
-  await prisma.cookingSessionItem.deleteMany();
-  await prisma.cookingSessionRecipe.deleteMany();
-  await prisma.cookingSession.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.recipePhoto.deleteMany();
-  await prisma.recipe.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.goal.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.sprint.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.datePlanSpot.deleteMany();
-  await prisma.datePlanStop.deleteMany();
-  await prisma.datePlan.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.dateWish.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.tag.deleteMany({ where: { coupleId: 'test-couple' } });
-  await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test'] } } });
+  // Clean up previous test data — EVERY deleteMany scoped to test fixtures
+  // (TEST_COUPLE_ID + TEST_USER_EMAILS). Defense-in-depth on top of the
+  // env guard at the top of this file. Loose tables (notification,
+  // refreshToken, emailVerification) scope via the User relation.
+  // Child tables (momentPhoto, letterAudio, datePlanSpot, etc.) scope via
+  // their parent's coupleId so they never touch unrelated rows.
+  await prisma.shareLink.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.emailVerification.deleteMany({ where: { user: { email: { in: TEST_USER_EMAILS } } } });
+  await prisma.refreshToken.deleteMany({ where: { user: { email: { in: TEST_USER_EMAILS } } } });
+  await prisma.achievement.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.appSetting.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.notification.deleteMany({ where: { user: { email: { in: TEST_USER_EMAILS } } } });
+  await prisma.letterPhoto.deleteMany({ where: { letter: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.letterAudio.deleteMany({ where: { letter: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.loveLetter.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.expense.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.momentComment.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.momentReaction.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.momentPhoto.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.momentAudio.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.moment.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.foodSpotPhoto.deleteMany({ where: { foodSpot: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.foodSpot.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.cookingSessionPhoto.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSessionStep.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSessionItem.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSessionRecipe.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSession.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.recipePhoto.deleteMany({ where: { recipe: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.recipe.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.goal.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.sprint.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.datePlanSpot.deleteMany({ where: { stop: { plan: { coupleId: TEST_COUPLE_ID } } } });
+  await prisma.datePlanStop.deleteMany({ where: { plan: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.datePlan.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.dateWish.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.tag.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.user.deleteMany({ where: { email: { in: TEST_USER_EMAILS } } });
 
   const couple = await prisma.couple.upsert({
-    where: { id: 'test-couple' },
+    where: { id: TEST_COUPLE_ID },
     update: {},
-    create: { id: 'test-couple', name: 'Test Couple' },
+    create: { id: TEST_COUPLE_ID, name: 'Test Couple' },
   });
   testCoupleId = couple.id;
 
@@ -147,30 +181,34 @@ beforeAll(async () => {
   });
 });
 
-// Clean up after all tests
+// Clean up after all tests — every deleteMany scoped to test fixtures
+// (defense-in-depth on top of the env guard at top of file). Mirror of
+// the beforeAll cleanup but kept separate so test fixture leftovers
+// from a CRASHED run still get cleaned by the next beforeAll.
 afterAll(async () => {
-  await prisma.shareLink.deleteMany();
-  await prisma.refreshToken.deleteMany();
-  await prisma.momentComment.deleteMany();
-  await prisma.momentReaction.deleteMany();
-  await prisma.momentPhoto.deleteMany();
-  await prisma.moment.deleteMany();
-  await prisma.foodSpotPhoto.deleteMany();
-  await prisma.goal.deleteMany();
-  await prisma.sprint.deleteMany();
-  await prisma.cookingSessionPhoto.deleteMany();
-  await prisma.cookingSessionStep.deleteMany();
-  await prisma.cookingSessionItem.deleteMany();
-  await prisma.cookingSessionRecipe.deleteMany();
-  await prisma.cookingSession.deleteMany();
-  await prisma.recipePhoto.deleteMany();
-  await prisma.recipe.deleteMany();
-  await prisma.foodSpot.deleteMany();
-  await prisma.expense.deleteMany();
-  await prisma.letterPhoto.deleteMany();
-  await prisma.letterAudio.deleteMany();
-  await prisma.loveLetter.deleteMany();
-  await prisma.user.deleteMany({ where: { email: { in: ['test@lovescrum.test', 'partner@lovescrum.test', 'invite-test@lovescrum.test'] } } });
+  await prisma.shareLink.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.refreshToken.deleteMany({ where: { user: { email: { in: TEST_USER_EMAILS } } } });
+  await prisma.momentComment.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.momentReaction.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.momentPhoto.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.momentAudio.deleteMany({ where: { moment: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.moment.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.foodSpotPhoto.deleteMany({ where: { foodSpot: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.goal.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.sprint.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.cookingSessionPhoto.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSessionStep.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSessionItem.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSessionRecipe.deleteMany({ where: { session: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.cookingSession.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.recipePhoto.deleteMany({ where: { recipe: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.recipe.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.foodSpot.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.expense.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.letterPhoto.deleteMany({ where: { letter: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.letterAudio.deleteMany({ where: { letter: { coupleId: TEST_COUPLE_ID } } });
+  await prisma.loveLetter.deleteMany({ where: { coupleId: TEST_COUPLE_ID } });
+  await prisma.user.deleteMany({ where: { email: { in: TEST_USER_EMAILS } } });
   // Couple cleanup handled by beforeAll on next run (cascade order is complex)
   await prisma.$disconnect();
 });

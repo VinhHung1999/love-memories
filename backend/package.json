@@ -6,7 +6,7 @@
     "build": "tsc",
     "start": "dotenv -e .env -- node dist/index.js",
     "lint": "eslint src/",
-    "test": "dotenv -e .env.development -- jest --forceExit --detectOpenHandles",
+    "test": "unset DATABASE_URL && dotenv -e .env.development -- jest --forceExit --detectOpenHandles",
     "seed:dev": "dotenv -e .env.development -- tsx prisma/seed.ts"
   },
   "dependencies": {
