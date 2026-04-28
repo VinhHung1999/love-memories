@@ -1,0 +1,1 @@
+export { PairWaitScreen } from './PairWaitScreen';

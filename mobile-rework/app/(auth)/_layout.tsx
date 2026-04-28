@@ -34,6 +34,18 @@ export default function AuthLayout() {
         options={{ gestureEnabled: false, headerBackVisible: false }}
       />
       <Stack.Screen name="pair-join" />
+      {/* T466 (Sprint 68): CoupleForm — name + slogan + anniversary on one
+          screen so the BE atomic transaction (T462) can persist them
+          together. Gesture allowed: nothing committed until Next is
+          pressed and the POST returns 201. */}
+      <Stack.Screen name="couple-create" />
+      {/* T466 stub / T467 will flesh out: Wait screen for the creator
+          while the joiner redeems. No back/skip — pair commitment is
+          one-way. T467 replaces the placeholder content. */}
+      <Stack.Screen
+        name="pair-wait"
+        options={{ gestureEnabled: false, headerBackVisible: false }}
+      />
       {/* T306 + T331: Personalize behavior differs per entry path.
           Creator: arrives via router.push from PairCreate (T327). Gesture +
           back button work natively — nothing committed yet (POST /api/couple
