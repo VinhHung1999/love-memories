@@ -48,11 +48,34 @@ export const validateInvite = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const createCouple = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { name } = req.body;
-  const { inviteCode, ...user } = await CoupleService.createCouple(req.user!.userId, name);
+  // Sprint 68 T462: atomic create with name + anniversaryDate + slogan. The
+  // service runs all three writes in one $transaction; we still re-issue
+  // access/refresh tokens here because the user's coupleId just changed and
+  // the old JWT carries `coupleId: null`. Without rotation the next request
+  // 401s — see memory `bugs_refresh_token_rotation` (Sprint 63 T403).
+  const { name, anniversaryDate, slogan } = req.body as {
+    name: string;
+    anniversaryDate?: string | null;
+    slogan?: string | null;
+  };
+  const { user, couple } = await CoupleService.createCouple(req.user!.userId, {
+    name,
+    anniversaryDate,
+    slogan,
+  });
   const accessToken = generateAccessToken(user.id, user.coupleId);
   const refreshToken = await createRefreshToken(user.id);
-  res.status(201).json({ ...buildAuthResponse(user, accessToken, refreshToken), inviteCode });
+
+  const baseUrl = process.env.APP_URL || 'https://memoura.app';
+  const inviteUrl = couple.inviteCode ? `${baseUrl}/join/${couple.inviteCode}` : null;
+
+  res.status(201).json({
+    ...buildAuthResponse(user, accessToken, refreshToken),
+    couple,
+    inviteUrl,
+    // Legacy field kept for callers that still read top-level `inviteCode`.
+    inviteCode: couple.inviteCode,
+  });
 });
 
 export const joinCouple = asyncHandler(async (req: AuthRequest, res: Response) => {

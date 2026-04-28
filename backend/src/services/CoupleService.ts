@@ -106,22 +106,74 @@ export async function validateInvite(code: string) {
   };
 }
 
-export async function createCouple(userId: string, name?: string) {
+export interface CreateCoupleInput {
+  name: string;
+  anniversaryDate?: string | null;
+  slogan?: string | null;
+}
+
+// Sprint 68 T462: atomic create. The three writes (couple row, user.coupleId,
+// optional `app_slogan` AppSetting) live in a single $transaction so a failure
+// on any of them rolls all three back — no orphan couple, no half-paired user,
+// no slogan pointing at a couple that doesn't exist. The slogan is denormalized
+// into the response for mobile convenience but persists ONLY in AppSetting so
+// the web Dashboard (which already reads `app_slogan` via SettingsService)
+// continues to work with no downstream changes.
+export async function createCouple(userId: string, input: CreateCoupleInput) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { coupleId: true } });
   if (!user) throw new AppError(404, 'User not found');
-  if (user.coupleId) throw new AppError(400, 'You are already part of a couple');
+  if (user.coupleId) throw new AppError(409, 'You are already part of a couple');
 
   const inviteCode = crypto.randomBytes(4).toString('hex');
-  const trimmedName = name?.trim();
-  const couple = await prisma.couple.create({
-    data: { name: trimmedName && trimmedName.length > 0 ? trimmedName : null, inviteCode },
+  const trimmedName = input.name.trim();
+  const trimmedSlogan = input.slogan?.trim() ?? null;
+  const persistSlogan = trimmedSlogan !== null && trimmedSlogan.length > 0;
+  const anniversary = input.anniversaryDate ? new Date(input.anniversaryDate) : null;
+
+  return prisma.$transaction(async (tx) => {
+    const couple = await tx.couple.create({
+      data: {
+        name: trimmedName,
+        anniversaryDate: anniversary,
+        inviteCode,
+      },
+    });
+
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: { coupleId: couple.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        color: true,
+        coupleId: true,
+        googleId: true,
+        onboardingComplete: true,
+      },
+    });
+
+    if (persistSlogan) {
+      await tx.appSetting.upsert({
+        where: { key_coupleId: { key: 'app_slogan', coupleId: couple.id } },
+        update: { value: trimmedSlogan! },
+        create: { key: 'app_slogan', coupleId: couple.id, value: trimmedSlogan! },
+      });
+    }
+
+    return {
+      user: updatedUser,
+      couple: {
+        id: couple.id,
+        name: couple.name,
+        anniversaryDate: couple.anniversaryDate,
+        inviteCode: couple.inviteCode,
+        color: couple.color,
+        slogan: persistSlogan ? trimmedSlogan : null,
+      },
+    };
   });
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data: { coupleId: couple.id },
-    select: { id: true, email: true, name: true, avatar: true, coupleId: true, googleId: true, onboardingComplete: true },
-  });
-  return { ...updated, inviteCode: couple.inviteCode };
 }
 
 export async function joinCouple(userId: string, inviteCode: string) {
