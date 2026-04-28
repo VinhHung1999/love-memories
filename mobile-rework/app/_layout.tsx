@@ -427,6 +427,12 @@ function useAuthGate() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const onboardingComplete = useAuthStore((s) => s.onboardingComplete);
   const hasSeenOnboarding = useAuthStore((s) => s.hasSeenOnboarding);
+  // Sprint 68 T470 hot-fix — gate must re-run when coupleId flips so a
+  // cold-start mid-onboarding (CoupleForm submitted, Wait pending) lands on
+  // pair-wait instead of bouncing back to personalize. Subscribing to just
+  // the field (not the whole user object) keeps the effect from firing on
+  // unrelated user mutations like avatarUrl / color edits.
+  const coupleId = useAuthStore((s) => s.user?.coupleId ?? null);
 
   useEffect(() => {
     // expo-router types segments as a narrow tuple inferred from the app
@@ -465,22 +471,34 @@ function useAuthGate() {
     if (seg[0] === 'recap') return;
 
     if (!onboardingComplete) {
-      // Authed but onboarding incomplete: must be inside the post-auth
-      // (auth) wizard. Sprint 68 T470: the wizard now starts at Personalize
-      // (user-level profile) BEFORE PairChoice — so the funnel redirect
-      // points at /(auth)/personalize, not the old /(auth)/pair-create.
-      // Wizard screens: personalize / pair-create / couple-create /
-      // pair-wait / pair-join / onboarding-done. Tabs, pre-auth screens,
-      // /index, and unknown groups all bounce back to personalize.
+      // Authed but onboarding incomplete. Sprint 68 T470 wizard:
+      //   personalize → pair-create → couple-create → pair-wait → onboarding-done
+      //                                                ↘ pair-join → onboarding-done
+      //
+      // Sprint 68 T470 hot-fix (Boss build 131): the resume target
+      // depends on whether the user has a couple yet.
+      //   coupleId === null → /(auth)/personalize (wizard start)
+      //   coupleId !== null → /(auth)/pair-wait (creator already submitted
+      //     CoupleForm and is waiting for the joiner — bouncing them back
+      //     to Personalize would 409 the next CoupleForm submit and lose
+      //     their place in the queue). T467 Wait bootstrap re-fetches
+      //     /api/couple on mount, so a joiner who redeemed while the app
+      //     was killed gets fast-forwarded to onboarding-done from there.
+      //
+      // Tabs, pre-auth screens, /index, and unknown groups all bounce to
+      // the resume target above.
+      const targetWizardEntry = coupleId
+        ? '/(auth)/pair-wait'
+        : '/(auth)/personalize';
       const inWizard = inAuthGroup && !onPreAuthScreen;
-      if (!inWizard) router.replace('/(auth)/personalize');
+      if (!inWizard) router.replace(targetWizardEntry);
       return;
     }
 
     // Authed + onboarded: belongs in (tabs). Anywhere else (auth group,
     // /index from a fresh cold-start, unknown) → tabs.
     if (!inTabsGroup) router.replace('/(tabs)');
-  }, [accessToken, onboardingComplete, hasSeenOnboarding, segments, router]);
+  }, [accessToken, onboardingComplete, hasSeenOnboarding, coupleId, segments, router]);
 }
 
 // Catches `memoura://pair?code=…` and `https://memoura.app/pair?code=…` whether
