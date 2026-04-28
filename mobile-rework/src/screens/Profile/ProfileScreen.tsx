@@ -1,5 +1,6 @@
 import {
   Bell,
+  BookOpen,
   Cake,
   FileText,
   Gem,
@@ -13,6 +14,7 @@ import {
   Trash2,
   UsersRound,
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -58,6 +60,7 @@ import { type HeroPerson, type ProfileStats, useProfileViewModel } from './usePr
 export function ProfileScreen() {
   const vm = useProfileViewModel();
   const { t } = useTranslation();
+  const router = useRouter();
 
   const comingSoonRef = useRef<ComingSoonSheetHandle>(null);
   const inviteSheetRef = useRef<InviteCodeSheetHandle>(null);
@@ -107,6 +110,14 @@ export function ProfileScreen() {
   const onReplayTourPress = useCallback(() => {
     comingSoonRef.current?.open();
   }, []);
+
+  // Sprint 67 T458 — RecapArchive list. Permanent entry — month/week
+  // taps inside the archive open the new MonthlyRecapScreen /
+  // WeeklyRecapScreen, so we no longer need the T452/T456 preview stubs.
+  const onRecapArchivePress = useCallback(() => {
+    router.push('/recap-archive');
+  }, [router]);
+
 
   const onSignOutPress = useCallback(() => {
     Alert.alert(
@@ -219,6 +230,14 @@ export function ProfileScreen() {
                   icon={HandHelping}
                   label={t('profile.settingsList.replayTour')}
                   onPress={onReplayTourPress}
+                />
+                {/* Sprint 67 T458 — permanent RecapArchive list (12 months
+                    + 12 weeks). T452/T456 preview stubs removed in
+                    sprint cleanup — archive is the discoverable entry. */}
+                <SettingsRow
+                  icon={BookOpen}
+                  label={t('profile.settingsList.recapArchive')}
+                  onPress={onRecapArchivePress}
                 />
                 <SettingsRow
                   icon={LogOut}

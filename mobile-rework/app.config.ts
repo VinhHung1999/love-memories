@@ -1,40 +1,102 @@
 import type { ExpoConfig } from 'expo/config';
 
-// Single flavor — bundle ID matches mobile/ so smoke builds upload as a new
-// build of the existing App Store Connect app `com.hungphu.memoura`.
-// Version bumped to 2.0.0 so Boss can distinguish the rework (2.0.0 build 1)
-// from the old mobile/ track (1.0 build 40 at time of fork).
-const bundleId = 'com.hungphu.memoura';
-const name = 'Memoura';
-const scheme = 'memoura';
+// Sprint 67 T448 / T449 — Dual flavor (prod / dev) for the internal app store.
+// Boss directive 2026-04-27: prod points at api.memoura.app; dev (`com.hungphu.
+// memoura.dev`, "Memoura Dev") points at dev-api.memoura.app for safe testing
+// of unreleased BE changes side-by-side. Same icon for both — only the display
+// name distinguishes (Boss confirm 2026-04-27, Q2). Internal app store
+// (app-store.hungphu.work) doesn't need ASC registration; only the ad-hoc
+// provisioning profile for the .dev bundle ID has to exist in Apple Developer
+// Portal — Boss confirmed it does (2026-04-27, Q1).
+//
+// Variant resolution (in priority order):
+//   1. APP_VARIANT='dev' or APP_VARIANT='prod' → forced.
+//   2. fallback → 'prod' (per T448 acceptance: "Default (no flavor flag) =
+//      prod = https://api.memoura.app"). This means any release build /
+//      prebuild without an explicit flag points at prod — safe for accidental
+//      releases, the operator must opt INTO dev.
+//
+// Local dev convenience: `npm run ios` / `npm run android` / `npm start` all
+// pass `APP_VARIANT=dev` to expo start so Metro points at dev-api by default
+// without the developer having to remember. Override on the shell to test a
+// prod-pointing local build (`APP_VARIANT=prod npm run ios`).
+//
+// Local LAN override: set `EXPO_PUBLIC_API_URL=http://192.168.x.x:5006` in
+// the shell before `npm run ios` to point Metro at a LAN backend. The env.ts
+// precedence honours that override above the variant default — but the var
+// must NOT be pinned in committed `.env`, otherwise prod builds bake in the
+// wrong host.
+
+type Variant = 'dev' | 'prod';
+
+function resolveVariant(): Variant {
+  const explicit = process.env.APP_VARIANT;
+  if (explicit === 'dev') return 'dev';
+  if (explicit === 'prod') return 'prod';
+  return 'prod';
+}
+
+const variant: Variant = resolveVariant();
+
+type VariantConfig = {
+  name: string;
+  bundleId: string;
+  scheme: string;
+  apiUrl: string;
+  appBaseUrl: string;
+  associatedDomains: string[];
+};
+
+const VARIANT_CONFIG: Record<Variant, VariantConfig> = {
+  prod: {
+    name: 'Memoura',
+    bundleId: 'com.hungphu.memoura',
+    scheme: 'memoura',
+    apiUrl: 'https://api.memoura.app',
+    appBaseUrl: 'https://memoura.app',
+    associatedDomains: ['applinks:memoura.app'],
+  },
+  dev: {
+    name: 'Memoura Dev',
+    bundleId: 'com.hungphu.memoura.dev',
+    scheme: 'memouradev',
+    apiUrl: 'https://dev-api.memoura.app',
+    appBaseUrl: 'https://dev.memoura.app',
+    associatedDomains: ['applinks:dev.memoura.app'],
+  },
+};
+
+const cfg = VARIANT_CONFIG[variant];
 
 const config: ExpoConfig = {
-  name,
+  name: cfg.name,
   slug: 'memoura',
   version: '2.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme,
+  scheme: cfg.scheme,
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   ios: {
     supportsTablet: false,
-    bundleIdentifier: bundleId,
+    bundleIdentifier: cfg.bundleId,
     buildNumber: '1',
     usesAppleSignIn: true,
-    // T289 — Universal Link for /join/<code>. The matching AASA file is served
-    // at https://memoura.app/.well-known/apple-app-site-association by the web
+    // T289 — Universal Link for /join/<code>. AASA file served at
+    // https://memoura.app/.well-known/apple-app-site-association by the web
     // surface. Cold-start handling: Expo Router parses the inbound URL via
     // Linking and pair-join.tsx reads `code` from the route params.
     // T304 — dev.memoura.app added so dev-pointing builds can verify the
     // Universal Link → pair-join flow without rebuilding for prod hostname.
-    associatedDomains: ['applinks:memoura.app', 'applinks:dev.memoura.app'],
+    // T448 (Sprint 67) — split per flavor so each binary only opens links for
+    // its own host: prod = applinks:memoura.app, dev = applinks:dev.memoura.app.
+    associatedDomains: cfg.associatedDomains,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
-    package: bundleId,
+    package: cfg.bundleId,
     versionCode: 1,
     adaptiveIcon: {
       backgroundColor: '#FFFFFF',
@@ -129,6 +191,11 @@ const config: ExpoConfig = {
         // REVERSED iOS OAuth client ID — must match the Google Cloud iOS client
         // for bundle `com.hungphu.memoura`. Backend audience array must include
         // both this iOS client and the web client below.
+        // T448 (Sprint 67): same iOS client ID is reused across both flavors.
+        // The dev bundle (`com.hungphu.memoura.dev`) needs its own Google
+        // Cloud iOS OAuth client registered before Google Sign-In works
+        // there — tracked under T449 follow-up; until then dev build's
+        // Google login will fail with "Audience is not a valid client ID".
         iosUrlScheme:
           'com.googleusercontent.apps.1066031301719-mll9pttl9b3pucs1fgu88mojievri330',
       },
@@ -143,8 +210,11 @@ const config: ExpoConfig = {
     typedRoutes: true,
   },
   extra: {
-    apiUrl: process.env.EXPO_PUBLIC_API_URL,
-    appBaseUrl: process.env.EXPO_PUBLIC_APP_BASE_URL,
+    // T448 (Sprint 67): variant-driven config. env.ts reads these values via
+    // expo-constants. Local override possible via shell EXPO_PUBLIC_API_URL.
+    variant,
+    apiUrl: cfg.apiUrl,
+    appBaseUrl: cfg.appBaseUrl,
     googleIosClientId:
       '1066031301719-mll9pttl9b3pucs1fgu88mojievri330.apps.googleusercontent.com',
     googleWebClientId:

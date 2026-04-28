@@ -59,6 +59,13 @@ const vi = {
     recapTitle: 'Tháng {{month}} của mình',
     recapSub: '{{moments}} khoảnh khắc · {{letters}} lá thư · {{trips}} chuyến đi',
     recapCta: 'Xem lại',
+    // Sprint 67 T455 — Dashboard banner pin (last 3 days of month + first 3
+    // of next month). Tap → /recap/monthly?month=YYYY-MM.
+    recapBanner: {
+      kicker: 'RECAP · {{name}}',
+      title: '{{name}} của mình',
+      sub: 'Nhìn lại tháng vừa qua',
+    },
     modulesTitle: 'Cùng nhau',
     modules: {
       moments: 'Khoảnh khắc',
@@ -710,6 +717,9 @@ const vi = {
       appearance: 'Giao diện',
       memouraPlus: 'Memoura+',
       replayTour: 'Xem lại hướng dẫn',
+      // Sprint 67 T458 — permanent archive of past recaps (12 months + 12
+      // weeks). Replaced the temporary T452/T456 preview stubs.
+      recapArchive: 'Lưu trữ recap',
       privacy: 'Chính sách bảo mật',
       terms: 'Điều khoản sử dụng',
       version: 'Phiên bản',
@@ -921,6 +931,208 @@ const vi = {
     emptyTitle: 'Chưa có câu hỏi',
     emptyBody: 'Memoura đang chuẩn bị câu hỏi đầu tiên cho hai đứa. Quay lại sau nhé.',
     submitError: 'Không gửi được câu trả lời. Thử lại nhé.',
+  },
+  // Sprint 67 T452 — Editorial recap. Section keys for the cover only ship in
+  // this sprint; T453 / T454 add nested keys for sections 01-09 + actions
+  // on top of `recap.monthly.section.*`.
+  recap: {
+    monthly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        // VI hero title is "Tháng {N}\ncủa mình" — line2 is fixed.
+        titleLine1: 'Tháng {{n}}',
+        titleLine2: 'của mình',
+        coverKicker: 'Nhìn lại · {{days}} ngày',
+        scrollHint: 'cuộn xuống',
+        stat: {
+          moments: 'khoảnh khắc',
+          letters: 'thư tình',
+          trips: 'chuyến đi',
+        },
+      },
+      loading: 'Đang tải recap…',
+      // Sprint 67 T453 — sections 01-04 keys.
+      section: {
+        byNumbers: {
+          title: 'Bằng những con số',
+          moments: 'khoảnh khắc',
+          letters: 'thư tình',
+          trips: 'chuyến đi',
+          words: 'từ đã viết',
+          daysStreak: 'ngày trả lời liền',
+          questions: 'Daily Q · {{count}} câu hỏi',
+        },
+        heatmap: {
+          title: 'Nhịp của tháng này',
+          hint: 'Ngày nào mình cũng có gì đó để nói với nhau',
+          legendLess: 'ít',
+          legendMore: 'nhiều',
+          busiestPrefix: 'ngày sôi nổi nhất',
+        },
+        topMoments: {
+          title: '3 khoảnh khắc đọng lại',
+          photos: '{{count}} ảnh',
+          reactions: '{{count}} tim',
+        },
+        mood: {
+          title: 'Tâm trạng qua ngày',
+          placeholder: 'Tính năng Vibes đang trên đường về — khi nào bật, mình sẽ thấy 5 vùng tâm trạng phổ biến nhất tháng này.',
+        },
+        // Sprint 67 T454 — sections 05-09 + actions.
+        places: {
+          title: 'Nơi mình đã đến',
+          countLabel: 'lần',
+          caption: '{{count}} địa điểm tháng này',
+          captionEmpty: 'Tháng này chưa lưu địa điểm nào',
+          emptyTitle: 'Chưa có dấu chân nào',
+          emptyBody: 'Khi mình thêm địa điểm cho khoảnh khắc, nơi đó sẽ xuất hiện ở đây.',
+        },
+        topQuestion: {
+          title: 'Câu hỏi được nói nhiều nhất',
+          meta: 'Mình đã hỏi nhau {{count}} lần trong tháng',
+          emptyBody: 'Tháng này chưa có Daily Q nào — quay lại sau khi mình trả lời vài câu nhé.',
+        },
+        letterHighlight: {
+          title: 'Một lá thư để giữ',
+          kicker: 'Từ {{sender}} · {{date}}',
+          cta: 'Đọc lại',
+          emptyBody: 'Tháng này chưa có lá thư nào để chọn. Một lá thôi cũng đủ ấm cả tháng.',
+        },
+        firsts: {
+          title: 'Lần đầu của mình',
+          tagLabel: 'lần đầu',
+          emptyBody: 'Chưa có lần đầu nào tháng này — gắn tag #lầnđầu cho moment để xuất hiện ở đây.',
+        },
+        closing: {
+          kicker: 'Lời kết',
+          titleWithPartner: 'Cảm ơn {{partner}}\nvì tháng này.',
+          titleSolo: 'Cảm ơn\nvì tháng này.',
+          body: 'Tháng đi qua nhưng mình vẫn còn nhau. Mong tháng tới mình sẽ có thêm nhiều buổi chiều nữa để ngồi cùng nhau, không vội, không gì cả.',
+        },
+      },
+      actions: {
+        shareLabel: 'Chia sẻ với {{partner}}',
+        shareLabelSolo: 'Chia sẻ recap',
+        saveBookLabel: '📔 Lưu vào Sổ',
+        shareSuccessTitle: 'Đã sao chép link',
+        shareSuccessBody: 'Gửi cho người ấy để cùng xem lại tháng này nhé.',
+        shareErrorTitle: 'Không sao chép được',
+        shareErrorBody: 'Có lỗi xảy ra. Thử lại sau nhé.',
+        saveBookTitle: 'Sắp có ✨',
+        saveBookBody: 'Sổ kỷ niệm đang được Memoura chăm chút — sẽ ra mắt sớm.',
+      },
+      empty: {
+        title: 'Tháng yên ắng quá 🐶',
+        body: 'Chưa có khoảnh khắc nào tháng này. Cùng tạo nhé!',
+      },
+      error: {
+        title: 'Không tải được recap',
+        body: 'Có lỗi xảy ra khi tải dữ liệu. Thử lại sau nhé.',
+        retry: 'Thử lại',
+      },
+      // Sprint 67 D4 — toast surfaced when the requested month had no
+      // moments / letters / Q&A and the screen walked back to the most
+      // recent month with data.
+      fallback: {
+        title: 'Đã chuyển sang tháng có dữ liệu',
+        body: '{{requested}} chưa có khoảnh khắc nào — mình hiện {{landed}} thay nhé.',
+      },
+      closeLabel: 'Đóng',
+    },
+    // Sprint 67 T460 — Stories composer labels (shared across monthly +
+    // weekly Stories deck).
+    stories: {
+      coverScrollHint: 'chạm để xem tiếp',
+      topMomentCta: 'Xem chi tiết',
+      placesHeadline: 'Mình đã đến {{count}} nơi',
+      placesCaption: '{{count}} địa điểm thời gian này',
+      stat: {
+        moments: 'KHOẢNH KHẮC',
+        letters: 'THƯ TÌNH',
+        photos: 'ẢNH ĐÃ LƯU',
+        questions: 'DAILY Q',
+        momentsSub: 'Mỗi tấm là một dấu mốc',
+      },
+      actions: {
+        save: 'Lưu thành video 30 giây',
+        saveSub: 'Sắp có — chia sẻ recap thành reel ngắn',
+        shareSub: 'Sao chép link cho người ấy',
+        detail: 'Xem chi tiết tất cả',
+        kicker: 'Trước khi đi…',
+        headline: 'Một tay mình muốn giữ',
+        body: 'Lưu lại hoặc chia sẻ với người ấy. Nếu muốn xem chi tiết từng phần, mở scroll editorial bên dưới.',
+        signoff: 'Hẹn recap kế tiếp 🐾',
+      },
+      // Sprint 67 D1 — Photo reel mosaic slide.
+      photoReel: {
+        headline: 'Nhìn lại một lần nữa',
+        caption: 'Đang xem {{showing}} trong {{of}} ảnh',
+      },
+      // Sprint 67 D9 — LettersDeck stacked-cards slide labels
+      // (replaces D8's lettersCollection vertical list).
+      lettersDeck: {
+        kicker: 'THƯ TÌNH · {{count}} lá',
+        headline: 'Một chồng thư trong tháng',
+        empty: 'Tháng này chưa có thư nào…',
+      },
+    },
+    // Sprint 67 T456 — compact weekly editorial. 5 sections.
+    weekly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        titleLine1: 'Tuần này',
+        coverKicker: 'Tổng kết tuần qua',
+        scrollHint: 'cuộn xuống',
+        stat: {
+          moments: 'khoảnh khắc',
+          letters: 'thư',
+          questions: 'Daily Q',
+        },
+      },
+      section: {
+        byNumbers: {
+          title: 'Bằng những con số',
+          moments: 'khoảnh khắc',
+          letters: 'thư',
+          questions: 'Daily Q',
+        },
+        heatmap: {
+          title: 'Nhịp tuần này',
+          hint: 'Một tuần qua, từng ngày của hai đứa',
+          busiestPrefix: 'ngày sôi nổi nhất tuần',
+        },
+        topMoment: {
+          title: 'Khoảnh khắc của tuần',
+          emptyBody: 'Tuần này chưa có khoảnh khắc nổi bật. Chụp một tấm để tuần sau có chuyện kể!',
+        },
+      },
+      closing: {
+        body: 'Một tuần nhỏ thôi, nhưng đủ ấm. Mong tuần sau mình có thêm vài chiều nữa để cùng nhau.',
+      },
+      loading: 'Đang tải recap…',
+      empty: {
+        title: 'Tuần này yên ắng quá 🐶',
+        body: 'Tuần này hai đứa chưa có khoảnh khắc, thư hay Daily Q. Cùng nhau ghi lại gì đó nhé!',
+      },
+      error: {
+        title: 'Không tải được recap',
+        body: 'Có lỗi xảy ra khi tải dữ liệu. Thử lại sau nhé.',
+        retry: 'Thử lại',
+      },
+      fallback: {
+        title: 'Đã chuyển sang tuần có dữ liệu',
+        body: '{{requested}} chưa có khoảnh khắc nào — mình hiện {{landed}} thay nhé.',
+      },
+      closeLabel: 'Đóng',
+    },
+  },
+  // Sprint 67 T458 — Recap archive list reachable from Profile.
+  recapArchive: {
+    title: 'Lưu trữ recap',
+    introBody: '12 tháng + 12 tuần gần nhất. Chạm vào để mở recap.',
+    monthsTitle: 'Theo tháng',
+    weeksTitle: 'Theo tuần',
+    weekLabel: 'Tuần {{n}}',
   },
 };
 

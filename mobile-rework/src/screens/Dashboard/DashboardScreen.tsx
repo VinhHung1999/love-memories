@@ -11,11 +11,15 @@ import {
 } from '@/lib/pushNotifications';
 import { useAppColors } from '@/theme/ThemeProvider';
 import type { HeroPerson } from './useDashboardViewModel';
+import { useCameraSheetStore } from '@/stores/cameraSheetStore';
+import { describeMonth } from '@/screens/Recap/utils';
 import { DailyQCard } from './components/DailyQCard';
+import { EmptyHero } from './components/EmptyHero';
 import {
   LatestMomentCard,
   formatRelative,
 } from './components/LatestMomentCard';
+import { RecapBanner, recapBannerTarget } from './components/RecapBanner';
 import { TimerHero } from './components/TimerHero';
 import { ShareCodeCard } from './ShareCodeCard';
 import { useDashboardViewModel } from './useDashboardViewModel';
@@ -63,6 +67,26 @@ export function DashboardScreen() {
     return formatRelative(new Date(vm.latest.createdAt), i18n.language, justNow);
   }, [vm.latest, i18n.language, justNow]);
 
+  // T455: Dashboard recap banner. Visible only inside the render window
+  // (last 3 days of the month + first 3 days of the next). recapBannerTarget
+  // returns the right YYYY-MM target or null when out-of-window.
+  const recapTarget = useMemo(() => recapBannerTarget(), []);
+  const recapMd = recapTarget ? describeMonth(recapTarget) : null;
+  const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+  const recapBannerKicker = recapMd
+    ? t('home.recapBanner.kicker', {
+        n: recapMd.monthNumber,
+        name: isVi ? recapMd.monthNameVi : recapMd.monthNameEn,
+      })
+    : '';
+  const recapBannerTitle = recapMd
+    ? t('home.recapBanner.title', {
+        n: recapMd.monthNumber,
+        name: isVi ? recapMd.monthNameVi : recapMd.monthNameEn,
+      })
+    : '';
+  const recapBannerSub = t('home.recapBanner.sub');
+
   return (
     <SafeScreen>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -99,9 +123,37 @@ export function DashboardScreen() {
 
         {/* T437 RM — vibe mini-chip removed. */}
 
-        {/* T426 (Sprint 66) — DailyQCard renders between TimerHero and
-            LatestMomentCard. Hides itself if vm.todayQuestion is null
-            (couple unpaired, BE empty, or fetch error). */}
+        {/* T446 (Sprint 67) + T447 (Sprint 67) — Moment slot is the
+            primary "what's new" surface and now sits ABOVE DailyQCard
+            per Boss directive 2026-04-27. Renders LatestMomentCard
+            when the couple has at least one moment, EmptyHero
+            otherwise (Sprint 62 T375 polaroid stack + 2 CTA pair).
+            EmptyHero primary tap → /moment-create directly (skip the
+            camera sheet — user signaled clear intent). Secondary tap
+            → opens the global Camera bottom sheet for source choice. */}
+        {vm.latest ? (
+          <LatestMomentCard
+            moment={vm.latest}
+            eyebrow={t('home.latestFrom', { partner: vm.partner?.name ?? '' })}
+            relativeLabel={relativeLabel}
+            onPress={openDetail}
+          />
+        ) : (
+          <EmptyHero
+            title={t('home.empty.title')}
+            subtitle={t('home.empty.subtitle')}
+            primaryLabel={t('home.empty.ctaPrimary')}
+            secondaryLabel={t('home.empty.ctaSecondary')}
+            polaroidCaption={t('home.empty.polaroidCaption')}
+            onAddMoment={() => router.push('/moment-create')}
+            onOpenCamera={() => useCameraSheetStore.getState().open()}
+          />
+        )}
+
+        {/* T426 (Sprint 66) + T447 (Sprint 67) — DailyQCard now sits
+            BELOW the Moment slot. Hides itself entirely when
+            vm.todayQuestion is null (couple unpaired, BE empty, or
+            fetch error). */}
         <DailyQCard
           today={vm.todayQuestion}
           streakCount={vm.streakCount}
@@ -123,15 +175,12 @@ export function DashboardScreen() {
           onPress={() => router.push('/daily-questions')}
         />
 
-        {/* D6: LatestMomentCard restored below TimerHero. Only shown when there is
-            at least one moment. Empty state is intentionally omitted on Dashboard —
-            the Moments tab handles the empty-first-moment CTA. */}
-        {vm.latest ? (
-          <LatestMomentCard
-            moment={vm.latest}
-            eyebrow={t('home.latestFrom', { partner: vm.partner?.name ?? '' })}
-            relativeLabel={relativeLabel}
-            onPress={openDetail}
+        {recapTarget ? (
+          <RecapBanner
+            monthStr={recapTarget}
+            kicker={recapBannerKicker}
+            title={recapBannerTitle}
+            sub={recapBannerSub}
           />
         ) : null}
 

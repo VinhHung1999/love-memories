@@ -134,23 +134,31 @@ Convenience methods: `apiClient.get/post/put/del`. Use the client — never raw
 
 ## Environment
 
-Single flavor — bundle ID `com.hungphu.memoura`, scheme `memoura`, name
-`Memoura`, version `2.0.0`. Shares the App Store Connect app with `mobile/`'s
-track (1.0 build 40 history). Version 2.0.0+ distinguishes rework builds on
-TestFlight.
+**Sprint 67 T448 — dual flavor.** `app.config.ts` resolves the active flavor
+from `process.env.APP_VARIANT` (or `NODE_ENV` during `expo start`).
 
-Dev flavor (`.dev` bundle) was intentionally dropped in Sprint 59 to avoid
-registering a second ASC app.
+| Variant | Bundle ID                  | Display name | Scheme       | API host                |
+| ------- | -------------------------- | ------------ | ------------ | ----------------------- |
+| `prod`  | `com.hungphu.memoura`      | Memoura      | `memoura`    | `api.memoura.app`       |
+| `dev`   | `com.hungphu.memoura.dev`  | Memoura Dev  | `memouradev` | `dev-api.memoura.app`   |
 
-### API URLs
+Same app icon — only the display name differs (Boss confirm 2026-04-27).
+Internal app store (`app-store.hungphu.work`) hosts both binaries; Apple
+Developer Portal has ad-hoc provisioning profiles for both bundle IDs.
 
-| Env  | URL                           |
-| ---- | ----------------------------- |
-| dev  | `https://dev-api.memoura.app` |
-| prod | `https://api.memoura.app`     |
+Variant resolution order (`app.config.ts → resolveVariant()`):
+1. `APP_VARIANT='dev'` or `'prod'` → forced.
+2. `NODE_ENV !== 'production'` → `dev` (local Metro convenience).
+3. fallback → `prod` (release builds default to prod).
 
-Dev vs prod is detected via `__DEV__` in `src/config/env.ts`, not an env var.
-`EXPO_PUBLIC_API_URL` in `.env` overrides; defaults to prod.
+env.ts reads `extra.apiUrl` populated by app.config.ts. The
+`process.env.EXPO_PUBLIC_API_URL` precedence kept as a LAN-debug escape
+hatch (e.g. `EXPO_PUBLIC_API_URL=http://192.168.x.x:5006 npm run ios`) — but
+**must NOT be set in committed `.env`**, otherwise prod release builds bake
+in the wrong host. Sprint 67 cleaned `.env` to leave it blank by default.
+
+Version 2.0.0 distinguishes rework builds from `mobile/`'s 1.0 (40)
+TestFlight history (Sprint 59 carry-over).
 
 ## iOS signing
 

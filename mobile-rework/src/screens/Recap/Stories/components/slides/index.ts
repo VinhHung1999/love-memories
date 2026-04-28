@@ -1,0 +1,10 @@
+export { ActionsTraySlide } from './ActionsTraySlide';
+export { ClosingSlide } from './ClosingSlide';
+export { CoverSlide } from './CoverSlide';
+export { FirstsSlide } from './FirstsSlide';
+export { LettersDeckSlide } from './LettersDeckSlide';
+export { PhotoReelSlide } from './PhotoReelSlide';
+export { PlacesSlide } from './PlacesSlide';
+export { StatSlide } from './StatSlide';
+export { TopMomentSlide } from './TopMomentSlide';
+export { TopQuestionSlide } from './TopQuestionSlide';

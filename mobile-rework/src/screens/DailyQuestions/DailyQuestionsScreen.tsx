@@ -7,6 +7,7 @@ import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { HeaderChip, LinearGradient, SafeScreen, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
 import { AnswerInput } from './components/AnswerInput';
+import { HistoryRow } from './components/HistoryRow';
 import { PulseDot } from './components/PulseDot';
 import { useDailyQuestionsViewModel } from './useDailyQuestionsViewModel';
 import type {
@@ -351,7 +352,14 @@ function AnsweredView({
             {t('dailyQuestions.history')}
           </Text>
           {history.map((item) => (
-            <HistoryRow key={item.question.id} item={item} lang={lang} />
+            <HistoryRow
+              key={item.question.id}
+              item={item}
+              lang={lang}
+              myAnswerLabel={t('dailyQuestions.yourAnswer')}
+              partnerAnswerLabel={(p) => t('dailyQuestions.partnerLabel', { partner: p })}
+              partnerFallback={t('dailyQuestions.partnerLockedNotYet')}
+            />
           ))}
         </View>
       ) : null}
@@ -594,36 +602,6 @@ function YesterdayHint({
         </View>
         <AvatarPair />
       </View>
-    </View>
-  );
-}
-
-function HistoryRow({ item, lang }: { item: DailyQuestionHistoryItem; lang: string }) {
-  const c = useAppColors();
-  const text = item.question.textVi ?? item.question.text;
-  const date = item.myAnsweredAt ? new Date(item.myAnsweredAt) : null;
-  const dateLabel = date
-    ? lang === 'vi'
-      ? `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}`
-      : date.toLocaleDateString('en', { month: 'short', day: '2-digit' })
-    : '';
-
-  return (
-    <View
-      className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-[14px] mb-2"
-      style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.lineOnSurface }}
-    >
-      <Text
-        className="flex-1 font-body text-[13px]"
-        style={{ color: c.inkSoft }}
-        numberOfLines={1}
-      >
-        {`"${text}"`}
-      </Text>
-      <Text className="font-body text-[11px]" style={{ color: c.inkMute }}>
-        {dateLabel}
-      </Text>
-      <AvatarPair size={16} overlap={-6} />
     </View>
   );
 }

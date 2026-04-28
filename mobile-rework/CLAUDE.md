@@ -48,11 +48,36 @@ assets/
 
 ## Environment
 
-Single flavor. Bundle ID `com.hungphu.memoura`, scheme `memoura`, display name "Memoura", version `2.0.0`. Shares the App Store Connect app with the old `mobile/` track; version bumped to 2.0.0 so rework builds are visibly distinct from mobile/'s 1.0 (40) history on TestFlight.
+Sprint 67 T448 — **dual flavor**. `app.config.ts` resolves the active flavor
+from `process.env.APP_VARIANT` (or `NODE_ENV` for local Metro), then sets
+bundle ID, display name, scheme, associated domains, and API URL accordingly.
 
-Dev flavor dropped in Sprint 59 (f626215) — avoided registering a second App Store Connect app with bundle `com.hungphu.memoura.dev`. Revisit if dev and prod builds need to coexist on one device.
+| Variant | Bundle ID                  | Display name | Scheme       | API host                    |
+| ------- | -------------------------- | ------------ | ------------ | --------------------------- |
+| `prod`  | `com.hungphu.memoura`      | Memoura      | `memoura`    | `api.memoura.app`           |
+| `dev`   | `com.hungphu.memoura.dev`  | Memoura Dev  | `memouradev` | `dev-api.memoura.app`       |
 
-`EXPO_PUBLIC_*` vars are inlined at runtime; other config goes through `extra` + `expo-constants`. Dev vs prod is detected via `__DEV__` in `src/config/env.ts`, not an env var.
+Same icon for both — Boss directive 2026-04-27. Distinguishing only via
+display name keeps the build pipeline simple and lets both binaries coexist
+on a device for side-by-side QA.
+
+Internal app store (`app-store.hungphu.work`) hosts both. Apple Developer
+Portal must have an ad-hoc provisioning profile for `com.hungphu.memoura.dev`
+with the target test device UDIDs registered (Boss confirmed it does,
+2026-04-27 Q1).
+
+Variant resolution order (in `app.config.ts → resolveVariant()`):
+1. `APP_VARIANT='dev'` or `'prod'` → forced.
+2. `NODE_ENV !== 'production'` → `dev` (local Metro convenience).
+3. fallback → `prod` (release builds default to prod).
+
+Local LAN override: set `EXPO_PUBLIC_API_URL=http://192.168.x.x:5006` in the
+shell before `npm run ios` to point Metro at a LAN backend. **Do not commit
+this to `.env`** — it overrides the variant default and breaks prod release
+builds. Sprint 67 cleaned `.env` to leave it blank.
+
+Version bumped to 2.0.0 in Sprint 59 so rework builds are visibly distinct
+from `mobile/`'s 1.0 (40) history on TestFlight.
 
 ## iOS signing
 

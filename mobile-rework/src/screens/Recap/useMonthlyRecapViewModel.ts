@@ -1,0 +1,648 @@
+// Sprint 67 T452 — MonthlyRecap ViewModel.
+//
+// Orchestrates: parse `?month=` route param → resolve to a valid YYYY-MM
+// (default = previous full month) → fetch /api/recap/monthly → expose ready /
+// loading / error stages plus the cover-ready strings the View renders. The
+// view stays props-only; all locale + couple-name plumbing happens here.
+
+import * as Clipboard from 'expo-clipboard';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
+
+import { env } from '@/config/env';
+import { ApiError, apiClient } from '@/lib/apiClient';
+import { useAuthStore } from '@/stores/authStore';
+
+import type { MonthlyRecapResponse } from './types';
+import {
+  describeMonth,
+  isValidMonthStr,
+  nameInitial,
+  previousMonthStr,
+} from './utils';
+
+// Couple endpoint shape — same fetch the Profile / Dashboard / Letters VMs
+// already use. Cover needs both names + initials for the avatar pair.
+type CoupleUserLite = {
+  id: string;
+  name: string | null;
+  avatar: string | null;
+};
+
+type CoupleLite = {
+  id: string;
+  users: CoupleUserLite[];
+};
+
+export type MonthlyRecapStage = 'loading' | 'ready' | 'empty' | 'error';
+
+export type CoverPerson = { initial: string; gradientKey: 'A' | 'B' };
+
+export type CoverInlineStat = { value: string; label: string };
+
+export type CoverViewModel = {
+  kicker: string; // 'RECAP · TH3, 2026'
+  titleLine1: string; // 'Tháng 3' / 'Our'
+  titleLine2: string; // 'của mình' / 'March'
+  coupleNamesScript: string; // 'Lu & Zu'
+  people: [CoverPerson, CoverPerson];
+  coverKicker: string; // 'Nhìn lại · 31 ngày'
+  inlineStats: [CoverInlineStat, CoverInlineStat, CoverInlineStat];
+  scrollHint: string; // 'cuộn xuống' / 'scroll'
+};
+
+// Section 01 — by the numbers
+export type ByNumbersStat = {
+  value: string;
+  label: string;
+  bgClassName: string;
+  colorClassName: string;
+  circleClassName: string;
+  size?: 'big' | 'default';
+};
+
+export type ByNumbersViewModel = {
+  kicker: string;
+  title: string;
+  stats: [ByNumbersStat, ByNumbersStat, ByNumbersStat, ByNumbersStat];
+  streak: { count: number; streakLabel: string; questionsLabel: string } | null;
+};
+
+// Section 02 — heatmap
+export type HeatmapViewModel = {
+  kicker: string;
+  title: string;
+  hint: string;
+  legendLess: string;
+  legendMore: string;
+  busiestPrefix: string;
+  momentsLabel: string;
+  data: number[];
+};
+
+// Section 03 — top moments
+export type TopMomentVM = {
+  id: string;
+  rank: 1 | 2 | 3;
+  palette: import('@/theme/palettes').PaletteKey;
+  title: string;
+  sub: string;
+};
+
+export type TopMomentsViewModel = {
+  kicker: string;
+  title: string;
+  big: TopMomentVM | null;
+  small: TopMomentVM[];
+};
+
+// Section 04 — mood (placeholder for v1, Vibes idle)
+export type MoodViewModel = {
+  kicker: string;
+  title: string;
+  body: string;
+};
+
+// Section 05 — places
+export type PlacesViewModel = {
+  kicker: string;
+  title: string;
+  places: import('./types').RecapPlace[];
+  caption: string;
+  emptyTitle: string;
+  emptyBody: string;
+  countLabel: string;
+};
+
+// Section 06 — top question
+export type TopQuestionViewModel = {
+  kicker: string;
+  title: string;
+  card: {
+    text: string;
+    meta: string;
+    initialA: string;
+    initialB: string;
+  } | null;
+  emptyBody: string;
+};
+
+// Section 07 — letter highlight
+export type LetterHighlightViewModel = {
+  kicker: string;
+  title: string;
+  card: {
+    id: string;
+    kicker: string;
+    title: string;
+    excerpt: string;
+    ctaLabel: string;
+  } | null;
+  emptyBody: string;
+};
+
+// Section 08 — firsts list
+export type FirstsViewModel = {
+  kicker: string;
+  title: string;
+  items: import('./types').RecapFirst[];
+  emptyBody: string;
+  tagLabel: string;
+};
+
+// Section 09 — closing note (renders even when other sections are sparse)
+export type ClosingViewModel = {
+  kicker: string;
+  title: string;
+  body: string;
+  signature: string;
+  initialA: string;
+  initialB: string;
+};
+
+// Bottom actions row
+export type ActionsViewModel = {
+  shareLabel: string;
+  shareSubLabel?: string;
+  saveBookLabel: string;
+  onShare: () => void;
+  onSaveBook: () => void;
+};
+
+export type MonthlyRecapViewModel = {
+  stage: MonthlyRecapStage;
+  monthStr: string;
+  data: MonthlyRecapResponse | null;
+  errorMessage: string | null;
+  cover: CoverViewModel | null;
+  // Sections 01-04 (T453). 05-09 + actions (T454).
+  byNumbers: ByNumbersViewModel | null;
+  heatmap: HeatmapViewModel | null;
+  topMoments: TopMomentsViewModel | null;
+  mood: MoodViewModel;
+  places: PlacesViewModel | null;
+  topQuestion: TopQuestionViewModel | null;
+  letterHighlight: LetterHighlightViewModel | null;
+  firsts: FirstsViewModel | null;
+  closing: ClosingViewModel | null;
+  actions: ActionsViewModel | null;
+  closeLabel: string;
+  loadingLabel: string;
+  emptyTitle: string;
+  emptyBody: string;
+  errorTitle: string;
+  errorBody: string;
+  retryLabel: string;
+  refresh: () => void;
+  onClose: () => void;
+};
+
+// Compact integer formatter for the inline stat trio (cover) — keeps the
+// 3-cell strip fitting in a portrait-width card. Numbers ≥ 1000 collapse to
+// "1.2k" / "10k". Mirrors the prototype which hardcoded "2.1k" for words.
+function formatCompactNumber(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 10_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  return `${Math.round(n / 1000)}k`;
+}
+
+export function useMonthlyRecapViewModel(): MonthlyRecapViewModel {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ month?: string | string[] }>();
+  const { t, i18n } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+
+  const requestedMonth = useMemo(() => {
+    const raw = Array.isArray(params.month) ? params.month[0] : params.month;
+    return isValidMonthStr(raw) ? raw : previousMonthStr();
+  }, [params.month]);
+
+  const [stage, setStage] = useState<MonthlyRecapStage>('loading');
+  const [data, setData] = useState<MonthlyRecapResponse | null>(null);
+  const [partner, setPartner] = useState<CoupleUserLite | null>(null);
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  // Recap fetch is the gating call — couple lookup runs alongside but its
+  // failure (or missing partner for solo accounts) doesn't push the stage to
+  // error. Cover degrades gracefully: solo gets one initial.
+  useEffect(() => {
+    let cancelled = false;
+    setStage('loading');
+    setErrorMessage(null);
+    Promise.all([
+      apiClient.get<MonthlyRecapResponse>(`/api/recap/monthly?month=${requestedMonth}`),
+      apiClient.get<CoupleLite>('/api/couple').catch(() => null),
+    ])
+      .then(([res, couple]) => {
+        if (cancelled) return;
+        setData(res);
+        setCoupleId(couple?.id ?? null);
+        if (couple && user) {
+          const other = couple.users.find((u) => u.id !== user.id) ?? null;
+          setPartner(other);
+        } else {
+          setPartner(null);
+        }
+        // Empty = no moments AND no letters AND no daily Q answered. Cover
+        // still renders (gradient is the welcome) but body sections are
+        // suppressed via the empty stage.
+        const isEmpty =
+          res.moments.count === 0 &&
+          res.loveLetters.sent + res.loveLetters.received === 0 &&
+          res.questions.count === 0;
+        setStage(isEmpty ? 'empty' : 'ready');
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        if (err instanceof ApiError) setErrorMessage(err.message);
+        else setErrorMessage(String(err));
+        setStage('error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [requestedMonth, reloadKey, user]);
+
+  const refresh = useCallback(() => setReloadKey((k) => k + 1), []);
+  const onClose = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)');
+  }, [router]);
+
+  // Cover is built from whatever data we have — even on error/loading we
+  // still want the gradient hero to show, so cover falls back to placeholder
+  // numbers when data is missing.
+  const cover = useMemo<CoverViewModel | null>(() => {
+    const md = describeMonth(requestedMonth);
+    const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+
+    const period = isVi ? md.formatted.vi : md.formatted.en;
+
+    const titleLine1 = t('recap.monthly.cover.titleLine1', {
+      n: md.monthNumber,
+      name: isVi ? md.monthNameVi : md.monthNameEn,
+    });
+    const titleLine2 = t('recap.monthly.cover.titleLine2', {
+      n: md.monthNumber,
+      name: isVi ? md.monthNameVi : md.monthNameEn,
+    });
+
+    const myName = user?.name ?? null;
+    const partnerName = partner?.name ?? null;
+    const coupleNamesScript =
+      [myName, partnerName].filter(Boolean).join(' & ') || '·';
+
+    const people: [CoverPerson, CoverPerson] = [
+      { initial: nameInitial(myName), gradientKey: 'A' },
+      { initial: nameInitial(partnerName), gradientKey: 'B' },
+    ];
+
+    const days =
+      data && data.startDate && data.endDate
+        ? Math.max(
+            1,
+            Math.round(
+              (Date.parse(data.endDate) - Date.parse(data.startDate)) /
+                (24 * 60 * 60 * 1000),
+            ) + 1,
+          )
+        : new Date(md.year, md.monthNumber, 0).getDate();
+
+    const coverKicker = t('recap.monthly.cover.coverKicker', { days });
+
+    const momentsN = data?.moments.count ?? 0;
+    const lettersN =
+      (data?.loveLetters.sent ?? 0) + (data?.loveLetters.received ?? 0);
+    const tripsN = data?.trips ?? 0;
+
+    const inlineStats: CoverViewModel['inlineStats'] = [
+      {
+        value: formatCompactNumber(momentsN),
+        label: t('recap.monthly.cover.stat.moments'),
+      },
+      {
+        value: formatCompactNumber(lettersN),
+        label: t('recap.monthly.cover.stat.letters'),
+      },
+      {
+        value: formatCompactNumber(tripsN),
+        label: t('recap.monthly.cover.stat.trips'),
+      },
+    ];
+
+    const scrollHint = t('recap.monthly.cover.scrollHint');
+
+    return {
+      kicker: t('recap.monthly.cover.kicker', { period }),
+      titleLine1,
+      titleLine2,
+      coupleNamesScript,
+      people,
+      coverKicker,
+      inlineStats,
+      scrollHint,
+    };
+  }, [requestedMonth, i18n.language, t, user, partner, data]);
+
+  // ─── Section 01 — by the numbers ──────────────────────────────────────
+  const byNumbers = useMemo<ByNumbersViewModel | null>(() => {
+    if (!data) return null;
+    const totalLetters = data.loveLetters.sent + data.loveLetters.received;
+    const stats: ByNumbersViewModel['stats'] = [
+      {
+        value: formatCompactNumber(data.moments.count),
+        label: t('recap.monthly.section.byNumbers.moments'),
+        bgClassName: 'bg-primary-soft',
+        colorClassName: 'text-primary',
+        circleClassName: 'bg-primary',
+        size: 'big',
+      },
+      {
+        value: formatCompactNumber(totalLetters),
+        label: t('recap.monthly.section.byNumbers.letters'),
+        bgClassName: 'bg-secondary-soft',
+        colorClassName: 'text-secondary',
+        circleClassName: 'bg-secondary',
+      },
+      {
+        value: formatCompactNumber(data.trips),
+        label: t('recap.monthly.section.byNumbers.trips'),
+        bgClassName: 'bg-accent-soft',
+        colorClassName: 'text-accent',
+        circleClassName: 'bg-accent',
+      },
+      {
+        value: formatCompactNumber(data.words.count),
+        label: t('recap.monthly.section.byNumbers.words'),
+        bgClassName: 'bg-primary-soft',
+        colorClassName: 'text-primary-deep',
+        circleClassName: 'bg-primary-deep',
+      },
+    ];
+
+    const streak = data.streak.current > 0
+      ? {
+          count: data.streak.current,
+          streakLabel: t('recap.monthly.section.byNumbers.daysStreak'),
+          questionsLabel: t('recap.monthly.section.byNumbers.questions', {
+            count: data.questions.count,
+          }),
+        }
+      : null;
+
+    return {
+      kicker: '01',
+      title: t('recap.monthly.section.byNumbers.title'),
+      stats,
+      streak,
+    };
+  }, [data, t]);
+
+  // ─── Section 02 — heatmap ─────────────────────────────────────────────
+  const heatmap = useMemo<HeatmapViewModel | null>(() => {
+    if (!data) return null;
+    return {
+      kicker: '02',
+      title: t('recap.monthly.section.heatmap.title'),
+      hint: t('recap.monthly.section.heatmap.hint'),
+      legendLess: t('recap.monthly.section.heatmap.legendLess'),
+      legendMore: t('recap.monthly.section.heatmap.legendMore'),
+      busiestPrefix: t('recap.monthly.section.heatmap.busiestPrefix'),
+      momentsLabel: t('recap.monthly.section.byNumbers.moments'),
+      data: data.heatmap,
+    };
+  }, [data, t]);
+
+  // ─── Section 03 — top moments podium ──────────────────────────────────
+  const topMoments = useMemo<TopMomentsViewModel | null>(() => {
+    if (!data || data.topMoments.length === 0) return null;
+    const fmt = (m: typeof data.topMoments[number]): TopMomentVM => ({
+      id: m.id,
+      rank: 1,
+      palette: m.palette,
+      title: m.title,
+      sub: [
+        m.location,
+        m.photoCount > 0
+          ? t('recap.monthly.section.topMoments.photos', { count: m.photoCount })
+          : null,
+        m.reactionCount > 0
+          ? t('recap.monthly.section.topMoments.reactions', { count: m.reactionCount })
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    });
+    const ranked = data.topMoments.slice(0, 3).map((m, idx) => ({
+      ...fmt(m),
+      rank: (idx + 1) as 1 | 2 | 3,
+    }));
+    return {
+      kicker: '03',
+      title: t('recap.monthly.section.topMoments.title'),
+      big: ranked[0] ?? null,
+      small: ranked.slice(1),
+    };
+  }, [data, t]);
+
+  // ─── Section 04 — mood placeholder (Vibes idle, Boss directive) ──────
+  const mood: MoodViewModel = useMemo(
+    () => ({
+      kicker: '04',
+      title: t('recap.monthly.section.mood.title'),
+      body: t('recap.monthly.section.mood.placeholder'),
+    }),
+    [t],
+  );
+
+  // Cache initials for the section components that paint partner avatars.
+  const initialA = nameInitial(user?.name);
+  const initialB = nameInitial(partner?.name);
+  const isVi = i18n.language?.toLowerCase().startsWith('vi') ?? true;
+
+  // ─── Section 05 — places ──────────────────────────────────────────────
+  const places = useMemo<PlacesViewModel | null>(() => {
+    if (!data) return null;
+    const total = data.places.length;
+    const caption = total > 0
+      ? t('recap.monthly.section.places.caption', { count: total })
+      : t('recap.monthly.section.places.captionEmpty');
+    return {
+      kicker: '05',
+      title: t('recap.monthly.section.places.title'),
+      places: data.places,
+      caption,
+      emptyTitle: t('recap.monthly.section.places.emptyTitle'),
+      emptyBody: t('recap.monthly.section.places.emptyBody'),
+      countLabel: t('recap.monthly.section.places.countLabel'),
+    };
+  }, [data, t]);
+
+  // ─── Section 06 — top Q ───────────────────────────────────────────────
+  const topQuestion = useMemo<TopQuestionViewModel | null>(() => {
+    if (!data) return null;
+    if (!data.topQuestion) {
+      return {
+        kicker: '06',
+        title: t('recap.monthly.section.topQuestion.title'),
+        card: null,
+        emptyBody: t('recap.monthly.section.topQuestion.emptyBody'),
+      };
+    }
+    const text = isVi
+      ? data.topQuestion.textVi ?? data.topQuestion.text
+      : data.topQuestion.text;
+    return {
+      kicker: '06',
+      title: t('recap.monthly.section.topQuestion.title'),
+      card: {
+        text: `“${text}”`,
+        meta: t('recap.monthly.section.topQuestion.meta', {
+          count: data.topQuestion.count,
+        }),
+        initialA,
+        initialB,
+      },
+      emptyBody: t('recap.monthly.section.topQuestion.emptyBody'),
+    };
+  }, [data, t, isVi, initialA, initialB]);
+
+  // ─── Section 07 — letter highlight ────────────────────────────────────
+  const letterHighlight = useMemo<LetterHighlightViewModel | null>(() => {
+    if (!data) return null;
+    if (!data.letterHighlight) {
+      return {
+        kicker: '07',
+        title: t('recap.monthly.section.letterHighlight.title'),
+        card: null,
+        emptyBody: t('recap.monthly.section.letterHighlight.emptyBody'),
+      };
+    }
+    const lh = data.letterHighlight;
+    const dateLabel = lh.deliveredAt
+      ? new Date(lh.deliveredAt).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+          day: '2-digit',
+          month: '2-digit',
+        })
+      : '';
+    const kickerStr = t('recap.monthly.section.letterHighlight.kicker', {
+      sender: lh.senderName,
+      date: dateLabel,
+    });
+    return {
+      kicker: '07',
+      title: t('recap.monthly.section.letterHighlight.title'),
+      card: {
+        id: lh.id,
+        kicker: kickerStr,
+        title: lh.title,
+        excerpt: lh.excerpt,
+        ctaLabel: t('recap.monthly.section.letterHighlight.cta'),
+      },
+      emptyBody: t('recap.monthly.section.letterHighlight.emptyBody'),
+    };
+  }, [data, t, isVi]);
+
+  // ─── Section 08 — firsts ──────────────────────────────────────────────
+  const firsts = useMemo<FirstsViewModel | null>(() => {
+    if (!data) return null;
+    return {
+      kicker: '08',
+      title: t('recap.monthly.section.firsts.title'),
+      items: data.firsts,
+      emptyBody: t('recap.monthly.section.firsts.emptyBody'),
+      tagLabel: t('recap.monthly.section.firsts.tagLabel'),
+    };
+  }, [data, t]);
+
+  // ─── Section 09 — closing note ────────────────────────────────────────
+  const closing = useMemo<ClosingViewModel | null>(() => {
+    if (!data) return null;
+    const md = describeMonth(requestedMonth);
+    const partnerName = partner?.name ?? null;
+    const period = isVi ? md.formatted.vi : md.formatted.en;
+    const signature = partnerName
+      ? `${user?.name ?? '·'} & ${partnerName} · ${period}`
+      : `${user?.name ?? '·'} · ${period}`;
+    // Title varies by locale and partner presence.
+    const title = partnerName
+      ? t('recap.monthly.section.closing.titleWithPartner', { partner: partnerName })
+      : t('recap.monthly.section.closing.titleSolo');
+    return {
+      kicker: t('recap.monthly.section.closing.kicker'),
+      title,
+      body: t('recap.monthly.section.closing.body'),
+      signature,
+      initialA,
+      initialB,
+    };
+  }, [data, t, requestedMonth, isVi, user, partner, initialA, initialB]);
+
+  // ─── Bottom actions ───────────────────────────────────────────────────
+  const onShare = useCallback(async () => {
+    if (!coupleId) return;
+    const shareUrl = `${env.appBaseUrl.replace(/\/$/, '')}/recap/${coupleId}/${requestedMonth}`;
+    try {
+      await Clipboard.setStringAsync(shareUrl);
+      Alert.alert(
+        t('recap.monthly.actions.shareSuccessTitle'),
+        t('recap.monthly.actions.shareSuccessBody'),
+      );
+    } catch {
+      Alert.alert(
+        t('recap.monthly.actions.shareErrorTitle'),
+        t('recap.monthly.actions.shareErrorBody'),
+      );
+    }
+  }, [coupleId, requestedMonth, t]);
+
+  const onSaveBook = useCallback(() => {
+    Alert.alert(
+      t('recap.monthly.actions.saveBookTitle'),
+      t('recap.monthly.actions.saveBookBody'),
+    );
+  }, [t]);
+
+  const actions = useMemo<ActionsViewModel | null>(() => {
+    if (!data) return null;
+    return {
+      shareLabel: partner?.name
+        ? t('recap.monthly.actions.shareLabel', { partner: partner.name })
+        : t('recap.monthly.actions.shareLabelSolo'),
+      saveBookLabel: t('recap.monthly.actions.saveBookLabel'),
+      onShare,
+      onSaveBook,
+    };
+  }, [data, partner, t, onShare, onSaveBook]);
+
+  return {
+    stage,
+    monthStr: requestedMonth,
+    data,
+    errorMessage,
+    cover,
+    byNumbers,
+    heatmap,
+    topMoments,
+    mood,
+    places,
+    topQuestion,
+    letterHighlight,
+    firsts,
+    closing,
+    actions,
+    closeLabel: t('recap.monthly.closeLabel'),
+    loadingLabel: t('recap.monthly.loading'),
+    emptyTitle: t('recap.monthly.empty.title'),
+    emptyBody: t('recap.monthly.empty.body'),
+    errorTitle: t('recap.monthly.error.title'),
+    errorBody: t('recap.monthly.error.body'),
+    retryLabel: t('recap.monthly.error.retry'),
+    refresh,
+    onClose,
+  };
+}

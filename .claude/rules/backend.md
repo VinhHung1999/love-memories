@@ -157,7 +157,7 @@ non-VN couples, swap to `Intl.DateTimeFormat` with the requested zone.
 APNS_KEY_PATH=/Users/.../AuthKey.p8     # absolute path to .p8
 APNS_KEY_ID=<10-char Key ID from filename AuthKey_<id>.p8>
 APNS_TEAM_ID=DHGY59PZWW
-APNS_BUNDLE_ID=com.hungphu.memoura
+APNS_BUNDLE_ID=com.hungphu.memoura       # per-flavor: see "dual flavor" rule below
 APNS_PRODUCTION=true                    # match IPA build type, NOT BE env!
 FIREBASE_SERVICE_ACCOUNT_JSON='{...}'   # web push fallback only
 ```
@@ -166,6 +166,13 @@ FIREBASE_SERVICE_ACCOUNT_JSON='{...}'   # web push fallback only
 - Ad-hoc / TestFlight / Release IPA users install → `APNS_PRODUCTION=true` even on dev BE
 - Xcode debug build (developer "Run" only) → `APNS_PRODUCTION=false`
 - Mismatch returns `BadDeviceToken` 400 silently — push never lands.
+
+**`APNS_BUNDLE_ID` rule (Sprint 67 T449 — dual flavor):** matches the IPA's
+bundle identifier exactly, NOT the BE environment.
+- Prod BE serves the prod-flavor app (`com.hungphu.memoura`) → `APNS_BUNDLE_ID=com.hungphu.memoura`.
+- Dev BE serves the dev-flavor app (`com.hungphu.memoura.dev`) → `APNS_BUNDLE_ID=com.hungphu.memoura.dev`.
+- Mismatch returns `BadDeviceToken` 400 silently. After every `deploy up`
+  re-apply this env var (see "deploy CLI clobbers `.env`" rule below).
 
 **Mobile token format:** `getDevicePushTokenAsync()` on iOS returns RAW APNs hex token (64 chars). NOT compatible with Firebase Admin `admin.messaging().send({ token })` (needs FCM registration token). Sprint 65 D75 swap from Firebase Admin → node-apn direct because of this.
 

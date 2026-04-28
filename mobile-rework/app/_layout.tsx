@@ -158,6 +158,18 @@ export default function RootLayout() {
       if (!link) return;
       const letterMatch = link.match(/^\/letters\/([\w-]+)$/);
       const momentMatch = link.match(/^\/moments\/([\w-]+)$/);
+      // T455 (Sprint 67) — editorial recap lives at /recap/monthly[?month=...].
+      // Accept BOTH the new path and the legacy `/monthly-recap` (still
+      // emitted by BE CronService until B-be-monthly-recap-link-update
+      // flips it).
+      const recapMonthMatch = link.match(
+        /^\/recap\/monthly(?:\?month=(\d{4}-\d{2}))?$/,
+      );
+      // T457 (Sprint 67) — weekly recap deep-link. ISO week format
+      // YYYY-Www captured into the route param.
+      const recapWeekMatch = link.match(
+        /^\/recap\/weekly(?:\?week=(\d{4}-W\d{2}))?$/,
+      );
       if (letterMatch) {
         setTimeout(() => {
           imperativeRouter.push({
@@ -172,8 +184,32 @@ export default function RootLayout() {
             params: { id: momentMatch[1] },
           });
         }, 50);
+      } else if (recapMonthMatch) {
+        const month = recapMonthMatch[1];
+        setTimeout(() => {
+          imperativeRouter.push(
+            month
+              ? { pathname: '/recap/monthly', params: { month } }
+              : '/recap/monthly',
+          );
+        }, 50);
+      } else if (recapWeekMatch) {
+        const week = recapWeekMatch[1];
+        setTimeout(() => {
+          imperativeRouter.push(
+            week
+              ? { pathname: '/recap/weekly', params: { week } }
+              : '/recap/weekly',
+          );
+        }, 50);
       } else if (link === '/monthly-recap') {
-        setTimeout(() => imperativeRouter.push('/monthly-recap'), 50);
+        // Legacy alias — same destination, no month param (ViewModel falls
+        // back to previous full month). Drop this branch once BE flips.
+        setTimeout(() => imperativeRouter.push('/recap/monthly'), 50);
+      } else if (link === '/weekly-recap') {
+        // T457 legacy alias — BE CronService still emits this path until
+        // B-be-weekly-recap-link-update flips it.
+        setTimeout(() => imperativeRouter.push('/recap/weekly'), 50);
       } else if (link === '/notifications') {
         setTimeout(() => imperativeRouter.push('/notifications'), 50);
       } else if (link === '/daily-questions') {
@@ -183,8 +219,7 @@ export default function RootLayout() {
         setTimeout(() => imperativeRouter.push('/daily-questions'), 50);
       }
       // Unknown links no-op — better than dropping the user on a
-      // mismatched route. Recap / daily-plan links land here today
-      // since the rework has no dedicated screens for them yet.
+      // mismatched route. Daily-plan etc still land here.
     },
     [],
   );
@@ -320,6 +355,22 @@ function RootStack() {
           from DailyQCard tap on Dashboard or via push deep-link
           (`/daily-questions`). Same auth-gate skip pattern as notifications. */}
       <Stack.Screen name="daily-questions" />
+      {/* T458 (Sprint 67) — RecapArchive list (12 months + 12 weeks).
+          Reachable from Profile "Lưu trữ recap" row. Push transition. */}
+      <Stack.Screen name="recap-archive" />
+      {/* D4 (Sprint 67 hot-fix 2026-04-27) — Stories monthly + weekly
+          promoted out of `(modal)` group so `fullScreenModal` actually
+          wins (parent group's `presentation: 'modal'` would otherwise
+          force a sheet card). Same lesson as Photobooth PB5 + letter-read
+          D42 + moment-detail T386.7. */}
+      <Stack.Screen
+        name="recap/monthly/index"
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+      <Stack.Screen
+        name="recap/weekly/index"
+        options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
     </Stack>
   );
 }
@@ -395,6 +446,8 @@ function useAuthGate() {
     if (seg[0] === 'letter-read') return;
     if (seg[0] === 'notifications') return;
     if (seg[0] === 'daily-questions') return;
+    if (seg[0] === 'recap-archive') return;
+    if (seg[0] === 'recap') return;
 
     if (!onboardingComplete) {
       // Authed but onboarding incomplete: must be inside the post-auth

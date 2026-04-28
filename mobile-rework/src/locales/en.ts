@@ -54,6 +54,11 @@ const en: Resources = {
       dailyQ: 'Questions',
       recap: 'Recap',
     },
+    recapBanner: {
+      kicker: 'RECAP · {{name}}',
+      title: 'Our {{name}}',
+      sub: 'Look back at this month',
+    },
     quickAdd: 'Capture now',
     shareCode: {
       title: 'Invite your partner to Memoura',
@@ -675,6 +680,7 @@ const en: Resources = {
       appearance: 'Appearance',
       memouraPlus: 'Memoura+',
       replayTour: 'Replay tour',
+      recapArchive: 'Recap archive',
       privacy: 'Privacy Policy',
       terms: 'Terms of Service',
       version: 'Version',
@@ -863,6 +869,193 @@ const en: Resources = {
     emptyTitle: 'No question yet',
     emptyBody: 'Memoura is preparing your first question. Check back soon.',
     submitError: 'Could not send your answer. Try again.',
+  },
+  recap: {
+    monthly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        titleLine1: 'Our',
+        titleLine2: '{{name}}',
+        coverKicker: 'Looking back · {{days}} days',
+        scrollHint: 'scroll',
+        stat: {
+          moments: 'moments',
+          letters: 'letters',
+          trips: 'trips',
+        },
+      },
+      loading: 'Loading recap…',
+      section: {
+        byNumbers: {
+          title: 'By the numbers',
+          moments: 'moments',
+          letters: 'letters',
+          trips: 'trips',
+          words: 'words written',
+          daysStreak: 'day streak',
+          questions: 'Daily Q · {{count}} questions',
+        },
+        heatmap: {
+          title: 'The rhythm of our month',
+          hint: 'Not a single day without something to say',
+          legendLess: 'less',
+          legendMore: 'more',
+          busiestPrefix: 'busiest day',
+        },
+        topMoments: {
+          title: 'Three moments that stayed',
+          photos: '{{count}} photos',
+          reactions: '{{count}} hearts',
+        },
+        mood: {
+          title: 'Mood over days',
+          placeholder: "Vibes is on its way — once it's on, you'll see the five most-felt moods of the month here.",
+        },
+        places: {
+          title: 'Places we went',
+          countLabel: 'visits',
+          caption: '{{count}} places this month',
+          captionEmpty: 'No places saved this month',
+          emptyTitle: 'No footprints yet',
+          emptyBody: 'When you add a location to a moment, it will appear here.',
+        },
+        topQuestion: {
+          title: 'The question we kept asking',
+          meta: 'We asked each other {{count}} times this month',
+          emptyBody: 'No Daily Q answered this month — come back after a few replies.',
+        },
+        letterHighlight: {
+          title: 'A letter to keep',
+          kicker: 'From {{sender}} · {{date}}',
+          cta: 'Re-read it',
+          emptyBody: 'No letter delivered this month yet. Even one letter warms the whole month.',
+        },
+        firsts: {
+          title: 'First times',
+          tagLabel: 'first',
+          emptyBody: "No firsts yet this month — tag a moment with #first or #lầnđầu to surface it here.",
+        },
+        closing: {
+          kicker: 'A closing note',
+          titleWithPartner: 'Thank you, {{partner}},\nfor this month.',
+          titleSolo: 'Thank you\nfor this month.',
+          body: "The month is gone, but we're still here. In the next, I hope we steal more afternoons to just sit, no rush, no plan.",
+        },
+      },
+      actions: {
+        shareLabel: 'Send to {{partner}}',
+        shareLabelSolo: 'Share recap',
+        saveBookLabel: '📔 Save to our Book',
+        shareSuccessTitle: 'Link copied',
+        shareSuccessBody: 'Send it to your partner to look back together.',
+        shareErrorTitle: "Couldn't copy",
+        shareErrorBody: 'Something went wrong. Try again in a bit.',
+        saveBookTitle: 'Coming soon ✨',
+        saveBookBody: 'The Memory Book is on its way — Memoura is polishing it.',
+      },
+      empty: {
+        title: 'A quiet month 🐶',
+        body: 'No moments yet this month. Add one together!',
+      },
+      error: {
+        title: "Couldn't load recap",
+        body: 'Something went wrong. Try again in a bit.',
+        retry: 'Retry',
+      },
+      fallback: {
+        title: 'Switched to a month with data',
+        body: '{{requested}} had no moments — showing {{landed}} instead.',
+      },
+      closeLabel: 'Close',
+    },
+    stories: {
+      coverScrollHint: 'tap to advance',
+      topMomentCta: 'See more',
+      placesHeadline: 'We visited {{count}} places',
+      placesCaption: '{{count}} locations this period',
+      stat: {
+        moments: 'MOMENTS',
+        letters: 'LETTERS',
+        photos: 'PHOTOS SAVED',
+        questions: 'DAILY Q',
+        momentsSub: 'Each one a marker',
+      },
+      actions: {
+        save: 'Save as 30s video',
+        saveSub: 'Coming soon — turn this recap into a reel',
+        shareSub: 'Copy link for your partner',
+        detail: 'See full editorial',
+        kicker: 'Before you go…',
+        headline: 'One you might want to keep',
+        body: "Save it or send it. Want the long form? Open the editorial scroll below.",
+        signoff: 'See you next recap 🐾',
+      },
+      photoReel: {
+        headline: 'One more look',
+        caption: 'Showing {{showing}} of {{of}} photos',
+      },
+      // Sprint 67 D9 — LettersDeck stacked-cards slide labels.
+      lettersDeck: {
+        kicker: 'LETTERS · {{count}}',
+        headline: 'A pile of love letters',
+        empty: 'No letters this period…',
+      },
+    },
+    weekly: {
+      cover: {
+        kicker: 'RECAP · {{period}}',
+        titleLine1: 'This week',
+        coverKicker: 'Weekly recap',
+        scrollHint: 'scroll',
+        stat: {
+          moments: 'moments',
+          letters: 'letters',
+          questions: 'Daily Q',
+        },
+      },
+      section: {
+        byNumbers: {
+          title: 'By the numbers',
+          moments: 'moments',
+          letters: 'letters',
+          questions: 'Daily Q',
+        },
+        heatmap: {
+          title: 'This week, day by day',
+          hint: 'A small week — but worth remembering',
+          busiestPrefix: 'busiest day of the week',
+        },
+        topMoment: {
+          title: 'Moment of the week',
+          emptyBody: 'No standout moment this week. Capture one so next week has a story!',
+        },
+      },
+      closing: {
+        body: "A small week, but a warm one. Here's hoping for a few more afternoons together next week.",
+      },
+      loading: 'Loading recap…',
+      empty: {
+        title: 'A quiet week 🐶',
+        body: "No moments, letters, or Daily Qs this week. Make something together!",
+      },
+      error: {
+        title: "Couldn't load recap",
+        body: 'Something went wrong. Try again in a bit.',
+        retry: 'Retry',
+      },
+      fallback: {
+        title: 'Switched to a week with data',
+        body: '{{requested}} had no moments — showing {{landed}} instead.',
+      },
+      closeLabel: 'Close',
+    },
+  },
+  recapArchive: {
+    title: 'Recap archive',
+    introBody: 'Past 12 months + 12 weeks. Tap to open a recap.',
+    monthsTitle: 'By month',
+    weeksTitle: 'By week',
+    weekLabel: 'Week {{n}}',
   },
 };
 

@@ -1766,9 +1766,16 @@ Extract expense data from receipt photo. Multipart form: `receipt` field.
 
 ## Recap
 
+Sprint 67 (T451) extended both endpoints with new top-level keys consumed by
+the mobile-rework `MonthlyRecapScreen` / `WeeklyRecapScreen` editorial scroll
+(per `docs/design/prototype/memoura-v2/recap.jsx`). Existing keys
+(`cooking` / `foodSpots` / `datePlans` / `loveLetters` / `goalsCompleted` /
+`achievementsUnlocked`) are kept untouched so the web `MonthlyRecapPage` keeps
+working. The new keys are listed under "augment" below.
+
 ### `GET /api/recap/weekly?week=2026-W09`
 
-Weekly activity stats. Defaults to previous week.
+Weekly activity stats. Defaults to previous ISO week (Mon–Sun).
 
 **Response (200):**
 ```json
@@ -1782,17 +1789,77 @@ Weekly activity stats. Defaults to previous week.
   "datePlans": { "count": 1, "titles": [...] },
   "loveLetters": { "sent": 2, "received": 1 },
   "goalsCompleted": 4,
-  "achievementsUnlocked": [...]
+  "achievementsUnlocked": [...],
+
+  "streak":     { "current": 12, "longest": 30 },
+  "questions":  { "count": 5 },
+  "words":      { "count": 412 },
+  "trips":      1,
+  "totalPhotoCount": 14,
+  "heatmap":    [2, 1, 0, 3, 1, 2, 0],
+  "topMoments": [{
+    "id": "...", "title": "...", "date": "2026-02-25",
+    "location": "Đà Lạt",
+    "photoCount": 6, "reactionCount": 3,
+    "palette": "sunset",
+    "thumbnail": "https://cdn..../abc.jpg"
+  }],
+  "places":     [{ "name": "Đà Lạt", "latitude": 11.94, "longitude": 108.45, "count": 3 }],
+  "topQuestion": {
+    "id": "...", "text": "What made you smile today?",
+    "textVi": "Hôm nay điều gì làm em cười?", "count": 4
+  },
+  "letterHighlight": {
+    "id": "...", "title": "Em là buổi sáng…",
+    "excerpt": "Có những buổi sáng…", "senderId": "...",
+    "senderName": "Minh", "deliveredAt": "2026-02-26T01:23:45.000Z"
+  },
+  "firsts":     [{ "id": "...", "title": "Bánh canh cua Phan Rang", "date": "2026-02-24" }],
+  "moodBuckets": []
 }
 ```
+
+`heatmap` is always length **7** for weekly. Index 0 = `startDate` (Monday).
+`moodBuckets` is intentionally empty for v1 — Vibes BE schema is idle per Boss
+directive (Sprint 66). Mobile renders a placeholder card for layout consistency
+with the prototype.
 
 ---
 
 ### `GET /api/recap/monthly?month=2026-02`
 
-Monthly activity stats with photos. Defaults to previous month.
+Monthly activity stats with photos. Defaults to previous full month.
 
-Same structure as weekly plus photo arrays (moment highlights, cooking session photos, food spot photos).
+Response shape mirrors `weekly` with these differences:
+
+- `month` instead of `week`.
+- `moments.highlights` returns up to **5** entries with `photos[]` (vs. 3 + a
+  single `photoUrl` on weekly).
+- `cooking` / `foodSpots` include photo arrays for the web page.
+- `heatmap` length = **days in the requested month** (28 / 29 / 30 / 31).
+  Index 0 = day 1.
+- `topMoments` returns up to **3** entries (same shape as weekly).
+- All other augment keys (`streak` / `questions` / `words` / `trips` /
+  `totalPhotoCount` / `places` / `topQuestion` / `letterHighlight` / `firsts` /
+  `moodBuckets`) follow the weekly shape exactly.
+
+#### Augment-key derivation rules
+
+| Key               | Source                                                              |
+| ----------------- | ------------------------------------------------------------------- |
+| `streak`          | `daily_question_streaks` row for the couple (snapshot, not in-range)|
+| `questions.count` | `daily_question_responses` rows by the couple in range              |
+| `words.count`     | whitespace word count: moment titles + captions + letter titles + letter content + Daily Q answers |
+| `trips`           | alias of `datePlans.count`                                          |
+| `totalPhotoCount` | moment photos + letter photos in range                              |
+| `heatmap[i]`      | moment count where day-index `i` (range start = index 0)            |
+| `topMoments`      | rank by `photos.length + reactions.count` desc, tie → date desc; top 3 (monthly) / top 1 (weekly UI uses `[0]`) |
+| `places`          | dedupe moments by `location` (case-insensitive trim); first non-null lat/lng wins; sort by count desc |
+| `topQuestion`     | `daily_question_responses` group by `questionId`, take top 1; null if no responses |
+| `letterHighlight` | longest `loveLetter.content` in range; tie → first delivered; excerpt 200 chars; null if no letters |
+| `firsts`          | moments whose `tags[]` contains `'first'` / `'lần đầu'` / `'lan dau'` (case-insensitive trim); chronological |
+| `palette`         | deterministic hash of moment id → one of `sunset / butter / night / lilac / rose / mint` |
+| `moodBuckets`     | always `[]` for v1 — Vibes feature idle (Sprint 66 Boss directive)  |
 
 ---
 
