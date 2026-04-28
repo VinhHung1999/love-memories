@@ -1,56 +1,71 @@
-import { useRouter } from 'expo-router';
+import { CommonActions } from '@react-navigation/native';
+import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
-// Sprint 60 T286 — final commit screen. Tap-to-enter:
-//   1. PATCH /api/auth/me/onboarding-complete — T301 server-side commit so a
-//      re-login on a fresh install skips the wizard (replaces the ad-hoc
-//      useOnboardingResume couple-probe).
-//   2. setOnboardingComplete(true) — flip local gate for instant navigation.
-//   3. router.replace('/(tabs)') — useAuthGate would also route us, but
-//      replacing immediately avoids a one-frame blank as the gate effect
-//      runs after the next render.
+// Sprint 60 T286 → Sprint 68 T468 — final commit screen.
 //
-// The server PATCH is best-effort. If it fails (offline), the local flag still
-// gets the user into the app; next successful /refresh or /me will reconcile.
+// Tap-to-enter sequence:
+//   1. PATCH /api/auth/me/onboarding-complete — server-side commit so a
+//      re-login on a fresh install skips the wizard.
+//   2. setOnboardingComplete(true) — flip local gate for instant nav.
+//   3. CommonActions.reset on the ROOT navigator into '(tabs)'. Replaces
+//      the Sprint 60 router.replace; per memory bugs_navigation_maintabs
+//      and the Profile/signOut pattern, replace leaves the prior native
+//      stack alive — iOS edge-swipe-back can return the user to a
+//      destructive auth screen. Reset truly drops the (auth) stack.
 //
-// T330 (Build 26): joiner reaches this screen via PairJoin → Personalize.
-// At validate-invite time the creator's name was usually still null in DB
-// (creator hadn't submitted Personalize yet), so pendingPartner.name was
-// stashed as ''. By the time joiner taps "Vào Memoura" the creator has
+// The server PATCH is best-effort — offline path still flips the local
+// flag and the next /refresh or /me reconciles.
+//
+// T330 carry-over: joiner reaches this screen via PairJoin → Personalize.
+// At validate-invite time the creator's name was usually still null in DB,
+// so pendingPartner.name was stashed as ''. By tap-time the creator has
 // almost always finished Personalize, so we re-fetch /api/couple here and
-// surface the fresh partner name. Falls back through pendingPartner → null
-// so the screen's existing fallback ("Người ấy") still wins if both fail.
+// surface the fresh partner name.
+//
+// T468 also fetches /api/settings/app_slogan once on mount so the body
+// can read couple-personal copy when the creator filled it in CoupleForm.
+// Falls back to the generic default when no slogan was set.
 
 type CoupleResponse = {
   users: { id: string; name: string | null }[];
 };
 
+type SettingResponse = { key: string; value: string | null };
+
 export function useOnboardingDoneViewModel() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const user = useAuthStore((s) => s.user);
   const pendingPartner = useAuthStore((s) => s.pendingPartner);
   const setOnboardingComplete = useAuthStore((s) => s.setOnboardingComplete);
   const setPendingPartner = useAuthStore((s) => s.setPendingPartner);
   const [entering, setEntering] = useState(false);
   const [freshPartnerName, setFreshPartnerName] = useState<string | null>(null);
+  const [slogan, setSlogan] = useState<string | null>(null);
 
-  // T330: one-shot fetch on mount (when paired). Failures are silent — the
-  // pendingPartner / fallback chain still renders something reasonable.
+  // T330 + T468: one-shot bootstrap on mount (when paired). Fetches partner
+  // name + couple slogan in parallel. Failures are silent — the partner
+  // name falls back through pendingPartner → screen-level fallback, and the
+  // slogan field defaults to null which surfaces the generic body copy.
   useEffect(() => {
     if (!user?.coupleId || !user?.id) return;
     let cancelled = false;
     (async () => {
-      try {
-        const res = await apiClient.get<CoupleResponse>('/api/couple');
-        if (cancelled) return;
-        const partner = res.users.find((u) => u.id !== user.id);
+      const [coupleResult, sloganResult] = await Promise.allSettled([
+        apiClient.get<CoupleResponse>('/api/couple'),
+        apiClient.get<SettingResponse>('/api/settings/app_slogan'),
+      ]);
+      if (cancelled) return;
+      if (coupleResult.status === 'fulfilled') {
+        const partner = coupleResult.value.users.find((u) => u.id !== user.id);
         if (partner?.name?.trim()) {
           setFreshPartnerName(partner.name);
         }
-      } catch {
-        // Network / 5xx — keep the existing pendingPartner fallback.
+      }
+      if (sloganResult.status === 'fulfilled') {
+        setSlogan(sloganResult.value.value);
       }
     })();
     return () => {
@@ -65,24 +80,34 @@ export function useOnboardingDoneViewModel() {
       try {
         await apiClient.patch('/api/auth/me/onboarding-complete', { value: true });
       } catch {
-        // Offline / transient — keep going; the server will still say false
-        // until a later sync, but the local flag unblocks the gate now.
+        // Offline / transient — keep going; the local flag unblocks the
+        // gate now and the server will sync on the next /refresh / /me.
       }
       await setOnboardingComplete(true);
-      // T316: drop the transient inviter stash now that (tabs) will fetch the
-      // real partner via /api/couple. Keeping it around would let stale name/
-      // avatar leak into any screen still reading pendingPartner.
+      // T316 carry-over: drop the transient inviter stash now that (tabs)
+      // will fetch the real partner via /api/couple.
       setPendingPartner(null);
     } finally {
-      router.replace('/(tabs)');
+      // Cross-stack reset on the root navigator. Same pattern as Profile/
+      // signOut (Sprint 61) — getParent() climbs from the (auth) Stack to
+      // the root, then drops the auth screens entirely so iOS edge-swipe
+      // can never return the user to a post-pair onboarding step.
+      const root = navigation.getParent();
+      root?.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: '(tabs)' }],
+        }),
+      );
     }
-  }, [entering, setOnboardingComplete, setPendingPartner, router]);
+  }, [entering, setOnboardingComplete, setPendingPartner, navigation]);
 
   return {
     selfName: user?.name ?? null,
     // T330: fresh fetch wins; pendingPartner is the validate-invite snapshot
     // (often empty for the joiner path). Screen handles the final fallback.
     partnerName: freshPartnerName ?? pendingPartner?.name ?? null,
+    slogan,
     entering,
     onEnter,
   };

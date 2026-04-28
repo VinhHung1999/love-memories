@@ -17,12 +17,18 @@ import { useOnboardingDoneViewModel } from './useOnboardingDoneViewModel';
 export function OnboardingDoneScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
-  const { selfName, partnerName, entering, onEnter } = useOnboardingDoneViewModel();
+  const { selfName, partnerName, slogan, entering, onEnter } = useOnboardingDoneViewModel();
 
   const self = (selfName ?? '').trim() || t('onboarding.done.titleSelfFallback');
   const partner =
     partnerName?.trim() || t('onboarding.done.titlePartnerFallback');
   const names = `${self} & ${partner}`;
+  // T468: render slogan if the creator filled one in CoupleForm; else
+  // fall back to the generic onboarding-done body copy.
+  const trimmedSlogan = slogan?.trim() ?? '';
+  const body = trimmedSlogan
+    ? t('onboarding.done.bodyWithSlogan', { slogan: trimmedSlogan })
+    : t('onboarding.done.body');
 
   return (
     <View className="flex-1">
@@ -46,7 +52,7 @@ export function OnboardingDoneScreen() {
             {t('onboarding.done.title', { names })}
           </Text>
           <Text className="mt-5 font-body text-white/85 text-[15px] leading-[22px] max-w-[320px]">
-            {t('onboarding.done.body')}
+            {body}
           </Text>
         </View>
 

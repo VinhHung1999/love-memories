@@ -638,6 +638,7 @@ const en: Resources = {
       titleSelfFallback: 'you',
       titlePartnerFallback: 'them',
       body: 'This is where you\u2019ll keep what you don\u2019t want to forget. Start with your first little moment.',
+      bodyWithSlogan: '{{slogan}} \u2014 start with your first little moment.',
       cta: 'Enter Memoura',
       finishing: 'Entering\u2026',
     },

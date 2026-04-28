@@ -669,6 +669,7 @@ const vi = {
       titleSelfFallback: 'mình',
       titlePartnerFallback: 'người ấy',
       body: 'Đây sẽ là nơi giữ lại những gì hai đứa không muốn quên. Bắt đầu bằng khoảnh khắc đầu tiên nhé.',
+      bodyWithSlogan: '{{slogan}} — bắt đầu bằng khoảnh khắc đầu tiên nhé.',
       cta: 'Vào Memoura',
       finishing: 'Đang vào…',
     },
