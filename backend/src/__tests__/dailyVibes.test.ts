@@ -1,7 +1,14 @@
-// Sprint 66 T435 — DailyVibe service tests against real dev Postgres.
-// Same Date-only fake-timers pattern as dailyQuestionStreak tests so the
-// VN-midnight rollover scenario uses controlled clock without polluting
-// Prisma's internal pollers.
+// Sprint 66 T435 — DailyVibe service tests.
+// Phase 1B (Boss directive 2026-04-28) — mocked via prismock per the
+// "tests must not touch a real DB" rule. Same Date-only fake-timers
+// pattern as dailyQuestionStreak tests so the VN-midnight rollover
+// scenario still uses a controlled clock.
+jest.mock('../utils/prisma', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismockClient } = require('prismock');
+  const instance = new PrismockClient();
+  return { __esModule: true, default: instance };
+});
 
 import prisma from '../utils/prisma';
 import { getTodayVibe, setTodayVibe, VIBE_KEYS } from '../services/DailyVibeService';

@@ -1,3 +1,13 @@
+// Phase 1B (Boss directive 2026-04-28) — mock Prisma via prismock so
+// this suite never opens a real Postgres connection. See api.test.ts
+// for the full incident write-up.
+jest.mock('../utils/prisma', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismockClient } = require('prismock');
+  const instance = new PrismockClient();
+  return { __esModule: true, default: instance };
+});
+
 import request from 'supertest';
 import app from '../index';
 import prisma from '../utils/prisma';
@@ -17,22 +27,8 @@ const NEW_PASSWORD = 'brand-new-pass-456';
 let userId: string;
 let googleOnlyUserId: string;
 
-async function cleanup() {
-  const ids = await prisma.user.findMany({
-    where: { email: { in: [RESET_EMAIL, RESET_GOOGLE_EMAIL] } },
-    select: { id: true },
-  });
-  if (ids.length) {
-    const list = ids.map((u) => u.id);
-    await prisma.refreshToken.deleteMany({ where: { userId: { in: list } } });
-    await prisma.passwordReset.deleteMany({ where: { userId: { in: list } } });
-    await prisma.user.deleteMany({ where: { id: { in: list } } });
-  }
-}
-
+// Prismock starts empty — no cleanup needed.
 beforeAll(async () => {
-  await cleanup();
-
   const passwordUser = await prisma.user.create({
     data: {
       email: RESET_EMAIL,
@@ -54,7 +50,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await cleanup();
   await prisma.$disconnect();
 });
 

@@ -188,6 +188,8 @@ node-apn emits `{ link, type, aps: {...} }` JSON. iOS expo-notifications stores 
 
 **Test failure on `deploy up prod`** — pre-deploy tests run with shell-inherited `DATABASE_URL` from PO test scripts (e.g., `DATABASE_URL="postgresql+asyncpg://..."` from sibling Python project). Fix: `unset DATABASE_URL` before `deploy up memoura-api --env prod`. Memory has prior lesson `feedback_shell_database_url_overrides_dotenv`.
 
+**`dotenv-cli` devDep miss → 502 on prod boot (Sprint 67 D-cycle)** — `deploy up` runs `npm install --production` in `~/deployments/<env>/memoura-api/`, which skips `devDependencies`. Our `npm start` script invokes `dotenv -e .env -- node dist/index.js`. With no `dotenv-cli` in `node_modules/.bin/`, Bash PATH falls through to whatever `dotenv` binary exists on the system — most commonly the Python `python-dotenv` shim from a sibling project's venv (e.g., `~/Documents/AI_Projects/AI-teams-controller/backend/.venv/bin/dotenv`), which doesn't understand `-e` and crashes with the misleading `Error: Invalid value for '-e' / '--export': '.env' is not a valid boolean`. **Fixes (in order of preference):** (a) move `dotenv-cli` to `dependencies` so prod installs include it, (b) post-deploy `cd ~/deployments/<env>/memoura-api && npm install --no-save dotenv-cli && pm2 restart memoura-api`, or (c) inline `require('dotenv').config()` in `dist/index.js` entry to remove the external CLI dependency entirely. **Detection:** `cd ~/deployments/prod/memoura-api && which dotenv` shows the wrong path when this is biting.
+
 ## AI
 
 `xAI` calls use `grok-4-1-fast-non-reasoning` (Boss preference, not `grok-3-mini`).
@@ -199,7 +201,15 @@ OpenAI fallback in `src/services/AiService.ts`.
 - Run `npm test` after backend changes; CI won't catch what tests don't cover.
 - Re-seed after restarting `dev-api` if tests depend on seeded data: tsx watch restarts
   may lose in-memory-ish state.
-- Never mock the DB — Boss rule, run against `love_scrum_dev`.
+- **Tests mock Prisma via `prismock`.** Every test file (`src/__tests__/*.test.ts`)
+  starts with a `jest.mock('../utils/prisma', () => { ... new PrismockClient() })`
+  factory before any `import` so the entire service / controller / middleware
+  stack resolves to an in-memory client. **Never** point a test suite at a real
+  Postgres — Boss D11 directive 2026-04-28 reverses the prior "never mock the DB"
+  rule after a real-DB test run wiped prod via `deploy up --env prod` →
+  `npm test` → unscoped `deleteMany()`. Concurrency / FK / transaction
+  invariants that genuinely need real Postgres go to a future ephemeral-DB
+  CI job (backlog `B-streak-race-integration-test`), NEVER `npm test`.
 
 ## Scripts
 

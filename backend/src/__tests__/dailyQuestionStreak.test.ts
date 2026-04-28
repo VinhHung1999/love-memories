@@ -1,9 +1,20 @@
 // Sprint 66 T431 — VN-timezone + idempotent streak counter regression suite.
+// Phase 1B (Boss directive 2026-04-28) — mocked via prismock per the
+// "tests must not touch a real DB" rule. Concurrency note: prismock's
+// `$transaction(callback)` does NOT actually serialize; this suite
+// validates the streak rotation + idempotency LOGIC but no longer
+// proves real Postgres race-safety. Backlog `B-streak-race-integration-
+// test` tracks re-introducing concurrency tests via an ephemeral DB
+// container in CI (separate from `npm test`).
 //
-// All tests run against the real dev Postgres (Boss rule: never mock Prisma).
-// `jest.useFakeTimers()` + `setSystemTime()` controls `new Date()` so we can
-// exercise the VN-midnight boundary (UTC 17:00) without sleeping. Each test
-// scrubs responses + streak rows for the test coupleId before asserting.
+// `jest.useFakeTimers()` + `setSystemTime()` still controls `new Date()`
+// so the VN-midnight boundary (UTC 17:00) is exercised without sleeping.
+jest.mock('../utils/prisma', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismockClient } = require('prismock');
+  const instance = new PrismockClient();
+  return { __esModule: true, default: instance };
+});
 
 import crypto from 'crypto';
 import prisma from '../utils/prisma';
