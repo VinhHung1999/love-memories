@@ -217,6 +217,18 @@ export default function RootLayout() {
         // `daily_question_partner_answered` (BE submitAnswer realtime)
         // both ship payload.link='/daily-questions'.
         setTimeout(() => imperativeRouter.push('/daily-questions'), 50);
+      } else if (link === '/(auth)/onboarding-done') {
+        // Sprint 68 T469 — partner_joined push (T463). The creator was
+        // sitting on the Wait screen polling for the joiner; the push
+        // signals "they're in" and the tap fast-forwards to OnboardingDone.
+        // If the user has already moved past onboarding (e.g. inbox tap
+        // on a stale notification, or they reopened the app after the
+        // poll already fired the reset), the auth gate sees
+        // onboardingComplete=true and bounces them straight to (tabs).
+        // setTimeout(50) cushions warm-tap navigator timing — same shape
+        // as letters/moments/recap. Cold-start drain runs through the
+        // same dispatcher under requestAnimationFrame in the effect below.
+        setTimeout(() => imperativeRouter.push('/(auth)/onboarding-done'), 50);
       }
       // Unknown links no-op — better than dropping the user on a
       // mismatched route. Daily-plan etc still land here.
