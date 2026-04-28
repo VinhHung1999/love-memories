@@ -4,26 +4,38 @@ import { useCallback, useState } from 'react';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
-// Sprint 68 T466 — CoupleForm. The creator-only screen between PairChoice
-// and Wait. Atomic submit per T462: BE persists couple row + slogan in a
-// single transaction so the moment we leave this screen, the slogan is
-// already on the web Dashboard, the user has a coupleId, and the next
-// screen can poll for the joiner.
+// Sprint 68 T466 → D3prime (Boss build 132 prototype sync) — CoupleForm.
+// Prototype `pairing.jsx` L1103-1291 inverts the optional/required model:
+// Anniversary becomes REQUIRED (the home-screen relationship counter is
+// keyed on it), couple name + slogan are both OPTIONAL with quick-pick
+// suggestion chips. Submit gate is now `date.trim().length >= 6`.
 //
-// Flow:
-//   PairChoice (create branch)
-//     → couple-create (this screen)
-//     → POST /api/couple { name, anniversaryDate, slogan }
-//     → setSession (rotated tokens + user.coupleId)
-//     → CommonActions.reset to pair-wait
+// Joiner mode (`isJoin`) is deferred — Sprint 68 flow has joiner skip
+// CoupleForm entirely (Personalize → PairChoice → PairJoin →
+// onboarding-done). Kept the prop in the contract so future sprints can
+// re-introduce a join-side detail screen without an API rewrite.
 //
-// 409 Conflict (already paired — defensive against double-tap or stale
-// state) drops the user straight into MainTabs; the auth gate would route
-// them anyway, but the explicit reset spares the flicker.
+// Atomic submit per BE T462: BE persists couple row + slogan in one
+// transaction; we still rotate access/refresh tokens here so the next
+// /api/* call from the Wait screen has a coupleId-bearing JWT (memory
+// bugs_refresh_token_rotation Sprint 63).
 
 export const SLOGAN_MAX = 120;
 const NAME_MAX = 60;
 const DATE_RE = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+
+export const NAME_SUGGESTIONS_VI = ['Linh & Minh', 'Hai đứa nhỏ', 'Nhà mình', 'L+M'] as const;
+export const NAME_SUGGESTIONS_EN = ['Linh & Minh', 'Us two', 'Our nest', 'L+M'] as const;
+export const SLOGAN_SUGGESTIONS_VI = [
+  'còn lâu mới hết',
+  'mãi mãi là 2',
+  'một mái, hai trái tim',
+] as const;
+export const SLOGAN_SUGGESTIONS_EN = [
+  'the long way home',
+  'two of us',
+  'us, against the rest',
+] as const;
 
 type CreateCoupleResponse = {
   accessToken: string;
@@ -49,18 +61,15 @@ type CreateCoupleResponse = {
 };
 
 type FormError =
-  | { kind: 'nameRequired' }
+  | { kind: 'dateRequired' }
+  | { kind: 'dateInvalid' }
   | { kind: 'nameTooLong' }
   | { kind: 'sloganTooLong' }
-  | { kind: 'dateInvalid' }
   | { kind: 'alreadyPaired' }
   | { kind: 'network' };
 
-// Light client-side parse — BE re-parses with new Date() so we only
-// reject obvious typos here. Empty string is valid (anniversary optional).
-function parseAnniversary(input: string): string | null | 'invalid' {
+function parseAnniversary(input: string): string | 'invalid' {
   const trimmed = input.trim();
-  if (!trimmed) return null;
   const m = DATE_RE.exec(trimmed);
   if (!m) return 'invalid';
   const [, dd, mm, yyyy] = m;
@@ -77,22 +86,26 @@ export function useCoupleFormViewModel() {
   const navigation = useNavigation();
   const setSession = useAuthStore((s) => s.setSession);
 
+  const [date, setDate] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [slogan, setSlogan] = useState<string>('');
-  const [date, setDate] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<FormError | null>(null);
 
-  const canSubmit = name.trim().length > 0 && !submitting;
+  // Submit gate: anniversary is required (>=6 chars covers DD.MM.YY-style
+  // partial input; the validator below catches the actual format).
+  const canSubmit = date.trim().length >= 6 && !submitting;
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setFormError(null);
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      setFormError({ kind: 'nameRequired' });
+
+    const parsed = parseAnniversary(date);
+    if (parsed === 'invalid') {
+      setFormError({ kind: 'dateInvalid' });
       return;
     }
+    const trimmedName = name.trim();
     if (trimmedName.length > NAME_MAX) {
       setFormError({ kind: 'nameTooLong' });
       return;
@@ -102,22 +115,18 @@ export function useCoupleFormViewModel() {
       setFormError({ kind: 'sloganTooLong' });
       return;
     }
-    const parsed = parseAnniversary(date);
-    if (parsed === 'invalid') {
-      setFormError({ kind: 'dateInvalid' });
-      return;
-    }
 
     setSubmitting(true);
     try {
       const res = await apiClient.post<CreateCoupleResponse>('/api/couple', {
-        name: trimmedName,
+        // Couple name is optional in the prototype, but the BE T462 schema
+        // requires it (1-60). Fall back to a stable default if the user
+        // skipped — they can edit later in Profile. Empty submission with
+        // no fallback would 400 at the validator.
+        name: trimmedName || 'Hai đứa',
         anniversaryDate: parsed,
         slogan: trimmedSlogan ? trimmedSlogan : null,
       });
-      // Token rotation — old JWT carries coupleId:null and the next request
-      // (e.g. Wait screen polling /api/couple) would 401 without this swap.
-      // Memory bugs_refresh_token_rotation Sprint 63.
       await setSession({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
@@ -131,8 +140,6 @@ export function useCoupleFormViewModel() {
           coupleId: res.user.coupleId,
         },
       });
-      // Couple is now committed server-side — the creator must not be able
-      // to swipe back into the form and re-submit (would 409 silently).
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -141,9 +148,6 @@ export function useCoupleFormViewModel() {
       );
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        // Defensive — user already in a couple. The auth gate will route
-        // them on next render; surface the kind here so the UI can flash
-        // a copy that explains why the form bounced.
         setFormError({ kind: 'alreadyPaired' });
       } else {
         setFormError({ kind: 'network' });
@@ -151,15 +155,15 @@ export function useCoupleFormViewModel() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, name, slogan, date, setSession, navigation]);
+  }, [canSubmit, date, name, slogan, setSession, navigation]);
 
   return {
+    date,
+    setDate,
     name,
     setName,
     slogan,
     setSlogan,
-    date,
-    setDate,
     submitting,
     canSubmit,
     formError,
