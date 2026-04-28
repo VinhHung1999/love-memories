@@ -4,30 +4,34 @@ import { useCallback, useState } from 'react';
 import { ApiError, apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
-// Sprint 68 T465 — Personalize is now USER-LEVEL ONLY (Boss Q1).
-// Drops partner-name + anniversary-date inputs from Sprint 60 T286 — those
-// fields move into the new CoupleForm screen (T466), submitted only when
-// the user actually creates a couple. Personalize runs for every signed-in
-// user (creator AND joiner) before the PairChoice fork, so it can't assume
-// a coupleId exists yet.
+// Sprint 68 T465 → D1prime (Boss build 132 prototype sync) — Personalize is
+// USER-LEVEL ONLY. Submit contract: PUT /api/profile { name, color } →
+// setUser → router.push('/(auth)/pair-create'). Idempotent so back-swipe
+// + edit-and-resubmit is safe.
 //
-// Submit contract:
-//   PUT /api/profile { name, color }   (T471 — name + color in one call)
-//   → setUser refreshes the local copy with the persisted values
-//   → router.push('/(auth)/pair-create')
-//
-// T470 (Sprint 68): push (not reset) into PairChoice. PUT /api/profile is
-// idempotent so re-submit is safe — the user can edge-swipe back to
-// Personalize to edit their name / color and re-submit before committing
-// the couple. The actual commit point is CoupleForm (T466 → BE T462).
+// Prototype `pairing.jsx` L968-1100 introduced 6 named gradient styles
+// (was 4); BE T471 enum extended to match in the same patch. Photo
+// upload is no longer the hero affordance — the camera badge sits at
+// the bottom-right of the big avatar tile and fires the picker as a
+// "for later" optional, but the avatar preview itself always renders
+// gradient + initial. The photo URL still persists to authStore /
+// /api/profile/avatar so downstream screens can use it.
 
-export type ColorKey = 'primary' | 'accent' | 'secondary' | 'primaryDeep';
+export type ColorKey =
+  | 'primary'
+  | 'accent'
+  | 'secondary'
+  | 'primaryDeep'
+  | 'sunset'
+  | 'mint';
 
 export const COLOR_KEYS: readonly ColorKey[] = [
   'primary',
   'accent',
   'secondary',
   'primaryDeep',
+  'sunset',
+  'mint',
 ] as const;
 
 function isColorKey(value: string | null | undefined): value is ColorKey {
@@ -42,8 +46,6 @@ type ProfileUpdateResponse = {
   color: string | null;
 };
 
-// T314 carry-over: /api/profile/avatar returns the updated user row. Only the
-// CDN url is consumed downstream.
 type AvatarUploadResponse = {
   id: string;
   email: string | null;
@@ -64,10 +66,9 @@ export function usePersonalizeViewModel() {
   );
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<FormError | null>(null);
-  // Avatar carries over from T314 — optimistic local URI + background upload.
-  const [avatarLocalUri, setAvatarLocalUri] = useState<string | null>(
-    user?.avatarUrl ?? null,
-  );
+  // Avatar upload stays user-optional. Local URI rendered nowhere now —
+  // prototype shows gradient+initial only — but we still cache it so
+  // downstream screens (PairChoice composite, Dashboard) can show it.
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const canSubmit = nick.trim().length > 0 && !submitting;
@@ -97,12 +98,6 @@ export function usePersonalizeViewModel() {
         });
       }
 
-      // T470 (Sprint 68): push into PairChoice instead of reset. PUT
-      // /api/profile is idempotent — letting the user back-swipe and tweak
-      // name / color before committing the couple is safer than locking
-      // them out. Reset only kicks in at the actual commit points
-      // (CoupleForm submit → pair-wait, pair-join redeem → onboarding-done,
-      // OnboardingDone tap → (tabs)).
       router.push('/(auth)/pair-create');
     } catch (err) {
       if (err instanceof ApiError) {
@@ -115,8 +110,6 @@ export function usePersonalizeViewModel() {
     }
   }, [canSubmit, nick, color, setUser, router]);
 
-  // T314 carry-over — avatar picker stays user-level. Optimistic preview +
-  // background upload; submit doesn't gate on it.
   const onPickAvatar = useCallback(async () => {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -132,7 +125,6 @@ export function usePersonalizeViewModel() {
       if (res.canceled || !res.assets?.[0]) return;
       const asset = res.assets[0];
       const uri = asset.uri;
-      setAvatarLocalUri(uri);
       setFormError((prev) => (prev?.kind === 'avatarFailed' ? null : prev));
       setAvatarUploading(true);
 
@@ -150,7 +142,6 @@ export function usePersonalizeViewModel() {
         if (currentUser) {
           setUser({ ...currentUser, avatarUrl: updated.avatar });
         }
-        if (updated.avatar) setAvatarLocalUri(updated.avatar);
       } catch {
         setFormError({ kind: 'avatarFailed' });
       } finally {
@@ -170,7 +161,6 @@ export function usePersonalizeViewModel() {
     submitting,
     canSubmit,
     formError,
-    avatarLocalUri,
     avatarUploading,
     onPickAvatar,
     onSubmit,

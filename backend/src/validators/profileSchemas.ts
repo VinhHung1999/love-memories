@@ -1,13 +1,16 @@
 import { z } from 'zod';
 
-// Sprint 68 T471: color is the per-user accent token key matching mobile-rework
-// SWATCH_FROM. Stored as string to keep the column flexible if we move to hex
-// later. Nullable so the user can clear it; absence (undefined) means "don't
-// touch". Both fields optional so callers can patch one without sending both.
+// Sprint 68 T471 (Sprint 68 D1prime — Boss build 132 prototype sync):
+// `color` is the per-user accent token key matching mobile-rework's
+// avatar-style swatches. Stored as string for column flexibility. The
+// enum was extended from 4 → 6 to match the new prototype Personalize
+// grid (`pairing.jsx` L975-982): primary / accent / secondary /
+// primaryDeep + sunset (heroA→heroC) + mint (#7EC8B5→accent). Nullable
+// so the user can clear it; absence (undefined) means "don't touch".
 export const updateProfileSchema = z.object({
   name: z.string().min(1).max(60).optional(),
   color: z
-    .enum(['primary', 'accent', 'secondary', 'primaryDeep'])
+    .enum(['primary', 'accent', 'secondary', 'primaryDeep', 'sunset', 'mint'])
     .nullable()
     .optional(),
 });

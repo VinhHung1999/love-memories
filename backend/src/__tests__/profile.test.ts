@@ -85,4 +85,25 @@ describe('Sprint 68 T471 — PUT /api/profile color', () => {
     expect(res.body.name).toBe('Combo');
     expect(res.body.color).toBe('secondary');
   });
+
+  // Sprint 68 D1prime — prototype enum extended with sunset + mint.
+  it('accepts new sunset key', async () => {
+    const res = await request(app)
+      .put('/api/profile')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ color: 'sunset' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.color).toBe('sunset');
+  });
+
+  it('accepts new mint key', async () => {
+    const res = await request(app)
+      .put('/api/profile')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ color: 'mint' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.color).toBe('mint');
+  });
 });
