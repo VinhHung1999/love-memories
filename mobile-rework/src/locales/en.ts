@@ -509,17 +509,20 @@ const en: Resources = {
     },
     pairing: {
       choice: {
-        title: 'Who\u2019s with you?',
-        subtitle: 'Memoura is just for two',
+        kicker: 'just one step',
+        title: 'Who joins\nyou here?',
+        body: 'Memoura is just for two. Pick one.',
         create: {
-          title: 'Create an invite',
-          subtitle: 'Give them an 8-character code',
+          kicker: 'You start',
+          title: 'Send an invite',
+          desc: 'An 8-char code to send them.',
         },
         join: {
-          title: 'I have a code',
-          subtitle: 'Enter the code they sent you',
+          kicker: 'Have a code',
+          title: 'Enter a code',
+          desc: 'They\u2019ve already sent yours.',
         },
-        lockNote: 'Each person pairs with one other. No friends, no followers, no feed.',
+        privacy: 'One person \u2194 one person. No friends, no feed.',
       },
       invite: {
         title: 'Your pair code',

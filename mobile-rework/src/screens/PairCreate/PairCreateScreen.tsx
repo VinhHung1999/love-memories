@@ -1,68 +1,99 @@
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient, ScreenHeader } from '@/components';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { LinearGradient } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
-import { useAuthStore } from '@/stores/authStore';
 import { usePairCreateViewModel } from './usePairCreateViewModel';
 
-type PairAccent = 'primary' | 'accent';
-
-// Sprint 68 T470 — PairChoice. Two cards, single decision: Create vs Join.
-// Sprint 60's invite-state UI (existing code + QR + Share + Regenerate) is
-// gone — couple creation flow runs through T466 CoupleForm now. The screen
-// stays on the route name `pair-create` to avoid breaking deep-links and
-// gate redirects; the React component is conceptually PairChoice.
+// Sprint 68 D2prime — PairChoice 1:1 with prototype `pairing.jsx` L5-162.
+// Soft heroA → bg wash (height 320, opacity 0.35), standalone back-circle
+// in place of ScreenHeader, hero text block (Dancing-Script kicker +
+// display-italic title), then two PairOptionCards: primary (Create) is a
+// gradient hero with envelope icon and white text; secondary (Join) is
+// a surface card with keypad-dots icon. Quiet privacy line at bottom.
 
 export function PairCreateScreen() {
   const { t } = useTranslation();
-  const userName = useAuthStore((s) => s.user?.name ?? null);
+  const c = useAppColors();
+  const router = useRouter();
   const { onCreate, onJoin } = usePairCreateViewModel();
-  const initial = (userName?.trim()?.charAt(0) ?? 'L').toUpperCase();
 
   return (
     <View className="flex-1 bg-bg">
-      <TopWash />
+      <View pointerEvents="none" className="absolute top-0 left-0 right-0 h-[320px] opacity-[0.35]">
+        <LinearGradient
+          colors={[c.heroA, c.bg]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          className="absolute inset-0"
+        />
+      </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {/* T294 carry-over: no back. Once the user has typed in their
-            profile and reached the chooser, popping back to Personalize
-            is allowed via the navigator gesture (T470 push, not reset),
-            so the header itself doesn't surface a back button. */}
-        <ScreenHeader
-          title={t('onboarding.pairing.choice.title')}
-          subtitle={t('onboarding.pairing.choice.subtitle')}
-        />
-
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <PairedHeartsComposite initial={initial} />
+          <View className="px-6 h-14 flex-row items-center">
+            <Pressable
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+              hitSlop={8}
+              className="w-9 h-9 rounded-full bg-surface border border-line items-center justify-center active:opacity-80"
+            >
+              <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M15 6l-6 6 6 6"
+                  stroke={c.ink}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </Pressable>
+          </View>
 
-          <View className="px-5 pt-4 pb-10">
-            <PairOption
-              accent="primary"
-              icon="✉"
+          <View className="px-7 pt-5">
+            <Text className="font-script text-[22px] leading-[22px]" style={{ color: c.primary }}>
+              {t('onboarding.pairing.choice.kicker')}
+            </Text>
+            <Text
+              className="mt-2 font-displayItalic text-ink text-[38px] leading-[40px]"
+              style={{ letterSpacing: -0.025 * 38 }}
+            >
+              {t('onboarding.pairing.choice.title')}
+            </Text>
+            <Text className="mt-2.5 font-body text-ink-soft text-[13.5px] leading-[20px] max-w-[300px]">
+              {t('onboarding.pairing.choice.body')}
+            </Text>
+          </View>
+
+          <View className="px-6 pt-7">
+            <PairOptionCard
+              primary
+              kicker={t('onboarding.pairing.choice.create.kicker')}
               title={t('onboarding.pairing.choice.create.title')}
-              subtitle={t('onboarding.pairing.choice.create.subtitle')}
+              desc={t('onboarding.pairing.choice.create.desc')}
               onPress={onCreate}
             />
-            <PairOption
-              accent="accent"
-              icon="⚘"
+            <View className="h-3" />
+            <PairOptionCard
+              primary={false}
+              kicker={t('onboarding.pairing.choice.join.kicker')}
               title={t('onboarding.pairing.choice.join.title')}
-              subtitle={t('onboarding.pairing.choice.join.subtitle')}
+              desc={t('onboarding.pairing.choice.join.desc')}
               onPress={onJoin}
             />
+          </View>
 
-            <View className="mt-7 flex-row items-center gap-2.5 rounded-2xl border border-line-on-surface border-dashed bg-surface-alt px-4 py-3.5">
-              <Text className="text-lg">🔒</Text>
-              <Text className="flex-1 font-body text-ink-soft text-[12.5px] leading-[18px]">
-                {t('onboarding.pairing.choice.lockNote')}
-              </Text>
-            </View>
+          <View className="px-6 pt-7 pb-9 items-center">
+            <Text className="font-body text-ink-mute text-[11.5px] leading-[18px] text-center">
+              {t('onboarding.pairing.choice.privacy')}
+            </Text>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -70,101 +101,133 @@ export function PairCreateScreen() {
   );
 }
 
-function TopWash() {
-  const c = useAppColors();
-  return (
-    <View pointerEvents="none" className="absolute top-0 left-0 right-0 h-[260px]">
-      <LinearGradient
-        colors={[c.primarySoft, c.bg]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        className="absolute inset-0"
-      />
-    </View>
-  );
-}
-
-// Sprint 68 D2 (Boss build 131 feedback) — paired-hearts letter composite,
-// 1:1 with prototype `pairing.jsx` L31-54. Two 80px circles with gradient
-// fills + white display-bold initial / "?" + a 💞 sticker centered between
-// them. Replaces the two flat lucide hearts.
-function PairedHeartsComposite({ initial }: { initial: string }) {
-  const c = useAppColors();
-  return (
-    <View className="items-center pt-3">
-      <View className="w-[180px] h-[130px]">
-        <View
-          pointerEvents="none"
-          className="absolute left-[10px] top-[20px] w-20 h-20 rounded-full overflow-hidden border-[3px] border-bg shadow-hero"
-        >
-          <LinearGradient
-            colors={[c.primary, c.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="absolute inset-0"
-          />
-          <View className="flex-1 items-center justify-center">
-            <Text className="font-displayBold text-white text-[32px]">{initial}</Text>
-          </View>
-        </View>
-        <View
-          pointerEvents="none"
-          className="absolute right-[10px] top-[30px] w-20 h-20 rounded-full overflow-hidden border-[3px] border-bg shadow-hero"
-        >
-          <LinearGradient
-            colors={[c.accent, c.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="absolute inset-0"
-          />
-          <View className="flex-1 items-center justify-center">
-            <Text className="font-displayBold text-white text-[32px]">?</Text>
-          </View>
-        </View>
-        {/* Centered 💞 — translateX -50% via -ml-3 (text glyph ≈ 24px wide
-            so half-width ≈ 12px, expressed as ml-[-12px]). */}
-        <View
-          pointerEvents="none"
-          className="absolute left-[90px] top-[55px] z-10 ml-[-12px]"
-        >
-          <Text className="text-2xl">💞</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-type PairOptionProps = {
-  accent: PairAccent;
-  icon: string;
+// PairOptionCard — primary is gradient hero (envelope), secondary is
+// surface tint card (keypad dots). Both right-chevron + left icon disc +
+// kicker / title / desc text block.
+function PairOptionCard({
+  primary,
+  kicker,
+  title,
+  desc,
+  onPress,
+}: {
+  primary: boolean;
+  kicker: string;
   title: string;
-  subtitle: string;
+  desc: string;
   onPress: () => void;
-};
-
-// Sprint 68 D2 — emoji glyph icons (✉ / ⚘) replace the lucide Heart / Users.
-// Tint background stays from the existing palette (primary / accent /22).
-function PairOption({ accent, icon, title, subtitle, onPress }: PairOptionProps) {
+}) {
   const c = useAppColors();
-  const tint = accent === 'primary' ? c.primary : c.accent;
+  const tint = primary ? c.primary : c.accent;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      hitSlop={6}
-      className="mt-3 flex-row items-center bg-surface rounded-2xl px-4 py-4 border border-line-on-surface active:opacity-90 shadow-chip"
+      hitSlop={4}
+      className="rounded-[22px] overflow-hidden flex-row items-center px-5 py-5 active:opacity-90"
+      style={
+        primary
+          ? {
+              shadowColor: c.primary,
+              shadowOpacity: 0.45,
+              shadowRadius: 22,
+              shadowOffset: { width: 0, height: 18 },
+              elevation: 8,
+            }
+          : {
+              backgroundColor: c.surface,
+              borderWidth: 1,
+              borderColor: c.line,
+              shadowColor: '#000000',
+              shadowOpacity: 0.06,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 2,
+            }
+      }
     >
+      {primary ? (
+        <View pointerEvents="none" className="absolute inset-0">
+          <LinearGradient
+            colors={[c.primary, c.heroB ?? c.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="absolute inset-0"
+          />
+        </View>
+      ) : null}
+
       <View
-        className="w-11 h-11 rounded-full items-center justify-center mr-3.5"
-        style={{ backgroundColor: tint + '22' }}
+        className="w-12 h-12 rounded-full items-center justify-center mr-4"
+        style={
+          primary
+            ? {
+                backgroundColor: 'rgba(255,255,255,0.22)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.3)',
+              }
+            : { backgroundColor: tint + '1a' }
+        }
       >
-        <Text className="text-[22px]">{icon}</Text>
+        {primary ? (
+          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+            <Rect x={3} y={6} width={18} height={13} rx={2} stroke="#FFFFFF" strokeWidth={1.8} />
+            <Path
+              d="M3 7l9 7 9-7"
+              stroke="#FFFFFF"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        ) : (
+          <Svg width={18} height={18} viewBox="0 0 18 18" fill={tint}>
+            <Circle cx={3} cy={3} r={1.6} />
+            <Circle cx={9} cy={3} r={1.6} />
+            <Circle cx={15} cy={3} r={1.6} />
+            <Circle cx={3} cy={9} r={1.6} />
+            <Circle cx={9} cy={9} r={1.6} />
+            <Circle cx={15} cy={9} r={1.6} />
+            <Circle cx={3} cy={15} r={1.6} opacity={0.4} />
+            <Circle cx={9} cy={15} r={1.6} opacity={0.4} />
+            <Circle cx={15} cy={15} r={1.6} opacity={0.4} />
+          </Svg>
+        )}
       </View>
-      <View className="flex-1">
-        <Text className="font-bodyBold text-ink text-[15px]">{title}</Text>
-        <Text className="font-body text-ink-soft text-[13px] mt-0.5">{subtitle}</Text>
+
+      <View className="flex-1 min-w-0">
+        <Text
+          className="font-script text-[16px] leading-[16px]"
+          style={{ color: primary ? 'rgba(255,255,255,0.92)' : tint }}
+        >
+          {kicker}
+        </Text>
+        <Text
+          className="mt-1 font-displayItalic text-[20px] leading-[24px]"
+          style={{
+            color: primary ? '#FFFFFF' : c.ink,
+            letterSpacing: -0.015 * 20,
+          }}
+        >
+          {title}
+        </Text>
+        <Text
+          className="mt-1 font-body text-[12.5px] leading-[17px]"
+          style={{ color: primary ? 'rgba(255,255,255,0.78)' : c.inkSoft }}
+        >
+          {desc}
+        </Text>
       </View>
-      <Text className="font-body text-ink-mute text-[18px] ml-2">›</Text>
+
+      <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M9 6l6 6-6 6"
+          stroke={primary ? 'rgba(255,255,255,0.8)' : c.inkMute}
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
     </Pressable>
   );
 }

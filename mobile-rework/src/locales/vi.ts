@@ -539,17 +539,20 @@ const vi = {
     },
     pairing: {
       choice: {
-        title: 'Cho ai nữa?',
-        subtitle: 'Memoura chỉ có hai người',
+        kicker: 'chỉ còn một bước',
+        title: 'Cho ai\nnữa, nhỉ?',
+        body: 'Memoura chỉ có hai người. Chọn một thôi.',
         create: {
+          kicker: 'Em đi trước',
           title: 'Tạo lời mời',
-          subtitle: 'Cho người ta một mã 8 ký tự',
+          desc: 'Mã 8 chữ để gửi cho người ta.',
         },
         join: {
-          title: 'Có mã rồi',
-          subtitle: 'Nhập mã từ người ta',
+          kicker: 'Có mã rồi',
+          title: 'Nhập mã',
+          desc: 'Người ta đã gửi mã cho em.',
         },
-        lockNote: 'Mỗi người chỉ ghép với một người. Không có bạn bè, không có theo dõi.',
+        privacy: 'Một người ↔ một người. Không bạn bè, không feed.',
       },
       invite: {
         title: 'Mã ghép đôi',
