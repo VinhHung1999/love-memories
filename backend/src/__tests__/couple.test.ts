@@ -217,3 +217,46 @@ describe('Sprint 68 T463 — POST /api/couple/join fires partner_joined push', (
     expect(PushService.sendMobilePushNotification).not.toHaveBeenCalled();
   });
 });
+
+describe('Sprint 68 T464 — GET /api/couple paired flag', () => {
+  it('returns paired:false when only one user is in the couple', async () => {
+    // Reuse PAIRED_COUPLE_ID's existing tests get cluttered by side-effects
+    // of T462 / T463 — build a fresh single-user couple instead.
+    const coupleId = `solo-couple-t464-${Math.random().toString(16).slice(2, 8)}`;
+    await prisma.couple.create({ data: { id: coupleId, name: 'Solo Couple T464' } });
+    const hashed = await hashPassword('pw-12345');
+    const solo = await prisma.user.create({
+      data: { email: `solo-${coupleId}@t464.test`, password: hashed, name: 'Solo User', coupleId },
+    });
+    const token = generateToken(solo.id, coupleId);
+
+    const res = await request(app)
+      .get('/api/couple')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.paired).toBe(false);
+    expect(res.body.memberCount).toBe(1);
+  });
+
+  it('returns paired:true when both partners are present', async () => {
+    const coupleId = `pair-couple-t464-${Math.random().toString(16).slice(2, 8)}`;
+    await prisma.couple.create({ data: { id: coupleId, name: 'Pair Couple T464' } });
+    const hashed = await hashPassword('pw-12345');
+    const a = await prisma.user.create({
+      data: { email: `pair-a-${coupleId}@t464.test`, password: hashed, name: 'A', coupleId },
+    });
+    await prisma.user.create({
+      data: { email: `pair-b-${coupleId}@t464.test`, password: hashed, name: 'B', coupleId },
+    });
+    const token = generateToken(a.id, coupleId);
+
+    const res = await request(app)
+      .get('/api/couple')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.paired).toBe(true);
+    expect(res.body.memberCount).toBe(2);
+  });
+});

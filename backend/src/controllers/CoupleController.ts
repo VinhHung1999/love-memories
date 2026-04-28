@@ -9,9 +9,15 @@ export const getCouple = asyncHandler(async (req: AuthRequest, res: Response) =>
   const couple = await CoupleService.getCouple(req.user!.coupleId!);
   const userId = req.user!.userId;
   const partner = couple.users.find((u) => u.id !== userId) ?? null;
+  // Sprint 68 T464: `paired` is the cleanest flag for the mobile Wait screen
+  // poll (T467) — `users.length === 2` lives client-side today and would
+  // require shipping the partial `users` array forever. Centralising the
+  // boolean here lets future BE changes (e.g. multi-couple) tweak the rule
+  // in one place.
   res.json({
     ...couple,
     memberCount: couple.users.length,
+    paired: couple.users.length === 2,
     partner: partner ? { name: partner.name, avatar: partner.avatar } : null,
   });
 });
