@@ -268,6 +268,7 @@ export function usePairJoinViewModel() {
             email: res.user.email,
             name: res.user.name,
             avatarUrl: res.user.avatar,
+            color: (res.user as { color?: string | null }).color ?? null,
             coupleId: res.user.coupleId,
           },
         });

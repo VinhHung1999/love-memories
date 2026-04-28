@@ -6,6 +6,10 @@ export type AuthUser = {
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
+  // Sprint 68 T471 — per-user accent token. Persisted alongside name on
+  // PUT /api/profile. Stored as token key string ('primary'|'accent'|
+  // 'secondary'|'primaryDeep') matching mobile theme SWATCH map.
+  color: string | null;
   coupleId: string | null;
 };
 
