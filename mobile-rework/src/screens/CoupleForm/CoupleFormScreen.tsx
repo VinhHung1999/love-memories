@@ -201,14 +201,19 @@ function CoupleRingPreview({
   const trimmedSlogan = slogan.trim();
   return (
     <View
-      className="rounded-[22px] bg-surface border border-line px-5 py-4 self-stretch"
+      className="rounded-[22px] bg-surface border border-line px-5 py-4"
       style={{
         shadowColor: '#000000',
         shadowOpacity: 0.12,
         shadowRadius: 20,
         shadowOffset: { width: 0, height: 12 },
         elevation: 3,
-        maxWidth: 340,
+        // BUG-5: pill must center horizontally inside the screen padding.
+        // `self-stretch` was overriding the parent's `items-center` and
+        // forcing full-width. Constrain min/max from prototype L1144 so
+        // the pill hugs its content but never feels squished or too wide.
+        minWidth: 260,
+        maxWidth: 320,
       }}
     >
       <View
