@@ -550,7 +550,7 @@ const vi = {
         join: {
           kicker: 'Có mã rồi',
           title: 'Nhập mã',
-          desc: 'Người ta đã gửi mã cho em.',
+          desc: 'Người ta đã gửi mã cho bạn.',
         },
         privacy: 'Một người ↔ một người. Không bạn bè, không feed.',
       },

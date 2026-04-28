@@ -102,8 +102,11 @@ export function PairCreateScreen() {
 }
 
 // PairOptionCard — primary is gradient hero (envelope), secondary is
-// surface tint card (keypad dots). Both right-chevron + left icon disc +
-// kicker / title / desc text block.
+// surface tint card (keypad dots). BUG-3 hot-fix: shadow lives on an
+// OUTER wrapper View so iOS doesn't clip it via the inner Pressable's
+// `overflow-hidden`. The Pressable owns the rounded clip + the entire
+// tap target so the chevron, icon disc, and gradient layer all forward
+// presses to the same handler.
 function PairOptionCard({
   primary,
   kicker,
@@ -120,11 +123,8 @@ function PairOptionCard({
   const c = useAppColors();
   const tint = primary ? c.primary : c.accent;
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      hitSlop={4}
-      className="rounded-[22px] overflow-hidden flex-row items-center px-5 py-5 active:opacity-90"
+    <View
+      className="rounded-[22px]"
       style={
         primary
           ? {
@@ -135,9 +135,6 @@ function PairOptionCard({
               elevation: 8,
             }
           : {
-              backgroundColor: c.surface,
-              borderWidth: 1,
-              borderColor: c.line,
               shadowColor: '#000000',
               shadowOpacity: 0.06,
               shadowRadius: 12,
@@ -146,88 +143,105 @@ function PairOptionCard({
             }
       }
     >
-      {primary ? (
-        <View pointerEvents="none" className="absolute inset-0">
-          <LinearGradient
-            colors={[c.primary, c.heroB ?? c.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="absolute inset-0"
-          />
-        </View>
-      ) : null}
-
-      <View
-        className="w-12 h-12 rounded-full items-center justify-center mr-4"
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        hitSlop={4}
+        className="rounded-[22px] overflow-hidden flex-row items-center px-5 py-5 active:opacity-90"
         style={
           primary
-            ? {
-                backgroundColor: 'rgba(255,255,255,0.22)',
+            ? null
+            : {
+                backgroundColor: c.surface,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.3)',
+                borderColor: c.line,
               }
-            : { backgroundColor: tint + '1a' }
         }
       >
         {primary ? (
-          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Rect x={3} y={6} width={18} height={13} rx={2} stroke="#FFFFFF" strokeWidth={1.8} />
-            <Path
-              d="M3 7l9 7 9-7"
-              stroke="#FFFFFF"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <View pointerEvents="none" className="absolute inset-0">
+            <LinearGradient
+              colors={[c.primary, c.heroB ?? c.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
             />
-          </Svg>
-        ) : (
-          <Svg width={18} height={18} viewBox="0 0 18 18" fill={tint}>
-            <Circle cx={3} cy={3} r={1.6} />
-            <Circle cx={9} cy={3} r={1.6} />
-            <Circle cx={15} cy={3} r={1.6} />
-            <Circle cx={3} cy={9} r={1.6} />
-            <Circle cx={9} cy={9} r={1.6} />
-            <Circle cx={15} cy={9} r={1.6} />
-            <Circle cx={3} cy={15} r={1.6} opacity={0.4} />
-            <Circle cx={9} cy={15} r={1.6} opacity={0.4} />
-            <Circle cx={15} cy={15} r={1.6} opacity={0.4} />
-          </Svg>
-        )}
-      </View>
+          </View>
+        ) : null}
 
-      <View className="flex-1 min-w-0">
-        <Text
-          className="font-script text-[16px] leading-[16px]"
-          style={{ color: primary ? 'rgba(255,255,255,0.92)' : tint }}
+        <View
+          pointerEvents="none"
+          className="w-12 h-12 rounded-full items-center justify-center mr-4"
+          style={
+            primary
+              ? {
+                  backgroundColor: 'rgba(255,255,255,0.22)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.3)',
+                }
+              : { backgroundColor: tint + '1a' }
+          }
         >
-          {kicker}
-        </Text>
-        <Text
-          className="mt-1 font-displayItalic text-[20px] leading-[24px]"
-          style={{
-            color: primary ? '#FFFFFF' : c.ink,
-            letterSpacing: -0.015 * 20,
-          }}
-        >
-          {title}
-        </Text>
-        <Text
-          className="mt-1 font-body text-[12.5px] leading-[17px]"
-          style={{ color: primary ? 'rgba(255,255,255,0.78)' : c.inkSoft }}
-        >
-          {desc}
-        </Text>
-      </View>
+          {primary ? (
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Rect x={3} y={6} width={18} height={13} rx={2} stroke="#FFFFFF" strokeWidth={1.8} />
+              <Path
+                d="M3 7l9 7 9-7"
+                stroke="#FFFFFF"
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          ) : (
+            <Svg width={18} height={18} viewBox="0 0 18 18" fill={tint}>
+              <Circle cx={3} cy={3} r={1.6} />
+              <Circle cx={9} cy={3} r={1.6} />
+              <Circle cx={15} cy={3} r={1.6} />
+              <Circle cx={3} cy={9} r={1.6} />
+              <Circle cx={9} cy={9} r={1.6} />
+              <Circle cx={15} cy={9} r={1.6} />
+              <Circle cx={3} cy={15} r={1.6} opacity={0.4} />
+              <Circle cx={9} cy={15} r={1.6} opacity={0.4} />
+              <Circle cx={15} cy={15} r={1.6} opacity={0.4} />
+            </Svg>
+          )}
+        </View>
 
-      <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M9 6l6 6-6 6"
-          stroke={primary ? 'rgba(255,255,255,0.8)' : c.inkMute}
-          strokeWidth={2.2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-    </Pressable>
+        <View pointerEvents="none" className="flex-1 min-w-0">
+          <Text
+            className="font-script text-[16px] leading-[16px]"
+            style={{ color: primary ? 'rgba(255,255,255,0.92)' : tint }}
+          >
+            {kicker}
+          </Text>
+          <Text
+            className="mt-1 font-displayItalic text-[20px] leading-[24px]"
+            style={{
+              color: primary ? '#FFFFFF' : c.ink,
+              letterSpacing: -0.015 * 20,
+            }}
+          >
+            {title}
+          </Text>
+          <Text
+            className="mt-1 font-body text-[12.5px] leading-[17px]"
+            style={{ color: primary ? 'rgba(255,255,255,0.78)' : c.inkSoft }}
+          >
+            {desc}
+          </Text>
+        </View>
+
+        <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M9 6l6 6-6 6"
+            stroke={primary ? 'rgba(255,255,255,0.8)' : c.inkMute}
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      </Pressable>
+    </View>
   );
 }
