@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
+import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   Text,
@@ -11,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { AuthBigBtn, AuthField, LinearGradient, ScreenHeader } from '@/components';
 import { useAppColors } from '@/theme/ThemeProvider';
+import { useAuthStore } from '@/stores/authStore';
 import {
   COLOR_KEYS,
   type ColorKey,
@@ -60,6 +63,10 @@ export function PersonalizeScreen() {
   const gradients = gradientFor(c);
   const [from, to] = gradients[color];
   const swatchLabel = t(`onboarding.personalize.colorNames.${color}`);
+  // BUG-2: surface the persisted avatar URL (set after successful upload)
+  // so the big tile swaps gradient + initial → photo. Reads from authStore
+  // so a freshly uploaded picker URI shows up immediately.
+  const avatarUrl = useAuthStore((s) => s.user?.avatarUrl ?? null);
 
   return (
     <View className="flex-1 bg-bg">
@@ -89,6 +96,7 @@ export function PersonalizeScreen() {
             initial={initial}
             from={from}
             to={to}
+            avatarUrl={avatarUrl}
             uploading={avatarUploading}
             disabled={submitting}
             onCameraPress={onPickAvatar}
@@ -166,12 +174,14 @@ export function PersonalizeScreen() {
   );
 }
 
-// 128×128 rounded-36 (not circle) gradient tile. The radial wash sits
+// 128×128 rounded-36 (not circle) avatar tile. Renders the uploaded photo
+// when `avatarUrl` is set; otherwise gradient + initial. Radial wash sits
 // inside the tile so the highlight stays clipped by the rounded corners.
 function BigAvatarPreview({
   initial,
   from,
   to,
+  avatarUrl,
   uploading,
   disabled,
   onCameraPress,
@@ -179,6 +189,7 @@ function BigAvatarPreview({
   initial: string;
   from: string;
   to: string;
+  avatarUrl: string | null;
   uploading: boolean;
   disabled?: boolean;
   onCameraPress: () => void;
@@ -187,40 +198,57 @@ function BigAvatarPreview({
   return (
     <View className="items-center pt-5 pb-1.5">
       <View className="w-[128px] h-[128px]">
-        <View
-          pointerEvents="none"
-          className="w-[128px] h-[128px] rounded-[36px] overflow-hidden border-4 border-bg shadow-hero"
+        <Pressable
+          onPress={disabled ? undefined : onCameraPress}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !!disabled, busy: uploading }}
+          disabled={disabled}
+          className="w-[128px] h-[128px] rounded-[36px] overflow-hidden border-4 border-bg shadow-hero active:opacity-90"
           style={{ opacity: disabled ? 0.7 : 1 }}
         >
-          <LinearGradient
-            colors={[from, to]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="absolute inset-0"
-          />
-          <Svg
-            pointerEvents="none"
-            width="100%"
-            height="100%"
-            style={{ position: 'absolute', top: 0, left: 0 }}
-          >
-            <Defs>
-              <RadialGradient id="avatarWash" cx="0.28" cy="0.22" rx="0.60" ry="0.60" fx="0.28" fy="0.22">
-                <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.5" />
-                <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-              </RadialGradient>
-            </Defs>
-            <Rect x="0" y="0" width="100%" height="100%" fill="url(#avatarWash)" />
-          </Svg>
-          <View className="flex-1 items-center justify-center">
-            <Text
-              className="font-displayBold text-white text-[64px]"
-              style={{ letterSpacing: -0.04 * 64 }}
-            >
-              {initial}
-            </Text>
-          </View>
-        </View>
+          {avatarUrl ? (
+            // BUG-2: render the uploaded photo when present so the picker
+            // result shows up immediately. Photo wins over gradient since
+            // the user explicitly chose it.
+            <Image source={{ uri: avatarUrl }} className="w-full h-full" resizeMode="cover" />
+          ) : (
+            <>
+              <LinearGradient
+                colors={[from, to]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="absolute inset-0"
+              />
+              <Svg
+                pointerEvents="none"
+                width="100%"
+                height="100%"
+                style={{ position: 'absolute', top: 0, left: 0 }}
+              >
+                <Defs>
+                  <RadialGradient id="avatarWash" cx="0.28" cy="0.22" rx="0.60" ry="0.60" fx="0.28" fy="0.22">
+                    <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.5" />
+                    <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+                  </RadialGradient>
+                </Defs>
+                <Rect x="0" y="0" width="100%" height="100%" fill="url(#avatarWash)" />
+              </Svg>
+              <View className="flex-1 items-center justify-center">
+                <Text
+                  className="font-displayBold text-white text-[64px]"
+                  style={{ letterSpacing: -0.04 * 64 }}
+                >
+                  {initial}
+                </Text>
+              </View>
+            </>
+          )}
+          {uploading ? (
+            <View className="absolute inset-0 items-center justify-center bg-black/35">
+              <ActivityIndicator color="#FFFFFF" />
+            </View>
+          ) : null}
+        </Pressable>
         <Pressable
           onPress={disabled ? undefined : onCameraPress}
           accessibilityRole="button"
@@ -249,7 +277,11 @@ function BigAvatarPreview({
 }
 
 // Avatar-style swatch. Aspect-square per grid column, rounded-16, gradient
-// + radial wash + selected double-ring. Selected check sits at top-right.
+// + radial wash. BUG-1: unselected swatches drop the border entirely
+// (prototype L1062-1063 uses a soft drop shadow only, not a border).
+// Selected = wrapper-padded double-ring (2px bg gap then 2.5px ink) + the
+// same drop shadow. Selected check is now a lucide Check inside a 14×14
+// white circle so it reads as system-grade rather than a plain "✓" glyph.
 function ColorSwatch({
   from,
   to,
@@ -265,50 +297,70 @@ function ColorSwatch({
 }) {
   const c = useAppColors();
   return (
-    <Pressable
-      onPress={disabled ? undefined : onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected, disabled }}
-      hitSlop={4}
-      className="aspect-square rounded-2xl overflow-hidden"
+    <View
+      className="aspect-square rounded-2xl"
       style={{
         opacity: disabled ? 0.7 : 1,
-        // Selected = double-ring: bg ring + ink outer ring (fakes the
-        // CSS `0 0 0 2px bg, 0 0 0 4px ink` from prototype L1062).
-        borderWidth: selected ? 4 : 0,
-        borderColor: selected ? c.ink : 'transparent',
+        // Outer ring: ink border on selected, transparent on unselected.
+        // Wrapper exists so the inner gradient tile retains its full
+        // 1×1 aspect ratio and rounded corners regardless of state.
+        padding: selected ? 2 : 0,
+        backgroundColor: selected ? c.ink : 'transparent',
       }}
     >
-      <LinearGradient
-        colors={[from, to]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="absolute inset-0"
-      />
-      <Svg
-        pointerEvents="none"
-        width="100%"
-        height="100%"
-        style={{ position: 'absolute', top: 0, left: 0 }}
+      <Pressable
+        onPress={disabled ? undefined : onPress}
+        accessibilityRole="button"
+        accessibilityState={{ selected, disabled }}
+        hitSlop={4}
+        className="w-full h-full rounded-[14px] overflow-hidden"
+        style={
+          selected
+            ? {
+                // Inner bg gap so the ink ring isn't flush with the gradient.
+                borderWidth: 2,
+                borderColor: c.bg,
+                shadowColor: '#000000',
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: 3,
+              }
+            : {
+                shadowColor: '#000000',
+                shadowOpacity: 0.08,
+                shadowRadius: 5,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 2,
+              }
+        }
       >
-        <Defs>
-          <RadialGradient id={`swatchWash-${from}-${to}`} cx="0.28" cy="0.22" rx="0.60" ry="0.60" fx="0.28" fy="0.22">
-            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.5" />
-            <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#swatchWash-${from}-${to})`} />
-      </Svg>
-      {selected ? (
-        <View className="absolute right-1 top-1 w-3.5 h-3.5 rounded-full bg-white items-center justify-center">
-          <Text
-            className="font-bodyBold text-[8px]"
-            style={{ color: c.ink }}
-          >
-            ✓
-          </Text>
-        </View>
-      ) : null}
-    </Pressable>
+        <LinearGradient
+          colors={[from, to]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+        <Svg
+          pointerEvents="none"
+          width="100%"
+          height="100%"
+          style={{ position: 'absolute', top: 0, left: 0 }}
+        >
+          <Defs>
+            <RadialGradient id={`swatchWash-${from}-${to}`} cx="0.28" cy="0.22" rx="0.60" ry="0.60" fx="0.28" fy="0.22">
+              <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.5" />
+              <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill={`url(#swatchWash-${from}-${to})`} />
+        </Svg>
+        {selected ? (
+          <View className="absolute right-1 top-1 w-3.5 h-3.5 rounded-full bg-white items-center justify-center">
+            <Check size={10} color={c.ink} strokeWidth={3} />
+          </View>
+        ) : null}
+      </Pressable>
+    </View>
   );
 }
