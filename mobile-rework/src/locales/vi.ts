@@ -617,8 +617,15 @@ const vi = {
       },
     },
     pairWait: {
+      kicker: 'đang chờ',
       title: 'Còn một người nữa',
-      body: 'Đợi người ấy ghép vào, hai đứa sẽ vào Memoura cùng nhau.',
+      body: 'Khi người ấy ghép vào, hai đứa sẽ vào Memoura cùng nhau.',
+      bodyWithSlogan:
+        '{{slogan}} — khi người ấy ghép vào, hai đứa sẽ vào Memoura cùng nhau.',
+      codeLabel: 'Mã ghép đôi',
+      copyCodeA11y: 'Sao chép mã ghép đôi',
+      copied: 'Đã sao chép',
+      cta: 'Mở Zalo gửi mã',
     },
     personalize: {
       title: 'Một chút riêng tư',

@@ -43,6 +43,14 @@ type State = Tokens & {
   // generic "người ấy" copy. Cleared on successful pair-join (the real
   // partner now lives on user.partner via /api/couple) and on clear().
   pendingPartner: { name: string; avatarUrl: string | null } | null;
+  // Sprint 68 T467 — set true after the Wait screen has fired the iOS
+  // notif-perm popup so the same install doesn't see the system prompt
+  // twice (iOS only shows it once anyway, but tracking the ask client-
+  // side keeps the prompt out of every Wait re-mount during a single
+  // session). Transient — NOT persisted to AsyncStorage. Resets to false
+  // on logout / app cold start, which is the right cadence: a fresh
+  // install gets one ask, a logout / login gets a fresh ask.
+  pushPermAsked: boolean;
   hydrated: boolean;
 };
 
@@ -69,6 +77,7 @@ type Actions = {
   setOnboardingComplete: (value: boolean) => Promise<void>;
   setPendingPairCode: (code: string | null) => void;
   setPendingPartner: (partner: { name: string; avatarUrl: string | null } | null) => void;
+  setPushPermAsked: (value: boolean) => void;
   clear: () => Promise<void>;
 };
 
@@ -107,6 +116,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
   hasSeenOnboarding: false,
   pendingPairCode: null,
   pendingPartner: null,
+  pushPermAsked: false,
   hydrated: false,
 
   hydrate: async () => {
@@ -192,6 +202,10 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
     set({ pendingPartner: partner });
   },
 
+  setPushPermAsked: (value) => {
+    set({ pushPermAsked: value });
+  },
+
   clear: async () => {
     // T288: hasSeenOnboarding persists across logout by design — only the
     // session keys are wiped. The ONBOARDED_KEY survives.
@@ -202,6 +216,7 @@ export const useAuthStore = create<State & Actions>((set, get) => ({
       onboardingComplete: false,
       pendingPairCode: null,
       pendingPartner: null,
+      pushPermAsked: false,
     });
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);

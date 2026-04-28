@@ -586,8 +586,15 @@ const en: Resources = {
       },
     },
     pairWait: {
+      kicker: 'waiting',
       title: 'One more to come',
-      body: 'Wait for them to pair in — you will enter Memoura together.',
+      body: 'When they pair in, you’ll enter Memoura together.',
+      bodyWithSlogan:
+        '{{slogan}} — when they pair in, you’ll enter Memoura together.',
+      codeLabel: 'Invite code',
+      copyCodeA11y: 'Copy invite code',
+      copied: 'Copied',
+      cta: 'Open Zalo to share',
     },
     personalize: {
       title: 'A little personal',
