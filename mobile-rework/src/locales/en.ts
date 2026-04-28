@@ -601,15 +601,20 @@ const en: Resources = {
       },
     },
     pairWait: {
-      kicker: 'waiting',
-      title: 'One more to come',
-      body: 'When they pair in, you’ll enter Memoura together.',
-      bodyWithSlogan:
-        '{{slogan}} — when they pair in, you’ll enter Memoura together.',
-      codeLabel: 'Invite code',
-      copyCodeA11y: 'Copy invite code',
+      kicker: 'send it to them',
+      title: 'Invite {{partner}}\nto our home.',
+      status: 'waiting',
+      youFallback: 'you',
+      partnerFallback: 'your person',
+      codeLabel: 'your invite code',
+      copyCode: 'Copy code',
       copied: 'Copied',
-      cta: 'Open Zalo to share',
+      shareZalo: 'Zalo',
+      shareOther: 'Share',
+      expiresHint: 'Expires in 24 hours',
+      privacy: 'Once they open the link, you’ll be paired automatically.',
+      shareMessage:
+        'Join me on Memoura ✨ Open the link: {{url}} (or enter code {{code}} in the app)',
     },
     personalize: {
       title: 'Who are you?',
