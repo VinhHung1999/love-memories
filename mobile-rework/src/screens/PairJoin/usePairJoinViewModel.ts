@@ -1,6 +1,5 @@
 import { CommonActions } from '@react-navigation/native';
 import { useCameraPermissions } from 'expo-camera';
-import * as Notifications from 'expo-notifications';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, TextInput } from 'react-native';
@@ -83,8 +82,6 @@ export function usePairJoinViewModel() {
   const params = useLocalSearchParams<{ code?: string }>();
   const setSession = useAuthStore((s) => s.setSession);
   const setPendingPartner = useAuthStore((s) => s.setPendingPartner);
-  const pushPermAsked = useAuthStore((s) => s.pushPermAsked);
-  const setPushPermAsked = useAuthStore((s) => s.setPushPermAsked);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const [cells, setCells] = useState<string[]>(emptyCells);
@@ -277,21 +274,11 @@ export function usePairJoinViewModel() {
         });
         // Sprint 68 T470 — joiner walks Personalize BEFORE pair-join in
         // the new flow, so the redeem commit goes straight to onboarding-
-        // done (skipping the Wait screen, which is creator-only by
-        // definition). Notif-perm popup fires inline before the reset so
-        // the system dialog shows on the post-redeem screen rather than
-        // racing with the celebration animation. Same authStore.pushPermAsked
-        // gate as the Wait screen (T467) — one ask per session.
-        if (!pushPermAsked) {
-          try {
-            await Notifications.requestPermissionsAsync();
-          } catch {
-            // User declining is fine — the inbox still receives rows even
-            // without permission; banner notifications are the only thing
-            // that go silent.
-          }
-          setPushPermAsked(true);
-        }
+        // done. Sprint 68 BUG-4 (Boss build 135 directive 2026-04-29):
+        // notif-perm popup is OWNED by the creator's PairWait screen — the
+        // joiner is one tap away from MainTabs and doesn't need the system
+        // dialog to fire here. Removing the prompt avoids a flash of OS
+        // chrome between "Pair up" tap and the celebration animation.
         // CommonActions.reset clears the (auth) Stack and makes
         // onboarding-done the new root entry — iOS edge-swipe can no
         // longer return the joiner to a half-undone code-entry screen.
@@ -331,13 +318,43 @@ export function usePairJoinViewModel() {
         setSubmitting(false);
       }
     },
-    [navigation, setSession, pushPermAsked, setPushPermAsked],
+    [navigation, setSession],
   );
 
   const onSubmit = useCallback(() => {
     if (!canSubmit) return;
     void submitCode(code);
   }, [canSubmit, code, submitCode]);
+
+  // Sprint 68 BUG-3 (Boss build 135 directive 2026-04-29) — auto-submit
+  // the moment the 8th cell fills. Removes the redundant "Pair up" tap:
+  // the code is fully entered, the BE will tell us in ~200ms whether it's
+  // valid, and a manual confirm step here doesn't add meaning. Any error
+  // (invalid / used / network) surfaces via formError; the user backspaces
+  // a cell to fix the typo, the effect below resets autoSubmittedRef so a
+  // fresh re-fill triggers a new submit attempt.
+  useEffect(() => {
+    if (code.length < CODE_LEN) {
+      autoSubmittedRef.current = false;
+      return;
+    }
+    if (submitting) return;
+    if (autoSubmittedRef.current) return;
+    autoSubmittedRef.current = true;
+    void submitCode(code);
+    // submitCode is intentionally excluded — its identity churns on every
+    // setSession call but the ref above is the real gate. eslint-disable
+    // matches the prefill effect at the top of this file.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, submitting]);
+
+  // Reset the auto-submit gate when a redeem actually errors so the next
+  // re-fill (after the user fixes a typo) can fire. Without this, a 400
+  // / 429 leaves autoSubmittedRef:true and the user has to manually tap
+  // — defeats the whole point of BUG-3.
+  useEffect(() => {
+    if (formError) autoSubmittedRef.current = false;
+  }, [formError]);
 
   // T289 §4 — "Scan their QR code". Camera permission is requested lazily on
   // tap (Boss preference: never prompt before user expresses intent). Three

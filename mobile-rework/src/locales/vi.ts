@@ -636,7 +636,7 @@ const vi = {
       title: 'Nhập mã\nngười ta gửi.',
       youFallback: 'bạn',
       partnerFallback: 'người ta',
-      codeLabel: 'mã sáu chữ',
+      codeLabel: 'mã tám chữ',
       altOr: 'hoặc',
       scanTitle: 'Quét mã QR',
       scanSub: 'Khi hai đứa đang đứng cạnh nhau',

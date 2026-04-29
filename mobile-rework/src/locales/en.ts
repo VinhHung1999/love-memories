@@ -605,7 +605,7 @@ const en: Resources = {
       title: 'Enter the code\nthey sent you.',
       youFallback: 'you',
       partnerFallback: 'your person',
-      codeLabel: 'eight-character code',
+      codeLabel: 'your invite code',
       altOr: 'or',
       scanTitle: 'Scan QR code',
       scanSub: 'When you’re together',

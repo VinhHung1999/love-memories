@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Camera, X } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
@@ -55,6 +56,7 @@ const HEART_PATH =
 export function PairJoinScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
+  const router = useRouter();
   const userName = useAuthStore((s) => s.user?.name ?? null);
   const {
     cells,
@@ -147,7 +149,10 @@ export function PairJoinScreen() {
           >
             {/* Glassmorphism top bar — back-circle only, no skip. */}
             <View className="px-6 h-14 flex-row items-center">
-              <BackCircle />
+              <BackCircle
+                onPress={submitting ? undefined : () => router.back()}
+                disabled={submitting}
+              />
             </View>
 
             <View className="px-7 pt-3">
@@ -428,14 +433,26 @@ export function PairJoinScreen() {
   );
 }
 
-function BackCircle() {
+function BackCircle({
+  onPress,
+  disabled,
+}: {
+  onPress?: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <View
-      className="w-9 h-9 rounded-full items-center justify-center"
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Back"
+      hitSlop={8}
+      disabled={disabled}
+      className="w-9 h-9 rounded-full items-center justify-center active:opacity-80"
       style={{
         backgroundColor: 'rgba(255,255,255,0.18)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.25)',
+        opacity: disabled ? 0.6 : 1,
       }}
     >
       <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
@@ -447,7 +464,7 @@ function BackCircle() {
           strokeLinejoin="round"
         />
       </Svg>
-    </View>
+    </Pressable>
   );
 }
 
