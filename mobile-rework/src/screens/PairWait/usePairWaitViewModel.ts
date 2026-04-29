@@ -4,7 +4,8 @@ import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import { useNavigation } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Alert, BackHandler, Platform } from 'react-native';
 import { apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -37,7 +38,7 @@ const POLL_INTERVAL_MS = 4000;
 
 export function usePairWaitViewModel() {
   const navigation = useNavigation();
-  const pushPermAsked = useAuthStore((s) => s.pushPermAsked);
+  const { t } = useTranslation();
   const setPushPermAsked = useAuthStore((s) => s.setPushPermAsked);
 
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -73,9 +74,27 @@ export function usePairWaitViewModel() {
     );
   }, [cleanup, navigation]);
 
-  // 1) Permission popup (once per session) + initial fetch + start polling.
+  // 1) Permission popup ASAP + initial fetch + start polling.
+  // Sprint 68 PW-1 (Boss build 135 directive 2026-04-29): fire the notif-
+  // perm prompt SYNCHRONOUSLY on mount before any network call so a slow
+  // /api/couple fetch can't delay the system popup off-screen. iOS still
+  // dedups internally — the OS only ever shows the dialog once per install
+  // — so dropping the authStore.pushPermAsked gate is safe and removes a
+  // re-render cycle (the gate flipped pushPermAsked which re-fired this
+  // effect). The store flag is still updated for analytics consistency.
   useEffect(() => {
     let cancelled = false;
+
+    // Fire-and-forget. Don't await — the popup is resolved by iOS on its
+    // own thread and doesn't gate the rest of the bootstrap.
+    void (async () => {
+      try {
+        await Notifications.requestPermissionsAsync();
+      } catch {
+        // Decline / unsupported / no-op iOS dedup — all silent.
+      }
+      if (!cancelled) setPushPermAsked(true);
+    })();
 
     async function bootstrap() {
       try {
@@ -100,15 +119,6 @@ export function usePairWaitViewModel() {
         // Slogan is optional — fall back to generic copy below.
       }
 
-      if (!pushPermAsked) {
-        try {
-          await Notifications.requestPermissionsAsync();
-        } catch {
-          // User declining is fine; in-app polling still works.
-        }
-        if (!cancelled) setPushPermAsked(true);
-      }
-
       if (cancelled) return;
       pollRef.current = setInterval(async () => {
         try {
@@ -126,7 +136,7 @@ export function usePairWaitViewModel() {
       cancelled = true;
       cleanup();
     };
-  }, [cleanup, goPaired, pushPermAsked, setPushPermAsked]);
+  }, [cleanup, goPaired, setPushPermAsked]);
 
   // 2) Foreground push listener — fires the moment APNs delivers the push
   // while the app is in the foreground. Handles both `data.type` (Android /
@@ -175,11 +185,52 @@ export function usePairWaitViewModel() {
   // wants it deep-linked.
   const onShareToZalo = onCopyCode;
 
+  // Sprint 68 PW-2 (Boss build 135 directive 2026-04-29) — the layout
+  // locks gestureEnabled / headerBackVisible because pairing is one-way
+  // for the *couple*. But the CREATOR personally can still bail out
+  // (e.g. signed up under the wrong account, mistyped CoupleForm) and
+  // their only escape today is the OS task switcher + force-kill. Wire
+  // the back-circle to a destructive Alert: confirm → wipe auth + reset
+  // to (auth)/welcome. Same root-navigator dispatch pattern as
+  // Profile/signOut (Sprint 61). The OnboardingDone equivalent is the
+  // gate's natural cleanup, so this is the only entry point that needs
+  // a manual exit.
+  const onBackPress = useCallback(() => {
+    Alert.alert(
+      t('onboarding.pairWait.signOutTitle'),
+      t('onboarding.pairWait.signOutBody'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('onboarding.pairWait.signOutConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            cleanup();
+            void useAuthStore.getState().clear();
+            const root = navigation.getParent();
+            root?.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: '(auth)',
+                    state: { index: 0, routes: [{ name: 'welcome' }] },
+                  },
+                ],
+              }),
+            );
+          },
+        },
+      ],
+    );
+  }, [cleanup, navigation, t]);
+
   return {
     inviteCode,
     slogan,
     copied,
     onCopyCode,
     onShareToZalo,
+    onBackPress,
   };
 }

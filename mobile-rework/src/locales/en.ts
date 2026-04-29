@@ -630,6 +630,10 @@ const en: Resources = {
       privacy: 'Once they open the link, you’ll be paired automatically.',
       shareMessage:
         'Join me on Memoura ✨ Open the link: {{url}} (or enter code {{code}} in the app)',
+      signOutA11y: 'Back to sign-in',
+      signOutTitle: 'Sign out?',
+      signOutBody: 'Leave Memoura for now? You can pair up another time.',
+      signOutConfirm: 'Sign out',
     },
     personalize: {
       title: 'Who are you?',

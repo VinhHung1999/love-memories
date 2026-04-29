@@ -661,6 +661,10 @@ const vi = {
       privacy: 'Khi người kia mở link, hai đứa sẽ tự động ghép lại.',
       shareMessage:
         'Vào Memoura cùng mình nhé ✨ Mở link: {{url}} (hoặc nhập mã {{code}} trong app)',
+      signOutA11y: 'Quay lại màn hình đăng nhập',
+      signOutTitle: 'Đăng xuất?',
+      signOutBody: 'Bạn muốn đăng xuất khỏi Memoura? Chưa ghép đôi xong cũng không sao.',
+      signOutConfirm: 'Đăng xuất',
     },
     personalize: {
       title: 'Em là ai?',

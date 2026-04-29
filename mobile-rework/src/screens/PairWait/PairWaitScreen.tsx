@@ -52,7 +52,7 @@ export function PairWaitScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
   const userName = useAuthStore((s) => s.user?.name ?? null);
-  const { inviteCode, slogan, copied, onCopyCode } = usePairWaitViewModel();
+  const { inviteCode, slogan, copied, onCopyCode, onBackPress } = usePairWaitViewModel();
 
   const codeSlots = formatCode(inviteCode);
   const userInitial = (userName?.trim()?.charAt(0) ?? '?').toUpperCase();
@@ -137,12 +137,16 @@ export function PairWaitScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} className="flex-1">
-        {/* Glassmorphism top bar — back-circle (visual; the layout locks
-            gesture and the stack has no useful pop target) + "đang chờ
-            ghép" status pill on the right. */}
+        {/* Glassmorphism top bar — back-circle now opens a destructive
+            sign-out Alert (PW-2) so the creator can bail out of an
+            accidental couple commit; status pill stays "đang chờ ghép". */}
         <View className="px-6 h-14 flex-row items-center justify-between">
-          <View
-            className="w-9 h-9 rounded-full items-center justify-center"
+          <Pressable
+            onPress={onBackPress}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboarding.pairWait.signOutA11y')}
+            hitSlop={8}
+            className="w-9 h-9 rounded-full items-center justify-center active:opacity-80"
             style={{
               backgroundColor: 'rgba(255,255,255,0.18)',
               borderWidth: 1,
@@ -158,7 +162,7 @@ export function PairWaitScreen() {
                 strokeLinejoin="round"
               />
             </Svg>
-          </View>
+          </Pressable>
           <View
             className="flex-row items-center rounded-full"
             style={{
@@ -205,7 +209,9 @@ export function PairWaitScreen() {
           </View>
 
           {/* Postcard invitation card — back layer for paper-stack feel,
-              main card with stamp + code + expires pill. */}
+              main card with code + expires pill, stamp overhanging the
+              top-right corner so it reads as a sticker pinned onto the
+              postcard rather than baked into the body. */}
           <View className="px-6 mt-7">
             <View className="relative">
               <View
@@ -221,6 +227,48 @@ export function PairWaitScreen() {
                   transform: [{ rotate: '-2deg' }],
                 }}
               />
+              {/* Stamp — sits OUTSIDE the overflow-hidden main card so the
+                  rotated rectangle can overhang the rounded corner. PW-3
+                  bumped from 56×64 inside-the-body → 72×84 overhanging. */}
+              <View
+                pointerEvents="none"
+                className="absolute items-center justify-center rounded-md overflow-hidden z-10"
+                style={{
+                  top: -8,
+                  right: -8,
+                  width: 72,
+                  height: 84,
+                  borderWidth: 2,
+                  borderColor: 'rgba(255,255,255,0.6)',
+                  borderStyle: 'dashed',
+                  transform: [{ rotate: '8deg' }],
+                  shadowColor: '#000000',
+                  shadowOpacity: 0.18,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 4,
+                }}
+              >
+                <LinearGradient
+                  colors={[c.primary, c.primaryDeep]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="absolute inset-0"
+                />
+                <Text className="text-white text-[24px] leading-[26px]">♥</Text>
+                <Text
+                  className="font-bodyBold text-white text-[10px] uppercase mt-0.5"
+                  style={{ letterSpacing: 0.8 }}
+                >
+                  memoura
+                </Text>
+                <Text
+                  className="font-bodyBold text-white/85 text-[9px] uppercase"
+                  style={{ letterSpacing: 0.54 }}
+                >
+                  2026
+                </Text>
+              </View>
               <View
                 className="rounded-[28px] overflow-hidden"
                 style={{
@@ -306,49 +354,10 @@ export function PairWaitScreen() {
                   </View>
                 </View>
 
-                {/* Body — stamp + code label + code slots + expires pill */}
-                <View className="px-6 pt-6 pb-5 items-center relative">
-                  {/* Stamp */}
-                  <View
-                    pointerEvents="none"
-                    className="absolute items-center justify-center rounded-md overflow-hidden"
-                    style={{
-                      top: 12,
-                      right: 14,
-                      width: 56,
-                      height: 64,
-                      borderWidth: 2,
-                      borderColor: 'rgba(255,255,255,0.6)',
-                      borderStyle: 'dashed',
-                      transform: [{ rotate: '8deg' }],
-                      shadowColor: '#000000',
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                      shadowOffset: { width: 0, height: 4 },
-                      elevation: 3,
-                    }}
-                  >
-                    <LinearGradient
-                      colors={[c.primary, c.primaryDeep]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      className="absolute inset-0"
-                    />
-                    <Text className="text-white text-[18px] leading-[20px]">♥</Text>
-                    <Text
-                      className="font-bodyBold text-white text-[8px] uppercase mt-0.5"
-                      style={{ letterSpacing: 0.64 }}
-                    >
-                      memoura
-                    </Text>
-                    <Text
-                      className="font-bodyBold text-white/85 text-[7px] uppercase"
-                      style={{ letterSpacing: 0.42 }}
-                    >
-                      2026
-                    </Text>
-                  </View>
-
+                {/* Body — code label + code slots + expires pill. Stamp
+                    moved out to the wrapper level (PW-3) so it can overhang
+                    the rounded corner without being clipped. */}
+                <View className="px-6 pt-6 pb-5 items-center">
                   <Text
                     className="font-script text-[20px] leading-[22px]"
                     style={{ color: c.primaryDeep }}
