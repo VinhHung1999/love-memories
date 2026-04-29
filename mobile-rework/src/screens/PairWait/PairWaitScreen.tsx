@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { LinearGradient } from '@/components';
 import { env } from '@/config/env';
@@ -208,11 +209,19 @@ export function PairWaitScreen() {
             </Text>
           </View>
 
+          {/* PW-7 (Boss build 135 directive 2026-04-29) — "đang chờ"
+              card with three-ring radar pulse. Tells the creator the
+              poll is live without leaving them staring at the postcard.
+              Radar animates with Reanimated v4 — 3 concentric rings
+              cycling 0.5 → 1.5 scale + 0.5 → 0 opacity, staggered
+              0/0.6/1.2s so they ripple outward. */}
+          <WaitingRadarCard partnerLabel={t('onboarding.pairWait.partnerFallback')} />
+
           {/* Postcard invitation card — back layer for paper-stack feel,
               main card with code + expires pill, stamp overhanging the
               top-right corner so it reads as a sticker pinned onto the
               postcard rather than baked into the body. */}
-          <View className="px-6 mt-7">
+          <View className="px-6 mt-5">
             <View className="relative">
               <View
                 pointerEvents="none"
@@ -407,6 +416,57 @@ export function PairWaitScreen() {
                     </Svg>
                     <Text className="font-bodyMedium text-[11px]" style={{ color: c.inkSoft }}>
                       {t('onboarding.pairWait.expiresHint')}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* PW-8 (Boss build 135 directive 2026-04-29) — perforated
+                    divider with bg-coloured circle cutouts on both edges
+                    that fake the ticket-stub aesthetic, followed by a real
+                    QR code (deep-link URL) + scan hint. Two affordances
+                    sharing one postcard: nominal code copy/share above,
+                    in-person QR pair below. */}
+                <PerforatedDivider bgColor={c.bg} lineColor={c.line} />
+
+                <View
+                  className="px-5 pb-5 pt-1 flex-row items-center"
+                  style={{ gap: 16 }}
+                >
+                  <View
+                    className="rounded-xl bg-white p-2"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: c.line,
+                    }}
+                  >
+                    {inviteUrl ? (
+                      <QRCode
+                        value={`https://${inviteUrl}`}
+                        size={80}
+                        color={c.ink}
+                        backgroundColor="#FFFFFF"
+                        quietZone={4}
+                        ecl="M"
+                      />
+                    ) : (
+                      <View style={{ width: 80, height: 80 }} />
+                    )}
+                  </View>
+                  <View className="flex-1 min-w-0">
+                    <Text className="font-script text-[18px] leading-[18px] text-ink-mute">
+                      {t('onboarding.pairWait.qrAltOr')}
+                    </Text>
+                    <Text
+                      className="mt-1 font-displayItalic text-ink text-[18px] leading-[21px]"
+                      style={{ letterSpacing: -0.015 * 18 }}
+                    >
+                      {t('onboarding.pairWait.qrTitle')}
+                    </Text>
+                    <Text
+                      className="mt-1.5 font-body text-[11px] leading-[15px]"
+                      style={{ color: c.inkMute }}
+                    >
+                      {t('onboarding.pairWait.qrHint')}
                     </Text>
                   </View>
                 </View>
@@ -613,6 +673,163 @@ function Sparkle({
         animatedStyle,
       ]}
     />
+  );
+}
+
+// PW-7 (Boss build 135 directive 2026-04-29) — "đang chờ" radar card.
+// Soft gradient pill with three concentric ring borders cycling outward
+// (Reanimated v4 stagger). Right-side pulsing dot + uppercase status +
+// display-italic copy + body soft tells the creator the loop is alive.
+function WaitingRadarCard({ partnerLabel }: { partnerLabel: string }) {
+  const { t } = useTranslation();
+  const c = useAppColors();
+  return (
+    <View
+      className="mx-6 mt-6 rounded-[22px] flex-row items-center px-4 py-4 overflow-hidden"
+      style={{
+        borderWidth: 1,
+        borderColor: c.line,
+        gap: 14,
+      }}
+    >
+      <View pointerEvents="none" className="absolute inset-0">
+        <LinearGradient
+          colors={[c.primarySoft, c.secondarySoft]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
+      </View>
+      <View className="w-14 h-14 items-center justify-center">
+        <RadarRing color={c.primary} delay={0} />
+        <RadarRing color={c.primary} delay={800} />
+        <RadarRing color={c.primary} delay={1600} />
+        <View
+          className="w-11 h-11 rounded-full items-center justify-center"
+          style={{
+            backgroundColor: c.surface,
+            borderWidth: 2,
+            borderColor: c.primary,
+            borderStyle: 'dashed',
+          }}
+        >
+          <Text className="font-bodyBold text-[18px]" style={{ color: c.primary }}>
+            ?
+          </Text>
+        </View>
+      </View>
+      <View className="flex-1 min-w-0">
+        <View className="flex-row items-center" style={{ gap: 6 }}>
+          <PulseDot color={c.primary} />
+          <Text
+            className="font-bodyBold text-[11px] uppercase"
+            style={{ color: c.primaryDeep, letterSpacing: 1.1 }}
+          >
+            {t('onboarding.pairWait.waitingFor', { partner: partnerLabel })}
+          </Text>
+        </View>
+        <Text
+          className="mt-1.5 font-displayItalic text-ink text-[16px] leading-[19px]"
+          style={{ letterSpacing: -0.01 * 16 }}
+        >
+          {t('onboarding.pairWait.waitingHeadline')}
+        </Text>
+        <Text
+          className="mt-1 font-body text-[12px] leading-[17px]"
+          style={{ color: c.inkSoft }}
+        >
+          {t('onboarding.pairWait.waitingBody', { partner: partnerLabel })}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function RadarRing({ color, delay }: { color: string; delay: number }) {
+  const progress = useSharedValue(0);
+  useEffect(() => {
+    progress.value = withDelay(
+      delay,
+      withRepeat(
+        withTiming(1, { duration: 2400, easing: Easing.out(Easing.ease) }),
+        -1,
+        false,
+      ),
+    );
+    return () => cancelAnimation(progress);
+  }, [progress, delay]);
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 0.5 - progress.value * 0.5,
+    transform: [{ scale: 0.5 + progress.value * 1 }],
+  }));
+  return (
+    <Animated.View
+      pointerEvents="none"
+      className="absolute rounded-full"
+      style={[
+        {
+          width: 56,
+          height: 56,
+          borderWidth: 2,
+          borderColor: color,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+// PW-8 (Boss build 135 directive 2026-04-29) — perforated divider with
+// bg-coloured circle cutouts on both edges. Sells the ticket-stub
+// aesthetic: the dashed line PLUS the cutouts = "tear here". Without
+// the circles a plain dashed line feels like underline, not perforation.
+function PerforatedDivider({
+  bgColor,
+  lineColor,
+}: {
+  bgColor: string;
+  lineColor: string;
+}) {
+  return (
+    <View className="relative" style={{ height: 18 }}>
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: 12,
+          right: 12,
+          top: '50%',
+          borderTopWidth: 1.5,
+          borderTopColor: lineColor,
+          borderStyle: 'dashed',
+          transform: [{ translateY: -0.75 }],
+        }}
+      />
+      <View
+        pointerEvents="none"
+        className="absolute rounded-full"
+        style={{
+          left: -10,
+          top: '50%',
+          width: 20,
+          height: 20,
+          backgroundColor: bgColor,
+          transform: [{ translateY: -10 }],
+        }}
+      />
+      <View
+        pointerEvents="none"
+        className="absolute rounded-full"
+        style={{
+          right: -10,
+          top: '50%',
+          width: 20,
+          height: 20,
+          backgroundColor: bgColor,
+          transform: [{ translateY: -10 }],
+        }}
+      />
+    </View>
   );
 }
 

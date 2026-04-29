@@ -661,6 +661,13 @@ const vi = {
       shareOther: 'Khác',
       expiresHint: 'Hết hạn sau 24 giờ',
       privacyFootnote: 'Mã chỉ dùng được một lần, cho một người.',
+      qrAltOr: 'hoặc',
+      qrTitle: 'Quét mã QR khi đứng cạnh nhau',
+      qrHint: 'Mở Memoura · chọn "Có mã rồi"',
+      waitingFor: 'Đang chờ {{partner}}',
+      waitingHeadline: 'Cứ để mở màn này nhé',
+      waitingBody:
+        'Khi {{partner}} nhập mã, Memoura sẽ mở cửa cho hai đứa.',
       benefitsTitle: 'Khi {{partner}} vào, hai đứa có',
       benefits: {
         moments: {

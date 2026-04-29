@@ -630,6 +630,13 @@ const en: Resources = {
       shareOther: 'Share',
       expiresHint: 'Expires in 24 hours',
       privacyFootnote: 'This code works once, for one person.',
+      qrAltOr: 'or',
+      qrTitle: 'Scan when you’re next to each other',
+      qrHint: 'Open Memoura · tap "I have a code"',
+      waitingFor: 'Waiting for {{partner}}',
+      waitingHeadline: 'Keep this screen open',
+      waitingBody:
+        'The moment {{partner}} enters the code, you’ll both step in.',
       benefitsTitle: 'Once {{partner}} joins, you both get',
       benefits: {
         moments: {
