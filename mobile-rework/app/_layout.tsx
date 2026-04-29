@@ -523,12 +523,23 @@ function useDeepLink() {
       if (!route) return;
       if (route.name === 'pair-join') {
         const code = route.params?.code;
-        const authed = !!useAuthStore.getState().accessToken;
+        const state = useAuthStore.getState();
+        const authed = !!state.accessToken;
         if (!authed) {
           // Stash + let the gate take them through the auth wizard. Don't push
           // pair-join itself — the user can't join without a JWT, and we don't
           // want a half-functional pair-join screen flashing.
-          if (code) useAuthStore.getState().setPendingPairCode(code);
+          if (code) state.setPendingPairCode(code);
+          return;
+        }
+        // Sprint 68 TB-1 (Boss build 135 directive 2026-04-29) — if the
+        // user is already onboarded (in tabs), pair deep-links are stale.
+        // Pushing /(auth)/pair-join would flash an onboarding screen
+        // before useAuthGate yanks them back to (tabs). Drop the link
+        // silently and clear any leftover pendingPairCode so a future
+        // logout doesn't get redirected through a stale code on next sign-in.
+        if (state.onboardingComplete) {
+          if (state.pendingPairCode) state.setPendingPairCode(null);
           return;
         }
         // T312: /join/<code> URLs are owned by `app/join/[code].tsx` — that
