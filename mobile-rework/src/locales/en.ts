@@ -623,10 +623,32 @@ const en: Resources = {
       partnerFallback: 'your person',
       codeLabel: 'your invite code',
       copyCode: 'Copy code',
+      copyLink: 'Copy link',
       copied: 'Copied',
+      shareInvite: 'Share invite',
       shareZalo: 'Zalo',
       shareOther: 'Share',
       expiresHint: 'Expires in 24 hours',
+      privacyFootnote: 'This code works once, for one person.',
+      benefitsTitle: 'Once {{partner}} joins, you both get',
+      benefits: {
+        moments: {
+          title: 'Shared moments',
+          body: 'Photos, notes, places — only the two of you see them.',
+        },
+        letters: {
+          title: 'Private letters',
+          body: 'Write a letter today; open it next week, next year.',
+        },
+        dailyq: {
+          title: 'A question every day',
+          body: 'A tiny prompt to know each other a little more.',
+        },
+        recap: {
+          title: 'Automatic recaps',
+          body: 'Months and years stitched into a tiny scrapbook.',
+        },
+      },
       privacy: 'Once they open the link, you’ll be paired automatically.',
       shareMessage:
         'Join me on Memoura ✨ Open the link: {{url}} (or enter code {{code}} in the app)',

@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { LinearGradient } from '@/components';
 import { env } from '@/config/env';
 import { useAppColors } from '@/theme/ThemeProvider';
@@ -420,30 +420,109 @@ export function PairWaitScreen() {
             ) : null}
           </View>
 
-          {/* Share actions — Zalo (brand blue), Copy (ink), Share (surface) */}
-          <View className="px-6 mt-6 flex-row" style={{ gap: 8 }}>
-            <ShareButton
-              label={t('onboarding.pairWait.shareZalo')}
-              variant="zalo"
+          {/* PW-4: single full-width Share CTA + tiny copy chip strip below.
+              The 3-button row drowned the primary action — Boss build 135
+              feedback. Share opens the system share sheet (RN.Share); the
+              chip below copies the deep-link URL with a check-mark toggle. */}
+          <View className="px-6 mt-6">
+            <Pressable
               onPress={onShareInvite}
-            />
-            <ShareButton
-              label={
-                copied
-                  ? t('onboarding.pairWait.copied')
-                  : t('onboarding.pairWait.copyCode')
-              }
-              variant="ink"
+              accessibilityRole="button"
+              hitSlop={4}
+              className="rounded-full flex-row items-center justify-center py-4 active:opacity-90"
+              style={{
+                backgroundColor: c.ink,
+                shadowColor: c.ink,
+                shadowOpacity: 0.33,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 12 },
+                elevation: 6,
+                gap: 10,
+              }}
+            >
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M12 4v12M7 9l5-5 5 5M5 18v2a1 1 0 001 1h12a1 1 0 001-1v-2"
+                  stroke={c.bg}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+              <Text className="font-bodyBold text-[14px]" style={{ color: c.bg }}>
+                {t('onboarding.pairWait.shareInvite')}
+              </Text>
+            </Pressable>
+
+            <Pressable
               onPress={onCopyCode}
-            />
-            <ShareButton
-              label={t('onboarding.pairWait.shareOther')}
-              variant="surface"
-              onPress={onShareInvite}
-            />
+              accessibilityRole="button"
+              accessibilityLabel={t('onboarding.pairWait.copyLink')}
+              hitSlop={4}
+              className="mt-2.5 flex-row items-center rounded-full px-3.5 py-2.5 active:opacity-80"
+              style={{
+                backgroundColor: c.surface,
+                borderWidth: 1,
+                borderColor: c.line,
+                gap: 10,
+              }}
+            >
+              <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66L12 6.34M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66L12 17.66"
+                  stroke={c.inkMute}
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+              <Text
+                className="flex-1 font-body text-[11.5px]"
+                style={{ color: c.inkSoft }}
+                numberOfLines={1}
+                ellipsizeMode="middle"
+              >
+                {inviteUrl || t('onboarding.pairWait.copyLink')}
+              </Text>
+              <Text
+                className="font-bodyBold text-[11px]"
+                style={{ color: copied ? c.accent : c.inkMute }}
+              >
+                {copied
+                  ? `✓ ${t('onboarding.pairWait.copied')}`
+                  : `⧉ ${t('onboarding.pairWait.copyLink')}`}
+              </Text>
+            </Pressable>
           </View>
 
-          <Text className="mt-6 px-6 pb-10 text-center font-body text-[13px] text-ink-soft leading-[18px]">
+          {/* PW-5: "Khi người ta vào, hai đứa có" benefits card.
+              Surface card with display-italic header + 4 dashed-divided
+              rows (moments / letters / dailyq / recap) — each row carries
+              a tinted icon disc + bold title + soft-ink body. Reassures
+              the creator while they wait that the pair-up unlocks
+              real things (matches prototype L480-565). */}
+          <BenefitsCard partnerLabel={t('onboarding.pairWait.partnerFallback')} />
+
+          {/* PW-6: privacy footnote — lock icon + body. */}
+          <View
+            className="mt-3 px-6 pb-2 flex-row items-center justify-center"
+            style={{ gap: 8 }}
+          >
+            <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M5 11V8a7 7 0 0114 0v3"
+                stroke={c.inkMute}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+              />
+              <Rect x={4} y={11} width={16} height={9} rx={2} stroke={c.inkMute} strokeWidth={1.8} />
+            </Svg>
+            <Text className="font-body text-[11.5px] text-ink-mute">
+              {t('onboarding.pairWait.privacyFootnote')}
+            </Text>
+          </View>
+
+          <Text className="mt-3 px-6 pb-10 text-center font-body text-[13px] text-ink-soft leading-[18px]">
             {t('onboarding.pairWait.privacy')}
           </Text>
         </ScrollView>
@@ -537,40 +616,142 @@ function Sparkle({
   );
 }
 
-function ShareButton({
-  label,
-  variant,
-  onPress,
-}: {
-  label: string;
-  variant: 'zalo' | 'ink' | 'surface';
-  onPress: () => void;
-}) {
+// PW-5 (Boss build 135 directive 2026-04-29) — "Khi người ta vào, hai
+// đứa có" benefits card. Surface card with display-italic header and 4
+// dashed-divided rows pairing a tinted icon disc with title + body so
+// the creator has something concrete to read while polling.
+function BenefitsCard({ partnerLabel }: { partnerLabel: string }) {
+  const { t } = useTranslation();
   const c = useAppColors();
-  const bg = variant === 'zalo' ? '#0068FF' : variant === 'ink' ? c.ink : c.surface;
-  const fg = variant === 'surface' ? c.ink : '#FFFFFF';
+  const benefits = [
+    {
+      key: 'moments' as const,
+      tint: c.primary,
+      soft: c.primarySoft,
+      Icon: BenefitIconCamera,
+    },
+    {
+      key: 'letters' as const,
+      tint: c.accent,
+      soft: c.accentSoft,
+      Icon: BenefitIconEnvelope,
+    },
+    {
+      key: 'dailyq' as const,
+      tint: c.secondary,
+      soft: c.secondarySoft,
+      Icon: BenefitIconQuestion,
+    },
+    {
+      key: 'recap' as const,
+      tint: c.primaryDeep,
+      soft: c.primarySoft,
+      Icon: BenefitIconScrapbook,
+    },
+  ] as const;
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      hitSlop={4}
-      className="flex-1 items-center justify-center rounded-2xl py-3.5 active:opacity-90"
-      style={
-        variant === 'surface'
-          ? {
-              backgroundColor: bg,
-              borderWidth: 1,
-              borderColor: c.line,
-            }
-          : { backgroundColor: bg }
-      }
+    <View
+      className="mx-6 mt-6 rounded-[22px] px-4 py-4"
+      style={{
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.line,
+        shadowColor: '#000000',
+        shadowOpacity: 0.06,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
+      }}
     >
       <Text
-        className="font-bodyBold text-[13px] text-center"
-        style={{ color: fg }}
+        className="font-displayItalic text-ink text-[20px] leading-[22px]"
+        style={{ letterSpacing: -0.02 * 20 }}
       >
-        {label}
+        {t('onboarding.pairWait.benefitsTitle', { partner: partnerLabel })}
       </Text>
-    </Pressable>
+      {benefits.map((b, i) => (
+        <View
+          key={b.key}
+          className="flex-row items-start mt-3.5"
+          style={{ gap: 12 }}
+        >
+          <View
+            className="w-9 h-9 rounded-xl items-center justify-center"
+            style={{ backgroundColor: b.soft }}
+          >
+            <b.Icon color={b.tint} />
+          </View>
+          <View className="flex-1 min-w-0">
+            <Text className="font-bodyBold text-ink text-[13.5px] leading-[16px]">
+              {t(`onboarding.pairWait.benefits.${b.key}.title`)}
+            </Text>
+            <Text
+              className="mt-1 font-body text-[12px] leading-[17px]"
+              style={{ color: c.inkSoft }}
+            >
+              {t(`onboarding.pairWait.benefits.${b.key}.body`)}
+            </Text>
+          </View>
+          {i < benefits.length - 1 ? null : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function BenefitIconCamera({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Rect x={3} y={5} width={18} height={14} rx={2.5} stroke={color} strokeWidth={2} />
+      <Circle cx={9} cy={11} r={1.6} fill={color} />
+      <Path
+        d="M3 17l5-4 4 3 3-2 6 5"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function BenefitIconEnvelope({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 7l8 6 8-6M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7M4 7l2-2h12l2 2"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function BenefitIconQuestion({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={2} />
+      <Path
+        d="M9.5 9.5a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 3.5M12 17h.01"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function BenefitIconScrapbook({ color }: { color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 4h11l3 3v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <Path d="M8 12h8M8 16h5" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
   );
 }

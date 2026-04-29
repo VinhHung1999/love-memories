@@ -654,10 +654,32 @@ const vi = {
       partnerFallback: 'người ta',
       codeLabel: 'mã của hai đứa',
       copyCode: 'Chép mã',
+      copyLink: 'Chép link',
       copied: 'Đã chép',
+      shareInvite: 'Chia sẻ lời mời',
       shareZalo: 'Zalo',
       shareOther: 'Khác',
       expiresHint: 'Hết hạn sau 24 giờ',
+      privacyFootnote: 'Mã chỉ dùng được một lần, cho một người.',
+      benefitsTitle: 'Khi {{partner}} vào, hai đứa có',
+      benefits: {
+        moments: {
+          title: 'Khoảnh khắc chung',
+          body: 'Cùng đăng ảnh, ghi chú, vị trí — chỉ hai đứa thấy.',
+        },
+        letters: {
+          title: 'Thư tay riêng tư',
+          body: 'Viết một lá thư hôm nay, hẹn mở tuần sau, năm sau.',
+        },
+        dailyq: {
+          title: 'Câu hỏi mỗi ngày',
+          body: 'Một câu nhỏ để biết nhau hơn — không bắt buộc.',
+        },
+        recap: {
+          title: 'Hồi tưởng tự động',
+          body: 'Memoura ghép lại tháng, năm — như cuốn sổ nhỏ.',
+        },
+      },
       privacy: 'Khi người kia mở link, hai đứa sẽ tự động ghép lại.',
       shareMessage:
         'Vào Memoura cùng mình nhé ✨ Mở link: {{url}} (hoặc nhập mã {{code}} trong app)',
