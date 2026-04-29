@@ -53,7 +53,15 @@ export function PairWaitScreen() {
   const { t } = useTranslation();
   const c = useAppColors();
   const userName = useAuthStore((s) => s.user?.name ?? null);
-  const { inviteCode, slogan, copied, onCopyCode, onBackPress } = usePairWaitViewModel();
+  const {
+    inviteCode,
+    slogan,
+    copied,
+    regenerating,
+    onCopyCode,
+    onBackPress,
+    onRegenerate,
+  } = usePairWaitViewModel();
 
   const codeSlots = formatCode(inviteCode);
   const userInitial = (userName?.trim()?.charAt(0) ?? '?').toUpperCase();
@@ -551,6 +559,29 @@ export function PairWaitScreen() {
                 {copied
                   ? `✓ ${t('onboarding.pairWait.copied')}`
                   : `⧉ ${t('onboarding.pairWait.copyLink')}`}
+              </Text>
+            </Pressable>
+
+            {/* PW-9: regenerate code — ghost link below the copy chip.
+                Confirm Alert in the VM warns the old code dies on
+                regenerate so a partner mid-typing the previous code
+                doesn't get a confusing 400. */}
+            <Pressable
+              onPress={onRegenerate}
+              accessibilityRole="button"
+              accessibilityLabel={t('onboarding.pairWait.regenCta')}
+              hitSlop={6}
+              disabled={regenerating}
+              className="mt-3 items-center active:opacity-70"
+              style={{ opacity: regenerating ? 0.6 : 1 }}
+            >
+              <Text
+                className="font-bodyMedium text-[12px] underline"
+                style={{ color: c.inkMute }}
+              >
+                {regenerating
+                  ? t('onboarding.pairWait.regenLoading')
+                  : t('onboarding.pairWait.regenCta')}
               </Text>
             </Pressable>
           </View>

@@ -44,6 +44,7 @@ export function usePairWaitViewModel() {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [slogan, setSlogan] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   // Refs let nested callbacks (interval ticks, listener fires) read the
   // current state without re-creating the effect on every render.
@@ -185,6 +186,44 @@ export function usePairWaitViewModel() {
   // wants it deep-linked.
   const onShareToZalo = onCopyCode;
 
+  // Sprint 68 PW-9 (Boss build 135 directive 2026-04-29) — regenerate
+  // the invite code if the creator suspects the share leaked or just
+  // wants a fresh string. BE endpoint /api/couple/generate-invite has
+  // existed since Sprint 60 (CoupleService.generateInvite). Confirm
+  // dialog warns the old code stops working — re-issuing a code while
+  // the partner is typing the previous one would hard-fail their join.
+  const onRegenerate = useCallback(() => {
+    if (regenerating) return;
+    Alert.alert(
+      t('onboarding.pairWait.regenTitle'),
+      t('onboarding.pairWait.regenBody'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('onboarding.pairWait.regenConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              setRegenerating(true);
+              try {
+                const res = await apiClient.post<{ inviteCode: string }>(
+                  '/api/couple/generate-invite',
+                );
+                setInviteCode(res.inviteCode);
+                void Haptics.selectionAsync();
+              } catch {
+                // BE error / network — silent for now; the user still
+                // sees the old code so the flow isn't broken.
+              } finally {
+                setRegenerating(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [regenerating, t]);
+
   // Sprint 68 PW-2 (Boss build 135 directive 2026-04-29) — the layout
   // locks gestureEnabled / headerBackVisible because pairing is one-way
   // for the *couple*. But the CREATOR personally can still bail out
@@ -229,8 +268,10 @@ export function usePairWaitViewModel() {
     inviteCode,
     slogan,
     copied,
+    regenerating,
     onCopyCode,
     onShareToZalo,
     onBackPress,
+    onRegenerate,
   };
 }

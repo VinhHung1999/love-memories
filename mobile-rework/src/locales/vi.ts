@@ -694,6 +694,11 @@ const vi = {
       signOutTitle: 'Đăng xuất?',
       signOutBody: 'Bạn muốn đăng xuất khỏi Memoura? Chưa ghép đôi xong cũng không sao.',
       signOutConfirm: 'Đăng xuất',
+      regenCta: 'Tạo mã mới',
+      regenLoading: 'Đang tạo…',
+      regenTitle: 'Đổi sang mã mới?',
+      regenBody: 'Mã cũ sẽ không dùng được nữa. Nếu người ta đang nhập, họ sẽ phải xin lại.',
+      regenConfirm: 'Đổi mã',
     },
     personalize: {
       title: 'Em là ai?',

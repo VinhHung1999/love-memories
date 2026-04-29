@@ -663,6 +663,11 @@ const en: Resources = {
       signOutTitle: 'Sign out?',
       signOutBody: 'Leave Memoura for now? You can pair up another time.',
       signOutConfirm: 'Sign out',
+      regenCta: 'New code',
+      regenLoading: 'Refreshing…',
+      regenTitle: 'Get a new code?',
+      regenBody: 'The old code stops working. If they’re typing it, they’ll need a fresh one.',
+      regenConfirm: 'Refresh code',
     },
     personalize: {
       title: 'Who are you?',
