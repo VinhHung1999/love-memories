@@ -205,6 +205,19 @@ const config: ExpoConfig = {
     // google-signin plugin above only writes Info.plist. Must run AFTER
     // google-signin so the AppDelegate already exists when we patch it.
     './plugins/withGoogleSigninUrlHandler',
+    // T472 (Sprint 70) — Memory Map. @rnmapbox/maps native module config.
+    // Build-time download token: pulled from `~/.netrc` (machine api.mapbox.com)
+    // so we don't need RNMapboxMapsDownloadToken here. Public access token
+    // (pk.*) is consumed at runtime via Mapbox.setAccessToken(...) using the
+    // `mapboxToken` value injected into `extra` below — Boss populates the
+    // real value into `.env` (gitignored). Pinning the iOS SDK version keeps
+    // Pod resolution deterministic across `expo prebuild` runs.
+    [
+      '@rnmapbox/maps',
+      {
+        RNMapboxMapsVersion: '11.10.0',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
@@ -219,6 +232,14 @@ const config: ExpoConfig = {
       '1066031301719-mll9pttl9b3pucs1fgu88mojievri330.apps.googleusercontent.com',
     googleWebClientId:
       '1066031301719-jmep5e8c5hksosc9j47668at4urpln4c.apps.googleusercontent.com',
+    // T472 (Sprint 70) — Memory Map. Public Mapbox access token for runtime
+    // tile auth (`Mapbox.setAccessToken(...)`). Read from `.env` so the real
+    // value never lands in git (gitignored). Custom Studio style URL is also
+    // env-driven so Boss/designer can swap "memoura-paper" once the Studio
+    // design ships, without a code change.
+    mapboxToken: process.env.MAPBOX_ACCESS_TOKEN ?? '',
+    mapboxStyleUrl:
+      process.env.MAPBOX_STYLE_URL_PAPER ?? 'mapbox://styles/mapbox/outdoors-v12',
     eas: {
       projectId: '',
     },

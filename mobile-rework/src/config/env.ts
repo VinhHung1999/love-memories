@@ -19,6 +19,9 @@ type Extra = {
   appBaseUrl?: string;
   googleIosClientId?: string;
   googleWebClientId?: string;
+  // T472 (Sprint 70) — Memory Map.
+  mapboxToken?: string;
+  mapboxStyleUrl?: string;
 };
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
@@ -35,5 +38,13 @@ export const env = {
     'https://memoura.app',
   googleIosClientId: extra.googleIosClientId ?? '',
   googleWebClientId: extra.googleWebClientId ?? '',
+  // T472 — Memory Map. Token must be non-empty before MapScreen mount; the
+  // ViewModel renders an "operator needs to set MAPBOX_ACCESS_TOKEN" dev
+  // fallback when blank, so prod builds without the token still boot rather
+  // than crash. Style URL defaults to mapbox standard outdoors-v12 until
+  // Boss/designer ships the custom "memoura-paper" Studio URL (PO verdict
+  // Q1=A 2026-05-16).
+  mapboxToken: extra.mapboxToken ?? '',
+  mapboxStyleUrl: extra.mapboxStyleUrl ?? 'mapbox://styles/mapbox/outdoors-v12',
   isDev: __DEV__,
 };
