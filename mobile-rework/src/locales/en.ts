@@ -19,6 +19,7 @@ const en: Resources = {
     home: 'Home',
     moments: 'Moments',
     letters: 'Letters',
+    map: 'Map',
     profile: 'Us',
   },
   home: {
@@ -1153,6 +1154,24 @@ const en: Resources = {
     monthsTitle: 'By month',
     weeksTitle: 'By week',
     weekLabel: 'Week {{n}}',
+  },
+  // Sprint 70 T472 — Memory Map. English mirrors of vi.map.*.
+  // Slice 2 + Slice 3 both write here — keep entries flat, coordinate by
+  // block-marker comment, do not modify each other's keys.
+  map: {
+    // T472 Slice 2 keys (MapScreen + PinView)
+    loadingPins: 'Loading pins…',
+    tokenMissing: 'MAPBOX_ACCESS_TOKEN not set — populate mobile-rework/.env and rebuild.',
+    empty: {
+      title: 'Your map is still blank',
+      body: 'Add a location to a Moment and your journey will start to appear here.',
+      cta: '+ Add Moment',
+    },
+    // T472 Slice 3 keys (MomentPreviewCard)
+    byAuthor: 'By {{name}}',
+    openMoment: 'Open moment',
+    voiceMemo: 'Voice memo',
+    untitled: 'Moment',
   },
 };
 

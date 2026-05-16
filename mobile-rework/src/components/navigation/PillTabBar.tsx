@@ -1,5 +1,5 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Camera, Home, Images, Mail, UsersRound } from 'lucide-react-native';
+import { Camera, Home, Images, Mail, MapPin, UsersRound } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,18 +20,24 @@ import { useAppColors } from '@/theme/ThemeProvider';
 // below so any change here flows through the hook.
 export const TAB_BAR_HEIGHT = 62;
 
-type TabKey = 'home' | 'moments' | 'letters' | 'profile';
+type TabKey = 'home' | 'moments' | 'map' | 'letters' | 'profile';
 
 type TabDef = {
   key: TabKey;
-  route: 'index' | 'moments' | 'letters' | 'profile';
+  route: 'index' | 'moments' | 'map' | 'letters' | 'profile';
   labelKey: string;
   icon: LucideIcon;
 };
 
+// T472 (Sprint 70) — Memory Map tab appended between moments + letters so
+// adjacent capture/browse tabs stay grouped. Camera FAB sits to the right of
+// the pill and uses fixed w-[62px], so a 5th cell expands the pill width via
+// flex-1 without shifting the FAB's position (no Sprint 48 curved-tabbar
+// math affected — that lesson was about a different tab-bar shape).
 const TABS: TabDef[] = [
   { key: 'home', route: 'index', labelKey: 'tabs.home', icon: Home },
   { key: 'moments', route: 'moments', labelKey: 'tabs.moments', icon: Images },
+  { key: 'map', route: 'map', labelKey: 'tabs.map', icon: MapPin },
   { key: 'letters', route: 'letters', labelKey: 'tabs.letters', icon: Mail },
   { key: 'profile', route: 'profile', labelKey: 'tabs.profile', icon: UsersRound },
 ];

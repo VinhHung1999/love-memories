@@ -31,6 +31,7 @@ const vi = {
     home: 'Nhà',
     moments: 'Khoảnh khắc',
     letters: 'Thư',
+    map: 'Bản đồ',
     profile: 'Mình',
   },
   home: {
@@ -1222,6 +1223,28 @@ const vi = {
       },
       closeLabel: 'Đóng',
     },
+  },
+  // Sprint 70 T472 — Memory Map. Strings live under `map.*` so MapScreen +
+  // PinView empty state stay translatable without touching the locales' top-
+  // level shape.
+  // Slice 2 + Slice 3 both write here — keep entries flat, coordinate by
+  // block-marker comment, do not modify each other's keys.
+  map: {
+    // T472 Slice 2 keys (MapScreen + PinView)
+    loadingPins: 'Đang tải ghim…',
+    tokenMissing:
+      'Chưa cấu hình MAPBOX_ACCESS_TOKEN — cập nhật mobile-rework/.env rồi rebuild.',
+    empty: {
+      title: 'Bản đồ kỷ niệm đang trống',
+      body:
+        'Thêm vị trí vào một khoảnh khắc để hai đứa cùng nhìn lại hành trình ở đây.',
+      cta: '+ Thêm khoảnh khắc',
+    },
+    // T472 Slice 3 keys (MomentPreviewCard)
+    byAuthor: 'Bởi {{name}}',
+    openMoment: 'Mở khoảnh khắc',
+    voiceMemo: 'Ghi âm',
+    untitled: 'Khoảnh khắc',
   },
   // Sprint 67 T458 — Recap archive list reachable from Profile.
   recapArchive: {
