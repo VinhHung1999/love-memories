@@ -28,6 +28,7 @@ export type NotifKind =
   | 'qna'
   | 'streak'
   | 'invite'
+  | 'pair'
   | 'anniv'
   | 'fallback';
 
@@ -46,6 +47,9 @@ const US_KINDS: NotifKind[] = [
   'reaction',
   'comment',
   'place',
+  // Sprint 68 T469 — partner_joined sits with the relationship-events
+  // group, not the reminders queue.
+  'pair',
 ];
 const REMINDER_KINDS: NotifKind[] = [
   'recap',
@@ -80,6 +84,13 @@ function kindFromType(type: string): NotifKind {
     case 'daily_question_reminder':
     case 'daily_question_partner_answered':
       return 'qna';
+    // Sprint 68 T469 — BE T463 fires `partner_joined` to the creator the
+    // moment the joiner redeems. Ships under the new 'pair' kind so the
+    // inbox row can deep-link separately from the existing 'invite' kind
+    // (which today is reserved for invite-creation events without a
+    // destination).
+    case 'partner_joined':
+      return 'pair';
     case 'achievement_unlocked':
     case 'new_recipe':
     case 'new_date_wish':

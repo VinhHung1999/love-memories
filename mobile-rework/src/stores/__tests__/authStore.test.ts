@@ -15,6 +15,7 @@ const baseUser = {
   email: 'a@b.c',
   name: 'A',
   avatarUrl: null,
+  color: null,
   coupleId: 'c1',
 };
 

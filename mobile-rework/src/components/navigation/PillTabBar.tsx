@@ -12,6 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LinearGradient } from '@/components/Gradient';
+import { useMapPreviewStore } from '@/stores/mapPreviewStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 // T369 — shared tab-bar layout constant so scroll containers inside (tabs)/*
@@ -29,6 +30,9 @@ type TabDef = {
   icon: LucideIcon;
 };
 
+// T472 (Sprint 70) — Memory Map entry point lives INSIDE MomentsScreen as an
+// Ảnh/Bản đồ header toggle (Boss design 2026-05-17), not a 5th tab. Tab bar
+// stays at 4 cells + camera FAB per the prototype.
 const TABS: TabDef[] = [
   { key: 'home', route: 'index', labelKey: 'tabs.home', icon: Home },
   { key: 'moments', route: 'moments', labelKey: 'tabs.moments', icon: Images },
@@ -96,6 +100,12 @@ export function PillTabBar({ state, navigation, onCameraPress }: Props) {
   const colors = useAppColors();
   const insets = useSafeAreaInsets();
   const activeRoute = state.routes[state.index]?.name;
+  // T472 Build 149 fix — when the Map preview card is open, hide the floating
+  // tabbar so the card's slide-up + dim overlay own the full screen. The card
+  // is rendered as a child of the scene; this tabbar is a sibling at Tabs
+  // root, so RN z-index can't reach across — store-based broadcast instead.
+  const isPreviewVisible = useMapPreviewStore((s) => s.isPreviewVisible);
+  if (isPreviewVisible) return null;
 
   // Home-indicator clearance (same rationale as Sprint 60 T352).
   const bottomClass = insets.bottom > 0 ? 'pb-9' : 'pb-3';

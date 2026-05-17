@@ -217,6 +217,18 @@ export default function RootLayout() {
         // `daily_question_partner_answered` (BE submitAnswer realtime)
         // both ship payload.link='/daily-questions'.
         setTimeout(() => imperativeRouter.push('/daily-questions'), 50);
+      } else if (link === '/(auth)/onboarding-done') {
+        // Sprint 68 T469 — partner_joined push (T463). The creator was
+        // sitting on the Wait screen polling for the joiner; the push
+        // signals "they're in" and the tap fast-forwards to OnboardingDone.
+        // If the user has already moved past onboarding (e.g. inbox tap
+        // on a stale notification, or they reopened the app after the
+        // poll already fired the reset), the auth gate sees
+        // onboardingComplete=true and bounces them straight to (tabs).
+        // setTimeout(50) cushions warm-tap navigator timing — same shape
+        // as letters/moments/recap. Cold-start drain runs through the
+        // same dispatcher under requestAnimationFrame in the effect below.
+        setTimeout(() => imperativeRouter.push('/(auth)/onboarding-done'), 50);
       }
       // Unknown links no-op — better than dropping the user on a
       // mismatched route. Daily-plan etc still land here.
@@ -395,9 +407,12 @@ function RootStack() {
 // them to the right destination.
 //
 // PRE_AUTH_SCREENS = the (auth) screens shown BEFORE the user has a session.
-// The remaining (auth) screens (pair-create / pair-invite / pair-join /
-// personalize / permissions / onboarding-done) are pairing/onboarding steps,
-// so an authed-not-onboarded user is allowed to stay on those.
+// The remaining (auth) screens (personalize / pair-create / couple-create /
+// pair-wait / pair-join / onboarding-done) are post-auth wizard steps, so an
+// authed-not-onboarded user is allowed to stay on those. The standalone
+// permissions screen was retired in Sprint 68 T470 — notif-perm is now
+// prompted inline at the Wait screen (creator) and at PairJoin redeem
+// (joiner) instead of forcing a wizard wall.
 const PRE_AUTH_SCREENS: readonly string[] = [
   'welcome',
   'intro',
@@ -412,6 +427,12 @@ function useAuthGate() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const onboardingComplete = useAuthStore((s) => s.onboardingComplete);
   const hasSeenOnboarding = useAuthStore((s) => s.hasSeenOnboarding);
+  // Sprint 68 T470 hot-fix — gate must re-run when coupleId flips so a
+  // cold-start mid-onboarding (CoupleForm submitted, Wait pending) lands on
+  // pair-wait instead of bouncing back to personalize. Subscribing to just
+  // the field (not the whole user object) keeps the effect from firing on
+  // unrelated user mutations like avatarUrl / color edits.
+  const coupleId = useAuthStore((s) => s.user?.coupleId ?? null);
 
   useEffect(() => {
     // expo-router types segments as a narrow tuple inferred from the app
@@ -450,30 +471,48 @@ function useAuthGate() {
     if (seg[0] === 'recap') return;
 
     if (!onboardingComplete) {
-      // Authed but onboarding incomplete: must be inside the post-auth
-      // (auth) wizard (pair-create / pair-invite / pair-join / personalize /
-      // permissions / onboarding-done). Tabs, pre-auth screens, /index, and
-      // unknown groups all funnel back to pair-create.
+      // Authed but onboarding incomplete. Sprint 68 T470 wizard:
+      //   personalize → pair-create → couple-create → pair-wait → onboarding-done
+      //                                                ↘ pair-join → onboarding-done
+      //
+      // Sprint 68 T470 hot-fix (Boss build 131): the resume target
+      // depends on whether the user has a couple yet.
+      //   coupleId === null → /(auth)/personalize (wizard start)
+      //   coupleId !== null → /(auth)/pair-wait (creator already submitted
+      //     CoupleForm and is waiting for the joiner — bouncing them back
+      //     to Personalize would 409 the next CoupleForm submit and lose
+      //     their place in the queue). T467 Wait bootstrap re-fetches
+      //     /api/couple on mount, so a joiner who redeemed while the app
+      //     was killed gets fast-forwarded to onboarding-done from there.
+      //
+      // Tabs, pre-auth screens, /index, and unknown groups all bounce to
+      // the resume target above.
+      const targetWizardEntry = coupleId
+        ? '/(auth)/pair-wait'
+        : '/(auth)/personalize';
       const inWizard = inAuthGroup && !onPreAuthScreen;
-      if (!inWizard) router.replace('/(auth)/pair-create');
+      if (!inWizard) router.replace(targetWizardEntry);
       return;
     }
 
     // Authed + onboarded: belongs in (tabs). Anywhere else (auth group,
     // /index from a fresh cold-start, unknown) → tabs.
     if (!inTabsGroup) router.replace('/(tabs)');
-  }, [accessToken, onboardingComplete, hasSeenOnboarding, segments, router]);
+  }, [accessToken, onboardingComplete, hasSeenOnboarding, coupleId, segments, router]);
 }
 
 // Catches `memoura://pair?code=…` and `https://memoura.app/pair?code=…` whether
 // the app cold-started from the link or was already running. Pre-fills the join
 // form via T285's `?code=` route param.
 //
-// Sprint 60 T285: if the user isn't authed yet (cold-start from share link
-// before they've ever signed in), stash the code in authStore.pendingPairCode
-// and let useAuthGate route to /(auth)/welcome. After signup/login the gate
-// drops them on /(auth)/pair-create, which consumes pendingPairCode and
-// router.replace's into pair-join with the code as a route param.
+// Sprint 60 T285 (Sprint 68 T470 update): if the user isn't authed yet
+// (cold-start from share link before they've ever signed in), stash the
+// code in authStore.pendingPairCode and let useAuthGate route to
+// /(auth)/welcome. After signup/login the gate drops them on
+// /(auth)/personalize (wizard entry). Once they walk Personalize and land
+// on PairChoice (`/(auth)/pair-create`), that screen consumes
+// pendingPairCode and router.replace's into pair-join with the code as a
+// route param.
 function useDeepLink() {
   const router = useRouter();
   const handledInitial = useRef(false);
@@ -484,12 +523,23 @@ function useDeepLink() {
       if (!route) return;
       if (route.name === 'pair-join') {
         const code = route.params?.code;
-        const authed = !!useAuthStore.getState().accessToken;
+        const state = useAuthStore.getState();
+        const authed = !!state.accessToken;
         if (!authed) {
           // Stash + let the gate take them through the auth wizard. Don't push
           // pair-join itself — the user can't join without a JWT, and we don't
           // want a half-functional pair-join screen flashing.
-          if (code) useAuthStore.getState().setPendingPairCode(code);
+          if (code) state.setPendingPairCode(code);
+          return;
+        }
+        // Sprint 68 TB-1 (Boss build 135 directive 2026-04-29) — if the
+        // user is already onboarded (in tabs), pair deep-links are stale.
+        // Pushing /(auth)/pair-join would flash an onboarding screen
+        // before useAuthGate yanks them back to (tabs). Drop the link
+        // silently and clear any leftover pendingPairCode so a future
+        // logout doesn't get redirected through a stale code on next sign-in.
+        if (state.onboardingComplete) {
+          if (state.pendingPairCode) state.setPendingPairCode(null);
           return;
         }
         // T312: /join/<code> URLs are owned by `app/join/[code].tsx` — that

@@ -1,0 +1,637 @@
+#!/usr/bin/env python3
+"""
+board — mini-CLI for Obsidian Kanban board edits without re-reading whole files.
+
+Read / query:
+  board show <ID>                    # print just that task block
+  board lane <lane>                  # list task IDs in lane
+  board summary                      # lane counts + points totals
+
+Move / edit:
+  board mv <ID> <lane>               # move task to lane + flip Status (idempotent)
+  board status <ID> <value>          # flip Status field only, no lane move
+  board pts <ID> [value]             # get or set story points
+  board note <ID> "<text>" [--role]  # append "<YYYY-MM-DD> <role>: <text>"
+
+DEV daily flow:
+  board start <ID>                   # mv todo→in_progress + "🚀 Started · Branch: …"
+  board ack <ID> [ID…] [--note]      # append "👍 ACK, queued" to one or many
+  board done <ID> [--sha] [--note]   # mv → in_review + "✅ DONE · commit <sha>"
+  board commit <ID> [--sha] [--note] # append "📝 checkpoint commit <sha>" (no move)
+
+PO review flow:
+  board approve <ID> [--note "<t>"]  # mv → testing + "✅ APPROVED — <t>"
+  board reject  <ID> [--note "<t>"]  # mv → in_progress + "❌ REJECTED — <t>"
+  board add <ID> <lane> --title …    # create a new task block
+
+Role prefix resolution: --role → $BOARD_ROLE → tmux pane @role_name → 'PO Lu'.
+Lanes: todo, in_progress, in_review, testing, done
+"""
+from __future__ import annotations
+import argparse
+import os
+import re
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+
+def _resolve_paths() -> tuple[Path, Path]:
+    """Resolve ``(REPO_ROOT, BOARD_DIR)`` for the current invocation.
+
+    Strategy (Sprint 23 / 2305 — un-hardcoded for multi-project):
+
+      1. ``BOARD_PROJECT_ROOT`` env var, if set, is treated as the repo root.
+      2. Otherwise walk up from ``cwd`` looking for an ancestor that
+         contains ``docs/board/sprints/active/`` — that ancestor IS the
+         repo root and the board lives at ``<root>/docs/board/sprints/active``.
+      3. Otherwise fail with a usage error.
+
+    Both supported projects (love-scrum + Mệnh Việt) keep their board at
+    ``<repo-root>/docs/board/sprints/active/`` so a single walk-up rule
+    covers both — the original hardcoded path to a brain2-vault location
+    was stale (the dir no longer existed at that path).
+    """
+    env_root = os.environ.get("BOARD_PROJECT_ROOT")
+    if env_root:
+        repo_root = Path(env_root).expanduser().resolve()
+        board_dir = repo_root / "docs/board/sprints/active"
+        if not board_dir.is_dir():
+            sys.exit(
+                f"BOARD_PROJECT_ROOT={env_root!r} but {board_dir} does not exist"
+            )
+        return repo_root, board_dir
+
+    cwd = Path.cwd().resolve()
+    for ancestor in [cwd, *cwd.parents]:
+        candidate = ancestor / "docs/board/sprints/active"
+        if candidate.is_dir():
+            return ancestor, candidate
+
+    sys.exit(
+        "Could not resolve board path. Set BOARD_PROJECT_ROOT env var, "
+        "or invoke from a directory whose ancestor contains "
+        "docs/board/sprints/active/."
+    )
+
+
+REPO_ROOT, BOARD_DIR = _resolve_paths()
+
+LANE_HEADERS = {
+    "todo": "## Todo",
+    "in_progress": "## In Progress",
+    "in_review": "## In Review",
+    "testing": "## Testing",
+    "done": "## Done",
+}
+
+STATUS_VALUES = {
+    "todo": "todo",
+    "in_progress": "in_progress",
+    "in_review": "in_review",
+    "testing": "testing",
+    "done": "done",
+}
+
+# Optional alpha prefix + digits: matches love-scrum (B100, T200) AND
+# Mệnh Việt (2300, 2303) without changing love-scrum semantics.
+TASK_RE = re.compile(r"^- \[[ x]\] \*\*\[([A-Za-z]*\d+)\]\*\*")
+STATUS_RE = re.compile(r"(\*\*Status:\*\*\s*)\S+")
+LANE_RE = re.compile(r"^## (Todo|In Progress|In Review|Testing|Done)\s*$")
+
+
+def find_sprint_file() -> Path:
+    files = sorted(BOARD_DIR.glob("sprint-*.md"))
+    if not files:
+        sys.exit(f"No sprint file in {BOARD_DIR}")
+    if len(files) > 1:
+        # pick highest number
+        files.sort(key=lambda p: int(re.search(r"sprint-(\d+)", p.stem).group(1)))
+    return files[-1]
+
+
+ROLE_NAME = {
+    "PO": "PO Lu",
+    "DEV": "DEV Zu",
+}
+
+
+def detect_role_prefix(explicit: str | None = None) -> str:
+    """Pick a 'PO Lu' / 'DEV Zu' prefix from explicit override, env, or tmux pane role."""
+    if explicit:
+        return ROLE_NAME.get(explicit.upper(), explicit)
+    env_role = os.environ.get("BOARD_ROLE")
+    if env_role:
+        return ROLE_NAME.get(env_role.upper(), env_role)
+    pane = os.environ.get("TMUX_PANE")
+    if pane:
+        try:
+            out = subprocess.run(
+                ["tmux", "list-panes", "-a", "-F", "#{pane_id} #{@role_name}"],
+                capture_output=True, text=True, timeout=2,
+            )
+            for line in out.stdout.splitlines():
+                pid, _, role = line.partition(" ")
+                if pid == pane and role.strip():
+                    return ROLE_NAME.get(role.strip().upper(), role.strip())
+        except Exception:
+            pass
+    return "PO Lu"
+
+
+def current_branch() -> str:
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=2,
+        )
+        return out.stdout.strip() or "unknown"
+    except Exception:
+        return "unknown"
+
+
+def head_sha(short: bool = True) -> str:
+    try:
+        args = ["git", "-C", str(REPO_ROOT), "rev-parse"]
+        if short:
+            args.append("--short")
+        args.append("HEAD")
+        out = subprocess.run(args, capture_output=True, text=True, timeout=2)
+        return out.stdout.strip()
+    except Exception:
+        return ""
+
+
+def read_lines(path: Path) -> list[str]:
+    return path.read_text(encoding="utf-8").splitlines(keepends=False)
+
+
+def write_lines(path: Path, lines: list[str]) -> None:
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _one_block(lines: list[str], task_id: str, start_at: int = 0) -> tuple[int, int] | None:
+    start = None
+    for i in range(start_at, len(lines)):
+        m = TASK_RE.match(lines[i])
+        if m and m.group(1) == task_id:
+            start = i
+            break
+    if start is None:
+        return None
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if TASK_RE.match(lines[j]):
+            end = j
+            break
+        if lines[j].startswith("## "):
+            end = j
+            break
+    while end > start + 1 and lines[end - 1].strip() == "":
+        end -= 1
+    return (start, end)
+
+
+def block_bounds(lines: list[str], task_id: str) -> tuple[int, int] | None:
+    """Return [start, end) indices of the FIRST task block, or None if not found."""
+    return _one_block(lines, task_id, 0)
+
+
+def all_blocks(lines: list[str], task_id: str) -> list[tuple[int, int]]:
+    """All [start, end) ranges for the task id, in file order."""
+    out = []
+    cursor = 0
+    while True:
+        b = _one_block(lines, task_id, cursor)
+        if not b:
+            break
+        out.append(b)
+        cursor = b[1]
+    return out
+
+
+def lane_bounds(lines: list[str], lane_header: str) -> tuple[int, int] | None:
+    """Return [header_idx, end_idx) for a lane section (end = next ## heading or EOF)."""
+    start = None
+    for i, line in enumerate(lines):
+        if line.strip() == lane_header:
+            start = i
+            break
+    if start is None:
+        return None
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if lines[j].startswith("## ") or lines[j].startswith("---"):
+            end = j
+            break
+    return (start, end)
+
+
+def cmd_show(args):
+    path = find_sprint_file()
+    lines = read_lines(path)
+    bounds = block_bounds(lines, args.id)
+    if not bounds:
+        sys.exit(f"Task {args.id} not found in {path.name}")
+    s, e = bounds
+    print("\n".join(lines[s:e]))
+
+
+def cmd_lane(args):
+    lane = args.lane.lower()
+    if lane not in LANE_HEADERS:
+        sys.exit(f"Unknown lane: {lane}. Options: {', '.join(LANE_HEADERS)}")
+    path = find_sprint_file()
+    lines = read_lines(path)
+    lb = lane_bounds(lines, LANE_HEADERS[lane])
+    if not lb:
+        sys.exit(f"Lane {lane} not found")
+    s, e = lb
+    ids = []
+    for line in lines[s:e]:
+        m = TASK_RE.match(line)
+        if m:
+            title = line.strip()
+            ids.append(title[:120])
+    if not ids:
+        print(f"(empty) {LANE_HEADERS[lane]}")
+    else:
+        for t in ids:
+            print(t)
+
+
+def cmd_mv(args):
+    lane = args.lane.lower()
+    if lane not in LANE_HEADERS:
+        sys.exit(f"Unknown lane: {lane}. Options: {', '.join(LANE_HEADERS)}")
+    path = find_sprint_file()
+    lines = read_lines(path)
+    blocks = all_blocks(lines, args.id)
+    if not blocks:
+        sys.exit(f"Task {args.id} not found")
+    # Pick the richest occurrence (most lines = most annotated) to keep
+    richest = max(blocks, key=lambda b: b[1] - b[0])
+    kept = lines[richest[0] : richest[1]]
+    # Flip Status field in kept block
+    new_status = STATUS_VALUES[lane]
+    for k, line in enumerate(kept):
+        if STATUS_RE.search(line):
+            kept[k] = STATUS_RE.sub(rf"\g<1>{new_status}", line)
+            break
+    # Delete ALL occurrences (iterate reverse so earlier indices stay valid)
+    remaining = list(lines)
+    for s, e in sorted(blocks, key=lambda b: b[0], reverse=True):
+        del remaining[s:e]
+    # Insert kept block at end of target lane
+    target_header = LANE_HEADERS[lane]
+    lb = lane_bounds(remaining, target_header)
+    if not lb:
+        sys.exit(f"Target lane {target_header} not found")
+    ls, le = lb
+    insert_at = le
+    while insert_at > ls + 1 and remaining[insert_at - 1].strip() == "":
+        insert_at -= 1
+    new_lines = remaining[:insert_at] + [""] + kept + remaining[insert_at:]
+    write_lines(path, new_lines)
+    dupe_note = f" (deduped {len(blocks)} copies)" if len(blocks) > 1 else ""
+    print(f"✓ {args.id} → {target_header}  (status: {new_status}){dupe_note}")
+
+
+def append_note_in_block(block: list[str], note_line: str) -> list[str]:
+    """Append note_line to the end of the Notes section inside the task block.
+    If no **Notes:** marker, append after last non-blank line of block."""
+    # find last non-blank line
+    last = len(block) - 1
+    while last > 0 and block[last].strip() == "":
+        last -= 1
+    # note_line should be indented consistently with existing notes (6 spaces is common)
+    return block[: last + 1] + [f"      {note_line}"] + block[last + 1 :]
+
+
+def _append_note(path: Path, task_id: str, note_line: str) -> None:
+    lines = read_lines(path)
+    bounds = block_bounds(lines, task_id)
+    if not bounds:
+        sys.exit(f"Task {task_id} not found")
+    s, e = bounds
+    new_block = append_note_in_block(lines[s:e], note_line)
+    write_lines(path, lines[:s] + new_block + lines[e:])
+
+
+def cmd_note(args):
+    path = find_sprint_file()
+    prefix = args.prefix if args.prefix is not None else detect_role_prefix(args.role)
+    today = datetime.now().strftime("%Y-%m-%d")
+    note_line = f"{today} {prefix}: {args.text}" if prefix else f"{today} {args.text}"
+    _append_note(path, args.id, note_line)
+    print(f"✓ note appended to {args.id}  (as {prefix or 'no-prefix'})")
+
+
+def cmd_start(args):
+    """DEV: mv todo→in_progress + append Started note with branch."""
+    args.lane = "in_progress"
+    cmd_mv(args)
+    path = find_sprint_file()
+    prefix = detect_role_prefix(args.role)
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    branch = current_branch()
+    note_line = f"{ts} {prefix}: 🚀 Started · Branch: {branch}"
+    _append_note(path, args.id, note_line)
+    print(f"✓ started {args.id}")
+
+
+def cmd_ack(args):
+    """DEV: append ACK note across 1+ task IDs, no lane move."""
+    path = find_sprint_file()
+    prefix = detect_role_prefix(args.role)
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    note = args.note or "ACK, queued"
+    for tid in args.ids:
+        note_line = f"{ts} {prefix}: 👍 {note}"
+        _append_note(path, tid, note_line)
+        print(f"✓ ack {tid}")
+
+
+def cmd_done(args):
+    """DEV: mv → in_review + append commit SHA note (auto-capture if missing)."""
+    args.lane = "in_review"
+    cmd_mv(args)
+    path = find_sprint_file()
+    prefix = detect_role_prefix(args.role)
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    sha = args.sha or head_sha()
+    extra = f" · {args.note}" if args.note else ""
+    note_line = f"{ts} {prefix}: ✅ DONE · commit {sha}{extra} · Ready for review"
+    _append_note(path, args.id, note_line)
+    print(f"✓ done {args.id}  (commit {sha})")
+
+
+def cmd_status(args):
+    """Flip Status field only, no lane move. Edge case."""
+    path = find_sprint_file()
+    lines = read_lines(path)
+    bounds = block_bounds(lines, args.id)
+    if not bounds:
+        sys.exit(f"Task {args.id} not found")
+    s, e = bounds
+    block = lines[s:e]
+    new_status = args.value
+    flipped = False
+    for k, line in enumerate(block):
+        if STATUS_RE.search(line):
+            block[k] = STATUS_RE.sub(rf"\g<1>{new_status}", line)
+            flipped = True
+            break
+    if not flipped:
+        sys.exit(f"No **Status:** field found in task {args.id}")
+    write_lines(path, lines[:s] + block + lines[e:])
+    print(f"✓ {args.id} status → {new_status}")
+
+
+def cmd_commit(args):
+    """Append a commit SHA note without moving lane. Checkpoint pattern."""
+    path = find_sprint_file()
+    prefix = detect_role_prefix(args.role)
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    sha = args.sha or head_sha()
+    extra = f" · {args.note}" if args.note else ""
+    note_line = f"{ts} {prefix}: 📝 checkpoint commit {sha}{extra}"
+    _append_note(path, args.id, note_line)
+    print(f"✓ commit note added to {args.id}  ({sha})")
+
+
+def cmd_pts(args):
+    """Get or set story points."""
+    path = find_sprint_file()
+    lines = read_lines(path)
+    bounds = block_bounds(lines, args.id)
+    if not bounds:
+        sys.exit(f"Task {args.id} not found")
+    s, e = bounds
+    block = lines[s:e]
+    if args.value is None:
+        # read
+        for line in block:
+            m = POINTS_RE.search(line)
+            if m:
+                print(f"{args.id}: {m.group(1)} pts")
+                return
+        print(f"{args.id}: (no points set)")
+        return
+    # set
+    new_val = str(args.value)
+    updated = False
+    for k, line in enumerate(block):
+        if POINTS_RE.search(line):
+            block[k] = POINTS_RE.sub(f"**Points:** {new_val}", line)
+            updated = True
+            break
+    if not updated:
+        sys.exit(f"No **Points:** field found in {args.id}")
+    write_lines(path, lines[:s] + block + lines[e:])
+    print(f"✓ {args.id} pts → {new_val}")
+
+
+def cmd_approve(args):
+    # mv to testing + append approval note
+    note_text = args.note or "approved"
+    args.lane = "testing"
+    cmd_mv(args)
+    path = find_sprint_file()
+    prefix = detect_role_prefix(getattr(args, "role", None)) or "PO Lu"
+    today = datetime.now().strftime("%Y-%m-%d")
+    note_line = f"{today} {prefix}: ✅ APPROVED — {note_text}"
+    _append_note(path, args.id, note_line)
+    print(f"✓ approved {args.id}")
+
+
+POINTS_RE = re.compile(r"\*\*Points:\*\*\s*(\d+)")
+
+
+def _scan_lane_tasks(lines: list[str], lane_header: str) -> tuple[int, int]:
+    """Return (task_count, points_sum) for a lane."""
+    lb = lane_bounds(lines, lane_header)
+    if not lb:
+        return (0, 0)
+    s, e = lb
+    count = 0
+    points = 0
+    for i in range(s, e):
+        if TASK_RE.match(lines[i]):
+            count += 1
+            # look ahead a few lines for the points field
+            for j in range(i, min(i + 4, e)):
+                pm = POINTS_RE.search(lines[j])
+                if pm:
+                    points += int(pm.group(1))
+                    break
+    return (count, points)
+
+
+def cmd_summary(args):
+    path = find_sprint_file()
+    lines = read_lines(path)
+    print(f"Sprint board: {path.name}")
+    rows = []
+    total_tasks = 0
+    total_points = 0
+    remaining_tasks = 0
+    remaining_points = 0
+    for key, header in LANE_HEADERS.items():
+        c, p = _scan_lane_tasks(lines, header)
+        rows.append((key, c, p))
+        total_tasks += c
+        total_points += p
+        if key in ("todo", "in_progress", "in_review"):
+            remaining_tasks += c
+            remaining_points += p
+    for key, c, p in rows:
+        print(f"  {key:<12} {c:>3} tasks · {p:>3} pts")
+    print(f"  {'TOTAL':<12} {total_tasks:>3} tasks · {total_points:>3} pts")
+    print(f"  {'remaining':<12} {remaining_tasks:>3} tasks · {remaining_points:>3} pts  (todo+in_progress+in_review)")
+
+
+def cmd_add(args):
+    path = find_sprint_file()
+    lines = read_lines(path)
+    lane = args.lane.lower()
+    if lane not in LANE_HEADERS:
+        sys.exit(f"Unknown lane: {lane}")
+    # Make sure ID doesn't already exist
+    if all_blocks(lines, args.id):
+        sys.exit(f"Task {args.id} already exists — use `board note` or `board mv` instead")
+    status = STATUS_VALUES[lane]
+    block = [
+        f"- [ ] **[{args.id}]** {args.title}",
+        f"      **Priority:** {args.priority} · **Points:** {args.points} · **Assignee:** {args.assignee} · **Status:** {status}",
+        f"      **Description:**",
+    ]
+    if args.desc:
+        for line in args.desc.splitlines():
+            block.append(f"      {line}")
+    else:
+        block.append(f"      (no description provided)")
+    if args.acceptance:
+        block.append(f"      **Acceptance:**")
+        for line in args.acceptance.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if not line.startswith("- "):
+                line = f"- {line}"
+            block.append(f"      {line}")
+    lb = lane_bounds(lines, LANE_HEADERS[lane])
+    if not lb:
+        sys.exit(f"Lane {lane} not found")
+    ls, le = lb
+    insert_at = le
+    while insert_at > ls + 1 and lines[insert_at - 1].strip() == "":
+        insert_at -= 1
+    new_lines = lines[:insert_at] + [""] + block + lines[insert_at:]
+    write_lines(path, new_lines)
+    print(f"✓ {args.id} added to {LANE_HEADERS[lane]}  (status: {status}, {args.points}pt, {args.priority})")
+
+
+def cmd_reject(args):
+    note_text = args.note or "rejected — needs rework"
+    args.lane = "in_progress"
+    cmd_mv(args)
+    path = find_sprint_file()
+    prefix = detect_role_prefix(getattr(args, "role", None)) or "PO Lu"
+    today = datetime.now().strftime("%Y-%m-%d")
+    note_line = f"{today} {prefix}: ❌ REJECTED — {note_text}"
+    _append_note(path, args.id, note_line)
+    print(f"✓ rejected {args.id}")
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="board", description="Mini-CLI for sprint kanban edits")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("show", help="print a task block")
+    p.add_argument("id")
+    p.set_defaults(func=cmd_show)
+
+    p = sub.add_parser("lane", help="list task IDs in a lane")
+    p.add_argument("lane", choices=list(LANE_HEADERS))
+    p.set_defaults(func=cmd_lane)
+
+    p = sub.add_parser("mv", help="move task to lane and flip Status")
+    p.add_argument("id")
+    p.add_argument("lane", choices=list(LANE_HEADERS))
+    p.set_defaults(func=cmd_mv)
+
+    p = sub.add_parser("note", help="append a note line to a task")
+    p.add_argument("id")
+    p.add_argument("text")
+    p.add_argument("--prefix", default=None, help="literal prefix override (skips role detection)")
+    p.add_argument("--role", default=None, help="PO | DEV (default: auto-detect via $TMUX_PANE)")
+    p.set_defaults(func=cmd_note)
+
+    p = sub.add_parser("start", help="DEV: mv → in_progress + '🚀 Started · Branch: <branch>'")
+    p.add_argument("id")
+    p.add_argument("--role", default=None)
+    p.set_defaults(func=cmd_start)
+
+    p = sub.add_parser("ack", help="DEV: append '👍 ACK, queued' note to one or many tasks")
+    p.add_argument("ids", nargs="+", help="one or more task IDs")
+    p.add_argument("--note", default=None, help="custom ack text (default: 'ACK, queued')")
+    p.add_argument("--role", default=None)
+    p.set_defaults(func=cmd_ack)
+
+    p = sub.add_parser("done", help="DEV: mv → in_review + '✅ DONE · commit <sha>' (auto SHA)")
+    p.add_argument("id")
+    p.add_argument("--sha", default=None, help="commit SHA (default: short HEAD)")
+    p.add_argument("--note", default=None, help="extra context appended after the SHA")
+    p.add_argument("--role", default=None)
+    p.set_defaults(func=cmd_done)
+
+    p = sub.add_parser("commit", help="append '📝 checkpoint commit <sha>' note, no lane move")
+    p.add_argument("id")
+    p.add_argument("--sha", default=None)
+    p.add_argument("--note", default=None)
+    p.add_argument("--role", default=None)
+    p.set_defaults(func=cmd_commit)
+
+    p = sub.add_parser("status", help="flip Status field only (no lane move)")
+    p.add_argument("id")
+    p.add_argument("value", choices=list(STATUS_VALUES.values()))
+    p.set_defaults(func=cmd_status)
+
+    p = sub.add_parser("pts", help="get or set **Points:** for a task")
+    p.add_argument("id")
+    p.add_argument("value", nargs="?", type=int, default=None, help="omit to read; pass int to set")
+    p.set_defaults(func=cmd_pts)
+
+    p = sub.add_parser("approve", help="PO: mv → testing + append approval note")
+    p.add_argument("id")
+    p.add_argument("--note", default=None)
+    p.add_argument("--role", default=None)
+    p.set_defaults(func=cmd_approve)
+
+    p = sub.add_parser("reject", help="PO: mv → in_progress + append rejection note")
+    p.add_argument("id")
+    p.add_argument("--note", default=None)
+    p.add_argument("--role", default=None)
+    p.set_defaults(func=cmd_reject)
+
+    p = sub.add_parser("summary", help="lane counts + points breakdown")
+    p.set_defaults(func=cmd_summary)
+
+    p = sub.add_parser("add", help="create new task block")
+    p.add_argument("id", help="task ID e.g. T361")
+    p.add_argument("lane", choices=list(LANE_HEADERS))
+    p.add_argument("--title", required=True)
+    p.add_argument("--priority", default="P1", help="P0 / P1 / P2 / P3")
+    p.add_argument("--points", default="1")
+    p.add_argument("--assignee", default="DEV")
+    p.add_argument("--desc", default=None, help="description text (multiline allowed)")
+    p.add_argument("--acceptance", default=None, help="acceptance criteria (newline-separated bullets)")
+    p.set_defaults(func=cmd_add)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

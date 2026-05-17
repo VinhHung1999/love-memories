@@ -1,10 +1,21 @@
 import prisma from '../utils/prisma';
 import { uploadToCdn, deleteFromCdn } from '../utils/cdn';
 
-const userSelect = { id: true, email: true, name: true, avatar: true };
+const userSelect = { id: true, email: true, name: true, avatar: true, color: true };
 
+export async function updateProfile(
+  userId: string,
+  patch: { name?: string; color?: string | null },
+) {
+  const data: Record<string, unknown> = {};
+  if (patch.name !== undefined) data.name = patch.name;
+  if (patch.color !== undefined) data.color = patch.color;
+  return prisma.user.update({ where: { id: userId }, data, select: userSelect });
+}
+
+// Back-compat shim — internal callers (web profile page) still pass a bare name.
 export async function updateName(userId: string, name: string) {
-  return prisma.user.update({ where: { id: userId }, data: { name }, select: userSelect });
+  return updateProfile(userId, { name });
 }
 
 export async function updateAvatar(userId: string, file: Express.Multer.File) {

@@ -1,0 +1,44 @@
+diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFeatureUtils.swift b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFeatureUtils.swift
+index fabb238..1fbb83f 100644
+--- a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFeatureUtils.swift
++++ b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFeatureUtils.swift
+@@ -39,6 +39,8 @@ class RNMBXFeatureUtils {
+       return MapboxCommon.Geometry(point: value) */
+     case .polygon(let polygon):
+       return MapboxCommon.Geometry(polygon: polygon.coordinates.map { $0.map { toNSValue($0)}})
++    @unknown default:
++      fatalError("Unknown Turf.Geometry case")
+     }
+   }
+ 
+@@ -73,6 +75,8 @@ class RNMBXFeatureUtils {
+     case .multiLineString(let multiLineString):
+       let coordinates = multiLineString.coordinates
+       return BoundingBox(from: Array(coordinates.joined()))
++    @unknown default:
++      return nil
+     }
+   }
+ 
+diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXShapeSource.swift b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXShapeSource.swift
+index b680f8c..8132f71 100644
+--- a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXShapeSource.swift
++++ b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXShapeSource.swift
+@@ -183,6 +183,8 @@ extension RNMBXShapeSource
+       return .feature(feature)
+     case .featureCollection(let features):
+       return .featureCollection(features)
++    @unknown default:
++      fatalError("Unknown GeoJSONObject case")
+     }
+   }
+ 
+@@ -253,6 +255,8 @@ extension RNMBXShapeSource
+       return .geometry(geometry)
+     case .string(_):
+       throw RNMBXError.parseError("url as shape is not supported when updating a ShapeSource")
++    @unknown default:
++      throw RNMBXError.parseError("Unknown GeoJSONSourceData case")
+     }
+   }
+ 

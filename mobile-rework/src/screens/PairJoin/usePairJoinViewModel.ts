@@ -268,31 +268,27 @@ export function usePairJoinViewModel() {
             email: res.user.email,
             name: res.user.name,
             avatarUrl: res.user.avatar,
+            color: (res.user as { color?: string | null }).color ?? null,
             coupleId: res.user.coupleId,
           },
         });
-        // T331 (Build 27): full stack reset, NOT replace. The join is
-        // committed server-side at this point — the user must not be able to
-        // edge-swipe back to the code-entry screen and see a half-undone
-        // state. router.replace was leaving the prior native UIKit screens
-        // in the iOS swipe-back stack even though JS history was rewritten,
-        // so iOS edge-swipe could still pop back to PairJoin. CommonActions
-        // .reset clears the AuthLayout Stack and makes Personalize the new
-        // root entry — there's literally nothing behind to pop.
-        //
-        // Note: route name is 'personalize' (not '(auth)/personalize') —
-        // useNavigation() here returns the AuthLayout Stack, which registers
-        // its screens by file name only. Path-style names only apply to the
-        // ROOT Stack (which sees '(auth)' as a single child).
-        //
-        // Both inviter and joiner walk T286 (Personalize → Permissions →
-        // OnboardingDone). Creator path stays on router.push (T327) so the
-        // creator's swipe-back still works; only the joiner commit point is
-        // reset here.
+        // Sprint 68 T470 — joiner walks Personalize BEFORE pair-join in
+        // the new flow, so the redeem commit goes straight to onboarding-
+        // done. Sprint 68 BUG-4 (Boss build 135 directive 2026-04-29):
+        // notif-perm popup is OWNED by the creator's PairWait screen — the
+        // joiner is one tap away from MainTabs and doesn't need the system
+        // dialog to fire here. Removing the prompt avoids a flash of OS
+        // chrome between "Pair up" tap and the celebration animation.
+        // CommonActions.reset clears the (auth) Stack and makes
+        // onboarding-done the new root entry — iOS edge-swipe can no
+        // longer return the joiner to a half-undone code-entry screen.
+        // Route name is 'onboarding-done' (file name only — useNavigation
+        // resolves to the AuthLayout Stack, which registers screens by
+        // file name; path-style names apply only to the root Stack).
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
-            routes: [{ name: 'personalize' }],
+            routes: [{ name: 'onboarding-done' }],
           }),
         );
       } catch (err) {
@@ -329,6 +325,36 @@ export function usePairJoinViewModel() {
     if (!canSubmit) return;
     void submitCode(code);
   }, [canSubmit, code, submitCode]);
+
+  // Sprint 68 BUG-3 (Boss build 135 directive 2026-04-29) — auto-submit
+  // the moment the 8th cell fills. Removes the redundant "Pair up" tap:
+  // the code is fully entered, the BE will tell us in ~200ms whether it's
+  // valid, and a manual confirm step here doesn't add meaning. Any error
+  // (invalid / used / network) surfaces via formError; the user backspaces
+  // a cell to fix the typo, the effect below resets autoSubmittedRef so a
+  // fresh re-fill triggers a new submit attempt.
+  useEffect(() => {
+    if (code.length < CODE_LEN) {
+      autoSubmittedRef.current = false;
+      return;
+    }
+    if (submitting) return;
+    if (autoSubmittedRef.current) return;
+    autoSubmittedRef.current = true;
+    void submitCode(code);
+    // submitCode is intentionally excluded — its identity churns on every
+    // setSession call but the ref above is the real gate. eslint-disable
+    // matches the prefill effect at the top of this file.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, submitting]);
+
+  // Reset the auto-submit gate when a redeem actually errors so the next
+  // re-fill (after the user fixes a typo) can fire. Without this, a 400
+  // / 429 leaves autoSubmittedRef:true and the user has to manually tap
+  // — defeats the whole point of BUG-3.
+  useEffect(() => {
+    if (formError) autoSubmittedRef.current = false;
+  }, [formError]);
 
   // T289 §4 — "Scan their QR code". Camera permission is requested lazily on
   // tap (Boss preference: never prompt before user expresses intent). Three

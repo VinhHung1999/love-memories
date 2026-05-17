@@ -5,11 +5,12 @@ import { useAppColors } from '@/theme/ThemeProvider';
 // Full-width pill CTA. Dark ink bg when enabled, soft surface when disabled.
 //
 // T292 (bug #3): added `variant` prop. Default 'ink' keeps the original
-// auth-form rhythm (5 callers: Login/SignUp/Forgot/Personalize/PairJoin).
-// 'primary' flips fill to bg-primary so threshold CTAs (Permissions) read as
-// hero against a screen full of primary-tinted cards instead of "sinking"
-// into a plain ink button. Text stays text-bg in both variants since both
-// fills are dark enough in light mode and saturated enough in dark.
+// auth-form rhythm (callers: Login/SignUp/Forgot/Personalize/PairJoin/
+// CoupleForm). 'primary' flips fill to bg-primary so threshold CTAs read
+// as hero against a screen full of primary-tinted cards instead of
+// "sinking" into a plain ink button. Text stays text-bg in both variants
+// since both fills are dark enough in light mode and saturated enough in
+// dark.
 
 type Variant = 'ink' | 'primary';
 

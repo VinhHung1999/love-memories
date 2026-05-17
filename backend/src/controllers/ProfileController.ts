@@ -3,10 +3,16 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import * as ProfileService from '../services/ProfileService';
 import type { AuthRequest } from '../middleware/auth';
 
-export const updateName = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const user = await ProfileService.updateName(req.user!.userId, req.body.name);
+export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
+  // Sprint 68 T471: validate(updateProfileSchema) at the route narrows req.body
+  // to { name?, color? }. Service tolerates either being absent.
+  const { name, color } = req.body as { name?: string; color?: string | null };
+  const user = await ProfileService.updateProfile(req.user!.userId, { name, color });
   res.json(user);
 });
+
+// Kept as a named export so route file stays diff-minimal during the rename.
+export const updateName = updateProfile;
 
 export const uploadAvatar = asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }

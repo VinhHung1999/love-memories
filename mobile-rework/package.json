@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "postinstall": "patch-package",
     "start": "APP_VARIANT=dev expo start",
     "android": "APP_VARIANT=dev expo run:android",
     "ios": "APP_VARIANT=dev expo run:ios",
@@ -29,6 +30,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/native-stack": "^7.3.16",
+    "@rnmapbox/maps": "10.3.0",
     "expo": "~54.0.33",
     "expo-apple-authentication": "~8.0.8",
     "expo-audio": "~1.1.1",
@@ -74,11 +76,13 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
-    "babel-preset-expo": "^55.0.17",
+    "babel-plugin-module-resolver": "^5.0.3",
+    "babel-preset-expo": "^55.0.21",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "jest": "^29.7.0",
     "jest-expo": "~54.0.0",
+    "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   }
 }

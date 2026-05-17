@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { Plus } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { Image as ImageIcon, MapPin, Plus } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -12,13 +12,22 @@ import {
 } from 'react-native';
 
 import { LinearGradient, SafeScreen, TabBarSpacer } from '@/components';
+import { MapScreen } from '@/screens/Map/MapScreen';
 import { useCameraSheetStore } from '@/stores/cameraSheetStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import { CalendarCard } from './components/CalendarCard';
 import { DayHeroCard } from './components/DayHeroCard';
 import { MiniMomentCard } from './components/MiniMomentCard';
-import { useMomentsViewModel, type ViewMode } from './useMomentsViewModel';
+import { useMomentsViewModel } from './useMomentsViewModel';
+
+// T472 (Sprint 70) — Boss design 2026-05-17: Memory Map is NOT a 5th tab; it's
+// a header toggle inside MomentsScreen between Ảnh (photo feed) and Bản đồ
+// (pin map). 4 tabs stay (home / moments / letters / profile + camera FAB).
+// The prototype's month/week toggle is gone — the only header toggle now is
+// photos/map. Calendar stays in default 'month' mode under Ảnh; week mode is
+// dead code we don't touch (out of T472 scope).
+type MainView = 'photos' | 'map';
 
 // T384 (Sprint 62) — Moments tab calendar view. Prototype source of truth:
 // docs/design/prototype/memoura-v2/moments2.jsx. Tap a date → filter selected
@@ -44,6 +53,10 @@ export function MomentsScreen() {
   const c = useAppColors();
 
   const vm = useMomentsViewModel();
+  // T472 — Boss design 2026-05-17. Default to photos; toggle persists across
+  // viewmodel lifecycle (kept in component state, not the moments VM, so
+  // switching to map doesn't reset feed pagination on switch back).
+  const [mainView, setMainView] = useState<MainView>('photos');
 
   const openCameraSheet = useCallback(() => {
     useCameraSheetStore.getState().open();
@@ -66,16 +79,31 @@ export function MomentsScreen() {
   const isError = vm.error && vm.total === 0;
   const isEmpty = !isLoading && !isError && vm.total === 0;
 
+  // T472 — map mode short-circuits BEFORE the feed branching (loading/error/
+  // empty/main) because MapScreen has its own fetch lifecycle, empty state,
+  // and error UX. User can always toggle back to photos.
+  if (mainView === 'map') {
+    return (
+      <SafeScreen edges={['top']}>
+        <HeaderDefault
+          eyebrow={t('moments.list.eyebrow')}
+          title={t('moments.list.title')}
+          mainView={mainView}
+          onSetMainView={setMainView}
+        />
+        <MapScreen />
+      </SafeScreen>
+    );
+  }
+
   if (isLoading) {
     return (
       <SafeScreen edges={['top']}>
         <HeaderDefault
           eyebrow={t('moments.list.eyebrow')}
           title={t('moments.list.title')}
-          viewMode={vm.viewMode}
-          onSetViewMode={vm.setViewMode}
-          monthLabel={t('moments.list.view.month')}
-          weekLabel={t('moments.list.view.week')}
+          mainView={mainView}
+          onSetMainView={setMainView}
         />
         <CenterFill>
           <ActivityIndicator color={c.primary} />
@@ -90,10 +118,8 @@ export function MomentsScreen() {
         <HeaderDefault
           eyebrow={t('moments.list.eyebrow')}
           title={t('moments.list.title')}
-          viewMode={vm.viewMode}
-          onSetViewMode={vm.setViewMode}
-          monthLabel={t('moments.list.view.month')}
-          weekLabel={t('moments.list.view.week')}
+          mainView={mainView}
+          onSetMainView={setMainView}
         />
         <CenterFill>
           <Text className="font-bodyMedium text-ink text-[15px] text-center px-8">
@@ -163,10 +189,8 @@ export function MomentsScreen() {
       <HeaderDefault
         eyebrow={t('moments.list.eyebrow')}
         title={t('moments.list.title')}
-        viewMode={vm.viewMode}
-        onSetViewMode={vm.setViewMode}
-        monthLabel={t('moments.list.view.month')}
-        weekLabel={t('moments.list.view.week')}
+        mainView={mainView}
+        onSetMainView={setMainView}
       />
       <ScrollView
         contentContainerClassName="pt-2"
@@ -228,20 +252,11 @@ export function MomentsScreen() {
 type HeaderDefaultProps = {
   eyebrow: string;
   title: string;
-  viewMode: ViewMode;
-  onSetViewMode: (mode: ViewMode) => void;
-  monthLabel: string;
-  weekLabel: string;
+  mainView: MainView;
+  onSetMainView: (v: MainView) => void;
 };
 
-function HeaderDefault({
-  eyebrow,
-  title,
-  viewMode,
-  onSetViewMode,
-  monthLabel,
-  weekLabel,
-}: HeaderDefaultProps) {
+function HeaderDefault({ eyebrow, title, mainView, onSetMainView }: HeaderDefaultProps) {
   return (
     <View className="flex-row items-end justify-between px-5 pt-2 pb-3">
       <View>
@@ -252,12 +267,7 @@ function HeaderDefault({
           {title}
         </Text>
       </View>
-      <ViewToggle
-        viewMode={viewMode}
-        onSet={onSetViewMode}
-        monthLabel={monthLabel}
-        weekLabel={weekLabel}
-      />
+      <MainViewToggle mainView={mainView} onSet={onSetMainView} />
     </View>
   );
 }
@@ -275,51 +285,47 @@ function HeaderEmpty({ eyebrow, title }: { eyebrow: string; title: string }) {
   );
 }
 
-type ViewToggleProps = {
-  viewMode: ViewMode;
-  onSet: (mode: ViewMode) => void;
-  monthLabel: string;
-  weekLabel: string;
+type MainViewToggleProps = {
+  mainView: MainView;
+  onSet: (v: MainView) => void;
 };
 
-function ViewToggle({ viewMode, onSet, monthLabel, weekLabel }: ViewToggleProps) {
+// T472 — replaces the old month/week ViewToggle. Same segmented-control shape
+// (bg-surface-alt pill containing two Pressable cells), icon-only per Boss
+// 2026-05-17 design. Conditional active styling lives on `style` (via
+// useAppColors) NOT on className — see mobile-rework Hard Rule #2 gotcha.
+function MainViewToggle({ mainView, onSet }: MainViewToggleProps) {
+  const c = useAppColors();
   return (
     <View className="flex-row bg-surface-alt rounded-xl p-0.5">
-      <ToggleBtn active={viewMode === 'month'} onPress={() => onSet('month')}>
-        {monthLabel}
-      </ToggleBtn>
-      <ToggleBtn active={viewMode === 'week'} onPress={() => onSet('week')}>
-        {weekLabel}
-      </ToggleBtn>
+      <MainToggleBtn active={mainView === 'photos'} onPress={() => onSet('photos')}>
+        <ImageIcon size={16} color={mainView === 'photos' ? c.ink : c.inkMute} />
+      </MainToggleBtn>
+      <MainToggleBtn active={mainView === 'map'} onPress={() => onSet('map')}>
+        <MapPin size={16} color={mainView === 'map' ? c.ink : c.inkMute} />
+      </MainToggleBtn>
     </View>
   );
 }
 
-function ToggleBtn({
+function MainToggleBtn({
   active,
   onPress,
   children,
 }: {
   active: boolean;
   onPress: () => void;
-  children: string;
+  children: React.ReactNode;
 }) {
   const c = useAppColors();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      className="px-3 py-1.5 rounded-lg active:opacity-80"
-      style={{
-        backgroundColor: active ? c.bgElev : 'transparent',
-      }}
+      className="px-3 py-1.5 rounded-lg active:opacity-80 min-w-[40px] items-center justify-center"
+      style={{ backgroundColor: active ? c.bgElev : 'transparent' }}
     >
-      <Text
-        className="font-bodySemibold text-[12px]"
-        style={{ color: active ? c.ink : c.inkMute }}
-      >
-        {children}
-      </Text>
+      {children}
     </Pressable>
   );
 }

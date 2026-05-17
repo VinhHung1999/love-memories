@@ -159,6 +159,12 @@ export default function NotificationsScreen() {
           // both deep-link to the full Daily Q&A screen.
           router.push('/daily-questions');
           return;
+        case 'pair':
+          // Sprint 68 T469 — partner_joined inbox tap. The user is
+          // already inside (tabs) by definition of being on the inbox
+          // screen, so there's no destination to open. Mark-read +
+          // dismiss is enough; the tap acknowledges the event.
+          return;
         case 'daily':
         case 'streak':
         case 'invite':

@@ -279,10 +279,15 @@ const vi = {
         whisperSoloPrefix: 'Mình bắt đầu từ đâu cũng được. ',
         whisperSoloTail: 'Thêm khoảnh khắc đầu tiên?',
       },
-      // T384 — calendar view (month grid + filtered day content)
+      // T472 (Sprint 70) — Boss design 2026-05-17: month/week toggle replaced
+      // by Ảnh / Bản đồ. Old `view.month` + `view.week` kept for backward
+      // compat in case a stray import references them; new screen toggle uses
+      // `view.photos` + `view.map`.
       view: {
         month: 'Tháng',
         week: 'Tuần',
+        photos: 'Ảnh',
+        map: 'Bản đồ',
       },
       nav: {
         prevMonth: 'Tháng trước',
@@ -539,17 +544,20 @@ const vi = {
     },
     pairing: {
       choice: {
-        title: 'Cho ai nữa?',
-        subtitle: 'Memoura chỉ có hai người',
+        kicker: 'chỉ còn một bước',
+        title: 'Cho ai\nnữa, nhỉ?',
+        body: 'Memoura chỉ có hai người. Chọn một thôi.',
         create: {
+          kicker: 'Em đi trước',
           title: 'Tạo lời mời',
-          subtitle: 'Cho người ta một mã 8 ký tự',
+          desc: 'Mã 8 chữ để gửi cho người ta.',
         },
         join: {
-          title: 'Có mã rồi',
-          subtitle: 'Nhập mã từ người ta',
+          kicker: 'Có mã rồi',
+          title: 'Nhập mã',
+          desc: 'Người ta đã gửi mã cho bạn.',
         },
-        lockNote: 'Mỗi người chỉ ghép với một người. Không có bạn bè, không có theo dõi.',
+        privacy: 'Một người ↔ một người. Không bạn bè, không feed.',
       },
       invite: {
         title: 'Mã ghép đôi',
@@ -595,57 +603,151 @@ const vi = {
         alreadyPaired: 'Mình đã ghép với người khác rồi.',
       },
     },
-    personalize: {
-      title: 'Một chút riêng tư',
-      subtitle: 'Tên gọi · màu · ngày bắt đầu',
-      nickLabel: 'Tên gọi của mình',
-      nickPlaceholder: 'Mình',
-      nickIcon: '✶',
-      colorLabel: 'Màu của hai đứa',
-      dateLabel: 'Ngày hai đứa bắt đầu',
+    coupleForm: {
+      title: 'Về hai đứa',
+      subtitle: 'Một ngày, một cái tên, một câu',
+      required: 'Bắt buộc',
+      optional: 'Tuỳ chọn',
+      dateLabel: 'Ngày kỷ niệm',
       datePlaceholder: '14.02.2023',
-      dateIcon: '📅',
-      previewSince: 'từ',
-      previewPlaceholder: 'Mình',
-      previewPartner: 'người ấy',
-      cta: 'Gần xong rồi',
+      dateHelp: 'Ngày hai đứa chính thức bắt đầu. Sẽ thấy mỗi sáng.',
+      nameLabel: 'Tên cặp đôi',
+      nameIcon: '♡',
+      namePlaceholder: 'Ourcouple',
+      nameSuggestions: ['Hai đứa nhỏ', 'Nhà mình', 'Ourcouple', 'Đôi mình'],
+      sloganLabel: 'Câu của hai đứa',
+      sloganIcon: '✎',
+      sloganPlaceholder: 'một câu nhỏ thôi',
+      sloganSuggestions: ['còn lâu mới hết', 'mãi mãi là 2', 'một mái, hai trái tim'],
+      cta: 'Tạo lời mời',
+      saving: 'Đang lưu…',
+      helper: 'Có thể đổi lại bất cứ lúc nào',
+      preview: {
+        since: 'từ ngày {{date}}',
+        namePlaceholder: 'Tên hai đứa',
+        sloganPlaceholder: 'một câu của riêng hai đứa',
+      },
+      errors: {
+        dateRequired: 'Ngày kỷ niệm là bắt buộc.',
+        dateInvalid: 'Ngày chưa đúng định dạng (DD.MM.YYYY).',
+        nameTooLong: 'Tên hơi dài — gọn lại tí nhé.',
+        sloganTooLong: 'Câu hơi dài — gọn lại tí nhé.',
+        alreadyPaired: 'Mình đã ghép với người khác rồi.',
+        network: 'Mạng đang trục trặc. Mình thử lại nhé.',
+      },
+    },
+    pairJoin: {
+      kicker: 'có ai đó đang đợi…',
+      title: 'Nhập mã\nngười ta gửi.',
+      youFallback: 'bạn',
+      partnerFallback: 'người ta',
+      codeLabel: 'mã tám chữ',
+      altOr: 'hoặc',
+      scanTitle: 'Quét mã QR',
+      scanSub: 'Khi hai đứa đang đứng cạnh nhau',
+      help: 'Mã có dạng A1B2-C3D4 — tám chữ chia làm hai cụm. Người ta thấy mã ngay sau khi tạo lời mời.',
+      cta: 'Ghép đôi',
+      joining: 'Đang ghép…',
+      remaining: 'Còn {{n}} chữ nữa thôi',
+      ready: 'sẵn sàng vào nhà ♥',
+    },
+    pairWait: {
+      kicker: 'gửi cho người ta',
+      title: 'Mời {{partner}}\nvào nhà mình.',
+      status: 'đang chờ ghép',
+      youFallback: 'bạn',
+      partnerFallback: 'người ta',
+      codeLabel: 'mã của hai đứa',
+      copyCode: 'Chép mã',
+      copyLink: 'Chép link',
+      copied: 'Đã chép',
+      shareInvite: 'Chia sẻ lời mời',
+      shareZalo: 'Zalo',
+      shareOther: 'Khác',
+      expiresHint: 'Hết hạn sau 24 giờ',
+      privacyFootnote: 'Mã chỉ dùng được một lần, cho một người.',
+      qrAltOr: 'hoặc',
+      qrTitle: 'Quét mã QR khi đứng cạnh nhau',
+      qrHint: 'Mở Memoura · chọn "Có mã rồi"',
+      waitingFor: 'Đang chờ {{partner}}',
+      waitingHeadline: 'Cứ để mở màn này nhé',
+      waitingBody:
+        'Khi {{partner}} nhập mã, Memoura sẽ mở cửa cho hai đứa.',
+      benefitsTitle: 'Khi {{partner}} vào, hai đứa có',
+      benefits: {
+        moments: {
+          title: 'Khoảnh khắc chung',
+          body: 'Cùng đăng ảnh, ghi chú, vị trí — chỉ hai đứa thấy.',
+        },
+        letters: {
+          title: 'Thư tay riêng tư',
+          body: 'Viết một lá thư hôm nay, hẹn mở tuần sau, năm sau.',
+        },
+        dailyq: {
+          title: 'Câu hỏi mỗi ngày',
+          body: 'Một câu nhỏ để biết nhau hơn — không bắt buộc.',
+        },
+        recap: {
+          title: 'Hồi tưởng tự động',
+          body: 'Memoura ghép lại tháng, năm — như cuốn sổ nhỏ.',
+        },
+      },
+      privacy: 'Khi người kia mở link, hai đứa sẽ tự động ghép lại.',
+      shareMessage:
+        'Vào Memoura cùng mình nhé ✨ Mở link: {{url}} (hoặc nhập mã {{code}} trong app)',
+      signOutA11y: 'Quay lại màn hình đăng nhập',
+      signOutTitle: 'Đăng xuất?',
+      signOutBody: 'Bạn muốn đăng xuất khỏi Memoura? Chưa ghép đôi xong cũng không sao.',
+      signOutConfirm: 'Đăng xuất',
+      regenCta: 'Tạo mã mới',
+      regenLoading: 'Đang tạo…',
+      regenTitle: 'Đổi sang mã mới?',
+      regenBody: 'Mã cũ sẽ không dùng được nữa. Nếu người ta đang nhập, họ sẽ phải xin lại.',
+      regenConfirm: 'Đổi mã',
+    },
+    personalize: {
+      title: 'Em là ai?',
+      subtitle: 'Tên gọi và một gương mặt',
+      nickLabel: 'Tên gọi',
+      nickPlaceholder: 'Tên của bạn',
+      nickIcon: '✶',
+      colorLabel: 'Chọn một sắc',
+      previewPlaceholder: 'tên của bạn',
+      cta: 'Tiếp',
       saving: 'Đang lưu…',
       avatarAdd: 'Thêm ảnh',
       avatarChange: 'Thay đổi ảnh',
       avatarUploading: 'Đang tải ảnh…',
+      colorNames: {
+        primary: 'Hồng đào',
+        accent: 'Cam quýt',
+        secondary: 'Mận chín',
+        primaryDeep: 'Đồng',
+        sunset: 'Hoàng hôn',
+        mint: 'Bạc hà',
+      },
       errors: {
         nameRequired: 'Mình muốn được gọi là gì nhỉ?',
-        dateRequired: 'Hãy chọn ngày bắt đầu',
-        dateInvalid: 'Ngày chưa đúng định dạng (DD.MM.YYYY)',
         avatarFailed: 'Tải ảnh chưa được. Thử lại nhé.',
         network: 'Mạng đang trục trặc. Mình thử lại nhé.',
       },
     },
-    permissions: {
-      title: 'Một vài quyền',
-      subtitle: 'Mình có thể đổi sau này',
-      cta: 'Xong rồi, vào nhà',
-      skip: 'Bỏ qua',
-      allow: 'Cho phép',
-      granted: 'Đã bật',
-      denied: 'Đã tắt',
-      notif: {
-        title: 'Thông báo nhẹ nhàng',
-        body: 'Một câu hỏi sáng, một lời chúc tối. Không spam.',
-      },
-      photos: {
-        title: 'Thư viện ảnh',
-        body: 'Để mình chọn ảnh khi thêm khoảnh khắc.',
-      },
-    },
     done: {
       eyebrow: 'mọi thứ sẵn rồi',
-      title: '{{names}},\nchào mừng về nhà.',
+      title: '{{names}},\nchào mừng về\nnhà.',
       titleSelfFallback: 'mình',
       titlePartnerFallback: 'người ấy',
-      body: 'Đây sẽ là nơi giữ lại những gì hai đứa không muốn quên. Bắt đầu bằng khoảnh khắc đầu tiên nhé.',
+      status: 'đã ghép đôi',
+      sinceToday: 'từ hôm nay',
+      sinceWithDate: 'từ {{date}}',
+      kicker: 'cùng nhau giữ lại điều đáng giữ ♥',
       cta: 'Vào Memoura',
       finishing: 'Đang vào…',
+      firstThings: {
+        moment: { icon: '📷', title: 'khoảnh khắc đầu', sub: 'lưu ngay' },
+        letter: { icon: '✉️', title: 'lá thư đầu', sub: 'viết tay' },
+        question: { icon: '?', title: 'câu hỏi đầu', sub: 'hôm nay' },
+      },
     },
     intro: {
       next: 'Tiếp',
@@ -1125,6 +1227,28 @@ const vi = {
       },
       closeLabel: 'Đóng',
     },
+  },
+  // Sprint 70 T472 — Memory Map. Strings live under `map.*` so MapScreen +
+  // PinView empty state stay translatable without touching the locales' top-
+  // level shape.
+  // Slice 2 + Slice 3 both write here — keep entries flat, coordinate by
+  // block-marker comment, do not modify each other's keys.
+  map: {
+    // T472 Slice 2 keys (MapScreen + PinView)
+    loadingPins: 'Đang tải ghim…',
+    tokenMissing:
+      'Chưa cấu hình MAPBOX_ACCESS_TOKEN — cập nhật mobile-rework/.env rồi rebuild.',
+    empty: {
+      title: 'Bản đồ kỷ niệm đang trống',
+      body:
+        'Thêm vị trí vào một khoảnh khắc để hai đứa cùng nhìn lại hành trình ở đây.',
+      cta: '+ Thêm khoảnh khắc',
+    },
+    // T472 Slice 3 keys (MomentPreviewCard)
+    byAuthor: 'Bởi {{name}}',
+    openMoment: 'Mở khoảnh khắc',
+    voiceMemo: 'Ghi âm',
+    untitled: 'Khoảnh khắc',
   },
   // Sprint 67 T458 — Recap archive list reachable from Profile.
   recapArchive: {
