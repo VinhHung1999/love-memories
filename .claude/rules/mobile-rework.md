@@ -213,6 +213,25 @@ Run `npm run lint` before every commit — catches type errors that bite in Xcod
 crash. Use npm for pure-JS deps (zustand, i18next); use `npx expo install` for
 anything with native code.
 
+**`NODE_ENV=production` shell pollution silently drops devDeps (Sprint 70 T472
+fix log 2026-05-17).** A `NODE_ENV=production` exported from a sibling project
+(e.g. a Node service shell) causes `npm install` / `yarn install` to omit
+`devDependencies` without printing a warning. Symptom: `node_modules/.bin/tsc`,
+`expo`, `jest`, etc. vanish, builds fail in confusing ways. **Always `unset
+NODE_ENV` before `npm install`** in this repo — same hygiene as the backend
+rule about `DATABASE_URL`. If `npx tsc --noEmit` errors with "command not
+found" or expo CLI is missing, this is the cause.
+
+**`patch-package` for any node_modules tweak (Sprint 70 T472, 2026-05-17).** When
+a native dep (Mapbox SDK, an audio library, etc.) ships a Swift / Java / native
+file that breaks under a newer toolchain and you must edit it inline, the edit
+MUST be captured as a `patches/` file via `npx patch-package <pkg>`. The
+`postinstall` script in `package.json` re-applies the patch on every install;
+without that, the next `npm ci` silently reverts the fix and builds break
+again. Boss's policy 2026-04-15 was "no patch-package, deps must be clean" —
+T472 negotiated the carve-out for upstream-blocking issues like the Xcode 26
+/ @rnmapbox/maps Geometry-switch compile bug (see "Known bug patterns").
+
 ## New Architecture
 
 `newArchEnabled: true` in `app.config.ts`. If Android stops using Fabric, check
@@ -309,6 +328,29 @@ and on the BE filter (see `backend.md`). Avatar uploads already consume
 
 ## Known bug patterns
 
+- **`@rnmapbox/maps` 10.3.0 fails to archive on Xcode 26 / Swift 6.2 (Sprint 70 T472, RESOLVED 2026-05-17)**:
+  Mapbox iOS SDK 11.10.0 didn't add `@unknown default:` cases to its
+  `Turf.Geometry` / `GeoJSONObject` / `GeoJSONSourceData` enums; under Swift
+  6.2's stricter exhaustiveness checking the RNMBX wrapper's `switch` over
+  those enums in `RNMBXFeatureUtils.swift` (lines 42, 78) and
+  `RNMBXShapeSource.swift` (lines 186, 258) becomes a hard compile error —
+  the Swift frontend bails mid-batch with no readable message, just "Failed
+  frontend command" listing 50+ files. **Two-part fix:**
+  (1) Bump Mapbox iOS SDK to ≥11.22.1 — both in `ios/Podfile`
+      (`$RNMapboxMapsVersion = '11.22.1'`) AND `app.config.ts` (plugin
+      `RNMapboxMapsVersion: '11.22.1'`). If only one is bumped, the next
+      `expo prebuild` regenerates the Podfile with the older pin and the
+      build breaks again.
+  (2) Add `@unknown default:` cases to the 4 switches in those two RNMBX
+      files. node_modules edits are captured in
+      `patches/@rnmapbox+maps+10.3.0.patch` and re-applied on every install
+      via the `postinstall: "patch-package"` script in `package.json`. Do
+      NOT hand-edit node_modules — the patch is the contract.
+  Symptom in `./deploy-appstore.sh` output: `** ARCHIVE FAILED **` + a wall
+  of "warning: conditional downcast from 'NSNumber?'" warnings + the
+  "Failed frontend command:" line. The warnings are noise; the missing
+  `@unknown default` cases are the real failure.
+
 - **TextInput height jitter from explicit `text-[size] leading-[N]` (Sprint 66 — RESOLVED 5997131)**:
   iOS RN re-derives the TextInput's content bbox between empty and typed states
   when both font size AND lineHeight are forced via NativeWind classes — 's' (no
@@ -332,11 +374,37 @@ and on the BE filter (see `backend.md`). Avatar uploads already consume
   value on `style` prop via `useAppColors()`; `className` stays a single static
   string. See Hard Rule #2's conditional-styling carve-out and
   `.claude/memory/bugs-and-lessons/nativewind-conditional-className-crash.md`.
+  Same trap also fires for non-conditional template-literal className concat on
+  `<Text>` — `className={\`font-body ${bodyClassName}\`}` where `bodyClassName`
+  is a function-param string silently drops ALL classes (Text renders with no
+  font/size/leading → invisible). Sprint 67 D5 letter slides hot-fix. **Always
+  use static class strings at the JSX site**; never thread className fragments
+  through props. If you must factor a helper, hardcode its className.
 - **BottomSheet + keyboard**: inside `@gorhom/bottom-sheet` use `BottomSheetTextInput`
   or `Input` with `bottomSheet` prop — RN `TextInput` doesn't trigger keyboard avoid.
 - **BottomSheetModal on fullScreenModal iOS**: touches blocked by `transparentModal`
   native screen container. Fix: `containerComponent={FullWindowOverlay}` from
   `react-native-screens` (iOS only).
+- **`presentation: 'fullScreenModal'` must live at ROOT, not inside a route group
+  whose `_layout.tsx` sets its own `presentation`.** Parent group wins — per-screen
+  options in `app/(modal)/foo.tsx` get silently overridden by `(modal)/_layout.tsx`'s
+  `presentation: 'modal'`, so the screen renders as a sheet card (rounded corners +
+  safe-area chrome) instead of edge-to-edge. **4th occurrence in this project**:
+  PB5 Photobooth, D42 letter-read, T386.7 moment-detail, D4 Stories monthly+weekly
+  (Sprint 67). Rule: ANY screen that needs full-bleed (Stories, viewers, immersive
+  flows) lives at `app/<route>/index.tsx` and registers in `app/_layout.tsx` with
+  `presentation: 'fullScreenModal'` — never under a group with conflicting layout
+  options. Add the route name to the auth-gate skip list at the same time.
+- **Display-font leading must be >= 1.15× font-size, or tall ascenders clip.**
+  Fraunces / Dancing Script / any serif display has ascenders/descenders well above
+  the bbox of the digits — `text-[180px] leading-[170px]` clips the top of `8`/`9`
+  on Fraunces; `text-[14px] leading-[14px]` clips Dancing Script `♥`. Use leading
+  ≥ 1.15× size (210/180, 16/14) and wrap in `overflow-visible py-1` for safety.
+  Same lesson burned StatSlide BigStat (Sprint 67 D4) and Polaroid chin (Sprint 64).
+- **PaperSheet — canonical letter card.** `src/screens/Recap/Stories/.../letter/PaperSheet.tsx`
+  ports LetterReadScreen's `#FDFAF5` cream + 28px notebook rules + Dancing-Script
+  signature. Reuse this for any future letter surface (preview cards, archive
+  thumbnails, share images) — don't re-roll the paper texture per variant.
 - **Reanimated v4 worklet colors**: capture `useAppColors()` values OUTSIDE
   `useAnimatedStyle` — never call the hook inside a worklet.
 - **Mapbox + Reanimated v4 on iOS 26**: `<UserLocation animated />` triggers

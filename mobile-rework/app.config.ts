@@ -212,10 +212,16 @@ const config: ExpoConfig = {
     // `mapboxToken` value injected into `extra` below — Boss populates the
     // real value into `.env` (gitignored). Pinning the iOS SDK version keeps
     // Pod resolution deterministic across `expo prebuild` runs.
+    //
+    // 11.22.1 = first release with the Xcode 26 / Swift 6.2 Geometry-enum
+    // fix. Older pins (11.10.0) crash the Swift frontend during archive
+    // because the @rnmapbox/maps RNMBX wrappers switch over Mapbox's
+    // Geometry enum without @unknown default. See
+    // .claude/rules/mobile-rework.md "Known bug patterns".
     [
       '@rnmapbox/maps',
       {
-        RNMapboxMapsVersion: '11.10.0',
+        RNMapboxMapsVersion: '11.22.1',
       },
     ],
   ],

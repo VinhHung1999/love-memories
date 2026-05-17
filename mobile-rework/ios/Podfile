@@ -20,9 +20,10 @@ platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
 
 prepare_react_native_project!
 
-# @generated begin @rnmapbox/maps-rnmapboxmapsimpl - expo prebuild (DO NOT MODIFY) sync-ebbc099236b5cffdeb9a395f8a1e88a21ebdeafe
-$RNMapboxMapsVersion = '11.10.0'
-# @generated end @rnmapbox/maps-rnmapboxmapsimpl
+# Bumped from 11.10.0 → 11.22.1 to pick up Mapbox iOS SDK Xcode 26 / Swift 6.2 fix
+# (Mapbox release notes 2026-04-28 — "build issue for Objective-C consumers using
+# Xcode 26 / Swift 6"). See B-RNMAPBOX-XCODE26-NEWARCH + rnmapbox/maps#4178.
+$RNMapboxMapsVersion = '11.22.1'
 target 'Memoura' do
   use_expo_modules!
 
@@ -72,5 +73,6 @@ target 'Memoura' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
   end
 end
