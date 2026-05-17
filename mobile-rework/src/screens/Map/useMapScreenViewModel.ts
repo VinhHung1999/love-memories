@@ -56,6 +56,16 @@ export type MapScreenVM = {
 
 const DEBOUNCE_MS = 300;
 
+// VN-wide bbox used for the bootstrap fetch on mount (see useEffect below).
+// Same numbers as MapScreen's <Camera maxBounds> — keep in sync if either
+// moves, or hoist to a shared constants module if a third surface needs them.
+const VN_BOOTSTRAP_BOUNDS: MapBounds = {
+  south: 8,
+  west: 102,
+  north: 23,
+  east: 110,
+};
+
 export function useMapScreenViewModel(): MapScreenVM {
   const [isMapReady, setIsMapReady] = useState<boolean>(mapboxTokenInitialized);
   const [pins, setPins] = useState<MapMomentPin[]>([]);
@@ -140,6 +150,21 @@ export function useMapScreenViewModel(): MapScreenVM {
     },
     [flushFetch],
   );
+
+  // T472 Build 149 fix — bootstrap pin fetch on first mount with the
+  // VN-wide bbox. Mapbox `onCameraChanged` doesn't reliably fire on initial
+  // layout (race between native camera-settle and the JS bridge), so without
+  // this the user lands on an empty map and only sees pins after panning.
+  // First user pan then refines via the debounced onCameraChanged path; the
+  // `inFlightRef` guard inside flushFetch swallows the bootstrap+pan double
+  // call if both land at once.
+  const bootstrappedRef = useRef(false);
+  useEffect(() => {
+    if (!isMapReady || bootstrappedRef.current) return;
+    bootstrappedRef.current = true;
+    latestBoundsRef.current = VN_BOOTSTRAP_BOUNDS;
+    void flushFetch();
+  }, [isMapReady, flushFetch]);
 
   // Cleanup any pending timer if the screen unmounts mid-debounce.
   useEffect(

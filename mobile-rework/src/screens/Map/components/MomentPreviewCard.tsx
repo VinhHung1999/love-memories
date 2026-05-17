@@ -175,16 +175,12 @@ export function MomentPreviewCard({
         className="absolute left-0 right-0 bottom-0 bg-bg-elev rounded-t-3xl shadow-lg p-5 pb-8"
         style={cardAnimatedStyle}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.close')}
-          onPress={onClose}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full items-center justify-center active:opacity-70"
-          hitSlop={8}
-        >
-          <X size={18} strokeWidth={2.2} color={c.inkMute} />
-        </Pressable>
-
+        {/* T472 Build 149 fix — the body Pressable below `pr-8`-pads its
+            *content* but its tap area still spans the full card width
+            including the X corner. When the X was rendered BEFORE the body,
+            RN's responder system gave overlapping taps to the later sibling
+            (the body Pressable → onOpenFull fired instead of onClose). Body
+            first, X last (rendered topmost) → X tap reaches onClose. */}
         <Pressable
           accessibilityRole="button"
           onPress={onOpenFull}
@@ -277,6 +273,19 @@ export function MomentPreviewCard({
           >
             {t('map.openMoment')}
           </Text>
+        </Pressable>
+
+        {/* X close — MUST be the last child of the card so it sits topmost in
+            RN's responder order (later sibling wins overlapping taps). See
+            the Build-149 comment above the body Pressable. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.close')}
+          onPress={onClose}
+          className="absolute top-3 right-3 w-9 h-9 rounded-full items-center justify-center active:opacity-70"
+          hitSlop={8}
+        >
+          <X size={18} strokeWidth={2.2} color={c.inkMute} />
         </Pressable>
       </Animated.View>
     </>
