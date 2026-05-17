@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Avatar } from '@/components/Avatar';
+import { useMapPreviewStore } from '@/stores/mapPreviewStore';
 import { useAppColors } from '@/theme/ThemeProvider';
 
 import type { MomentPreviewCardProps } from '../types';
@@ -93,6 +94,21 @@ export function MomentPreviewCard({
       easing: Easing.out(Easing.cubic),
     });
   }, [moment, progress]);
+
+  // T472 Build 149 fix — broadcast visibility so PillTabBar can hide while
+  // the card is open (the floating tabbar otherwise covers the bottom of
+  // the card; mounted as a sibling of the scene, can't be z-index'd from
+  // here). Reset on unmount so a tab switch while a card is open doesn't
+  // leave the tabbar hidden.
+  const setPreviewVisible = useMapPreviewStore((s) => s.setVisible);
+  useEffect(() => {
+    setPreviewVisible(moment !== null);
+  }, [moment, setPreviewVisible]);
+  useEffect(() => {
+    return () => {
+      setPreviewVisible(false);
+    };
+  }, [setPreviewVisible]);
 
   // Stop any singleton playback when the card fully unmounts (e.g. the
   // user navigates away from the Map tab) — otherwise the audio bleeds

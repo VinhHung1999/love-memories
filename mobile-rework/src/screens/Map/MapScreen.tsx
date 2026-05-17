@@ -94,7 +94,11 @@ export function MapScreen() {
               anchor={{ x: 0.5, y: 1 }}
               allowOverlap
             >
-              <PinView moment={pin} onPress={() => vm.selectPin(pin)} />
+              <PinView
+                moment={pin}
+                isActive={vm.selectedPin?.id === pin.id}
+                onPress={() => vm.selectPin(pin)}
+              />
             </Mapbox.MarkerView>
           ))}
         </Mapbox.MapView>
