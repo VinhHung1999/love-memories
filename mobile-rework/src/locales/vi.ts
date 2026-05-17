@@ -31,7 +31,6 @@ const vi = {
     home: 'Nhà',
     moments: 'Khoảnh khắc',
     letters: 'Thư',
-    map: 'Bản đồ',
     profile: 'Mình',
   },
   home: {
@@ -280,10 +279,15 @@ const vi = {
         whisperSoloPrefix: 'Mình bắt đầu từ đâu cũng được. ',
         whisperSoloTail: 'Thêm khoảnh khắc đầu tiên?',
       },
-      // T384 — calendar view (month grid + filtered day content)
+      // T472 (Sprint 70) — Boss design 2026-05-17: month/week toggle replaced
+      // by Ảnh / Bản đồ. Old `view.month` + `view.week` kept for backward
+      // compat in case a stray import references them; new screen toggle uses
+      // `view.photos` + `view.map`.
       view: {
         month: 'Tháng',
         week: 'Tuần',
+        photos: 'Ảnh',
+        map: 'Bản đồ',
       },
       nav: {
         prevMonth: 'Tháng trước',

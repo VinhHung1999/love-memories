@@ -47,8 +47,10 @@ export type MapScreenVM = {
   selectPin: (pin: MapMomentPin | null) => void;
 
   // Camera event → debounced fetch. Wire to <MapView onCameraChanged>.
+  // `number[]` over `[number, number]` matches Mapbox's `Position` type which
+  // allows an optional altitude as a 3rd element. We only read [0] and [1].
   onCameraChanged: (state: {
-    properties: { bounds: { ne: [number, number]; sw: [number, number] } };
+    properties: { bounds: { ne: number[]; sw: number[] } };
   }) => void;
 };
 

@@ -19,7 +19,6 @@ const en: Resources = {
     home: 'Home',
     moments: 'Moments',
     letters: 'Letters',
-    map: 'Map',
     profile: 'Us',
   },
   home: {
@@ -253,10 +252,13 @@ const en: Resources = {
         whisperSoloPrefix: 'Anywhere is a fine place to start. ',
         whisperSoloTail: 'Add the first moment?',
       },
-      // T384 — calendar view (month grid + filtered day content)
+      // T472 (Sprint 70) — mirror of vi.ts comment. Old month/week kept for
+      // compat; new toggle uses photos + map.
       view: {
         month: 'Month',
         week: 'Week',
+        photos: 'Photos',
+        map: 'Map',
       },
       nav: {
         prevMonth: 'Previous month',
