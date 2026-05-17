@@ -49,7 +49,7 @@ PODS:
     - React-Core
   - ExpoAppleAuthentication (8.0.8):
     - ExpoModulesCore
-  - ExpoAsset (55.0.17):
+  - ExpoAsset (12.0.12):
     - ExpoModulesCore
   - ExpoAudio (1.1.1):
     - ExpoModulesCore
@@ -136,13 +136,13 @@ PODS:
   - hermes-engine (0.81.5):
     - hermes-engine/Pre-built (= 0.81.5)
   - hermes-engine/Pre-built (0.81.5)
-  - MapboxCommon (24.10.0):
+  - MapboxCommon (24.22.1):
     - Turf (= 4.0.0)
-  - MapboxCoreMaps (11.10.0):
-    - MapboxCommon (~> 24.10)
-  - MapboxMaps (11.10.0):
-    - MapboxCommon (= 24.10.0)
-    - MapboxCoreMaps (= 11.10.0)
+  - MapboxCoreMaps (11.22.1):
+    - MapboxCommon (= 24.22.1)
+  - MapboxMaps (11.22.1):
+    - MapboxCommon (= 24.22.1)
+    - MapboxCoreMaps (= 11.22.1)
     - Turf (= 4.0.0)
   - NitroAudioRecorderPlayer (4.5.0):
     - hermes-engine
@@ -2002,14 +2002,14 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - rnmapbox-maps (10.3.0):
-    - MapboxMaps (= 11.10.0)
+    - MapboxMaps (= 11.22.1)
     - React
     - React-Core
     - rnmapbox-maps/DynamicLibrary (= 10.3.0)
     - Turf
   - rnmapbox-maps/DynamicLibrary (10.3.0):
     - hermes-engine
-    - MapboxMaps (= 11.10.0)
+    - MapboxMaps (= 11.22.1)
     - RCTRequired
     - RCTTypeSafety
     - React
@@ -2281,7 +2281,7 @@ DEPENDENCIES:
   - Expo (from `../node_modules/expo`)
   - "ExpoAdapterGoogleSignIn (from `../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
   - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
-  - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoAsset (from `../node_modules/expo/node_modules/expo-asset/ios`)
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoBlur (from `../node_modules/expo-blur/ios`)
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
@@ -2414,7 +2414,7 @@ EXTERNAL SOURCES:
   ExpoAppleAuthentication:
     :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
-    :path: "../node_modules/expo-asset/ios"
+    :path: "../node_modules/expo/node_modules/expo-asset/ios"
   ExpoAudio:
     :path: "../node_modules/expo-audio/ios"
   ExpoBlur:
@@ -2625,7 +2625,7 @@ SPEC CHECKSUMS:
   Expo: aadbcc8c6c14ff3105a9154f1683cb1424ff0d2a
   ExpoAdapterGoogleSignIn: ab4d9fc38cb91077a4138d178395525ec65d0c2e
   ExpoAppleAuthentication: 9413ae9a5e631a424cc04c1b13b0694dbab7d594
-  ExpoAsset: 7721c5c4ae2a7c3c8147a046727ac6c020b05648
+  ExpoAsset: f867e55ceb428aab99e1e8c082b5aee7c159ea18
   ExpoAudio: e4cfe3a2f3317b8487460685385a9867a07fb4fb
   ExpoBlur: b90747a3f22a8b6ceffd9cb0dc41a4184efdc656
   ExpoCamera: 6a326deb45ba840749652e4c15198317aa78497e
@@ -2651,9 +2651,9 @@ SPEC CHECKSUMS:
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: 9f4dfe93326146a1c99eb535b1cb0b857a3cd172
-  MapboxCommon: 363dbed6bcdaa9a08674098fc5c661e826049dc2
-  MapboxCoreMaps: 85344d5f170f9fef5babdaba047f339f22785c68
-  MapboxMaps: f8f3a41382af13a95102b04cf27086ec48221013
+  MapboxCommon: 5e6e52fafbfe3bfc7f426028c67aa3d557360ed2
+  MapboxCoreMaps: 9bbf1727d6ae212c279b1345871cdc7aa9c1dd38
+  MapboxMaps: 9ac8b6e848807cff5e5f5df30d690729f5065098
   NitroAudioRecorderPlayer: 3d0f51dcf18faf4a55cf607deab58b5fe92a9bb1
   NitroModules: 4623499842af916a6cb462950b024a47eef7d6ea
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
@@ -2727,7 +2727,7 @@ SPEC CHECKSUMS:
   RNDateTimePicker: be0e44bcb9ed0607c7c5f47dbedd88cf091f6791
   RNGestureHandler: 2914750df066d89bf9d8f48a10ad5f0051108ac3
   RNGoogleSignin: 104dd7238c56fe354e4b0a8fd267f866039ffdf3
-  rnmapbox-maps: 725c90b5e9efb832c5cdf0f9c3dcac5c7b1a7686
+  rnmapbox-maps: 14c60f1e3afb1cea02553a58710e1c799f356e82
   RNReanimated: 41f496c18437fd0aa841234917af84e98fd5b9a2
   RNScreens: d8d6f1792f6e7ac12b0190d33d8d390efc0c1845
   RNSVG: 31d6639663c249b7d5abc9728dde2041eb2a3c34
@@ -2736,6 +2736,6 @@ SPEC CHECKSUMS:
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: 499b468b9bc1c8786ec3620d5eb6ed16beef8935
+PODFILE CHECKSUM: cf44055713f9d0d394f2a0d34dfe43077ba5aa47
 
 COCOAPODS: 1.16.2
