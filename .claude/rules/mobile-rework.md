@@ -328,6 +328,29 @@ and on the BE filter (see `backend.md`). Avatar uploads already consume
 
 ## Known bug patterns
 
+- **`PRODUCT_BUNDLE_IDENTIFIER=` xcodebuild flag bleeds into Pods → iOS 26 "Unable to Install" (Sprint 70 T472, RESOLVED 2026-05-17)**:
+  Passing `PRODUCT_BUNDLE_IDENTIFIER=com.hungphu.memoura.dev` as a global
+  xcodebuild build setting (alongside `DEVELOPMENT_TEAM=`) propagates to
+  **every** target in the workspace — not just the host app. CocoaPods like
+  `MapboxMaps.framework` whose Info.plist declares
+  `CFBundleIdentifier=$(PRODUCT_BUNDLE_IDENTIFIER)` then ship with the
+  host's bundle ID baked in. The resulting IPA has multiple frameworks
+  claiming `com.hungphu.memoura.dev` and iOS 26 refuses OTA install with
+  the opaque "Unable to Install Memoura" alert (works fine on iOS 17/18 —
+  iOS 26 added a duplicate-bundle-id check at install time).
+  **Fix:** scope the bundle ID edit to the host app's Info.plist only via
+  PlistBuddy, NOT a global xcodebuild flag:
+  ```bash
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $bundle_id" Memoura/Info.plist
+  # …then xcodebuild WITHOUT PRODUCT_BUNDLE_IDENTIFIER= override
+  ```
+  `ios/deploy-appstore.sh` (Sprint 70 T472) is the canonical pattern.
+  **Detection:** `unzip -l Memoura.ipa | grep .framework/Info.plist`, then
+  PlistBuddy `Print :CFBundleIdentifier` on each — every framework should
+  resolve to its native value (`com.mapbox.maps`, `com.mapbox.common`,
+  etc.), NOT the host's. If they all match the host bundle ID, this is
+  the bug.
+
 - **`@rnmapbox/maps` 10.3.0 fails to archive on Xcode 26 / Swift 6.2 (Sprint 70 T472, RESOLVED 2026-05-17)**:
   Mapbox iOS SDK 11.10.0 didn't add `@unknown default:` cases to its
   `Turf.Geometry` / `GeoJSONObject` / `GeoJSONSourceData` enums; under Swift

@@ -106,18 +106,27 @@ build_flavor() {
   echo ""
   echo "═══ Building $flavor ($bundle_id) ═══"
 
-  # 1. Patch Info.plist for this flavor (display name + URL scheme).
-  #    CFBundleIdentifier already references $(PRODUCT_BUNDLE_IDENTIFIER) so the
-  #    xcodebuild override below propagates without an extra PlistBuddy edit.
+  # 1. Patch Memoura/Info.plist for this flavor — display name + URL scheme + bundle ID.
+  #    CRITICAL: set CFBundleIdentifier to LITERAL bundle_id via PlistBuddy (NOT via
+  #    xcodebuild PRODUCT_BUNDLE_IDENTIFIER= flag below). Reason: MapboxMaps Pod's
+  #    Info.plist also references $(PRODUCT_BUNDLE_IDENTIFIER), so a global xcodebuild
+  #    build-setting override propagates to ALL targets → MapboxMaps.framework gets
+  #    Identifier = com.hungphu.memoura.dev (same as host app) → iOS 26 rejects OTA
+  #    install ("Unable to Install Memoura"). PlistBuddy scopes the edit to Memoura/
+  #    Info.plist only, leaving Pods' $(PRODUCT_BUNDLE_IDENTIFIER) to resolve to each
+  #    Pod target's native value (com.mapbox.maps, com.mapbox.common, etc).
+  #    Sprint 70 T472 fix 2026-05-17 — Boss reported iOS install fail on build 147.
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $bundle_id" "$INFO_PLIST"
   /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $display_name" "$INFO_PLIST"
   /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 $url_scheme" "$INFO_PLIST"
   /usr/libexec/PlistBuddy -c "Set :CFBundleURLTypes:0:CFBundleURLSchemes:1 $bundle_id" "$INFO_PLIST"
 
   # 2. Archive. APP_VARIANT exported so the embedded react-native-xcode.sh
   #    re-evaluates app.config.ts with the right flavor (api host, scheme,
-  #    extra.mapboxToken, extra.mapboxStyleUrl). PRODUCT_BUNDLE_IDENTIFIER
-  #    override + DEVELOPMENT_TEAM are passed via xcodebuild build settings so
-  #    `expo prebuild --clean` can nuke ios/ without breaking signing config.
+  #    extra.mapboxToken, extra.mapboxStyleUrl). DEVELOPMENT_TEAM passed via
+  #    xcodebuild build setting so `expo prebuild --clean` can nuke ios/ without
+  #    breaking signing config. NOTE: PRODUCT_BUNDLE_IDENTIFIER NOT passed here
+  #    (see PlistBuddy comment above — would propagate to Pods → install fail).
   #
   # We deliberately DO NOT pass `-quiet` — `set -e` is disabled inside this
   # function because the caller invokes it with `|| FAILED=1`, so we must
@@ -131,7 +140,6 @@ build_flavor() {
     -configuration "$CONFIG" \
     -destination "generic/platform=iOS" \
     -archivePath "$archive_path" \
-    PRODUCT_BUNDLE_IDENTIFIER="$bundle_id" \
     DEVELOPMENT_TEAM="$TEAM_ID" \
     CODE_SIGN_STYLE=Automatic \
     archive \
